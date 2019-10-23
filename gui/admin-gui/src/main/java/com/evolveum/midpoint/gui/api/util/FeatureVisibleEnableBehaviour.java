@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2017-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.util;
@@ -17,25 +17,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElement
  * @author semancik
  */
 public class FeatureVisibleEnableBehaviour extends VisibleEnableBehaviour {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	UserInterfaceElementVisibilityType visibility;
+    UserInterfaceElementVisibilityType visibility;
 
-	public FeatureVisibleEnableBehaviour(GuiFeature feature, CompiledUserProfile userProfile) {
-		super();
-		visibility = userProfile.getFeatureVisibility(feature.getUri());
-	}
-
-	@Override
-	public boolean isVisible() {
-		return CompiledUserProfile.isVisible(visibility, this::isVisibleAutomatic);
+    public FeatureVisibleEnableBehaviour(GuiFeature feature, CompiledUserProfile userProfile) {
+        super();
+        visibility = userProfile.getFeatureVisibility(feature.getUri());
     }
 
-	/**
-	 * Method to be overridden in subclasses, determines automatic visibility of
-	 * the feature. It will be called only if needed.
-	 */
-	public boolean isVisibleAutomatic() {
-		return true;
-	}
+    @Override
+    public boolean isVisible() {
+        return CompiledUserProfile.isVisible(visibility, this::isVisibleAutomatic);
+    }
+
+    /**
+     * Method to be overridden in subclasses, determines automatic visibility of
+     * the feature. It will be called only if needed.
+     */
+    public boolean isVisibleAutomatic() {
+        return true;
+    }
 }

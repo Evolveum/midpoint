@@ -1,18 +1,18 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <user oid="0b88d83f-1722-4b13-b7cc-a2d500470d7f" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<name>administrator-deputy-no-assignments</name>
-	<assignment id="1">
-		<targetRef oid="00000000-0000-0000-0000-000000000002" type="UserType" relation="deputy"/>	<!-- administrator -->
-		<limitTargetContent/>
-	</assignment>
-	<assignment id="2">
-		<targetRef oid="00000000-d34d-b33f-f00d-ffffffff0000" type="RoleType"/>		<!-- reviewer -->
-	</assignment>
-	<fullName>Administrator Deputy No Assignments</fullName>
+    <name>administrator-deputy-no-assignments</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000002" type="UserType" relation="deputy"/>    <!-- administrator -->
+        <limitTargetContent/>
+    </assignment>
+    <assignment id="2">
+        <targetRef oid="00000000-d34d-b33f-f00d-ffffffff0000" type="RoleType"/>        <!-- reviewer -->
+    </assignment>
+    <fullName>Administrator Deputy No Assignments</fullName>
 </user>

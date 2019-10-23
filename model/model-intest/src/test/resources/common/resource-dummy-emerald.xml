@@ -2,14 +2,14 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- EMERALD dummy resource. This is authoritative resource similar to green resource but it has a bit wilder inbound mappings. -->
 
 <resource oid="10000000-0000-0000-0000-00000000e404"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -18,170 +18,170 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource Emerald</name>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>emerald</icfi:instanceId> <!-- Default instance. -->
-			<icfi:supportValidity>false</icfi:supportValidity>
-			<icfi:supportReturnDefaultAttributes>true</icfi:supportReturnDefaultAttributes>
-		</icfc:configurationProperties>
-		<icfc:resultsHandlerConfiguration>
-			<!-- this result handler doesn't support ReturnDefaultAttributes flag, so it has to be disabled (MID-3376) -->
-			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
-		</icfc:resultsHandlerConfiguration>
+    <name>Dummy Resource Emerald</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-	</connectorConfiguration>
-	
-	<schemaHandling>
-		<objectType>
-			<displayName>Default Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<inbound>
-					<target>
-						<path>$c:user/c:name</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<displayName>Full Name</displayName>
-				<inbound>
-					<strength>strong</strength>
-					<expression>
-				      <script>
-				        <code>
-				          if (input == null || input.contains('NULL')) {
-				            return null;
-				          }
-				          return input;
-				        </code>
-				      </script>
-				    </expression>
-					<target>
-						<path>$user/fullName</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:title</ref>
-				<inbound>
-					<strength>strong</strength>
-					<expression>
-				      <script>
-				        <code>
-				          if (input == null || input.contains('NULL')) {
-				            return null;
-				          }
-				          return input;
-				        </code>
-				      </script>
-				    </expression>
-					<target>
-						<path>title</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:location</ref>
-				<inbound>
-					<strength>strong</strength>
-					<target>
-						<path>locality</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:loot</ref>
-				<displayName>Loot</displayName>
-				<description>This will be interpreted as date and synced to validFrom</description>
-				<fetchStrategy>explicit</fetchStrategy>
-				<inbound>
-					<target>
-						<path>$user/activation/validFrom</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:gossip</ref>
-				<description>This will be interpreted as date and synced to validTo</description>
-				<inbound>
-					<target>
-						<path>$user/activation/validTo</path>
-					</target>
-				</inbound>
-			</attribute>
-			
-			<activation>
-            	<administrativeStatus>
-            		<inbound/>
-            	</administrativeStatus>
+        <icfc:configurationProperties>
+            <icfi:instanceId>emerald</icfi:instanceId> <!-- Default instance. -->
+            <icfi:supportValidity>false</icfi:supportValidity>
+            <icfi:supportReturnDefaultAttributes>true</icfi:supportReturnDefaultAttributes>
+        </icfc:configurationProperties>
+        <icfc:resultsHandlerConfiguration>
+            <!-- this result handler doesn't support ReturnDefaultAttributes flag, so it has to be disabled (MID-3376) -->
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <inbound>
+                    <target>
+                        <path>$c:user/c:name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                      <script>
+                        <code>
+                          if (input == null || input.contains('NULL')) {
+                            return null;
+                          }
+                          return input;
+                        </code>
+                      </script>
+                    </expression>
+                    <target>
+                        <path>$user/fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:title</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                      <script>
+                        <code>
+                          if (input == null || input.contains('NULL')) {
+                            return null;
+                          }
+                          return input;
+                        </code>
+                      </script>
+                    </expression>
+                    <target>
+                        <path>title</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>locality</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:loot</ref>
+                <displayName>Loot</displayName>
+                <description>This will be interpreted as date and synced to validFrom</description>
+                <fetchStrategy>explicit</fetchStrategy>
+                <inbound>
+                    <target>
+                        <path>$user/activation/validFrom</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:gossip</ref>
+                <description>This will be interpreted as date and synced to validTo</description>
+                <inbound>
+                    <target>
+                        <path>$user/activation/validTo</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <activation>
+                <administrativeStatus>
+                    <inbound/>
+                </administrativeStatus>
             </activation>
-			            
-		</objectType>
-		
-	</schemaHandling>
-	
-	<projection>
-		<assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
-	</projection>
-	
-	<synchronization>
-		<objectSynchronization>
-			<enabled>true</enabled>
-			<correlation>
-				<q:equal>
-					<q:path>c:name</q:path>
-					<expression>
-						<path>$account/attributes/icfs:name</path>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateFocus</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-	            </action>
-	        </reaction>
+
+        </objectType>
+
+    </schemaHandling>
+
+    <projection>
+        <assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
+    </projection>
+
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <path>$account/attributes/icfs:name</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
         </objectSynchronization>
-	</synchronization>
+    </synchronization>
 
 </resource>

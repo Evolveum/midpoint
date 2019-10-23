@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,19 +19,19 @@ import javax.xml.datatype.XMLGregorianCalendar;
  */
 public class ScannerHandlerDto extends HandlerDto {
 
-	public static final String F_LAST_SCAN_TIMESTAMP = "lastScanTimestamp";
+    public static final String F_LAST_SCAN_TIMESTAMP = "lastScanTimestamp";
 
-	public ScannerHandlerDto(TaskDto taskDto) {
-		super(taskDto);
-	}
+    public ScannerHandlerDto(TaskDto taskDto) {
+        super(taskDto);
+    }
 
-	public String getLastScanTimestamp() {
-		PrismProperty<XMLGregorianCalendar> lastScanTimestampProperty = taskDto.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
-		if (lastScanTimestampProperty != null && lastScanTimestampProperty.getRealValue() != null) {
-			return WebComponentUtil.formatDate(lastScanTimestampProperty.getRealValue());		// TODO correct date
-		} else {
-			return null;
-		}
-	}
+    public String getLastScanTimestamp() {
+        PrismProperty<XMLGregorianCalendar> lastScanTimestampProperty = taskDto.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
+        if (lastScanTimestampProperty != null && lastScanTimestampProperty.getRealValue() != null) {
+            return WebComponentUtil.formatDate(lastScanTimestampProperty.getRealValue());        // TODO correct date
+        } else {
+            return null;
+        }
+    }
 
 }

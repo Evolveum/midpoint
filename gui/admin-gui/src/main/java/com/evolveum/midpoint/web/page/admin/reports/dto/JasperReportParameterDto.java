@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.reports.dto;
@@ -22,7 +22,7 @@ import net.sf.jasperreports.engine.JRPropertiesMap;
 public class JasperReportParameterDto extends Selectable implements Serializable, Editable, Validatable {
 
    private static final long serialVersionUID = 1L;
-	private String name;
+    private String name;
     private Class<?> type;
     private String typeAsString;
     private String description;
@@ -45,37 +45,37 @@ public class JasperReportParameterDto extends Selectable implements Serializable
         this.forPrompting = param.isForPrompting();
 
         if (param.getDescription() != null){
-    		this.description = param.getDescription();
-    	}
-    	this.nestedType = param.getNestedType();
-    	this.nestedTypeAsString = param.getNestedTypeName();
+            this.description = param.getDescription();
+        }
+        this.nestedType = param.getNestedType();
+        this.nestedTypeAsString = param.getNestedTypeName();
 
-    	this.value = new ArrayList<>();
-    	this.value.add(new JasperReportValueDto());
+        this.value = new ArrayList<>();
+        this.value.add(new JasperReportValueDto());
 
-    	this.properties = new JasperReportParameterPropertiesDto(param.getPropertiesMap());
+        this.properties = new JasperReportParameterPropertiesDto(param.getPropertiesMap());
 
 
     }
 
     public List<JasperReportValueDto> getValue() {
-		return value;
-	}
+        return value;
+    }
 
     public void setValue(List<JasperReportValueDto> value) {
-		this.value = value;
-	}
+        this.value = value;
+    }
 
     public void addValue() {
-		getValue().add(new JasperReportValueDto());
-	}
+        getValue().add(new JasperReportValueDto());
+    }
 
-	public void removeValue(JasperReportValueDto realValue) {
-		getValue().remove(realValue);
-		if (getValue().isEmpty()) {
-			getValue().add(new JasperReportValueDto());
-		}
-	}
+    public void removeValue(JasperReportValueDto realValue) {
+        getValue().remove(realValue);
+        if (getValue().isEmpty()) {
+            getValue().add(new JasperReportValueDto());
+        }
+    }
 
 
     public boolean isForPrompting() {
@@ -99,8 +99,8 @@ public class JasperReportParameterDto extends Selectable implements Serializable
     }
 
     public String getNestedTypeAsString() {
-		return nestedTypeAsString;
-	}
+        return nestedTypeAsString;
+    }
 
     public String getDescription() {
         return description;
@@ -112,20 +112,20 @@ public class JasperReportParameterDto extends Selectable implements Serializable
 
 
     public JasperReportParameterPropertiesDto getProperties() {
-		return properties;
-	}
+        return properties;
+    }
 
     public JRPropertiesMap getJRProperties() {
-		if (properties == null) {
-			return null;
-		}
+        if (properties == null) {
+            return null;
+        }
 
-		return properties.getPropertiesMap();
-	}
+        return properties.getPropertiesMap();
+    }
 
     public void setProperties(JasperReportParameterPropertiesDto properties) {
-		this.properties = properties;
-	}
+        this.properties = properties;
+    }
 
     public Class<?> getType() throws ClassNotFoundException {
         if (type == null) {
@@ -139,19 +139,19 @@ public class JasperReportParameterDto extends Selectable implements Serializable
     }
 
     public Class<?> getNestedType() throws ClassNotFoundException {
-    	if (StringUtils.isBlank(nestedTypeAsString)) {
-    		return null;
-    	}
-    	nestedType = Class.forName(nestedTypeAsString);
+        if (StringUtils.isBlank(nestedTypeAsString)) {
+            return null;
+        }
+        nestedType = Class.forName(nestedTypeAsString);
         return nestedType;
     }
 
     public boolean isMultiValue() throws ClassNotFoundException{
-    	if (List.class.isAssignableFrom(getType())){
-    		return true;
-    	}
+        if (List.class.isAssignableFrom(getType())){
+            return true;
+        }
 
-    	return false;
+        return false;
     }
 
     @Override

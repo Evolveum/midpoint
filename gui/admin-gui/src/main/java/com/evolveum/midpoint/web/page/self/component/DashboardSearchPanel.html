@@ -15,25 +15,25 @@
   ~ limitations under the License.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-	<form wicket:id="searchForm">
-	   <div class="input-group">
-	   		<wicket:enclosure child="searchInput">
-		        <input wicket:id="searchInput" wicket:message="placeholder:PageDashboard.search.input" class="form-control" type="text" />
-		        <div class="input-group-btn">
-		            <button wicket:id="searchButton" class="btn btn-primary">
-		                <i class="fa fa-search"/>
-		            </button>
-		            <button aria-expanded="false" type="button" class="btn btn-primary dropdown-toggle"
-		                    data-toggle="dropdown">
-		                <span class="caret"></span>
-		                <span class="sr-only">Toggle Dropdown</span>
-		            </button>
-		            <ul class="dropdown-menu" role="menu">
-		                <li wicket:id="searchTypes"><a wicket:id="searchTypeItem" href="#">
-	                    </a></li>
-		            </ul>
-		        </div>
-			</wicket:enclosure>
-	    </div>
-	</form>
+    <form wicket:id="searchForm">
+       <div class="input-group">
+               <wicket:enclosure child="searchInput">
+                <input wicket:id="searchInput" wicket:message="placeholder:PageDashboard.search.input" class="form-control" type="text" />
+                <div class="input-group-btn">
+                    <button wicket:id="searchButton" class="btn btn-primary">
+                        <i class="fa fa-search"/>
+                    </button>
+                    <button aria-expanded="false" type="button" class="btn btn-primary dropdown-toggle"
+                            data-toggle="dropdown">
+                        <span class="caret"></span>
+                        <span class="sr-only">Toggle Dropdown</span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                        <li wicket:id="searchTypes"><a wicket:id="searchTypeItem" href="#">
+                        </a></li>
+                    </ul>
+                </div>
+            </wicket:enclosure>
+        </div>
+    </form>
 </wicket:panel>

@@ -2,7 +2,7 @@ package com.evolveum.midpoint.testing.story;
 /*
  * Copyright (c) 2014-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,7 +22,6 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -58,150 +57,150 @@ import static org.testng.AssertJUnit.*;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestVillage extends AbstractStoryTest {
 
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "village");
+    public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "village");
 
-	public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+    public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-	public static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
-	public static final String OBJECT_TEMPLATE_USER_OID = "10000000-0000-0000-0000-000000000222";
+    public static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
+    public static final String OBJECT_TEMPLATE_USER_OID = "10000000-0000-0000-0000-000000000222";
 
-	protected static final File RESOURCE_DUMMY_SOURCE_FILE = new File(TEST_DIR, "resource-dummy-source.xml");
-	protected static final String RESOURCE_DUMMY_SOURCE_ID = "SRC";
-	protected static final String RESOURCE_DUMMY_SOURCE_OID = "10000000-0000-0000-0000-000000000001";
-	protected static final String RESOURCE_DUMMY_SOURCE_NAMESPACE = MidPointConstants.NS_RI;
+    protected static final File RESOURCE_DUMMY_SOURCE_FILE = new File(TEST_DIR, "resource-dummy-source.xml");
+    protected static final String RESOURCE_DUMMY_SOURCE_ID = "SRC";
+    protected static final String RESOURCE_DUMMY_SOURCE_OID = "10000000-0000-0000-0000-000000000001";
+    protected static final String RESOURCE_DUMMY_SOURCE_NAMESPACE = MidPointConstants.NS_RI;
 
-	protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
-	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-	protected static final QName OPENDJ_ASSOCIATION_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "group");
+    protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
+    protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
+    protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
+    protected static final QName OPENDJ_ASSOCIATION_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "group");
 
-	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME = "firstname";
-	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME = "lastname";
-	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_TYPE = "type";
-	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC = "loc";
-	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG = "org";
+    private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME = "firstname";
+    private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME = "lastname";
+    private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_TYPE = "type";
+    private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC = "loc";
+    private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG = "org";
 
-	public static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
-	public static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
-	public static final String ROLE_BASIC_NAME = "Basic";
+    public static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
+    public static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
+    public static final String ROLE_BASIC_NAME = "Basic";
 
-	public static final File ROLE_SIMPLE_FILE = new File(TEST_DIR, "role-account-construction.xml");
-	public static final String ROLE_SIMPLE_OID = "10000000-0000-0000-0000-000000000602";
-	public static final String ROLE_SIMPLE_NAME = "Simple account construction";
+    public static final File ROLE_SIMPLE_FILE = new File(TEST_DIR, "role-account-construction.xml");
+    public static final String ROLE_SIMPLE_OID = "10000000-0000-0000-0000-000000000602";
+    public static final String ROLE_SIMPLE_NAME = "Simple account construction";
 
-	public static final File ROLE_META_FUNCTIONAL_ORG_FILE = new File(TEST_DIR, "role-meta-functional-org.xml");
-	public static final String ROLE_META_FUNCTIONAL_ORG_OID = "74aac2c8-ca0f-11e3-bb29-001e8c717e5b";
+    public static final File ROLE_META_FUNCTIONAL_ORG_FILE = new File(TEST_DIR, "role-meta-functional-org.xml");
+    public static final String ROLE_META_FUNCTIONAL_ORG_OID = "74aac2c8-ca0f-11e3-bb29-001e8c717e5b";
 
-	public static final File ROLE_META_PROJECT_ORG_FILE = new File(TEST_DIR, "role-meta-project-org.xml");
-	public static final String ROLE_META_PROJECT_ORG_OID = "ab33ec1e-0c0b-11e4-ba88-001e8c717e5b";
+    public static final File ROLE_META_PROJECT_ORG_FILE = new File(TEST_DIR, "role-meta-project-org.xml");
+    public static final String ROLE_META_PROJECT_ORG_OID = "ab33ec1e-0c0b-11e4-ba88-001e8c717e5b";
 
-	protected static final File ORGS_FILE = new File(TEST_DIR, "orgs.xml");
-	public static final String ORG_GOV_NAME = "Gov";
-	public static final String ORG_EXEC_NAME = "Exec";
-	public static final String ORG_INFRA_NAME = "Infra";
+    protected static final File ORGS_FILE = new File(TEST_DIR, "orgs.xml");
+    public static final String ORG_GOV_NAME = "Gov";
+    public static final String ORG_EXEC_NAME = "Exec";
+    public static final String ORG_INFRA_NAME = "Infra";
 
-	public static final String ORG_INFRA_OID = "00000000-8888-6666-0000-100000000004";
-	private static final String GLOBAL_PASSWORD_POLICY_OID = "81818181-76e0-59e2-8888-3d4f02d3fffc";
-	private static final String ORG_PASSWORD_POLICY_OID = "81818181-76e0-59e2-8888-3d4f02d3fffe";
-	private static final File GLOBAL_PASSWORD_POLICY_FILE = new File(TEST_DIR, "global-password-policy.xml");
-	private static final File ORG_PASSWORD_POLICY_FILE = new File(TEST_DIR, "org-password-policy.xml");
+    public static final String ORG_INFRA_OID = "00000000-8888-6666-0000-100000000004";
+    private static final String GLOBAL_PASSWORD_POLICY_OID = "81818181-76e0-59e2-8888-3d4f02d3fffc";
+    private static final String ORG_PASSWORD_POLICY_OID = "81818181-76e0-59e2-8888-3d4f02d3fffe";
+    private static final File GLOBAL_PASSWORD_POLICY_FILE = new File(TEST_DIR, "global-password-policy.xml");
+    private static final File ORG_PASSWORD_POLICY_FILE = new File(TEST_DIR, "org-password-policy.xml");
 
-	public static final File ORG_PROJECT_JOLLY_ROGER_FILE = new File(TEST_DIR, "org-project-jolly-roger.xml");
-	public static final String ORG_PROJECT_JOLLY_ROGER_OID = "a9ac1aa2-0c0f-11e4-9214-001e8c717e5b";
+    public static final File ORG_PROJECT_JOLLY_ROGER_FILE = new File(TEST_DIR, "org-project-jolly-roger.xml");
+    public static final String ORG_PROJECT_JOLLY_ROGER_OID = "a9ac1aa2-0c0f-11e4-9214-001e8c717e5b";
 
-	protected static final File TASK_LIVE_SYNC_DUMMY_SOURCE_FILE = new File(TEST_DIR, "task-dumy-source-livesync.xml");
-	protected static final String TASK_LIVE_SYNC_DUMMY_SOURCE_OID = "10000000-0000-0000-5555-555500000001";
+    protected static final File TASK_LIVE_SYNC_DUMMY_SOURCE_FILE = new File(TEST_DIR, "task-dumy-source-livesync.xml");
+    protected static final String TASK_LIVE_SYNC_DUMMY_SOURCE_OID = "10000000-0000-0000-5555-555500000001";
 
-	private static final File USER_MIKE_FILE = new File(COMMON_DIR, "user-mike.xml");
-	private static final String USER_MIKE_OID = "c0c010c0-d34d-b33f-f00d-222333111111";
+    private static final File USER_MIKE_FILE = new File(COMMON_DIR, "user-mike.xml");
+    private static final String USER_MIKE_OID = "c0c010c0-d34d-b33f-f00d-222333111111";
 
-	private static final File USER_MURRAY_FILE = new File(TEST_DIR, "user-murray.xml");
-	private static final String USER_MURRAY_OID = "c0c010c0-d34d-b33f-f00d-1111111111aa";
+    private static final File USER_MURRAY_FILE = new File(TEST_DIR, "user-murray.xml");
+    private static final String USER_MURRAY_OID = "c0c010c0-d34d-b33f-f00d-1111111111aa";
 
-	private static final String ACCOUNT_HERMAN_USERNAME = "ht";
-	private static final String ACCOUNT_HERMAN_FIST_NAME = "Herman";
-	private static final String ACCOUNT_HERMAN_LAST_NAME = "Toothrot";
-	private static final String ACCOUNT_HERMAN_LOC = "Monkey Island";
-	private static final String ACCOUNT_HERMAN_ORG = "Gov";
-	private static final String USER_HERMAN_NAME = "G."+ACCOUNT_HERMAN_FIST_NAME+"."+ACCOUNT_HERMAN_LAST_NAME;
+    private static final String ACCOUNT_HERMAN_USERNAME = "ht";
+    private static final String ACCOUNT_HERMAN_FIST_NAME = "Herman";
+    private static final String ACCOUNT_HERMAN_LAST_NAME = "Toothrot";
+    private static final String ACCOUNT_HERMAN_LOC = "Monkey Island";
+    private static final String ACCOUNT_HERMAN_ORG = "Gov";
+    private static final String USER_HERMAN_NAME = "G."+ACCOUNT_HERMAN_FIST_NAME+"."+ACCOUNT_HERMAN_LAST_NAME;
 
-	private static final String ACCOUNT_LEMONHEAD_USERNAME = "lemonhead";
-	private static final String ACCOUNT_LEMONHEAD_FIST_NAME = "Lemonhead";
-	private static final String ACCOUNT_LEMONHEAD_LAST_NAME = "Canibal";
-	private static final String ACCOUNT_LEMONHEAD_LOC = "Monkey Island";
-	private static final String ACCOUNT_LEMONHEAD_ORG = "Exec";
-	private static final String USER_LEMONHEAD_NAME = "E."+ACCOUNT_LEMONHEAD_FIST_NAME+"."+ACCOUNT_LEMONHEAD_LAST_NAME;
+    private static final String ACCOUNT_LEMONHEAD_USERNAME = "lemonhead";
+    private static final String ACCOUNT_LEMONHEAD_FIST_NAME = "Lemonhead";
+    private static final String ACCOUNT_LEMONHEAD_LAST_NAME = "Canibal";
+    private static final String ACCOUNT_LEMONHEAD_LOC = "Monkey Island";
+    private static final String ACCOUNT_LEMONHEAD_ORG = "Exec";
+    private static final String USER_LEMONHEAD_NAME = "E."+ACCOUNT_LEMONHEAD_FIST_NAME+"."+ACCOUNT_LEMONHEAD_LAST_NAME;
 
-	private static final String ACCOUNT_SHARPTOOTH_USERNAME = "sharptooth";
-	private static final String ACCOUNT_SHARPTOOTH_FIST_NAME = "Sharptooth";
-	private static final String ACCOUNT_SHARPTOOTH_LAST_NAME = "Canibal";
+    private static final String ACCOUNT_SHARPTOOTH_USERNAME = "sharptooth";
+    private static final String ACCOUNT_SHARPTOOTH_FIST_NAME = "Sharptooth";
+    private static final String ACCOUNT_SHARPTOOTH_LAST_NAME = "Canibal";
 
-	private static final String ACCOUNT_GUYBRUSH_USERNAME = "guybrush";
-	private static final String ACCOUNT_GUYBRUSH_FIST_NAME = "Guybrush";
-	private static final String ACCOUNT_GUYBRUSH_LAST_NAME = "Threepwood";
+    private static final String ACCOUNT_GUYBRUSH_USERNAME = "guybrush";
+    private static final String ACCOUNT_GUYBRUSH_FIST_NAME = "Guybrush";
+    private static final String ACCOUNT_GUYBRUSH_LAST_NAME = "Threepwood";
 
-	private static final String ACCOUNT_MANCOMB_USERNAME = "mancomb";
-	private static final String ACCOUNT_MANCOMB_FIST_NAME = "Mancomb";
-	private static final String ACCOUNT_MANCOMB_LAST_NAME = "Seepgood";
-	private static final String ACCOUNT_MANCOMB_LOC = "-";
-	private static final String ACCOUNT_MANCOMB_ORG = "-";
-	private static final String USER_MANCOMB_NAME = ACCOUNT_MANCOMB_FIST_NAME+"."+ACCOUNT_MANCOMB_LAST_NAME;
+    private static final String ACCOUNT_MANCOMB_USERNAME = "mancomb";
+    private static final String ACCOUNT_MANCOMB_FIST_NAME = "Mancomb";
+    private static final String ACCOUNT_MANCOMB_LAST_NAME = "Seepgood";
+    private static final String ACCOUNT_MANCOMB_LOC = "-";
+    private static final String ACCOUNT_MANCOMB_ORG = "-";
+    private static final String USER_MANCOMB_NAME = ACCOUNT_MANCOMB_FIST_NAME+"."+ACCOUNT_MANCOMB_LAST_NAME;
 
-	private static final String ACCOUNT_COBB_USERNAME = "cobb";
-	private static final String ACCOUNT_COBB_FIST_NAME = "Cobb";
-	private static final String ACCOUNT_COBB_LAST_NAME = "Loom";
+    private static final String ACCOUNT_COBB_USERNAME = "cobb";
+    private static final String ACCOUNT_COBB_FIST_NAME = "Cobb";
+    private static final String ACCOUNT_COBB_LAST_NAME = "Loom";
 
-	private static final String ACCOUNT_LARGO_USERNAME = "largo";
-	private static final String ACCOUNT_LARGO_FIST_NAME = "Largo";
-	private static final String ACCOUNT_LARGO_LAST_NAME = "LaGrande";
+    private static final String ACCOUNT_LARGO_USERNAME = "largo";
+    private static final String ACCOUNT_LARGO_FIST_NAME = "Largo";
+    private static final String ACCOUNT_LARGO_LAST_NAME = "LaGrande";
 
-	private static final String ACCOUNT_STAN_USERNAME = "stan";
-	private static final String ACCOUNT_STAN_FIST_NAME = "Stan";
-	private static final String ACCOUNT_STAN_LAST_NAME = "Salesman";
+    private static final String ACCOUNT_STAN_USERNAME = "stan";
+    private static final String ACCOUNT_STAN_FIST_NAME = "Stan";
+    private static final String ACCOUNT_STAN_LAST_NAME = "Salesman";
 
-	private static final String ACCOUNT_CAPSIZE_USERNAME = "capsize";
-	private static final String ACCOUNT_CAPSIZE_FIST_NAME = "Kate";
-	private static final String ACCOUNT_CAPSIZE_LAST_NAME = "Capsize";
+    private static final String ACCOUNT_CAPSIZE_USERNAME = "capsize";
+    private static final String ACCOUNT_CAPSIZE_FIST_NAME = "Kate";
+    private static final String ACCOUNT_CAPSIZE_LAST_NAME = "Capsize";
 
-	private static final String ACCOUNT_WALLY_USERNAME = "wally";
-	private static final String ACCOUNT_WALLY_FIST_NAME = "Wally";
-	private static final String ACCOUNT_WALLY_LAST_NAME = "Feed";
-	private static final String USER_WALLY_NAME = ACCOUNT_WALLY_FIST_NAME+"."+ACCOUNT_WALLY_LAST_NAME;
+    private static final String ACCOUNT_WALLY_USERNAME = "wally";
+    private static final String ACCOUNT_WALLY_FIST_NAME = "Wally";
+    private static final String ACCOUNT_WALLY_LAST_NAME = "Feed";
+    private static final String USER_WALLY_NAME = ACCOUNT_WALLY_FIST_NAME+"."+ACCOUNT_WALLY_LAST_NAME;
 
-	private static final String ACCOUNT_AUGUSTUS_USERNAME = "augustus";
-	private static final String ACCOUNT_AUGUSTUS_FIST_NAME = "Augustus";
-	private static final String ACCOUNT_AUGUSTUS_LAST_NAME = "DeWaat";
+    private static final String ACCOUNT_AUGUSTUS_USERNAME = "augustus";
+    private static final String ACCOUNT_AUGUSTUS_FIST_NAME = "Augustus";
+    private static final String ACCOUNT_AUGUSTUS_LAST_NAME = "DeWaat";
 
-	private static final String ACCOUNT_ROGERSSR_USERNAME = "rogers,sr";
-	private static final String ACCOUNT_ROGERSSR_FIST_NAME = "Rum";
-	private static final String ACCOUNT_ROGERSSR_LAST_NAME = "Rogers, Sr.";
+    private static final String ACCOUNT_ROGERSSR_USERNAME = "rogers,sr";
+    private static final String ACCOUNT_ROGERSSR_FIST_NAME = "Rum";
+    private static final String ACCOUNT_ROGERSSR_LAST_NAME = "Rogers, Sr.";
 
-	private static final String ACCOUNT_TELEKE_USERNAME = "tőlőkë";
-	private static final String ACCOUNT_TELEKE_FIST_NAME = "Félix";
-	private static final String ACCOUNT_TELEKE_LAST_NAME = "Tőlőkë";
+    private static final String ACCOUNT_TELEKE_USERNAME = "tőlőkë";
+    private static final String ACCOUNT_TELEKE_FIST_NAME = "Félix";
+    private static final String ACCOUNT_TELEKE_LAST_NAME = "Tőlőkë";
 
-	private static final File GROUP_GOV_MONKEY_ISLAND_LDIF_FILE = new File(TEST_DIR, "group-gov-monkey-island.ldif");
-	private static final File GROUP_EXEC_MONKEY_ISLAND_LDIF_FILE = new File(TEST_DIR, "group-exec-monkey-island.ldif");
+    private static final File GROUP_GOV_MONKEY_ISLAND_LDIF_FILE = new File(TEST_DIR, "group-gov-monkey-island.ldif");
+    private static final File GROUP_EXEC_MONKEY_ISLAND_LDIF_FILE = new File(TEST_DIR, "group-exec-monkey-island.ldif");
 
-	private static final String GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_NAME = "groupOfUniqueNames";
-	private static final QName GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_QNAME = new QName(MidPointConstants.NS_RI, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_NAME);
+    private static final String GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_NAME = "groupOfUniqueNames";
+    private static final QName GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_QNAME = new QName(MidPointConstants.NS_RI, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_NAME);
 
-	private static final String GROUP_MEMBER_ATTRIBUTE_NAME = "uniqueMember";
+    private static final String GROUP_MEMBER_ATTRIBUTE_NAME = "uniqueMember";
 
-	private static final String GROUP_JOLLYROGERS_DN = "cn=jollyrogers,ou=groups,dc=example,dc=com";
+    private static final String GROUP_JOLLYROGERS_DN = "cn=jollyrogers,ou=groups,dc=example,dc=com";
 
-	private static final String GROUP_PROJECT_JOLLY_ROGER_ADMIN_DN = "cn=admins,ou=Jolly Roger,dc=example,dc=com";
+    private static final String GROUP_PROJECT_JOLLY_ROGER_ADMIN_DN = "cn=admins,ou=Jolly Roger,dc=example,dc=com";
 
 
-	protected static DummyResource dummyResourceSrc;
-	protected static DummyResourceContoller dummyResourceCtlSrc;
-	protected ResourceType resourceDummySrcType;
-	protected PrismObject<ResourceType> resourceDummySrc;
+    protected static DummyResource dummyResourceSrc;
+    protected static DummyResourceContoller dummyResourceCtlSrc;
+    protected ResourceType resourceDummySrcType;
+    protected PrismObject<ResourceType> resourceDummySrc;
 
-	protected ResourceType resourceOpenDjType;
-	protected PrismObject<ResourceType> resourceOpenDj;
+    protected ResourceType resourceOpenDjType;
+    protected PrismObject<ResourceType> resourceOpenDj;
 
-	@Override
+    @Override
     protected void startResources() throws Exception {
         openDJController.startCleanServer();
     }
@@ -211,62 +210,62 @@ public class TestVillage extends AbstractStoryTest {
         openDJController.stop();
     }
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		// Resources
-		dummyResourceCtlSrc = DummyResourceContoller.create(RESOURCE_DUMMY_SOURCE_ID, resourceDummySrc);
-		DummyObjectClass dummyAdAccountObjectClass = dummyResourceCtlSrc.getDummyResource().getAccountObjectClass();
-		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, String.class, false, false);
-		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME, String.class, false, false);
-		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_TYPE, String.class, false, false);
-		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC, String.class, false, false);
-		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG, String.class, false, false);
-		dummyResourceSrc = dummyResourceCtlSrc.getDummyResource();
-		resourceDummySrc = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SOURCE_FILE, RESOURCE_DUMMY_SOURCE_OID, initTask, initResult);
-		resourceDummySrcType = resourceDummySrc.asObjectable();
-		dummyResourceCtlSrc.setResource(resourceDummySrc);
-		dummyResourceSrc.setSyncStyle(DummySyncStyle.SMART);
+        // Resources
+        dummyResourceCtlSrc = DummyResourceContoller.create(RESOURCE_DUMMY_SOURCE_ID, resourceDummySrc);
+        DummyObjectClass dummyAdAccountObjectClass = dummyResourceCtlSrc.getDummyResource().getAccountObjectClass();
+        dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, String.class, false, false);
+        dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME, String.class, false, false);
+        dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_TYPE, String.class, false, false);
+        dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC, String.class, false, false);
+        dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG, String.class, false, false);
+        dummyResourceSrc = dummyResourceCtlSrc.getDummyResource();
+        resourceDummySrc = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SOURCE_FILE, RESOURCE_DUMMY_SOURCE_OID, initTask, initResult);
+        resourceDummySrcType = resourceDummySrc.asObjectable();
+        dummyResourceCtlSrc.setResource(resourceDummySrc);
+        dummyResourceSrc.setSyncStyle(DummySyncStyle.SMART);
 
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
-		resourceOpenDjType = resourceOpenDj.asObjectable();
-		openDJController.setResource(resourceOpenDj);
+        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
+        resourceOpenDjType = resourceOpenDj.asObjectable();
+        openDJController.setResource(resourceOpenDj);
 
-		// Object Templates
-		importObjectFromFile(OBJECT_TEMPLATE_USER_FILE, initResult);
-		setDefaultUserTemplate(OBJECT_TEMPLATE_USER_OID);
+        // Object Templates
+        importObjectFromFile(OBJECT_TEMPLATE_USER_FILE, initResult);
+        setDefaultUserTemplate(OBJECT_TEMPLATE_USER_OID);
 
-		// Role
-		importObjectFromFile(ROLE_BASIC_FILE, initResult);
-		importObjectFromFile(ROLE_SIMPLE_FILE, initResult);
-		importObjectFromFile(ROLE_META_FUNCTIONAL_ORG_FILE, initResult);
-		importObjectFromFile(ROLE_META_PROJECT_ORG_FILE, initResult);
+        // Role
+        importObjectFromFile(ROLE_BASIC_FILE, initResult);
+        importObjectFromFile(ROLE_SIMPLE_FILE, initResult);
+        importObjectFromFile(ROLE_META_FUNCTIONAL_ORG_FILE, initResult);
+        importObjectFromFile(ROLE_META_PROJECT_ORG_FILE, initResult);
 
-		// Org
-		repoAddObjectsFromFile(ORGS_FILE, OrgType.class, initResult);
+        // Org
+        repoAddObjectsFromFile(ORGS_FILE, OrgType.class, initResult);
 
-		// LDAP content
-		openDJController.addEntryFromLdifFile(GROUP_GOV_MONKEY_ISLAND_LDIF_FILE);
-		openDJController.addEntryFromLdifFile(GROUP_EXEC_MONKEY_ISLAND_LDIF_FILE);
+        // LDAP content
+        openDJController.addEntryFromLdifFile(GROUP_GOV_MONKEY_ISLAND_LDIF_FILE);
+        openDJController.addEntryFromLdifFile(GROUP_EXEC_MONKEY_ISLAND_LDIF_FILE);
 
-		// Tasks
-		importObjectFromFile(TASK_LIVE_SYNC_DUMMY_SOURCE_FILE, initResult);
+        // Tasks
+        importObjectFromFile(TASK_LIVE_SYNC_DUMMY_SOURCE_FILE, initResult);
 
-		InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
+        InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
 
-	}
+    }
 
-	@Override
-	protected File getSystemConfigurationFile() {
-		return SYSTEM_CONFIGURATION_FILE;
-	}
+    @Override
+    protected File getSystemConfigurationFile() {
+        return SYSTEM_CONFIGURATION_FILE;
+    }
 
-	@Test
+    @Test
     public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
+        final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_SOURCE_OID, task);
         TestUtil.assertSuccess(testResultHr);
@@ -281,16 +280,16 @@ public class TestVillage extends AbstractStoryTest {
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
         waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
         waitForTaskStart(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, false);
-	}
+    }
 
-	/**
-	 * MID-3424
-	 */
-	@Test
+    /**
+     * MID-3424
+     */
+    @Test
     public void test020ResourceOpenDjGet() throws Exception {
-		final String TEST_NAME = "test020ResourceOpenDjGet";
+        final String TEST_NAME = "test020ResourceOpenDjGet";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
@@ -316,19 +315,19 @@ public class TestVillage extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
-		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
-		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
-	}
+    }
 
-	/**
-	 * MID-3424
-	 */
-	@Test
+    /**
+     * MID-3424
+     */
+    @Test
     public void test022ResourceOpenDjRefinedSchema() throws Exception {
-		final String TEST_NAME = "test022ResourceOpenDjRefinedSchema";
+        final String TEST_NAME = "test022ResourceOpenDjRefinedSchema";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resourceBefore = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
@@ -361,7 +360,7 @@ public class TestVillage extends AbstractStoryTest {
         long t4 = System.currentTimeMillis();
 
         display("Times", "getObject(RESOURCE_OPENDJ_OID): "+(t1-t0)+"ms\ngetResourceSchema: "+(t3-t2)
-        		+"ms\ngetRefinedSchema: "+(t4-t3)+"ms");
+                +"ms\ngetRefinedSchema: "+(t4-t3)+"ms");
 
         // variable number of clones: 1 or 2 because of trigger scanner task
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 1, 2);
@@ -369,19 +368,19 @@ public class TestVillage extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
-		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
-		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 
         assertTrue("Resource schema has changed", resourceSchemaBefore == resourceSchemaAfter );
         assertTrue("Refined schema has changed", refinedSchemaBefore == refinedSchemaAfter );
-	}
+    }
 
-	@Test
+    @Test
     public void test100AddSrcAccountHerman() throws Exception {
-		final String TEST_NAME = "test100AddSrcAccountHerman";
+        final String TEST_NAME = "test100AddSrcAccountHerman";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_HERMAN_FIST_NAME);
@@ -397,13 +396,13 @@ public class TestVillage extends AbstractStoryTest {
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
         assertUserNoRole(user, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ACCOUNT_HERMAN_ORG);
         assertLocGov(user, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
-	}
+    }
 
-	@Test
+    @Test
     public void test101HermanAssignBasicRole() throws Exception {
-		final String TEST_NAME = "test101HermanAssignBasicRole";
+        final String TEST_NAME = "test101HermanAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
@@ -415,13 +414,13 @@ public class TestVillage extends AbstractStoryTest {
         assertUserLdap(userAfter, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ACCOUNT_HERMAN_ORG);
         assertLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
         assertLdapLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
-	}
+    }
 
-	@Test
+    @Test
     public void test102HermanUnAssignBasicRole() throws Exception {
-		final String TEST_NAME = "test102HermanUnAssignBasicRole";
+        final String TEST_NAME = "test102HermanUnAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
@@ -433,13 +432,13 @@ public class TestVillage extends AbstractStoryTest {
         assertUserNoRole(userAfter, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ACCOUNT_HERMAN_ORG);
         assertLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
         assertNoLdapLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
-	}
+    }
 
-	@Test
+    @Test
     public void test103HermanAssignBasicAndSimpleRole() throws Exception {
-		final String TEST_NAME = "test103HermanAssignBasicAndSimpleRole";
+        final String TEST_NAME = "test103HermanAssignBasicAndSimpleRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
@@ -453,13 +452,13 @@ public class TestVillage extends AbstractStoryTest {
         assertAssignedRole(userAfter, ROLE_SIMPLE_OID);
         assertLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
         assertLdapLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
-	}
+    }
 
-	@Test
+    @Test
     public void test104HermanUnAssignSimpleRoleThenBasic() throws Exception {
-		final String TEST_NAME = "test104HermanUnAssignSimpleRoleThenBasic";
+        final String TEST_NAME = "test104HermanUnAssignSimpleRoleThenBasic";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
@@ -481,14 +480,14 @@ public class TestVillage extends AbstractStoryTest {
         assertUserNoRole(userAfter, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ACCOUNT_HERMAN_ORG);
         assertLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
         assertNoLdapLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
-	}
+    }
 
 
-	@Test
+    @Test
     public void test105ModifySrcAccountHermanRemoveLoc() throws Exception {
-		final String TEST_NAME = "test105ModifySrcAccountHermanRemoveLoc";
+        final String TEST_NAME = "test105ModifySrcAccountHermanRemoveLoc";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
@@ -500,13 +499,13 @@ public class TestVillage extends AbstractStoryTest {
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
         assertUserNoRole(user, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ACCOUNT_HERMAN_ORG);
         assertLocGov(user, null, ACCOUNT_HERMAN_ORG);
-	}
+    }
 
-	@Test
+    @Test
     public void test106HermanAssignBasicRole() throws Exception {
-		final String TEST_NAME = "test106HermanAssignBasicRole";
+        final String TEST_NAME = "test106HermanAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
@@ -518,13 +517,13 @@ public class TestVillage extends AbstractStoryTest {
         assertUserLdap(userAfter, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ACCOUNT_HERMAN_ORG);
         assertLocGov(userAfter, null, ACCOUNT_HERMAN_ORG);
         assertNoLdapLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
-	}
+    }
 
-	@Test
+    @Test
     public void test107ModifySrcAccountHermanAddLoc() throws Exception {
-		final String TEST_NAME = "test107ModifySrcAccountHermanAddLoc";
+        final String TEST_NAME = "test107ModifySrcAccountHermanAddLoc";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
@@ -537,13 +536,13 @@ public class TestVillage extends AbstractStoryTest {
         assertUserLdap(user, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ACCOUNT_HERMAN_ORG);
         assertLocGov(user, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
         assertLdapLocGov(user, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
-	}
+    }
 
-	@Test
+    @Test
     public void test108ModifySrcAccountHermanRemoveLoc() throws Exception {
-		final String TEST_NAME = "test108ModifySrcAccountHermanRemoveLoc";
+        final String TEST_NAME = "test108ModifySrcAccountHermanRemoveLoc";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
@@ -556,13 +555,13 @@ public class TestVillage extends AbstractStoryTest {
         assertUserLdap(user, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ACCOUNT_HERMAN_ORG);
         assertLocGov(user, null, ACCOUNT_HERMAN_ORG);
         assertNoLdapLocGov(user, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
-	}
+    }
 
-	@Test
+    @Test
     public void test109HermanUnAssignBasicRole() throws Exception {
-		final String TEST_NAME = "test109HermanUnAssignBasicRole";
+        final String TEST_NAME = "test109HermanUnAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
@@ -574,13 +573,13 @@ public class TestVillage extends AbstractStoryTest {
         assertUserNoRole(userAfter, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ACCOUNT_HERMAN_ORG);
         assertLocGov(userAfter, null, ACCOUNT_HERMAN_ORG);
         assertNoLdapLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
-	}
+    }
 
-	@Test
+    @Test
     public void test110AddSrcAccountLemonhead() throws Exception {
-		final String TEST_NAME = "test110AddSrcAccountLemonhead";
+        final String TEST_NAME = "test110AddSrcAccountLemonhead";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_LEMONHEAD_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_LEMONHEAD_FIST_NAME);
@@ -598,16 +597,16 @@ public class TestVillage extends AbstractStoryTest {
         assertUserLdap(userAfter, ACCOUNT_LEMONHEAD_FIST_NAME, ACCOUNT_LEMONHEAD_LAST_NAME, ACCOUNT_LEMONHEAD_ORG);
         assertLocGov(userAfter, ACCOUNT_LEMONHEAD_LOC, ACCOUNT_LEMONHEAD_ORG);
         assertLdapLocGov(userAfter, ACCOUNT_LEMONHEAD_LOC, ACCOUNT_LEMONHEAD_ORG);
-	}
+    }
 
-	/**
-	 * Wally has no org. User without an org should be created.
-	 */
-	@Test
+    /**
+     * Wally has no org. User without an org should be created.
+     */
+    @Test
     public void test120AddSrcAccountWally() throws Exception {
-		final String TEST_NAME = "test120AddSrcAccountWally";
+        final String TEST_NAME = "test120AddSrcAccountWally";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_WALLY_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_WALLY_FIST_NAME);
@@ -621,13 +620,13 @@ public class TestVillage extends AbstractStoryTest {
         PrismObject<UserType> userAfter = findUserByUsername(USER_WALLY_NAME);
         assertUserNoRole(userAfter, ACCOUNT_WALLY_FIST_NAME, ACCOUNT_WALLY_LAST_NAME, null);
         assertLocGov(userAfter, null, null);
-	}
+    }
 
-	@Test
+    @Test
     public void test121WallyAssignBasicRole() throws Exception {
-		final String TEST_NAME = "test121WallyAssignBasicRole";
+        final String TEST_NAME = "test121WallyAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
 
@@ -638,13 +637,13 @@ public class TestVillage extends AbstractStoryTest {
         PrismObject<UserType> userAfter = getUser(user.getOid());
         assertUserLdap(userAfter, ACCOUNT_WALLY_FIST_NAME, ACCOUNT_WALLY_LAST_NAME, null);
         assertLocGov(userAfter, null, null);
-	}
+    }
 
-	@Test
+    @Test
     public void test122WallyUnAssignBasicRole() throws Exception {
-		final String TEST_NAME = "test122WallyUnAssignBasicRole";
+        final String TEST_NAME = "test122WallyUnAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
 
@@ -655,16 +654,16 @@ public class TestVillage extends AbstractStoryTest {
         PrismObject<UserType> userAfter = getUser(user.getOid());
         assertUserNoRole(userAfter, ACCOUNT_WALLY_FIST_NAME, ACCOUNT_WALLY_LAST_NAME, null);
         assertLocGov(userAfter, null, null);
-	}
+    }
 
-	/**
-	 * Wally has no org. User without an org should be created.
-	 */
-	@Test
+    /**
+     * Wally has no org. User without an org should be created.
+     */
+    @Test
     public void test130AddSrcAccountMancomb() throws Exception {
-		final String TEST_NAME = "test130AddSrcAccountMancomb";
+        final String TEST_NAME = "test130AddSrcAccountMancomb";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_MANCOMB_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_MANCOMB_FIST_NAME);
@@ -680,13 +679,13 @@ public class TestVillage extends AbstractStoryTest {
         PrismObject<UserType> userAfter = findUserByUsername(USER_MANCOMB_NAME);
         assertUserNoRole(userAfter, ACCOUNT_MANCOMB_FIST_NAME, ACCOUNT_MANCOMB_LAST_NAME, null);
         assertLocGov(userAfter, ACCOUNT_MANCOMB_LOC, ACCOUNT_MANCOMB_ORG);
-	}
+    }
 
-	@Test
+    @Test
     public void test131MancombAssignBasicRole() throws Exception {
-		final String TEST_NAME = "test131WallyAssignBasicRole";
+        final String TEST_NAME = "test131WallyAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_MANCOMB_NAME);
 
@@ -697,13 +696,13 @@ public class TestVillage extends AbstractStoryTest {
         PrismObject<UserType> userAfter = getUser(user.getOid());
         assertUserLdap(userAfter, ACCOUNT_MANCOMB_FIST_NAME, ACCOUNT_MANCOMB_LAST_NAME, null);
         assertLocGov(userAfter, ACCOUNT_MANCOMB_LOC, ACCOUNT_MANCOMB_ORG);
-	}
+    }
 
-	@Test
+    @Test
     public void test132MancombUnAssignBasicRole() throws Exception {
-		final String TEST_NAME = "test132MancombUnAssignBasicRole";
+        final String TEST_NAME = "test132MancombUnAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_MANCOMB_NAME);
 
@@ -714,17 +713,17 @@ public class TestVillage extends AbstractStoryTest {
         PrismObject<UserType> userAfter = getUser(user.getOid());
         assertUserNoRole(userAfter, ACCOUNT_MANCOMB_FIST_NAME, ACCOUNT_MANCOMB_LAST_NAME, null);
         assertLocGov(userAfter, ACCOUNT_MANCOMB_LOC, ACCOUNT_MANCOMB_ORG);
-	}
+    }
 
 
-	/**
-	 * Change of org should trigger rename
-	 */
-	@Test
+    /**
+     * Change of org should trigger rename
+     */
+    @Test
     public void test150ModifySrcAccountHermanReplaceOrg() throws Exception {
-		final String TEST_NAME = "test150ModifySrcAccountHermanReplaceOrg";
+        final String TEST_NAME = "test150ModifySrcAccountHermanReplaceOrg";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
@@ -739,16 +738,16 @@ public class TestVillage extends AbstractStoryTest {
 
         PrismObject<UserType> userGone = findUserByUsername(USER_HERMAN_NAME);
         assertNull("Original herman is not gone", userGone);
-	}
+    }
 
-	/**
-	 * Change of org should trigger rename
-	 */
-	@Test
+    /**
+     * Change of org should trigger rename
+     */
+    @Test
     public void test152ModifySrcAccountHermanDeleteOrg() throws Exception {
-		final String TEST_NAME = "test152ModifySrcAccountHermanDeleteOrg";
+        final String TEST_NAME = "test152ModifySrcAccountHermanDeleteOrg";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
@@ -767,62 +766,62 @@ public class TestVillage extends AbstractStoryTest {
         assertNull("Original herman is not gone", userGone);
         userGone = findUserByUsername(getUsername(ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ORG_INFRA_NAME));
         assertNull("First renamed herman is not gone", userGone);
-	}
+    }
 
-	@Test
-	public void test200CreateUserAssignOrgPwdPolicy() throws Exception {
-		final String TEST_NAME = "test200CreateUserAssignOrgPwdPolicy";
+    @Test
+    public void test200CreateUserAssignOrgPwdPolicy() throws Exception {
+        final String TEST_NAME = "test200CreateUserAssignOrgPwdPolicy";
         displayTestTitle(TEST_NAME);
-		Task task = createTask(TEST_NAME);
-		OperationResult result = new OperationResult(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
 
-		//prepare password policies
-		addObject(GLOBAL_PASSWORD_POLICY_FILE);
-		addObject(ORG_PASSWORD_POLICY_FILE);
+        //prepare password policies
+        addObject(GLOBAL_PASSWORD_POLICY_FILE);
+        addObject(ORG_PASSWORD_POLICY_FILE);
 
-		// TODO FIX THIS!!!
-//		ObjectDelta<OrgType> orgPasswordPolicyRefDelta = prismContext.deltaFactory().object()
-//				.createModificationAddReference(OrgType.class, ORG_INFRA_OID, OrgType.F_PASSWORD_POLICY_REF,
-//						ORG_PASSWORD_POLICY_OID);
-//		modelService.executeChanges(MiscUtil.createCollection(orgPasswordPolicyRefDelta), null, task, result);
+        // TODO FIX THIS!!!
+//        ObjectDelta<OrgType> orgPasswordPolicyRefDelta = prismContext.deltaFactory().object()
+//                .createModificationAddReference(OrgType.class, ORG_INFRA_OID, OrgType.F_PASSWORD_POLICY_REF,
+//                        ORG_PASSWORD_POLICY_OID);
+//        modelService.executeChanges(MiscUtil.createCollection(orgPasswordPolicyRefDelta), null, task, result);
 //
-//		ObjectDelta<SystemConfigurationType> sysConfigPasswordPolicyRefDelta = prismContext.deltaFactory().object()
-//				.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF,
-//						GLOBAL_PASSWORD_POLICY_OID);
-//		modelService.executeChanges(MiscUtil.createCollection(sysConfigPasswordPolicyRefDelta), null, task, result);
+//        ObjectDelta<SystemConfigurationType> sysConfigPasswordPolicyRefDelta = prismContext.deltaFactory().object()
+//                .createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF,
+//                        GLOBAL_PASSWORD_POLICY_OID);
+//        modelService.executeChanges(MiscUtil.createCollection(sysConfigPasswordPolicyRefDelta), null, task, result);
 
-		//add user + assign role + assign org with the password policy specified
-		PrismObject<UserType> userMikeBefore = PrismTestUtil.parseObject(USER_MIKE_FILE);
-		display("User mike before", userMikeBefore);
-		ObjectDelta<UserType> addUserMikeDelta = DeltaFactory.Object.createAddDelta(userMikeBefore);
+        //add user + assign role + assign org with the password policy specified
+        PrismObject<UserType> userMikeBefore = PrismTestUtil.parseObject(USER_MIKE_FILE);
+        display("User mike before", userMikeBefore);
+        ObjectDelta<UserType> addUserMikeDelta = DeltaFactory.Object.createAddDelta(userMikeBefore);
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		//The user's password has length 4..if the policy is not chosen correctly, it fails
-		modelService.executeChanges(MiscUtil.createCollection(addUserMikeDelta), null, task, result);
+        // WHEN
+        displayWhen(TEST_NAME);
+        //The user's password has length 4..if the policy is not chosen correctly, it fails
+        modelService.executeChanges(MiscUtil.createCollection(addUserMikeDelta), null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertPartialError(result);
-		
-		//TODO: assert added user
-		PrismObject<UserType> userMikeAfter = getUser(USER_MIKE_OID);
- 		UserAsserter.forUser(userMikeAfter).
- 			assertAssignments(2).
- 			assertLinks(0);
-	}
+        // THEN
+        displayThen(TEST_NAME);
+        assertPartialError(result);
 
-	@Test
-	public void test201unassignRole() throws Exception{
-		final String TEST_NAME = "test201unassignRole";
+        //TODO: assert added user
+        PrismObject<UserType> userMikeAfter = getUser(USER_MIKE_OID);
+         UserAsserter.forUser(userMikeAfter).
+             assertAssignments(2).
+             assertLinks(0);
+    }
+
+    @Test
+    public void test201unassignRole() throws Exception{
+        final String TEST_NAME = "test201unassignRole";
         displayTestTitle(TEST_NAME);
-		unassignRole(USER_MIKE_OID, ROLE_BASIC_OID);
-		//TODO: assertions
-	}
+        unassignRole(USER_MIKE_OID, ROLE_BASIC_OID);
+        //TODO: assertions
+    }
 
-	@Test
-	public void test202assignRoleOrgPwdPolicy() throws Exception{
-		final String TEST_NAME = "test202assignRoleOrgPwdPolicy";
+    @Test
+    public void test202assignRoleOrgPwdPolicy() throws Exception{
+        final String TEST_NAME = "test202assignRoleOrgPwdPolicy";
         displayTestTitle(TEST_NAME);
 
         //this will throw exception, if incorrect pwd policy is selected...but some assertion will be nice :)
@@ -831,12 +830,12 @@ public class TestVillage extends AbstractStoryTest {
         assignRole(USER_MIKE_OID, ROLE_BASIC_OID, task, result);
         assertPartialError(result);
 
-		//TODO: assertion
-	}
+        //TODO: assertion
+    }
 
-	@Test
+    @Test
     public void test300AddProjectJollyRoger() throws Exception {
-		final String TEST_NAME = "test300AddProjectJollyRoger";
+        final String TEST_NAME = "test300AddProjectJollyRoger";
         displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -856,34 +855,34 @@ public class TestVillage extends AbstractStoryTest {
         Entry ouEntry = openDJController.fetchAndAssertEntry("ou=Jolly Roger,dc=example,dc=com", "organizationalUnit");
         Entry groupEntry = openDJController.fetchAndAssertEntry(GROUP_PROJECT_JOLLY_ROGER_ADMIN_DN, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_NAME);
       //TODO: more assertions
-	}
+    }
 
-	/**
-	 * MID-3429
-	 */
-	@Test
+    /**
+     * MID-3429
+     */
+    @Test
     public void test310ProjectJollyRogerNestedGroup() throws Exception {
-		final String TEST_NAME = "test310ProjectJollyRogerNestedGroup";
+        final String TEST_NAME = "test310ProjectJollyRogerNestedGroup";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         openDJController.addEntry("dn: "+GROUP_JOLLYROGERS_DN+"\n"+
                                   "objectclass: "+GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_NAME+"\n"+
-        		                  "cn: jollyrogers\n"+
-        		                  GROUP_MEMBER_ATTRIBUTE_NAME+": "+GROUP_PROJECT_JOLLY_ROGER_ADMIN_DN+"\n");
+                                  "cn: jollyrogers\n"+
+                                  GROUP_MEMBER_ATTRIBUTE_NAME+": "+GROUP_PROJECT_JOLLY_ROGER_ADMIN_DN+"\n");
 
         display("LDAP entries", openDJController.dumpEntries());
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_OPENDJ_OID, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_QNAME, prismContext)
-				.and().itemWithDef(
-				        prismContext.definitionFactory().createPropertyDefinition(new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING),
-						ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, "cn")).eq("admins")
-				.build();
+                .and().itemWithDef(
+                        prismContext.definitionFactory().createPropertyDefinition(new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING),
+                        ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, "cn")).eq("admins")
+                .build();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-		// TODO: search for cn=admins,ou=Jolly Roger,dc=example,dc=com
+        // TODO: search for cn=admins,ou=Jolly Roger,dc=example,dc=com
         SearchResultList<PrismObject<ShadowType>> groupShadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
         // THEN
@@ -897,13 +896,13 @@ public class TestVillage extends AbstractStoryTest {
         List<ShadowAssociationType> associations = groupShadow.asObjectable().getAssociation();
         // MID-3430, MID-3429
 //        assertEquals("Wrong number of associations in "+groupShadow, 1, associations.size());
-	}
+    }
 
-	@Test
+    @Test
     public void test319DeleteProjectJollyRoger() throws Exception {
-		final String TEST_NAME = "test319DeleteProjectJollyRoger";
+        final String TEST_NAME = "test319DeleteProjectJollyRoger";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -918,17 +917,17 @@ public class TestVillage extends AbstractStoryTest {
         assertNoObject(OrgType.class, ORG_PROJECT_JOLLY_ROGER_OID, task, result);
         openDJController.assertNoEntry("ou=Jolly Roger,dc=example,dc=com");
         openDJController.assertNoEntry("cn=admins,ou=Jolly Roger,dc=example,dc=com");
-	}
+    }
 
-	/**
-	 * User is added to repo directly, so he does not have OID in employee number.
-	 * Recompute should fix that. This is a migration scenario.
-	 */
-	@Test
+    /**
+     * User is added to repo directly, so he does not have OID in employee number.
+     * Recompute should fix that. This is a migration scenario.
+     */
+    @Test
     public void test350AddRepoUserNoEmployeeNumberRecompute() throws Exception {
-		final String TEST_NAME = "test350AddRepoUserNoEmployeeNumberRecompute";
+        final String TEST_NAME = "test350AddRepoUserNoEmployeeNumberRecompute";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_MURRAY_FILE);
@@ -945,61 +944,61 @@ public class TestVillage extends AbstractStoryTest {
 
         user = getUser(USER_MURRAY_OID);
         assertEmployeeNumber(user);
-	}
+    }
 
-	private void assertLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		UserType userType = user.asObjectable();
-		PrismAsserts.assertEqualsPolyString("Wrong locality in "+user, expLoc, userType.getLocality());
-		if (expOrg == null) {
-			assertTrue("Unexpected organization in "+user+": "+userType.getOrganization(), userType.getOrganization().isEmpty());
-		} else {
-			PrismAsserts.assertEqualsCollectionUnordered("Wrong organization in "+user, userType.getOrganization(),
-				PrismTestUtil.createPolyStringType(expOrg));
-		}
-		if (expLoc == null || expOrg == null) {
-			assertNull("Wrong costCenter in "+user+", expected empty but was "+userType.getCostCenter(), userType.getCostCenter());
-		} else {
-			assertEquals("Wrong costCenter in "+user, userType.getCostCenter(), expOrg+":"+expLoc);
-		}
-		if (expOrg != null && !expOrg.equals("-")) {
-			PrismObject<OrgType> org = findObjectByName(OrgType.class, expOrg);
-			assertAssigned(user, org.getOid(), OrgType.COMPLEX_TYPE);
-			String orgId = org.asObjectable().getIdentifier();
-			PrismAsserts.assertEqualsCollectionUnordered("Wrong organizationalUnit in "+user,
-					userType.getOrganizationalUnit(), PrismTestUtil.createPolyStringType(orgId));
-			assertEquals("Wrong title in "+user, "Member of "+orgId, userType.getTitle().getOrig());
-		} else {
-			assertAssignments(user, OrgType.class, 0);
-			assertTrue("Unexpected organizationalUnit in "+user+": "+userType.getOrganizationalUnit(), userType.getOrganizationalUnit().isEmpty());
-			assertNull("Unexpected title in "+user+": "+userType.getDescription(), userType.getTitle());
-		}
-	}
+    private void assertLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        UserType userType = user.asObjectable();
+        PrismAsserts.assertEqualsPolyString("Wrong locality in "+user, expLoc, userType.getLocality());
+        if (expOrg == null) {
+            assertTrue("Unexpected organization in "+user+": "+userType.getOrganization(), userType.getOrganization().isEmpty());
+        } else {
+            PrismAsserts.assertEqualsCollectionUnordered("Wrong organization in "+user, userType.getOrganization(),
+                PrismTestUtil.createPolyStringType(expOrg));
+        }
+        if (expLoc == null || expOrg == null) {
+            assertNull("Wrong costCenter in "+user+", expected empty but was "+userType.getCostCenter(), userType.getCostCenter());
+        } else {
+            assertEquals("Wrong costCenter in "+user, userType.getCostCenter(), expOrg+":"+expLoc);
+        }
+        if (expOrg != null && !expOrg.equals("-")) {
+            PrismObject<OrgType> org = findObjectByName(OrgType.class, expOrg);
+            assertAssigned(user, org.getOid(), OrgType.COMPLEX_TYPE);
+            String orgId = org.asObjectable().getIdentifier();
+            PrismAsserts.assertEqualsCollectionUnordered("Wrong organizationalUnit in "+user,
+                    userType.getOrganizationalUnit(), PrismTestUtil.createPolyStringType(orgId));
+            assertEquals("Wrong title in "+user, "Member of "+orgId, userType.getTitle().getOrig());
+        } else {
+            assertAssignments(user, OrgType.class, 0);
+            assertTrue("Unexpected organizationalUnit in "+user+": "+userType.getOrganizationalUnit(), userType.getOrganizationalUnit().isEmpty());
+            assertNull("Unexpected title in "+user+": "+userType.getDescription(), userType.getTitle());
+        }
+    }
 
-	private void assertUserNoRole(PrismObject<UserType> user, String firstName, String lastName, String orgName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
-		String username = getUsername(firstName, lastName, orgName);
-		assertNotNull("No "+username+" user", user);
+    private void assertUserNoRole(PrismObject<UserType> user, String firstName, String lastName, String orgName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+        String username = getUsername(firstName, lastName, orgName);
+        assertNotNull("No "+username+" user", user);
         display("User", user);
-   		assertUser(user, user.getOid(), username, firstName+" "+lastName,
-   				firstName, lastName);
-   		assertEmployeeNumber(user);
-   		assertLinks(user, 1);
+           assertUser(user, user.getOid(), username, firstName+" "+lastName,
+                   firstName, lastName);
+           assertEmployeeNumber(user);
+           assertLinks(user, 1);
         assertAccount(user, RESOURCE_DUMMY_SOURCE_OID);
         assertAssignments(user, RoleType.class, 0);
 
         openDJController.assertNoEntry("uid="+username+",ou=people,dc=example,dc=com");
-	}
+    }
 
-	private void assertUserLdap(PrismObject<UserType> user, String firstName, String lastName, String orgName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		assertUserLdap(user, firstName, lastName, orgName, 1);
-	}
+    private void assertUserLdap(PrismObject<UserType> user, String firstName, String lastName, String orgName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        assertUserLdap(user, firstName, lastName, orgName, 1);
+    }
 
-	private void assertUserLdap(PrismObject<UserType> user, String firstName, String lastName, String orgName, int assignments) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		String username = getUsername(firstName, lastName, orgName);
-		assertNotNull("No "+username+" user", user);
+    private void assertUserLdap(PrismObject<UserType> user, String firstName, String lastName, String orgName, int assignments) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        String username = getUsername(firstName, lastName, orgName);
+        assertNotNull("No "+username+" user", user);
         display("User", user);
-   		assertUser(user, user.getOid(), username, firstName+" "+lastName,
-   				firstName, lastName);
-   		assertEmployeeNumber(user);
+           assertUser(user, user.getOid(), username, firstName+" "+lastName,
+                   firstName, lastName);
+           assertEmployeeNumber(user);
         assertLinks(user, 2);
         assertAccount(user, RESOURCE_DUMMY_SOURCE_OID);
 
@@ -1009,47 +1008,47 @@ public class TestVillage extends AbstractStoryTest {
         assertAccount(user, RESOURCE_OPENDJ_OID);
         PrismReferenceValue linkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
-		display("OpenDJ shadow linked to "+user, shadow);
-		IntegrationTestTools.assertSecondaryIdentifier(shadow, "uid="+username+",ou=people,dc=example,dc=com");
-	}
+        display("OpenDJ shadow linked to "+user, shadow);
+        IntegrationTestTools.assertSecondaryIdentifier(shadow, "uid="+username+",ou=people,dc=example,dc=com");
+    }
 
-	private void assertEmployeeNumber(PrismObject<UserType> user) {
-		String employeeNumber = user.asObjectable().getEmployeeNumber();
-		assertEquals("Wrong employeeNumber in "+user, user.getOid(), employeeNumber);
-	}
+    private void assertEmployeeNumber(PrismObject<UserType> user) {
+        String employeeNumber = user.asObjectable().getEmployeeNumber();
+        assertEquals("Wrong employeeNumber in "+user, user.getOid(), employeeNumber);
+    }
 
-	private String getUsername(String firstName, String lastName, String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		String username = firstName+"."+lastName;
-		if (orgName != null) {
-			PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
-			username = org.asObjectable().getIdentifier()+"."+username;
-		}
-		return username;
-	}
+    private String getUsername(String firstName, String lastName, String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        String username = firstName+"."+lastName;
+        if (orgName != null) {
+            PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
+            username = org.asObjectable().getIdentifier()+"."+username;
+        }
+        return username;
+    }
 
-	private void assertLdapLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
-		UserType userType = user.asObjectable();
+    private void assertLdapLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+        UserType userType = user.asObjectable();
 
-		String groupCn = expOrg+":"+expLoc;
-		String groupDn = "cn="+groupCn+",ou=groups,"+openDJController.getSuffix();
-		Entry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
-		display("Group entry", groupEntry);
+        String groupCn = expOrg+":"+expLoc;
+        String groupDn = "cn="+groupCn+",ou=groups,"+openDJController.getSuffix();
+        Entry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
+        display("Group entry", groupEntry);
 
-		PrismReferenceValue accountLinkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
-		PrismObject<ShadowType> accountShadow = getShadowModel(accountLinkRef.getOid());
-		String accountDn = IntegrationTestTools.getSecondaryIdentifier(accountShadow);
-		openDJController.assertUniqueMember(groupEntry, accountDn);
-	}
+        PrismReferenceValue accountLinkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
+        PrismObject<ShadowType> accountShadow = getShadowModel(accountLinkRef.getOid());
+        String accountDn = IntegrationTestTools.getSecondaryIdentifier(accountShadow);
+        openDJController.assertUniqueMember(groupEntry, accountDn);
+    }
 
-	private void assertNoLdapLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
-		UserType userType = user.asObjectable();
+    private void assertNoLdapLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+        UserType userType = user.asObjectable();
 
-		String groupCn = expOrg+":"+expLoc;
-		String groupDn = "cn="+groupCn+",ou=groups,"+openDJController.getSuffix();
-		Entry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
-		display("Group entry", groupEntry);
-		String accountDn = "uid="+userType.getName()+",ou=people,"+openDJController.getSuffix();
-		openDJController.assertNoUniqueMember(groupEntry, accountDn);
-	}
+        String groupCn = expOrg+":"+expLoc;
+        String groupDn = "cn="+groupCn+",ou=groups,"+openDJController.getSuffix();
+        Entry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
+        display("Group entry", groupEntry);
+        String accountDn = "uid="+userType.getName()+",ou=people,"+openDJController.getSuffix();
+        openDJController.assertNoUniqueMember(groupEntry, accountDn);
+    }
 
 }

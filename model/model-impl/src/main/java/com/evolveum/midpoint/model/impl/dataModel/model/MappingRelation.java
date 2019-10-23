@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -18,16 +18,16 @@ import java.util.List;
  */
 public class MappingRelation extends Relation {
 
-	@NotNull private final MappingType mapping;
+    @NotNull private final MappingType mapping;
 
-	public MappingRelation(@NotNull List<DataItem> sources, @Nullable DataItem target, @NotNull MappingType mapping) {
-		super(sources, target);
-		this.mapping = mapping;
-	}
+    public MappingRelation(@NotNull List<DataItem> sources, @Nullable DataItem target, @NotNull MappingType mapping) {
+        super(sources, target);
+        this.mapping = mapping;
+    }
 
-	@NotNull
-	public MappingType getMapping() {
-		return mapping;
-	}
+    @NotNull
+    public MappingType getMapping() {
+        return mapping;
+    }
 
 }

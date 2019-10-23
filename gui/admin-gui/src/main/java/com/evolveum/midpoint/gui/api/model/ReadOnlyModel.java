@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -16,14 +16,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ReadOnlyModel<T> implements IModel<T> {
 
-	@NotNull private final SerializableSupplier<T> objectSupplier;
+    @NotNull private final SerializableSupplier<T> objectSupplier;
 
-	public ReadOnlyModel(@NotNull SerializableSupplier<T> objectSupplier) {
-		this.objectSupplier = objectSupplier;
-	}
+    public ReadOnlyModel(@NotNull SerializableSupplier<T> objectSupplier) {
+        this.objectSupplier = objectSupplier;
+    }
 
-	@Override
-	public T getObject() {
-		return objectSupplier.get();
-	}
+    @Override
+    public T getObject() {
+        return objectSupplier.get();
+    }
 }

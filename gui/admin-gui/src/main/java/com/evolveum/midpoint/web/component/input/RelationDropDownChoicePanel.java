@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.input;
@@ -65,12 +65,12 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
     protected void onInitialize(){
         super.onInitialize();
 
-        
+
         if (!allowNull && defaultRelation == null) {
-        	defaultRelation = supportedRelations.size() > 0 ? supportedRelations.get(0) : PrismConstants.Q_ANY;
+            defaultRelation = supportedRelations.size() > 0 ? supportedRelations.get(0) : PrismConstants.Q_ANY;
         }
-        DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, Model.of(defaultRelation), new ListModel<>(supportedRelations), getRenderer(), 
-        		getRelationLabelModel(), "relationDropDownChoicePanel.tooltip.relation", true, "col-md-4",
+        DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, Model.of(defaultRelation), new ListModel<>(supportedRelations), getRenderer(),
+                getRelationLabelModel(), "relationDropDownChoicePanel.tooltip.relation", true, "col-md-4",
                 getRelationLabelModel() == null || StringUtils.isEmpty(getRelationLabelModel().getObject()) ? "" : "col-md-8", !allowNull);
         input.getInput().add(new EnableBehaviour(() -> isRelationDropDownEnabled()));
         input.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
@@ -137,9 +137,9 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
     public QName getRelationValue() {
         QName relationValue = ((DropDownFormGroup<QName>) get(ID_INPUT)).getModelObject();
         if (relationValue == null){
-			return PrismConstants.Q_ANY;
-		} else {
-			return relationValue;
-		}
+            return PrismConstants.Q_ANY;
+        } else {
+            return relationValue;
+        }
     }
 }

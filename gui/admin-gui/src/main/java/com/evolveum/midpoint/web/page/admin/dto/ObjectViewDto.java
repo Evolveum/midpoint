@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -64,14 +64,14 @@ public class ObjectViewDto<T extends ObjectType> implements Serializable, Choice
     }
 
     public void setObject(PrismObject<T> object) {
-		this.object = object;
-	}
+        this.object = object;
+    }
 
     public T getObjectType() {
-    	if (object == null) {
-    		return null;
-    	}
-    	return object.asObjectable();
+        if (object == null) {
+            return null;
+        }
+        return object.asObjectable();
     }
 
     @Override

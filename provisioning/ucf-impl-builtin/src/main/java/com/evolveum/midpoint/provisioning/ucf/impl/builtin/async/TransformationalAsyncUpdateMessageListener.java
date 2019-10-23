@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -48,6 +48,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -58,49 +59,50 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  */
 public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMessageListener {
 
-	private static final Trace LOGGER = TraceManager.getTrace(TransformationalAsyncUpdateMessageListener.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TransformationalAsyncUpdateMessageListener.class);
 
-	private static final String OP_ON_MESSAGE = TransformationalAsyncUpdateMessageListener.class.getName() + ".onMessage";
-	private static final String OP_ON_MESSAGE_PREPARATION = TransformationalAsyncUpdateMessageListener.class.getName() + ".onMessagePreparation";
+    private static final String OP_ON_MESSAGE = TransformationalAsyncUpdateMessageListener.class.getName() + ".onMessage";
+    private static final String OP_ON_MESSAGE_PREPARATION = TransformationalAsyncUpdateMessageListener.class.getName() + ".onMessagePreparation";
 
-	private static final String VAR_MESSAGE = "message";
+    private static final String VAR_MESSAGE = "message";
 
-	@NotNull private final ChangeListener changeListener;
-	@Nullable private final Authentication authentication;
-	@NotNull private final AsyncUpdateConnectorInstance connectorInstance;
-	@NotNull private final Tracer tracer;
-	@NotNull private final TaskManager taskManager;
+    @NotNull private final ChangeListener changeListener;
+    @Nullable private final Authentication authentication;
+    @NotNull private final AsyncUpdateConnectorInstance connectorInstance;
+    @NotNull private final Tracer tracer;
+    @NotNull private final TaskManager taskManager;
 
-	private AtomicInteger messagesSeen = new AtomicInteger(0);
+    private AtomicInteger messagesSeen = new AtomicInteger(0);
 
-	TransformationalAsyncUpdateMessageListener(@NotNull ChangeListener changeListener, @Nullable Authentication authentication,
-			@NotNull AsyncUpdateConnectorInstance connectorInstance, @NotNull Tracer tracer,
-			@NotNull TaskManager taskManager) {
-		this.changeListener = changeListener;
-		this.authentication = authentication;
-		this.connectorInstance = connectorInstance;
-		this.tracer = tracer;
-		this.taskManager = taskManager;
-	}
+    TransformationalAsyncUpdateMessageListener(@NotNull ChangeListener changeListener, @Nullable Authentication authentication,
+            @NotNull AsyncUpdateConnectorInstance connectorInstance, @NotNull Tracer tracer,
+            @NotNull TaskManager taskManager) {
+        this.changeListener = changeListener;
+        this.authentication = authentication;
+        this.connectorInstance = connectorInstance;
+        this.tracer = tracer;
+        this.taskManager = taskManager;
+    }
 
-	@Override
-	public boolean onMessage(AsyncUpdateMessageType message) throws SchemaException {
+    @Override
+    public boolean onMessage(AsyncUpdateMessageType message) throws SchemaException {
         int messageNumber = messagesSeen.getAndIncrement();
-		LOGGER.trace("Got message number {}: {}", messageNumber, message);
+        LOGGER.trace("Got message number {}: {}", messageNumber, message);
 
-		SecurityContextManager securityContextManager = connectorInstance.getSecurityContextManager();
-		Authentication oldAuthentication = securityContextManager.getAuthentication();
+        SecurityContextManager securityContextManager = connectorInstance.getSecurityContextManager();
+        Authentication oldAuthentication = securityContextManager.getAuthentication();
 
-		try {
-			securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
+        try {
+            securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
 
-			Task task = taskManager.createTaskInstance(OP_ON_MESSAGE_PREPARATION);
-			if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {
-				task.setOwner(((MidPointPrincipal) authentication.getPrincipal()).getUser().asPrismObject().clone());
-			}
-			OperationResult result = task.getResult();
-			OperationResultBuilder resultBuilder = OperationResult.createFor(OP_ON_MESSAGE);
-			try {
+            Task task = taskManager.createTaskInstance(OP_ON_MESSAGE_PREPARATION);
+            task.setChannel(CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+            if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {
+                task.setOwner(((MidPointPrincipal) authentication.getPrincipal()).getUser().asPrismObject().clone());
+            }
+            OperationResult result = task.getResult();
+            OperationResultBuilder resultBuilder = OperationResult.createFor(OP_ON_MESSAGE);
+            try {
 
                 ProcessTracingConfigurationType tracingConfig = connectorInstance.getConfiguration()
                         .getProcessTracingConfiguration();
@@ -126,175 +128,175 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
                 result = resultBuilder.build();
                 task.setResult(result);
 
-				VariablesMap variables = new VariablesMap();
-				variables.put(VAR_MESSAGE, message, AsyncUpdateMessageType.class);
-				List<UcfChangeType> changeBeans;
-				try {
-					ExpressionType transformExpression = connectorInstance.getTransformExpression();
-					if (transformExpression != null) {
-						changeBeans = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
-								SchemaConstantsGenerated.C_UCF_CHANGE, "computing UCF change from async update",
-								task, result);
-					} else {
-						changeBeans = unwrapMessage(message);
-					}
-				} catch (RuntimeException | SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
-						ConfigurationException | ExpressionEvaluationException e) {
-					throw new SystemException("Couldn't evaluate message transformation expression: " + e.getMessage(), e);
-				}
-				boolean ok = true;
-				for (UcfChangeType changeBean : changeBeans) {
-					// intentionally in this order - to process changes even after failure
-					// (if listener wants to fail fast, it can throw an exception)
-					ok = changeListener.onChange(createChange(changeBean), task, result) && ok;
-				}
-				return ok;
-			} catch (Throwable t) {
-				result.recordFatalError(t.getMessage(), t);
-				throw t;
-			} finally {
-				result.computeStatusIfUnknown();
-				if (result.isTraced()) {
-					tracer.storeTrace(task, result);
-				}
-			}
+                VariablesMap variables = new VariablesMap();
+                variables.put(VAR_MESSAGE, message, AsyncUpdateMessageType.class);
+                List<UcfChangeType> changeBeans;
+                try {
+                    ExpressionType transformExpression = connectorInstance.getTransformExpression();
+                    if (transformExpression != null) {
+                        changeBeans = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
+                                SchemaConstantsGenerated.C_UCF_CHANGE, "computing UCF change from async update",
+                                task, result);
+                    } else {
+                        changeBeans = unwrapMessage(message);
+                    }
+                } catch (RuntimeException | SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
+                        ConfigurationException | ExpressionEvaluationException e) {
+                    throw new SystemException("Couldn't evaluate message transformation expression: " + e.getMessage(), e);
+                }
+                boolean ok = true;
+                for (UcfChangeType changeBean : changeBeans) {
+                    // intentionally in this order - to process changes even after failure
+                    // (if listener wants to fail fast, it can throw an exception)
+                    ok = changeListener.onChange(createChange(changeBean), task, result) && ok;
+                }
+                return ok;
+            } catch (Throwable t) {
+                result.recordFatalError(t.getMessage(), t);
+                throw t;
+            } finally {
+                result.computeStatusIfUnknown();
+                if (result.isTraced()) {
+                    tracer.storeTrace(task, result, null);
+                }
+            }
 
-		} finally {
-			securityContextManager.setupPreAuthenticatedSecurityContext(oldAuthentication);
-		}
-	}
+        } finally {
+            securityContextManager.setupPreAuthenticatedSecurityContext(oldAuthentication);
+        }
+    }
 
-	/**
-	 * Mainly for testing purposes we provide an option to simply unwrap UcfChangeType from "any data" message.
-	 */
-	private List<UcfChangeType> unwrapMessage(AsyncUpdateMessageType message) throws SchemaException {
-		Object data;
-		if (message instanceof AnyDataAsyncUpdateMessageType) {
-			data = ((AnyDataAsyncUpdateMessageType) message).getData();
-		} else if (message instanceof Amqp091MessageType) {
-			String text = new String(((Amqp091MessageType) message).getBody(), StandardCharsets.UTF_8);
-			data = getPrismContext().parserFor(text).xml().parseRealValue();
-		} else {
-			throw new SchemaException(
-					"Cannot apply trivial message transformation: message is not 'any data' nor AMQP one. Please "
-							+ "specify transformExpression parameter");
-		}
-		if (data instanceof UcfChangeType) {
-			return Collections.singletonList((UcfChangeType) data);
-		} else {
-			throw new SchemaException("Cannot apply trivial message transformation: message does not contain "
-					+ "UcfChangeType object (it is " + data.getClass().getName() + " instead). Please specify transformExpression parameter");
-		}
-	}
+    /**
+     * Mainly for testing purposes we provide an option to simply unwrap UcfChangeType from "any data" message.
+     */
+    private List<UcfChangeType> unwrapMessage(AsyncUpdateMessageType message) throws SchemaException {
+        Object data;
+        if (message instanceof AnyDataAsyncUpdateMessageType) {
+            data = ((AnyDataAsyncUpdateMessageType) message).getData();
+        } else if (message instanceof Amqp091MessageType) {
+            String text = new String(((Amqp091MessageType) message).getBody(), StandardCharsets.UTF_8);
+            data = getPrismContext().parserFor(text).xml().parseRealValue();
+        } else {
+            throw new SchemaException(
+                    "Cannot apply trivial message transformation: message is not 'any data' nor AMQP one. Please "
+                            + "specify transformExpression parameter");
+        }
+        if (data instanceof UcfChangeType) {
+            return Collections.singletonList((UcfChangeType) data);
+        } else {
+            throw new SchemaException("Cannot apply trivial message transformation: message does not contain "
+                    + "UcfChangeType object (it is " + data.getClass().getName() + " instead). Please specify transformExpression parameter");
+        }
+    }
 
-	private Change createChange(UcfChangeType changeBean) throws SchemaException {
-		QName objectClassName = changeBean.getObjectClass();
-		if (objectClassName == null) {
-			throw new SchemaException("Object class name is null in " + changeBean);
-		}
-		ResourceSchema resourceSchema = getResourceSchema();
-		if (resourceSchema == null) {
-			throw new SchemaException("No resource schema; have you executed the Test Resource operation?");
-		}
-		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(objectClassName);
-		if (objectClassDef == null) {
-			throw new SchemaException("Object class " + objectClassName + " not found in " + resourceSchema);
-		}
-		ObjectDelta<ShadowType> delta;
-		ObjectDeltaType deltaBean = changeBean.getObjectDelta();
-		if (deltaBean != null) {
-			setFromDefaults((ShadowType) deltaBean.getObjectToAdd(), objectClassName);
-			if (deltaBean.getObjectType() == null) {
-				deltaBean.setObjectType(ShadowType.COMPLEX_TYPE);
-			}
-			delta = DeltaConvertor.createObjectDelta(deltaBean, getPrismContext(), true);
-		} else {
-			delta = null;
-		}
-		setFromDefaults(changeBean.getObject(), objectClassName);
-		Holder<Object> primaryIdentifierRealValueHolder = new Holder<>();
-		Collection<ResourceAttribute<?>> identifiers = getIdentifiers(changeBean, objectClassDef, primaryIdentifierRealValueHolder);
-		Change change = new Change(primaryIdentifierRealValueHolder.getValue(), identifiers, asPrismObject(changeBean.getObject()), delta);
-		change.setObjectClassDefinition(objectClassDef);
-		if (change.getCurrentResourceObject() == null && change.getObjectDelta() == null) {
-			change.setNotificationOnly(true);
-		}
-		return change;
-	}
+    private Change createChange(UcfChangeType changeBean) throws SchemaException {
+        QName objectClassName = changeBean.getObjectClass();
+        if (objectClassName == null) {
+            throw new SchemaException("Object class name is null in " + changeBean);
+        }
+        ResourceSchema resourceSchema = getResourceSchema();
+        if (resourceSchema == null) {
+            throw new SchemaException("No resource schema; have you executed the Test Resource operation?");
+        }
+        ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(objectClassName);
+        if (objectClassDef == null) {
+            throw new SchemaException("Object class " + objectClassName + " not found in " + resourceSchema);
+        }
+        ObjectDelta<ShadowType> delta;
+        ObjectDeltaType deltaBean = changeBean.getObjectDelta();
+        if (deltaBean != null) {
+            setFromDefaults((ShadowType) deltaBean.getObjectToAdd(), objectClassName);
+            if (deltaBean.getObjectType() == null) {
+                deltaBean.setObjectType(ShadowType.COMPLEX_TYPE);
+            }
+            delta = DeltaConvertor.createObjectDelta(deltaBean, getPrismContext(), true);
+        } else {
+            delta = null;
+        }
+        setFromDefaults(changeBean.getObject(), objectClassName);
+        Holder<Object> primaryIdentifierRealValueHolder = new Holder<>();
+        Collection<ResourceAttribute<?>> identifiers = getIdentifiers(changeBean, objectClassDef, primaryIdentifierRealValueHolder);
+        Change change = new Change(primaryIdentifierRealValueHolder.getValue(), identifiers, asPrismObject(changeBean.getObject()), delta);
+        change.setObjectClassDefinition(objectClassDef);
+        if (change.getCurrentResourceObject() == null && change.getObjectDelta() == null) {
+            change.setNotificationOnly(true);
+        }
+        return change;
+    }
 
-	private void setFromDefaults(ShadowType object, QName objectClassName) {
-		if (object != null) {
-			if (object.getObjectClass() == null) {
-				object.setObjectClass(objectClassName);
-			}
-		}
-	}
+    private void setFromDefaults(ShadowType object, QName objectClassName) {
+        if (object != null) {
+            if (object.getObjectClass() == null) {
+                object.setObjectClass(objectClassName);
+            }
+        }
+    }
 
-	private Collection<ResourceAttribute<?>> getIdentifiers(UcfChangeType changeBean, ObjectClassComplexTypeDefinition ocDef,
-			Holder<Object> primaryIdentifierRealValueHolder) throws SchemaException {
-		Collection<ResourceAttribute<?>> rv = new ArrayList<>();
-		PrismContainerValue<ShadowAttributesType> attributesPcv;
-		boolean mayContainNonIdentifiers;
-		if (changeBean.getIdentifiers() != null) {
-			//noinspection unchecked
-		    attributesPcv = changeBean.getIdentifiers().asPrismContainerValue();
-		    mayContainNonIdentifiers = false;
-		} else if (changeBean.getObject() != null) {
-			//noinspection unchecked
-			attributesPcv = changeBean.getObject().getAttributes().asPrismContainerValue();
-			mayContainNonIdentifiers = true;
-		} else if (changeBean.getObjectDelta() != null && changeBean.getObjectDelta().getChangeType() == ChangeTypeType.ADD &&
-				changeBean.getObjectDelta().getObjectToAdd() instanceof ShadowType) {
-			//noinspection unchecked
-			attributesPcv = ((ShadowType) changeBean.getObjectDelta().getObjectToAdd()).getAttributes().asPrismContainerValue();
-			mayContainNonIdentifiers = true;
-		} else {
-			throw new SchemaException("Change does not contain identifiers");
-		}
-		Set<ItemName> identifiers = ocDef.getAllIdentifiers().stream().map(ItemDefinition::getItemName).collect(Collectors.toSet());
-		Set<ItemName> primaryIdentifiers = ocDef.getPrimaryIdentifiers().stream().map(ItemDefinition::getItemName).collect(Collectors.toSet());
-		Set<Object> primaryIdentifierRealValues = new HashSet<>();
-		for (Item<?,?> attribute : attributesPcv.getItems()) {
-			if (QNameUtil.matchAny(attribute.getElementName(), identifiers)) {
-				ResourceAttribute<Object> resourceAttribute;
-				if (attribute instanceof ResourceAttribute) {
-					//noinspection unchecked
-					resourceAttribute = ((ResourceAttribute) attribute).clone();
-				} else {
-					ResourceAttributeDefinition<Object> definition = ocDef.findAttributeDefinition(attribute.getElementName());
-					if (definition == null) {
-						throw new SchemaException("No definition of " + attribute.getElementName() + " in " + ocDef);
-					}
-					resourceAttribute = definition.instantiate();
-					for (Object realValue : attribute.getRealValues()) {
-						resourceAttribute.addRealValue(realValue);
-					}
-				}
-				rv.add(resourceAttribute);
-				if (QNameUtil.matchAny(attribute.getElementName(), primaryIdentifiers)) {
-					primaryIdentifierRealValues.addAll(resourceAttribute.getRealValues());
-				}
-			} else {
-				if (!mayContainNonIdentifiers) {
-					LOGGER.warn("Attribute {} is not an identifier in {} -- ignoring it", attribute, ocDef);
-				}
-			}
-		}
-		if (primaryIdentifierRealValues.isEmpty()) {
-			LOGGER.warn("No primary identifier real value in {}", changeBean);
-		} else if (primaryIdentifierRealValues.size() > 1) {
-			LOGGER.warn("More than one primary identifier real value in {}: {}", changeBean, primaryIdentifierRealValues);
-		} else {
-			primaryIdentifierRealValueHolder.setValue(primaryIdentifierRealValues.iterator().next());
-		}
-		return rv;
-	}
+    private Collection<ResourceAttribute<?>> getIdentifiers(UcfChangeType changeBean, ObjectClassComplexTypeDefinition ocDef,
+            Holder<Object> primaryIdentifierRealValueHolder) throws SchemaException {
+        Collection<ResourceAttribute<?>> rv = new ArrayList<>();
+        PrismContainerValue<ShadowAttributesType> attributesPcv;
+        boolean mayContainNonIdentifiers;
+        if (changeBean.getIdentifiers() != null) {
+            //noinspection unchecked
+            attributesPcv = changeBean.getIdentifiers().asPrismContainerValue();
+            mayContainNonIdentifiers = false;
+        } else if (changeBean.getObject() != null) {
+            //noinspection unchecked
+            attributesPcv = changeBean.getObject().getAttributes().asPrismContainerValue();
+            mayContainNonIdentifiers = true;
+        } else if (changeBean.getObjectDelta() != null && changeBean.getObjectDelta().getChangeType() == ChangeTypeType.ADD &&
+                changeBean.getObjectDelta().getObjectToAdd() instanceof ShadowType) {
+            //noinspection unchecked
+            attributesPcv = ((ShadowType) changeBean.getObjectDelta().getObjectToAdd()).getAttributes().asPrismContainerValue();
+            mayContainNonIdentifiers = true;
+        } else {
+            throw new SchemaException("Change does not contain identifiers");
+        }
+        Set<ItemName> identifiers = ocDef.getAllIdentifiers().stream().map(ItemDefinition::getItemName).collect(Collectors.toSet());
+        Set<ItemName> primaryIdentifiers = ocDef.getPrimaryIdentifiers().stream().map(ItemDefinition::getItemName).collect(Collectors.toSet());
+        Set<Object> primaryIdentifierRealValues = new HashSet<>();
+        for (Item<?,?> attribute : attributesPcv.getItems()) {
+            if (QNameUtil.matchAny(attribute.getElementName(), identifiers)) {
+                ResourceAttribute<Object> resourceAttribute;
+                if (attribute instanceof ResourceAttribute) {
+                    //noinspection unchecked
+                    resourceAttribute = ((ResourceAttribute) attribute).clone();
+                } else {
+                    ResourceAttributeDefinition<Object> definition = ocDef.findAttributeDefinition(attribute.getElementName());
+                    if (definition == null) {
+                        throw new SchemaException("No definition of " + attribute.getElementName() + " in " + ocDef);
+                    }
+                    resourceAttribute = definition.instantiate();
+                    for (Object realValue : attribute.getRealValues()) {
+                        resourceAttribute.addRealValue(realValue);
+                    }
+                }
+                rv.add(resourceAttribute);
+                if (QNameUtil.matchAny(attribute.getElementName(), primaryIdentifiers)) {
+                    primaryIdentifierRealValues.addAll(resourceAttribute.getRealValues());
+                }
+            } else {
+                if (!mayContainNonIdentifiers) {
+                    LOGGER.warn("Attribute {} is not an identifier in {} -- ignoring it", attribute, ocDef);
+                }
+            }
+        }
+        if (primaryIdentifierRealValues.isEmpty()) {
+            LOGGER.warn("No primary identifier real value in {}", changeBean);
+        } else if (primaryIdentifierRealValues.size() > 1) {
+            LOGGER.warn("More than one primary identifier real value in {}: {}", changeBean, primaryIdentifierRealValues);
+        } else {
+            primaryIdentifierRealValueHolder.setValue(primaryIdentifierRealValues.iterator().next());
+        }
+        return rv;
+    }
 
-	private PrismContext getPrismContext() {
-		return connectorInstance.getPrismContext();
-	}
+    private PrismContext getPrismContext() {
+        return connectorInstance.getPrismContext();
+    }
 
-	private ResourceSchema getResourceSchema() {
-		return connectorInstance.getResourceSchema();
-	}
+    private ResourceSchema getResourceSchema() {
+        return connectorInstance.getResourceSchema();
+    }
 }

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schrodinger.page;
@@ -339,8 +339,7 @@ public class BasicPage {
     }
 
     public FeedbackBox<? extends BasicPage> feedback() {
-        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);;
-
+        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);
         return new FeedbackBox<>(this, feedback);
     }
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -127,17 +127,17 @@ public class CertDefinitionDto implements Serializable {
     }
 
     public String getXml() {
-		try {
-			PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
-			return prismContext.xmlSerializer().serialize(getUpdatedDefinition(prismContext).asPrismObject());
-		} catch (SchemaException|RuntimeException e) {
-			return "Couldn't serialize campaign definition to XML: " + e.getMessage();
-		}
-	}
+        try {
+            PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+            return prismContext.xmlSerializer().serialize(getUpdatedDefinition(prismContext).asPrismObject());
+        } catch (SchemaException|RuntimeException e) {
+            return "Couldn't serialize campaign definition to XML: " + e.getMessage();
+        }
+    }
 
-	public void setXml(String s) {
-		// ignore
-	}
+    public void setXml(String s) {
+        // ignore
+    }
 
     public String getName() {
         return WebComponentUtil.getName(definition);
@@ -362,9 +362,9 @@ public class CertDefinitionDto implements Serializable {
 
     public void updateStageDefinition(PrismContext prismContext) throws SchemaException {
         definition.getStageDefinition().clear();
-		for (StageDefinitionDto stageDefinitionDto : stageDefinition) {
+        for (StageDefinitionDto stageDefinitionDto : stageDefinition) {
             definition.getStageDefinition().add(createStageDefinitionType(stageDefinitionDto, prismContext));
-		}
+        }
     }
 
     private AccessCertificationStageDefinitionType createStageDefinitionType(StageDefinitionDto stageDefDto, PrismContext prismContext)
@@ -404,9 +404,9 @@ public class CertDefinitionDto implements Serializable {
             reviewerObject.setUseObjectOwner(Boolean.TRUE.equals(reviewerDto.isUseObjectOwner()));
             reviewerObject.setUseObjectApprover(Boolean.TRUE.equals(reviewerDto.isUseObjectApprover()));
             if (reviewerDto.isUseObjectManagerPresent()) {
-				reviewerObject.setUseObjectManager(createManagerSearchType(reviewerDto.getUseObjectManager()));
-			}
-			reviewerObject.getReviewerExpression().addAll(CloneUtil.cloneCollectionMembers(reviewerDto.getReviewerExpressionList()));
+                reviewerObject.setUseObjectManager(createManagerSearchType(reviewerDto.getUseObjectManager()));
+            }
+            reviewerObject.getReviewerExpression().addAll(CloneUtil.cloneCollectionMembers(reviewerDto.getReviewerExpressionList()));
             reviewerObject.getDefaultReviewerRef().clear();
 
             reviewerObject.getDefaultReviewerRef().addAll(reviewerDto.getDefaultReviewersAsObjectReferenceList(prismContext));
@@ -474,7 +474,7 @@ public class CertDefinitionDto implements Serializable {
         return CertCampaignTypeUtil.getOutcomesToStopOn(strategy.getStopReviewOn(), strategy.getAdvanceToNextStageOn());
     }
 
-	public PrismObject<AccessCertificationDefinitionType> getPrismObject() {
-		return definition.asPrismObject();
-	}
+    public PrismObject<AccessCertificationDefinitionType> getPrismObject() {
+        return definition.asPrismObject();
+    }
 }

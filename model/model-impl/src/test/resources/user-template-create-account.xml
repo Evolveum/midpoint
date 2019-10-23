@@ -2,35 +2,35 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- User Template Object. This object is used when creating a new account,
-	to set it up as needed. -->
+    to set it up as needed. -->
 <i:userTemplate oid="c0c010c0-d34d-b55f-f22d-777666111111"
-	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
-	<c:name>Default User Template</c:name>
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <c:name>Default User Template</c:name>
 
-	<!-- Property construction. Defines how properties of user object are set 
-		up. This specific definition sets a full name as a concatenation of givenName 
-		and familyName. -->
-	<i:propertyConstruction>
-		<i:property>i:fullName</i:property>
-		<i:valueConstruction default="true">
-			<i:valueExpression>
-				<i:code>
-				declare namespace
-				i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-				concat($i:user/i:givenName,' ',$i:user/i:familyName)
-				</i:code>
-			</i:valueExpression>
-		</i:valueConstruction>
-	</i:propertyConstruction>
-	
+    <!-- Property construction. Defines how properties of user object are set
+        up. This specific definition sets a full name as a concatenation of givenName
+        and familyName. -->
+    <i:propertyConstruction>
+        <i:property>i:fullName</i:property>
+        <i:valueConstruction default="true">
+            <i:valueExpression>
+                <i:code>
+                declare namespace
+                i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                concat($i:user/i:givenName,' ',$i:user/i:familyName)
+                </i:code>
+            </i:valueExpression>
+        </i:valueConstruction>
+    </i:propertyConstruction>
+
 
 </i:userTemplate>
 

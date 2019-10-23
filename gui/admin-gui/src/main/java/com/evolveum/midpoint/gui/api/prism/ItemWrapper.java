@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.prism;
@@ -31,51 +31,51 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID extends ItemDefinition<I>, VW extends PrismValueWrapper> extends ItemDefinition<I>, Revivable, DebugDumpable, Serializable {
 
-	
-	String debugDump(int indent);
-	
-	boolean isVisible(PrismContainerValueWrapper parentContainer, ItemVisibilityHandler visibilityHandler);
-	
-	boolean checkRequired(PageBase pageBase);
-	
-	PrismContainerValueWrapper<?> getParent();
-	
-	boolean isShowEmpty();
-	
-	void setShowEmpty(boolean isShowEmpty, boolean recursive);
-	
-	boolean isShowInVirtualContainer();
 
-	void setShowInVirtualContainer(boolean showInVirtualContainer);
+    String debugDump(int indent);
 
-	ItemPath getPath();
-	
-	//NEW
-	
-	boolean isReadOnly();
-	
-	void setReadOnly(boolean readOnly);
-	
-	ExpressionType getFormComponentValidator();
-	
-	List<VW> getValues();
-	VW getValue() throws SchemaException;
-	
-	boolean isStripe();
-	void setStripe(boolean stripe);
-	
-	I getItem();
-	
-	boolean isColumn();
-	void setColumn(boolean column);
-	
-	<D extends ItemDelta<V, ID>> void applyDelta(D delta) throws SchemaException;
+    boolean isVisible(PrismContainerValueWrapper parentContainer, ItemVisibilityHandler visibilityHandler);
 
-	<D extends ItemDelta<V, ID>> Collection<D> getDelta() throws SchemaException;
+    boolean checkRequired(PageBase pageBase);
 
-	<O extends ObjectType> ItemStatus findObjectStatus();
+    PrismContainerValueWrapper<?> getParent();
 
-	<OW extends PrismObjectWrapper<O>, O extends ObjectType> OW findObjectWrapper();
+    boolean isShowEmpty();
 
-	ItemStatus getStatus();
+    void setShowEmpty(boolean isShowEmpty, boolean recursive);
+
+    boolean isShowInVirtualContainer();
+
+    void setShowInVirtualContainer(boolean showInVirtualContainer);
+
+    ItemPath getPath();
+
+    //NEW
+
+    boolean isReadOnly();
+
+    void setReadOnly(boolean readOnly);
+
+    ExpressionType getFormComponentValidator();
+
+    List<VW> getValues();
+    VW getValue() throws SchemaException;
+
+    boolean isStripe();
+    void setStripe(boolean stripe);
+
+    I getItem();
+
+    boolean isColumn();
+    void setColumn(boolean column);
+
+    <D extends ItemDelta<V, ID>> void applyDelta(D delta) throws SchemaException;
+
+    <D extends ItemDelta<V, ID>> Collection<D> getDelta() throws SchemaException;
+
+    <O extends ObjectType> ItemStatus findObjectStatus();
+
+    <OW extends PrismObjectWrapper<O>, O extends ObjectType> OW findObjectWrapper();
+
+    ItemStatus getStatus();
 }

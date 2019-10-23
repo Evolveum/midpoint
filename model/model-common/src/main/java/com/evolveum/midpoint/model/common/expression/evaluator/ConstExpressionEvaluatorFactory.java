@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
@@ -37,60 +37,60 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
  */
 @Component
 public class ConstExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
-	
-	private static final QName ELEMENT_NAME = new ObjectFactory().createConst(new ConstExpressionEvaluatorType()).getName();
 
-	@Autowired private Protector protector;
-	@Autowired private ConstantsManager constantsManager;
-	@Autowired private PrismContext prismContext;
-	
-	// Used by spring
-	public ConstExpressionEvaluatorFactory() {
-		super();
-	}
+    private static final QName ELEMENT_NAME = new ObjectFactory().createConst(new ConstExpressionEvaluatorType()).getName();
 
-	// Used in tests
-	public ConstExpressionEvaluatorFactory(Protector protector, ConstantsManager constantsManager,
-			PrismContext prismContext) {
-		super();
-		this.protector = protector;
-		this.constantsManager = constantsManager;
-		this.prismContext = prismContext;
-	}
+    @Autowired private Protector protector;
+    @Autowired private ConstantsManager constantsManager;
+    @Autowired private PrismContext prismContext;
 
-	@Override
-	public QName getElementName() {
-		return ELEMENT_NAME;
-	}
+    // Used by spring
+    public ConstExpressionEvaluatorFactory() {
+        super();
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.PrismContext)
-	 */
-	@Override
-	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(
-			Collection<JAXBElement<?>> evaluatorElements,
-			D outputDefinition,
-			ExpressionProfile expressionProfile,
-			ExpressionFactory factory,
-			String contextDescription, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException {
+    // Used in tests
+    public ConstExpressionEvaluatorFactory(Protector protector, ConstantsManager constantsManager,
+            PrismContext prismContext) {
+        super();
+        this.protector = protector;
+        this.constantsManager = constantsManager;
+        this.prismContext = prismContext;
+    }
+
+    @Override
+    public QName getElementName() {
+        return ELEMENT_NAME;
+    }
+
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.PrismContext)
+     */
+    @Override
+    public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(
+            Collection<JAXBElement<?>> evaluatorElements,
+            D outputDefinition,
+            ExpressionProfile expressionProfile,
+            ExpressionFactory factory,
+            String contextDescription, Task task, OperationResult result)
+                    throws SchemaException, ObjectNotFoundException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for 'generate' expression evaluator");
 
         Validate.notNull(outputDefinition, "output definition must be specified for path expression evaluator");
 
-		if (evaluatorElements.size() > 1) {
-			throw new SchemaException("More than one evaluator specified in "+contextDescription);
-		}
-		JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
+        if (evaluatorElements.size() > 1) {
+            throw new SchemaException("More than one evaluator specified in "+contextDescription);
+        }
+        JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
 
-		Object evaluatorElementObject = evaluatorElement.getValue();
-		 if (!(evaluatorElementObject instanceof ConstExpressionEvaluatorType)) {
-		        throw new IllegalArgumentException("Const expression cannot handle elements of type "
-		        		+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
-		}
+        Object evaluatorElementObject = evaluatorElement.getValue();
+         if (!(evaluatorElementObject instanceof ConstExpressionEvaluatorType)) {
+                throw new IllegalArgumentException("Const expression cannot handle elements of type "
+                        + evaluatorElementObject.getClass().getName()+" in "+contextDescription);
+        }
 
-		return new ConstExpressionEvaluator<>(ELEMENT_NAME, (ConstExpressionEvaluatorType) evaluatorElementObject, outputDefinition, protector, constantsManager, prismContext);
-	}
+        return new ConstExpressionEvaluator<>(ELEMENT_NAME, (ConstExpressionEvaluatorType) evaluatorElementObject, outputDefinition, protector, constantsManager, prismContext);
+    }
 
 }

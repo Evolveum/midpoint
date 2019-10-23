@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,19 +17,19 @@ import java.io.Serializable;
 public class CapabilityDto<T extends CapabilityType> implements Serializable {
 
     public static final String F_DISPLAY_NAME = "displayName";
-	public static final String F_SELECTED = "selected";
+    public static final String F_SELECTED = "selected";
 
     private String displayName;
     private String resourceKey;
     private T capability;
-	private boolean selected;								// used only when adding capabilities (multi-select dialog)
-	private boolean amongNativeCapabilities;
+    private boolean selected;                                // used only when adding capabilities (multi-select dialog)
+    private boolean amongNativeCapabilities;
 
-	public CapabilityDto(T capability, boolean amongNativeCapabilities) {
+    public CapabilityDto(T capability, boolean amongNativeCapabilities) {
         this.capability = capability;
         this.displayName = Capability.getDisplayNameForClass(capability.getClass());
-		this.resourceKey = Capability.getResourceKeyForClass(capability.getClass());
-		this.amongNativeCapabilities = amongNativeCapabilities;
+        this.resourceKey = Capability.getResourceKeyForClass(capability.getClass());
+        this.amongNativeCapabilities = amongNativeCapabilities;
     }
 
     public boolean isSelected() {
@@ -40,9 +40,9 @@ public class CapabilityDto<T extends CapabilityType> implements Serializable {
         this.selected = selected;
     }
 
-	public String getValue() {
-		return getDisplayName();
-	}
+    public String getValue() {
+        return getDisplayName();
+    }
 
     public String getDisplayName() {
         return displayName;
@@ -64,9 +64,9 @@ public class CapabilityDto<T extends CapabilityType> implements Serializable {
         return resourceKey;
     }
 
-	public String getTooltipKey() {
-		return resourceKey != null ? "CapabilityStep.capability."+resourceKey+".tooltip" : null;
-	}
+    public String getTooltipKey() {
+        return resourceKey != null ? "CapabilityStep.capability."+resourceKey+".tooltip" : null;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -93,11 +93,11 @@ public class CapabilityDto<T extends CapabilityType> implements Serializable {
         return result;
     }
 
-	public boolean isAmongNativeCapabilities() {
-		return amongNativeCapabilities;
-	}
+    public boolean isAmongNativeCapabilities() {
+        return amongNativeCapabilities;
+    }
 
-	public void setAmongNativeCapabilities(boolean amongNativeCapabilities) {
-		this.amongNativeCapabilities = amongNativeCapabilities;
-	}
+    public void setAmongNativeCapabilities(boolean amongNativeCapabilities) {
+        this.amongNativeCapabilities = amongNativeCapabilities;
+    }
 }

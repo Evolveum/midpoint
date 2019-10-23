@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014-2015 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -14,34 +14,34 @@
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Client</name>
-    
+
     <inducement>
-    	<construction>
-    		<!-- OpenDJ resource -->
-    		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <construction>
+            <!-- OpenDJ resource -->
+            <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:dn</ref>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>$user/name</path>
-					</source>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
                     <expression>
-                    	<script>
-	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('ou=clients,dc=example,dc=com')
-	                        	dn.add(new Rdn('uid',name.toString()))
-	                        	return dn.toString()
-	                        </code>
+                        <script>
+                            <code>
+                                import javax.naming.ldap.Rdn
+                                import javax.naming.ldap.LdapName
+
+                                dn = new LdapName('ou=clients,dc=example,dc=com')
+                                dn.add(new Rdn('uid',name.toString()))
+                                return dn.toString()
+                            </code>
                         </script>
                     </expression>
                 </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
-    
+
 </role>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.server.currentState;
@@ -34,7 +34,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(IterativeInformationPanel.class);
 
-	private static final String ID_EXECUTION_TIME = "executionTime";
+    private static final String ID_EXECUTION_TIME = "executionTime";
     private static final String ID_OBJECTS_PROCESSED_SUCCESS = "objectsProcessedSuccess";
     private static final String ID_OBJECTS_PROCESSED_SUCCESS_TIME = "objectsProcessedSuccessTime";
     private static final String ID_LAST_OBJECT_PROCESSED_SUCCESS = "lastObjectProcessedSuccess";
@@ -59,36 +59,36 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
 
     public IterativeInformationPanel(String id, IModel<TaskCurrentStateDto> model, final PageBase pageBase) {
         super(id, model);
-		initLayout(pageBase);
+        initLayout(pageBase);
     }
 
     protected void initLayout(PageBase pageBase) {
 
-		Label executionTime = new Label(ID_EXECUTION_TIME, new IModel<String>() {
-			@Override
-			public String getObject() {
-				TaskDto dto = getModel().getObject().getTaskDto();
-				if (dto == null) {
-					return null;
-				}
-				Long started = dto.getLastRunStartTimestampLong();
-				Long finished = dto.getLastRunFinishTimestampLong();
-				if (started == null) {
-					return null;
-				}
-				if (TaskDtoExecutionStatus.RUNNING.equals(dto.getExecution()) || finished == null || finished < started) {
-					return getString("TaskStatePanel.message.executionTime.notFinished", formatDate(new Date(started), pageBase),
-							DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - started));
-				} else {
-					return getString("TaskStatePanel.message.executionTime.finished",
-							formatDate(new Date(started), pageBase), formatDate(new Date(finished), pageBase),
-							DurationFormatUtils.formatDurationHMS(finished - started));
-				}
-			}
-		});
-		add(executionTime);
+        Label executionTime = new Label(ID_EXECUTION_TIME, new IModel<String>() {
+            @Override
+            public String getObject() {
+                TaskDto dto = getModel().getObject().getTaskDto();
+                if (dto == null) {
+                    return null;
+                }
+                Long started = dto.getLastRunStartTimestampLong();
+                Long finished = dto.getLastRunFinishTimestampLong();
+                if (started == null) {
+                    return null;
+                }
+                if (TaskDtoExecutionStatus.RUNNING.equals(dto.getExecution()) || finished == null || finished < started) {
+                    return getString("TaskStatePanel.message.executionTime.notFinished", formatDate(new Date(started), pageBase),
+                            DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - started));
+                } else {
+                    return getString("TaskStatePanel.message.executionTime.finished",
+                            formatDate(new Date(started), pageBase), formatDate(new Date(finished), pageBase),
+                            DurationFormatUtils.formatDurationHMS(finished - started));
+                }
+            }
+        });
+        add(executionTime);
 
-		Label processedSuccess = new Label(ID_OBJECTS_PROCESSED_SUCCESS, new IModel<String>() {
+        Label processedSuccess = new Label(ID_OBJECTS_PROCESSED_SUCCESS, new IModel<String>() {
             @Override
             public String getObject() {
                 TaskCurrentStateDto dto = getModelObject();

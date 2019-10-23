@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -14,12 +14,12 @@
     <parent>
         <groupId>com.evolveum.midpoint</groupId>
         <artifactId>tools</artifactId>
-        <version>4.0.1-SNAPSHOT</version>
+        <version>4.1-SNAPSHOT</version>
     </parent>
 
     <groupId>com.evolveum.midpoint.tools</groupId>
     <artifactId>ninja</artifactId>
-    <version>4.0.1-SNAPSHOT</version>
+    <version>4.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>ninja</name>
@@ -89,11 +89,11 @@
             <artifactId>util</artifactId>
             <version>${midpoint.version}</version>
             <exclusions>
-				<exclusion>
-					<groupId>javax.xml.bind</groupId>
-					<artifactId>jaxb-api</artifactId>
-				</exclusion>
-			</exclusions>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -103,24 +103,24 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.0.1-SNAPSHOT</version>
+            <version>4.1-SNAPSHOT</version>
             <exclusions>
-				<exclusion>
-					<groupId>javax.xml.bind</groupId>
-					<artifactId>jaxb-api</artifactId>
-				</exclusion>
-			</exclusions>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-impl</artifactId>
             <version>${midpoint.version}</version>
             <exclusions>
-				<exclusion>
-					<groupId>javax.xml.bind</groupId>
-					<artifactId>jaxb-api</artifactId>
-				</exclusion>
-			</exclusions>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
@@ -195,9 +195,9 @@
             <artifactId>commons-configuration</artifactId>
         </dependency>
         <dependency>
-		    <groupId>javax.xml.ws</groupId>
-			<artifactId>jaxws-api</artifactId>
-		</dependency>
+            <groupId>javax.xml.ws</groupId>
+            <artifactId>jaxws-api</artifactId>
+        </dependency>
 
         <!-- LOGGING -->
 
@@ -245,7 +245,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.0.1-SNAPSHOT</version>
+            <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

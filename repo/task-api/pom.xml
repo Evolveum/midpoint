@@ -2,73 +2,73 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<name>midPoint Task Manager - api</name>
-	<groupId>com.evolveum.midpoint.repo</groupId>
-	<artifactId>task-api</artifactId>
-	<packaging>jar</packaging>
-	<parent>
-		<artifactId>repo</artifactId>
-		<groupId>com.evolveum.midpoint</groupId>
-		<version>4.0.1-SNAPSHOT</version>
-	</parent>
+    <modelVersion>4.0.0</modelVersion>
+    <name>midPoint Task Manager - api</name>
+    <groupId>com.evolveum.midpoint.repo</groupId>
+    <artifactId>task-api</artifactId>
+    <packaging>jar</packaging>
+    <parent>
+        <artifactId>repo</artifactId>
+        <groupId>com.evolveum.midpoint</groupId>
+        <version>4.1-SNAPSHOT</version>
+    </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
         <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
         <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
-	<dependencies>
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>util</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>prism-api</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>schema</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-api</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>stax</groupId>
-			<artifactId>stax-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jetbrains</groupId>
-			<artifactId>annotations-java5</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-rt-rs-client</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>javax.ws.rs</groupId>
-			<artifactId>javax.ws.rs-api</artifactId>
-		</dependency>
+    <dependencies>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>util</artifactId>
+            <version>4.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>prism-api</artifactId>
+            <version>4.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>schema</artifactId>
+            <version>4.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-api</artifactId>
+            <version>4.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>stax</groupId>
+            <artifactId>stax-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations-java5</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+        </dependency>
 
-		<dependency>
-			<groupId>com.evolveum.midpoint.tools</groupId>
-			<artifactId>test-ng</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>com.evolveum.midpoint.tools</groupId>
+            <artifactId>test-ng</artifactId>
+            <version>4.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

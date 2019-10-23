@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -32,43 +32,43 @@ import java.util.Collections;
 @Component
 public class SystemConfigurationCacheableAdapter implements Cacheable {
 
-	private static final Trace LOGGER = TraceManager.getTrace(SystemConfigurationCacheableAdapter.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SystemConfigurationCacheableAdapter.class);
 
-	@Autowired private CacheRegistry cacheRegistry;
-	@Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
+    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
-	@PostConstruct
-	public void register() {
-		cacheRegistry.registerCacheableService(this);
-	}
+    @PostConstruct
+    public void register() {
+        cacheRegistry.registerCacheableService(this);
+    }
 
-	@PreDestroy
-	public void unregister() {
-		cacheRegistry.unregisterCacheableService(this);
-	}
+    @PreDestroy
+    public void unregister() {
+        cacheRegistry.unregisterCacheableService(this);
+    }
 
-	@Override
-	public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
-		if (context != null && context.isTerminateSession()) {
-			LOGGER.trace("Skipping invalidation request. Request is for terminate session, not for system configuration cache invalidation.");
-			return;
-		}
+    @Override
+    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+        if (context != null && context.isTerminateSession()) {
+            LOGGER.trace("Skipping invalidation request. Request is for terminate session, not for system configuration cache invalidation.");
+            return;
+        }
 
-		if (type == null || SystemConfigurationType.class.isAssignableFrom(type)) {
-			// We ignore OID by now, assuming there's only a single system configuration object
-			try {
-				OperationResult result = new OperationResult(SystemConfigurationCacheableAdapter.class.getName() + ".invalidate");
-				systemConfigurationChangeDispatcher.dispatch(true, true, result);
-			} catch (Throwable t) {
-				LoggingUtils
-						.logUnexpectedException(LOGGER, "Couldn't dispatch information about updated system configuration", t);
-			}
-		}
-	}
+        if (type == null || SystemConfigurationType.class.isAssignableFrom(type)) {
+            // We ignore OID by now, assuming there's only a single system configuration object
+            try {
+                OperationResult result = new OperationResult(SystemConfigurationCacheableAdapter.class.getName() + ".invalidate");
+                systemConfigurationChangeDispatcher.dispatch(true, true, result);
+            } catch (Throwable t) {
+                LoggingUtils
+                        .logUnexpectedException(LOGGER, "Couldn't dispatch information about updated system configuration", t);
+            }
+        }
+    }
 
-	@NotNull
-	@Override
-	public Collection<SingleCacheStateInformationType> getStateInformation() {
-		return Collections.emptySet();
-	}
+    @NotNull
+    @Override
+    public Collection<SingleCacheStateInformationType> getStateInformation() {
+        return Collections.emptySet();
+    }
 }

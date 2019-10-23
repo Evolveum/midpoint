@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.data.column;
@@ -25,23 +25,23 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
 
     private DoubleButtonPanel panel;
 
-    public enum BUTTON_COLOR_CLASS{
+    public enum ButtonColorClass {
         DEFAULT("btn-default"), PRIMARY("btn-primary"), SUCCESS("btn-success"),
         INFO("btn-info"), WARNING("btn-warning"), DANGER("btn-danger");
 
         private final String stringValue;
 
-        private BUTTON_COLOR_CLASS(final String s){stringValue = s;}
-        public String toString(){return stringValue;}
+        private ButtonColorClass(final String s) { stringValue = s; }
+        public String toString() { return stringValue; }
     }
 
-    public enum BUTTON_SIZE_CLASS{
+    public enum ButtonSizeClass {
         LARGE("btn-lg"), DEFAULT(""), SMALL("btn-sm"), EXTRA_SMALL("btn-xs");
 
         private final String stringValue;
 
-        private BUTTON_SIZE_CLASS(final String s){stringValue = s;}
-        public String toString(){return stringValue;}
+        private ButtonSizeClass(final String s) { stringValue = s; }
+        public String toString() { return stringValue; }
     }
 
     private String firstCaption;
@@ -119,19 +119,19 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
     public void secondClicked(AjaxRequestTarget target, IModel<T> model){};
 
     public String getFirstSizeCssClass(){
-        return BUTTON_SIZE_CLASS.SMALL.toString();
+        return ButtonSizeClass.SMALL.toString();
     }
 
     public String getSecondSizeCssClass(){
-        return BUTTON_SIZE_CLASS.SMALL.toString();
+        return ButtonSizeClass.SMALL.toString();
     }
 
     public String getFirstColorCssClass(){
-        return BUTTON_COLOR_CLASS.DEFAULT.toString();
+        return ButtonColorClass.DEFAULT.toString();
     }
 
     public String getSecondColorCssClass(){
-        return BUTTON_COLOR_CLASS.DEFAULT.toString();
+        return ButtonColorClass.DEFAULT.toString();
     }
 
     public String getFirstCap(){

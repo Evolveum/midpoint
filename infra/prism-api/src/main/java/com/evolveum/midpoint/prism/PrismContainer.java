@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -41,74 +41,74 @@ import java.util.function.Consumer;
  * @author Radovan Semancik
  */
 public interface PrismContainer<C extends Containerable>
-		extends Item<PrismContainerValue<C>, PrismContainerDefinition<C>>, PrismContainerable<C> {
+        extends Item<PrismContainerValue<C>, PrismContainerDefinition<C>>, PrismContainerable<C> {
 
-	/**
-	 * Returns the static type of data represented by values of this container,
-	 * if known and applicable. (There are containers that are purely dynamic, i.e.
-	 * without any compile time class.)
-	 */
-	@Nullable
+    /**
+     * Returns the static type of data represented by values of this container,
+     * if known and applicable. (There are containers that are purely dynamic, i.e.
+     * without any compile time class.)
+     */
+    @Nullable
     Class<C> getCompileTimeClass();
 
-	/**
-	 * Returns true if values of this container can be represented as specified compile-time class.
-	 * For example, PrismContainer of AbstractRoleType has:
-	 * - canRepresent(AbstractRoleType.class) = true
-	 * - canRepresent(FocusType.class) = true
-	 * - canRepresent(ObjectType.class) = true
-	 * - canRepresent(TaskType.class) = false
-	 * - canRepresent(RoleType.class) = false
-	 */
-	boolean canRepresent(@NotNull Class<?> compileTimeClass);
+    /**
+     * Returns true if values of this container can be represented as specified compile-time class.
+     * For example, PrismContainer of AbstractRoleType has:
+     * - canRepresent(AbstractRoleType.class) = true
+     * - canRepresent(FocusType.class) = true
+     * - canRepresent(ObjectType.class) = true
+     * - canRepresent(TaskType.class) = false
+     * - canRepresent(RoleType.class) = false
+     */
+    boolean canRepresent(@NotNull Class<?> compileTimeClass);
 
-	/**
-	 * Returns true if values of this container can be presented as specified type (from compile-time or runtime schema).
-	 * In particular, returns true if type of this container or any of its supertypes match given type.
-	 */
-	boolean canRepresent(QName type);
+    /**
+     * Returns true if values of this container can be presented as specified type (from compile-time or runtime schema).
+     * In particular, returns true if type of this container or any of its supertypes match given type.
+     */
+    boolean canRepresent(QName type);
 
-	@NotNull
+    @NotNull
     @Override
-	Collection<C> getRealValues();
+    Collection<C> getRealValues();
 
-	@NotNull
-	C getRealValue();
+    @NotNull
+    C getRealValue();
 
-	void setValue(@NotNull PrismContainerValue<C> value) throws SchemaException;
+    void setValue(@NotNull PrismContainerValue<C> value) throws SchemaException;
 
-	@NotNull
-	PrismContainerValue<C> getValue();
+    @NotNull
+    PrismContainerValue<C> getValue();
 
     PrismContainerValue<C> getValue(Long id);
 
-	<T> void setPropertyRealValue(QName propertyName, T realValue) throws SchemaException;
+    <T> void setPropertyRealValue(QName propertyName, T realValue) throws SchemaException;
 
-	<C extends Containerable> void setContainerRealValue(QName containerName, C realValue) throws SchemaException;
+    <C extends Containerable> void setContainerRealValue(QName containerName, C realValue) throws SchemaException;
 
-	<T> void setPropertyRealValues(QName propertyName, T... realValues) throws SchemaException;
+    <T> void setPropertyRealValues(QName propertyName, T... realValues) throws SchemaException;
 
-	<T> T getPropertyRealValue(ItemPath propertyPath, Class<T> type);
+    <T> T getPropertyRealValue(ItemPath propertyPath, Class<T> type);
 
-	/**
+    /**
      * Convenience method. Works only on single-valued containers.
      */
-	void add(Item<?, ?> item) throws SchemaException;
+    void add(Item<?, ?> item) throws SchemaException;
 
-	PrismContainerValue<C> createNewValue();
+    PrismContainerValue<C> createNewValue();
 
-	void mergeValues(PrismContainer<C> other) throws SchemaException;
+    void mergeValues(PrismContainer<C> other) throws SchemaException;
 
-	void mergeValues(Collection<PrismContainerValue<C>> otherValues) throws SchemaException;
+    void mergeValues(Collection<PrismContainerValue<C>> otherValues) throws SchemaException;
 
-	void mergeValue(PrismContainerValue<C> otherValue) throws SchemaException;
+    void mergeValue(PrismContainerValue<C> otherValue) throws SchemaException;
 
-	/**
+    /**
      * Remove all empty values
      */
-	void trim();
+    void trim();
 
-	/**
+    /**
      * Returns applicable property container definition.
      * <p>
      * May return null if no definition is applicable or the definition is not
@@ -116,140 +116,140 @@ public interface PrismContainer<C extends Containerable>
      *
      * @return applicable property container definition
      */
-	PrismContainerDefinition<C> getDefinition();
+    PrismContainerDefinition<C> getDefinition();
 
-	/**
+    /**
      * Sets applicable property container definition.
      *
      * @param definition the definition to set
      */
-	void setDefinition(PrismContainerDefinition<C> definition);
+    void setDefinition(PrismContainerDefinition<C> definition);
 
-	@Override
-	void applyDefinition(PrismContainerDefinition<C> definition) throws SchemaException;
+    @Override
+    void applyDefinition(PrismContainerDefinition<C> definition) throws SchemaException;
 
-	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findItem(QName itemQName, Class<I> type);
+    <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findItem(QName itemQName, Class<I> type);
 
-	@Override
-	Object find(ItemPath path);
+    @Override
+    Object find(ItemPath path);
 
-	@Override
-	<IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
+    @Override
+    <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
-	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findCreateItem(QName itemQName, Class<I> type, boolean create) throws SchemaException;
+    <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findCreateItem(QName itemQName, Class<I> type, boolean create) throws SchemaException;
 
-	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findItem(ItemPath path, Class<I> type);
+    <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findItem(ItemPath path, Class<I> type);
 
-	<IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(ItemPath path);
+    <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(ItemPath path);
 
-	boolean containsItem(ItemPath itemPath, boolean acceptEmptyItem) throws SchemaException;
+    boolean containsItem(ItemPath itemPath, boolean acceptEmptyItem) throws SchemaException;
 
-	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findCreateItem(ItemPath itemPath, Class<I> type, ID itemDefinition, boolean create) throws SchemaException;
+    <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findCreateItem(ItemPath itemPath, Class<I> type, ID itemDefinition, boolean create) throws SchemaException;
 
-	PrismContainerValue<C> findValue(long id);
+    PrismContainerValue<C> findValue(long id);
 
-	<T extends Containerable> PrismContainer<T> findContainer(ItemPath path);
+    <T extends Containerable> PrismContainer<T> findContainer(ItemPath path);
 
-	<T> PrismProperty<T> findProperty(ItemPath path);
+    <T> PrismProperty<T> findProperty(ItemPath path);
 
-	PrismReference findReference(ItemPath path);
+    PrismReference findReference(ItemPath path);
 
-	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(ItemPath containerPath,
-			Class<I> type) throws SchemaException;
+    <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(ItemPath containerPath,
+            Class<I> type) throws SchemaException;
 
-	// The "definition" parameter provides definition of item to create, in case that the container does not have
+    // The "definition" parameter provides definition of item to create, in case that the container does not have
     // the definition (e.g. in case of "extension" containers)
-	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(ItemPath containerPath,
-			Class<I> type, ID definition) throws SchemaException;
+    <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(ItemPath containerPath,
+            Class<I> type, ID definition) throws SchemaException;
 
-	<T extends Containerable> PrismContainer<T> findOrCreateContainer(ItemPath containerPath) throws SchemaException;
+    <T extends Containerable> PrismContainer<T> findOrCreateContainer(ItemPath containerPath) throws SchemaException;
 
-	<T> PrismProperty<T> findOrCreateProperty(ItemPath propertyPath) throws SchemaException;
+    <T> PrismProperty<T> findOrCreateProperty(ItemPath propertyPath) throws SchemaException;
 
-	PrismReference findOrCreateReference(ItemPath propertyPath) throws SchemaException;
+    PrismReference findOrCreateReference(ItemPath propertyPath) throws SchemaException;
 
-	/**
+    /**
      * Convenience method. Works only on single-valued containers.
      */
-	void remove(Item<?, ?> item);
+    void remove(Item<?, ?> item);
 
-	void removeProperty(ItemPath path);
+    void removeProperty(ItemPath path);
 
-	void removeContainer(ItemPath path);
+    void removeContainer(ItemPath path);
 
-	void removeReference(ItemPath path);
+    void removeReference(ItemPath path);
 
-	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> void removeItem(ItemPath path, Class<I> itemType);
+    <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> void removeItem(ItemPath path, Class<I> itemType);
 
-	// Expects that the "self" path segment is NOT included in the basePath
+    // Expects that the "self" path segment is NOT included in the basePath
     // is this method used anywhere?
 //    void addItemPathsToList(ItemPath basePath, Collection<ItemPath> list) {
-//    	boolean addIds = true;
-//    	if (getDefinition() != null) {
-//    		if (getDefinition().isSingleValue()) {
-//    			addIds = false;
-//    		}
-//    	}
-//    	for (PrismContainerValue<V> pval: getValues()) {
-//    		ItemPath subpath = null;
-//    		ItemPathSegment segment = null;
-//    		if (addIds) {
-//    			subpath = basePath.subPath(new IdItemPathSegment(pval.getId())).subPath(new NameItemPathSegment(getElementName()));
-//    		} else {
-//    			subpath = basePath.subPath(new NameItemPathSegment(getElementName()));
-//    		}
-//    		pval.addItemPathsToList(subpath, list);
-//    	}
+//        boolean addIds = true;
+//        if (getDefinition() != null) {
+//            if (getDefinition().isSingleValue()) {
+//                addIds = false;
+//            }
+//        }
+//        for (PrismContainerValue<V> pval: getValues()) {
+//            ItemPath subpath = null;
+//            ItemPathSegment segment = null;
+//            if (addIds) {
+//                subpath = basePath.subPath(new IdItemPathSegment(pval.getId())).subPath(new NameItemPathSegment(getElementName()));
+//            } else {
+//                subpath = basePath.subPath(new NameItemPathSegment(getElementName()));
+//            }
+//            pval.addItemPathsToList(subpath, list);
+//        }
 //    }
 
     @Override
     ContainerDelta<C> createDelta();
 
-	@Override
-	ContainerDelta<C> createDelta(ItemPath path);
+    @Override
+    ContainerDelta<C> createDelta(ItemPath path);
 
-	boolean isEmpty();
+    boolean isEmpty();
 
-	@Override
-	void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions,
-			boolean prohibitRaw, ConsistencyCheckScope scope);
+    @Override
+    void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions,
+            boolean prohibitRaw, ConsistencyCheckScope scope);
 
     @Override
     void assertDefinitions(boolean tolarateRaw, String sourceDescription) throws SchemaException;
 
-	ContainerDelta<C> diff(PrismContainer<C> other);
+    ContainerDelta<C> diff(PrismContainer<C> other);
 
-	ContainerDelta<C> diff(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy);
+    ContainerDelta<C> diff(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy);
 
-	List<? extends ItemDelta> diffModifications(PrismContainer<C> other);
+    List<? extends ItemDelta> diffModifications(PrismContainer<C> other);
 
-	List<? extends ItemDelta> diffModifications(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy);
+    List<? extends ItemDelta> diffModifications(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy);
 
-	@Override
-	PrismContainer<C> clone();
+    @Override
+    PrismContainer<C> clone();
 
-	@Override
-	PrismContainer<C> cloneComplex(CloneStrategy strategy);
+    @Override
+    PrismContainer<C> cloneComplex(CloneStrategy strategy);
 
     PrismContainerDefinition<C> deepCloneDefinition(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction);
 
-	@Override
-	void accept(Visitor visitor, ItemPath path, boolean recursive);
+    @Override
+    void accept(Visitor visitor, ItemPath path, boolean recursive);
 
 
-	/**
+    /**
      * This method ignores some part of the object during comparison (e.g. source demarcation in values)
      * These methods compare the "meaningful" parts of the objects.
      */
-	boolean equivalent(Object obj);
+    boolean equivalent(Object obj);
 
-	@Override
-	String toString();
+    @Override
+    String toString();
 
-	@Override
-	String debugDump(int indent);
+    @Override
+    String debugDump(int indent);
 
-	static <V extends Containerable> PrismContainer<V> newInstance(PrismContext prismContext, QName type) throws SchemaException {
+    static <V extends Containerable> PrismContainer<V> newInstance(PrismContext prismContext, QName type) throws SchemaException {
         PrismContainerDefinition<V> definition = prismContext.getSchemaRegistry().findContainerDefinitionByType(type);
         if (definition == null) {
             throw new SchemaException("Definition for " + type + " couldn't be found");
@@ -257,22 +257,22 @@ public interface PrismContainer<C extends Containerable>
         return definition.instantiate();
     }
 
-	static <V extends PrismContainerValue> void createParentIfNeeded(V value, ItemDefinition definition) throws SchemaException {
-		if (value.getParent() != null) {
-			return;
-		}
-		if (!(definition instanceof PrismContainerDefinition)) {
-			throw new SchemaException("Missing or invalid definition for a PrismContainer: " + definition);
-		}
-		PrismContainer<?> rv = (PrismContainer) definition.instantiate();
-		rv.add(value);
-	}
+    static <V extends PrismContainerValue> void createParentIfNeeded(V value, ItemDefinition definition) throws SchemaException {
+        if (value.getParent() != null) {
+            return;
+        }
+        if (!(definition instanceof PrismContainerDefinition)) {
+            throw new SchemaException("Missing or invalid definition for a PrismContainer: " + definition);
+        }
+        PrismContainer<?> rv = (PrismContainer) definition.instantiate();
+        rv.add(value);
+    }
 
-	/**
-	 * Optimizes (trims) definition tree by removing any definitions not corresponding to items in this container.
-	 * Works recursively by sub-containers of this one.
-	 * USE WITH CARE. Make sure the definitions are not shared by other objects!
-	 */
-	void trimDefinitionTree(Collection<? extends ItemPath> alwaysKeep);
+    /**
+     * Optimizes (trims) definition tree by removing any definitions not corresponding to items in this container.
+     * Works recursively by sub-containers of this one.
+     * USE WITH CARE. Make sure the definitions are not shared by other objects!
+     */
+    void trimDefinitionTree(Collection<? extends ItemPath> alwaysKeep);
 
 }

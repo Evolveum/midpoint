@@ -6,13 +6,13 @@
   -->
 
 <archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" 
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" 
-      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" 
+      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" 
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" 
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:ext="http://grouper-demo.tier.internet2.edu"
       oid="56f53812-047d-4b69-83e8-519a73d161e1">

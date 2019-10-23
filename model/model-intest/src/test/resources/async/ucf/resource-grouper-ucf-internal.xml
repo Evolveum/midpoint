@@ -2,207 +2,207 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <resource oid="bbb9900a-b53d-4453-b60b-908725e3950e"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-		  xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin.async/AsyncUpdateConnector"
+          xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin.async/AsyncUpdateConnector"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Grouper Resource</name>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:equal>
-				<q:path>connectorType</q:path>
-				<q:value>AsyncUpdateConnector</q:value>
-			</q:equal>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration>
-		<conf:sources>
-			<other>
-				<className>com.evolveum.midpoint.model.intest.async.MockAsyncUpdateSource</className>
-			</other>
-		</conf:sources>
-	</connectorConfiguration>
-	<schema>
-		<definition>
-			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-						xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-						targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
-				<xsd:complexType name="AccountObjectClass">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<ra:resourceObject/>
-							<ra:identifier>icfs:uid</ra:identifier>
-							<ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-							<ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-							<ra:namingAttribute>icfs:name</ra:namingAttribute>
-							<ra:account/>
-							<ra:default/>
-						</xsd:appinfo>
-					</xsd:annotation>
-					<xsd:sequence>
-						<xsd:element ref="icfs:name"/>
-						<xsd:element ref="icfs:uid"/>
-						<xsd:element name="group" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-					</xsd:sequence>
-				</xsd:complexType>
-				<xsd:complexType name="GroupObjectClass">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<ra:resourceObject/>
-							<ra:identifier>icfs:uid</ra:identifier>
-							<ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-							<ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-							<ra:namingAttribute>icfs:name</ra:namingAttribute>
-							<ra:account/>
-							<ra:default/>
-						</xsd:appinfo>
-					</xsd:annotation>
-					<xsd:sequence>
-						<xsd:element ref="icfs:name"/>
-						<xsd:element ref="icfs:uid"/>
-					</xsd:sequence>
-				</xsd:complexType>
-			</xsd:schema>
-		</definition>
-	</schema>
+    <name>Grouper Resource</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>connectorType</q:path>
+                <q:value>AsyncUpdateConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration>
+        <conf:sources>
+            <other>
+                <className>com.evolveum.midpoint.model.intest.async.MockAsyncUpdateSource</className>
+            </other>
+        </conf:sources>
+    </connectorConfiguration>
+    <schema>
+        <definition>
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+                        xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                        targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+                <xsd:complexType name="AccountObjectClass">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <ra:resourceObject/>
+                            <ra:identifier>icfs:uid</ra:identifier>
+                            <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                            <ra:account/>
+                            <ra:default/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <xsd:element ref="icfs:name"/>
+                        <xsd:element ref="icfs:uid"/>
+                        <xsd:element name="group" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+                <xsd:complexType name="GroupObjectClass">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <ra:resourceObject/>
+                            <ra:identifier>icfs:uid</ra:identifier>
+                            <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                            <ra:account/>
+                            <ra:default/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <xsd:element ref="icfs:name"/>
+                        <xsd:element ref="icfs:uid"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:schema>
+        </definition>
+    </schema>
 
-	<schemaHandling>
-		<objectType>
-			<kind>account</kind>
-			<intent>subject</intent>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<default>true</default>
-			<attribute>
-				<ref>icfs:name</ref>
-				<inbound>
-					<target>
-						<path>name</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:group</ref>
-				<inbound>
-					<target>
-						<path>organizationalUnit</path>
-					</target>
-				</inbound>
-			</attribute>
-		</objectType>
-		<objectType>
-			<kind>entitlement</kind>
-			<intent>group</intent>
-			<objectClass>ri:GroupObjectClass</objectClass>
-			<default>true</default>
-			<attribute>
-				<ref>icfs:name</ref>
-				<inbound>
-					<target>
-						<path>name</path>
-					</target>
-				</inbound>
-			</attribute>
-		</objectType>
-	</schemaHandling>
-	<synchronization>
-		<objectSynchronization>
-			<enabled>true</enabled>
-			<kind>account</kind>
-			<intent>subject</intent>
-			<focusType>UserType</focusType>
-			<correlation>
-				<q:equal>
-					<q:path>name</q:path>
-					<expression>
-						<path>
-							$account/attributes/name
-						</path>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-				<situation>linked</situation>
-				<synchronize>true</synchronize>
-			</reaction>
-			<reaction>
-				<situation>deleted</situation>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-				</action>
-			</reaction>
-			<reaction>
-				<situation>unlinked</situation>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-				</action>
-			</reaction>
-			<reaction>
-				<situation>unmatched</situation>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-				</action>
-			</reaction>
-		</objectSynchronization>
-		<objectSynchronization>
-			<enabled>true</enabled>
-			<kind>entitlement</kind>
-			<intent>group</intent>
-			<focusType>OrgType</focusType>
-			<correlation>
-				<q:equal>
-					<q:path>name</q:path>
-					<expression>
-						<path>
-							$account/attributes/name
-						</path>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-				<situation>linked</situation>
-				<synchronize>true</synchronize>
-			</reaction>
-			<reaction>
-				<situation>deleted</situation>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
-				</action>
-			</reaction>
-			<reaction>
-				<situation>unlinked</situation>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-				</action>
-			</reaction>
-			<reaction>
-				<situation>unmatched</situation>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-				</action>
-			</reaction>
-		</objectSynchronization>
-	</synchronization>
-	<!--<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">-->
-		<!--<configured>-->
-			<!--<cap:read>-->
-				<!--<cap:cachingOnly>true</cap:cachingOnly>-->
-			<!--</cap:read>-->
-		<!--</configured>-->
-	<!--</capabilities>-->
-	<caching>
-		<cachingStategy>passive</cachingStategy>
-	</caching>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>subject</intent>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <default>true</default>
+            <attribute>
+                <ref>icfs:name</ref>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:group</ref>
+                <inbound>
+                    <target>
+                        <path>organizationalUnit</path>
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <default>true</default>
+            <attribute>
+                <ref>icfs:name</ref>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <kind>account</kind>
+            <intent>subject</intent>
+            <focusType>UserType</focusType>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>
+                            $account/attributes/name
+                        </path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <focusType>OrgType</focusType>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>
+                            $account/attributes/name
+                        </path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+    <!--<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">-->
+        <!--<configured>-->
+            <!--<cap:read>-->
+                <!--<cap:cachingOnly>true</cap:cachingOnly>-->
+            <!--</cap:read>-->
+        <!--</configured>-->
+    <!--</capabilities>-->
+    <caching>
+        <cachingStategy>passive</cachingStategy>
+    </caching>
 </resource>

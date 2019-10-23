@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -46,78 +46,78 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProfilingConfigurati
 
 public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrapper<ProfilingConfigurationType>> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ProfilingConfigurationTabPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ProfilingConfigurationTabPanel.class);
 
-	private static final String ID_PROFILING_ENABLED_NOTE = "profilingEnabledNote";
-	private static final String ID_PROFILING = "profiling";
-	private static final String ID_PROFILING_LOGGER = "profilingLogger";
-	private static final String ID_PROFILING_LOGGER_APPENDERS = "profilingLoggerAppenders";
-	private static final String ID_PROFILING_LOGGER_LEVEL = "profilingLoggerLevel";
+    private static final String ID_PROFILING_ENABLED_NOTE = "profilingEnabledNote";
+    private static final String ID_PROFILING = "profiling";
+    private static final String ID_PROFILING_LOGGER = "profilingLogger";
+    private static final String ID_PROFILING_LOGGER_APPENDERS = "profilingLoggerAppenders";
+    private static final String ID_PROFILING_LOGGER_LEVEL = "profilingLoggerLevel";
 
-	private IModel<PrismContainerWrapper<LoggingConfigurationType>> loggingModel;
+    private IModel<PrismContainerWrapper<LoggingConfigurationType>> loggingModel;
 
-	public ProfilingConfigurationTabPanel(String id, IModel<PrismContainerWrapper<ProfilingConfigurationType>> profilingModel,
-			IModel<PrismContainerWrapper<LoggingConfigurationType>> loggingModel) {
-		super(id, profilingModel);
-		this.loggingModel = loggingModel;
-	}
+    public ProfilingConfigurationTabPanel(String id, IModel<PrismContainerWrapper<ProfilingConfigurationType>> profilingModel,
+            IModel<PrismContainerWrapper<LoggingConfigurationType>> loggingModel) {
+        super(id, profilingModel);
+        this.loggingModel = loggingModel;
+    }
 
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
-		initLayout();
-	}
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
 
-	private IModel<PrismContainerWrapper<LoggingConfigurationType>> getLoggingModel() {
-		return loggingModel;
-	}
+    private IModel<PrismContainerWrapper<LoggingConfigurationType>> getLoggingModel() {
+        return loggingModel;
+    }
 
-	private IModel<PrismContainerWrapper<ProfilingConfigurationType>> getProfilingModel() {
-		return getModel();
-	}
+    private IModel<PrismContainerWrapper<ProfilingConfigurationType>> getProfilingModel() {
+        return getModel();
+    }
 
-	protected void initLayout() {
+    protected void initLayout() {
 
-		WebMarkupContainer profilingEnabledNote = new WebMarkupContainer(ID_PROFILING_ENABLED_NOTE);
-		profilingEnabledNote.add(new VisibleEnableBehaviour() {
+        WebMarkupContainer profilingEnabledNote = new WebMarkupContainer(ID_PROFILING_ENABLED_NOTE);
+        profilingEnabledNote.add(new VisibleEnableBehaviour() {
 
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isVisible() {
-				return getPageBase().getMidpointConfiguration().getProfilingMode() == ProfilingMode.OFF;
-			}
-		});
-		add(profilingEnabledNote);
+            @Override
+            public boolean isVisible() {
+                return getPageBase().getMidpointConfiguration().getProfilingMode() == ProfilingMode.OFF;
+            }
+        });
+        add(profilingEnabledNote);
 
-		try {
-			ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().showOnTopLevel(true);
-			Panel panel = getPageBase().initItemPanel(ID_PROFILING, ProfilingConfigurationType.COMPLEX_TYPE, getProfilingModel(), builder.build());
-			add(panel);
-		} catch (SchemaException e) {
-			LOGGER.error("Cannot create profiling panel. Reason: {}", e.getMessage(), e);
-			getSession().error("Cannot create profiling panel.");
-		}
+        try {
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().showOnTopLevel(true);
+            Panel panel = getPageBase().initItemPanel(ID_PROFILING, ProfilingConfigurationType.COMPLEX_TYPE, getProfilingModel(), builder.build());
+            add(panel);
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot create profiling panel. Reason: {}", e.getMessage(), e);
+            getSession().error("Cannot create profiling panel.");
+        }
 
-    	PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> profilingLogger = PrismContainerWrapperModel.fromContainerWrapper(getLoggingModel(), ItemPath.create(ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH));
-    	try {
-    		ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().showOnTopLevel(true);
-			Panel logger = getPageBase().initItemPanel(ID_PROFILING_LOGGER, ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH, profilingLogger, builder.build());
-			add(logger);
-		} catch (SchemaException e) {
-			LOGGER.error("Cannot create profiling panel. Reason: {}", e.getMessage(), e);
-			getSession().error("Cannot create profiling panel.");
-		}
+        PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> profilingLogger = PrismContainerWrapperModel.fromContainerWrapper(getLoggingModel(), ItemPath.create(ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH));
+        try {
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().showOnTopLevel(true);
+            Panel logger = getPageBase().initItemPanel(ID_PROFILING_LOGGER, ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH, profilingLogger, builder.build());
+            add(logger);
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot create profiling panel. Reason: {}", e.getMessage(), e);
+            getSession().error("Cannot create profiling panel.");
+        }
 
-	}
+    }
 
-	private ItemVisibility getAppendersPanelVisibility(ItemPath pathToCheck) {
-		return ItemVisibility.VISIBLE;
-	}
+    private ItemVisibility getAppendersPanelVisibility(ItemPath pathToCheck) {
+        return ItemVisibility.VISIBLE;
+    }
 
-	private String getInputCssClass() {
-		return "col-xs-10";
-	}
+    private String getInputCssClass() {
+        return "col-xs-10";
+    }
 }

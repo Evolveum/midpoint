@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -149,7 +149,7 @@ public class EntityDefinition extends Definition {
     public <D extends Definition> D findLocalDefinition(@NotNull QName jaxbName, @NotNull Class<D> type) {
 
         for (Definition definition : getDefinitions()) {
-        	//TODO: using match instead of strict equals..is this OK for repository??this is the situation, we have "common" namepsace
+            //TODO: using match instead of strict equals..is this OK for repository??this is the situation, we have "common" namepsace
             if (QNameUtil.match(jaxbName, definition.getJaxbName()) && type.isAssignableFrom(definition.getClass())) {
                 return (D) definition;
             }

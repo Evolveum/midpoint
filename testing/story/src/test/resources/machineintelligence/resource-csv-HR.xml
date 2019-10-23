@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -17,50 +17,50 @@ object.
 
 -->
 <c:resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-			xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/machineinteligence/ext"
-			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-			oid="10000000-0000-0000-0000-000000000001">
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+            xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/machineinteligence/ext"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+            oid="10000000-0000-0000-0000-000000000001">
 
-	<!-- Resource name. It will be displayed in GUI.  -->
-	<c:name>HR Resource</c:name>
+    <!-- Resource name. It will be displayed in GUI.  -->
+    <c:name>HR Resource</c:name>
 
-	<!-- Reference to the ICF CSVFile connector. -->
-	<connectorRef type="ConnectorType">
-		<filter>
-			<q:equal>
-				<q:path>c:connectorType</q:path>
-				<q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
-			</q:equal>
-		</filter>
-	</connectorRef>
+    <!-- Reference to the ICF CSVFile connector. -->
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>c:connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
 
-	<!-- Configuration section contains configuration of the connector,
+    <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-	<c:connectorConfiguration>
+    <c:connectorConfiguration>
 
-		<!-- Configuration specific for the CSVfile connector -->
-		<icfc:configurationProperties
-					xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
-			<icfccsvfile:filePath>shold-be-replaced-by-test-code</icfccsvfile:filePath> <!-- machineintelligence/HR.csv -->
-			<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
-			<icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
-			<icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
-			<icfccsvfile:uniqueAttribute>identifier</icfccsvfile:uniqueAttribute>
-			<!--			<icfccsvfile:nameAttribute>id</icfccsvfile:nameAttribute> -->
-			<icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
-		</icfc:configurationProperties>
+        <!-- Configuration specific for the CSVfile connector -->
+        <icfc:configurationProperties
+                    xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+            <icfccsvfile:filePath>shold-be-replaced-by-test-code</icfccsvfile:filePath> <!-- machineintelligence/HR.csv -->
+            <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
+            <icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
+            <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
+            <icfccsvfile:uniqueAttribute>identifier</icfccsvfile:uniqueAttribute>
+            <!--            <icfccsvfile:nameAttribute>id</icfccsvfile:nameAttribute> -->
+            <icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
+        </icfc:configurationProperties>
 
-		<!-- Generic ICF configuration -->
+        <!-- Generic ICF configuration -->
 
-	</c:connectorConfiguration>
+    </c:connectorConfiguration>
 
-	<!-- Resource Schema Handling definition.
+    <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by
              midPoint. It defines expressions and limitations for individual
              schema attributes.
@@ -70,7 +70,7 @@ object.
 
              This is the part where most of the customization takes place.
         -->
-	<schemaHandling>
+    <schemaHandling>
 
 
 <objectType>
@@ -129,187 +129,187 @@ object.
                   </target>
                </inbound>
             </attribute>
-          
-          
-           
+
+
+
             <!-- expected format: (department/position/emplType/status) -->
              <attribute>
                <c:ref>ri:assignments</c:ref>
                <displayName>Assignment</displayName>
                <description>Definition of Company attribute handling.</description>
-               
-               <inbound>
-               		<expression>
-               		<assignmentTargetSearch>
-            	<targetType>c:OrgType</targetType>
-        		<filter>
-					<q:equal>
-						<q:path>c:name</q:path>
-						<expression>
-							<script>
-								<code>
-									department = input.tokenize('/')[0]
-									log.info("Search according to org name " + department)
-									return department
-								</code>
-							</script>
-						</expression>
-					</q:equal>
-				</filter>
-				<createOnDemand>true</createOnDemand>
-				<populateObject>
-					<populateItem>
-						<expression>
-							<script>
-								<code>
-									log.info("Org name ")
-									department = input.tokenize('/')[0]
-								</code>
-							</script>
-						</expression>
-						<target>
-							<path>name</path>
-						</target>
-					</populateItem>
-					<populateItem>
-						<expression>
-							<script>
-								<code>
 
-									log.info("Org cost center ")
-									departmentFullName = input.tokenize('/')[0]
-									tokenized = departmentFullName.toString().tokenize(" ")
-                            		costCenter = tokenized[tokenized.size()-1]
-                             		if (costCenter.startsWith("(")) {
-                               			toReturn = costCenter.substring(1, costCenter.length()-1);
-                                		log.trace("###COST CENTER: {}", toReturn)
-                                		return toReturn
-                             		} 
-                             		log.trace("###COST CENTER: {}", costCenter)
-                                	return costCenter
-								</code>
-							</script>
-						</expression>
-						<target>
-							<path>costCenter</path>
-						</target>
-					</populateItem>
-					<populateItem>
-						<expression>
-							<script>
-								<code>
-									log.info("Org displayName ")
-									departmentFullName = input.tokenize('/')[0]
-									/*index = departmentFullName.lastIndexOf("(")
-                            		departmentName = departmentFullName.substring(0, index -1)
-                             		
-                                	return departmentName */
-								</code>
-							</script>
-						</expression>
-						<target>
-							<path>displayName</path>
-						</target>
-					</populateItem>
-				</populateObject> 
-				<populate>
-					<populateItem>
-						<expression>
-							<script>
-								<code>
-									import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
-									log.info("Activation status ")
-									active = input.tokenize('/')[3]
-									if (active == "ACTIVE") return ActivationStatusType.ENABLED
-									return 	ActivationStatusType.DISABLED
-								</code>
-							</script>
-						</expression>
-						<target>
-							<path>activation/administrativeStatus</path>
-						</target>
-					</populateItem>
-					
-					<populateItem>
-						<expression>
-							<script>
-								<code>
-									log.info("Valid to ")
-									tokenized = input.tokenize('/')
-									log.info("tokenized.size() " +tokenized.size())
-									if (tokenized.size() == 5) {
-										//2016-12-31T23:59:59.000
-										return basic.parseDateTime("yyyy-mm-dd'T'HH:mm:ss.SSS", tokenized[4]);
-									}
-									
-									return null;
-									
-								</code>
-							</script>
-						</expression>
-						<target>
-							<path>activation/validTo</path>
-						</target>
-					</populateItem>
-				</populate>
-            </assignmentTargetSearch>    	
+               <inbound>
+                       <expression>
+                       <assignmentTargetSearch>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>c:name</q:path>
+                        <expression>
+                            <script>
+                                <code>
+                                    department = input.tokenize('/')[0]
+                                    log.info("Search according to org name " + department)
+                                    return department
+                                </code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </filter>
+                <createOnDemand>true</createOnDemand>
+                <populateObject>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+                                    log.info("Org name ")
+                                    department = input.tokenize('/')[0]
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>name</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+
+                                    log.info("Org cost center ")
+                                    departmentFullName = input.tokenize('/')[0]
+                                    tokenized = departmentFullName.toString().tokenize(" ")
+                                    costCenter = tokenized[tokenized.size()-1]
+                                     if (costCenter.startsWith("(")) {
+                                           toReturn = costCenter.substring(1, costCenter.length()-1);
+                                        log.trace("###COST CENTER: {}", toReturn)
+                                        return toReturn
+                                     }
+                                     log.trace("###COST CENTER: {}", costCenter)
+                                    return costCenter
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>costCenter</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+                                    log.info("Org displayName ")
+                                    departmentFullName = input.tokenize('/')[0]
+                                    /*index = departmentFullName.lastIndexOf("(")
+                                    departmentName = departmentFullName.substring(0, index -1)
+
+                                    return departmentName */
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>displayName</path>
+                        </target>
+                    </populateItem>
+                </populateObject>
+                <populate>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+                                    log.info("Activation status ")
+                                    active = input.tokenize('/')[3]
+                                    if (active == "ACTIVE") return ActivationStatusType.ENABLED
+                                    return     ActivationStatusType.DISABLED
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>activation/administrativeStatus</path>
+                        </target>
+                    </populateItem>
+
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+                                    log.info("Valid to ")
+                                    tokenized = input.tokenize('/')
+                                    log.info("tokenized.size() " +tokenized.size())
+                                    if (tokenized.size() == 5) {
+                                        //2016-12-31T23:59:59.000
+                                        return basic.parseDateTime("yyyy-mm-dd'T'HH:mm:ss.SSS", tokenized[4]);
+                                    }
+
+                                    return null;
+
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>activation/validTo</path>
+                        </target>
+                    </populateItem>
+                </populate>
+            </assignmentTargetSearch>
                </expression>
                   <target>
                      <c:path>assignment</c:path>
                   </target>
-                  
+
                </inbound>
-               
-               
+
+
                 <inbound>
-                	<expression>
-							<script>
-								<code>
-									return input.tokenize('/')[1]
-								</code>
-							</script>
-						</expression>
+                    <expression>
+                            <script>
+                                <code>
+                                    return input.tokenize('/')[1]
+                                </code>
+                            </script>
+                        </expression>
                   <target>
                      <c:path>organizationalUnit</c:path>
                   </target>
                    <condition>
-                   	<script>
-	                   	<code>
-	                   		input != null
-                   		</code>
-                   	</script>
+                       <script>
+                           <code>
+                               input != null
+                           </code>
+                       </script>
                    </condition>
-                 
-               </inbound>
-               
-               <inbound>
-                	<expression>
-							<script>
-								<code>
 
-									assignmentType = input.tokenize('/')[2]
-									if (assignmentType?.equals("E")) return "employee"
-                         			if (assignmentType?.equals("C")) return "contractor"
-                          			return assignmentType
-								</code>
-							</script>
-						</expression>
+               </inbound>
+
+               <inbound>
+                    <expression>
+                            <script>
+                                <code>
+
+                                    assignmentType = input.tokenize('/')[2]
+                                    if (assignmentType?.equals("E")) return "employee"
+                                     if (assignmentType?.equals("C")) return "contractor"
+                                      return assignmentType
+                                </code>
+                            </script>
+                        </expression>
                   <target>
                      <c:path>employeeType</c:path>
                   </target>
                   <condition>
-                   	<script>
-	                   	<code>
-	                   		input != null
-                   		</code>
-                   	</script>
+                       <script>
+                           <code>
+                               input != null
+                           </code>
+                       </script>
                    </condition>
-                  
+
                </inbound>
-               
+
             </attribute>
-           
-           
+
+
             <activation>
                <administrativeStatus>
                   <inbound/>
@@ -326,46 +326,46 @@ object.
             </credentials>
          </objectType>
 
-	</schemaHandling>
+    </schemaHandling>
 
-	
-	<synchronization>
-		<objectSynchronization>
-			<enabled>true</enabled>
-			<correlation>
-				<q:equal>
-					<q:path>c:name</q:path>
-					<expression>
-						<path>$account/attributes/ri:identifier</path>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-				<situation>linked</situation>
-				<synchronize>true</synchronize>
-			</reaction>
-			<reaction>
-				<situation>deleted</situation>
-				<synchronize>true</synchronize>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
-				</action>
-			</reaction>
-			<reaction>
-				<situation>unlinked</situation>
-				<synchronize>true</synchronize>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-				</action>
-			</reaction>
-			<reaction>
-				<situation>unmatched</situation>
-				<synchronize>true</synchronize>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-				</action>
-			</reaction>
-		</objectSynchronization>
-	</synchronization>
+
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <path>$account/attributes/ri:identifier</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
 </c:resource>
 

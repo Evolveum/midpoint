@@ -18,14 +18,14 @@
                 <code>
                     import com.evolveum.midpoint.xml.ns._public.common.common_3.*
                     import com.evolveum.midpoint.schema.constants.*
-                    import com.evolveum.midpoint.schema.* 
+                    import com.evolveum.midpoint.schema.*
                     import javax.xml.namespace.*
                     import com.evolveum.midpoint.util.*
                     import com.evolveum.midpoint.prism.path.*
-                    
+
                     GROUPER_RESOURCE_OID = '1eff65de-5bb6-483d-9edf-8cc2c2ee0233'
-                    MEMBER_NAME = new QName(MidPointConstants.NS_RI, 'member')
-                    
+                    MEMBER_NAME = new QName(MidPointConstants.NS_RI, 'members')
+
                     memberDef = prismContext.definitionFactory().createPropertyDefinition(MEMBER_NAME, DOMUtil.XSD_STRING)
                     memberDef.setMaxOccurs(-1)
 
@@ -37,18 +37,18 @@
                         .and().block().item(ShadowType.F_DEAD).isNull().or().item(ShadowType.F_DEAD).eq(false).endBlock()
                         .and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, MEMBER_NAME), memberDef).eq(basic.stringify(name))
                         .build()
-                        
+
                     //log.info('shadowQuery = {}\n{}', shadowQuery, shadowQuery.debugDump())
                     options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch())
                     shadows = midpoint.searchObjects(ShadowType.class, shadowQuery, options)
                     //log.info('shadows found for {}: {}', name, shadows)
-                    
+
                     orgNames = shadows.collect { basic.stringify(it.name) }            // todo - use attributes
                     log.info('org names = {}', orgNames)
-                    
-                    if (!orgNames.isEmpty()) { 
+
+                    if (!orgNames.isEmpty()) {
                         orgQueryBuilder = prismContext.queryFor(OrgType.class)
-                        
+
                         first = true
                         for (orgName in orgNames) {
                             if (first) {
@@ -58,13 +58,13 @@
                             }
                             orgQueryBuilder = orgQueryBuilder.item(ItemPath.create(OrgType.F_EXTENSION, 'grouperName')).eq(orgName)
                         }
-                            
+
                         orgQuery = orgQueryBuilder.build()
                         //log.info('org query:\n', orgQuery.debugDump())
-                        
+
                         orgs = midpoint.searchObjects(OrgType.class, orgQuery, null)
                         log.info('orgs found: {}', orgs)
-                        
+
                         orgs.collect {
                             new AssignmentType(prismContext)
                                 .subtype('grouper-group')

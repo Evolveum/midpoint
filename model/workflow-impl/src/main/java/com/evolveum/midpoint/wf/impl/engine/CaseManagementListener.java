@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -33,16 +33,16 @@ public class CaseManagementListener  {
     //private static final String DOT_CLASS = WorkflowListener.class.getName() + ".";
 
 
-//	@Override
-//	public void onWorkItemCreation(CaseWorkItemType workItem, CaseType aCase, Task task, OperationResult result) {
-//		for (ObjectReferenceType assigneeRef : workItem.getAssigneeRef()) {
-//			WorkItemEvent event = new WorkItemEvent(identifierGenerator, ChangeType.ADD, workItem,
-//					SimpleObjectRefImpl.create(functions, assigneeRef), aCase);
-//			processEvent(event, result);
-//		}
-//	}
+//    @Override
+//    public void onWorkItemCreation(CaseWorkItemType workItem, CaseType aCase, Task task, OperationResult result) {
+//        for (ObjectReferenceType assigneeRef : workItem.getAssigneeRef()) {
+//            WorkItemEvent event = new WorkItemEvent(identifierGenerator, ChangeType.ADD, workItem,
+//                    SimpleObjectRefImpl.create(functions, assigneeRef), aCase);
+//            processEvent(event, result);
+//        }
+//    }
 //
-//	private void processEvent(CaseWorkItemEvent event, OperationResult result) {
+//    private void processEvent(CaseWorkItemEvent event, OperationResult result) {
 //        try {
 //            notificationManager.processEvent(event);
 //        } catch (RuntimeException e) {

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -46,42 +46,42 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
 
     @Override
     public int size() {
-    	if (isSchemaless()) {
-			throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
-    	} else {
-	    	// Each item and each value are presented as one list entry
-    		// (multi-valued items are represented as multiple occurrences of the same element)
-	    	int size = 0;
-	    	if (containerValue.isEmpty()){
-	    		return size;
-	    	}
-	    	for (Item<?,?> item: containerValue.getItems()) {
-	    		size += item.getValues().size();
-	    	}
-	        return size;
-    	}
+        if (isSchemaless()) {
+            throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
+        } else {
+            // Each item and each value are presented as one list entry
+            // (multi-valued items are represented as multiple occurrences of the same element)
+            int size = 0;
+            if (containerValue.isEmpty()){
+                return size;
+            }
+            for (Item<?,?> item: containerValue.getItems()) {
+                size += item.getValues().size();
+            }
+            return size;
+        }
     }
 
     @Override
     public Object get(int index) {
-    	if (isSchemaless()) {
-			throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
-    	} else {
-			if (containerValue != null) {
-				for (Item<?,?> item : containerValue.getItems()) {
-					if (index < item.getValues().size()) {
-						return asElement(item.getValues().get(index));
-					} else {
-						index -= item.getValues().size();
-					}
-				}
-				throw new IndexOutOfBoundsException();
-			}
-			return null;  //TODO: is this OK??
-		}
+        if (isSchemaless()) {
+            throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
+        } else {
+            if (containerValue != null) {
+                for (Item<?,?> item : containerValue.getItems()) {
+                    if (index < item.getValues().size()) {
+                        return asElement(item.getValues().get(index));
+                    } else {
+                        index -= item.getValues().size();
+                    }
+                }
+                throw new IndexOutOfBoundsException();
+            }
+            return null;  //TODO: is this OK??
+        }
     }
 
-	@Override
+    @Override
     public boolean addAll(Collection<? extends Object> elements) {
         Validate.notNull(elements, "Collection must not be null.");
 
@@ -103,47 +103,47 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
 
     @Override
     public boolean add(Object element) {
-    	try {
-    		return containerValue.addRawElement(element);
-		} catch (SchemaException e) {
-			QName elementName = JAXBUtil.getElementQName(element);
-			throw new IllegalArgumentException("Element "+elementName+" cannot be added because is violates object schema: "+e.getMessage(),e);
-		}
+        try {
+            return containerValue.addRawElement(element);
+        } catch (SchemaException e) {
+            QName elementName = JAXBUtil.getElementQName(element);
+            throw new IllegalArgumentException("Element "+elementName+" cannot be added because is violates object schema: "+e.getMessage(),e);
+        }
     }
 
-	@Override
+    @Override
     public void add(int i, Object element) {
         add(element);
     }
 
     @Override
     public Object remove(int index) {
-    	if (isSchemaless()) {
-			throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
-    	} else {
-    		for (Item<?,?> item: containerValue.getItems()) {
-	    		if (index < item.getValues().size()) {
-				    ((ItemImpl) item).remove(index);
-	    		} else {
-	    			index -= item.getValues().size();
-	    		}
-	    	}
-	    	throw new IndexOutOfBoundsException();
-    	}
+        if (isSchemaless()) {
+            throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
+        } else {
+            for (Item<?,?> item: containerValue.getItems()) {
+                if (index < item.getValues().size()) {
+                    ((ItemImpl) item).remove(index);
+                } else {
+                    index -= item.getValues().size();
+                }
+            }
+            throw new IndexOutOfBoundsException();
+        }
     }
 
     @Override
     public boolean remove(Object element) {
-    	if (isSchemaless()) {
-    		return containerValue.removeRawElement(element);
-    	} else {
-        	try {
-        		return containerValue.deleteRawElement(element);
-			} catch (SchemaException e) {
-	    		QName elementName = JAXBUtil.getElementQName(element);
-				throw new IllegalArgumentException("Element "+elementName+" cannot be removed because is violates object schema: "+e.getMessage(),e);
-			}
-    	}
+        if (isSchemaless()) {
+            return containerValue.removeRawElement(element);
+        } else {
+            try {
+                return containerValue.deleteRawElement(element);
+            } catch (SchemaException e) {
+                QName elementName = JAXBUtil.getElementQName(element);
+                throw new IllegalArgumentException("Element "+elementName+" cannot be removed because is violates object schema: "+e.getMessage(),e);
+            }
+        }
     }
 
     @Override
@@ -160,28 +160,28 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
     }
 
     private boolean isSchemaless() {
-    	return containerValue.getComplexTypeDefinition() == null;
+        return containerValue.getComplexTypeDefinition() == null;
     }
 
     private PrismContainer<C> getContainer() {
-    	return containerValue.getContainer();
+        return containerValue.getContainer();
     }
 
     private PrismContext getPrismContext() {
-    	return getContainer().getPrismContext();
+        return getContainer().getPrismContext();
     }
 
-	private Object asElement(PrismValue itemValue) {
-		PrismContext prismContext = containerValue.getPrismContext();
+    private Object asElement(PrismValue itemValue) {
+        PrismContext prismContext = containerValue.getPrismContext();
         if (prismContext == null) {
             throw new IllegalStateException("prismContext is null in " + containerValue);
         }
-		try {
-			return prismContext.getJaxbDomHack().toAny(itemValue);
-		} catch (SchemaException e) {
-			throw new SystemException("Unexpected schema problem: "+e.getMessage(),e);
-		}
-	}
+        try {
+            return prismContext.getJaxbDomHack().toAny(itemValue);
+        } catch (SchemaException e) {
+            throw new SystemException("Unexpected schema problem: "+e.getMessage(),e);
+        }
+    }
 
 
 }

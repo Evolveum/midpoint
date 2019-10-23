@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -173,41 +173,41 @@ public class PageTaskAdd extends PageAdminTasks {
     }
 
     private TaskAddDto loadTask(TaskType taskType) {
-    	TaskAddDto taskAdd = new TaskAddDto();
-    	taskAdd.setCategory(taskType.getCategory());
-    	PrismProperty<ShadowKindType> pKind;
-		try {
-			pKind = taskType.asPrismObject().findOrCreateProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
-			taskAdd.setKind(pKind.getRealValue());
-		} catch (SchemaException e) {
-			warn("Could not set kind for new task : " + e.getMessage());
-		}
+        TaskAddDto taskAdd = new TaskAddDto();
+        taskAdd.setCategory(taskType.getCategory());
+        PrismProperty<ShadowKindType> pKind;
+        try {
+            pKind = taskType.asPrismObject().findOrCreateProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
+            taskAdd.setKind(pKind.getRealValue());
+        } catch (SchemaException e) {
+            warn("Could not set kind for new task : " + e.getMessage());
+        }
 
-    	PrismProperty<String> pIntent;
-		try {
-			pIntent = taskType.asPrismObject().findOrCreateProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
-			taskAdd.setIntent(pIntent.getRealValue());
-		} catch (SchemaException e) {
-			warn("Could not set intent for new task : " + e.getMessage());
-		}
+        PrismProperty<String> pIntent;
+        try {
+            pIntent = taskType.asPrismObject().findOrCreateProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
+            taskAdd.setIntent(pIntent.getRealValue());
+        } catch (SchemaException e) {
+            warn("Could not set intent for new task : " + e.getMessage());
+        }
 
-    	PrismProperty<QName> pObjectClass;
-		try {
-			pObjectClass = taskType.asPrismObject().findOrCreateProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
-			QName objectClass = pObjectClass.getRealValue();
-			if (objectClass != null){
-	    		taskAdd.setObjectClass(objectClass.getLocalPart());
-	    	}
-		} catch (SchemaException e) {
-			warn("Could not set objectClass for new task : " + e.getMessage());
-		}
+        PrismProperty<QName> pObjectClass;
+        try {
+            pObjectClass = taskType.asPrismObject().findOrCreateProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
+            QName objectClass = pObjectClass.getRealValue();
+            if (objectClass != null){
+                taskAdd.setObjectClass(objectClass.getLocalPart());
+            }
+        } catch (SchemaException e) {
+            warn("Could not set objectClass for new task : " + e.getMessage());
+        }
 
 
-    	ObjectReferenceType ref = taskType.getObjectRef();
-    	if (ref != null) {
-    	TaskAddResourcesDto resource= new TaskAddResourcesDto(ref.getOid(), WebComponentUtil.getName(ref));
-    	taskAdd.setResource(resource);
-    	}
+        ObjectReferenceType ref = taskType.getObjectRef();
+        if (ref != null) {
+        TaskAddResourcesDto resource= new TaskAddResourcesDto(ref.getOid(), WebComponentUtil.getName(ref));
+        taskAdd.setResource(resource);
+        }
         return taskAdd;
     }
 
@@ -306,7 +306,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
             @Override
             protected Iterator<String> getChoices(String input) {
-            	Iterator<String> ret = prepareObjectClassChoiceList(input);
+                Iterator<String> ret = prepareObjectClassChoiceList(input);
                 return ret;
             }
         };
@@ -362,14 +362,14 @@ public class PageTaskAdd extends PageAdminTasks {
         List<String> choices = new ArrayList<>();
 
         if(model.getObject().getResource() == null){
-        	List<TaskAddResourcesDto> resources = createResourceList();
-        	if(resources.isEmpty()) {
-        		return choices.iterator();
-        	} else {
-        		List<TaskAddResourcesDto> sortedResources = WebComponentUtil.sortDropDownChoices(Model.ofList(resources), new ChoiceableChoiceRenderer<>());
-        		model.getObject().setResource(sortedResources.get(0));
-        		loadResource();
-        	}
+            List<TaskAddResourcesDto> resources = createResourceList();
+            if(resources.isEmpty()) {
+                return choices.iterator();
+            } else {
+                List<TaskAddResourcesDto> sortedResources = WebComponentUtil.sortDropDownChoices(Model.ofList(resources), new ChoiceableChoiceRenderer<>());
+                model.getObject().setResource(sortedResources.get(0));
+                loadResource();
+            }
         }
 
         if(Strings.isEmpty(input)){
@@ -451,14 +451,14 @@ public class PageTaskAdd extends PageAdminTasks {
         final WebMarkupContainer timeContainer = new WebMarkupContainer(ID_TIME_CONTAINER);
         timeContainer.setOutputMarkupId(true);
         mainForm.add(timeContainer);
-        
+
         AjaxCheckBox recurring = new AjaxCheckBox(ID_RECURRING, recurringCheck) {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(container);
                 if(recurringCheck.getObject()) {
-                	timeContainer.add(new AttributeModifier("class", ""));
+                    timeContainer.add(new AttributeModifier("class", ""));
                 } else {
                     timeContainer.add(new AttributeModifier("class", "tbody-nth-of-type-even"));
                 }
@@ -488,9 +488,9 @@ public class PageTaskAdd extends PageAdminTasks {
         TextField<String> cron = new TextField<>(ID_CRON, new PropertyModel<String>(
                 model, TaskAddDto.F_CRON));
         cron.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-//		if (recurringCheck.getObject() && !boundCheck.getObject()) {
-//			cron.setRequired(true);
-//		}
+//        if (recurringCheck.getObject() && !boundCheck.getObject()) {
+//            cron.setRequired(true);
+//        }
         cronContainer.add(cron);
 
         Label cronHelp = new Label(ID_CRON_HELP);
@@ -536,13 +536,13 @@ public class PageTaskAdd extends PageAdminTasks {
             @Override
             public ThreadStopActionType getObject() {
                 TaskAddDto dto = model.getObject();
-//				if (dto.getThreadStop() == null) {
-//					if (!dto.getRunUntilNodeDown()) {
-//						dto.setThreadStop(ThreadStopActionType.RESTART);
-//					} else {
-//						dto.setThreadStop(ThreadStopActionType.CLOSE);
-//					}
-//				}
+//                if (dto.getThreadStop() == null) {
+//                    if (!dto.getRunUntilNodeDown()) {
+//                        dto.setThreadStop(ThreadStopActionType.RESTART);
+//                    } else {
+//                        dto.setThreadStop(ThreadStopActionType.CLOSE);
+//                    }
+//                }
                 return dto.getThreadStop();
             }
 
@@ -718,7 +718,7 @@ public class PageTaskAdd extends PageAdminTasks {
             task.setThreadStopAction(dto.getThreadStop());
         } else {
             // fill-in default
-            if (dto.getRunUntilNodeDown() == true) {
+            if (dto.getRunUntilNodeDown()) {
                 task.setThreadStopAction(ThreadStopActionType.CLOSE);
             } else {
                 task.setThreadStopAction(ThreadStopActionType.RESTART);
@@ -738,13 +738,13 @@ public class PageTaskAdd extends PageAdminTasks {
 
         if (dto.getFocusType() != null){
 
-        	PrismObject<TaskType> prismTask = task.asPrismObject();
+            PrismObject<TaskType> prismTask = task.asPrismObject();
 
-        	ItemPath path = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
-			PrismProperty focusType = prismTask.findOrCreateProperty(path);
-			focusType.setRealValue(dto.getFocusType());
+            ItemPath path = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+            PrismProperty focusType = prismTask.findOrCreateProperty(path);
+            focusType.setRealValue(dto.getFocusType());
 
-		}
+        }
 
         if(dto.getKind() != null){
             PrismObject<TaskType> prismTask = task.asPrismObject();

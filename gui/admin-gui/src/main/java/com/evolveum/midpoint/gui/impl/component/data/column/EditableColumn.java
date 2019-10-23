@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,9 +23,9 @@ import com.evolveum.midpoint.web.component.util.Editable;
  */
 public abstract class EditableColumn<T  extends Editable, S> extends AbstractColumn<T, S> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public EditableColumn(IModel<String> displayModel) {
+    public EditableColumn(IModel<String> displayModel) {
         super(displayModel);
     }
 
@@ -37,17 +37,17 @@ public abstract class EditableColumn<T  extends Editable, S> extends AbstractCol
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
             final IModel<T> rowModel) {
         if (!rowModel.getObject().isEditing()) {
-        	cellItem.add(createStaticPanel(componentId, rowModel));
+            cellItem.add(createStaticPanel(componentId, rowModel));
         } else {
             cellItem.add(createInputPanel(componentId, rowModel));
         }
     }
-    
+
     protected Component createInputPanel(String componentId, IModel<T> rowModel) {
-    	return new TextPanel(componentId, rowModel);
+        return new TextPanel(componentId, rowModel);
     }
 
     protected Component createStaticPanel(String componentId, IModel<T> rowModel) {
-    	return new Label(componentId, rowModel.getObject().toString());
+        return new Label(componentId, rowModel.getObject().toString());
     }
 }

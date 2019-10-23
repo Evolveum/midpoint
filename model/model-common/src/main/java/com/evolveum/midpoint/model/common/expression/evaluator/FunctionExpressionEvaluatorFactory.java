@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
@@ -31,51 +31,51 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 
 /**
  * This is NOT autowired evaluator.
- * 
+ *
  * @author semancik
  *
  */
 public class FunctionExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
-	
-	private static final QName ELEMENT_NAME = new ObjectFactory().createFunction(new FunctionExpressionEvaluatorType()).getName();
 
-	private final Protector protector;
-	private final PrismContext prismContext;
+    private static final QName ELEMENT_NAME = new ObjectFactory().createFunction(new FunctionExpressionEvaluatorType()).getName();
 
-	public FunctionExpressionEvaluatorFactory(ExpressionFactory expressionFactory, Protector protector, PrismContext prismContext,
-			CacheConfigurationManager cacheConfigurationManager) {
-		super(expressionFactory, cacheConfigurationManager);
-		this.protector = protector;
-		this.prismContext = prismContext;
-	}
-	
-	@Override
-	public QName getElementName() {
-		return ELEMENT_NAME;
-	}
+    private final Protector protector;
+    private final PrismContext prismContext;
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.PrismContext)
-	 */
-	@Override
-	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(
-			Collection<JAXBElement<?>> evaluatorElements,
-			D outputDefinition,
-			ExpressionProfile expressionProfile,
-			ExpressionFactory factory, 
-			String contextDescription, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException {
+    public FunctionExpressionEvaluatorFactory(ExpressionFactory expressionFactory, Protector protector, PrismContext prismContext,
+            CacheConfigurationManager cacheConfigurationManager) {
+        super(expressionFactory, cacheConfigurationManager);
+        this.protector = protector;
+        this.prismContext = prismContext;
+    }
+
+    @Override
+    public QName getElementName() {
+        return ELEMENT_NAME;
+    }
+
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.PrismContext)
+     */
+    @Override
+    public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(
+            Collection<JAXBElement<?>> evaluatorElements,
+            D outputDefinition,
+            ExpressionProfile expressionProfile,
+            ExpressionFactory factory,
+            String contextDescription, Task task, OperationResult result)
+                    throws SchemaException, ObjectNotFoundException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for 'generate' expression evaluator");
 
-		if (evaluatorElements.size() > 1) {
-			throw new SchemaException("More than one evaluator specified in "+contextDescription);
-		}
-		JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
+        if (evaluatorElements.size() > 1) {
+            throw new SchemaException("More than one evaluator specified in "+contextDescription);
+        }
+        JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
 
-		Object evaluatorTypeObject = null;
+        Object evaluatorTypeObject = null;
         if (evaluatorElement != null) {
-        	evaluatorTypeObject = evaluatorElement.getValue();
+            evaluatorTypeObject = evaluatorElement.getValue();
         }
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof FunctionExpressionEvaluatorType)) {
             throw new SchemaException("Function expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
@@ -83,7 +83,7 @@ public class FunctionExpressionEvaluatorFactory extends AbstractObjectResolvable
 
         FunctionExpressionEvaluatorType functionEvaluatorType = (FunctionExpressionEvaluatorType)evaluatorTypeObject;
 
-		return new FunctionExpressionEvaluator(ELEMENT_NAME, functionEvaluatorType, outputDefinition, protector, getObjectResolver(), prismContext);
-	}
+        return new FunctionExpressionEvaluator(ELEMENT_NAME, functionEvaluatorType, outputDefinition, protector, getObjectResolver(), prismContext);
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.reports;
@@ -58,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
                 description = "PageReport.auth.report.description")})
 public class PageReport extends PageAdmin {
 
-    private static Trace LOGGER = TraceManager.getTrace(PageReport.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageReport.class);
 
     private static final String DOT_CLASS = PageReport.class.getName() + ".";
     private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadReport";
@@ -83,23 +83,23 @@ public class PageReport extends PageAdmin {
     }
 
     public PageReport(final ReportDto reportDto) {
-    	model = new LoadableModel<ReportDto>(reportDto, false) {
+        model = new LoadableModel<ReportDto>(reportDto, false) {
 
-    		@Override
-    		protected ReportDto load() {
-    			// never called
-    			return reportDto;
-    		}
-		};
+            @Override
+            protected ReportDto load() {
+                // never called
+                return reportDto;
+            }
+        };
     }
 
     private ReportDto loadReport() {
         StringValue reportOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-        
+
         Task task = createSimpleTask(OPERATION_LOAD_REPORT);
         OperationResult result = task.getResult();
         PrismObject<ReportType> prismReport = WebModelServiceUtils.loadObject(ReportType.class, reportOid.toString(),
-        		this, task, result);
+                this, task, result);
 
         if (prismReport == null) {
             LOGGER.error("Couldn't load report.");
@@ -110,11 +110,11 @@ public class PageReport extends PageAdmin {
 
 //        return prismReport;
     }
-    
+
     @Override
     protected void onInitialize() {
-    	super.onInitialize();
-    	initLayout();
+        super.onInitialize();
+        initLayout();
     }
 
     private void initLayout() {
@@ -125,28 +125,28 @@ public class PageReport extends PageAdmin {
         List<ITab> tabs = new ArrayList<>();
         tabs.add(new AbstractTab(createStringResource("PageReport.basic")) {
 
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public WebMarkupContainer getPanel(String panelId) {
                 return new ReportConfigurationPanel(panelId, model);
             }
         });
         if(!ReportEngineSelectionType.DASHBOARD.equals(reportEngineType)) {
-        	tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplate")) {
+            tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplate")) {
 
-            	private static final long serialVersionUID = 1L;
+                private static final long serialVersionUID = 1L;
                 @Override
                 public WebMarkupContainer getPanel(String panelId) {
-                	return new JasperReportConfigurationPanel(panelId, model);
+                    return new JasperReportConfigurationPanel(panelId, model);
 //                    IModel<String> title = PageReport.this.createStringResource("PageReport.jasperTemplate");
 //                    IModel<String> data = new Base64Model(new PrismPropertyModel<>(model, ReportType.F_TEMPLATE));
 //                    return new AceEditorPanel(panelId, title, data);
                 }
             });
-        	tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplateStyle")) {
+            tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplateStyle")) {
 
-            	private static final long serialVersionUID = 1L;
+                private static final long serialVersionUID = 1L;
                 @Override
                 public WebMarkupContainer getPanel(String panelId) {
                     IModel<String> title = PageReport.this.createStringResource("PageReport.jasperTemplateStyle");
@@ -155,7 +155,7 @@ public class PageReport extends PageAdmin {
                 }
             });
         }
-        
+
 //        tabs.add(new AbstractTab(createStringResource("PageReport.fullXml")) {
 //
 //            @Override
@@ -275,29 +275,29 @@ public class PageReport extends PageAdmin {
     }
 
     protected void onSavePerformed(AjaxRequestTarget target) {
-    	Task task = createSimpleTask(OPERATION_SAVE_REPORT);
+        Task task = createSimpleTask(OPERATION_SAVE_REPORT);
         OperationResult result = task.getResult();
         try {
 
             //TODO TODO TODO
             PrismObject<ReportType> newReport = model.getObject().getObject();
-			ObjectDelta<ReportType> delta = null;
-			if (newReport.getOid() == null) {
-				getPrismContext().adopt(newReport);
-				delta = DeltaFactory.Object.createAddDelta(newReport);
-				delta.setPrismContext(getPrismContext());
-			} else {
-				PrismObject<ReportType> oldReport = WebModelServiceUtils.loadObject(ReportType.class,
-						newReport.getOid(), this, task, result);
+            ObjectDelta<ReportType> delta = null;
+            if (newReport.getOid() == null) {
+                getPrismContext().adopt(newReport);
+                delta = DeltaFactory.Object.createAddDelta(newReport);
+                delta.setPrismContext(getPrismContext());
+            } else {
+                PrismObject<ReportType> oldReport = WebModelServiceUtils.loadObject(ReportType.class,
+                        newReport.getOid(), this, task, result);
 
-				if (oldReport != null) {
-					delta = oldReport.diff(newReport);
-				}
-			}
-			if (delta != null) {
+                if (oldReport != null) {
+                    delta = oldReport.diff(newReport);
+                }
+            }
+            if (delta != null) {
                             getPrismContext().adopt(delta);
                             getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
-			}
+            }
 
         } catch (Exception e) {
             result.recordFatalError(getString("PageReport.message.couldNotSaveReport"), e);

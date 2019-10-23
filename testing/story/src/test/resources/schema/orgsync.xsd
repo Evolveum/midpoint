@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2014 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <xsd:schema elementFormDefault="qualified"
@@ -22,18 +22,18 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="orgpath" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>false</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
              <xsd:element name="responsibility" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>false</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
@@ -46,15 +46,15 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="orgpath" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>false</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="RoleTypeExtensionType">
         <xsd:annotation>
             <xsd:appinfo>
@@ -63,13 +63,13 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="responsibility" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>true</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    
+
 </xsd:schema>

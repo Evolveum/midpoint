@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,13 +22,13 @@ import java.util.List;
  */
 public class RQueryImpl implements RQuery {
 
-	private RootHibernateQuery querySource;		// only for diagnostic purposes
+    private RootHibernateQuery querySource;        // only for diagnostic purposes
     private org.hibernate.query.Query query;
 
     public RQueryImpl(Query query, RootHibernateQuery querySource) {
         Validate.notNull(query, "Query must not be null.");
         this.query = query;
-		this.querySource = querySource;
+        this.querySource = querySource;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class RQueryImpl implements RQuery {
         return query;
     }
 
-	public RootHibernateQuery getQuerySource() {
-		return querySource;
-	}
+    public RootHibernateQuery getQuerySource() {
+        return querySource;
+    }
 }

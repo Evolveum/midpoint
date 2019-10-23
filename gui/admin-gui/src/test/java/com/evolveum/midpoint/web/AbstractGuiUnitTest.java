@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2016-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -49,89 +49,89 @@ public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
     private static final Trace LOGGER = TraceManager.getTrace(AbstractGuiUnitTest.class);
 
     protected ModelServiceLocator getServiceLocator() {
-		return new ModelServiceLocator() {
+        return new ModelServiceLocator() {
 
-			@Override
-			public ModelService getModelService() {
-				return null;
-			}
+            @Override
+            public ModelService getModelService() {
+                return null;
+            }
 
-			@Override
-			public ModelInteractionService getModelInteractionService() {
-				return null;
-			}
-			
-			@Override
-			public DashboardService getDashboardService() {
-				return null;
-			}
+            @Override
+            public ModelInteractionService getModelInteractionService() {
+                return null;
+            }
 
-			@Override
-			public Task createSimpleTask(String operationName) {
-				return null;
-			}
+            @Override
+            public DashboardService getDashboardService() {
+                return null;
+            }
 
-			@Override
-			public PrismContext getPrismContext() {
-				return PrismTestUtil.getPrismContext();
-			}
+            @Override
+            public Task createSimpleTask(String operationName) {
+                return null;
+            }
 
-			@Override
-			public SecurityEnforcer getSecurityEnforcer() {
-				return null;
-			}
-			
-			@Override
-			public SecurityContextManager getSecurityContextManager() {
-				return null;
-			}
+            @Override
+            public PrismContext getPrismContext() {
+                return PrismTestUtil.getPrismContext();
+            }
 
-			@NotNull
-			@Override
-			public CompiledUserProfile getCompiledUserProfile() {
-				return new CompiledUserProfile();
-			}
+            @Override
+            public SecurityEnforcer getSecurityEnforcer() {
+                return null;
+            }
 
-			@Override
-			public Task getPageTask() {
-				return null;
-			}
+            @Override
+            public SecurityContextManager getSecurityContextManager() {
+                return null;
+            }
 
-			@Override
-			public ExpressionFactory getExpressionFactory() {
-				return null;
-			}
+            @NotNull
+            @Override
+            public CompiledUserProfile getCompiledUserProfile() {
+                return new CompiledUserProfile();
+            }
 
-			@Override
-			public LocalizationService getLocalizationService() {
-				return null;
-			}
+            @Override
+            public Task getPageTask() {
+                return null;
+            }
 
-			@Override
-			public Locale getLocale() {
-				return Locale.US;
-			}
+            @Override
+            public ExpressionFactory getExpressionFactory() {
+                return null;
+            }
 
-			@Override
-			public GuiComponentRegistry getRegistry() {
-				return null;
-			}
+            @Override
+            public LocalizationService getLocalizationService() {
+                return null;
+            }
 
-			@Override
-			public <O extends ObjectType> PrismObjectWrapperFactory<O> findObjectWrapperFactory(PrismObjectDefinition<O> objectDef) {
-				return null;
-			}
+            @Override
+            public Locale getLocale() {
+                return Locale.US;
+            }
 
-			@Override
-			public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException {
-				return null;
-			}
+            @Override
+            public GuiComponentRegistry getRegistry() {
+                return null;
+            }
 
-			@Override
-			public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
-				return null;
-			}
-		};
-	}
-    
+            @Override
+            public <O extends ObjectType> PrismObjectWrapperFactory<O> findObjectWrapperFactory(PrismObjectDefinition<O> objectDef) {
+                return null;
+            }
+
+            @Override
+            public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException {
+                return null;
+            }
+
+            @Override
+            public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
+                return null;
+            }
+        };
+    }
+
 }

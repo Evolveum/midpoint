@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -130,7 +130,7 @@ public class PageValuePolicy extends PageAdmin {
         PrismObjectWrapperFactory<ValuePolicyType> owf = getRegistry().getObjectWrapperFactory(valuePolicyObject.getDefinition());
         WrapperContext context = new WrapperContext(task, task.getResult());
         PrismObjectWrapper<ValuePolicyType> valuePolicyWrapper = owf.createObjectWrapper(valuePolicyObject, ItemStatus.ADDED, context);
-        
+
 //        PrismObjectWrapper<ValuePolicyType> valuePolicyWrapper = ObjectWrapperUtil.createObjectWrapper("","", valuePolicyObject, ContainerStatus.ADDING,task, WebComponentUtil.getPageBase(this));
 
         return valuePolicyWrapper;
@@ -147,7 +147,7 @@ public class PageValuePolicy extends PageAdmin {
             PrismObjectWrapperFactory<ValuePolicyType> owf = getRegistry().getObjectWrapperFactory(valuePolicyObject.getDefinition());
             WrapperContext context = new WrapperContext(task, result);
             valuePolicyWrapper = owf.createObjectWrapper(valuePolicyObject, ItemStatus.NOT_CHANGED, context);
-           
+
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get definition", ex);

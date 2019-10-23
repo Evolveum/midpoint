@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
@@ -25,6 +25,6 @@ public interface ShadowResultHandler {
      * @param object Resource object to process.
      * @return true if the operation shoudl proceed, false if it should stop
      */
-	boolean handle(PrismObject<ShadowType> object);
+    boolean handle(PrismObject<ShadowType> object);
 
 }

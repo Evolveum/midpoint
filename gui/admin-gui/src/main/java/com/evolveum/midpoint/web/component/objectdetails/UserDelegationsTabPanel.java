@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.objectdetails;
@@ -56,17 +56,17 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
 
     public UserDelegationsTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
             LoadableModel<List<AssignmentEditorDto>> delegationsModel,
-			LoadableModel<List<AssignmentInfoDto>> privilegesListModel) {
+            LoadableModel<List<AssignmentInfoDto>> privilegesListModel) {
         super(id, mainForm, focusWrapperModel);
         this.delegationsModel = delegationsModel;
         this.privilegesListModel = privilegesListModel;
-        
+
     }
-    
+
     @Override
     protected void onInitialize() {
-    	super.onInitialize();
-    	initLayout();
+        super.onInitialize();
+        initLayout();
     }
 
     private void initLayout() {
@@ -89,9 +89,9 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
             public String getExcludeOid() {
                 return getObjectWrapper().getOid();
             }
-            
+
             public IModel<String> getLabel() {
-            	return createStringResource("FocusType.delegations");
+                return createStringResource("FocusType.delegations");
             };
 
             @Override
@@ -121,7 +121,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
 
                                         @Override
                                         protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
-                                        	getPageBase().hideMainPopup(target);
+                                            getPageBase().hideMainPopup(target);
                                             List<ObjectType> newAssignmentsList = new ArrayList<>();
                                             newAssignmentsList.add(user);
                                             addSelectedAssignablePerformed(target, newAssignmentsList, null, getPageBase().getMainPopup().getId());

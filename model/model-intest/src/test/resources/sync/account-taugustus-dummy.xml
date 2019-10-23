@@ -2,25 +2,25 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <shadow oid="22220000-2200-0000-0000-444400004456"
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-	<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-	<objectClass>ri:AccountObjectClass</objectClass>
-	<attributes>
-		<icfs:name>Taugustus</icfs:name>
-		<ri:fullname>Augustus DeWaat</ri:fullname>
-		<ri:location>Booty Island</ri:location>
-		<ri:ship>August</ri:ship>
-	</attributes>
-	<activation>
-		<administrativeStatus>enabled</administrativeStatus>
-	</activation>
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+    <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <attributes>
+        <icfs:name>Taugustus</icfs:name>
+        <ri:fullname>Augustus DeWaat</ri:fullname>
+        <ri:location>Booty Island</ri:location>
+        <ri:ship>August</ri:ship>
+    </attributes>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
 </shadow>

@@ -15,9 +15,9 @@
   -->
 
 <html xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:wicket="http://wicket.apache.org">
+    xmlns:wicket="http://wicket.apache.org">
 <body>
-	<wicket:extend>
+    <wicket:extend>
 
     <div class="row">
         <div class="col-md-6">
@@ -30,16 +30,32 @@
                         <div class="box-body no-padding">
                             <table class="table table-striped table-word-break">
                                 <tr>
-                                    <td class="col-xs-3"><wicket:message key="PageAbout.midPointVersionTitle" /></td>
-                                    <td class="col-xs-9"><wicket:message key="midpoint.system.version" /></td>
+                                    <td class="col-xs-3">
+                                        <wicket:message key="PageAbout.midPointVersionTitle"/>
+                                    </td>
+                                    <td class="col-xs-9">
+                                        <wicket:message key="midpoint.system.version"/>
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td><wicket:message key="PageAbout.midPointRevisionTitle" /></td>
-                                    <td><span wicket:id="build" /></td>
+                                    <td class="col-xs-3">
+                                        <wicket:message key="PageAbout.midPointBranch"/>
+                                    </td>
+                                    <td class="col-xs-9">
+                                        <span wicket:id="branch"/>
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td><wicket:message key="PageAbout.builtAt" /></td>
-                                    <td><span wicket:id="buildTimestamp" /></td>
+                                    <td>
+                                        <wicket:message key="PageAbout.midPointRevisionTitle"/>
+                                    </td>
+                                    <td><span wicket:id="build"/></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <wicket:message key="PageAbout.builtAt"/>
+                                    </td>
+                                    <td><span wicket:id="buildTimestamp"/></td>
                                 </tr>
                             </table>
                         </div>
@@ -149,6 +165,6 @@
         <a class="btn btn-danger" wicket:id="factoryDefault" />
     </div>
 
-	</wicket:extend>
+    </wicket:extend>
 </body>
 </html>

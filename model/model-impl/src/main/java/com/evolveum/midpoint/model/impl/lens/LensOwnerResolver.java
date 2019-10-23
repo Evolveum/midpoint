@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
@@ -37,103 +37,103 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 
-	private static final Trace LOGGER = TraceManager.getTrace(LensOwnerResolver.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LensOwnerResolver.class);
 
-	private LensContext<F> context;
-	private ObjectResolver objectResolver;
-	private Task task;
-	private OperationResult result;
+    private LensContext<F> context;
+    private ObjectResolver objectResolver;
+    private Task task;
+    private OperationResult result;
 
-	public LensOwnerResolver(LensContext<F> context, ObjectResolver objectResolver, Task task,
-			OperationResult result) {
-		super();
-		this.context = context;
-		this.objectResolver = objectResolver;
-		this.task = task;
-		this.result = result;
-	}
+    public LensOwnerResolver(LensContext<F> context, ObjectResolver objectResolver, Task task,
+            OperationResult result) {
+        super();
+        this.context = context;
+        this.objectResolver = objectResolver;
+        this.task = task;
+        this.result = result;
+    }
 
-	@Override
-	public <FO extends FocusType, O extends ObjectType> PrismObject<FO> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		if (object == null) {
-			return null;
-		}
-		if (object.canRepresent(ShadowType.class)) {
-			LensFocusContext<F> focusContext = (LensFocusContext<F>) context.getFocusContext();
-			if (focusContext == null) {
-				return null;
-			} else if (focusContext.getObjectNew() != null) {
-				// If we create both owner and shadow in the same operation (see e.g. MID-2027), we have to provide object new
-				// Moreover, if the authorization would be based on a property that is being changed along with the
-				// the change being authorized, we would like to use changed version.
-				return (PrismObject<FO>) focusContext.getObjectNew();
-			} else if (focusContext.getObjectCurrent() != null) {
-				// This could be useful if the owner is being deleted.
-				return (PrismObject<FO>) focusContext.getObjectCurrent();
-			} else {
-				return null;
-			}
-		} else if (object.canRepresent(UserType.class)) {
-			if (context.getOwnerOid() != null) {
-				if (context.getCachedOwner() == null) {
-					ObjectReferenceType ref = new ObjectReferenceType();
-					ref.setOid(context.getOwnerOid());
-					UserType ownerType;
-					try {
-						ownerType = objectResolver.resolve(ref, UserType.class, null, "context owner", task, result);
-					} catch (ObjectNotFoundException | SchemaException e) {
-						LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
-						return null;
-					}
-					context.setCachedOwner(ownerType.asPrismObject());
-				}
-				return (PrismObject<FO>) context.getCachedOwner();
-			}
+    @Override
+    public <FO extends FocusType, O extends ObjectType> PrismObject<FO> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        if (object == null) {
+            return null;
+        }
+        if (object.canRepresent(ShadowType.class)) {
+            LensFocusContext<F> focusContext = (LensFocusContext<F>) context.getFocusContext();
+            if (focusContext == null) {
+                return null;
+            } else if (focusContext.getObjectNew() != null) {
+                // If we create both owner and shadow in the same operation (see e.g. MID-2027), we have to provide object new
+                // Moreover, if the authorization would be based on a property that is being changed along with the
+                // the change being authorized, we would like to use changed version.
+                return (PrismObject<FO>) focusContext.getObjectNew();
+            } else if (focusContext.getObjectCurrent() != null) {
+                // This could be useful if the owner is being deleted.
+                return (PrismObject<FO>) focusContext.getObjectCurrent();
+            } else {
+                return null;
+            }
+        } else if (object.canRepresent(UserType.class)) {
+            if (context.getOwnerOid() != null) {
+                if (context.getCachedOwner() == null) {
+                    ObjectReferenceType ref = new ObjectReferenceType();
+                    ref.setOid(context.getOwnerOid());
+                    UserType ownerType;
+                    try {
+                        ownerType = objectResolver.resolve(ref, UserType.class, null, "context owner", task, result);
+                    } catch (ObjectNotFoundException | SchemaException e) {
+                        LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
+                        return null;
+                    }
+                    context.setCachedOwner(ownerType.asPrismObject());
+                }
+                return (PrismObject<FO>) context.getCachedOwner();
+            }
 
-			if (object.getOid() == null) {
-				// No reason to query. We will find nothing, but the query may take a long time.
-				return null;
-			}
+            if (object.getOid() == null) {
+                // No reason to query. We will find nothing, but the query may take a long time.
+                return null;
+            }
 
-			ObjectQuery query = context.getPrismContext().queryFor(UserType.class)
-					.item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
-			List<PrismObject<UserType>> owners = new ArrayList<>();
-			try {
-				objectResolver.searchIterative(UserType.class, query, null, (o,result) -> owners.add(o), task, result);
-			} catch (ObjectNotFoundException | CommunicationException | ConfigurationException
-					| SecurityViolationException | SchemaException | ExpressionEvaluationException e) {
-				LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
-				return null;
-			}
-			if (owners.isEmpty()) {
-				return null;
-			}
-			if (owners.size() > 1) {
-				LOGGER.warn("More than one owner of {}: {}", object, owners);
-			}
-			return (PrismObject<FO>) owners.get(0);
-		} else if (object.canRepresent(AbstractRoleType.class)) {
-			// TODO: get owner from roleMembershipRef;relation=owner (MID-5689)
-			return null;
-		} else if (object.canRepresent(TaskType.class)) {
-			ObjectReferenceType ownerRef = ((TaskType)(object.asObjectable())).getOwnerRef();
-			if (ownerRef == null) {
-				return null;
-			}
-			try {
-				ObjectType ownerType = objectResolver.resolve(ownerRef, ObjectType.class, null, "resolving owner of "+object, task, result);
-				if (ownerType == null) {
-					return null;
-				}
-				return (PrismObject<FO>) ownerType.asPrismObject();
-			} catch (ObjectNotFoundException | SchemaException e) {
-				LOGGER.error("Error resolving owner of {}: {}", object, e.getMessage(), e);
-				return null;
-			}
-		} else {
-			LOGGER.warn("Cannot resolve owner of {}, owners can be resolved only for Shadows and AbstractRoles", object);
-			return null;
-		}
-	}
+            ObjectQuery query = context.getPrismContext().queryFor(UserType.class)
+                    .item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
+            List<PrismObject<UserType>> owners = new ArrayList<>();
+            try {
+                objectResolver.searchIterative(UserType.class, query, null, (o,result) -> owners.add(o), task, result);
+            } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
+                    | SecurityViolationException | SchemaException | ExpressionEvaluationException e) {
+                LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
+                return null;
+            }
+            if (owners.isEmpty()) {
+                return null;
+            }
+            if (owners.size() > 1) {
+                LOGGER.warn("More than one owner of {}: {}", object, owners);
+            }
+            return (PrismObject<FO>) owners.get(0);
+        } else if (object.canRepresent(AbstractRoleType.class)) {
+            // TODO: get owner from roleMembershipRef;relation=owner (MID-5689)
+            return null;
+        } else if (object.canRepresent(TaskType.class)) {
+            ObjectReferenceType ownerRef = ((TaskType)(object.asObjectable())).getOwnerRef();
+            if (ownerRef == null) {
+                return null;
+            }
+            try {
+                ObjectType ownerType = objectResolver.resolve(ownerRef, ObjectType.class, null, "resolving owner of "+object, task, result);
+                if (ownerType == null) {
+                    return null;
+                }
+                return (PrismObject<FO>) ownerType.asPrismObject();
+            } catch (ObjectNotFoundException | SchemaException e) {
+                LOGGER.error("Error resolving owner of {}: {}", object, e.getMessage(), e);
+                return null;
+            }
+        } else {
+            LOGGER.warn("Cannot resolve owner of {}, owners can be resolved only for Shadows and AbstractRoles", object);
+            return null;
+        }
+    }
 
 }

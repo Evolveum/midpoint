@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -32,35 +32,35 @@ import javax.annotation.PostConstruct;
 @Component
 public class AccessCertificationCampaignCreationTaskHandler implements TaskHandler {
 
-	private static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/campaign-creation/handler-3";
+    private static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/campaign-creation/handler-3";
     private static final String CLASS_DOT = AccessCertificationCampaignCreationTaskHandler.class.getName() + ".";
 
     @Autowired private TaskManager taskManager;
-	@Autowired private CertificationManagerImpl certificationManager;
+    @Autowired private CertificationManagerImpl certificationManager;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationCampaignCreationTaskHandler.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationCampaignCreationTaskHandler.class);
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(HANDLER_URI, this);
+    }
 
-	@NotNull
-	@Override
-	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-		return new StatisticsCollectionStrategy()
-				.fromStoredValues()
-				.maintainIterationStatistics();
-	}
+    @NotNull
+    @Override
+    public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+        return new StatisticsCollectionStrategy()
+                .fromStoredValues()
+                .maintainIterationStatistics();
+    }
 
-	@Override
-	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-		LOGGER.trace("Task run starting");
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+        LOGGER.trace("Task run starting");
 
-		OperationResult opResult = new OperationResult(CLASS_DOT+"run");
+        OperationResult opResult = new OperationResult(CLASS_DOT+"run");
         opResult.setSummarizeSuccesses(true);
-		TaskRunResult runResult = new TaskRunResult();
-		runResult.setOperationResult(opResult);
+        TaskRunResult runResult = new TaskRunResult();
+        runResult.setOperationResult(opResult);
 
         String definitionOid = task.getObjectOid();
         if (definitionOid == null) {
@@ -105,7 +105,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
-	}
+    }
 
     @Override
     public String getCategoryName(Task task) {

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -55,120 +55,120 @@ import javax.annotation.PreDestroy;
 @Component
 public class WorkflowEngine implements CaseEventListener {
 
-	private static final Trace LOGGER = TraceManager.getTrace(WorkflowEngine.class);
-	private static final String OP_EXECUTE_REQUEST = WorkflowEngine.class.getName() + ".executeRequest";
+    private static final Trace LOGGER = TraceManager.getTrace(WorkflowEngine.class);
+    private static final String OP_EXECUTE_REQUEST = WorkflowEngine.class.getName() + ".executeRequest";
 
-	@Autowired public Clock clock;
-	@Autowired
-	@Qualifier("cacheRepositoryService")
-	public RepositoryService repositoryService;
-	@Autowired public PrismContext prismContext;
-	@Autowired public SecurityEnforcer securityEnforcer;
-	@Autowired public AuditHelper auditHelper;
-	@Autowired public NotificationHelper notificationHelper;
-	@Autowired public StageComputeHelper stageComputeHelper;
-	@Autowired public PrimaryChangeProcessor primaryChangeProcessor;   // todo
-	@Autowired public MiscHelper miscHelper;
-	@Autowired public TriggerHelper triggerHelper;
-	@Autowired public ExpressionEvaluationHelper expressionEvaluationHelper;
-	@Autowired public WorkItemHelper workItemHelper;
-	@Autowired public AuthorizationHelper authorizationHelper;
-	@Autowired public ExecutionHelper executionHelper;
-	@Autowired private ActionFactory actionFactory;
-	@Autowired private CaseEventDispatcher caseEventDispatcher;
-	@Autowired private TaskManager taskManager;
+    @Autowired public Clock clock;
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    public RepositoryService repositoryService;
+    @Autowired public PrismContext prismContext;
+    @Autowired public SecurityEnforcer securityEnforcer;
+    @Autowired public AuditHelper auditHelper;
+    @Autowired public NotificationHelper notificationHelper;
+    @Autowired public StageComputeHelper stageComputeHelper;
+    @Autowired public PrimaryChangeProcessor primaryChangeProcessor;   // todo
+    @Autowired public MiscHelper miscHelper;
+    @Autowired public TriggerHelper triggerHelper;
+    @Autowired public ExpressionEvaluationHelper expressionEvaluationHelper;
+    @Autowired public WorkItemHelper workItemHelper;
+    @Autowired public AuthorizationHelper authorizationHelper;
+    @Autowired public ExecutionHelper executionHelper;
+    @Autowired private ActionFactory actionFactory;
+    @Autowired private CaseEventDispatcher caseEventDispatcher;
+    @Autowired private TaskManager taskManager;
 
-	@PostConstruct
-	public void init() {
-		caseEventDispatcher.registerCaseCreationEventListener(this);
-	}
+    @PostConstruct
+    public void init() {
+        caseEventDispatcher.registerCaseCreationEventListener(this);
+    }
 
-	@PreDestroy
-	public void destroy() {
-		caseEventDispatcher.unregisterCaseCreationEventListener(this);
-	}
+    @PreDestroy
+    public void destroy() {
+        caseEventDispatcher.unregisterCaseCreationEventListener(this);
+    }
 
-	private static final int MAX_ATTEMPTS = 10;
+    private static final int MAX_ATTEMPTS = 10;
 
-	/**
-	 * Executes a request. This is the main entry point.
-	 */
-	public void executeRequest(Request request, Task opTask, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-			ExpressionEvaluationException, ConfigurationException, CommunicationException {
-		int attempt = 1;
-		for (;;) {
-			OperationResult result = parentResult.subresult(OP_EXECUTE_REQUEST)
-					.setMinor()
-					.addParam("attempt", attempt)
-					.addArbitraryObjectAsParam("request", request)
-					.build();
-			try {
-				EngineInvocationContext ctx = createInvocationContext(request.getCaseOid(), opTask, result);
-				Action firstAction = actionFactory.create(request, ctx);
-				executeActionChain(firstAction, result);
-				try {
-					ctx.commit(result);
-					return;
-				} catch (PreconditionViolationException e) {
-					boolean repeat = attempt < MAX_ATTEMPTS;
-					String action = repeat ? "retried" : "aborted";
-					LOGGER.info("Approval commit conflict detected; operation will be {} (this was attempt {} of {})",
-							action, attempt, MAX_ATTEMPTS);
-					if (repeat) {
-						attempt++;
-					} else {
-						throw new SystemException("Couldn't execute " + request.getClass() + " in " + MAX_ATTEMPTS + " attempts",
-								e);
-					}
-				}
-			} catch (Throwable t) {
-				result.recordFatalError(t);
-				throw t;
-			} finally {
-				result.computeStatusIfUnknown();
-			}
-		}
-	}
+    /**
+     * Executes a request. This is the main entry point.
+     */
+    public void executeRequest(Request request, Task opTask, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            ExpressionEvaluationException, ConfigurationException, CommunicationException {
+        int attempt = 1;
+        for (;;) {
+            OperationResult result = parentResult.subresult(OP_EXECUTE_REQUEST)
+                    .setMinor()
+                    .addParam("attempt", attempt)
+                    .addArbitraryObjectAsParam("request", request)
+                    .build();
+            try {
+                EngineInvocationContext ctx = createInvocationContext(request.getCaseOid(), opTask, result);
+                Action firstAction = actionFactory.create(request, ctx);
+                executeActionChain(firstAction, result);
+                try {
+                    ctx.commit(result);
+                    return;
+                } catch (PreconditionViolationException e) {
+                    boolean repeat = attempt < MAX_ATTEMPTS;
+                    String action = repeat ? "retried" : "aborted";
+                    LOGGER.info("Approval commit conflict detected; operation will be {} (this was attempt {} of {})",
+                            action, attempt, MAX_ATTEMPTS);
+                    if (repeat) {
+                        attempt++;
+                    } else {
+                        throw new SystemException("Couldn't execute " + request.getClass() + " in " + MAX_ATTEMPTS + " attempts",
+                                e);
+                    }
+                }
+            } catch (Throwable t) {
+                result.recordFatalError(t);
+                throw t;
+            } finally {
+                result.computeStatusIfUnknown();
+            }
+        }
+    }
 
-	private EngineInvocationContext createInvocationContext(String caseOid, Task opTask, OperationResult result)
-			throws SchemaException, ObjectNotFoundException {
-		PrismObject<CaseType> caseObject = repositoryService.getObject(CaseType.class, caseOid, null, result);
-		return new EngineInvocationContext(caseObject.asObjectable(), opTask, this, getMidPointPrincipal());
-	}
+    private EngineInvocationContext createInvocationContext(String caseOid, Task opTask, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        PrismObject<CaseType> caseObject = repositoryService.getObject(CaseType.class, caseOid, null, result);
+        return new EngineInvocationContext(caseObject.asObjectable(), opTask, this, getMidPointPrincipal());
+    }
 
-	private MidPointPrincipal getMidPointPrincipal() {
-		MidPointPrincipal user;
-		try {
-			user = SecurityUtil.getPrincipal();
-		} catch (SecurityViolationException e) {
-			throw new SystemException("Couldn't get midPoint principal: " + e.getMessage(), e);
-		}
-		if (user == null) {
-			throw new SystemException("No principal");
-		}
-		return user;
-	}
+    private MidPointPrincipal getMidPointPrincipal() {
+        MidPointPrincipal user;
+        try {
+            user = SecurityUtil.getPrincipal();
+        } catch (SecurityViolationException e) {
+            throw new SystemException("Couldn't get midPoint principal: " + e.getMessage(), e);
+        }
+        if (user == null) {
+            throw new SystemException("No principal");
+        }
+        return user;
+    }
 
-	private void executeActionChain(Action action, OperationResult result)
-			throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
-			ConfigurationException, ExpressionEvaluationException {
-		while (action != null) {
-			action = action.execute(result);
-		}
-	}
+    private void executeActionChain(Action action, OperationResult result)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        while (action != null) {
+            action = action.execute(result);
+        }
+    }
 
-	/**
-	 * Here we collect case creation events generated by the built-in manual connector.
-	 */
-	@Override
-	public void onCaseCreation(CaseType aCase, OperationResult result) {
-		Task opTask = taskManager.createTaskInstance(WorkflowEngine.class.getName() + ".onCaseCreation");
-		try {
-			executeRequest(new OpenCaseRequest(aCase.getOid()), opTask, result);
-		} catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | SecurityViolationException |
-				ExpressionEvaluationException | ConfigurationException | CommunicationException e) {
-			throw new SystemException("Couldn't open the case: " + aCase, e);
-		}
-	}
+    /**
+     * Here we collect case creation events generated by the built-in manual connector.
+     */
+    @Override
+    public void onCaseCreation(CaseType aCase, OperationResult result) {
+        Task opTask = taskManager.createTaskInstance(WorkflowEngine.class.getName() + ".onCaseCreation");
+        try {
+            executeRequest(new OpenCaseRequest(aCase.getOid()), opTask, result);
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | SecurityViolationException |
+                ExpressionEvaluationException | ConfigurationException | CommunicationException e) {
+            throw new SystemException("Couldn't open the case: " + aCase, e);
+        }
+    }
 }

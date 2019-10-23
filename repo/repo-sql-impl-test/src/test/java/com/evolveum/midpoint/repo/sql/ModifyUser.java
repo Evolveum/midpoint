@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql;
@@ -40,7 +40,7 @@ import java.util.Arrays;
 public class ModifyUser extends BaseSQLRepoTest {
 
     private static final String USER_FULLNAME = "Guybrush Threepwood";
-	private String userOid;
+    private String userOid;
     private String userBigOid;
     private String shadowOid;
 
@@ -65,10 +65,10 @@ public class ModifyUser extends BaseSQLRepoTest {
 
     @Test
     public void test020ModifyUser() throws Exception {
-    	final String TEST_NAME = "test020ModifyUser";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test020ModifyUser";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-    	OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002.xml"), ObjectModificationType.COMPLEX_TYPE);
@@ -92,10 +92,10 @@ public class ModifyUser extends BaseSQLRepoTest {
 
     @Test
     public void test021ModifyUserNoEmpNum() throws Exception {
-    	final String TEST_NAME = "test021ModifyUserNoEmpNum";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test021ModifyUserNoEmpNum";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-    	OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002a.xml"), ObjectModificationType.COMPLEX_TYPE);
@@ -119,10 +119,10 @@ public class ModifyUser extends BaseSQLRepoTest {
 
     @Test
     public void test022ModifyUserEmptyEmpNum() throws Exception {
-    	final String TEST_NAME = "test022ModifyUserEmptyEmpNum";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test022ModifyUserEmptyEmpNum";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-    	OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002b.xml"), ObjectModificationType.COMPLEX_TYPE);

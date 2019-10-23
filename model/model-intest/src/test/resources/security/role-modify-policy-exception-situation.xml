@@ -1,26 +1,26 @@
 <!--
   ~ Copyright (c) 2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="45bee61c-f79f-11e7-a2a7-27ade881c9e0"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Modify policyException situation</name>    
+    <name>Modify policyException situation</name>
     <authorization>
-    	<name>read</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <name>read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     </authorization>
     <authorization>
-    	<name>modify-situation</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<item>policyException/policySituation</item>
+        <name>modify-situation</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <item>policyException/policySituation</item>
     </authorization>
     <authorization>
-    	<name>modify-description</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<item>description</item>
+        <name>modify-description</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <item>description</item>
     </authorization>
 </role>

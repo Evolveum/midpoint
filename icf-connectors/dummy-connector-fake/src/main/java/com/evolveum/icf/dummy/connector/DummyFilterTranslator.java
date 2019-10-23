@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.icf.dummy.connector;
@@ -19,18 +19,18 @@ import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
  */
 public class DummyFilterTranslator implements FilterTranslator<String> {
 
-	private static final Log log = Log.getLog(DummyFilterTranslator.class);
+    private static final Log LOG = Log.getLog(DummyFilterTranslator.class);
 
-	/* (non-Javadoc)
-	 * @see org.identityconnectors.framework.common.objects.filter.FilterTranslator#translate(org.identityconnectors.framework.common.objects.filter.Filter)
-	 */
-	public List<String> translate(Filter filter) {
-		log.info("translate::begin");
+    /* (non-Javadoc)
+     * @see org.identityconnectors.framework.common.objects.filter.FilterTranslator#translate(org.identityconnectors.framework.common.objects.filter.Filter)
+     */
+    public List<String> translate(Filter filter) {
+        LOG.info("translate::begin");
 
-		log.info("translate::filter: {0}",filter == null ? "null" : filter.toString());
+        LOG.info("translate::filter: {0}",filter == null ? "null" : filter.toString());
 
-		log.info("translate::end");
-		return new ArrayList<>();
-	}
+        LOG.info("translate::end");
+        return new ArrayList<>();
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2016-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common;
@@ -55,153 +55,153 @@ import java.util.Collections;
 @Component
 public class SystemObjectCache implements Cacheable {
 
-	private static final Trace LOGGER = TraceManager.getTrace(SystemObjectCache.class);
-	
-	@Autowired
-	@Qualifier("cacheRepositoryService")
-	private transient RepositoryService cacheRepositoryService;
+    private static final Trace LOGGER = TraceManager.getTrace(SystemObjectCache.class);
 
-	@Autowired private CacheRegistry cacheRegistry;
-	@Autowired private PrismContext prismContext;
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private transient RepositoryService cacheRepositoryService;
 
-	private PrismObject<SystemConfigurationType> systemConfiguration;
-	private Long systemConfigurationCheckTimestamp;
-	
-	private ExpressionProfiles expressionProfiles;
+    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private PrismContext prismContext;
 
-	@PostConstruct
-	public void register() {
-		cacheRegistry.registerCacheableService(this);
-	}
+    private PrismObject<SystemConfigurationType> systemConfiguration;
+    private Long systemConfigurationCheckTimestamp;
 
-	@PreDestroy
-	public void unregister() {
-		cacheRegistry.unregisterCacheableService(this);
-	}
+    private ExpressionProfiles expressionProfiles;
 
-	private long getSystemConfigurationExpirationMillis() {
-		return 1000;
-	}
+    @PostConstruct
+    public void register() {
+        cacheRegistry.registerCacheableService(this);
+    }
 
-	public synchronized PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws SchemaException {
-		try {
-			if (!hasValidSystemConfiguration(result)) {
-				LOGGER.trace("Cache MISS: reading system configuration from the repository: {}, version {}",
-						systemConfiguration, systemConfiguration==null?null:systemConfiguration.getVersion());
-				loadSystemConfiguration(result);
-			} else {
-				LOGGER.trace("Cache HIT: reusing cached system configuration: {}, version {}",
-						systemConfiguration, systemConfiguration==null?null:systemConfiguration.getVersion());
-			}
-		} catch (ObjectNotFoundException e) {
-			systemConfiguration = null;
-			LOGGER.trace("Cache ERROR: System configuration not found", e);
-			result.muteLastSubresultError();
-		}
-		return systemConfiguration;
-	}
+    @PreDestroy
+    public void unregister() {
+        cacheRegistry.unregisterCacheableService(this);
+    }
 
-	private boolean hasValidSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
-		if (systemConfiguration == null) {
-			return false;
-		}
-		if (systemConfiguration.getVersion() == null) {
-			return false;
-		}
-		if (systemConfigurationCheckTimestamp == null) {
-			return false;
-		}
-		if (System.currentTimeMillis() < systemConfigurationCheckTimestamp + getSystemConfigurationExpirationMillis()) {
-			return true;
-		}
-		String repoVersion = cacheRepositoryService.getVersion(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-				result);
-		if (systemConfiguration.getVersion().equals(repoVersion)) {
-			systemConfigurationCheckTimestamp = System.currentTimeMillis();
-			return true;
-		}
-		return false;
-	}
+    private long getSystemConfigurationExpirationMillis() {
+        return 1000;
+    }
 
-	private void loadSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
-		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-		systemConfiguration = cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-				options, result);
-		expressionProfiles = null;
-		systemConfigurationCheckTimestamp = System.currentTimeMillis();
-		if (systemConfiguration != null && systemConfiguration.getVersion() == null) {
-			LOGGER.warn("Retrieved system configuration with null version");
-		}
-	}
+    public synchronized PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws SchemaException {
+        try {
+            if (!hasValidSystemConfiguration(result)) {
+                LOGGER.trace("Cache MISS: reading system configuration from the repository: {}, version {}",
+                        systemConfiguration, systemConfiguration==null?null:systemConfiguration.getVersion());
+                loadSystemConfiguration(result);
+            } else {
+                LOGGER.trace("Cache HIT: reusing cached system configuration: {}, version {}",
+                        systemConfiguration, systemConfiguration==null?null:systemConfiguration.getVersion());
+            }
+        } catch (ObjectNotFoundException e) {
+            systemConfiguration = null;
+            LOGGER.trace("Cache ERROR: System configuration not found", e);
+            result.muteLastSubresultError();
+        }
+        return systemConfiguration;
+    }
 
-	public synchronized void invalidateCaches() {
-		systemConfiguration = null;
-		expressionProfiles = null;
-	}
+    private boolean hasValidSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
+        if (systemConfiguration == null) {
+            return false;
+        }
+        if (systemConfiguration.getVersion() == null) {
+            return false;
+        }
+        if (systemConfigurationCheckTimestamp == null) {
+            return false;
+        }
+        if (System.currentTimeMillis() < systemConfigurationCheckTimestamp + getSystemConfigurationExpirationMillis()) {
+            return true;
+        }
+        String repoVersion = cacheRepositoryService.getVersion(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                result);
+        if (systemConfiguration.getVersion().equals(repoVersion)) {
+            systemConfigurationCheckTimestamp = System.currentTimeMillis();
+            return true;
+        }
+        return false;
+    }
 
-	public PrismObject<ArchetypeType> getArchetype(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		// TODO: make this efficient (use cache)
-		return cacheRepositoryService.getObject(ArchetypeType.class, oid, null, result);
-	}
+    private void loadSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+        systemConfiguration = cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                options, result);
+        expressionProfiles = null;
+        systemConfigurationCheckTimestamp = System.currentTimeMillis();
+        if (systemConfiguration != null && systemConfiguration.getVersion() == null) {
+            LOGGER.warn("Retrieved system configuration with null version");
+        }
+    }
 
-	public SearchResultList<PrismObject<ArchetypeType>> getAllArchetypes(OperationResult result) throws SchemaException {
-		// TODO: make this efficient (use cache)
-		return cacheRepositoryService.searchObjects(ArchetypeType.class, null, null, result);
-	}
-	
-	public ExpressionProfile getExpressionProfile(String identifier, OperationResult result) throws SchemaException {
-		if (identifier == null) {
-			return null;
-		}
-		if (expressionProfiles == null) {
-			compileExpressionProfiles(result);
-		}
-		return expressionProfiles.getProfile(identifier);
-	}
+    public synchronized void invalidateCaches() {
+        systemConfiguration = null;
+        expressionProfiles = null;
+    }
 
-	private void compileExpressionProfiles(OperationResult result) throws SchemaException {
-		PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
-		if (systemConfiguration == null) {
-			// This should only happen in tests - if ever. Empty expression profiles are just fine.
-			expressionProfiles = new ExpressionProfiles();
-			return;
-		}
-		SystemConfigurationExpressionsType expressions = systemConfiguration.asObjectable().getExpressions();
-		if (expressions == null) {
-			// Mark that there is no need to recompile. There are no profiles.
-			expressionProfiles = new ExpressionProfiles();
-			return;
-		}
-		ExpressionProfileCompiler compiler = new ExpressionProfileCompiler();
-		expressionProfiles = compiler.compile(expressions);
-	}
+    public PrismObject<ArchetypeType> getArchetype(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        // TODO: make this efficient (use cache)
+        return cacheRepositoryService.getObject(ArchetypeType.class, oid, null, result);
+    }
 
-	// We could use SystemConfigurationChangeListener instead but in the future there could be more object types
-	// managed by this class.
-	@Override
-	public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
-		if (context != null && context.isTerminateSession()) {
-			LOGGER.trace("Skipping invalidation request. Request is for terminate session, not for system object cache invalidation.");
-			return;
-		}
+    public SearchResultList<PrismObject<ArchetypeType>> getAllArchetypes(OperationResult result) throws SchemaException {
+        // TODO: make this efficient (use cache)
+        return cacheRepositoryService.searchObjects(ArchetypeType.class, null, null, result);
+    }
 
-		// We ignore OID for now
-		if (type == null || SystemConfigurationType.class.isAssignableFrom(type)) {
-			invalidateCaches();
-		}
-	}
+    public ExpressionProfile getExpressionProfile(String identifier, OperationResult result) throws SchemaException {
+        if (identifier == null) {
+            return null;
+        }
+        if (expressionProfiles == null) {
+            compileExpressionProfiles(result);
+        }
+        return expressionProfiles.getProfile(identifier);
+    }
 
-	@NotNull
-	@Override
-	public Collection<SingleCacheStateInformationType> getStateInformation() {
-		return Collections.singleton(new SingleCacheStateInformationType(prismContext)
-				.name(SystemObjectCache.class.getName())
-				.size(getSize())
-		);
-	}
+    private void compileExpressionProfiles(OperationResult result) throws SchemaException {
+        PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
+        if (systemConfiguration == null) {
+            // This should only happen in tests - if ever. Empty expression profiles are just fine.
+            expressionProfiles = new ExpressionProfiles();
+            return;
+        }
+        SystemConfigurationExpressionsType expressions = systemConfiguration.asObjectable().getExpressions();
+        if (expressions == null) {
+            // Mark that there is no need to recompile. There are no profiles.
+            expressionProfiles = new ExpressionProfiles();
+            return;
+        }
+        ExpressionProfileCompiler compiler = new ExpressionProfileCompiler();
+        expressionProfiles = compiler.compile(expressions);
+    }
 
-	private int getSize() {
-		return (systemConfiguration != null ? 1 : 0) +
-				(expressionProfiles != null ? expressionProfiles.size() : 0);
-	}
+    // We could use SystemConfigurationChangeListener instead but in the future there could be more object types
+    // managed by this class.
+    @Override
+    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+        if (context != null && context.isTerminateSession()) {
+            LOGGER.trace("Skipping invalidation request. Request is for terminate session, not for system object cache invalidation.");
+            return;
+        }
+
+        // We ignore OID for now
+        if (type == null || SystemConfigurationType.class.isAssignableFrom(type)) {
+            invalidateCaches();
+        }
+    }
+
+    @NotNull
+    @Override
+    public Collection<SingleCacheStateInformationType> getStateInformation() {
+        return Collections.singleton(new SingleCacheStateInformationType(prismContext)
+                .name(SystemObjectCache.class.getName())
+                .size(getSize())
+        );
+    }
+
+    private int getSize() {
+        return (systemConfiguration != null ? 1 : 0) +
+                (expressionProfiles != null ? expressionProfiles.size() : 0);
+    }
 }

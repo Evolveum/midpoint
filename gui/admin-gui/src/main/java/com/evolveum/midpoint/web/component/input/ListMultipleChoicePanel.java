@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,7 +25,7 @@ public class ListMultipleChoicePanel<T> extends InputPanel {
 
     private static final long serialVersionUID = 1L;
 
-	public ListMultipleChoicePanel(String id, IModel<List<T>> model, IModel<List<T>> choices) {
+    public ListMultipleChoicePanel(String id, IModel<List<T>> model, IModel<List<T>> choices) {
         super(id);
         ListMultipleChoice<T> multiple = new ListMultipleChoice<>("input", model, choices);
         add(multiple);
@@ -42,10 +42,10 @@ public class ListMultipleChoicePanel<T> extends InputPanel {
     public FormComponent<T> getBaseFormComponent() {
         return (FormComponent<T>) get("input");
     }
-    
+
     public Collection<T> getModelObject() {
-    	DropDownMultiChoice<T> input = (DropDownMultiChoice) getBaseFormComponent();
-    	return input.getModelObject();
+        DropDownMultiChoice<T> input = (DropDownMultiChoice) getBaseFormComponent();
+        return input.getModelObject();
     }
-    
+
 }

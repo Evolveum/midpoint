@@ -2,46 +2,46 @@
 <!--
   ~ Copyright (c) 2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
- 
+
 <org oid="44dff496-e9bc-11e9-8c17-4fc5d5f4d2cf"
-	 xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-	 xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
-	<name>TOP</name>
-	<displayName>Top</displayName>
-	<identifier>0000</identifier>
-	<orgType>functional</orgType>
-	<inducement>
-		<construction>
-			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
-			<kind>entitlement</kind>
-			<intent>ldapOrgGroup</intent>
-		</construction>
-	</inducement>
-	<inducement>
-		<construction>
-			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
-			<kind>account</kind>
-			<intent>default</intent>
-			<association>
-				<ref>ri:ldapOrgGroup</ref>
-				<outbound>
-					<expression>
-						<associationFromLink>
-							<projectionDiscriminator>
-								<kind>entitlement</kind>
-								<intent>ldapOrgGroup</intent>
-							</projectionDiscriminator>
-						</associationFromLink>
-					</expression>
-				</outbound>
-			</association>
-		</construction>
-		<!-- This is not perfect. complex order constraints should be here. But we use only flat org in the test, therefore it is OK -->
-		<order>2</order>
-		<focusType>UserType</focusType>
-	</inducement>
+     xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+     xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+    <name>TOP</name>
+    <displayName>Top</displayName>
+    <identifier>0000</identifier>
+    <orgType>functional</orgType>
+    <inducement>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+            <kind>entitlement</kind>
+            <intent>ldapOrgGroup</intent>
+        </construction>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <ref>ri:ldapOrgGroup</ref>
+                <outbound>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>ldapOrgGroup</intent>
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <!-- This is not perfect. complex order constraints should be here. But we use only flat org in the test, therefore it is OK -->
+        <order>2</order>
+        <focusType>UserType</focusType>
+    </inducement>
 </org>

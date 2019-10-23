@@ -3,14 +3,14 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <object xsi:type="ShadowType" oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e2a1"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"
-        
+
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
         xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -24,7 +24,7 @@
       <t:itemDelta>
          <t:modificationType>add</t:modificationType>
          <t:path xmlns:gen819="http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd"
-                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">c:attributes/ri:employeeNumber</t:path>
          <t:value>emp4321
 <!--             <ri:employeeNumber xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->

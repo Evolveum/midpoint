@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.importer;
@@ -104,15 +104,15 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         // Set filename
 //        Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
 //        PropertyDelta objectClassDelta = new PropertyDelta<Object>(
-//        		new PropertyPath(TaskType.F_EXTENSION, filenamePropertyDefinition.getName()),
-//        		filenamePropertyDefinition);
+//                new PropertyPath(TaskType.F_EXTENSION, filenamePropertyDefinition.getName()),
+//                filenamePropertyDefinition);
 //        objectClassDelta.setValueToReplace(new PrismPropertyValue<Object>(input.getAbsolutePath()));
 //        ((Collection)modifications).add(objectClassDelta);
         try {
-        	PrismProperty filenameProp = filenamePropertyDefinition.instantiate();
-        	filenameProp.setRealValue(input.getAbsolutePath());
-        	task.setExtensionProperty(filenameProp);
-        	task.flushPendingModifications(result);
+            PrismProperty filenameProp = filenamePropertyDefinition.instantiate();
+            filenameProp.setRealValue(input.getAbsolutePath());
+            task.setExtensionProperty(filenameProp);
+            task.flushPendingModifications(result);
 //            task.modify(modifications, result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
@@ -132,7 +132,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         // the run(task) method.
         // Note: the thread may be actually started on a different node
         taskManager.switchToBackground(task, result);
-		result.setBackgroundTaskOid(task.getOid());
+        result.setBackgroundTaskOid(task.getOid());
 
         LOGGER.trace("Import objects from file {} switched to background, control thread returning with task {}", input, task);
     }
@@ -142,7 +142,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
      */
     @Override
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-    
+
         LOGGER.debug("Import objects from file run (task {})", task);
 
         // This is an operation result for the entire import task. Therefore use the constant for

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,25 +20,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class ObjectTypeStatistics {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ObjectTypeStatistics.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectTypeStatistics.class);
 
-	private static final int SIZE_HISTOGRAM_STEP = 10000;
-	private static final int MAX_SIZE_HISTOGRAM_LENGTH = 100000;		// corresponds to object size of 1 GB
+    private static final int SIZE_HISTOGRAM_STEP = 10000;
+    private static final int MAX_SIZE_HISTOGRAM_LENGTH = 100000;        // corresponds to object size of 1 GB
 
-	private final Histogram<ObjectInfo> sizeHistogram = new Histogram<>(SIZE_HISTOGRAM_STEP, MAX_SIZE_HISTOGRAM_LENGTH);
+    private final Histogram<ObjectInfo> sizeHistogram = new Histogram<>(SIZE_HISTOGRAM_STEP, MAX_SIZE_HISTOGRAM_LENGTH);
 
-	public void register(PrismObject<ObjectType> object) {
-		RepositoryObjectDiagnosticData diag = (RepositoryObjectDiagnosticData) object.getUserData(RepositoryService.KEY_DIAG_DATA);
-		if (diag == null) {
-			throw new IllegalStateException("No diagnostic data in " + object);
-		}
-		ObjectInfo info = new ObjectInfo(object.asObjectable());
-		long size = diag.getStoredObjectSize();
-		LOGGER.trace("Found object: {}: {}", info, size);
-		sizeHistogram.register(info, size);
-	}
+    public void register(PrismObject<ObjectType> object) {
+        RepositoryObjectDiagnosticData diag = (RepositoryObjectDiagnosticData) object.getUserData(RepositoryService.KEY_DIAG_DATA);
+        if (diag == null) {
+            throw new IllegalStateException("No diagnostic data in " + object);
+        }
+        ObjectInfo info = new ObjectInfo(object.asObjectable());
+        long size = diag.getStoredObjectSize();
+        LOGGER.trace("Found object: {}: {}", info, size);
+        sizeHistogram.register(info, size);
+    }
 
-	public String dump(int histogramColumns) {
-		return sizeHistogram.dump(histogramColumns);
-	}
+    public String dump(int histogramColumns) {
+        return sizeHistogram.dump(histogramColumns);
+    }
 }

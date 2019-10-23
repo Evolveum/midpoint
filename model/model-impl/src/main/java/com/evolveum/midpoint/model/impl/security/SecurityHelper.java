@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.security;
@@ -66,25 +66,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 @Component
 public class SecurityHelper implements ModelAuditRecorder {
 
-	private static final Trace LOGGER = TraceManager.getTrace(SecurityHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SecurityHelper.class);
 
     public static final String CONTEXTUAL_PROPERTY_AUDITED_NAME = SecurityHelper.class.getName() + ".audited";
 
     @Autowired private TaskManager taskManager;
-	@Autowired private AuditHelper auditHelper;
-	@Autowired private ModelObjectResolver objectResolver;
-	@Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private AuditHelper auditHelper;
+    @Autowired private ModelObjectResolver objectResolver;
+    @Autowired private SecurityEnforcer securityEnforcer;
 
-	@Override
+    @Override
     public void auditLoginSuccess(@NotNull UserType user, @NotNull ConnectionEnvironment connEnv) {
         auditLogin(user.getName().getOrig(), user, connEnv, OperationResultStatus.SUCCESS, null);
     }
-	
-	public void auditLoginSuccess(@NotNull NodeType node, @NotNull ConnectionEnvironment connEnv) {
+
+    public void auditLoginSuccess(@NotNull NodeType node, @NotNull ConnectionEnvironment connEnv) {
         auditLogin(node.getName().getOrig(), null, connEnv, OperationResultStatus.SUCCESS, null);
     }
 
-	@Override
+    @Override
     public void auditLoginFailure(@Nullable String username, @Nullable UserType user, @NotNull ConnectionEnvironment connEnv, String message) {
         auditLogin(username, user, connEnv, OperationResultStatus.FATAL_ERROR, message);
     }
@@ -95,54 +95,54 @@ public class SecurityHelper implements ModelAuditRecorder {
         task.setChannel(connEnv.getChannel());
 
         LOGGER.debug("Login {} username={}, channel={}: {}",
-				status == OperationResultStatus.SUCCESS ? "success" : "failure", username,
-				connEnv.getChannel(), message);
+                status == OperationResultStatus.SUCCESS ? "success" : "failure", username,
+                connEnv.getChannel(), message);
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
         record.setParameter(username);
-		if (user != null ) {
-			record.setInitiator(user.asPrismObject());
-		}
+        if (user != null ) {
+            record.setInitiator(user.asPrismObject());
+        }
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(status);
         record.setMessage(message);
-		storeConnectionEnvironment(record, connEnv);
+        storeConnectionEnvironment(record, connEnv);
 
-	    auditHelper.audit(record, null, task, new OperationResult(SecurityHelper.class.getName() + ".auditLogin"));
+        auditHelper.audit(record, null, task, new OperationResult(SecurityHelper.class.getName() + ".auditLogin"));
     }
 
-	@Override
+    @Override
     public void auditLogout(ConnectionEnvironment connEnv, Task task) {
-    	AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
-		record.setInitiatorAndLoginParameter(task.getOwner());
-		record.setTimestamp(System.currentTimeMillis());
-		record.setOutcome(OperationResultStatus.SUCCESS);
-		storeConnectionEnvironment(record, connEnv);
-		auditHelper.audit(record, null, task, new OperationResult(SecurityHelper.class.getName() + ".auditLogout"));
+        AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
+        record.setInitiatorAndLoginParameter(task.getOwner());
+        record.setTimestamp(System.currentTimeMillis());
+        record.setOutcome(OperationResultStatus.SUCCESS);
+        storeConnectionEnvironment(record, connEnv);
+        auditHelper.audit(record, null, task, new OperationResult(SecurityHelper.class.getName() + ".auditLogout"));
     }
 
-	private void storeConnectionEnvironment(AuditEventRecord record, ConnectionEnvironment connEnv) {
-		record.setChannel(connEnv.getChannel());
-		record.setSessionIdentifier(connEnv.getSessionId());
-		HttpConnectionInformation connInfo = connEnv.getConnectionInformation();
-		if (connInfo != null) {
-			record.setRemoteHostAddress(connInfo.getRemoteHostAddress());
-			record.setHostIdentifier(connInfo.getLocalHostName());
-		}
-	}
+    private void storeConnectionEnvironment(AuditEventRecord record, ConnectionEnvironment connEnv) {
+        record.setChannel(connEnv.getChannel());
+        record.setSessionIdentifier(connEnv.getSessionId());
+        HttpConnectionInformation connInfo = connEnv.getConnectionInformation();
+        if (connInfo != null) {
+            record.setRemoteHostAddress(connInfo.getRemoteHostAddress());
+            record.setHostIdentifier(connInfo.getLocalHostName());
+        }
+    }
 
-	public String getUsernameFromMessage(SOAPMessage saajSoapMessage) throws WSSecurityException {
+    public String getUsernameFromMessage(SOAPMessage saajSoapMessage) throws WSSecurityException {
         if (saajSoapMessage == null) {
-        	return null;
+            return null;
         }
         Element securityHeader = WSSecurityUtil.getSecurityHeader(saajSoapMessage.getSOAPPart(), "");
         return getUsernameFromSecurityHeader(securityHeader);
-	}
+    }
 
     private String getUsernameFromSecurityHeader(Element securityHeader) {
-    	if (securityHeader == null) {
-    		return null;
-    	}
+        if (securityHeader == null) {
+            return null;
+        }
 
         String username = "";
         NodeList list = securityHeader.getChildNodes();
@@ -179,142 +179,142 @@ public class SecurityHelper implements ModelAuditRecorder {
      * returned security policy.
      */
     public <F extends FocusType> SecurityPolicyType locateSecurityPolicy(PrismObject<F> user, PrismObject<SystemConfigurationType> systemConfiguration,
-    		Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-    	SecurityPolicyType focusSecurityPolicy = locateFocusSecurityPolicy(user, systemConfiguration, task, result);
-    	if (focusSecurityPolicy != null) {
-    		traceSecurityPolicy(focusSecurityPolicy, user);
-    		return focusSecurityPolicy;
-    	}
+        SecurityPolicyType focusSecurityPolicy = locateFocusSecurityPolicy(user, systemConfiguration, task, result);
+        if (focusSecurityPolicy != null) {
+            traceSecurityPolicy(focusSecurityPolicy, user);
+            return focusSecurityPolicy;
+        }
 
-    	SecurityPolicyType globalSecurityPolicy = locateGlobalSecurityPolicy(user, systemConfiguration, task, result);
-		if (globalSecurityPolicy != null) {
-			traceSecurityPolicy(globalSecurityPolicy, user);
-			return globalSecurityPolicy;
-		}
+        SecurityPolicyType globalSecurityPolicy = locateGlobalSecurityPolicy(user, systemConfiguration, task, result);
+        if (globalSecurityPolicy != null) {
+            traceSecurityPolicy(globalSecurityPolicy, user);
+            return globalSecurityPolicy;
+        }
 
-    	return null;
-	}
-    
+        return null;
+    }
+
     public <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicy(PrismObject<F> user, PrismObject<SystemConfigurationType> systemConfiguration,
-    		Task task, OperationResult result) throws SchemaException {
-    	PrismObject<SecurityPolicyType> orgSecurityPolicy = objectResolver.searchOrgTreeWidthFirstReference(user, o -> o.asObjectable().getSecurityPolicyRef(), "security policy", task, result);
-    	LOGGER.trace("Found organization security policy: {}", orgSecurityPolicy);
-    	if (orgSecurityPolicy != null) {
-    		SecurityPolicyType orgSecurityPolicyType = orgSecurityPolicy.asObjectable();
-    		postProcessSecurityPolicy(orgSecurityPolicyType, task, result);
-    		return orgSecurityPolicyType;
-    	}
-    	
-    	return null;
+            Task task, OperationResult result) throws SchemaException {
+        PrismObject<SecurityPolicyType> orgSecurityPolicy = objectResolver.searchOrgTreeWidthFirstReference(user, o -> o.asObjectable().getSecurityPolicyRef(), "security policy", task, result);
+        LOGGER.trace("Found organization security policy: {}", orgSecurityPolicy);
+        if (orgSecurityPolicy != null) {
+            SecurityPolicyType orgSecurityPolicyType = orgSecurityPolicy.asObjectable();
+            postProcessSecurityPolicy(orgSecurityPolicyType, task, result);
+            return orgSecurityPolicyType;
+        }
+
+        return null;
     }
 
     public <F extends FocusType> SecurityPolicyType locateGlobalSecurityPolicy(PrismObject<F> user, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-    	if (systemConfiguration == null) {
-    		return null;
-    	}
-    	SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
-    	
-		SecurityPolicyType globalSecurityPolicy = resolveGlobalSecurityPolicy(user, systemConfigurationType, task, result);
-		if (globalSecurityPolicy != null) {
-			return globalSecurityPolicy;
-		}
-	
-    	return null;
+        if (systemConfiguration == null) {
+            return null;
+        }
+        SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
+
+        SecurityPolicyType globalSecurityPolicy = resolveGlobalSecurityPolicy(user, systemConfigurationType, task, result);
+        if (globalSecurityPolicy != null) {
+            return globalSecurityPolicy;
+        }
+
+        return null;
     }
-  
+
     private <F extends FocusType> SecurityPolicyType resolveGlobalSecurityPolicy(PrismObject<F> user, SystemConfigurationType systemConfiguration, Task task, OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-    	ObjectReferenceType globalSecurityPolicyRef = systemConfiguration.getGlobalSecurityPolicyRef();
-		if (globalSecurityPolicyRef != null) {
-			try {
-				SecurityPolicyType globalSecurityPolicyType = objectResolver.resolve(globalSecurityPolicyRef, SecurityPolicyType.class, null, "global security policy reference in system configuration", task, result);
-				LOGGER.trace("Using global security policy: {}", globalSecurityPolicyType);
-				postProcessSecurityPolicy(globalSecurityPolicyType, task, result);
-				traceSecurityPolicy(globalSecurityPolicyType, user);
-				return globalSecurityPolicyType;
-			} catch (ObjectNotFoundException | SchemaException e) {
-				LOGGER.error(e.getMessage(), e);
-				traceSecurityPolicy(null, user);
-				return null;
-			}
-		}
+        ObjectReferenceType globalSecurityPolicyRef = systemConfiguration.getGlobalSecurityPolicyRef();
+        if (globalSecurityPolicyRef != null) {
+            try {
+                SecurityPolicyType globalSecurityPolicyType = objectResolver.resolve(globalSecurityPolicyRef, SecurityPolicyType.class, null, "global security policy reference in system configuration", task, result);
+                LOGGER.trace("Using global security policy: {}", globalSecurityPolicyType);
+                postProcessSecurityPolicy(globalSecurityPolicyType, task, result);
+                traceSecurityPolicy(globalSecurityPolicyType, user);
+                return globalSecurityPolicyType;
+            } catch (ObjectNotFoundException | SchemaException e) {
+                LOGGER.error(e.getMessage(), e);
+                traceSecurityPolicy(null, user);
+                return null;
+            }
+        }
 
-		return null;
+        return null;
     }
 
-	private <F extends FocusType> void traceSecurityPolicy(SecurityPolicyType securityPolicyType, PrismObject<F> user) {
-		if (LOGGER.isTraceEnabled()) {
-			if (user != null) {
-				if (securityPolicyType == null) {
-					LOGGER.trace("Located security policy for {}: null", user);
-				} else {
-					LOGGER.trace("Located security policy for {}:\n{}", user, securityPolicyType.asPrismObject().debugDump(1));
-				}
-			} else {
-				if (securityPolicyType == null) {
-					LOGGER.trace("Located global security policy null");
-				} else {
-					LOGGER.trace("Located global security policy :\n{}", securityPolicyType.asPrismObject().debugDump(1));
-				}
-			}
-		}
+    private <F extends FocusType> void traceSecurityPolicy(SecurityPolicyType securityPolicyType, PrismObject<F> user) {
+        if (LOGGER.isTraceEnabled()) {
+            if (user != null) {
+                if (securityPolicyType == null) {
+                    LOGGER.trace("Located security policy for {}: null", user);
+                } else {
+                    LOGGER.trace("Located security policy for {}:\n{}", user, securityPolicyType.asPrismObject().debugDump(1));
+                }
+            } else {
+                if (securityPolicyType == null) {
+                    LOGGER.trace("Located global security policy null");
+                } else {
+                    LOGGER.trace("Located global security policy :\n{}", securityPolicyType.asPrismObject().debugDump(1));
+                }
+            }
+        }
 
-	}
+    }
 
-	private void postProcessSecurityPolicy(SecurityPolicyType securityPolicyType, Task task, OperationResult result) {
-		CredentialsPolicyType creds = securityPolicyType.getCredentials();
-		if (creds != null) {
-			PasswordCredentialsPolicyType passwd = creds.getPassword();
-			if (passwd != null) {
-				postProcessPasswordCredentialPolicy(securityPolicyType, passwd, task, result);
-			}
-			for (NonceCredentialsPolicyType nonce: creds.getNonce()) {
-				postProcessCredentialPolicy(securityPolicyType, nonce, "nonce credential policy", task, result);
-			}
-			SecurityQuestionsCredentialsPolicyType securityQuestions = creds.getSecurityQuestions();
-			if (securityQuestions != null) {
-				postProcessCredentialPolicy(securityPolicyType, securityQuestions, "security questions credential policy", task, result);
-			}
-		}
-	}
+    private void postProcessSecurityPolicy(SecurityPolicyType securityPolicyType, Task task, OperationResult result) {
+        CredentialsPolicyType creds = securityPolicyType.getCredentials();
+        if (creds != null) {
+            PasswordCredentialsPolicyType passwd = creds.getPassword();
+            if (passwd != null) {
+                postProcessPasswordCredentialPolicy(securityPolicyType, passwd, task, result);
+            }
+            for (NonceCredentialsPolicyType nonce: creds.getNonce()) {
+                postProcessCredentialPolicy(securityPolicyType, nonce, "nonce credential policy", task, result);
+            }
+            SecurityQuestionsCredentialsPolicyType securityQuestions = creds.getSecurityQuestions();
+            if (securityQuestions != null) {
+                postProcessCredentialPolicy(securityPolicyType, securityQuestions, "security questions credential policy", task, result);
+            }
+        }
+    }
 
-	private void postProcessPasswordCredentialPolicy(SecurityPolicyType securityPolicyType, PasswordCredentialsPolicyType passwd, Task task, OperationResult result) {
-		postProcessCredentialPolicy(securityPolicyType, passwd, "password credential policy", task, result);
-	}
+    private void postProcessPasswordCredentialPolicy(SecurityPolicyType securityPolicyType, PasswordCredentialsPolicyType passwd, Task task, OperationResult result) {
+        postProcessCredentialPolicy(securityPolicyType, passwd, "password credential policy", task, result);
+    }
 
-	private ValuePolicyType postProcessCredentialPolicy(SecurityPolicyType securityPolicyType, CredentialPolicyType credPolicy, String credShortDesc, Task task, OperationResult result) {
-		ObjectReferenceType valuePolicyRef = credPolicy.getValuePolicyRef();
-		if (valuePolicyRef == null) {
-			return null;
-		}
-		ValuePolicyType valuePolicyType;
-		try {
-			valuePolicyType = objectResolver.resolve(valuePolicyRef, ValuePolicyType.class, null, credShortDesc + " in " + securityPolicyType, task, result);
-		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
-			LOGGER.warn("{} {} referenced from {} was not found", credShortDesc, valuePolicyRef.getOid(), securityPolicyType);
-			return null;
-		}
-		valuePolicyRef.asReferenceValue().setObject(valuePolicyType.asPrismObject());
-		return valuePolicyType;
-	}
+    private ValuePolicyType postProcessCredentialPolicy(SecurityPolicyType securityPolicyType, CredentialPolicyType credPolicy, String credShortDesc, Task task, OperationResult result) {
+        ObjectReferenceType valuePolicyRef = credPolicy.getValuePolicyRef();
+        if (valuePolicyRef == null) {
+            return null;
+        }
+        ValuePolicyType valuePolicyType;
+        try {
+            valuePolicyType = objectResolver.resolve(valuePolicyRef, ValuePolicyType.class, null, credShortDesc + " in " + securityPolicyType, task, result);
+        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
+            LOGGER.warn("{} {} referenced from {} was not found", credShortDesc, valuePolicyRef.getOid(), securityPolicyType);
+            return null;
+        }
+        valuePolicyRef.asReferenceValue().setObject(valuePolicyType.asPrismObject());
+        return valuePolicyType;
+    }
 
-	private SecurityPolicyType postProcessPasswordPolicy(ValuePolicyType passwordPolicyType) {
-		SecurityPolicyType securityPolicyType = new SecurityPolicyType();
-		CredentialsPolicyType creds = new CredentialsPolicyType();
-		PasswordCredentialsPolicyType passwd = new PasswordCredentialsPolicyType();
-		ObjectReferenceType passwordPolicyRef = new ObjectReferenceType();
-		passwordPolicyRef.asReferenceValue().setObject(passwordPolicyType.asPrismObject());
-		passwd.setValuePolicyRef(passwordPolicyRef);
-		creds.setPassword(passwd);
-		securityPolicyType.setCredentials(creds);
-		return securityPolicyType;
-	}
+    private SecurityPolicyType postProcessPasswordPolicy(ValuePolicyType passwordPolicyType) {
+        SecurityPolicyType securityPolicyType = new SecurityPolicyType();
+        CredentialsPolicyType creds = new CredentialsPolicyType();
+        PasswordCredentialsPolicyType passwd = new PasswordCredentialsPolicyType();
+        ObjectReferenceType passwordPolicyRef = new ObjectReferenceType();
+        passwordPolicyRef.asReferenceValue().setObject(passwordPolicyType.asPrismObject());
+        passwd.setValuePolicyRef(passwordPolicyRef);
+        creds.setPassword(passwd);
+        securityPolicyType.setCredentials(creds);
+        return securityPolicyType;
+    }
 
-	private Duration daysToDuration(int days) {
-		return XmlTypeConverter.createDuration((long) days * 1000 * 60 * 60 * 24);
-	}
+    private Duration daysToDuration(int days) {
+        return XmlTypeConverter.createDuration((long) days * 1000 * 60 * 60 * 24);
+    }
 
-	public SecurityEnforcer getSecurityEnforcer() {
-		return securityEnforcer;
-	}
+    public SecurityEnforcer getSecurityEnforcer() {
+        return securityEnforcer;
+    }
 }

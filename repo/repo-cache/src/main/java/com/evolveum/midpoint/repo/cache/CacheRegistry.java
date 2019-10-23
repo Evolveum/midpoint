@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.cache;
@@ -27,52 +27,52 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 @Component
 public class CacheRegistry implements CacheListener {
-	
-	private static transient Trace LOGGER = TraceManager.getTrace(CacheListener.class);
-	
-	private List<Cacheable> cacheableServices = new ArrayList<>();
 
-	@Autowired private CacheDispatcher dispatcher;
-	@Autowired private PrismContext prismContext;
-	
-	@PostConstruct
-	public void registerListener() {
-		dispatcher.registerCacheListener(this);
-	}
+    private static final transient Trace LOGGER = TraceManager.getTrace(CacheListener.class);
 
-	@PreDestroy
-	public void unregisterListener() {
-		dispatcher.unregisterCacheListener(this);
-	}
-	
-	public synchronized void registerCacheableService(Cacheable cacheableService) {
-		if (!cacheableServices.contains(cacheableService)) {
-			cacheableServices.add(cacheableService);
-		}
-	}
+    private List<Cacheable> cacheableServices = new ArrayList<>();
 
-	public synchronized void unregisterCacheableService(Cacheable cacheableService) {
-		cacheableServices.remove(cacheableService);
-	}
-	
-	public List<Cacheable> getCacheableServices() {
-		return cacheableServices;
-	}
-	
-	@Override
-	public <O extends ObjectType> void invalidate(Class<O> type, String oid, boolean clusterwide,
-			CacheInvalidationContext context) {
-		// We currently ignore clusterwide parameter, because it's used by ClusterCacheListener only.
-		// So we assume that the invalidation event - from this point on - is propagated only locally.
-		for (Cacheable cacheableService : cacheableServices) {
-			cacheableService.invalidate(type, oid, context);
-		}
-	}
+    @Autowired private CacheDispatcher dispatcher;
+    @Autowired private PrismContext prismContext;
 
-	public CachesStateInformationType getStateInformation() {
-		CachesStateInformationType rv = new CachesStateInformationType(prismContext);
-		cacheableServices.forEach(cacheable -> rv.getEntry().addAll(cacheable.getStateInformation()));
-		return rv;
-	}
+    @PostConstruct
+    public void registerListener() {
+        dispatcher.registerCacheListener(this);
+    }
+
+    @PreDestroy
+    public void unregisterListener() {
+        dispatcher.unregisterCacheListener(this);
+    }
+
+    public synchronized void registerCacheableService(Cacheable cacheableService) {
+        if (!cacheableServices.contains(cacheableService)) {
+            cacheableServices.add(cacheableService);
+        }
+    }
+
+    public synchronized void unregisterCacheableService(Cacheable cacheableService) {
+        cacheableServices.remove(cacheableService);
+    }
+
+    public List<Cacheable> getCacheableServices() {
+        return cacheableServices;
+    }
+
+    @Override
+    public <O extends ObjectType> void invalidate(Class<O> type, String oid, boolean clusterwide,
+            CacheInvalidationContext context) {
+        // We currently ignore clusterwide parameter, because it's used by ClusterCacheListener only.
+        // So we assume that the invalidation event - from this point on - is propagated only locally.
+        for (Cacheable cacheableService : cacheableServices) {
+            cacheableService.invalidate(type, oid, context);
+        }
+    }
+
+    public CachesStateInformationType getStateInformation() {
+        CachesStateInformationType rv = new CachesStateInformationType(prismContext);
+        cacheableServices.forEach(cacheable -> rv.getEntry().addAll(cacheable.getStateInformation()));
+        return rv;
+    }
 }
 

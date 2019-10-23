@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -62,7 +62,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 
     public static final File OBJECT_TEMPLATE_ORG_FILE = new File(COMMON_DIR, "object-template-org.xml");
-	public static final String OBJECT_TEMPLATE_ORG_OID = "10000000-0000-0000-0000-000000000231";
+    public static final String OBJECT_TEMPLATE_ORG_OID = "10000000-0000-0000-0000-000000000231";
 
     //222 org. units, 2160 users
 //    private static final int[] TREE_LEVELS = {2, 5, 7, 2};
@@ -86,7 +86,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
 
     private PrismObject<ResourceType> resourceOpenDj;
 
-	private boolean logCreateEntry = true;
+    private boolean logCreateEntry = true;
 
     @Override
     protected void startResources() throws Exception {
@@ -113,7 +113,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
         login(userAdministrator);
 
         importObjectFromFile(OBJECT_TEMPLATE_ORG_FILE, initResult);
-		setDefaultObjectTemplate(OrgType.COMPLEX_TYPE, OBJECT_TEMPLATE_ORG_OID);
+        setDefaultObjectTemplate(OrgType.COMPLEX_TYPE, OBJECT_TEMPLATE_ORG_OID);
 
         // Resources
         resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID,
@@ -149,8 +149,8 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
             count++;
 
             for (int u = 0; u < USER_COUNT[0]; u++) {
-            	// We have to make uid globally unique. Otherwise correlation takes place and it will
-            	// "collapse" several accounts into one user
+                // We have to make uid globally unique. Otherwise correlation takes place and it will
+                // "collapse" several accounts into one user
                 String uid = "L" + TREE_SIZE.length + "o" + i + "u" + u + "c" + ldapdUserCount;
                 String sn = "Doe" + uid;
 
@@ -168,13 +168,13 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     }
 
     private void logCreateEntry(Entry entry) {
-		if (logCreateEntry ) {
-			System.out.println("Creating LDAP entry: " + entry.getDN());
-			LOGGER.trace("Creating LDAP entry: {}", entry.getDN());
-		}
-	}
+        if (logCreateEntry ) {
+            System.out.println("Creating LDAP entry: " + entry.getDN());
+            LOGGER.trace("Creating LDAP entry: {}", entry.getDN());
+        }
+    }
 
-	private Entry createUserEntry(String uid, String suffix, String sn) throws IOException, LDIFException {
+    private Entry createUserEntry(String uid, String suffix, String sn) throws IOException, LDIFException {
         StringBuilder sb = new StringBuilder();
         String dn = "uid=" + uid + "," + suffix;
         sb.append("dn: ").append(dn).append('\n');

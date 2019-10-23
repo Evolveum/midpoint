@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -43,9 +43,9 @@ import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
  * @author mederly
  */
 public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWorkItemDto> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(CertCaseDtoProvider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CertCaseDtoProvider.class);
     private static final String DOT_CLASS = CertCaseDtoProvider.class.getName() + ".";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
@@ -68,8 +68,8 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
             ObjectPaging paging = createPaging(first, count);
             Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
             List<AccessCertificationCaseType> caseList = searchCases(campaignOid, paging, resolveNames, getPage().getPrismContext(), task, result);
-            for (AccessCertificationCaseType _case : caseList) {
-                getAvailableData().add(new CertCaseDto(_case, getPage(), task, result));
+            for (AccessCertificationCaseType acase : caseList) {
+                getAvailableData().add(new CertCaseDto(acase, getPage(), task, result));
             }
         } catch (Exception ex) {
             result.recordFatalError(getPage().createStringResource("CertCaseDtoProvider.message.internalIterator.fatalError").getString(), ex);
@@ -158,9 +158,9 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
     }
 
     @NotNull
-	@Override
-	protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-		return SearchingUtils.createObjectOrderings(sortParam, false, getPrismContext());
-	}
+    @Override
+    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+        return SearchingUtils.createObjectOrderings(sortParam, false, getPrismContext());
+    }
 
 }

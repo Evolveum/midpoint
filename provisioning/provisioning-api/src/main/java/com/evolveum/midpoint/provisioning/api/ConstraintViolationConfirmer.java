@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -16,10 +16,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @FunctionalInterface
 public interface ConstraintViolationConfirmer {
 
-	/**
-	 * Returns true if the candidate conflicts with the shadow being checked.
-	 * Returns false if this is not a conflicting shadow.
-	 */
+    /**
+     * Returns true if the candidate conflicts with the shadow being checked.
+     * Returns false if this is not a conflicting shadow.
+     */
     boolean confirmViolation(PrismObject<ShadowType> conflictingShadowCandidate);
 
 }

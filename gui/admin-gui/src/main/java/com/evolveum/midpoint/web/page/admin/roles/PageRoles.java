@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -58,7 +58,7 @@ public class PageRoles extends PageAdminObjectList<RoleType> {
         super();
     }
 
-	private final FocusListInlineMenuHelper<RoleType> listInlineMenuHelper = new FocusListInlineMenuHelper<RoleType>(RoleType.class, this, this){
+    private final FocusListInlineMenuHelper<RoleType> listInlineMenuHelper = new FocusListInlineMenuHelper<RoleType>(RoleType.class, this, this){
         private static final long serialVersionUID = 1L;
 
         protected boolean isShowConfirmationDialog(ColumnMenuAction action){
@@ -103,7 +103,7 @@ public class PageRoles extends PageAdminObjectList<RoleType> {
     }
 
     private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
-    	return WebComponentUtil.createAbstractRoleConfirmationMessage(actionName, action, getObjectListPanel(), this);
+        return WebComponentUtil.createAbstractRoleConfirmationMessage(actionName, action, getObjectListPanel(), this);
 
     }
 

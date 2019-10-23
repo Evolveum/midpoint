@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.data.column;
@@ -30,87 +30,87 @@ import org.apache.wicket.model.Model;
  *
  */
 public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<SelectableBean<O>, String>
-		implements IExportableColumn<SelectableBean<O>, String>{
-	private static final long serialVersionUID = 1L;
+        implements IExportableColumn<SelectableBean<O>, String>{
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ObjectNameColumn.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectNameColumn.class);
 
-	public ObjectNameColumn(IModel<String> displayModel) {
-		super(displayModel, ObjectType.F_NAME.getLocalPart());
-	}
+    public ObjectNameColumn(IModel<String> displayModel) {
+        super(displayModel, ObjectType.F_NAME.getLocalPart());
+    }
 
-	public ObjectNameColumn(IModel<String> displayModel, String itemPath) {
-		super(displayModel, itemPath);
-	}
+    public ObjectNameColumn(IModel<String> displayModel, String itemPath) {
+        super(displayModel, itemPath);
+    }
 
-	@Override
-	public void populateItem(final Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId,
-			final IModel<SelectableBean<O>> rowModel) {
+    @Override
+    public void populateItem(final Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId,
+            final IModel<SelectableBean<O>> rowModel) {
 
-		IModel<String> labelModel = new IModel<String>() {
-			private static final long serialVersionUID = 1L;
+        IModel<String> labelModel = new IModel<String>() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public String getObject() {
-				SelectableBean<O> selectableBean = rowModel.getObject();
-				O value = selectableBean.getValue();
-				if (value == null) {
-					OperationResult result = selectableBean.getResult();
-					OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
-					return cellItem.getString(props.getStatusLabelKey());
-				} else {
-					String name = WebComponentUtil.getName(value);
-					if (selectableBean.getResult() != null){
-						StringBuilder complexName = new StringBuilder();
-						complexName.append(name);
-						complexName.append(" (");
-						complexName.append(selectableBean.getResult().getStatus());
-						complexName.append(")");
-						return complexName.toString();
-					}
-						return name;
+            @Override
+            public String getObject() {
+                SelectableBean<O> selectableBean = rowModel.getObject();
+                O value = selectableBean.getValue();
+                if (value == null) {
+                    OperationResult result = selectableBean.getResult();
+                    OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
+                    return cellItem.getString(props.getStatusLabelKey());
+                } else {
+                    String name = WebComponentUtil.getName(value);
+                    if (selectableBean.getResult() != null){
+                        StringBuilder complexName = new StringBuilder();
+                        complexName.append(name);
+                        complexName.append(" (");
+                        complexName.append(selectableBean.getResult().getStatus());
+                        complexName.append(")");
+                        return complexName.toString();
+                    }
+                        return name;
 
 
-				}
-			}
-		};
+                }
+            }
+        };
 
-		if (isClickable(rowModel)) {		// beware: rowModel is very probably resolved at this moment; but it seems to cause no problems
-			cellItem.add(new LinkPanel(componentId, labelModel) {
-				private static final long serialVersionUID = 1L;
+        if (isClickable(rowModel)) {        // beware: rowModel is very probably resolved at this moment; but it seems to cause no problems
+            cellItem.add(new LinkPanel(componentId, labelModel) {
+                private static final long serialVersionUID = 1L;
 
-				@Override
-				public void onClick(AjaxRequestTarget target) {
-					SelectableBean<O> selectableBean = rowModel.getObject();
-					O value = selectableBean.getValue();
-					if (value == null) {
-						OperationResult result = selectableBean.getResult();
-						throw new RestartResponseException(new PageOperationResult(result));
-					} else {
-						if (selectableBean.getResult() != null) {
-							throw new RestartResponseException(new PageOperationResult(selectableBean.getResult()));
-						} else {
-							ObjectNameColumn.this.onClick(target, rowModel);
-						}
-					}
-				}
-			});
-		} else {
-			cellItem.add(new Label(componentId, labelModel));
-		}
-	}
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    SelectableBean<O> selectableBean = rowModel.getObject();
+                    O value = selectableBean.getValue();
+                    if (value == null) {
+                        OperationResult result = selectableBean.getResult();
+                        throw new RestartResponseException(new PageOperationResult(result));
+                    } else {
+                        if (selectableBean.getResult() != null) {
+                            throw new RestartResponseException(new PageOperationResult(selectableBean.getResult()));
+                        } else {
+                            ObjectNameColumn.this.onClick(target, rowModel);
+                        }
+                    }
+                }
+            });
+        } else {
+            cellItem.add(new Label(componentId, labelModel));
+        }
+    }
 
-	public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+    public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
         return true;
     }
 
     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
     }
 
-	public IModel<String> getDataModel(IModel<SelectableBean<O>> rowModel) {
-		SelectableBean<O> selectableBean = rowModel.getObject();
-		O value = selectableBean.getValue();
-		return Model.of(value == null ? "" : WebComponentUtil.getName(value));
-	}
+    public IModel<String> getDataModel(IModel<SelectableBean<O>> rowModel) {
+        SelectableBean<O> selectableBean = rowModel.getObject();
+        O value = selectableBean.getValue();
+        return Model.of(value == null ? "" : WebComponentUtil.getName(value));
+    }
 
 }

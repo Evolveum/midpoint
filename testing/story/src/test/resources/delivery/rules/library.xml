@@ -2,199 +2,199 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <functionLibrary
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-		oid="24fb0df6-bd9b-4de5-bfce-c359cbe58b7d">
-	<name>rulesLib</name>
-	<function>
-		<name>evaluateAttributeValuePairs</name>
-		<parameter>
-			<name>object</name>
-			<type>c:ObjectType</type>
-		</parameter>
-		<parameter>
-			<name>ruleEvaluationContext</name>
-			<type>xsd:anyType</type>
-		</parameter>
-		<parameter>
-			<name>assumeEquality</name>
-			<type>xsd:boolean</type>
-		</parameter>
-		<returnType>xsd:boolean</returnType>
-		<script>
-			<code>
-				def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
-				this.binding.variables.each {k,v -> log.debug('{} = {}', k, v)}
-				log.debug('### Extension:\n{}', extension?.asPrismContainerValue().debugDump())
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="24fb0df6-bd9b-4de5-bfce-c359cbe58b7d">
+    <name>rulesLib</name>
+    <function>
+        <name>evaluateAttributeValuePairs</name>
+        <parameter>
+            <name>object</name>
+            <type>c:ObjectType</type>
+        </parameter>
+        <parameter>
+            <name>ruleEvaluationContext</name>
+            <type>xsd:anyType</type>
+        </parameter>
+        <parameter>
+            <name>assumeEquality</name>
+            <type>xsd:boolean</type>
+        </parameter>
+        <returnType>xsd:boolean</returnType>
+        <script>
+            <code>
+                def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
+                this.binding.variables.each {k,v -> log.debug('{} = {}', k, v)}
+                log.debug('### Extension:\n{}', extension?.asPrismContainerValue().debugDump())
 
-				for (int i = 1; i &lt; 10; i++) {
-					def attribute = basic.getPropertyValue(extension, "attribute$i")
-					def expectedValue = basic.getPropertyValue(extension, "value$i")
-					if (attribute != null) {
-						def realValue = basic.getPropertyValue(object, attribute)
-						log.debug('*** checking {}: expected: "{}", real: "{}", assumeEquality: {}', attribute, expectedValue, realValue, assumeEquality)
-						def eq = Objects.equals(expectedValue, realValue);
-						if (assumeEquality &amp;&amp; !eq || !assumeEquality &amp;&amp; eq) {
-							return true
-						}
-					}
-				}
-				return false
-			</code>
-		</script>
-	</function>
-	<function>
-		<name>evaluateRolePresence</name>
-		<parameter>
-			<name>object</name>
-			<type>c:ObjectType</type>
-		</parameter>
-		<parameter>
-			<name>ruleEvaluationContext</name>
-			<type>xsd:anyType</type>
-		</parameter>
-		<parameter>
-			<name>assumeExistence</name>
-			<type>xsd:boolean</type>
-		</parameter>
-		<returnType>xsd:boolean</returnType>
-		<script>
-			<code>
-				def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
-				this.binding.variables.each {k,v -> log.debug('{} = {}', k, v)}
-				log.debug('### Extension:\n{}', extension?.asPrismContainerValue().debugDump())
+                for (int i = 1; i &lt; 10; i++) {
+                    def attribute = basic.getPropertyValue(extension, "attribute$i")
+                    def expectedValue = basic.getPropertyValue(extension, "value$i")
+                    if (attribute != null) {
+                        def realValue = basic.getPropertyValue(object, attribute)
+                        log.debug('*** checking {}: expected: "{}", real: "{}", assumeEquality: {}', attribute, expectedValue, realValue, assumeEquality)
+                        def eq = Objects.equals(expectedValue, realValue);
+                        if (assumeEquality &amp;&amp; !eq || !assumeEquality &amp;&amp; eq) {
+                            return true
+                        }
+                    }
+                }
+                return false
+            </code>
+        </script>
+    </function>
+    <function>
+        <name>evaluateRolePresence</name>
+        <parameter>
+            <name>object</name>
+            <type>c:ObjectType</type>
+        </parameter>
+        <parameter>
+            <name>ruleEvaluationContext</name>
+            <type>xsd:anyType</type>
+        </parameter>
+        <parameter>
+            <name>assumeExistence</name>
+            <type>xsd:boolean</type>
+        </parameter>
+        <returnType>xsd:boolean</returnType>
+        <script>
+            <code>
+                def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
+                this.binding.variables.each {k,v -> log.debug('{} = {}', k, v)}
+                log.debug('### Extension:\n{}', extension?.asPrismContainerValue().debugDump())
 
-				def roleRef = basic.getPropertyValue(extension, "roleRef")
-				if (roleRef == null || roleRef.oid == null) {
-					throw new IllegalArgumentException("No roleRef or oid defined");
-				}
-				def exists = midpoint.isDirectlyAssigned(object, roleRef.oid)
-				return assumeExistence &amp;&amp; !exists || !assumeExistence &amp;&amp; exists
-			</code>
-		</script>
-	</function>
-	<function>
-		<name>evaluateRolePresenceWithMessage</name>
-		<parameter>
-			<name>object</name>
-			<type>c:ObjectType</type>
-		</parameter>
-		<parameter>
-			<name>ruleEvaluationContext</name>
-			<type>xsd:anyType</type>
-		</parameter>
-		<parameter>
-			<name>assumeExistence</name>
-			<type>xsd:boolean</type>
-		</parameter>
-		<parameter>
-			<name>rolesAttributeName</name>
-			<type>xsd:string</type>
-		</parameter>
-		<parameter>
-			<name>evaluatorHelper</name>
-			<type>xsd:anyType</type>
-		</parameter>
-		<parameter>
-			<name>constraint</name>
-			<type>xsd:anyType</type>
-		</parameter>
-		<returnType>c:SingleLocalizableMessageType</returnType>
-		<script>
-			<code><![CDATA[
-				import com.evolveum.midpoint.util.LocalizableMessageBuilder;
-				import com.evolveum.midpoint.schema.util.LocalizationUtil;
- 
- 				def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(0)
-				this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
-				log.info('### Extension for evaluateRolePresenceWithMessage:\n{}', extension?.asPrismContainerValue().debugDump())
+                def roleRef = basic.getPropertyValue(extension, "roleRef")
+                if (roleRef == null || roleRef.oid == null) {
+                    throw new IllegalArgumentException("No roleRef or oid defined");
+                }
+                def exists = midpoint.isDirectlyAssigned(object, roleRef.oid)
+                return assumeExistence &amp;&amp; !exists || !assumeExistence &amp;&amp; exists
+            </code>
+        </script>
+    </function>
+    <function>
+        <name>evaluateRolePresenceWithMessage</name>
+        <parameter>
+            <name>object</name>
+            <type>c:ObjectType</type>
+        </parameter>
+        <parameter>
+            <name>ruleEvaluationContext</name>
+            <type>xsd:anyType</type>
+        </parameter>
+        <parameter>
+            <name>assumeExistence</name>
+            <type>xsd:boolean</type>
+        </parameter>
+        <parameter>
+            <name>rolesAttributeName</name>
+            <type>xsd:string</type>
+        </parameter>
+        <parameter>
+            <name>evaluatorHelper</name>
+            <type>xsd:anyType</type>
+        </parameter>
+        <parameter>
+            <name>constraint</name>
+            <type>xsd:anyType</type>
+        </parameter>
+        <returnType>c:SingleLocalizableMessageType</returnType>
+        <script>
+            <code><![CDATA[
+                import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+                import com.evolveum.midpoint.schema.util.LocalizationUtil;
 
-				def roleRefs = basic.getPropertyValues(extension, rolesAttributeName)
-				log.info('#### roleRefs = {}', roleRefs)
+                 def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(0)
+                this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
+                log.info('### Extension for evaluateRolePresenceWithMessage:\n{}', extension?.asPrismContainerValue().debugDump())
 
-				def allExist = roleRefs?.every { roleRef ->
-					if (roleRef == null || roleRef.oid == null) {
-						throw new IllegalArgumentException('No attribute ' + rolesAttributeName + ' (' + roleRef + ') or oid (' + roleRef?.oid + ') defined');
-					}
-					
-					midpoint.isDirectlyAssigned(object, roleRef.oid)
-				}
-				log.info('#### allExist = {}', allExist)
-				matches = assumeExistence && !allExist || !assumeExistence && allExist
-				
-				if (matches) {
-					pathMessage = ruleEvaluationContext.policyRule?.assignmentPath?.segments
-						?.collect { it?.target?.name?.orig }
-						?.grep { it }
-						?.join (' > ');
-						
-					beforeAfter = evaluatorHelper.createBeforeAfterMessage(ruleEvaluationContext);
+                def roleRefs = basic.getPropertyValues(extension, rolesAttributeName)
+                log.info('#### roleRefs = {}', roleRefs)
 
-					message = new LocalizableMessageBuilder()
-							.key('DefaultPolicyConstraint.objectState.namedWithPath')
-							.args([
-								beforeAfter, 
-								constraint.name ? constraint.name : '-', 
-								pathMessage ? pathMessage : '-'])
-							.build();
-							
-					return LocalizationUtil.createLocalizableMessageType(message);
-				
-				} else {
-					return null;
-				}
-			]]></code>
-		</script>
-	</function>	
-	<function>
-		<name>remediatorPresent</name>
-		<parameter>
-			<name>ruleEvaluationContext</name>
-			<type>xsd:anyType</type>
-		</parameter>
-		<returnType>xsd:boolean</returnType>
-		<script>
-			<code>
-				def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
-				println 'Extension: \n' + extension.asPrismContainerValue().debugDump()
-				def rv = basic.getPropertyValue(extension, "remediatorRef") != null
-				println 'Remediator present: ' + rv
-				return rv
-			</code>
-		</script>
-	</function>
-	<function>
-		<name>computeApprovers</name>
-		<parameter>
-			<name>approvalContext</name>
-			<type>ApprovalContextType</type>
-		</parameter>
-		<parameter>
-			<name>stageDefinition</name>
-			<type>ApprovalStageDefinitionType</type>
-		</parameter>
-		<returnType>c:ObjectReferenceType</returnType>
-		<returnMultiplicity>multi</returnMultiplicity>
-		<script>
-			<code>
-				import com.evolveum.midpoint.schema.util.*
-				import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-				log.debug('### workflow context:\n{}', approvalContext.asPrismContainerValue().debugDump())
-				def rules = WfContextUtil.getRulesForStage(approvalContext, stageDefinition.number)
-				log.debug('rules found: {}', rules)
-				def approvers = rules.collectMany { rule ->
-					def ext = midpoint.collectExtensions(rule.assignmentPath, 1)
-					def remediatorRef = basic.getPropertyValue(ext, "remediatorRef")
-					remediatorRef != null ? [new ObjectReferenceType().setupReferenceValue(remediatorRef.asReferenceValue().clone())] : []
-				}
-				log.debug('approvers found: {}', approvers)
-				approvers
-			</code>
-		</script>
-	</function>
+                def allExist = roleRefs?.every { roleRef ->
+                    if (roleRef == null || roleRef.oid == null) {
+                        throw new IllegalArgumentException('No attribute ' + rolesAttributeName + ' (' + roleRef + ') or oid (' + roleRef?.oid + ') defined');
+                    }
+
+                    midpoint.isDirectlyAssigned(object, roleRef.oid)
+                }
+                log.info('#### allExist = {}', allExist)
+                matches = assumeExistence && !allExist || !assumeExistence && allExist
+
+                if (matches) {
+                    pathMessage = ruleEvaluationContext.policyRule?.assignmentPath?.segments
+                        ?.collect { it?.target?.name?.orig }
+                        ?.grep { it }
+                        ?.join (' > ');
+
+                    beforeAfter = evaluatorHelper.createBeforeAfterMessage(ruleEvaluationContext);
+
+                    message = new LocalizableMessageBuilder()
+                            .key('DefaultPolicyConstraint.objectState.namedWithPath')
+                            .args([
+                                beforeAfter,
+                                constraint.name ? constraint.name : '-',
+                                pathMessage ? pathMessage : '-'])
+                            .build();
+
+                    return LocalizationUtil.createLocalizableMessageType(message);
+
+                } else {
+                    return null;
+                }
+            ]]></code>
+        </script>
+    </function>
+    <function>
+        <name>remediatorPresent</name>
+        <parameter>
+            <name>ruleEvaluationContext</name>
+            <type>xsd:anyType</type>
+        </parameter>
+        <returnType>xsd:boolean</returnType>
+        <script>
+            <code>
+                def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
+                println 'Extension: \n' + extension.asPrismContainerValue().debugDump()
+                def rv = basic.getPropertyValue(extension, "remediatorRef") != null
+                println 'Remediator present: ' + rv
+                return rv
+            </code>
+        </script>
+    </function>
+    <function>
+        <name>computeApprovers</name>
+        <parameter>
+            <name>approvalContext</name>
+            <type>ApprovalContextType</type>
+        </parameter>
+        <parameter>
+            <name>stageDefinition</name>
+            <type>ApprovalStageDefinitionType</type>
+        </parameter>
+        <returnType>c:ObjectReferenceType</returnType>
+        <returnMultiplicity>multi</returnMultiplicity>
+        <script>
+            <code>
+                import com.evolveum.midpoint.schema.util.*
+                import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                log.debug('### approval context:\n{}', approvalContext.asPrismContainerValue().debugDump())
+                def rules = ApprovalContextUtil.getRulesForStage(approvalContext, stageDefinition.number)
+                log.debug('rules found: {}', rules)
+                def approvers = rules.collectMany { rule ->
+                    def ext = midpoint.collectExtensions(rule.assignmentPath, 1)
+                    def remediatorRef = basic.getPropertyValue(ext, "remediatorRef")
+                    remediatorRef != null ? [new ObjectReferenceType().setupReferenceValue(remediatorRef.asReferenceValue().clone())] : []
+                }
+                log.debug('approvers found: {}', approvers)
+                approvers
+            </code>
+        </script>
+    </function>
 </functionLibrary>

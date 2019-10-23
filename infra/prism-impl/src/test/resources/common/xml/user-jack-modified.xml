@@ -2,123 +2,123 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <user oid="c0c010c0-d34d-b33f-f00d-111111111111" version="42"
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
-		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-		xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
     <name>jack</name>
     <description>This must be the best pirate the world has ever seen</description>
     <extension>
-		<ext:singleStringType>foobar</ext:singleStringType>
-		<ext:indexedString>alpha</ext:indexedString>
-		<ext:indexedString>bravo</ext:indexedString>
-		<ext:bar xsi:type="xsd:string">bar</ext:bar>
-		<ext:num xsi:type="xsd:int">42</ext:num>
-		<ext:multi xsi:type="xsd:string">raz</ext:multi>
-		<ext:multi xsi:type="xsd:string">tri</ext:multi>
-		<ext:multi xsi:type="xsd:string">osem</ext:multi>
-	<!--	<foo:password xsi:type="ProtectedStringType">
-			<clearValue>openS3zam3</clearValue>
-		</foo:password>  -->
-	</extension>
+        <ext:singleStringType>foobar</ext:singleStringType>
+        <ext:indexedString>alpha</ext:indexedString>
+        <ext:indexedString>bravo</ext:indexedString>
+        <ext:bar xsi:type="xsd:string">bar</ext:bar>
+        <ext:num xsi:type="xsd:int">42</ext:num>
+        <ext:multi xsi:type="xsd:string">raz</ext:multi>
+        <ext:multi xsi:type="xsd:string">tri</ext:multi>
+        <ext:multi xsi:type="xsd:string">osem</ext:multi>
+    <!--    <foo:password xsi:type="ProtectedStringType">
+            <clearValue>openS3zam3</clearValue>
+        </foo:password>  -->
+    </extension>
     <fullName>Jack Sparrow</fullName>
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
     <additionalNames>Jackie</additionalNames>
     <polyName>
-    	<t:orig>Džek Sperou</t:orig>
-    	<t:norm>dzek sperou</t:norm>
-    	<t:translation>
-    		<t:key>JACK</t:key>
-    		<t:fallback>Jack</t:fallback>
-    		<t:argument>
-    			<t:value>Sparrow</t:value>
-    		</t:argument>
-    	</t:translation>
-    	<t:lang>
-    		<t:en>Jack Sparrow</t:en>
-    		<t:sk>Džek Sperou</t:sk>
-    		<t:ru>Джек Воробей</t:ru>
-    		<t:hr>Ðek Sperou</t:hr>
-    	</t:lang>
+        <t:orig>Džek Sperou</t:orig>
+        <t:norm>dzek sperou</t:norm>
+        <t:translation>
+            <t:key>JACK</t:key>
+            <t:fallback>Jack</t:fallback>
+            <t:argument>
+                <t:value>Sparrow</t:value>
+            </t:argument>
+        </t:translation>
+        <t:lang>
+            <t:en>Jack Sparrow</t:en>
+            <t:sk>Džek Sperou</t:sk>
+            <t:ru>Джек Воробей</t:ru>
+            <t:hr>Ðek Sperou</t:hr>
+        </t:lang>
     </polyName>
     <locality>World's End</locality>
 
-	<assignment id="1111">
-		<description>Assignment 1</description>
-		<!-- Presence of comments should not matter in diff -->
-	</assignment>
+    <assignment id="1111">
+        <description>Assignment 1</description>
+        <!-- Presence of comments should not matter in diff -->
+    </assignment>
 
-	<assignment id="1112">
-		<description>Assignment II</description>
-		<accountConstruction>
-			<howto>Whatever</howto>
-			<when>2012-02-24T10:48:52.000Z</when>
+    <assignment id="1112">
+        <description>Assignment II</description>
+        <accountConstruction>
+            <howto>Whatever</howto>
+            <when>2012-02-24T10:48:52.000Z</when>
             <value>ABC</value>              <!-- simple RawType content -->
             <value>
                 <fullName>Nobody</fullName> <!-- complex RawType content (interpreted as UserType in tests) -->
             </value>
-		</accountConstruction>
-	</assignment>
-	
-	<assignment id="1113">
-		<description>Assignment 3</description>
-	</assignment>
+        </accountConstruction>
+    </assignment>
 
-	<activation>
-		<enabled>false</enabled>
-	</activation>
-	
-	<password>
-	    <t:encryptedData>
-	        <t:encryptionMethod>
-	        	 <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes256-cbc</t:algorithm>
-	        </t:encryptionMethod>
-	        <t:keyInfo>
-	            <t:keyName>HF6JRsNMeJt6alihT44CXKgpe0c=</t:keyName>
-			</t:keyInfo>
-	        <t:cipherData>
-	            <t:cipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</t:cipherValue>
-	        </t:cipherData>
-	    </t:encryptedData>
+    <assignment id="1113">
+        <description>Assignment 3</description>
+    </assignment>
+
+    <activation>
+        <enabled>false</enabled>
+    </activation>
+
+    <password>
+        <t:encryptedData>
+            <t:encryptionMethod>
+                 <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes256-cbc</t:algorithm>
+            </t:encryptionMethod>
+            <t:keyInfo>
+                <t:keyName>HF6JRsNMeJt6alihT44CXKgpe0c=</t:keyName>
+            </t:keyInfo>
+            <t:cipherData>
+                <t:cipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</t:cipherValue>
+            </t:cipherData>
+        </t:encryptedData>
     </password>
-     
+
     <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1111" type="AccountType"/>
-    
+
     <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1112" type="AccountType">
-    	<description>This is a reference with a filter</description>
-    	<filter>
-    		<q:equal>
-    			<q:path>name</q:path>
-    			<q:value>captain</q:value>
-    		</q:equal>
-    	</filter>
+        <description>This is a reference with a filter</description>
+        <filter>
+            <q:equal>
+                <q:path>name</q:path>
+                <q:value>captain</q:value>
+            </q:equal>
+        </filter>
     </accountRef>
-    
+
     <account oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1113">
-    	<name>jsparrow</name>
+        <name>jsparrow</name>
     </account>
 
     <special>got it!</special>
 
-	<singleActivation/>			<!-- empty container value for single-valued child container -->
-	<multiActivation/>
-	<multiActivationCopy/>
-	<multiActivationCopy>
-		<enabled>true</enabled>
-	</multiActivationCopy>
+    <singleActivation/>            <!-- empty container value for single-valued child container -->
+    <multiActivation/>
+    <multiActivationCopy/>
+    <multiActivationCopy>
+        <enabled>true</enabled>
+    </multiActivationCopy>
 
-	<singleConstruction/>
-	<multiConstruction/>
-	<multiConstructionCopy/>
-	<multiConstructionCopy>
-		<howto>abc</howto>
-	</multiConstructionCopy>
+    <singleConstruction/>
+    <multiConstruction/>
+    <multiConstructionCopy/>
+    <multiConstructionCopy>
+        <howto>abc</howto>
+    </multiConstructionCopy>
 
 </user>

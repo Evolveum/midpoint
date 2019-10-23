@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,10 +25,10 @@ import java.util.List;
  * @author lazyman
  */
 public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_FORCE = "force";
-	private static final String ID_FORCE_CONTAINER = "forceContainer";
+    private static final String ID_FORCE = "force";
+    private static final String ID_FORCE_CONTAINER = "forceContainer";
     private static final String ID_RECONCILE = "reconcile";
     private static final String ID_RECONCILE_CONTAINER = "reconcileContainer";
     private static final String ID_RECONCILE_AFFECTED = "reconcileAffected";
@@ -79,72 +79,72 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
 
     private void initLayout() {
         createContainer(ID_FORCE_CONTAINER,
-        		new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_FORCE),
-        		FORCE_LABEL,
-        		FORCE_HELP,
-        		true);
+                new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_FORCE),
+                FORCE_LABEL,
+                FORCE_HELP,
+                true);
 
-        createContainer(ID_RECONCILE_CONTAINER, 
-        		new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE),
-        		RECONCILE_LABEL,
-        		RECONCILE_HELP, 
-        		showReconcile);
+        createContainer(ID_RECONCILE_CONTAINER,
+                new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE),
+                RECONCILE_LABEL,
+                RECONCILE_HELP,
+                showReconcile);
 
         createContainer(ID_RECONCILE_AFFECTED_CONTAINER,
-        		new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE_AFFECTED),
-        		RECONCILE_AFFECTED_LABEL,
-        		RECONCILE_AFFECTED_HELP,
-        		showReconcileAffected);
+                new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE_AFFECTED),
+                RECONCILE_AFFECTED_LABEL,
+                RECONCILE_AFFECTED_HELP,
+                showReconcileAffected);
 
         createContainer(ID_EXECUTE_AFTER_ALL_APPROVALS_CONTAINER,
-        		new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_EXECUTE_AFTER_ALL_APPROVALS),
-        		EXECUTE_AFTER_ALL_APPROVALS_LABEL,
-        		EXECUTE_AFTER_ALL_APPROVALS_HELP,
-        		true);
+                new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_EXECUTE_AFTER_ALL_APPROVALS),
+                EXECUTE_AFTER_ALL_APPROVALS_LABEL,
+                EXECUTE_AFTER_ALL_APPROVALS_HELP,
+                true);
 
         createContainer(ID_KEEP_DISPLAYING_RESULTS_CONTAINER,
-        		new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_KEEP_DISPLAYING_RESULTS),
-        		KEEP_DISPLAYING_RESULTS_LABEL,
-        		KEEP_DISPLAYING_RESULTS_HELP,
-        		showKeepDisplayingResults);
+                new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_KEEP_DISPLAYING_RESULTS),
+                KEEP_DISPLAYING_RESULTS_LABEL,
+                KEEP_DISPLAYING_RESULTS_HELP,
+                showKeepDisplayingResults);
 
-	    WebMarkupContainer tracingContainer = new WebMarkupContainer(ID_TRACING_CONTAINER);
-	    tracingContainer.setVisible(WebModelServiceUtils.isEnableExperimentalFeature(getPageBase()));
-	    add(tracingContainer);
+        WebMarkupContainer tracingContainer = new WebMarkupContainer(ID_TRACING_CONTAINER);
+        tracingContainer.setVisible(WebModelServiceUtils.isEnableExperimentalFeature(getPageBase()));
+        add(tracingContainer);
 
-	    DropDownChoice tracing = new DropDownChoice<>(ID_TRACING, PropertyModel.of(getModel(), ExecuteChangeOptionsDto.F_TRACING),
-			    PropertyModel.of(getModel(), ExecuteChangeOptionsDto.F_TRACING_CHOICES), new IChoiceRenderer<TracingProfileType>() {
-		    @Override
-		    public Object getDisplayValue(TracingProfileType profile) {
-			    if (profile == null) {
-			    	return "(none)";
-			    } else if (profile.getDisplayName() != null) {
-			    	return profile.getDisplayName();
-			    } else if (profile.getName() != null) {
-			    	return profile.getName();
-			    } else {
-			    	return "(unnamed profile)";
-			    }
-		    }
+        DropDownChoice tracing = new DropDownChoice<>(ID_TRACING, PropertyModel.of(getModel(), ExecuteChangeOptionsDto.F_TRACING),
+                PropertyModel.of(getModel(), ExecuteChangeOptionsDto.F_TRACING_CHOICES), new IChoiceRenderer<TracingProfileType>() {
+            @Override
+            public Object getDisplayValue(TracingProfileType profile) {
+                if (profile == null) {
+                    return "(none)";
+                } else if (profile.getDisplayName() != null) {
+                    return profile.getDisplayName();
+                } else if (profile.getName() != null) {
+                    return profile.getName();
+                } else {
+                    return "(unnamed profile)";
+                }
+            }
 
-		    @Override
-		    public String getIdValue(TracingProfileType object, int index) {
-			    return String.valueOf(index);
-		    }
+            @Override
+            public String getIdValue(TracingProfileType object, int index) {
+                return String.valueOf(index);
+            }
 
-		    @Override
-		    public TracingProfileType getObject(String id, IModel<? extends List<? extends TracingProfileType>> choices) {
-			    return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
-		    }
-	    });
-	    tracing.setNullValid(true);
-	    tracingContainer.add(tracing);
+            @Override
+            public TracingProfileType getObject(String id, IModel<? extends List<? extends TracingProfileType>> choices) {
+                return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
+            }
+        });
+        tracing.setNullValid(true);
+        tracingContainer.add(tracing);
     }
 
     private void createContainer(String containerId, IModel<Boolean> checkboxModel, String labelKey, String helpKey, boolean show) {
-    	CheckBoxPanel panel = new CheckBoxPanel(containerId, checkboxModel, null, createStringResource(labelKey),
+        CheckBoxPanel panel = new CheckBoxPanel(containerId, checkboxModel, null, createStringResource(labelKey),
                 createStringResource(helpKey, WebComponentUtil.getMidpointCustomSystemName(getPageBase(), "midPoint")));
-    	panel.setVisible(show);
+        panel.setVisible(show);
         add(panel);
     }
 }

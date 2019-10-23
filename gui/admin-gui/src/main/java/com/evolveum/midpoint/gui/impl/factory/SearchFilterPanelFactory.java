@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -32,23 +32,23 @@ import java.io.Serializable;
 @Component
 public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<SearchFilterType> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@Autowired private transient GuiComponentRegistry registry;
-	
-	@PostConstruct
-	public void register() {
-		registry.addToRegistry(this);
-	}
-	
-	@Override
-	public <IW extends ItemWrapper> boolean match(IW wrapper) {
-		return SearchFilterType.COMPLEX_TYPE.equals(wrapper.getTypeName());
-	}
+    @Autowired private transient GuiComponentRegistry registry;
 
-	@Override
-	protected Panel getPanel(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
-		return new AceEditorPanel(panelCtx.getComponentId(), null, new SearchFilterTypeModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 10);
-	}
+    @PostConstruct
+    public void register() {
+        registry.addToRegistry(this);
+    }
+
+    @Override
+    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+        return SearchFilterType.COMPLEX_TYPE.equals(wrapper.getTypeName());
+    }
+
+    @Override
+    protected Panel getPanel(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
+        return new AceEditorPanel(panelCtx.getComponentId(), null, new SearchFilterTypeModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 10);
+    }
 
 }

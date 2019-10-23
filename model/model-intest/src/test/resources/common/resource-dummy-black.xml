@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -12,7 +12,7 @@
      also there are provisioning scripts that may fail (default criticality) -->
 
 <resource oid="10000000-0000-0000-0000-000000000305"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -21,149 +21,149 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource Black</name>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>black</icfi:instanceId>
-			<icfi:supportValidity>true</icfi:supportValidity>
-			<icfi:addConnectorStateAttributes>true</icfi:addConnectorStateAttributes>
-		</icfc:configurationProperties>
+    <name>Dummy Resource Black</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-	</connectorConfiguration>
+        <icfc:configurationProperties>
+            <icfi:instanceId>black</icfi:instanceId>
+            <icfi:supportValidity>true</icfi:supportValidity>
+            <icfi:addConnectorStateAttributes>true</icfi:addConnectorStateAttributes>
+        </icfc:configurationProperties>
 
-	<schemaHandling>
-		<objectType>
-			<kind>account</kind>
-			<intent>default</intent>
-			<displayName>Default Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<outbound>
-				    <strength>weak</strength>
-				    <source>
-				    	<path>name</path>
-				    </source>
-					<expression>
-						<script>
-							<code>name + iterationToken</code>
-						</script>
-					</expression>
-				</outbound>
-				<inbound>
-					<target>
-						<path>$user/name</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>icfs:uid</ref>
-				<displayName>UID</displayName>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<displayName>Full Name</displayName>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>$user/fullName</path>
-					</source>
-				</outbound>
-				<inbound>
-					<strength>weak</strength>
-					<target>
-						<path>$user/fullName</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:ship</ref>
-				<displayName>Ship</displayName>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>$user/organizationalUnit</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:quote</ref>
-				<displayName>Quote</displayName>
-				<tolerantValuePattern>^res-.*</tolerantValuePattern>
-				<intolerantValuePattern>^.*</intolerantValuePattern>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>$user/description</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:drink</ref>
-				<displayName>Drink</displayName>
-				<tolerant>false</tolerant>
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<value>rum</value>
-					</expression>
-				</outbound>
-			</attribute>
-			 <attribute>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>name + iterationToken</code>
+                        </script>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>$user/name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <path>$user/fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ship</ref>
+                <displayName>Ship</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/organizationalUnit</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:quote</ref>
+                <displayName>Quote</displayName>
+                <tolerantValuePattern>^res-.*</tolerantValuePattern>
+                <intolerantValuePattern>^.*</intolerantValuePattern>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/description</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:drink</ref>
+                <displayName>Drink</displayName>
+                <tolerant>false</tolerant>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>rum</value>
+                    </expression>
+                </outbound>
+            </attribute>
+             <attribute>
                 <ref>ri:gossip</ref>
                 <displayName>Gossip</displayName>
                 <tolerant>true</tolerant>
                 <intolerantValuePattern>^gossip-.*</intolerantValuePattern>
                 <outbound>
-					<strength>strong</strength>
-					<source>
-						<path>$user/employeeNumber</path>
-					</source>
-				</outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>$user/employeeNumber</path>
+                    </source>
+                </outbound>
             </attribute>
-			<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
-			<activation>
-            	<administrativeStatus>
-            		<outbound>
-                    	<expression>
-                        	<asIs/>
+            <iteration>
+                <maxIterations>5</maxIterations>
+            </iteration>
+            <activation>
+                <administrativeStatus>
+                    <outbound>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            	</administrativeStatus>
-            	<validFrom>
-            		<outbound>
-                    	<expression>
-                        	<asIs/>
+                    </outbound>
+                </administrativeStatus>
+                <validFrom>
+                    <outbound>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            	</validFrom>
-            	<validTo>
-            		<outbound>
-                    	<expression>
-                        	<asIs/>
+                    </outbound>
+                </validFrom>
+                <validTo>
+                    <outbound>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            	</validTo>
+                    </outbound>
+                </validTo>
             </activation>
             <credentials>
                 <password>
@@ -172,96 +172,96 @@
                     <passwordPolicyRef oid="ed8026dc-569a-11e7-abdf-4fce56706755"/> <!-- Benevolent password policy -->
                 </password>
             </credentials>
-		</objectType>
-	</schemaHandling>
-	
-	<scripts>
-		<script>
-			<host>resource</host>
-			<language>powerfail</language>
-			<argument>
-				<script>
-					<code>user?.getEmployeeNumber()</code>
-				</script> 
-				<name>error</name>
-			</argument>
-			<code>operation:add/after</code>
-			<operation>add</operation>
+        </objectType>
+    </schemaHandling>
+
+    <scripts>
+        <script>
+            <host>resource</host>
+            <language>powerfail</language>
+            <argument>
+                <script>
+                    <code>user?.getEmployeeNumber()</code>
+                </script>
+                <name>error</name>
+            </argument>
+            <code>operation:add/after</code>
+            <operation>add</operation>
             <kind>account</kind>
-			<order>after</order>
-		</script>
-		<script>
-			<host>resource</host>
-			<language>powerfail</language>
-			<argument>
-				<script>
-					<code>user?.getEmployeeNumber()</code>
-				</script> 
-				<name>error</name>
-			</argument>
-			<code>operation:modify/after</code>
-			<operation>modify</operation>
+            <order>after</order>
+        </script>
+        <script>
+            <host>resource</host>
+            <language>powerfail</language>
+            <argument>
+                <script>
+                    <code>user?.getEmployeeNumber()</code>
+                </script>
+                <name>error</name>
+            </argument>
+            <code>operation:modify/after</code>
+            <operation>modify</operation>
             <kind>account</kind>
-			<order>after</order>
-		</script>
-		<script>
-			<host>resource</host>
-			<language>powerfail</language>
-			<argument>
-				<script>
-					<code>user?.getEmployeeNumber()</code>
-				</script> 
-				<name>error</name>
-			</argument>
-			<code>operation:delete/after</code>
-			<operation>delete</operation>
+            <order>after</order>
+        </script>
+        <script>
+            <host>resource</host>
+            <language>powerfail</language>
+            <argument>
+                <script>
+                    <code>user?.getEmployeeNumber()</code>
+                </script>
+                <name>error</name>
+            </argument>
+            <code>operation:delete/after</code>
+            <operation>delete</operation>
             <kind>account</kind>
-			<order>after</order>
-		</script>
-	</scripts>
-	
-	<consistency>
-		<!-- MID-3682 -->
-		<connectorErrorCriticality>
-			<network>partial</network>
-			<schema>partial</schema>
-		</connectorErrorCriticality>
-	</consistency>
-	
-	<synchronization>
-		<objectSynchronization>
-			<enabled>true</enabled>
-			<correlation>
-				<q:equal>
-					<q:path>c:name</q:path>
-					<expression>
-						<script>
-							<code>
-								basic.getAttributeValue(account, 
-									'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
-							</code>
-						</script>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-	            <situation>linked</situation>
-	            <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri></action>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri></action>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri></action>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
-	            <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri></action>
-	        </reaction>
+            <order>after</order>
+        </script>
+    </scripts>
+
+    <consistency>
+        <!-- MID-3682 -->
+        <connectorErrorCriticality>
+            <network>partial</network>
+            <schema>partial</schema>
+        </connectorErrorCriticality>
+    </consistency>
+
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <script>
+                            <code>
+                                basic.getAttributeValue(account,
+                                    'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri></action>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri></action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri></action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
+                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri></action>
+            </reaction>
         </objectSynchronization>
-	</synchronization>
-	
+    </synchronization>
+
 </resource>

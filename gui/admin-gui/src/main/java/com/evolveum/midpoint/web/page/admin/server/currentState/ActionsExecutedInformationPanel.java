@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -50,23 +50,23 @@ public class ActionsExecutedInformationPanel extends BasePanel<ActionsExecutedIn
 
     public ActionsExecutedInformationPanel(String id, IModel<ActionsExecutedInformationDto> model) {
         super(id, model);
-		initLayout();
+        initLayout();
     }
 
     boolean showResultingActionsOnly = true;
 
     protected void initLayout() {
 
-		WebMarkupContainer tableLinesContainer = new WebMarkupContainer(ID_OBJECTS_TABLE_LINES_CONTAINER);
+        WebMarkupContainer tableLinesContainer = new WebMarkupContainer(ID_OBJECTS_TABLE_LINES_CONTAINER);
         ListView tableLines = new ListView<ActionsExecutedObjectsTableLineDto>(ID_OBJECTS_TABLE_LINES,
                 new IModel<List<ActionsExecutedObjectsTableLineDto>>() {
                     @Override
                     public List<ActionsExecutedObjectsTableLineDto> getObject() {
-						final ActionsExecutedInformationDto modelObject = getModelObject();
-						if (modelObject == null) {
-							return new ArrayList<>();
-						}
-						if (showResultingActionsOnly) {
+                        final ActionsExecutedInformationDto modelObject = getModelObject();
+                        if (modelObject == null) {
+                            return new ArrayList<>();
+                        }
+                        if (showResultingActionsOnly) {
                             return modelObject.getUniqueObjectsTableLines();
                         } else {
                             return modelObject.getObjectsTableLines();
@@ -112,22 +112,22 @@ public class ActionsExecutedInformationPanel extends BasePanel<ActionsExecutedIn
             }
         };
         tableLinesContainer.add(tableLines);
-		tableLinesContainer.setOutputMarkupId(true);
-		add(tableLinesContainer);
+        tableLinesContainer.setOutputMarkupId(true);
+        add(tableLinesContainer);
 
-		final Label showResultingActionsOnlyLabel = new Label(ID_SHOW_RESULTING_ACTIONS_ONLY_LABEL, new IModel<String>() {
-			@Override
-			public String getObject() {
-				return showResultingActionsOnly ?
-						createStringResource("ActionsExecutedInformationPanel.showingResultingActionsOnly").getString() :
-						createStringResource("ActionsExecutedInformationPanel.showingAllActions").getString();
-			}
-		});
-		showResultingActionsOnlyLabel.setOutputMarkupId(true);
-		add(showResultingActionsOnlyLabel);
+        final Label showResultingActionsOnlyLabel = new Label(ID_SHOW_RESULTING_ACTIONS_ONLY_LABEL, new IModel<String>() {
+            @Override
+            public String getObject() {
+                return showResultingActionsOnly ?
+                        createStringResource("ActionsExecutedInformationPanel.showingResultingActionsOnly").getString() :
+                        createStringResource("ActionsExecutedInformationPanel.showingAllActions").getString();
+            }
+        });
+        showResultingActionsOnlyLabel.setOutputMarkupId(true);
+        add(showResultingActionsOnlyLabel);
         add(new AjaxFallbackLink<String>(ID_SHOW_RESULTING_ACTIONS_ONLY_LINK) {
-        	
-        	private static final long serialVersionUID = 1L;
+
+            private static final long serialVersionUID = 1L;
             @Override
             public void onClick(Optional<AjaxRequestTarget> ajaxRequestTarget) {
                 showResultingActionsOnly = !showResultingActionsOnly;
@@ -135,12 +135,12 @@ public class ActionsExecutedInformationPanel extends BasePanel<ActionsExecutedIn
             }
         });
 
-		add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return getModelObject() != null;
-			}
-		});
+        add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return getModelObject() != null;
+            }
+        });
     }
 
     public boolean isShowResultingActionsOnly() {

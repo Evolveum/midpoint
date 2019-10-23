@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="414e3766-775e-11e7-b8cb-c7ca37c1dc9e"
@@ -10,18 +10,18 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Two: Manual</name>
     <inducement>
-    	<construction>
-    		<resourceRef oid="0ef80ab8-2906-11e7-b81a-3f343e28c264" type="ResourceType"/> <!-- Manual -->
-    		<kind>account</kind>
-    		<attribute>
+        <construction>
+            <resourceRef oid="0ef80ab8-2906-11e7-b81a-3f343e28c264" type="ResourceType"/> <!-- Manual -->
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:interests</ref>
                 <outbound>
-                	<strength>strong</strength>
-                	<expression>
-						<value>two</value>
-					</expression>
-				</outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>two</value>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
 </role>

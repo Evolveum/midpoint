@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.prism.show;
@@ -47,131 +47,131 @@ import java.util.Map;
 @PageDescriptor(url = "/admin/previewChanges", encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, label = "PageAdminUsers.auth.usersAll.label", description = "PageAdminUsers.auth.usersAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL, label = "PageUser.auth.user.label", description = "PageUser.auth.user.description"),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, label = "PageAdminRoles.auth.roleAll.label", description = "PageAdminRoles.auth.roleAll.description"),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description"),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, label = "PageAdminRoles.auth.roleAll.label", description = "PageAdminRoles.auth.roleAll.description"),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL, label = "PageAdminUsers.auth.orgAll.label", description = "PageAdminUsers.auth.orgAll.description"),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL, label = "PageOrgUnit.auth.orgUnit.label", description = "PageOrgUnit.auth.orgUnit.description"),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, label = "PageAdminServices.auth.servicesAll.label", description = "PageAdminServices.auth.servicesAll.description"),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICE_URL, label = "PageService.auth.role.label", description = "PageService.auth.role.description")
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL, label = "PageOrgUnit.auth.orgUnit.label", description = "PageOrgUnit.auth.orgUnit.description"),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, label = "PageAdminServices.auth.servicesAll.label", description = "PageAdminServices.auth.servicesAll.description"),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICE_URL, label = "PageService.auth.role.label", description = "PageService.auth.role.description")
 })
 public class PagePreviewChanges<O extends ObjectType> extends PageAdmin {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_TABBED_PANEL = "tabbedPanel";
-	private static final String ID_CONTINUE_EDITING = "continueEditing";
-	private static final String ID_SAVE = "save";
+    private static final String ID_TABBED_PANEL = "tabbedPanel";
+    private static final String ID_CONTINUE_EDITING = "continueEditing";
+    private static final String ID_SAVE = "save";
 
-	private static final Trace LOGGER = TraceManager.getTrace(PagePreviewChanges.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PagePreviewChanges.class);
 
-	private Map<PrismObject<O>, ModelContext<O>> modelContextMap;
-	private ModelInteractionService modelInteractionService;
+    private Map<PrismObject<O>, ModelContext<O>> modelContextMap;
+    private ModelInteractionService modelInteractionService;
 
-	public PagePreviewChanges(Map<PrismObject<O>, ModelContext<O>> modelContextMap, ModelInteractionService modelInteractionService) {
-		this.modelContextMap = modelContextMap;
-		this.modelInteractionService = modelInteractionService;
-	}
+    public PagePreviewChanges(Map<PrismObject<O>, ModelContext<O>> modelContextMap, ModelInteractionService modelInteractionService) {
+        this.modelContextMap = modelContextMap;
+        this.modelInteractionService = modelInteractionService;
+    }
 
-	@Override
-	protected void onInitialize(){
-		super.onInitialize();
-		initLayout();
-	}
-
-
-	private void initLayout() {
-		Form mainForm = new com.evolveum.midpoint.web.component.form.Form("mainForm");
-		mainForm.setMultiPart(true);
-		add(mainForm);
-
-		List<ITab> tabs = createTabs();
-		TabbedPanel<ITab> previewChangesTabbedPanel = WebComponentUtil.createTabPanel(ID_TABBED_PANEL, this, tabs, null);
-		previewChangesTabbedPanel.setOutputMarkupId(true);
-		mainForm.add(previewChangesTabbedPanel);
-
-		initButtons(mainForm);
-	}
-
-	private void initButtons(Form mainForm) {
-		AjaxButton cancel = new AjaxButton(ID_CONTINUE_EDITING, createStringResource("PagePreviewChanges.button.continueEditing")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				cancelPerformed(target);
-			}
-		};
-		mainForm.add(cancel);
-
-		AjaxButton save = new AjaxButton(ID_SAVE, createStringResource("PagePreviewChanges.button.save")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				savePerformed(target);
-			}
-		};
-		//save.add(new EnableBehaviour(() -> violationsEmpty()));           // does not work as expected (MID-4252)
-
-		save.add(new VisibleBehaviour(() -> violationsEmpty()));            // so hiding the button altogether
-		mainForm.add(save);
-	}
-
-	//TODO relocate the logic from the loop to some util method, code repeats in PreviewChangesTabPanel
-	private boolean violationsEmpty() {
-		for (ModelContext<O> modelContext : modelContextMap.values()) {
-			PolicyRuleEnforcerHookPreviewOutputType enforcements = modelContext != null
-					? modelContext.getHookPreviewResult(PolicyRuleEnforcerHookPreviewOutputType.class)
-					: null;
-			List<EvaluatedTriggerGroupDto> triggerGroups = enforcements != null
-					? Collections.singletonList(EvaluatedTriggerGroupDto.initializeFromRules(enforcements.getRule(), false, null))
-					: Collections.emptyList();
-			if (!EvaluatedTriggerGroupDto.isEmpty(triggerGroups)){
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private List<ITab> createTabs(){
-		List<ITab> tabs = new ArrayList<>();
-		modelContextMap.forEach((object, modelContext) -> {
-
-			tabs.add(
-					new PanelTab(getTabPanelTitleModel(object)){
-
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public WebMarkupContainer createPanel(String panelId) {
-							return new PreviewChangesTabPanel(panelId, Model.of(modelContext));
-						}
-					});
-		});
-		return tabs;
-	}
-
-	private IModel<String> getTabPanelTitleModel(PrismObject<? extends ObjectType> object){
-		return Model.of(WebComponentUtil.getEffectiveName(object, AbstractRoleType.F_DISPLAY_NAME));
-	}
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
+        initLayout();
+    }
 
 
-	private void cancelPerformed(AjaxRequestTarget target) {
-		redirectBack();
-	}
+    private void initLayout() {
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form("mainForm");
+        mainForm.setMultiPart(true);
+        add(mainForm);
 
-	private void savePerformed(AjaxRequestTarget target) {
-		Breadcrumb bc = redirectBack();
-		if (bc instanceof BreadcrumbPageInstance) {
-			BreadcrumbPageInstance bcpi = (BreadcrumbPageInstance) bc;
-			WebPage page = bcpi.getPage();
-			if (page instanceof PageAdminObjectDetails) {
-				((PageAdminObjectDetails) page).setSaveOnConfigure(true);
-			} else {
-				error("Couldn't save changes - unexpected referring page: " + page);
-			}
-		} else {
-			error("Couldn't save changes - no instance for referring page; breadcrumb is " + bc);
-		}
-	}
+        List<ITab> tabs = createTabs();
+        TabbedPanel<ITab> previewChangesTabbedPanel = WebComponentUtil.createTabPanel(ID_TABBED_PANEL, this, tabs, null);
+        previewChangesTabbedPanel.setOutputMarkupId(true);
+        mainForm.add(previewChangesTabbedPanel);
 
-	@Override
-	protected void createBreadcrumb() {
-		createInstanceBreadcrumb();
-	}
+        initButtons(mainForm);
+    }
+
+    private void initButtons(Form mainForm) {
+        AjaxButton cancel = new AjaxButton(ID_CONTINUE_EDITING, createStringResource("PagePreviewChanges.button.continueEditing")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                cancelPerformed(target);
+            }
+        };
+        mainForm.add(cancel);
+
+        AjaxButton save = new AjaxButton(ID_SAVE, createStringResource("PagePreviewChanges.button.save")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                savePerformed(target);
+            }
+        };
+        //save.add(new EnableBehaviour(() -> violationsEmpty()));           // does not work as expected (MID-4252)
+
+        save.add(new VisibleBehaviour(() -> violationsEmpty()));            // so hiding the button altogether
+        mainForm.add(save);
+    }
+
+    //TODO relocate the logic from the loop to some util method, code repeats in PreviewChangesTabPanel
+    private boolean violationsEmpty() {
+        for (ModelContext<O> modelContext : modelContextMap.values()) {
+            PolicyRuleEnforcerHookPreviewOutputType enforcements = modelContext != null
+                    ? modelContext.getHookPreviewResult(PolicyRuleEnforcerHookPreviewOutputType.class)
+                    : null;
+            List<EvaluatedTriggerGroupDto> triggerGroups = enforcements != null
+                    ? Collections.singletonList(EvaluatedTriggerGroupDto.initializeFromRules(enforcements.getRule(), false, null))
+                    : Collections.emptyList();
+            if (!EvaluatedTriggerGroupDto.isEmpty(triggerGroups)){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private List<ITab> createTabs(){
+        List<ITab> tabs = new ArrayList<>();
+        modelContextMap.forEach((object, modelContext) -> {
+
+            tabs.add(
+                    new PanelTab(getTabPanelTitleModel(object)){
+
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public WebMarkupContainer createPanel(String panelId) {
+                            return new PreviewChangesTabPanel(panelId, Model.of(modelContext));
+                        }
+                    });
+        });
+        return tabs;
+    }
+
+    private IModel<String> getTabPanelTitleModel(PrismObject<? extends ObjectType> object){
+        return Model.of(WebComponentUtil.getEffectiveName(object, AbstractRoleType.F_DISPLAY_NAME));
+    }
+
+
+    private void cancelPerformed(AjaxRequestTarget target) {
+        redirectBack();
+    }
+
+    private void savePerformed(AjaxRequestTarget target) {
+        Breadcrumb bc = redirectBack();
+        if (bc instanceof BreadcrumbPageInstance) {
+            BreadcrumbPageInstance bcpi = (BreadcrumbPageInstance) bc;
+            WebPage page = bcpi.getPage();
+            if (page instanceof PageAdminObjectDetails) {
+                ((PageAdminObjectDetails) page).setSaveOnConfigure(true);
+            } else {
+                error("Couldn't save changes - unexpected referring page: " + page);
+            }
+        } else {
+            error("Couldn't save changes - no instance for referring page; breadcrumb is " + bc);
+        }
+    }
+
+    @Override
+    protected void createBreadcrumb() {
+        createInstanceBreadcrumb();
+    }
 }

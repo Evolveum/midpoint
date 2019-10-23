@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="93d3e436-3c6c-11e7-8168-23796882a64e"
@@ -16,24 +16,24 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Crew of Guybrush</name>
     <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000001104" type="c:ResourceType"/> <!-- Orange -->
-    		<kind>account</kind>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000001104" type="c:ResourceType"/> <!-- Orange -->
+            <kind>account</kind>
             <association>
-            	<ref>ri:crew</ref>
-            	<outbound>
-            		<expression>
-            			<associationTargetSearch>
-            				<filter>
-								<q:equal>
-									<q:path>attributes/icfs:name</q:path>
+                <ref>ri:crew</ref>
+                <outbound>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>attributes/icfs:name</q:path>
                                     <q:value>guybrush</q:value>
-								</q:equal>
-            				</filter>
-            			</associationTargetSearch>
-            		</expression>
-            	</outbound>
+                                </q:equal>
+                            </filter>
+                        </associationTargetSearch>
+                    </expression>
+                </outbound>
             </association>
-    	</construction>
+        </construction>
     </inducement>
 </role>

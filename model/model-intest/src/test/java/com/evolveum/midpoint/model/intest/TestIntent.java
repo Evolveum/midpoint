@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest;
@@ -39,9 +39,9 @@ import com.evolveum.midpoint.task.api.Task;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
-	public static final File TEST_DIR = new File("src/test/resources/xxxxxxxxxx");
-	private static final String ACCOUNT_INTENT_TEST = "test";
-	private String accountOid;
+    public static final File TEST_DIR = new File("src/test/resources/xxxxxxxxxx");
+    private static final String ACCOUNT_INTENT_TEST = "test";
+    private String accountOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -54,7 +54,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test131ModifyUserJackAssignAccountDefault() throws Exception {
-		final String TEST_NAME="test131ModifyUserJackAssignAccountDefault";
+        final String TEST_NAME="test131ModifyUserJackAssignAccountDefault";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -64,28 +64,28 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
-        		RESOURCE_DUMMY_OID, null, true);
+                RESOURCE_DUMMY_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		display("User after change execution", userJack);
-		assertUserJack(userJack);
-		assertLinks(userJack, 1);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack);
+        assertLinks(userJack, 1);
         accountOid = getSingleLinkOid(userJack);
 
-		// Check shadow
+        // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME);
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
@@ -114,7 +114,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test132ModifyUserJackAssignAccountTest() throws Exception {
-		final String TEST_NAME="test132ModifyUserJackAssignAccountTest";
+        final String TEST_NAME="test132ModifyUserJackAssignAccountTest";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -124,29 +124,29 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
-        		RESOURCE_DUMMY_OID, ACCOUNT_INTENT_TEST, true);
+                RESOURCE_DUMMY_OID, ACCOUNT_INTENT_TEST, true);
         deltas.add(accountAssignmentUserDelta);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		display("User after change execution", userJack);
-		assertUserJack(userJack);
-		assertLinks(userJack, 2);
-		String accountOidDefault = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
-		String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack);
+        assertLinks(userJack, 2);
+        String accountOidDefault = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+        String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
 
-		// Check shadow: intent=default
+        // Check shadow: intent=default
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOidDefault, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountOidDefault, ACCOUNT_JACK_DUMMY_USERNAME);
 
@@ -187,7 +187,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test135ModifyUserJackFullName() throws Exception {
-		final String TEST_NAME="test135ModifyUserJackFullName";
+        final String TEST_NAME="test135ModifyUserJackFullName";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -195,23 +195,23 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, PrismTestUtil.createPolyString("cpt. Jack Sparrow"));
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
 
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		display("User after change execution", userJack);
-		assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
-		assertLinks(userJack, 2);
-		String accountOidDefault = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
-		String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
+        assertLinks(userJack, 2);
+        String accountOidDefault = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+        String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
 
-		// Check shadow: intent=default
+        // Check shadow: intent=default
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOidDefault, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountOidDefault, ACCOUNT_JACK_DUMMY_USERNAME);
 
@@ -249,7 +249,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test147ModifyUserJackUnAssignAccountDefault() throws Exception {
-		final String TEST_NAME="test147ModifyUserJackUnAssignAccountDefault";
+        final String TEST_NAME="test147ModifyUserJackUnAssignAccountDefault";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -259,26 +259,26 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
-        		RESOURCE_DUMMY_OID, null, false);
+                RESOURCE_DUMMY_OID, null, false);
         deltas.add(accountAssignmentUserDelta);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		display("User after change execution", userJack);
-		assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
-		assertLinks(userJack, 1);
-		String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
+        assertLinks(userJack, 1);
+        String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
 
         // Check shadow: intent=test
         PrismObject<ShadowType> accountShadowTest = repositoryService.getObject(ShadowType.class, accountOidTest, null, result);
@@ -309,7 +309,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test149ModifyUserJackUnassignAccountTest() throws Exception {
-		final String TEST_NAME = "test149ModifyUserJackUnassignAccountTest";
+        final String TEST_NAME = "test149ModifyUserJackUnassignAccountTest";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -319,19 +319,19 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
-        		RESOURCE_DUMMY_OID, ACCOUNT_INTENT_TEST, false);
+                RESOURCE_DUMMY_OID, ACCOUNT_INTENT_TEST, false);
         deltas.add(accountAssignmentUserDelta);
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		assertSuccess(result);
+        // THEN
+        assertSuccess(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
-		assertLinks(userJack, 0);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
+        assertLinks(userJack, 0);
 
         // Check is shadow is gone
         assertNoShadow(accountOid);
@@ -355,9 +355,9 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
     }
 
     private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-		assumeAssignmentPolicy(enforcementPolicy);
+        assumeAssignmentPolicy(enforcementPolicy);
         dummyAuditService.clear();
         prepareNotifications();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-	}
+    }
 }

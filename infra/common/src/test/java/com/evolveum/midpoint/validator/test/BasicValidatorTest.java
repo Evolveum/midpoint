@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -51,89 +51,89 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class BasicValidatorTest {
 
     public static final String BASE_PATH = "src/test/resources/validator/";
-	private static final String OBJECT_RESULT_OPERATION_NAME = BasicValidatorTest.class.getName() + ".validateObject";
+    private static final String OBJECT_RESULT_OPERATION_NAME = BasicValidatorTest.class.getName() + ".validateObject";
 
     public BasicValidatorTest() {
     }
 
     @BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-	}
+    public void setup() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
 
     @Test
     public void resource1Valid() throws Exception {
-    	System.out.println("\n===[ resource1Valid ]=====");
+        System.out.println("\n===[ resource1Valid ]=====");
 
-    	OperationResult result = new OperationResult(this.getClass().getName()+".resource1Valid");
+        OperationResult result = new OperationResult(this.getClass().getName()+".resource1Valid");
 
         EventHandler handler = new EventHandler() {
 
-			@Override
-			public EventResult preMarshall(Element objectElement, Node postValidationTree,
-					OperationResult objectResult) {
-				return EventResult.cont();
-			}
+            @Override
+            public EventResult preMarshall(Element objectElement, Node postValidationTree,
+                    OperationResult objectResult) {
+                return EventResult.cont();
+            }
 
-			@Override
-			public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
-					OperationResult objectResult) {
-				System.out.println("Validating resorce:");
-				System.out.println(object.debugDump());
-				object.checkConsistence();
+            @Override
+            public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
+                    OperationResult objectResult) {
+                System.out.println("Validating resorce:");
+                System.out.println(object.debugDump());
+                object.checkConsistence();
 
-				PrismContainer<?> extensionContainer = object.getExtension();
-				PrismProperty<Integer> menProp = extensionContainer.findProperty(new ItemName("http://myself.me/schemas/whatever","menOnChest"));
-				assertNotNull("No men on a dead man chest!", menProp);
-				assertEquals("Wrong number of men on a dead man chest", (Integer)15, menProp.getAnyRealValue());
-				PrismPropertyDefinition menPropDef = menProp.getDefinition();
-				assertNotNull("Men on a dead man chest NOT defined", menPropDef);
-				assertEquals("Wrong type for men on a dead man chest definition", DOMUtil.XSD_INT, menPropDef.getTypeName());
-				assertTrue("Men on a dead man chest definition not dynamic", menPropDef.isDynamic());
+                PrismContainer<?> extensionContainer = object.getExtension();
+                PrismProperty<Integer> menProp = extensionContainer.findProperty(new ItemName("http://myself.me/schemas/whatever","menOnChest"));
+                assertNotNull("No men on a dead man chest!", menProp);
+                assertEquals("Wrong number of men on a dead man chest", (Integer)15, menProp.getAnyRealValue());
+                PrismPropertyDefinition menPropDef = menProp.getDefinition();
+                assertNotNull("Men on a dead man chest NOT defined", menPropDef);
+                assertEquals("Wrong type for men on a dead man chest definition", DOMUtil.XSD_INT, menPropDef.getTypeName());
+                assertTrue("Men on a dead man chest definition not dynamic", menPropDef.isDynamic());
 
-				return EventResult.cont();
-			}
+                return EventResult.cont();
+            }
 
-			@Override
-			public void handleGlobalError(OperationResult currentResult) { /* nothing */ }
-		};
+            @Override
+            public void handleGlobalError(OperationResult currentResult) { /* nothing */ }
+        };
 
-		validateFile("resource-1-valid.xml", handler, result);
+        validateFile("resource-1-valid.xml", handler, result);
         AssertJUnit.assertTrue(result.isSuccess());
 
     }
 
     @Test
     public void handlerTest() throws Exception {
-    	System.out.println("\n===[ handlerTest ]=====");
+        System.out.println("\n===[ handlerTest ]=====");
 
-    	OperationResult result = new OperationResult(this.getClass().getName()+".handlerTest");
+        OperationResult result = new OperationResult(this.getClass().getName()+".handlerTest");
 
         final List<String> postMarshallHandledOids = new ArrayList<>();
         final List<String> preMarshallHandledOids = new ArrayList<>();
 
         EventHandler handler = new EventHandler() {
 
-			@Override
-			public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
-				preMarshallHandledOids.add(objectElement.getAttribute("oid"));
-				return EventResult.cont();
-			}
+            @Override
+            public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
+                preMarshallHandledOids.add(objectElement.getAttribute("oid"));
+                return EventResult.cont();
+            }
 
             @Override
             public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult) {
-            	System.out.println("Handler processing " + object + ", result:");
-				System.out.println(objectResult.debugDump());
+                System.out.println("Handler processing " + object + ", result:");
+                System.out.println(objectResult.debugDump());
                 postMarshallHandledOids.add(object.getOid());
                 return EventResult.cont();
             }
 
-			@Override
-			public void handleGlobalError(OperationResult currentResult) {
-				System.out.println("Handler got global error:");
-				System.out.println(currentResult.debugDump());
-			}
+            @Override
+            public void handleGlobalError(OperationResult currentResult) {
+                System.out.println("Handler got global error:");
+                System.out.println(currentResult.debugDump());
+            }
 
         };
 
@@ -151,9 +151,9 @@ public class BasicValidatorTest {
 
     @Test
     public void notWellFormed() throws Exception {
-    	System.out.println("\n===[ notWellFormed ]=====");
+        System.out.println("\n===[ notWellFormed ]=====");
 
-    	OperationResult result = new OperationResult(this.getClass().getName()+".notWellFormed");
+        OperationResult result = new OperationResult(this.getClass().getName()+".notWellFormed");
 
         validateFile("not-well-formed.xml",result);
 
@@ -168,7 +168,7 @@ public class BasicValidatorTest {
 
     @Test
     public void undeclaredPrefix() throws Exception {
-    	System.out.println("\n===[ undeclaredPrefix ]=====");
+        System.out.println("\n===[ undeclaredPrefix ]=====");
 
         OperationResult result = new OperationResult(this.getClass().getName()+".undeclaredPrefix");
 
@@ -185,7 +185,7 @@ public class BasicValidatorTest {
 
     @Test
     public void schemaViolation() throws Exception {
-    	System.out.println("\n===[ schemaViolation ]=====");
+        System.out.println("\n===[ schemaViolation ]=====");
 
         OperationResult result = new OperationResult(this.getClass().getName()+".schemaViolation");
 
@@ -206,7 +206,7 @@ public class BasicValidatorTest {
      */
     @Test
     public void testStopOnErrors() throws Exception {
-    	System.out.println("\n===[ testStopOnErrors ]=====");
+        System.out.println("\n===[ testStopOnErrors ]=====");
 
         OperationResult result = new OperationResult(this.getClass().getName()+".testStopOnErrors");
 
@@ -223,7 +223,7 @@ public class BasicValidatorTest {
 
     @Test
     public void noName() throws Exception {
-    	System.out.println("\n===[ noName ]=====");
+        System.out.println("\n===[ noName ]=====");
 
         OperationResult result = new OperationResult(this.getClass().getName()+".noName");
 
@@ -260,11 +260,11 @@ public class BasicValidatorTest {
         File file = new File(filepath);
         fis = new FileInputStream(file);
 
-		validator.validate(fis, result, OBJECT_RESULT_OPERATION_NAME);
+        validator.validate(fis, result, OBJECT_RESULT_OPERATION_NAME);
 
         if (!result.isSuccess()) {
-        	System.out.println("Errors:");
-        	System.out.println(result.debugDump());
+            System.out.println("Errors:");
+            System.out.println(result.debugDump());
         } else {
             System.out.println("No errors");
             System.out.println(result.debugDump());

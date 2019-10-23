@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -31,15 +31,15 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
  * WARNING: super ugly code ahead
  */
 public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel<T> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	
-	protected static final String ID_LABEL = "label";
-	private static final String ID_EXPAND_COLLAPSE_CONTAINER = "expandCollapse";
-	protected static final String ID_LABEL_CONTAINER = "labelContainer";
-	protected static final String ID_HELP = "help";
 
-	private static final Trace LOGGER = TraceManager.getTrace(PrismHeaderPanel.class);
+    protected static final String ID_LABEL = "label";
+    private static final String ID_EXPAND_COLLAPSE_CONTAINER = "expandCollapse";
+    protected static final String ID_LABEL_CONTAINER = "labelContainer";
+    protected static final String ID_HELP = "help";
+
+    private static final Trace LOGGER = TraceManager.getTrace(PrismHeaderPanel.class);
 
 
     public PrismHeaderPanel(String id, IModel<T> model) {
@@ -48,25 +48,25 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
         initLayout();
     }
 
-	private void initLayout() {
+    private void initLayout() {
 
-		setOutputMarkupId(true);
-		
-		add(initExpandCollapseButton(ID_EXPAND_COLLAPSE_CONTAINER));
-		initButtons();
-		initHeaderLabel();
+        setOutputMarkupId(true);
+
+        add(initExpandCollapseButton(ID_EXPAND_COLLAPSE_CONTAINER));
+        initButtons();
+        initHeaderLabel();
 
     }
 
     protected WebMarkupContainer initExpandCollapseButton(String contentAreaId){
-    	return new WebMarkupContainer(contentAreaId);
+        return new WebMarkupContainer(contentAreaId);
     }
 
-	protected void initHeaderLabel(){
-		
-		WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
+    protected void initHeaderLabel(){
+
+        WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.setOutputMarkupId(true);
-        
+
         add(labelContainer);
 
         String displayName = getLabel();
@@ -75,13 +75,13 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
         }
         StringResourceModel headerLabelModel = createStringResource(displayName);
         labelContainer.add(new Label(ID_LABEL, headerLabelModel));
-        
+
         labelContainer.add(getHelpLabel());
     }
-	
-	protected Label getHelpLabel() {
-		final IModel<String> helpText = new LoadableModel<String>(false) {
-        	private static final long serialVersionUID = 1L;
+
+    protected Label getHelpLabel() {
+        final IModel<String> helpText = new LoadableModel<String>(false) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected String load() {
@@ -92,7 +92,7 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
         help.add(AttributeModifier.replace("title", helpText));
         help.add(new InfoTooltipBehavior());
         help.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -100,26 +100,26 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
             }
         });
         return help;
-	}
-	
-	protected String getHelpText() {
-		return "";
-	}
+    }
 
-	protected boolean isVisibleHelpText() {
-		return false;
-	}
+    protected String getHelpText() {
+        return "";
+    }
+
+    protected boolean isVisibleHelpText() {
+        return false;
+    }
 
     protected abstract void initButtons();
-    
+
     protected void onButtonClick(AjaxRequestTarget target) {
 
     }
-    
+
     public abstract String getLabel();
 
     public boolean isButtonsVisible() {
-    	return true;
+        return true;
     }
 
 }

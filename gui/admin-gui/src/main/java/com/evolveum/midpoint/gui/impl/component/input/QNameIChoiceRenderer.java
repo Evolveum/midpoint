@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -18,16 +18,16 @@ import java.util.List;
  * @author skublik
  */
 public class QNameIChoiceRenderer implements IChoiceRenderer<QName> {
-	
-    private static final long serialVersionUID = 1L;
-    
-    private String prefix;
-    
-    public QNameIChoiceRenderer(String prefix){
-    	this.prefix = prefix;
-	}
 
-	@Override
+    private static final long serialVersionUID = 1L;
+
+    private String prefix;
+
+    public QNameIChoiceRenderer(String prefix){
+        this.prefix = prefix;
+    }
+
+    @Override
     public Object getDisplayValue(QName qname) {
         if (qname == null) {
             return null;
@@ -35,7 +35,7 @@ public class QNameIChoiceRenderer implements IChoiceRenderer<QName> {
 
         String realPrefix = prefix != null && !prefix.isEmpty() ? (prefix + ".") : "";
         String key = realPrefix + qname.getLocalPart();
-        
+
         return new ResourceModel(key, key).getObject();
     }
 

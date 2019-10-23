@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="10000000-0000-0000-0000-000000000222"
@@ -13,156 +13,156 @@
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
     <name>User Template</name>
-    
-    
+
+
     <mapping>
-    	<!-- This mapping is NOT initial so if will in fact FORCE fullname consistency -->
-    	<source>
-    		<path>$user/givenName</path>
-    	</source>
-    	<source>
-    		<path>$user/familyName</path>
-    	</source>
-    	<expression>
-			<script>
-				<code>
-					givenName + ' ' + familyName
-				</code>
-         	</script>
-		</expression>
-    	<target>
-    		<path>$user/fullName</path>
-    	</target>
-    	<condition>
-     		<script>
-    			<code>givenName != null &amp;&amp; familyName != null</code>
-    		</script>  
-    	</condition>
+        <!-- This mapping is NOT initial so if will in fact FORCE fullname consistency -->
+        <source>
+            <path>$user/givenName</path>
+        </source>
+        <source>
+            <path>$user/familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    givenName + ' ' + familyName
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>$user/fullName</path>
+        </target>
+        <condition>
+             <script>
+                <code>givenName != null &amp;&amp; familyName != null</code>
+            </script>
+        </condition>
     </mapping>
-    
+
     <mapping>
-    	<name>Org mapping</name>
-    	<description>
-    		Look for appropriate Org objects by using the user's organizationalUnit property
-    		as the name of the org object. When no such object is found we want to create it on
-    		demand. We want to populate new Org object with a name and description derived from
-    		the user.
-    	</description>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>extension/ext:orgpath</path>
-    	</source>
-    	<expression>
+        <name>Org mapping</name>
+        <description>
+            Look for appropriate Org objects by using the user's organizationalUnit property
+            as the name of the org object. When no such object is found we want to create it on
+            demand. We want to populate new Org object with a name and description derived from
+            the user.
+        </description>
+        <authoritative>true</authoritative>
+        <source>
+            <path>extension/ext:orgpath</path>
+        </source>
+        <expression>
             <assignmentTargetSearch>
-            	<targetType>c:OrgType</targetType>
-        		<filter>
-					<q:equal>
-						<q:path>c:name</q:path>
-						<expression>
-							<script>
-								<code>
-									orgpath.tokenize('/')[0]
-								</code>
-							</script>
-						</expression>
-					</q:equal>
-				</filter>
-				<createOnDemand>true</createOnDemand>
-				<populateObject>
-					<populateItem>
-						<expression>
-							<script>
-								<code>
-									orgpath.tokenize('/')[0]
-								</code>
-							</script>
-						</expression>
-						<target>
-							<path>name</path>
-						</target>
-					</populateItem>
-					<populateItem>
-						<expression>
-							<value>replicated</value>
-						</expression>
-						<target>
-							<path>orgType</path>
-						</target>
-					</populateItem>
-					<populateItem>
-						<expression>
-							<path>$ext:orgpath</path>
-						</expression>
-						<target>
-							<path>extension/ext:orgpath</path>
-						</target>
-					</populateItem>
-				</populateObject>
-            </assignmentTargetSearch>    	
-    	</expression>
-    	<target>
-    		<path>assignment</path>
-    	</target>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>c:name</q:path>
+                        <expression>
+                            <script>
+                                <code>
+                                    orgpath.tokenize('/')[0]
+                                </code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </filter>
+                <createOnDemand>true</createOnDemand>
+                <populateObject>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+                                    orgpath.tokenize('/')[0]
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>name</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <value>replicated</value>
+                        </expression>
+                        <target>
+                            <path>orgType</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <path>$ext:orgpath</path>
+                        </expression>
+                        <target>
+                            <path>extension/ext:orgpath</path>
+                        </target>
+                    </populateItem>
+                </populateObject>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
     </mapping>
-    
+
     <mapping>
-    	<name>basic role</name>
-    	<expression>
+        <name>basic role</name>
+        <expression>
             <assignmentTargetSearch>
-            	<targetType>c:RoleType</targetType>
-            	<oid>10000000-0000-0000-0000-000000000601</oid>
-            </assignmentTargetSearch>    	
-    	</expression>
-    	<target>
-    		<path>assignment</path>
-    	</target>
+                <targetType>c:RoleType</targetType>
+                <oid>10000000-0000-0000-0000-000000000601</oid>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
     </mapping>
-    
+
     <mapping>
-    	<name>responsibility role assignment</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>extension/ext:responsibility</path>
-    	</source>
-    	<expression>
+        <name>responsibility role assignment</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>extension/ext:responsibility</path>
+        </source>
+        <expression>
             <assignmentTargetSearch>
-            	<targetType>c:RoleType</targetType>
-        		<filter>
-					<q:equal>
-						<q:path>c:extension/ext:responsibility</q:path>
-						<expression>
-							<path>$ext:responsibility</path>
-						</expression>
-					</q:equal>
-				</filter>
-				<createOnDemand>true</createOnDemand>
-				<populateObject>
-					<populateItem>
-						<expression>
-							<script>
-								<code>
-									'R_'+responsibility
-								</code>
-							</script>
-						</expression>
-						<target>
-							<path>name</path>
-						</target>
-					</populateItem>
-					<populateItem>
-						<expression>
-							<path>$ext:responsibility</path>
-						</expression>
-						<target>
-							<path>extension/ext:responsibility</path>
-						</target>
-					</populateItem>
-				</populateObject>
-            </assignmentTargetSearch>    	
-    	</expression>
-    	<target>
-    		<path>assignment</path>
-    	</target>
+                <targetType>c:RoleType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>c:extension/ext:responsibility</q:path>
+                        <expression>
+                            <path>$ext:responsibility</path>
+                        </expression>
+                    </q:equal>
+                </filter>
+                <createOnDemand>true</createOnDemand>
+                <populateObject>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+                                    'R_'+responsibility
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>name</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <path>$ext:responsibility</path>
+                        </expression>
+                        <target>
+                            <path>extension/ext:responsibility</path>
+                        </target>
+                    </populateItem>
+                </populateObject>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
     </mapping>
-    
+
 </objectTemplate>

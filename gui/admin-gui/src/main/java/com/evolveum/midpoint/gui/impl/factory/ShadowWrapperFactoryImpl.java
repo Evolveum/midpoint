@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -48,83 +48,83 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @Component
 public class ShadowWrapperFactoryImpl extends PrismObjectWrapperFactoryImpl<ShadowType> {
-	
-	private static final transient Trace LOGGER = TraceManager.getTrace(ShadowWrapperFactoryImpl.class);
-	
-	@Autowired private GuiComponentRegistry registry;
-	@Autowired private ModelService modelService;
 
-//	public ShadowWrapper createObjectWrapper(PrismObject<ShadowType> object, ItemStatus status, WrapperContext context) throws SchemaException {
-//		applySecurityConstraints(object, context);
-//		
-//		ShadowWrapperImpl shadowWrapper = new ShadowWrapperImpl(object, status);
-//		context.setShowEmpty(ItemStatus.ADDED == status ? true : false);
-//		PrismContainerValueWrapper<ShadowType> valueWrapper = createValueWrapper(shadowWrapper, object.getValue(), ItemStatus.ADDED == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
-//		shadowWrapper.getValues().add(valueWrapper);
-//		
-//		registry.registerWrapperPanel(object.getDefinition().getTypeName(), PrismObjectValuePanel.class);
-//		return shadowWrapper;
-//		
-//	}
-	
-	@Override
-	public PrismObjectWrapper<ShadowType> createObjectWrapper(PrismObject<ShadowType> object, ItemStatus status) {
-		return new ShadowWrapperImpl(object, status);
-	}
-	
-//	@Override
-//	protected void applySecurityConstraints(PrismObject<ShadowType> object, WrapperContext context) {
-//		
-//		AuthorizationPhaseType phase = context.getAuthzPhase();
-//		Task task = context.getTask();
-//		OperationResult result = context.getResult();
-//		
-//		
-//		try {
-//			ShadowType shadow = (ShadowType) object.asObjectable();
-//			ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(resolveOid(shadow.getResourceRef()),
-//					shadow.getKind(), shadow.getIntent(), shadow.getTag(), false);
-//			context.setDiscriminator(discr);
-//			PrismObjectDefinition<ShadowType> shadowDefinition = modelInteractionService.getEditShadowDefinition(discr, phase, task, result);
-//			object.applyDefinition(shadowDefinition);
-//			
-//			PrismObject<ResourceType> resource = resolveResource(shadow.getResourceRef(), task, result);
-//			context.setResource(resource.asObjectable());
-//			RefinedObjectClassDefinition objectClassDefinitionForEditing = 
-//					modelInteractionService.getEditObjectClassDefinition(shadow.asPrismObject(), resource, phase, task, result);
-//			
-//		} catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
-//				| CommunicationException | SecurityViolationException e) {
-//			// TODO Auto-generated catch block
-//			// TODO error handling
-//		}
-//	}
-	
-//	private String resolveOid(ObjectReferenceType ref) throws SchemaException {
-//		if (ref == null) {
-//			throw new SchemaException("Cannot resolve oid from null reference");
-//		}
-//		
-//		return ref.getOid();
-//	}
-//	
-//	private PrismObject<ResourceType> resolveResource(ObjectReferenceType ref, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-//		if (ref == null) {
-//			throw new SchemaException("Cannot resolve oid from null reference");
-//		}
-//		
-//		return modelService.getObject(ResourceType.class, ref.getOid(), null, task, result);
-//		
-//	}
-	
-	@Override
-	public boolean match(ItemDefinition<?> def) {
-		return def instanceof PrismObjectDefinition && QNameUtil.match(def.getTypeName(), ShadowType.COMPLEX_TYPE);
-	}
+    private static final transient Trace LOGGER = TraceManager.getTrace(ShadowWrapperFactoryImpl.class);
 
-	@Override
-	public int getOrder() {
-		return 99;
-	}
+    @Autowired private GuiComponentRegistry registry;
+    @Autowired private ModelService modelService;
+
+//    public ShadowWrapper createObjectWrapper(PrismObject<ShadowType> object, ItemStatus status, WrapperContext context) throws SchemaException {
+//        applySecurityConstraints(object, context);
+//
+//        ShadowWrapperImpl shadowWrapper = new ShadowWrapperImpl(object, status);
+//        context.setShowEmpty(ItemStatus.ADDED == status ? true : false);
+//        PrismContainerValueWrapper<ShadowType> valueWrapper = createValueWrapper(shadowWrapper, object.getValue(), ItemStatus.ADDED == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
+//        shadowWrapper.getValues().add(valueWrapper);
+//
+//        registry.registerWrapperPanel(object.getDefinition().getTypeName(), PrismObjectValuePanel.class);
+//        return shadowWrapper;
+//
+//    }
+
+    @Override
+    public PrismObjectWrapper<ShadowType> createObjectWrapper(PrismObject<ShadowType> object, ItemStatus status) {
+        return new ShadowWrapperImpl(object, status);
+    }
+
+//    @Override
+//    protected void applySecurityConstraints(PrismObject<ShadowType> object, WrapperContext context) {
+//
+//        AuthorizationPhaseType phase = context.getAuthzPhase();
+//        Task task = context.getTask();
+//        OperationResult result = context.getResult();
+//
+//
+//        try {
+//            ShadowType shadow = (ShadowType) object.asObjectable();
+//            ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(resolveOid(shadow.getResourceRef()),
+//                    shadow.getKind(), shadow.getIntent(), shadow.getTag(), false);
+//            context.setDiscriminator(discr);
+//            PrismObjectDefinition<ShadowType> shadowDefinition = modelInteractionService.getEditShadowDefinition(discr, phase, task, result);
+//            object.applyDefinition(shadowDefinition);
+//
+//            PrismObject<ResourceType> resource = resolveResource(shadow.getResourceRef(), task, result);
+//            context.setResource(resource.asObjectable());
+//            RefinedObjectClassDefinition objectClassDefinitionForEditing =
+//                    modelInteractionService.getEditObjectClassDefinition(shadow.asPrismObject(), resource, phase, task, result);
+//
+//        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
+//                | CommunicationException | SecurityViolationException e) {
+//            // TODO Auto-generated catch block
+//            // TODO error handling
+//        }
+//    }
+
+//    private String resolveOid(ObjectReferenceType ref) throws SchemaException {
+//        if (ref == null) {
+//            throw new SchemaException("Cannot resolve oid from null reference");
+//        }
+//
+//        return ref.getOid();
+//    }
+//
+//    private PrismObject<ResourceType> resolveResource(ObjectReferenceType ref, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+//        if (ref == null) {
+//            throw new SchemaException("Cannot resolve oid from null reference");
+//        }
+//
+//        return modelService.getObject(ResourceType.class, ref.getOid(), null, task, result);
+//
+//    }
+
+    @Override
+    public boolean match(ItemDefinition<?> def) {
+        return def instanceof PrismObjectDefinition && QNameUtil.match(def.getTypeName(), ShadowType.COMPLEX_TYPE);
+    }
+
+    @Override
+    public int getOrder() {
+        return 99;
+    }
 
 }

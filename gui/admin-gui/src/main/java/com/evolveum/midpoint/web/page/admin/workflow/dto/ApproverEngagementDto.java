@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,72 +23,72 @@ import java.io.Serializable;
  */
 public class ApproverEngagementDto implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@NotNull private final ObjectReferenceType approverRef;                // with the whole object, if possible
-	@Nullable private final WorkItemId externalWorkItemId;
-	@Nullable private AbstractWorkItemOutputType output;
-	@Nullable private XMLGregorianCalendar completedAt;
-	@Nullable private ObjectReferenceType completedBy;                // the user that really completed the work item originally assigned to that approver
-	@Nullable private ObjectReferenceType attorney;                   // the attorney (of completedBy)
-	private boolean last;
+    @NotNull private final ObjectReferenceType approverRef;                // with the whole object, if possible
+    @Nullable private final WorkItemId externalWorkItemId;
+    @Nullable private AbstractWorkItemOutputType output;
+    @Nullable private XMLGregorianCalendar completedAt;
+    @Nullable private ObjectReferenceType completedBy;                // the user that really completed the work item originally assigned to that approver
+    @Nullable private ObjectReferenceType attorney;                   // the attorney (of completedBy)
+    private boolean last;
 
-	ApproverEngagementDto(@NotNull ObjectReferenceType approverRef, @Nullable WorkItemId externalWorkItemId) {
-		this.approverRef = approverRef;
-		this.externalWorkItemId = externalWorkItemId;
-	}
+    ApproverEngagementDto(@NotNull ObjectReferenceType approverRef, @Nullable WorkItemId externalWorkItemId) {
+        this.approverRef = approverRef;
+        this.externalWorkItemId = externalWorkItemId;
+    }
 
-	@NotNull
-	public ObjectReferenceType getApproverRef() {
-		return approverRef;
-	}
+    @NotNull
+    public ObjectReferenceType getApproverRef() {
+        return approverRef;
+    }
 
-	@Nullable
-	public WorkItemId getExternalWorkItemId() {
-		return externalWorkItemId;
-	}
+    @Nullable
+    public WorkItemId getExternalWorkItemId() {
+        return externalWorkItemId;
+    }
 
-	@Nullable
-	public AbstractWorkItemOutputType getOutput() {
-		return output;
-	}
+    @Nullable
+    public AbstractWorkItemOutputType getOutput() {
+        return output;
+    }
 
-	public void setOutput(@Nullable AbstractWorkItemOutputType output) {
-		this.output = output;
-	}
+    public void setOutput(@Nullable AbstractWorkItemOutputType output) {
+        this.output = output;
+    }
 
-	@Nullable
-	public XMLGregorianCalendar getCompletedAt() {
-		return completedAt;
-	}
+    @Nullable
+    public XMLGregorianCalendar getCompletedAt() {
+        return completedAt;
+    }
 
-	void setCompletedAt(@Nullable XMLGregorianCalendar completedAt) {
-		this.completedAt = completedAt;
-	}
+    void setCompletedAt(@Nullable XMLGregorianCalendar completedAt) {
+        this.completedAt = completedAt;
+    }
 
-	@Nullable
-	public ObjectReferenceType getCompletedBy() {
-		return completedBy;
-	}
+    @Nullable
+    public ObjectReferenceType getCompletedBy() {
+        return completedBy;
+    }
 
-	void setCompletedBy(@Nullable ObjectReferenceType completedBy) {
-		this.completedBy = completedBy;
-	}
+    void setCompletedBy(@Nullable ObjectReferenceType completedBy) {
+        this.completedBy = completedBy;
+    }
 
-	@Nullable
-	public ObjectReferenceType getAttorney() {
-		return attorney;
-	}
+    @Nullable
+    public ObjectReferenceType getAttorney() {
+        return attorney;
+    }
 
-	void setAttorney(@Nullable ObjectReferenceType attorney) {
-		this.attorney = attorney;
-	}
+    void setAttorney(@Nullable ObjectReferenceType attorney) {
+        this.attorney = attorney;
+    }
 
-	public boolean isLast() {
-		return last;
-	}
+    public boolean isLast() {
+        return last;
+    }
 
-	public void setLast(boolean last) {
-		this.last = last;
-	}
+    public void setLast(boolean last) {
+        this.last = last;
+    }
 }

@@ -2,25 +2,25 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<apit:objectModification 
-	xmlns:apit='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	>
+<apit:objectModification
+    xmlns:apit='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    >
 
-	<apit:oid>123456</apit:oid>
+    <apit:oid>123456</apit:oid>
 
-	<apit:itemDelta>
-		<t:modificationType>replace</t:modificationType>
-		<t:path>
+    <apit:itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>
             declare namespace piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy";
             /c:extension/piracy:ship[2]/c:name</t:path>
-		<t:value>Black Pearl</t:value>
-	</apit:itemDelta>
+        <t:value>Black Pearl</t:value>
+    </apit:itemDelta>
 
 </apit:objectModification>

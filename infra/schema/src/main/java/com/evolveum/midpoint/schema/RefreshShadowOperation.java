@@ -17,9 +17,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.util.Collection;
 
-public class RefreshShadowOperaton implements DebugDumpable {
+public class RefreshShadowOperation implements DebugDumpable {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(RefreshShadowOperaton.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(RefreshShadowOperation.class);
 
     private PrismObject<ShadowType> refreshedShadow;
     private Collection<ObjectDeltaOperation<ShadowType>> executedDeltas;
@@ -72,23 +72,20 @@ public class RefreshShadowOperaton implements DebugDumpable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        RefreshShadowOperaton other = (RefreshShadowOperaton) obj;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        RefreshShadowOperation other = (RefreshShadowOperation) obj;
         if (executedDeltas == null) {
-            if (other.executedDeltas != null)
-                return false;
-        } else if (!executedDeltas.equals(other.executedDeltas))
+            if (other.executedDeltas != null) return false;
+        } else if (!executedDeltas.equals(other.executedDeltas)) {
             return false;
+        }
         if (refreshedShadow == null) {
-            if (other.refreshedShadow != null)
-                return false;
-        } else if (!refreshedShadow.equals(other.refreshedShadow))
+            if (other.refreshedShadow != null) return false;
+        } else if (!refreshedShadow.equals(other.refreshedShadow)) {
             return false;
+        }
         return true;
     }
 

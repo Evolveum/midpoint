@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -81,7 +81,7 @@ public class MailTransport implements Transport {
 
     @Autowired
     private NotificationManager notificationManager;
-    
+
     @Autowired
     protected ExpressionFactory expressionFactory;
 
@@ -92,7 +92,7 @@ public class MailTransport implements Transport {
 
     @Override
     public void send(Message mailMessage, String transportName, Event event, Task task, OperationResult parentResult) {
-    	
+
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
         result.addArbitraryObjectCollectionAsParam("mailMessage recipient(s)", mailMessage.getTo());
         result.addParam("mailMessage subject", mailMessage.getSubject());
@@ -100,8 +100,8 @@ public class MailTransport implements Transport {
         SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
 
 //        if (systemConfiguration == null) {
-//        	String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
-//        	 LOGGER.warn(msg) ;
+//            String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
+//             LOGGER.warn(msg) ;
 //             result.recordWarning(msg);
 //             return;
 //        }
@@ -109,11 +109,11 @@ public class MailTransport implements Transport {
 //        MailConfigurationType mailConfigurationType = null;
 //        SecurityPolicyType securityPolicyType = NotificationFuctionsImpl.getSecurityPolicyConfiguration(systemConfiguration.getGlobalSecurityPolicyRef(), cacheRepositoryService, result);
 //        if (securityPolicyType != null && securityPolicyType.getAuthentication() != null && securityPolicyType.getAuthentication().getMailAuthentication() != null) {
-//        	for (MailAuthenticationPolicyType mailAuthenticationPolicy : securityPolicyType.getAuthentication().getMailAuthentication()) {
-//        		if (mailAuthenticationPolicy.getNotificationConfiguration() != null ){
-//        			mailConfigurationType = mailAuthenticationPolicy.getNotificationConfiguration().getMail();
-//        		}
-//        	}
+//            for (MailAuthenticationPolicyType mailAuthenticationPolicy : securityPolicyType.getAuthentication().getMailAuthentication()) {
+//                if (mailAuthenticationPolicy.getNotificationConfiguration() != null ){
+//                    mailConfigurationType = mailAuthenticationPolicy.getNotificationConfiguration().getMail();
+//                }
+//            }
 //        }
         if (systemConfiguration == null  || systemConfiguration.getNotificationConfiguration() == null
                 || systemConfiguration.getNotificationConfiguration().getMail() == null) {
@@ -123,54 +123,54 @@ public class MailTransport implements Transport {
             return;
         }
 
-		MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
-		
-		String logToFile = mailConfigurationType.getLogToFile();
-		if (logToFile != null) {
-			TransportUtil.logToFile(logToFile, formatToFileOld(mailMessage), LOGGER);
-		}
+        MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
+
+        String logToFile = mailConfigurationType.getLogToFile();
+        if (logToFile != null) {
+            TransportUtil.logToFile(logToFile, formatToFileOld(mailMessage), LOGGER);
+        }
         String redirectToFile = mailConfigurationType.getRedirectToFile();
         int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(mailConfigurationType);
-        
+
         List<String> allowedRecipientTo = new ArrayList<String>();
-    	List<String> forbiddenRecipientTo = new ArrayList<String>();
-    	List<String> allowedRecipientCc = new ArrayList<String>();
-    	List<String> forbiddenRecipientCc = new ArrayList<String>();
-    	List<String> allowedRecipientBcc = new ArrayList<String>();
-    	List<String> forbiddenRecipientBcc = new ArrayList<String>();
-    	
+        List<String> forbiddenRecipientTo = new ArrayList<String>();
+        List<String> allowedRecipientCc = new ArrayList<String>();
+        List<String> forbiddenRecipientCc = new ArrayList<String>();
+        List<String> allowedRecipientBcc = new ArrayList<String>();
+        List<String> forbiddenRecipientBcc = new ArrayList<String>();
+
         if (optionsForFilteringRecipient != 0) {
-        	TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, mailMessage.getTo(), mailConfigurationType, task, result,
-        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
-        	TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc, mailMessage.getCc(), mailConfigurationType, task, result,
-        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
-        	TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc, mailMessage.getBcc(), mailConfigurationType, task, result,
-        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
-        	
-        	if (redirectToFile != null) {
-        		if(!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {
-        			mailMessage.setTo(forbiddenRecipientTo);
-                	mailMessage.setCc(forbiddenRecipientCc);
-                	mailMessage.setBcc(forbiddenRecipientBcc);
-                	TransportUtil.appendToFile(redirectToFile, formatToFileOld(mailMessage), LOGGER, result);
-        		}
-            	mailMessage.setTo(allowedRecipientTo);
-            	mailMessage.setCc(allowedRecipientCc);
-            	mailMessage.setBcc(allowedRecipientBcc);
+            TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, mailMessage.getTo(), mailConfigurationType, task, result,
+                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+            TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc, mailMessage.getCc(), mailConfigurationType, task, result,
+                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+            TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc, mailMessage.getBcc(), mailConfigurationType, task, result,
+                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+
+            if (redirectToFile != null) {
+                if(!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {
+                    mailMessage.setTo(forbiddenRecipientTo);
+                    mailMessage.setCc(forbiddenRecipientCc);
+                    mailMessage.setBcc(forbiddenRecipientBcc);
+                    TransportUtil.appendToFile(redirectToFile, formatToFileOld(mailMessage), LOGGER, result);
+                }
+                mailMessage.setTo(allowedRecipientTo);
+                mailMessage.setCc(allowedRecipientCc);
+                mailMessage.setBcc(allowedRecipientBcc);
             }
-        	
+
         } else if (redirectToFile != null) {
-        	TransportUtil.appendToFile(redirectToFile, formatToFileOld(mailMessage), LOGGER, result);
-           	return;
+            TransportUtil.appendToFile(redirectToFile, formatToFileOld(mailMessage), LOGGER, result);
+               return;
         }
-        
-    	if (optionsForFilteringRecipient != 0 && mailMessage.getTo().isEmpty()) {
+
+        if (optionsForFilteringRecipient != 0 && mailMessage.getTo().isEmpty()) {
             String msg = "No recipient found after recipient validation.";
             LOGGER.debug(msg) ;
             result.recordSuccess();
             return;
         }
-    	
+
         if (mailConfigurationType.getServer().isEmpty()) {
             String msg = "Mail server(s) are not defined, mail notification to " + mailMessage.getTo() + " will not be sent.";
             LOGGER.warn(msg) ;
@@ -197,20 +197,20 @@ public class MailTransport implements Transport {
             MailTransportSecurityType mailTransportSecurityType = mailServerConfigurationType.getTransportSecurity();
 
             boolean sslEnabled = false, starttlsEnable = false, starttlsRequired = false;
-			if (mailTransportSecurityType != null) {
-				switch (mailTransportSecurityType) {
-					case STARTTLS_ENABLED:
-						starttlsEnable = true;
-						break;
-					case STARTTLS_REQUIRED:
-						starttlsEnable = true;
-						starttlsRequired = true;
-						break;
-					case SSL:
-						sslEnabled = true;
-						break;
-				}
-			}
+            if (mailTransportSecurityType != null) {
+                switch (mailTransportSecurityType) {
+                    case STARTTLS_ENABLED:
+                        starttlsEnable = true;
+                        break;
+                    case STARTTLS_REQUIRED:
+                        starttlsEnable = true;
+                        starttlsRequired = true;
+                        break;
+                    case SSL:
+                        sslEnabled = true;
+                        break;
+                }
+            }
             properties.put("mail.smtp.ssl.enable", "" + sslEnabled);
             properties.put("mail.smtp.starttls.enable", "" + starttlsEnable);
             properties.put("mail.smtp.starttls.required", "" + starttlsRequired);
@@ -236,14 +236,14 @@ public class MailTransport implements Transport {
                 String from = mailMessage.getFrom() != null ? mailMessage.getFrom() : defaultFrom;
                 mimeMessage.setFrom(new InternetAddress(from));
 
-               	for (String recipient : mailMessage.getTo()) {
-               		mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
-               	}
+                   for (String recipient : mailMessage.getTo()) {
+                       mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
+                   }
                 for (String recipientCc : mailMessage.getCc()) {
-                	mimeMessage.addRecipient(javax.mail.Message.RecipientType.CC, new InternetAddress(recipientCc));
+                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.CC, new InternetAddress(recipientCc));
                 }
                 for (String recipientBcc : mailMessage.getBcc()) {
-                	mimeMessage.addRecipient(javax.mail.Message.RecipientType.BCC, new InternetAddress(recipientBcc));
+                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.BCC, new InternetAddress(recipientBcc));
                 }
                 mimeMessage.setSubject(mailMessage.getSubject(), "utf-8");
                 String contentType = mailMessage.getContentType();
@@ -255,57 +255,57 @@ public class MailTransport implements Transport {
                 Multipart multipart = new MimeMultipart();
                 multipart.addBodyPart(messageBody);
                 for(NotificationMessageAttachmentType attachment : mailMessage.getAttachments()) {
-                	
-                	if(attachment.getContent() != null || attachment.getContentFromFile() != null) {
-                		String fileName = null;
-                		BodyPart attachmentBody = new MimeBodyPart();
-                		if(attachment.getContent() != null) {
-								try {
-									Object content = RawType.getValue(attachment.getContent());
-									if(content == null) {
-										LOGGER.warn("RawType " + attachment.getContent() + " isn't possible to parse.");
-										return;
-									}
-									attachmentBody.setContent(content, attachment.getContentType());
-								} catch (SchemaException e) {
-									LOGGER.warn("RawType " + attachment.getContent() + " isn't possible to parse.");
-									return;
-								}
-                			if(StringUtils.isBlank(attachment.getFileName())) {
-                            	fileName = "attachment";
+
+                    if(attachment.getContent() != null || attachment.getContentFromFile() != null) {
+                        String fileName = null;
+                        BodyPart attachmentBody = new MimeBodyPart();
+                        if(attachment.getContent() != null) {
+                                try {
+                                    Object content = RawType.getValue(attachment.getContent());
+                                    if(content == null) {
+                                        LOGGER.warn("RawType " + attachment.getContent() + " isn't possible to parse.");
+                                        return;
+                                    }
+                                    attachmentBody.setContent(content, attachment.getContentType());
+                                } catch (SchemaException e) {
+                                    LOGGER.warn("RawType " + attachment.getContent() + " isn't possible to parse.");
+                                    return;
+                                }
+                            if(StringUtils.isBlank(attachment.getFileName())) {
+                                fileName = "attachment";
                             } else {
-                            	fileName = attachment.getFileName();
+                                fileName = attachment.getFileName();
                             }
-                		} else {
-                			if(!Files.isReadable(Paths.get(attachment.getContentFromFile()))) {
-                				LOGGER.warn("File " + attachment.getContentFromFile() + " non exist or isn't readable.");
-                				return;
-                			}
-                			
+                        } else {
+                            if(!Files.isReadable(Paths.get(attachment.getContentFromFile()))) {
+                                LOGGER.warn("File " + attachment.getContentFromFile() + " non exist or isn't readable.");
+                                return;
+                            }
+
                             DataSource source = new FileDataSource(attachment.getContentFromFile()) {
-                            	@Override
-                            	public String getContentType() {
-                            		return attachment.getContentType();
-                            	}
+                                @Override
+                                public String getContentType() {
+                                    return attachment.getContentType();
+                                }
                             };
                             attachmentBody.setDataHandler(new DataHandler(source));
                             if(StringUtils.isBlank(attachment.getFileName())) {
-                            	fileName = source.getName();
+                                fileName = source.getName();
                             } else {
-                            	fileName = attachment.getFileName();
+                                fileName = attachment.getFileName();
                             }
-                		}
-                		
-                		if(!fileName.contains(".")) {
-                			fileName +=	MimeTypeUtil.getDefaultExt(attachment.getContentType());
-                		}
-                		attachmentBody.setFileName(fileName);
-                		multipart.addBodyPart(attachmentBody);
-                	} else {
-                		LOGGER.warn("NotificationMessageAttachmentType doesn't contain content.");
-                	}
+                        }
+
+                        if(!fileName.contains(".")) {
+                            fileName +=    MimeTypeUtil.getDefaultExt(attachment.getContentType());
+                        }
+                        attachmentBody.setFileName(fileName);
+                        multipart.addBodyPart(attachmentBody);
+                    } else {
+                        LOGGER.warn("NotificationMessageAttachmentType doesn't contain content.");
+                    }
                 }
-                
+
                 mimeMessage.setContent(multipart);
                 javax.mail.Transport t = session.getTransport("smtp");
                 if (StringUtils.isNotEmpty(mailServerConfigurationType.getUsername())) {
@@ -345,7 +345,7 @@ public class MailTransport implements Transport {
         task.recordNotificationOperation(NAME, false, System.currentTimeMillis() - start);
     }
 
-	private String formatToFile(Message mailMessage) {
+    private String formatToFile(Message mailMessage) {
         return "============================================ " + "\n" +new Date() + "\n" + mailMessage.toString() + "\n\n";
     }
 

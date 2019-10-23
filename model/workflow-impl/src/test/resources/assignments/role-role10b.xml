@@ -1,15 +1,15 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role oid="00000001-d34d-b33f-f00d-00000000010b">
-	<name>Role10b</name>
-	<description>Induced by Role1b</description>
-	<assignment> <!-- metarole 1 'default' -->
-		<targetRef oid="00000001-d34d-b33f-f00d-M00000000001" type="RoleType"/>
-	</assignment>
-	<delegable>true</delegable>
+    <name>Role10b</name>
+    <description>Induced by Role1b</description>
+    <assignment> <!-- metarole 1 'default' -->
+        <targetRef oid="00000001-d34d-b33f-f00d-M00000000001" type="RoleType"/>
+    </assignment>
+    <delegable>true</delegable>
 </role>

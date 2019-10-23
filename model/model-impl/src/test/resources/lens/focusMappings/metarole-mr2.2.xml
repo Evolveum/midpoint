@@ -7,12 +7,12 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="cfda5d1a-c940-4648-a362-d49195ee2d17">
-	<name>mr2.2</name>
-	<assignment id="1">
-		<targetRef oid="0f4ff4db-53d9-4028-9995-6fa6f1d2fbfe" type="RoleType"/>		<!-- mmr2.2.1 -->
-	</assignment>
-	<activation>
-		<administrativeStatus>disabled</administrativeStatus>
-	</activation>
+      oid="cfda5d1a-c940-4648-a362-d49195ee2d17">
+    <name>mr2.2</name>
+    <assignment id="1">
+        <targetRef oid="0f4ff4db-53d9-4028-9995-6fa6f1d2fbfe" type="RoleType"/>        <!-- mmr2.2.1 -->
+    </assignment>
+    <activation>
+        <administrativeStatus>disabled</administrativeStatus>
+    </activation>
 </role>

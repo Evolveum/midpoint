@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.parser;
@@ -16,9 +16,9 @@ import java.io.File;
  */
 public class TestParseShadowLegacy extends TestParseShadow {
 
-	@Override
-	protected File getFile() {
-		return getFile(TestConstants.SHADOW_FILE_BASENAME_LEGACY);
-	}
+    @Override
+    protected File getFile() {
+        return getFile(TestConstants.SHADOW_FILE_BASENAME_LEGACY);
+    }
 
 }

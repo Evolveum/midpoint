@@ -2,11 +2,11 @@
 <!--
   ~ Copyright (c) 2013-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  <expression 
-  		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+  <expression
+            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -15,19 +15,19 @@
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<variable>
-		<name>quote</name>
-		<path>$projection/attributes/ri:quote</path>
-	</variable>
-	<script>
-		<code>
-			log.debug("quote={}, focus={}", quote, focus);
-			if (focus != null &amp;&amp; quote == null &amp;&amp; focus.getName() != null &amp;&amp; focus.getName().getOrig().equals("drake")) {
-				// Make sure it fails if executed without quote, this should not happen
-				throw new IllegalStateException("Kaboom!");
-			}
-			// fake ... just return constant
-			true;
-		</code>
-	</script>
+    <variable>
+        <name>quote</name>
+        <path>$projection/attributes/ri:quote</path>
+    </variable>
+    <script>
+        <code>
+            log.debug("quote={}, focus={}", quote, focus);
+            if (focus != null &amp;&amp; quote == null &amp;&amp; focus.getName() != null &amp;&amp; focus.getName().getOrig().equals("drake")) {
+                // Make sure it fails if executed without quote, this should not happen
+                throw new IllegalStateException("Kaboom!");
+            }
+            // fake ... just return constant
+            true;
+        </code>
+    </script>
 </expression>

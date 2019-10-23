@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.configuration;
@@ -21,36 +21,36 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.InternalsConfigDto
 
 public class InternalsDebugUtilPanel extends BasePanel<InternalsConfigDto>{
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(InternalsDebugUtilPanel.class);
-	
-	private static final String ID_FORM = "form";
-	private static final String ID_DETAILED_DEBUG_DUMP = "detailedDebugDump";
+    private static final Trace LOGGER = TraceManager.getTrace(InternalsDebugUtilPanel.class);
+
+    private static final String ID_FORM = "form";
+    private static final String ID_DETAILED_DEBUG_DUMP = "detailedDebugDump";
     private static final String ID_SAVE_DEBUG_UTIL = "saveDebugUtil";
     private static final String LABEL_SIZE = "col-md-4";
     private static final String INPUT_SIZE = "col-md-8";
-	
-	public InternalsDebugUtilPanel(String id, IModel<InternalsConfigDto> model) {
-		super(id, model);
-	}
-	
-	protected void onInitialize() {
-		super.onInitialize();
-		
-		setOutputMarkupId(true);
-		Form form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
-		form.setOutputMarkupId(true);
-		add(form);
-		CheckFormGroup detailed = new CheckFormGroup(ID_DETAILED_DEBUG_DUMP,
+
+    public InternalsDebugUtilPanel(String id, IModel<InternalsConfigDto> model) {
+        super(id, model);
+    }
+
+    protected void onInitialize() {
+        super.onInitialize();
+
+        setOutputMarkupId(true);
+        Form form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
+        form.setOutputMarkupId(true);
+        add(form);
+        CheckFormGroup detailed = new CheckFormGroup(ID_DETAILED_DEBUG_DUMP,
             new PropertyModel<>(getModel(), InternalsConfigDto.F_DETAILED_DEBUG_DUMP),
                 createStringResource("PageInternals.detailedDebugDump"), LABEL_SIZE, INPUT_SIZE);
         form.add(detailed);
 
-        
+
         AjaxSubmitButton update = new AjaxSubmitButton(ID_SAVE_DEBUG_UTIL,
                 createStringResource("PageBase.button.update")) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
@@ -63,17 +63,17 @@ public class InternalsDebugUtilPanel extends BasePanel<InternalsConfigDto>{
             }
         };
         form.add(update);
-	};
-	
-	 private void updateDebugPerformed(AjaxRequestTarget target){
-	        getModelObject().saveDebugUtil();
+    };
 
-	        LOGGER.trace("Updated debug util, detailedDebugDump={}", DebugUtil.isDetailedDebugDump());
-	        success(getString("PageInternals.message.debugUpdatePerformed", DebugUtil.isDetailedDebugDump()));
-	        target.add(getPageBase().getFeedbackPanel(), getDebugUtilForm());
-	    }
-	 
-	 private Form getDebugUtilForm(){
-	        return (Form) get(ID_FORM);
-	    }
+     private void updateDebugPerformed(AjaxRequestTarget target){
+            getModelObject().saveDebugUtil();
+
+            LOGGER.trace("Updated debug util, detailedDebugDump={}", DebugUtil.isDetailedDebugDump());
+            success(getString("PageInternals.message.debugUpdatePerformed", DebugUtil.isDetailedDebugDump()));
+            target.add(getPageBase().getFeedbackPanel(), getDebugUtilForm());
+        }
+
+     private Form getDebugUtilForm(){
+            return (Form) get(ID_FORM);
+        }
 }

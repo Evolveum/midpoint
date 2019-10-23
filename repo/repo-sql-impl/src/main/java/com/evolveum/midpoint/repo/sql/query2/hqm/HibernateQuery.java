@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -132,8 +132,8 @@ public abstract class HibernateQuery {
         indent(sb, indent);
         sb.append("select");
         if (distinct) {
-        	sb.append(" distinct");
-		}
+            sb.append(" distinct");
+        }
         sb.append("\n");
         ProjectionElement.dumpToHql(sb, projectionElements, indent + 1);     // we finish at the end of the last line (not at the new line)
         sb.append("\n");

@@ -2,55 +2,55 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <task oid="44444444-0000-0000-0000-110000000000"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-	<name>task-110-c-single</name>
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>task-110-c-single</name>
     <taskIdentifier>44444444-0000-0000-0000-110000000000</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
-	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
-	<workManagement>
-		<buckets>
-			<explicitSegmentation>
-				<content xsi:type="FilterWorkBucketContentType">
-					<q:filter>
-						<q:less>
-							<q:path>name</q:path>
-							<q:value>a</q:value>
-						</q:less>
-					</q:filter>
-				</content>
-				<content xsi:type="FilterWorkBucketContentType">
-					<q:filter>
-						<q:greaterOrEqual>
-							<q:path>name</q:path>
-							<q:value>a</q:value>
-						</q:greaterOrEqual>
-					</q:filter>
-					<q:filter>
-						<q:less>
-							<q:path>name</q:path>
-							<q:value>m</q:value>
-						</q:less>
-					</q:filter>
-				</content>
-				<content xsi:type="FilterWorkBucketContentType">
-					<q:filter>
-						<q:greaterOrEqual>
-							<q:path>name</q:path>
-							<q:value>m</q:value>
-						</q:greaterOrEqual>
-					</q:filter>
-				</content>
-			</explicitSegmentation>
-		</buckets>
-	</workManagement>
-	<recurrence>single</recurrence>
+    <handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+    <workManagement>
+        <buckets>
+            <explicitSegmentation>
+                <content xsi:type="FilterWorkBucketContentType">
+                    <q:filter>
+                        <q:less>
+                            <q:path>name</q:path>
+                            <q:value>a</q:value>
+                        </q:less>
+                    </q:filter>
+                </content>
+                <content xsi:type="FilterWorkBucketContentType">
+                    <q:filter>
+                        <q:greaterOrEqual>
+                            <q:path>name</q:path>
+                            <q:value>a</q:value>
+                        </q:greaterOrEqual>
+                    </q:filter>
+                    <q:filter>
+                        <q:less>
+                            <q:path>name</q:path>
+                            <q:value>m</q:value>
+                        </q:less>
+                    </q:filter>
+                </content>
+                <content xsi:type="FilterWorkBucketContentType">
+                    <q:filter>
+                        <q:greaterOrEqual>
+                            <q:path>name</q:path>
+                            <q:value>m</q:value>
+                        </q:greaterOrEqual>
+                    </q:filter>
+                </content>
+            </explicitSegmentation>
+        </buckets>
+    </workManagement>
+    <recurrence>single</recurrence>
 </task>

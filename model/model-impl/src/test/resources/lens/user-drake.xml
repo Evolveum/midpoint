@@ -2,21 +2,21 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <i:user oid="c0c010c0-d34d-b33f-f00d-888888888888"
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <c:name>drake</c:name>
     <c:extension>
         <piracy:ship xsi:type="xsd:string">Golden Hind</piracy:ship>
     </c:extension>
     <i:givenName>Fancis</i:givenName>
     <i:familyName>Drake</i:familyName>
-    <i:honorificPrefix>Sir</i:honorificPrefix>    
+    <i:honorificPrefix>Sir</i:honorificPrefix>
 </i:user>

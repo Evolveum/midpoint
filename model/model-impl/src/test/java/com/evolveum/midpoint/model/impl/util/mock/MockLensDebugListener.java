@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.util.mock;
@@ -22,82 +22,82 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class MockLensDebugListener implements ClockworkInspector {
 
-	private static final Trace LOGGER = TraceManager.getTrace(MockLensDebugListener.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MockLensDebugListener.class);
 
-	private static final String SEPARATOR = "############################################################################";
+    private static final String SEPARATOR = "############################################################################";
 
-	private LensContext lastSyncContext;
+    private LensContext lastSyncContext;
 
-	public <F extends ObjectType>  LensContext<F> getLastSyncContext() {
-		return lastSyncContext;
-	}
+    public <F extends ObjectType>  LensContext<F> getLastSyncContext() {
+        return lastSyncContext;
+    }
 
-	public <F extends ObjectType> void setLastSyncContext(ModelContext<F> lastSyncContext) {
-		this.lastSyncContext = (LensContext) lastSyncContext;
-	}
+    public <F extends ObjectType> void setLastSyncContext(ModelContext<F> lastSyncContext) {
+        this.lastSyncContext = (LensContext) lastSyncContext;
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.lens.LensDebugListener#beforeSync(com.evolveum.midpoint.model.lens.LensContext)
-	 */
-	@Override
-	public <F extends ObjectType> void clockworkStart(ModelContext<F> context) {
-		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT BEFORE SYNC\n{}\n"+SEPARATOR, context.debugDump());
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.model.lens.LensDebugListener#beforeSync(com.evolveum.midpoint.model.lens.LensContext)
+     */
+    @Override
+    public <F extends ObjectType> void clockworkStart(ModelContext<F> context) {
+        LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT BEFORE SYNC\n{}\n"+SEPARATOR, context.debugDump());
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.lens.LensDebugListener#afterSync(com.evolveum.midpoint.model.lens.LensContext)
-	 */
-	@Override
-	public <F extends ObjectType> void clockworkFinish(ModelContext<F> context) {
-		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT AFTER SYNC\n{}\n"+SEPARATOR, context.debugDump());
-		lastSyncContext = (LensContext) context;
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.model.lens.LensDebugListener#afterSync(com.evolveum.midpoint.model.lens.LensContext)
+     */
+    @Override
+    public <F extends ObjectType> void clockworkFinish(ModelContext<F> context) {
+        LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT AFTER SYNC\n{}\n"+SEPARATOR, context.debugDump());
+        lastSyncContext = (LensContext) context;
+    }
 
-	@Override
-	public <F extends ObjectType> void projectorStart(ModelContext<F> context) {
+    @Override
+    public <F extends ObjectType> void projectorStart(ModelContext<F> context) {
 
-	}
+    }
 
-	@Override
-	public <F extends ObjectType> void projectorFinish(ModelContext<F> context) {
+    @Override
+    public <F extends ObjectType> void projectorFinish(ModelContext<F> context) {
 
-	}
+    }
 
-	@Override
-	public <F extends ObjectType> void afterMappingEvaluation(ModelContext<F> context, Mapping<?,?> evaluatedMapping) {
+    @Override
+    public <F extends ObjectType> void afterMappingEvaluation(ModelContext<F> context, Mapping<?,?> evaluatedMapping) {
 
-	}
+    }
 
-	@Override
-	public <F extends ObjectType> void clockworkStateSwitch(ModelContext<F> contextBefore, ModelState newState) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public <F extends ObjectType> void clockworkStateSwitch(ModelContext<F> contextBefore, ModelState newState) {
+        // TODO Auto-generated method stub
 
-	@Override
-	public void projectorComponentSkip(String componentName) {
-		// TODO Auto-generated method stub
-		
-	}
+    }
 
-	@Override
-	public void projectorComponentStart(String componentName) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void projectorComponentSkip(String componentName) {
+        // TODO Auto-generated method stub
 
-	@Override
-	public void projectorComponentFinish(String componentName) {
-		// TODO Auto-generated method stub
-		
-	}
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(MockLensDebugListener.class, indent);
-		DebugUtil.debugDumpWithLabelToString(sb, "lastSyncContext", lastSyncContext, indent + 1);
-		return sb.toString();
-	}
+    @Override
+    public void projectorComponentStart(String componentName) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void projectorComponentFinish(String componentName) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(MockLensDebugListener.class, indent);
+        DebugUtil.debugDumpWithLabelToString(sb, "lastSyncContext", lastSyncContext, indent + 1);
+        return sb.toString();
+    }
 
 
 }

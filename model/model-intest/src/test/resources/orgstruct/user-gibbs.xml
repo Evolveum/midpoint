@@ -2,16 +2,16 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="aca242ae-a29e-11e6-8bb4-1f8a1be2bd79" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+<user oid="aca242ae-a29e-11e6-8bb4-1f8a1be2bd79"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>gibbs</name>
     <fullName>Joshamee Gibbs</fullName>
     <givenName>Joshamee</givenName>
@@ -20,10 +20,10 @@
 
     <credentials>
         <password>
-        	<value>
-	            <clearValue>b4dLUCK</clearValue>
+            <value>
+                <clearValue>b4dLUCK</clearValue>
             </value>
         </password>
     </credentials>
-    
+
 </user>

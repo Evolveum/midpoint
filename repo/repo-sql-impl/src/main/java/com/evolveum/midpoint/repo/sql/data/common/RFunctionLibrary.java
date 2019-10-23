@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -69,8 +69,8 @@ public class RFunctionLibrary extends RObject<FunctionLibraryType> {
 
     // dynamically called
     public static void copyFromJAXB(FunctionLibraryType jaxb, RFunctionLibrary repo, RepositoryContext repositoryContext,
-			IdGeneratorResult generatorResult) throws DtoTranslationException {
-		copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+            IdGeneratorResult generatorResult) throws DtoTranslationException {
+        copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
-	}
+    }
 }

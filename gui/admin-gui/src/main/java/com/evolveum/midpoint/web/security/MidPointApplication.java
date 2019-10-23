@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -154,7 +154,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
  */
 public class MidPointApplication extends AuthenticatedWebApplication implements ApplicationContextAware {
 
-	/**
+    /**
      * Max. photo size for user/jpegPhoto
      */
     public static final Bytes FOCUS_PHOTO_MAX_FILE_SIZE = Bytes.kilobytes(192);
@@ -168,7 +168,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     private static final String PROP_DEFAULT = ".default";
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
-    
+
     static {
         SchemaDebugUtil.initialize();
     }
@@ -202,7 +202,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
         AVAILABLE_LOCALES = Collections.unmodifiableList(locales);
     }
-    
+
     @Autowired
     transient ModelService model;
     @Autowired
@@ -253,7 +253,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     private WebApplicationConfiguration webApplicationConfiguration;
 
     private DeploymentInformationType deploymentInfo;
-    
+
     public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
     public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
     public static final String MOUNT_FORBIDEN_ERROR = "/error/403";
@@ -262,11 +262,11 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     @Override
     public Class<? extends PageBase> getHomePage() {
-    	if (WebModelServiceUtils.isPostAuthenticationEnabled(getTaskManager(), getModelInteractionService())) {
-    		return PagePostAuthentication.class;
-    	}
-    	
-    	if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+        if (WebModelServiceUtils.isPostAuthenticationEnabled(getTaskManager(), getModelInteractionService())) {
+            return PagePostAuthentication.class;
+        }
+
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
                 AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
             return PageDashboardInfo.class;
         } else {
@@ -358,14 +358,14 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);
-        
+
         if (applicationContext != null) {
 
-	        Map<String, MidPointApplicationConfiguration> map =
-	                applicationContext.getBeansOfType(MidPointApplicationConfiguration.class);
-	        if (map != null) {
-	            map.forEach((key, value) -> value.init(this));
-	        }
+            Map<String, MidPointApplicationConfiguration> map =
+                    applicationContext.getBeansOfType(MidPointApplicationConfiguration.class);
+            if (map != null) {
+                map.forEach((key, value) -> value.init(this));
+            }
         }
 
         // for schrodinger selenide library
@@ -375,7 +375,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         if (servletContext != null) {
             taskManager.setWebContextPath(servletContext.getContextPath());
         }
-      
+
     }
 
     public DeploymentInformationType getDeploymentInfo() {
@@ -383,12 +383,12 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     }
 
     private void initializeSchrodinger() {
-    	if (applicationContext == null) {
-    		return;
-    	}
+        if (applicationContext == null) {
+            return;
+        }
         Environment environment = applicationContext.getEnvironment();
         if (environment == null) {
-        	return;
+            return;
         }
 
         String value = environment.getProperty(MidpointConfiguration.MIDPOINT_SCHRODINGER_PROPERTY);
@@ -466,15 +466,15 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     @Override
     protected IConverterLocator newConverterLocator() {
-    	ConverterLocator locator = new ConverterLocator();
-    	
-    	locator.set(PolyString.class, new PolyStringConverter());
-    	locator.set(Duration.class, new DurationConverter());
-    	locator.set(QueryType.class, new QueryTypeConverter(prismContext));
-    	locator.set(CleanupPoliciesType.class, new CleanupPoliciesTypeConverter(prismContext));
-    	return locator;
+        ConverterLocator locator = new ConverterLocator();
+
+        locator.set(PolyString.class, new PolyStringConverter());
+        locator.set(Duration.class, new DurationConverter());
+        locator.set(QueryType.class, new QueryTypeConverter(prismContext));
+        locator.set(CleanupPoliciesType.class, new CleanupPoliciesTypeConverter(prismContext));
+        return locator;
     }
-    
+
     private URL buildMidpointHomeLocalizationFolderUrl() {
         String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
 
@@ -487,18 +487,18 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     }
 
     private void initializeDevelopmentSerializers() {
-    	JavaSerializer javaSerializer = new JavaSerializer( getApplicationKey() ) {
-    	    @Override
-    	    protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException {
-    	    	LOGGER.info("XXXXXXX YX Y");
-    	    	IObjectChecker checker1 = new MidPointObjectChecker();
-    	        IObjectChecker checker2 = new NotDetachedModelChecker();
-    	        IObjectChecker checker3 = new ObjectSerializationChecker();
-    	        return new CheckingObjectOutputStream(out, checker1, checker3);
-//    	        return new ObjectOutputStream(out);
-    	    }
-    	};
-    	getFrameworkSettings().setSerializer( javaSerializer );
+        JavaSerializer javaSerializer = new JavaSerializer( getApplicationKey() ) {
+            @Override
+            protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException {
+                LOGGER.info("XXXXXXX YX Y");
+                IObjectChecker checker1 = new MidPointObjectChecker();
+                IObjectChecker checker2 = new NotDetachedModelChecker();
+                IObjectChecker checker3 = new ObjectSerializationChecker();
+                return new CheckingObjectOutputStream(out, checker1, checker3);
+//                return new ObjectOutputStream(out);
+            }
+        };
+        getFrameworkSettings().setSerializer( javaSerializer );
 
     }
 
@@ -748,11 +748,11 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         }
     }
 
-	/* (non-Javadoc)
-	 * @see org.springframework.context.ApplicationContextAware#setApplicationContext(org.springframework.context.ApplicationContext)
-	 */
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
-	}
+    /* (non-Javadoc)
+     * @see org.springframework.context.ApplicationContextAware#setApplicationContext(org.springframework.context.ApplicationContext)
+     */
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
 }

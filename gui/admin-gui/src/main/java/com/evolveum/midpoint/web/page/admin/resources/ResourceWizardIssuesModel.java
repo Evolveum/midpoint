@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,29 +23,29 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ResourceWizardIssuesModel extends NonEmptyLoadableModel<WizardIssuesDto> {
 
-	@NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModel;
-	@NotNull private final PageResourceWizard wizardPage;
+    @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModel;
+    @NotNull private final PageResourceWizard wizardPage;
 
-	ResourceWizardIssuesModel(@NotNull NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModel, @NotNull PageResourceWizard wizardPage) {
-		super(false);
-		this.resourceModel = resourceModel;
-		this.wizardPage = wizardPage;
-	}
+    ResourceWizardIssuesModel(@NotNull NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModel, @NotNull PageResourceWizard wizardPage) {
+        super(false);
+        this.resourceModel = resourceModel;
+        this.wizardPage = wizardPage;
+    }
 
-	@NotNull
-	@Override
-	protected WizardIssuesDto load() {
-		final WizardIssuesDto issuesDto = new WizardIssuesDto();
-		if (!resourceModel.isLoaded()) {
-			return issuesDto;		// e.g. in first two wizard steps (IT PROBABLY DOES NOT WORK AS EXPECTED)
-		}
-		ResourceValidator validator = wizardPage.getResourceValidator();
-		ValidationResult validationResult = validator
-				.validate(resourceModel.getObject(), Scope.QUICK, WebComponentUtil.getCurrentLocale(), wizardPage.createSimpleTask("validate"), new OperationResult("validate"));
+    @NotNull
+    @Override
+    protected WizardIssuesDto load() {
+        final WizardIssuesDto issuesDto = new WizardIssuesDto();
+        if (!resourceModel.isLoaded()) {
+            return issuesDto;        // e.g. in first two wizard steps (IT PROBABLY DOES NOT WORK AS EXPECTED)
+        }
+        ResourceValidator validator = wizardPage.getResourceValidator();
+        ValidationResult validationResult = validator
+                .validate(resourceModel.getObject(), Scope.QUICK, WebComponentUtil.getCurrentLocale(), wizardPage.createSimpleTask("validate"), new OperationResult("validate"));
 
-		issuesDto.fillFrom(validationResult);
-		issuesDto.sortIssues();
-		return issuesDto;
-	}
+        issuesDto.fillFrom(validationResult);
+        issuesDto.sortIssues();
+        return issuesDto;
+    }
 
 }

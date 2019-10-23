@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,53 +25,53 @@ import java.util.Iterator;
  */
 public class ResourceWizardModel extends WizardModel {
 
-	@NotNull final private PageResourceWizard parentPage;
+    @NotNull final private PageResourceWizard parentPage;
 
-	public ResourceWizardModel(PageResourceWizard parentPage) {
-		this.parentPage = parentPage;
-	}
+    public ResourceWizardModel(PageResourceWizard parentPage) {
+        this.parentPage = parentPage;
+    }
 
-	@Override
-	public void previous() {
-		Integer i = getCurrentStepIndex();
-		if (i == null || i == 0) {
-			return;		// at the beginning OR some weird situation - nothing to do
-		}
-		setActiveStep(getStep(i-1));
-	}
+    @Override
+    public void previous() {
+        Integer i = getCurrentStepIndex();
+        if (i == null || i == 0) {
+            return;        // at the beginning OR some weird situation - nothing to do
+        }
+        setActiveStep(getStep(i-1));
+    }
 
-	@Override
-	public boolean isPreviousAvailable() {
-		Integer i = getCurrentStepIndex();
-		return i != null && i > 0 && getActiveStep().isComplete();
-	}
+    @Override
+    public boolean isPreviousAvailable() {
+        Integer i = getCurrentStepIndex();
+        return i != null && i > 0 && getActiveStep().isComplete();
+    }
 
-	private Integer getCurrentStepIndex() {
-		IWizardStep activeStep = getActiveStep();
-		if (activeStep == null) {
-			return null;
-		}
-		int index = 0;
-		Iterator<IWizardStep> iterator = stepIterator();
-		while (iterator.hasNext()) {
-			if (activeStep.equals(iterator.next())) {
-				return index;
-			}
-			index++;
-		}
-		return null;
-	}
+    private Integer getCurrentStepIndex() {
+        IWizardStep activeStep = getActiveStep();
+        if (activeStep == null) {
+            return null;
+        }
+        int index = 0;
+        Iterator<IWizardStep> iterator = stepIterator();
+        while (iterator.hasNext()) {
+            if (activeStep.equals(iterator.next())) {
+                return index;
+            }
+            index++;
+        }
+        return null;
+    }
 
-	private IWizardStep getStep(int index) {
-		Iterator<IWizardStep> iterator = stepIterator();
-		while (iterator.hasNext()) {
-			IWizardStep currentStep = iterator.next();
-			if (index == 0) {
-				return currentStep;
-			} else {
-				index--;
-			}
-		}
-		return null;
-	}
+    private IWizardStep getStep(int index) {
+        Iterator<IWizardStep> iterator = stepIterator();
+        while (iterator.hasNext()) {
+            IWizardStep currentStep = iterator.next();
+            if (index == 0) {
+                return currentStep;
+            } else {
+                index--;
+            }
+        }
+        return null;
+    }
 }

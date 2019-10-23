@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.util;
@@ -19,10 +19,10 @@ import com.evolveum.midpoint.prism.PrismObject;
  */
 public interface PrismMonitor {
 
-	<O extends Objectable> void recordPrismObjectCompareCount(PrismObject<O> thisObject, Object thatObject);
+    <O extends Objectable> void recordPrismObjectCompareCount(PrismObject<O> thisObject, Object thatObject);
 
-	<O extends Objectable> void beforeObjectClone(PrismObject<O> orig);
+    <O extends Objectable> void beforeObjectClone(PrismObject<O> orig);
 
-	<O extends Objectable> void afterObjectClone(PrismObject<O> orig, PrismObject<O> clone);
+    <O extends Objectable> void afterObjectClone(PrismObject<O> orig, PrismObject<O> clone);
 
 }

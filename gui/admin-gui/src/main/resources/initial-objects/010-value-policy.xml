@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <valuePolicy oid="00000000-0000-0000-0000-000000000003"
@@ -18,28 +18,28 @@
         <description>Testing string policy</description>
         <limitations>
             <minLength>5</minLength>
-            <!-- 			<maxLength>8</maxLength> -->
+            <!--             <maxLength>8</maxLength> -->
             <minUniqueChars>3</minUniqueChars>
             <checkAgainstDictionary>true</checkAgainstDictionary>
             <checkPattern />
-            <!-- 			<limit> -->
-            <!-- 				<description>Alphas</description> -->
-            <!-- 				<minOccurs>1</minOccurs> -->
-            <!-- 				<maxOccurs>5</maxOccurs> -->
-            <!-- 				<mustBeFirst>false</mustBeFirst> -->
-            <!-- 				<characterClass> -->
-            <!-- 					<value>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</value> -->
-            <!-- 				</characterClass> -->
-            <!-- 			</limit> -->
-            <!-- 			<limit> -->
-            <!-- 				<description>Numbers</description> -->
-            <!-- 				<minOccurs>1</minOccurs> -->
-            <!-- 				<maxOccurs>5</maxOccurs> -->
-            <!-- 				<mustBeFirst>false</mustBeFirst> -->
-            <!-- 				<characterClass> -->
-            <!-- 					<value>1234567890</value> -->
-            <!-- 				</characterClass> -->
-            <!-- 			</limit> -->
+            <!--             <limit> -->
+            <!--                 <description>Alphas</description> -->
+            <!--                 <minOccurs>1</minOccurs> -->
+            <!--                 <maxOccurs>5</maxOccurs> -->
+            <!--                 <mustBeFirst>false</mustBeFirst> -->
+            <!--                 <characterClass> -->
+            <!--                     <value>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</value> -->
+            <!--                 </characterClass> -->
+            <!--             </limit> -->
+            <!--             <limit> -->
+            <!--                 <description>Numbers</description> -->
+            <!--                 <minOccurs>1</minOccurs> -->
+            <!--                 <maxOccurs>5</maxOccurs> -->
+            <!--                 <mustBeFirst>false</mustBeFirst> -->
+            <!--                 <characterClass> -->
+            <!--                     <value>1234567890</value> -->
+            <!--                 </characterClass> -->
+            <!--             </limit> -->
         </limitations>
     </stringPolicy>
 </valuePolicy>

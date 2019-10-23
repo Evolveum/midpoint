@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -52,344 +52,344 @@ import static org.testng.AssertJUnit.*;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class ManualResourceTest extends AbstractWfTest {
 
-	private static final File TEST_DIR = new File("src/test/resources/manual/");
+    private static final File TEST_DIR = new File("src/test/resources/manual/");
 
-	@SuppressWarnings("unused") 
-	private static final Trace LOGGER = TraceManager.getTrace(ManualResourceTest.class);
+    @SuppressWarnings("unused")
+    private static final Trace LOGGER = TraceManager.getTrace(ManualResourceTest.class);
 
-	private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+    private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-	private static final File RESOURCE_MANUAL_FILE = new File(TEST_DIR, "resource-manual.xml");
-	private static final String RESOURCE_MANUAL_OID = "ffb52158-63dc-4f5b-b998-fb6bfcfc546e";
+    private static final File RESOURCE_MANUAL_FILE = new File(TEST_DIR, "resource-manual.xml");
+    private static final String RESOURCE_MANUAL_OID = "ffb52158-63dc-4f5b-b998-fb6bfcfc546e";
 
-	private static final File ROLE_ONE_MANUAL_FILE = new File(TEST_DIR, "role-one-manual.xml");
-	private static final String ROLE_ONE_MANUAL_OID = "0379f623-a3e9-405a-ba52-b1f7ecd2d46f";
+    private static final File ROLE_ONE_MANUAL_FILE = new File(TEST_DIR, "role-one-manual.xml");
+    private static final String ROLE_ONE_MANUAL_OID = "0379f623-a3e9-405a-ba52-b1f7ecd2d46f";
 
-	private static final String USER_WILL_NAME = "will";
-	private static final String USER_WILL_GIVEN_NAME = "Will";
-	private static final String USER_WILL_FAMILY_NAME = "Turner";
-	private static final String USER_WILL_FULL_NAME = "Will Turner";
-	private static final String USER_WILL_PASSWORD_OLD = "3lizab3th";
+    private static final String USER_WILL_NAME = "will";
+    private static final String USER_WILL_GIVEN_NAME = "Will";
+    private static final String USER_WILL_FAMILY_NAME = "Turner";
+    private static final String USER_WILL_FULL_NAME = "Will Turner";
+    private static final String USER_WILL_PASSWORD_OLD = "3lizab3th";
 
-	private static final String ATTR_USERNAME = "username";
-	private static final QName ATTR_USERNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_USERNAME);
+    private static final String ATTR_USERNAME = "username";
+    private static final QName ATTR_USERNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_USERNAME);
 
-	private static final String ATTR_FULLNAME = "fullname";
-	private static final QName ATTR_FULLNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_FULLNAME);
+    private static final String ATTR_FULLNAME = "fullname";
+    private static final QName ATTR_FULLNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_FULLNAME);
 
-	private static final String ATTR_DESCRIPTION = "description";
-	private static final QName ATTR_DESCRIPTION_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DESCRIPTION);
+    private static final String ATTR_DESCRIPTION = "description";
+    private static final QName ATTR_DESCRIPTION_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DESCRIPTION);
 
-	private String userWillOid;
-	private String accountWillOid;
+    private String userWillOid;
+    private String accountWillOid;
 
-	private XMLGregorianCalendar accountWillCompletionTimestampStart;
-	private XMLGregorianCalendar accountWillCompletionTimestampEnd;
+    private XMLGregorianCalendar accountWillCompletionTimestampStart;
+    private XMLGregorianCalendar accountWillCompletionTimestampEnd;
 
-	private String willLastCaseOid;
+    private String willLastCaseOid;
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		importObjectFromFile(RESOURCE_MANUAL_FILE, initResult);
-		
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        importObjectFromFile(RESOURCE_MANUAL_FILE, initResult);
 
-		PrismObject<UserType> userWill = createUserWill();
-		addObject(userWill, initTask, initResult);
-		display("User will", userWill);
-		userWillOid = userWill.getOid();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-		importObjectFromFile(ROLE_ONE_MANUAL_FILE, initResult);
+        PrismObject<UserType> userWill = createUserWill();
+        addObject(userWill, initTask, initResult);
+        display("User will", userWill);
+        userWillOid = userWill.getOid();
 
-		// Turns on checks for connection in manual connector
-		InternalsConfig.setSanityChecks(true);
-	}
+        importObjectFromFile(ROLE_ONE_MANUAL_FILE, initResult);
 
-	@Override
-	protected File getSystemConfigurationFile() {
-		return SYSTEM_CONFIGURATION_FILE;
-	}
+        // Turns on checks for connection in manual connector
+        InternalsConfig.setSanityChecks(true);
+    }
 
-	private PrismObject<UserType> createUserWill() throws SchemaException {
-		PrismObject<UserType> user = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class).instantiate();
-		user.asObjectable()
-			.name(USER_WILL_NAME)
-			.givenName(USER_WILL_GIVEN_NAME)
-			.familyName(USER_WILL_FAMILY_NAME)
-			.fullName(USER_WILL_FULL_NAME)
-			.beginActivation().administrativeStatus(ActivationStatusType.ENABLED).<UserType>end()
-			.beginCredentials().beginPassword().beginValue().setClearValue(USER_WILL_PASSWORD_OLD);
-		return user;
-	}
+    @Override
+    protected File getSystemConfigurationFile() {
+        return SYSTEM_CONFIGURATION_FILE;
+    }
 
-	@Test
-	public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
-		displayTestTitle(TEST_NAME);
+    private PrismObject<UserType> createUserWill() throws SchemaException {
+        PrismObject<UserType> user = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class).instantiate();
+        user.asObjectable()
+            .name(USER_WILL_NAME)
+            .givenName(USER_WILL_GIVEN_NAME)
+            .familyName(USER_WILL_FAMILY_NAME)
+            .fullName(USER_WILL_FULL_NAME)
+            .beginActivation().administrativeStatus(ActivationStatusType.ENABLED).<UserType>end()
+            .beginCredentials().beginPassword().beginValue().setClearValue(USER_WILL_PASSWORD_OLD);
+        return user;
+    }
 
-		OperationResult result = new OperationResult(ManualResourceTest.class.getName() + "." + TEST_NAME);
+    @Test
+    public void test000Sanity() throws Exception {
+        final String TEST_NAME = "test000Sanity";
+        displayTestTitle(TEST_NAME);
 
-		ResourceType repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_MANUAL_OID,
-				null, result).asObjectable();
-		assertNotNull("No connector ref", repoResource.getConnectorRef());
+        OperationResult result = new OperationResult(ManualResourceTest.class.getName() + "." + TEST_NAME);
 
-		String connectorOid = repoResource.getConnectorRef().getOid();
-		assertNotNull("No connector ref OID", connectorOid);
-		ConnectorType repoConnector = repositoryService
-				.getObject(ConnectorType.class, connectorOid, null, result).asObjectable();
-		assertNotNull(repoConnector);
-		display("Manual Connector", repoConnector);
+        ResourceType repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_MANUAL_OID,
+                null, result).asObjectable();
+        assertNotNull("No connector ref", repoResource.getConnectorRef());
 
-		// Check connector schema
-		IntegrationTestTools.assertConnectorSchemaSanity(repoConnector, prismContext);
+        String connectorOid = repoResource.getConnectorRef().getOid();
+        assertNotNull("No connector ref OID", connectorOid);
+        ConnectorType repoConnector = repositoryService
+                .getObject(ConnectorType.class, connectorOid, null, result).asObjectable();
+        assertNotNull(repoConnector);
+        display("Manual Connector", repoConnector);
 
-		PrismObject<UserType> userWill = getUser(userWillOid);
-		assertUser(userWill, userWillOid, USER_WILL_NAME, USER_WILL_FULL_NAME, USER_WILL_GIVEN_NAME, USER_WILL_FAMILY_NAME);
-		assertAdministrativeStatus(userWill, ActivationStatusType.ENABLED);
-		assertUserPassword(userWill, USER_WILL_PASSWORD_OLD);
-	}
+        // Check connector schema
+        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector, prismContext);
 
-	@Test
-	public void test012TestConnection() throws Exception {
-		final String TEST_NAME = "test012TestConnection";
-		displayTestTitle(TEST_NAME);
+        PrismObject<UserType> userWill = getUser(userWillOid);
+        assertUser(userWill, userWillOid, USER_WILL_NAME, USER_WILL_FULL_NAME, USER_WILL_GIVEN_NAME, USER_WILL_FAMILY_NAME);
+        assertAdministrativeStatus(userWill, ActivationStatusType.ENABLED);
+        assertUserPassword(userWill, USER_WILL_PASSWORD_OLD);
+    }
 
-		// GIVEN
-		Task task = createTask(TEST_NAME);
+    @Test
+    public void test012TestConnection() throws Exception {
+        final String TEST_NAME = "test012TestConnection";
+        displayTestTitle(TEST_NAME);
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		OperationResult testResult = modelService.testResource(RESOURCE_MANUAL_OID, task);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
 
-		// THEN
-		displayThen(TEST_NAME);
-		display("Test result", testResult);
-		TestUtil.assertSuccess("Test resource failed (result)", testResult);
-	}
-	
-	@Test
-	public void test100AssignWillRoleOne() throws Exception {
-		final String TEST_NAME = "test100AssignWillRoleOne";
-		displayTestTitle(TEST_NAME);
+        // WHEN
+        displayWhen(TEST_NAME);
+        OperationResult testResult = modelService.testResource(RESOURCE_MANUAL_OID, task);
 
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        // THEN
+        displayThen(TEST_NAME);
+        display("Test result", testResult);
+        TestUtil.assertSuccess("Test resource failed (result)", testResult);
+    }
 
-		dummyAuditService.clear();
-		dummyTransport.clearMessages();
+    @Test
+    public void test100AssignWillRoleOne() throws Exception {
+        final String TEST_NAME = "test100AssignWillRoleOne";
+        displayTestTitle(TEST_NAME);
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		assignRole(userWillOid, ROLE_ONE_MANUAL_OID, task, result);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		// THEN
-		displayThen(TEST_NAME);
-		display("result", result);
-		willLastCaseOid = assertInProgress(result);
+        dummyAuditService.clear();
+        dummyTransport.clearMessages();
 
-		PrismObject<UserType> userAfter = getUser(userWillOid);
-		display("User after", userAfter);
-		accountWillOid = getSingleLinkOid(userAfter);
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(userWillOid, ROLE_ONE_MANUAL_OID, task, result);
 
-		assertAccountWillAfterAssign(USER_WILL_FULL_NAME);
+        // THEN
+        displayThen(TEST_NAME);
+        display("result", result);
+        willLastCaseOid = assertInProgress(result);
 
-		display("dummy audit", dummyAuditService);
-		display("dummy transport", dummyTransport);
-	}
+        PrismObject<UserType> userAfter = getUser(userWillOid);
+        display("User after", userAfter);
+        accountWillOid = getSingleLinkOid(userAfter);
 
-	/**
-	 * Case is closed. The operation is complete.
-	 */
-	@Test
-	public void test110CloseCaseAndRecomputeWill() throws Exception {
-		final String TEST_NAME = "test110CloseCaseAndRecomputeWill";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        assertAccountWillAfterAssign(USER_WILL_FULL_NAME);
 
-		dummyAuditService.clear();
-		dummyTransport.clearMessages();
+        display("dummy audit", dummyAuditService);
+        display("dummy transport", dummyTransport);
+    }
 
-		// WHEN
-		displayWhen(TEST_NAME);
+    /**
+     * Case is closed. The operation is complete.
+     */
+    @Test
+    public void test110CloseCaseAndRecomputeWill() throws Exception {
+        final String TEST_NAME = "test110CloseCaseAndRecomputeWill";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		CaseType caseBefore = getCase(willLastCaseOid);
-		display("Case before work item completion", caseBefore);
+        dummyAuditService.clear();
+        dummyTransport.clearMessages();
 
-		List<CaseWorkItemType> workItems = caseBefore.getWorkItem();
-		assertEquals("Wrong # of work items", 2, workItems.size());
-		assertEquals("Wrong assignees", new HashSet<>(Arrays.asList(USER_ADMINISTRATOR_OID, userJackOid)), workItems.stream()
-				.map(wi -> wi.getOriginalAssigneeRef().getOid())
-				.collect(Collectors.toSet()));
+        // WHEN
+        displayWhen(TEST_NAME);
 
-		Optional<CaseWorkItemType> adminWorkItem = workItems.stream()
-				.filter(wi -> USER_ADMINISTRATOR_OID.equals(wi.getOriginalAssigneeRef().getOid())).findAny();
+        CaseType caseBefore = getCase(willLastCaseOid);
+        display("Case before work item completion", caseBefore);
 
-		assertTrue("no admin work item", adminWorkItem.isPresent());
+        List<CaseWorkItemType> workItems = caseBefore.getWorkItem();
+        assertEquals("Wrong # of work items", 2, workItems.size());
+        assertEquals("Wrong assignees", new HashSet<>(Arrays.asList(USER_ADMINISTRATOR_OID, userJackOid)), workItems.stream()
+                .map(wi -> wi.getOriginalAssigneeRef().getOid())
+                .collect(Collectors.toSet()));
 
-		workflowManager.completeWorkItem(WorkItemId.of(adminWorkItem.get()),
-				new AbstractWorkItemOutputType(prismContext)
-						.outcome(OperationResultStatusType.SUCCESS.value()),
-				null, task, result);
+        Optional<CaseWorkItemType> adminWorkItem = workItems.stream()
+                .filter(wi -> USER_ADMINISTRATOR_OID.equals(wi.getOriginalAssigneeRef().getOid())).findAny();
 
-		accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
+        assertTrue("no admin work item", adminWorkItem.isPresent());
 
-		// We need reconcile and not recompute here. We need to fetch the updated case status.
-		reconcileUser(userWillOid, task, result);
+        workflowManager.completeWorkItem(WorkItemId.of(adminWorkItem.get()),
+                new AbstractWorkItemOutputType(prismContext)
+                        .outcome(OperationResultStatusType.SUCCESS.value()),
+                null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
-		CaseType caseAfter = getCase(willLastCaseOid);
-		display("Case after work item completion", caseAfter);
+        // We need reconcile and not recompute here. We need to fetch the updated case status.
+        reconcileUser(userWillOid, task, result);
 
-		accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-		assertWillAfterCreateCaseClosed();
+        CaseType caseAfter = getCase(willLastCaseOid);
+        display("Case after work item completion", caseAfter);
 
-		display("dummy audit", dummyAuditService);
-		display("dummy transport", dummyTransport);
-	}
+        accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-	private void assertAccountWillAfterAssign(String expectedFullName) throws Exception {
-		ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
-			.assertConception()
-			.pendingOperations()
-				.singleOperation()
-					.assertId()
-					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-					.delta()
-						.display()
-						.end()
-					.end()
-				.end()
-			.attributes()
-				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
-				.end()
-			.assertNoPassword();
-		assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, expectedFullName);
-		assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter.getObject(), ActivationStatusType.ENABLED);
+        assertWillAfterCreateCaseClosed();
 
-		ShadowAsserter<Void> shadowModelAsserter =  assertModelShadow(accountWillOid)
-			.assertName(USER_WILL_NAME)
-			.assertKind(ShadowKindType.ACCOUNT)
-			.assertConception()
-			.attributes()
-				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
-				.end()
-			.assertNoPassword()
-			.pendingOperations()
-				.singleOperation()
-					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-					.end()
-				.end();
-		assertAttributeFromCache(shadowModelAsserter, ATTR_FULLNAME_QNAME, expectedFullName);
-		assertShadowActivationAdministrativeStatusFromCache(shadowModelAsserter.getObject(), ActivationStatusType.ENABLED);
+        display("dummy audit", dummyAuditService);
+        display("dummy transport", dummyTransport);
+    }
 
-		assertWillCase(SchemaConstants.CASE_STATE_OPEN, 
-				shadowModelAsserter.pendingOperations().singleOperation().getOperation()
-		);
-	}
-	
-	private void assertWillCase(String expectedCaseState, PendingOperationType pendingOperation) throws ObjectNotFoundException, SchemaException {
-		String pendingOperationRef = pendingOperation.getAsynchronousOperationReference();
-		// Case number should be in willLastCaseOid. It will get there from operation result.
-		assertNotNull("No async reference in pending operation", willLastCaseOid);
-		assertCaseState(willLastCaseOid, expectedCaseState);
-		assertEquals("Wrong case ID in pending operation", willLastCaseOid, pendingOperationRef);
-	}
-	
-	private void assertWillAfterCreateCaseClosed() throws Exception {
-		ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
-			.pendingOperations()
-				.singleOperation()
-					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-					.assertResultStatus(OperationResultStatusType.SUCCESS)
-					.assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
-					.end()
-				.end()
-			.attributes()
-				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
-				.end();
-		assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
-		assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter, ActivationStatusType.ENABLED);
+    private void assertAccountWillAfterAssign(String expectedFullName) throws Exception {
+        ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
+            .assertConception()
+            .pendingOperations()
+                .singleOperation()
+                    .assertId()
+                    .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                    .delta()
+                        .display()
+                        .end()
+                    .end()
+                .end()
+            .attributes()
+                .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .end()
+            .assertNoPassword();
+        assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, expectedFullName);
+        assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter.getObject(), ActivationStatusType.ENABLED);
 
-		ShadowAsserter<Void> shadowModelAsserter = assertModelShadow(accountWillOid)
-			.assertName(USER_WILL_NAME)
-			.assertKind(ShadowKindType.ACCOUNT)
-			.attributes()
-				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
-				.end();
-		shadowRepoAsserter
-			.assertLife();
+        ShadowAsserter<Void> shadowModelAsserter =  assertModelShadow(accountWillOid)
+            .assertName(USER_WILL_NAME)
+            .assertKind(ShadowKindType.ACCOUNT)
+            .assertConception()
+            .attributes()
+                .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .end()
+            .assertNoPassword()
+            .pendingOperations()
+                .singleOperation()
+                    .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                    .end()
+                .end();
+        assertAttributeFromCache(shadowModelAsserter, ATTR_FULLNAME_QNAME, expectedFullName);
+        assertShadowActivationAdministrativeStatusFromCache(shadowModelAsserter.getObject(), ActivationStatusType.ENABLED);
 
-		shadowModelAsserter
-			.assertLife()
-			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
-			.attributes()
-				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)
-				.end()
-			.pendingOperations()
-				.singleOperation()
-					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-					.assertResultStatus(OperationResultStatusType.SUCCESS)
-					.assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
-					.end()
-				.end();
-		assertAttributeFromBackingStore(shadowModelAsserter, ATTR_DESCRIPTION_QNAME);
-		assertShadowPassword(shadowModelAsserter);
+        assertWillCase(SchemaConstants.CASE_STATE_OPEN,
+                shadowModelAsserter.pendingOperations().singleOperation().getOperation()
+        );
+    }
 
-		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-	}
+    private void assertWillCase(String expectedCaseState, PendingOperationType pendingOperation) throws ObjectNotFoundException, SchemaException {
+        String pendingOperationRef = pendingOperation.getAsynchronousOperationReference();
+        // Case number should be in willLastCaseOid. It will get there from operation result.
+        assertNotNull("No async reference in pending operation", willLastCaseOid);
+        assertCaseState(willLastCaseOid, expectedCaseState);
+        assertEquals("Wrong case ID in pending operation", willLastCaseOid, pendingOperationRef);
+    }
 
-	private <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
-		assertAttribute(shadow.asObjectable(), attrName, expectedValues);
-	}
+    private void assertWillAfterCreateCaseClosed() throws Exception {
+        ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
+            .pendingOperations()
+                .singleOperation()
+                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                    .assertResultStatus(OperationResultStatusType.SUCCESS)
+                    .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
+                    .end()
+                .end()
+            .attributes()
+                .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .end();
+        assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
+        assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter, ActivationStatusType.ENABLED);
 
-	private void assertNoAttribute(PrismObject<ShadowType> shadow, QName attrName) {
-		assertNoAttribute(shadow.asObjectable(), attrName);
-	}
+        ShadowAsserter<Void> shadowModelAsserter = assertModelShadow(accountWillOid)
+            .assertName(USER_WILL_NAME)
+            .assertKind(ShadowKindType.ACCOUNT)
+            .attributes()
+                .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+                .end();
+        shadowRepoAsserter
+            .assertLife();
 
-	private void assertAttributeFromCache(ShadowAsserter<?> shadowAsserter, QName attrQName, Object... attrVals) {
-		assertAttributeFromCache(shadowAsserter.getObject(), attrQName, attrVals);
-	}
-	
-	private void assertAttributeFromCache(PrismObject<ShadowType> shadow, QName attrQName, Object... attrVals) {
-		assertAttribute(shadow, attrQName, attrVals);
-	}
+        shadowModelAsserter
+            .assertLife()
+            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+            .attributes()
+                .assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)
+                .end()
+            .pendingOperations()
+                .singleOperation()
+                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                    .assertResultStatus(OperationResultStatusType.SUCCESS)
+                    .assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
+                    .end()
+                .end();
+        assertAttributeFromBackingStore(shadowModelAsserter, ATTR_DESCRIPTION_QNAME);
+        assertShadowPassword(shadowModelAsserter);
 
-	private void assertAttributeFromBackingStore(ShadowAsserter<?> shadowAsserter, QName attrQName) {
-		assertAttributeFromBackingStore(shadowAsserter.getObject(), attrQName);
-	}
-	
-	private void assertAttributeFromBackingStore(PrismObject<ShadowType> shadow, QName attrQName) {
-		assertNoAttribute(shadow, attrQName);
-	}
-	
-	private void assertShadowActivationAdministrativeStatusFromCache(ShadowAsserter<?> shadowAsserter, ActivationStatusType expectedStatus) {
-		assertShadowActivationAdministrativeStatusFromCache(shadowAsserter.getObject(), expectedStatus);
-	}
+        assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+    }
 
-	private void assertShadowActivationAdministrativeStatusFromCache(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
-		assertShadowActivationAdministrativeStatus(shadow, expectedStatus);
-	}
+    private <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
+        assertAttribute(shadow.asObjectable(), attrName, expectedValues);
+    }
 
-	private void assertShadowActivationAdministrativeStatus(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
-		assertActivationAdministrativeStatus(shadow, expectedStatus);
-	}
+    private void assertNoAttribute(PrismObject<ShadowType> shadow, QName attrName) {
+        assertNoAttribute(shadow.asObjectable(), attrName);
+    }
 
-	private void assertShadowPassword(ShadowAsserter<?> shadowAsserter) {
-		assertShadowPassword(shadowAsserter.getObject());
-	}
-	
-	private void assertShadowPassword(PrismObject<ShadowType> shadow) {
-		// pure manual resource should never "read" password
-		assertNoShadowPassword(shadow);
-	}
+    private void assertAttributeFromCache(ShadowAsserter<?> shadowAsserter, QName attrQName, Object... attrVals) {
+        assertAttributeFromCache(shadowAsserter.getObject(), attrQName, attrVals);
+    }
+
+    private void assertAttributeFromCache(PrismObject<ShadowType> shadow, QName attrQName, Object... attrVals) {
+        assertAttribute(shadow, attrQName, attrVals);
+    }
+
+    private void assertAttributeFromBackingStore(ShadowAsserter<?> shadowAsserter, QName attrQName) {
+        assertAttributeFromBackingStore(shadowAsserter.getObject(), attrQName);
+    }
+
+    private void assertAttributeFromBackingStore(PrismObject<ShadowType> shadow, QName attrQName) {
+        assertNoAttribute(shadow, attrQName);
+    }
+
+    private void assertShadowActivationAdministrativeStatusFromCache(ShadowAsserter<?> shadowAsserter, ActivationStatusType expectedStatus) {
+        assertShadowActivationAdministrativeStatusFromCache(shadowAsserter.getObject(), expectedStatus);
+    }
+
+    private void assertShadowActivationAdministrativeStatusFromCache(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
+        assertShadowActivationAdministrativeStatus(shadow, expectedStatus);
+    }
+
+    private void assertShadowActivationAdministrativeStatus(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
+        assertActivationAdministrativeStatus(shadow, expectedStatus);
+    }
+
+    private void assertShadowPassword(ShadowAsserter<?> shadowAsserter) {
+        assertShadowPassword(shadowAsserter.getObject());
+    }
+
+    private void assertShadowPassword(PrismObject<ShadowType> shadow) {
+        // pure manual resource should never "read" password
+        assertNoShadowPassword(shadow);
+    }
 
 }

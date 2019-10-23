@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -70,12 +70,12 @@ metaroles:
             </policyActions>
         </policyRule>
     </inducement>
-	<inducement id="3">
+    <inducement id="3">
         <targetRef oid="12345678-d34d-b33f-f00d-55555555aaaa" type="RoleType"/>
         <order>2</order>
     </inducement>
-	<inducement id="4">
-		<targetRef oid="f8f217f2-b864-416b-bce6-90c85385e43e" type="RoleType"/>		<!-- metarole-sod-notification -->
-	</inducement>
+    <inducement id="4">
+        <targetRef oid="f8f217f2-b864-416b-bce6-90c85385e43e" type="RoleType"/>        <!-- metarole-sod-notification -->
+    </inducement>
 
 </role>

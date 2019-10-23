@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2014 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -11,12 +11,12 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             elementFormDefault="qualified">
 
-	<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
                 schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3"/>
 
     <xsd:annotation>
         <xsd:documentation>
-			Version: 3.1
+            Version: 3.1
             Recommended namespace prefix: icfs
         </xsd:documentation>
     </xsd:annotation>
@@ -41,9 +41,9 @@
                 __NAME__ attribute
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:maxOccurs>1</a:maxOccurs>
-            	<a:displayName>ConnId Name</a:displayName>
-            	<a:displayOrder>110</a:displayOrder>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:displayName>ConnId Name</a:displayName>
+                <a:displayOrder>110</a:displayOrder>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -135,14 +135,14 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="description" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
                 __DESCRIPTION__ attribute
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:nativeAttributeName>__DESCRIPTION__</a:nativeAttributeName>
+                <a:nativeAttributeName>__DESCRIPTION__</a:nativeAttributeName>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -153,18 +153,18 @@
                 __GROUPS__ attribute
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:nativeAttributeName>__GROUPS__</a:nativeAttributeName>
+                <a:nativeAttributeName>__GROUPS__</a:nativeAttributeName>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="lastLoginDate" type="xsd:long">
         <xsd:annotation>
             <xsd:documentation>
                 __LAST_LOGIN_DATE__ attribute
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:nativeAttributeName>__LAST_LOGIN_DATE__</a:nativeAttributeName>
+                <a:nativeAttributeName>__LAST_LOGIN_DATE__</a:nativeAttributeName>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

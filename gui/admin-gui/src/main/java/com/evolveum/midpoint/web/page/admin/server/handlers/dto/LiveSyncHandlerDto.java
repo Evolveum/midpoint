@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,23 +19,23 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
  */
 public class LiveSyncHandlerDto extends ResourceRelatedHandlerDto {
 
-	public static final String F_TOKEN = "token";
+    public static final String F_TOKEN = "token";
 
-	private String token;
+    private String token;
 
-	public LiveSyncHandlerDto(TaskDto taskDto, PageBase pageBase, Task opTask, OperationResult thisOpResult) {
-		super(taskDto, pageBase, opTask, thisOpResult);
-		PrismProperty<Object> tokenProperty = taskDto.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
-		if (tokenProperty != null && tokenProperty.getRealValue() != null) {
-			token = String.valueOf(tokenProperty.getRealValue());
-		}
-	}
+    public LiveSyncHandlerDto(TaskDto taskDto, PageBase pageBase, Task opTask, OperationResult thisOpResult) {
+        super(taskDto, pageBase, opTask, thisOpResult);
+        PrismProperty<Object> tokenProperty = taskDto.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+        if (tokenProperty != null && tokenProperty.getRealValue() != null) {
+            token = String.valueOf(tokenProperty.getRealValue());
+        }
+    }
 
-	public String getToken() {
-		return token;
-	}
+    public String getToken() {
+        return token;
+    }
 
-	public boolean hasToken() {
-		return token != null;
-	}
+    public boolean hasToken() {
+        return token != null;
+    }
 }

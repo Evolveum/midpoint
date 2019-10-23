@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -18,10 +18,10 @@
 
     <task oid="00000000-0000-0000-0000-123450000001">
         <name>Task1: basic single-run task (takes 180x1 sec)</name>
-		<extension>
-			<noop:delay xsi:type="xsd:int">1000</noop:delay>
-			<noop:steps xsi:type="xsd:int">10</noop:steps>
-		</extension>
+        <extension>
+            <noop:delay xsi:type="xsd:int">1000</noop:delay>
+            <noop:steps xsi:type="xsd:int">10</noop:steps>
+        </extension>
         <taskIdentifier>10000000-0000-0000-0000-123450000001</taskIdentifier>
         <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
         <executionStatus>runnable</executionStatus>

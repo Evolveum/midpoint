@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -16,17 +16,17 @@ import java.util.Collection;
  */
 public interface InOidFilter extends ObjectFilter {
 
-	Collection<String> getOids();
+    Collection<String> getOids();
 
-	void setOids(Collection<String> oids);
+    void setOids(Collection<String> oids);
 
-	boolean isConsiderOwner();
+    boolean isConsiderOwner();
 
-	ExpressionWrapper getExpression();
+    ExpressionWrapper getExpression();
 
-	void setExpression(ExpressionWrapper expression);
+    void setExpression(ExpressionWrapper expression);
 
-	@Override
-	InOidFilter clone();
+    @Override
+    InOidFilter clone();
 
 }

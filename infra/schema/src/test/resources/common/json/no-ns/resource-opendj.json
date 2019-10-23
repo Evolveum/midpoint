@@ -229,15 +229,15 @@
             }
           }
         } ],
-        "protected" : [ 
-        	{
-        		"filter" : {
-			        "equal" : {
-          				"path" : "attributes/name",
-				        "value" : "uid=idm,ou=Administrators,dc=example,dc=com"
-				     }
-				}
-        	} ],
+        "protected" : [
+            {
+                "filter" : {
+                    "equal" : {
+                          "path" : "attributes/name",
+                        "value" : "uid=idm,ou=Administrators,dc=example,dc=com"
+                     }
+                }
+            } ],
         "activation" : {
           "administrativeStatus" : {
             "outbound" : [ { } ],

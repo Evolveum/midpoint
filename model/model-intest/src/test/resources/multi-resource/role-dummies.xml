@@ -1,66 +1,66 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="12345678-d34d-b33f-f00d-55555555dddd"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Dummies</name>    
+    <name>Dummies</name>
     <inducement>
-    	<construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:title</ref>
                 <outbound>
-                	<expression>
-						<value>The Great Voodoo Master</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>The Great Voodoo Master</value>
+                    </expression>
+                </outbound>
             </attribute>
-    		<attribute>
+            <attribute>
                 <ref>ri:ship</ref>
                 <outbound>
-                	<expression>
-						<value>The Lost Souls</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>The Lost Souls</value>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
-    </inducement>    
+        </construction>
+    </inducement>
     <inducement>
-    	<construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    		<resourceRef oid="10000000-0000-0000-0000-000000000504" type="c:ResourceType"/>
-    		<attribute>
+        <construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+            <resourceRef oid="10000000-0000-0000-0000-000000000504" type="c:ResourceType"/>
+            <attribute>
                 <ref>ri:weapon</ref>
                 <outbound>
-                	<expression>
-						<value>cutlass</value>
+                    <expression>
+                        <value>cutlass</value>
                         <value>pistol</value>
-					</expression>
-				</outbound>
+                    </expression>
+                </outbound>
             </attribute>
 <!--             <attribute> -->
 <!--                 <ref>ri:ship</ref> -->
 <!--                 <outbound> -->
-<!--                 	<source> -->
-<!-- 						<path>$user/organizationalUnit</path> -->
-<!-- 					</source> -->
-<!-- 				</outbound> -->
+<!--                     <source> -->
+<!--                         <path>$user/organizationalUnit</path> -->
+<!--                     </source> -->
+<!--                 </outbound> -->
 <!--             </attribute> -->
-    	</construction>
+        </construction>
     </inducement>
     <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000011504" type="c:ResourceType"/>
-    	</construction>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000011504" type="c:ResourceType"/>
+        </construction>
     </inducement>
     <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-00000001b504" type="c:ResourceType"/>
-    	</construction>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-00000001b504" type="c:ResourceType"/>
+        </construction>
     </inducement>
 </role>

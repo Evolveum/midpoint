@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="10000000-0000-0000-0000-000000000555"
@@ -13,55 +13,55 @@
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>User Template - Test Inbounds</name>
- 
- 
-	<!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of subtype property -->
+
+
+    <!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of subtype property -->
     <mapping>
-		<name>pirate-assignment</name>
-    	<authoritative>true</authoritative>
-    	<strength>strong</strength>
-    	<source>
-    		<path>subtype</path>
-    	</source>
-    	<expression>
+        <name>pirate-assignment</name>
+        <authoritative>true</authoritative>
+        <strength>strong</strength>
+        <source>
+            <path>subtype</path>
+        </source>
+        <expression>
             <value>
                 <targetRef oid="12345678-d34d-b33f-f00d-555555557777" type="RoleType"/>
             </value>
-    	</expression>
-    	<target>
-    		<path>assignment</path>
-    	</target>
-    	<condition>
-    		<script>
-            	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<code>subtype == 'PIRATE'</code>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                <code>subtype == 'PIRATE'</code>
             </script>
-		</condition>
+        </condition>
     </mapping>
-    
+
     <!-- This is quite a stupid way how to add the same role for many values of user property.
          A single mapping with a condition that has an '||' operator internally will be more efficient.
          But this is using this way to check for situation in which the same value is added and removed at the same time. -->
     <mapping>
-		<name>buccaneer-assignment</name>
-		<authoritative>true</authoritative>
-    	<source>
-    		<path>subtype</path>
-    	</source>
-    	<expression>
+        <name>buccaneer-assignment</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>subtype</path>
+        </source>
+        <expression>
             <value>
                 <targetRef oid="12345678-d34d-b33f-f00d-555555558888" type="RoleType"/>
             </value>
-    	</expression>
-    	<target>
-    		<path>assignment</path>
-    	</target>
-    	<condition>
-    		<script>
-            	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<code>subtype == 'BUCCANEER'</code>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                <code>subtype == 'BUCCANEER'</code>
             </script>
-		</condition>
+        </condition>
     </mapping>
 
 </objectTemplate>

@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2015 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -22,8 +22,8 @@
         </xsd:documentation>
     </xsd:annotation>
 
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-    			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
                 schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -33,7 +33,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
-    
+
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
                 schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
         <xsd:annotation>
@@ -53,39 +53,39 @@
                 synchronized every time (may be inefficient).
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <!--  TODO deprecated -->
     <xsd:element name="dryRun" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
-               Indicates if the reconciliation runs in default mode or as a dry run. If set to true, it means that 
-               the reconciliation will not perform any action, but it will only compare the resource and repository state. 
+               Indicates if the reconciliation runs in default mode or as a dry run. If set to true, it means that
+               the reconciliation will not perform any action, but it will only compare the resource and repository state.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:displayName>Dry run</a:displayName>
                 <a:displayOrder>800</a:displayOrder>
-           	 	<a:minOccurs>0</a:minOccurs>
-            	<a:maxOccurs>1</a:maxOccurs>
+                    <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="retryLiveSyncErrors" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
                Indicates if the LiveSync retries non-handled errors in the next run. Handled-errors are always treated as success and never retried.
-               Retry is implemented by not refreshing LiveSync token to the new value. If set to false, sync token is always refreshed to the last processed entry. 
+               Retry is implemented by not refreshing LiveSync token to the new value. If set to false, sync token is always refreshed to the last processed entry.
                This is true by default.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:displayName>Retry LiveSync Errors</a:displayName>
                 <a:displayOrder>801</a:displayOrder>
-           	 	<a:minOccurs>0</a:minOccurs>
-            	<a:maxOccurs>1</a:maxOccurs>
+                    <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -100,8 +100,8 @@
             <xsd:appinfo>
                 <a:displayName>Retry LiveSync Errors</a:displayName>
                 <a:displayOrder>801</a:displayOrder>
-           	 	<a:minOccurs>0</a:minOccurs>
-            	<a:maxOccurs>1</a:maxOccurs>
+                    <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -123,8 +123,8 @@
             <xsd:appinfo>
                 <a:displayName>LiveSync batch size</a:displayName>
                 <a:displayOrder>802</a:displayOrder>
-           	 	<a:minOccurs>0</a:minOccurs>
-            	<a:maxOccurs>1</a:maxOccurs>
+                    <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
                 <a:experimental>true</a:experimental>
                 <a:since>4.0</a:since>
             </xsd:appinfo>
@@ -139,8 +139,8 @@
             <xsd:appinfo>
                 <!--<a:displayName>Dry run</a:displayName>-->
                 <!--<a:displayOrder>800</a:displayOrder>-->
-           	 	<a:minOccurs>0</a:minOccurs>
-            	<a:maxOccurs>1</a:maxOccurs>
+                    <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -151,8 +151,8 @@
                TODO
             </xsd:documentation>
             <xsd:appinfo>
-           	 	<a:minOccurs>0</a:minOccurs>
-            	<a:maxOccurs>1</a:maxOccurs>
+                    <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -173,7 +173,7 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="searchOptions" type="c:SelectorQualifiedGetOptionsType">
         <xsd:annotation>
             <xsd:documentation>
@@ -223,7 +223,7 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="iterationMethod" type="c:IterationMethodType">
         <xsd:annotation>
             <xsd:documentation>
@@ -242,7 +242,7 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -253,7 +253,7 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:maxOccurs>unbounded</a:maxOccurs>
+                <a:maxOccurs>unbounded</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -293,23 +293,23 @@
                 E.g. during import from resource.
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="kind" type="c:ShadowKindType">
         <xsd:annotation>
             <xsd:appinfo>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="intent" type="xsd:string">
         <xsd:annotation>
             <xsd:appinfo>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -320,7 +320,7 @@
                 Name of file (on the server) to process.
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -431,46 +431,46 @@
         </xsd:annotation>
     </xsd:element>
 
-	<!-- Elements to be stored in task trigger extension (used for workflows) -->
-	<xsd:element name="workItemActions" type="c:WorkItemActionsType">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:minOccurs>0</a:minOccurs>
-				<a:maxOccurs>1</a:maxOccurs>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
+    <!-- Elements to be stored in task trigger extension (used for workflows) -->
+    <xsd:element name="workItemActions" type="c:WorkItemActionsType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
-	<xsd:element name="workItemAction" type="c:AbstractWorkItemActionType">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:minOccurs>0</a:minOccurs>
-				<a:maxOccurs>1</a:maxOccurs>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
+    <xsd:element name="workItemAction" type="c:AbstractWorkItemActionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
-	<xsd:element name="workItemId" type="xsd:long">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:minOccurs>0</a:minOccurs>
-				<a:maxOccurs>1</a:maxOccurs>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
+    <xsd:element name="workItemId" type="xsd:long">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
-	<xsd:element name="timeBeforeAction" type="xsd:duration">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:minOccurs>0</a:minOccurs>
-				<a:maxOccurs>1</a:maxOccurs>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
+    <xsd:element name="timeBeforeAction" type="xsd:duration">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:element name="profilingInterval" type="xsd:int">
         <xsd:annotation>

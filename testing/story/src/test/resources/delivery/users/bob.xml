@@ -2,27 +2,27 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <user oid="469fd663-4492-4c24-8ce3-3907df7ac7ec"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<name>bob</name>
-	<parentOrgRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType"/>
-	<assignment>
-		<targetRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType"/>
-	</assignment>
-	<assignment>
-		<targetRef oid="00000000-0000-0000-0000-000000000008" type="RoleType"/>		<!-- End User -->
-	</assignment>
-	<fullName>Ghost Pirate Bob</fullName>
-	<givenName>Bob</givenName>
-	<emailAddress>bob@evolveum.com</emailAddress>
-	<credentials>
-		<password>
-			<value>a123456</value>
-		</password>
-	</credentials>  
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>bob</name>
+    <parentOrgRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType"/>
+    <assignment>
+        <targetRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000008" type="RoleType"/>        <!-- End User -->
+    </assignment>
+    <fullName>Ghost Pirate Bob</fullName>
+    <givenName>Bob</givenName>
+    <emailAddress>bob@evolveum.com</emailAddress>
+    <credentials>
+        <password>
+            <value>a123456</value>
+        </password>
+    </credentials>
 </user>

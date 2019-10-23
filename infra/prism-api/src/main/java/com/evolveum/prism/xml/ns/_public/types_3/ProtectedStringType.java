@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.prism.xml.ns._public.types_3;
@@ -24,50 +24,50 @@ import com.evolveum.midpoint.util.exception.SystemException;
 @XmlType(name = "ProtectedStringType")
 public class ProtectedStringType extends ProtectedDataType<String> implements Cloneable {
 
-	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ProtectedStringType");
+    public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ProtectedStringType");
 
-	private static final String CHARSET = "UTF-8";
+    private static final String CHARSET = "UTF-8";
 
-	public ProtectedStringType() {
-		content = new ContentList();
-	}
+    public ProtectedStringType() {
+        content = new ContentList();
+    }
 
-	@Override
-	public byte[] getClearBytes() {
-		String clearValue = getClearValue();
-		if (clearValue == null) {
-			return null;
-		}
-		try {
-			// We want fixed charset here, independent of locale. We want consistent and portable encryption/decryption.
-			return clearValue.getBytes(CHARSET);
-		} catch (UnsupportedEncodingException e) {
-			throw new SystemException("Unsupported charset '"+CHARSET+"', is this system from 19th century?", e);
-		}
-	}
+    @Override
+    public byte[] getClearBytes() {
+        String clearValue = getClearValue();
+        if (clearValue == null) {
+            return null;
+        }
+        try {
+            // We want fixed charset here, independent of locale. We want consistent and portable encryption/decryption.
+            return clearValue.getBytes(CHARSET);
+        } catch (UnsupportedEncodingException e) {
+            throw new SystemException("Unsupported charset '"+CHARSET+"', is this system from 19th century?", e);
+        }
+    }
 
-	@Override
-	public void setClearBytes(byte[] bytes) {
+    @Override
+    public void setClearBytes(byte[] bytes) {
         if (bytes != null) {
             setClearValue(bytesToString(bytes));
         }
-	}
+    }
 
-	@Override
-	public boolean canSupportType(Class<?> type) {
-		return String.class.isAssignableFrom(type);
-	}
+    @Override
+    public boolean canSupportType(Class<?> type) {
+        return String.class.isAssignableFrom(type);
+    }
 
 
-	@Override
-	public boolean equals(Object obj) {
-		return super.equals(obj);
-	}
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
 
-	@Override
-	public int hashCode() {
-		return super.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
 
     @Override
     public ProtectedStringType clone() {
@@ -85,8 +85,8 @@ public class ProtectedStringType extends ProtectedDataType<String> implements Cl
         }
     }
 
-	@Override
-	public void accept(JaxbVisitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
+    }
 }

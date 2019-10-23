@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="2abaef72-af5b-11e8-ae9a-b33bc5b8cb74"
@@ -10,33 +10,33 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>End User With Privacy</name>
-    <description>End user that can read all other users. But he can search only some of them.</description>    
+    <description>End user that can read all other users. But he can search only some of them.</description>
     <authorization>
-    	<name>privacy-get</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
-    	<object>
-    		<type>UserType</type>
-    	</object>
-    	<item>name</item>
-    	<item>fullName</item>
-    	<item>activation/administrativeStatus</item>
-    	<item>assignment</item>
+        <name>privacy-get</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>name</item>
+        <item>fullName</item>
+        <item>activation/administrativeStatus</item>
+        <item>assignment</item>
     </authorization>
     <authorization>
-    	<name>privacy-search</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>
-    	<object>
-    		<type>UserType</type>
-    		<filter>
-	            <q:equal>
-	               <q:path>subtype</q:path>
-	               <q:value>captain</q:value>
-	            </q:equal>
-	        </filter>
-    	</object>
-    	<item>name</item>
-    	<item>fullName</item>
-    	<!-- We need to specify subtype explicitly here. See MID-4859 -->
-    	<item>subtype</item>
+        <name>privacy-search</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>
+        <object>
+            <type>UserType</type>
+            <filter>
+                <q:equal>
+                   <q:path>subtype</q:path>
+                   <q:value>captain</q:value>
+                </q:equal>
+            </filter>
+        </object>
+        <item>name</item>
+        <item>fullName</item>
+        <!-- We need to specify subtype explicitly here. See MID-4859 -->
+        <item>subtype</item>
     </authorization>
 </role>

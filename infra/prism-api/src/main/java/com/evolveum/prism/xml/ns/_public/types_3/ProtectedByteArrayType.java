@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 //
@@ -24,7 +24,7 @@ import org.apache.commons.lang.ArrayUtils;
 
 /**
  *
- * 				Specific subtype for protected binary byte array data.
+ *                 Specific subtype for protected binary byte array data.
  *
  *
  * <p>Java class for ProtectedByteArrayType complex type.
@@ -47,23 +47,23 @@ import org.apache.commons.lang.ArrayUtils;
 @XmlType(name = "ProtectedByteArrayType")
 public class ProtectedByteArrayType extends ProtectedDataType<Byte[]> {
 
-	@Override
-	public byte[] getClearBytes() {
-		return ArrayUtils.toPrimitive(getClearValue());
-	}
+    @Override
+    public byte[] getClearBytes() {
+        return ArrayUtils.toPrimitive(getClearValue());
+    }
 
-	@Override
-	public void setClearBytes(byte[] bytes) {
-		setClearValue(ArrayUtils.toObject(bytes));
-	}
+    @Override
+    public void setClearBytes(byte[] bytes) {
+        setClearValue(ArrayUtils.toObject(bytes));
+    }
 
-	@Override
-	public boolean canSupportType(Class<?> type) {
-		return byte[].class.isAssignableFrom(type);
-	}
+    @Override
+    public boolean canSupportType(Class<?> type) {
+        return byte[].class.isAssignableFrom(type);
+    }
 
-	@Override
-	public void accept(JaxbVisitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
+    }
 }

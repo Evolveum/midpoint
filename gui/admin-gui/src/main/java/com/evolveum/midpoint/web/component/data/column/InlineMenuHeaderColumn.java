@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -33,9 +33,9 @@ public class InlineMenuHeaderColumn<T extends InlineMenuable> extends InlineMenu
     @Override
     public Component getHeader(String componentId) {
 //        InlineMenu inlineMenu = new com.evolveum.midpoint.web.component.menu.cog.InlineMenu(componentId, menuItems);
-    	DropdownButtonDto model = new DropdownButtonDto(null, null, null, menuItems.getObject());
+        DropdownButtonDto model = new DropdownButtonDto(null, null, null, menuItems.getObject());
         DropdownButtonPanel inlineMenu = new DropdownButtonPanel(componentId, model) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected String getSpecialButtonClass() {
@@ -46,9 +46,9 @@ public class InlineMenuHeaderColumn<T extends InlineMenuable> extends InlineMenu
         inlineMenu.setOutputMarkupId(true);
         return inlineMenu;
     }
-    
+
     @Override
     public String getCssClass() {
-    	return "cog-xs";
+        return "cog-xs";
     }
 }

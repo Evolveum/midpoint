@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.marshaller;
@@ -39,157 +39,157 @@ public class BeanMarshaller {
     public static final String DEFAULT_PLACEHOLDER = "##default";
 
     @NotNull private final PrismBeanInspector inspector;
-	@NotNull private final PrismContext prismContext;
-	@NotNull private final Map<Class,Marshaller> specialMarshallers = new HashMap<>();
+    @NotNull private final PrismContext prismContext;
+    @NotNull private final Map<Class,Marshaller> specialMarshallers = new HashMap<>();
 
-	@FunctionalInterface
-	private interface Marshaller {
-		XNodeImpl marshal(Object bean, SerializationContext sc) throws SchemaException;
-	}
+    @FunctionalInterface
+    private interface Marshaller {
+        XNodeImpl marshal(Object bean, SerializationContext sc) throws SchemaException;
+    }
 
-	private void createSpecialMarshallerMap() {
-		specialMarshallers.put(XmlAsStringType.class, this::marshalXmlAsStringType);
-		specialMarshallers.put(SchemaDefinitionType.class, this::marshalSchemaDefinition);
-		specialMarshallers.put(ProtectedByteArrayType.class, this::marshalProtectedDataType);
-		specialMarshallers.put(ProtectedStringType.class, this::marshalProtectedDataType);
-		specialMarshallers.put(ItemPathType.class, this::marshalItemPathType);
-		specialMarshallers.put(RawType.class, this::marshalRawType);
-		specialMarshallers.put(PolyString.class, this::marshalPolyString);
-		specialMarshallers.put(PolyStringType.class, this::marshalPolyString);
-	}
+    private void createSpecialMarshallerMap() {
+        specialMarshallers.put(XmlAsStringType.class, this::marshalXmlAsStringType);
+        specialMarshallers.put(SchemaDefinitionType.class, this::marshalSchemaDefinition);
+        specialMarshallers.put(ProtectedByteArrayType.class, this::marshalProtectedDataType);
+        specialMarshallers.put(ProtectedStringType.class, this::marshalProtectedDataType);
+        specialMarshallers.put(ItemPathType.class, this::marshalItemPathType);
+        specialMarshallers.put(RawType.class, this::marshalRawType);
+        specialMarshallers.put(PolyString.class, this::marshalPolyString);
+        specialMarshallers.put(PolyStringType.class, this::marshalPolyString);
+    }
 
-	public BeanMarshaller(@NotNull PrismContext prismContext, @NotNull PrismBeanInspector inspector) {
-		this.prismContext = prismContext;
-		this.inspector = inspector;
-		createSpecialMarshallerMap();
-	}
+    public BeanMarshaller(@NotNull PrismContext prismContext, @NotNull PrismBeanInspector inspector) {
+        this.prismContext = prismContext;
+        this.inspector = inspector;
+        createSpecialMarshallerMap();
+    }
 
-	@Nullable
-	public <T> XNodeImpl marshall(@Nullable T bean) throws SchemaException {
-		return marshall(bean, null);
-	}
+    @Nullable
+    public <T> XNodeImpl marshall(@Nullable T bean) throws SchemaException {
+        return marshall(bean, null);
+    }
 
-	@Nullable
-	public XNodeImpl marshall(@Nullable Object inputBean, @Nullable SerializationContext ctx) throws SchemaException {
-		try {
-			if (inputBean == null) {
-				return null;
-			}
-			// Special hack (MID-5803) -- we should NEVER get PrismValue here; but not enough time to fix this right now
-			Object bean;
-			if (inputBean instanceof PrismValue) {
-				bean = ((PrismValue) inputBean).getRealValue();
-				if (bean == null) {
-					return null;
-				}
-			} else {
-				bean = inputBean;
-			}
+    @Nullable
+    public XNodeImpl marshall(@Nullable Object inputBean, @Nullable SerializationContext ctx) throws SchemaException {
+        try {
+            if (inputBean == null) {
+                return null;
+            }
+            // Special hack (MID-5803) -- we should NEVER get PrismValue here; but not enough time to fix this right now
+            Object bean;
+            if (inputBean instanceof PrismValue) {
+                bean = ((PrismValue) inputBean).getRealValue();
+                if (bean == null) {
+                    return null;
+                }
+            } else {
+                bean = inputBean;
+            }
 
-			Marshaller marshaller = specialMarshallers.get(bean.getClass());
-			if (marshaller != null) {
-				return marshaller.marshal(bean, ctx);
-			}
+            Marshaller marshaller = specialMarshallers.get(bean.getClass());
+            if (marshaller != null) {
+                return marshaller.marshal(bean, ctx);
+            }
 
-			if (bean instanceof Containerable) {
-				return (XNodeImpl) prismContext.xnodeSerializer().context(ctx).serializeRealValue(bean, new QName("dummy"))
-						.getSubnode();
-			} else if (bean instanceof Enum) {
-				return marshalEnum((Enum) bean, ctx);
-			} else if (bean.getClass().getAnnotation(XmlType.class) != null) {
-				return marshalXmlType(bean, ctx);
-			} else if (bean instanceof Referencable) {
-				// i.e. we are Referencable but not ObjectReferenceType (e.g. DefaultReferencableImpl)
-				PrismReferenceValue referenceValue = ((Referencable) bean).asReferenceValue();
-				XNodeImpl xnode = (XNodeImpl) prismContext.xnodeSerializer().context(ctx)
-						.serialize(referenceValue, new QName("dummy"))
-						.getSubnode();
-				xnode.setTypeQName(ObjectUtils.defaultIfNull(prismContext.getDefaultReferenceTypeName(), ObjectReferenceType.COMPLEX_TYPE));
-				xnode.setExplicitTypeDeclaration(true);     // probably not much correct, but...
-				return xnode;
-			} else {
-				return marshalToPrimitive(bean, ctx);
-			}
-		} catch (Throwable t) {
-			LOGGER.error("Couldn't marshal an object:\n{}", inputBean, t);
-			throw t;
-		}
-	}
+            if (bean instanceof Containerable) {
+                return (XNodeImpl) prismContext.xnodeSerializer().context(ctx).serializeRealValue(bean, new QName("dummy"))
+                        .getSubnode();
+            } else if (bean instanceof Enum) {
+                return marshalEnum((Enum) bean, ctx);
+            } else if (bean.getClass().getAnnotation(XmlType.class) != null) {
+                return marshalXmlType(bean, ctx);
+            } else if (bean instanceof Referencable) {
+                // i.e. we are Referencable but not ObjectReferenceType (e.g. DefaultReferencableImpl)
+                PrismReferenceValue referenceValue = ((Referencable) bean).asReferenceValue();
+                XNodeImpl xnode = (XNodeImpl) prismContext.xnodeSerializer().context(ctx)
+                        .serialize(referenceValue, new QName("dummy"))
+                        .getSubnode();
+                xnode.setTypeQName(ObjectUtils.defaultIfNull(prismContext.getDefaultReferenceTypeName(), ObjectReferenceType.COMPLEX_TYPE));
+                xnode.setExplicitTypeDeclaration(true);     // probably not much correct, but...
+                return xnode;
+            } else {
+                return marshalToPrimitive(bean, ctx);
+            }
+        } catch (Throwable t) {
+            LOGGER.error("Couldn't marshal an object:\n{}", inputBean, t);
+            throw t;
+        }
+    }
 
-	private XNodeImpl marshalToPrimitive(Object bean, SerializationContext ctx) {
-		return createPrimitiveXNode(bean, null, false);
-	}
+    private XNodeImpl marshalToPrimitive(Object bean, SerializationContext ctx) {
+        return createPrimitiveXNode(bean, null, false);
+    }
 
-	private XNodeImpl marshalXmlType(Object bean, SerializationContext ctx) throws SchemaException {
+    private XNodeImpl marshalXmlType(Object bean, SerializationContext ctx) throws SchemaException {
 
-		Class<?> beanClass = bean.getClass();
-		ComplexTypeDefinition ctd = getSchemaRegistry()
-				.findTypeDefinitionByCompileTimeClass(beanClass, ComplexTypeDefinition.class);
+        Class<?> beanClass = bean.getClass();
+        ComplexTypeDefinition ctd = getSchemaRegistry()
+                .findTypeDefinitionByCompileTimeClass(beanClass, ComplexTypeDefinition.class);
 
-		Field valueField = XNodeProcessorUtil.findXmlValueField(beanClass);
-		if (valueField != null) {
-			return marshallBeanToPrimitive(bean, ctx, valueField);
-		}
+        Field valueField = XNodeProcessorUtil.findXmlValueField(beanClass);
+        if (valueField != null) {
+            return marshallBeanToPrimitive(bean, ctx, valueField);
+        }
 
-		if (ctd != null && ctd.isListMarker()) {
-			return marshalHeterogeneousList(bean, ctx);
-		} else {
-			return marshalXmlTypeToMap(bean, ctx);
-		}
-	}
+        if (ctd != null && ctd.isListMarker()) {
+            return marshalHeterogeneousList(bean, ctx);
+        } else {
+            return marshalXmlTypeToMap(bean, ctx);
+        }
+    }
 
-	/**
-	 * For cases when XSD complex type has a simple content. In that case the resulting class has @XmlValue annotation.
-	 */
-	private <T> PrimitiveXNodeImpl<T> marshallBeanToPrimitive(Object bean, SerializationContext ctx, Field valueField) throws SchemaException {
-		if (!valueField.isAccessible()) {
-			valueField.setAccessible(true);
-		}
-		T value;
-		try {
-			value = (T) valueField.get(bean);
-		} catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new SchemaException("Cannot get primitive value from field " + valueField.getName() + " of bean " + bean + ": "+e.getMessage(), e);
-		}
-		PrimitiveXNodeImpl<T> xnode = new PrimitiveXNodeImpl<>(value);
-		Class<?> fieldType = valueField.getType();
-		QName xsdType = XsdTypeMapper.toXsdType(fieldType);
-		xnode.setTypeQName(xsdType);
-		return xnode;
-	}
+    /**
+     * For cases when XSD complex type has a simple content. In that case the resulting class has @XmlValue annotation.
+     */
+    private <T> PrimitiveXNodeImpl<T> marshallBeanToPrimitive(Object bean, SerializationContext ctx, Field valueField) throws SchemaException {
+        if (!valueField.isAccessible()) {
+            valueField.setAccessible(true);
+        }
+        T value;
+        try {
+            value = (T) valueField.get(bean);
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            throw new SchemaException("Cannot get primitive value from field " + valueField.getName() + " of bean " + bean + ": "+e.getMessage(), e);
+        }
+        PrimitiveXNodeImpl<T> xnode = new PrimitiveXNodeImpl<>(value);
+        Class<?> fieldType = valueField.getType();
+        QName xsdType = XsdTypeMapper.toXsdType(fieldType);
+        xnode.setTypeQName(xsdType);
+        return xnode;
+    }
 
-	private XNodeImpl marshalHeterogeneousList(Object bean, SerializationContext ctx) throws SchemaException {
-		// structurally similar to a specific path through marshalXmlTypeToMap
-		Class<?> beanClass = bean.getClass();
-		QName propertyName = getHeterogeneousListPropertyName(beanClass);
-		Method getter = inspector.findPropertyGetter(beanClass, propertyName.getLocalPart());
-		Object getterResult = getValue(bean, getter, propertyName.getLocalPart());
-		if (!(getterResult instanceof Collection)) {
-			throw new IllegalStateException("Heterogeneous list property " + propertyName
-					+ " does not contain a collection but " + MiscUtil.getObjectName(getterResult));
-		}
-		ListXNodeImpl xlist = new ListXNodeImpl();
-		for (Object value : (Collection) getterResult) {
-			if (!(value instanceof JAXBElement)) {
-				throw new IllegalStateException("Heterogeneous list contains a value that is not a JAXBElement: " + value);
-			}
-			JAXBElement jaxbElement = (JAXBElement) value;
-			Object realValue = jaxbElement.getValue();
-			if (realValue == null) {
-				throw new IllegalStateException("Heterogeneous list contains a null value");		// TODO
-			}
-			QName typeName = inspector.determineTypeForClass(realValue.getClass());
-			XNodeImpl marshaled = marshallValue(realValue, typeName, false, ctx);
-			marshaled.setElementName(jaxbElement.getName());
-			setExplicitTypeDeclarationIfNeededForHeteroList(marshaled, realValue);
-			xlist.add(marshaled);
-		}
-		return xlist;
-	}
+    private XNodeImpl marshalHeterogeneousList(Object bean, SerializationContext ctx) throws SchemaException {
+        // structurally similar to a specific path through marshalXmlTypeToMap
+        Class<?> beanClass = bean.getClass();
+        QName propertyName = getHeterogeneousListPropertyName(beanClass);
+        Method getter = inspector.findPropertyGetter(beanClass, propertyName.getLocalPart());
+        Object getterResult = getValue(bean, getter, propertyName.getLocalPart());
+        if (!(getterResult instanceof Collection)) {
+            throw new IllegalStateException("Heterogeneous list property " + propertyName
+                    + " does not contain a collection but " + MiscUtil.getObjectName(getterResult));
+        }
+        ListXNodeImpl xlist = new ListXNodeImpl();
+        for (Object value : (Collection) getterResult) {
+            if (!(value instanceof JAXBElement)) {
+                throw new IllegalStateException("Heterogeneous list contains a value that is not a JAXBElement: " + value);
+            }
+            JAXBElement jaxbElement = (JAXBElement) value;
+            Object realValue = jaxbElement.getValue();
+            if (realValue == null) {
+                throw new IllegalStateException("Heterogeneous list contains a null value");        // TODO
+            }
+            QName typeName = inspector.determineTypeForClass(realValue.getClass());
+            XNodeImpl marshaled = marshallValue(realValue, typeName, false, ctx);
+            marshaled.setElementName(jaxbElement.getName());
+            setExplicitTypeDeclarationIfNeededForHeteroList(marshaled, realValue);
+            xlist.add(marshaled);
+        }
+        return xlist;
+    }
 
-	private XNodeImpl marshalXmlTypeToMap(Object bean, SerializationContext ctx) throws SchemaException {
+    private XNodeImpl marshalXmlTypeToMap(Object bean, SerializationContext ctx) throws SchemaException {
 
-		Class<?> beanClass = bean.getClass();
+        Class<?> beanClass = bean.getClass();
         MapXNodeImpl xmap;
         if (bean instanceof SearchFilterType) {
             // this hack is here because of c:ConditionalSearchFilterType - it is analogous to situation when unmarshalling this type (TODO: rework this in a nicer way)
@@ -201,38 +201,38 @@ public class BeanMarshaller {
             xmap = new MapXNodeImpl();
         }
 
-		String namespace = inspector.determineNamespace(beanClass);
-		if (namespace == null) {
-			throw new IllegalArgumentException("Cannot determine namespace of "+beanClass);
-		}
+        String namespace = inspector.determineNamespace(beanClass);
+        if (namespace == null) {
+            throw new IllegalArgumentException("Cannot determine namespace of "+beanClass);
+        }
 
-		List<String> propOrder = inspector.getPropOrder(beanClass);
+        List<String> propOrder = inspector.getPropOrder(beanClass);
 
-		for (String fieldName: propOrder) {
-			Method getter = inspector.findPropertyGetter(beanClass, fieldName);
-			if (getter == null) {
-				throw new IllegalStateException("No getter for field "+fieldName+" in "+beanClass);
-			}
-			Object getterResult = getValue(bean, getter, fieldName);
+        for (String fieldName: propOrder) {
+            Method getter = inspector.findPropertyGetter(beanClass, fieldName);
+            if (getter == null) {
+                throw new IllegalStateException("No getter for field "+fieldName+" in "+beanClass);
+            }
+            Object getterResult = getValue(bean, getter, fieldName);
 
-			if (getterResult == null) {
-				continue;
-			}
+            if (getterResult == null) {
+                continue;
+            }
 
-			Field field = inspector.findPropertyField(beanClass, fieldName);
-			boolean isAttribute = inspector.isAttribute(field, getter);
+            Field field = inspector.findPropertyField(beanClass, fieldName);
+            boolean isAttribute = inspector.isAttribute(field, getter);
 
-			QName elementName = inspector.findFieldElementQName(fieldName, beanClass, namespace);
-			if (getterResult instanceof Collection<?>) {
-				Collection collection = (Collection) getterResult;
-				if (collection.isEmpty()) {
-					continue;
-				}
-				Iterator i = collection.iterator();
-				Object getterResultValue = i.next();
-				if (getterResultValue == null) {
-					continue;
-				}
+            QName elementName = inspector.findFieldElementQName(fieldName, beanClass, namespace);
+            if (getterResult instanceof Collection<?>) {
+                Collection collection = (Collection) getterResult;
+                if (collection.isEmpty()) {
+                    continue;
+                }
+                Iterator i = collection.iterator();
+                Object getterResultValue = i.next();
+                if (getterResultValue == null) {
+                    continue;
+                }
 
                 // elementName will be determined from the first item on the list
                 // TODO make sure it will be correct with respect to other items as well!
@@ -240,236 +240,236 @@ public class BeanMarshaller {
                     elementName = ((JAXBElement) getterResultValue).getName();
                 }
 
-				ListXNodeImpl xlist = new ListXNodeImpl();
-				for (Object value: collection) {
-                	if (value == null) {
-                		continue;
-                	}
-					Object valueToMarshal = value;
-					if (value instanceof JAXBElement) {
-						valueToMarshal = ((JAXBElement) value).getValue();
-					}
+                ListXNodeImpl xlist = new ListXNodeImpl();
+                for (Object value: collection) {
+                    if (value == null) {
+                        continue;
+                    }
+                    Object valueToMarshal = value;
+                    if (value instanceof JAXBElement) {
+                        valueToMarshal = ((JAXBElement) value).getValue();
+                    }
                     QName typeName = inspector.findTypeName(field, valueToMarshal.getClass(), namespace);
-					// note: fieldTypeName is used only for attribute values here (when constructing PrimitiveXNode)
-					XNodeImpl marshaled = marshallValue(valueToMarshal, typeName, isAttribute, ctx);
-					setExplicitTypeDeclarationIfNeeded(marshaled, getter, valueToMarshal, typeName);
-					xlist.add(marshaled);
-				}
+                    // note: fieldTypeName is used only for attribute values here (when constructing PrimitiveXNode)
+                    XNodeImpl marshaled = marshallValue(valueToMarshal, typeName, isAttribute, ctx);
+                    setExplicitTypeDeclarationIfNeeded(marshaled, getter, valueToMarshal, typeName);
+                    xlist.add(marshaled);
+                }
                 xmap.put(elementName, xlist);
-			} else {
-				QName fieldTypeName = inspector.findTypeName(field, getterResult.getClass(), namespace);
-				Object valueToMarshall;
-				if (getterResult instanceof JAXBElement) {
-					valueToMarshall = ((JAXBElement) getterResult).getValue();
-					elementName = ((JAXBElement) getterResult).getName();
-				} else {
-					valueToMarshall = getterResult;
-				}
-				XNodeImpl marshaled = marshallValue(valueToMarshall, fieldTypeName, isAttribute, ctx);
-				// TODO reconcile with setExplicitTypeDeclarationIfNeeded
-				if (!getter.getReturnType().equals(valueToMarshall.getClass()) && getter.getReturnType().isAssignableFrom(valueToMarshall.getClass()) && !(valueToMarshall instanceof Enum)) {
-					TypeDefinition def = prismContext.getSchemaRegistry().findTypeDefinitionByCompileTimeClass(valueToMarshall.getClass(), TypeDefinition.class);
-					if (def != null) {
-						QName type = def.getTypeName();
-						marshaled.setTypeQName(type);
-						marshaled.setExplicitTypeDeclaration(true);
-					}
-				}
-				xmap.put(elementName, marshaled);
+            } else {
+                QName fieldTypeName = inspector.findTypeName(field, getterResult.getClass(), namespace);
+                Object valueToMarshall;
+                if (getterResult instanceof JAXBElement) {
+                    valueToMarshall = ((JAXBElement) getterResult).getValue();
+                    elementName = ((JAXBElement) getterResult).getName();
+                } else {
+                    valueToMarshall = getterResult;
+                }
+                XNodeImpl marshaled = marshallValue(valueToMarshall, fieldTypeName, isAttribute, ctx);
+                // TODO reconcile with setExplicitTypeDeclarationIfNeeded
+                if (!getter.getReturnType().equals(valueToMarshall.getClass()) && getter.getReturnType().isAssignableFrom(valueToMarshall.getClass()) && !(valueToMarshall instanceof Enum)) {
+                    TypeDefinition def = prismContext.getSchemaRegistry().findTypeDefinitionByCompileTimeClass(valueToMarshall.getClass(), TypeDefinition.class);
+                    if (def != null) {
+                        QName type = def.getTypeName();
+                        marshaled.setTypeQName(type);
+                        marshaled.setExplicitTypeDeclaration(true);
+                    }
+                }
+                xmap.put(elementName, marshaled);
 
-//				setExplicitTypeDeclarationIfNeeded(getter, valueToMarshall, xmap, fieldTypeName);
-			}
-		}
+//                setExplicitTypeDeclarationIfNeeded(getter, valueToMarshall, xmap, fieldTypeName);
+            }
+        }
 
-		return xmap;
-	}
+        return xmap;
+    }
 
-	private Object getValue(Object bean, Method getter, String fieldOrPropertyName) {
-		Object getterResult;
-		try {
-			getterResult = getter.invoke(bean);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			throw new SystemException("Cannot invoke method for field/property "+fieldOrPropertyName+" in "+bean.getClass()+": "+e.getMessage(), e);
-		}
-		return getterResult;
-	}
+    private Object getValue(Object bean, Method getter, String fieldOrPropertyName) {
+        Object getterResult;
+        try {
+            getterResult = getter.invoke(bean);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            throw new SystemException("Cannot invoke method for field/property "+fieldOrPropertyName+" in "+bean.getClass()+": "+e.getMessage(), e);
+        }
+        return getterResult;
+    }
 
-	private XNodeImpl marshalEnum(Enum enumValue, SerializationContext ctx) {
-		Class<? extends Enum> enumClass = enumValue.getClass();
-		String enumStringValue = inspector.findEnumFieldValue(enumClass, enumValue.toString());
-		if (StringUtils.isEmpty(enumStringValue)){
-			enumStringValue = enumValue.toString();
-		}
-		QName fieldTypeName = inspector.findTypeName(null, enumClass, DEFAULT_PLACEHOLDER);
-		return createPrimitiveXNode(enumStringValue, fieldTypeName, false);
+    private XNodeImpl marshalEnum(Enum enumValue, SerializationContext ctx) {
+        Class<? extends Enum> enumClass = enumValue.getClass();
+        String enumStringValue = inspector.findEnumFieldValue(enumClass, enumValue.toString());
+        if (StringUtils.isEmpty(enumStringValue)){
+            enumStringValue = enumValue.toString();
+        }
+        QName fieldTypeName = inspector.findTypeName(null, enumClass, DEFAULT_PLACEHOLDER);
+        return createPrimitiveXNode(enumStringValue, fieldTypeName, false);
 
-	}
+    }
 
-	private XNodeImpl marshalXmlAsStringType(Object bean, SerializationContext sc) {
+    private XNodeImpl marshalXmlAsStringType(Object bean, SerializationContext sc) {
         PrimitiveXNodeImpl xprim = new PrimitiveXNodeImpl<>();
         xprim.setValue(((XmlAsStringType) bean).getContentAsString(), DOMUtil.XSD_STRING);
         return xprim;
     }
 
     public void revive(Object bean, final PrismContext prismContext) throws SchemaException {
-		Handler<Object> visitor = o -> {
-			if (o instanceof Revivable) {
-				try {
-					((Revivable)o).revive(prismContext);
-				} catch (SchemaException e) {
-					throw new TunnelException(e);
-				}
-			}
-			return true;
-		};
-		try {
-			visit(bean, visitor);
-		} catch (TunnelException te) {
-			SchemaException e = (SchemaException) te.getCause();
-			throw e;
-		}
-	}
+        Handler<Object> visitor = o -> {
+            if (o instanceof Revivable) {
+                try {
+                    ((Revivable)o).revive(prismContext);
+                } catch (SchemaException e) {
+                    throw new TunnelException(e);
+                }
+            }
+            return true;
+        };
+        try {
+            visit(bean, visitor);
+        } catch (TunnelException te) {
+            SchemaException e = (SchemaException) te.getCause();
+            throw e;
+        }
+    }
 
-	public void visit(Object bean, Handler<Object> handler) {
-		if (bean == null) {
-			return;
-		}
+    public void visit(Object bean, Handler<Object> handler) {
+        if (bean == null) {
+            return;
+        }
 
-		Class<? extends Object> beanClass = bean.getClass();
+        Class<? extends Object> beanClass = bean.getClass();
 
-		handler.handle(bean);
+        handler.handle(bean);
 
-		if (beanClass.isEnum() || beanClass.isPrimitive()){
-			//nothing more to do
-			return;
-		}
+        if (beanClass.isEnum() || beanClass.isPrimitive()){
+            //nothing more to do
+            return;
+        }
 
         // TODO: implement special handling for RawType, if necessary (it has no XmlType annotation any more)
 
-		XmlType xmlType = beanClass.getAnnotation(XmlType.class);
-		if (xmlType == null) {
-			// no @XmlType annotation, we are not interested to go any deeper
-			return;
-		}
+        XmlType xmlType = beanClass.getAnnotation(XmlType.class);
+        if (xmlType == null) {
+            // no @XmlType annotation, we are not interested to go any deeper
+            return;
+        }
 
-		List<String> propOrder = inspector.getPropOrder(beanClass);
-		for (String fieldName: propOrder) {
-			Method getter = inspector.findPropertyGetter(beanClass, fieldName);
-			if (getter == null) {
-				throw new IllegalStateException("No getter for field "+fieldName+" in "+beanClass);
-			}
-			Object getterResult = getValue(bean, getter, fieldName);
+        List<String> propOrder = inspector.getPropOrder(beanClass);
+        for (String fieldName: propOrder) {
+            Method getter = inspector.findPropertyGetter(beanClass, fieldName);
+            if (getter == null) {
+                throw new IllegalStateException("No getter for field "+fieldName+" in "+beanClass);
+            }
+            Object getterResult = getValue(bean, getter, fieldName);
 
-			if (getterResult == null) {
-				continue;
-			}
+            if (getterResult == null) {
+                continue;
+            }
 
-			if (getterResult instanceof Collection<?>) {
-				Collection col = (Collection)getterResult;
-				if (col.isEmpty()) {
-					continue;
-				}
+            if (getterResult instanceof Collection<?>) {
+                Collection col = (Collection)getterResult;
+                if (col.isEmpty()) {
+                    continue;
+                }
 
-				for (Object element: col) {
-					visitValue(element, handler);
+                for (Object element: col) {
+                    visitValue(element, handler);
 
-				}
-			} else {
-				visitValue(getterResult, handler);
-			}
-		}
-	}
+                }
+            } else {
+                visitValue(getterResult, handler);
+            }
+        }
+    }
 
-	private void visitValue(Object element, Handler<Object> handler) {
-		Object elementToMarshall = element;
-		if (element instanceof JAXBElement){
-			elementToMarshall = ((JAXBElement) element).getValue();
-		}
-		visit(elementToMarshall, handler);
-	}
+    private void visitValue(Object element, Handler<Object> handler) {
+        Object elementToMarshall = element;
+        if (element instanceof JAXBElement){
+            elementToMarshall = ((JAXBElement) element).getValue();
+        }
+        visit(elementToMarshall, handler);
+    }
 
-	private void setExplicitTypeDeclarationIfNeededForHeteroList(XNodeImpl node, Object realValue) {
-		QName elementName = node.getElementName();
-		QName typeName = inspector.determineTypeForClass(realValue.getClass());
-		if (typeName != null && !getSchemaRegistry().hasImplicitTypeDefinition(elementName, typeName)
-				&& getSchemaRegistry().findTypeDefinitionByType(typeName, TypeDefinition.class) != null) {
-			node.setExplicitTypeDeclaration(true);
-			node.setTypeQName(typeName);
-		}
-	}
+    private void setExplicitTypeDeclarationIfNeededForHeteroList(XNodeImpl node, Object realValue) {
+        QName elementName = node.getElementName();
+        QName typeName = inspector.determineTypeForClass(realValue.getClass());
+        if (typeName != null && !getSchemaRegistry().hasImplicitTypeDefinition(elementName, typeName)
+                && getSchemaRegistry().findTypeDefinitionByType(typeName, TypeDefinition.class) != null) {
+            node.setExplicitTypeDeclaration(true);
+            node.setTypeQName(typeName);
+        }
+    }
 
-	// TODO shouldn't we use here the same approach as above?
-	private void setExplicitTypeDeclarationIfNeeded(XNodeImpl node, Method getter, Object getterResult, QName typeName) {
-		if (typeName == null) {
-			// the idea is not to overwrite pre-existing explicit type declaration with null value
-			// TODO reconsider
-			return;
-		}
-		Class getterReturnType = getter.getReturnType();
-		Class getterType = null;
-		if (Collection.class.isAssignableFrom(getterReturnType)) {
-			Type genericReturnType = getter.getGenericReturnType();
-			if (genericReturnType instanceof ParameterizedType) {
-				Type actualType = inspector.getTypeArgument(genericReturnType, "explicit type declaration");
-				if (actualType instanceof Class) {
-					getterType = (Class) actualType;
-				} else if (actualType instanceof ParameterizedType) {
-					ParameterizedType parameterizedType = (ParameterizedType) actualType;
-					Type typeArgument = inspector.getTypeArgument(parameterizedType, "JAXBElement return type");
-					getterType = inspector.getUpperBound(typeArgument, "JAXBElement return type");
-				}
-			}
-		}
-		if (getterType == null) {
-			getterType = getterReturnType;
-		}
-		Class getterResultReturnType = getterResult.getClass();
-		if (node != null && getterType != getterResultReturnType && getterType.isAssignableFrom(getterResultReturnType)) {
-			node.setExplicitTypeDeclaration(true);
-			node.setTypeQName(typeName);
-		}
-	}
+    // TODO shouldn't we use here the same approach as above?
+    private void setExplicitTypeDeclarationIfNeeded(XNodeImpl node, Method getter, Object getterResult, QName typeName) {
+        if (typeName == null) {
+            // the idea is not to overwrite pre-existing explicit type declaration with null value
+            // TODO reconsider
+            return;
+        }
+        Class getterReturnType = getter.getReturnType();
+        Class getterType = null;
+        if (Collection.class.isAssignableFrom(getterReturnType)) {
+            Type genericReturnType = getter.getGenericReturnType();
+            if (genericReturnType instanceof ParameterizedType) {
+                Type actualType = inspector.getTypeArgument(genericReturnType, "explicit type declaration");
+                if (actualType instanceof Class) {
+                    getterType = (Class) actualType;
+                } else if (actualType instanceof ParameterizedType) {
+                    ParameterizedType parameterizedType = (ParameterizedType) actualType;
+                    Type typeArgument = inspector.getTypeArgument(parameterizedType, "JAXBElement return type");
+                    getterType = inspector.getUpperBound(typeArgument, "JAXBElement return type");
+                }
+            }
+        }
+        if (getterType == null) {
+            getterType = getterReturnType;
+        }
+        Class getterResultReturnType = getterResult.getClass();
+        if (node != null && getterType != getterResultReturnType && getterType.isAssignableFrom(getterResultReturnType)) {
+            node.setExplicitTypeDeclaration(true);
+            node.setTypeQName(typeName);
+        }
+    }
 
-	// bean should have only two features: "list" attribute and multivalued property into which we should store the elements
-	@NotNull
-	<T> QName getHeterogeneousListPropertyName(Class<T> beanClass) throws SchemaException {
-		List<String> properties = inspector.getPropOrder(beanClass);
-		if (!properties.contains(DOMUtil.IS_LIST_ATTRIBUTE_NAME)) {
-			throw new SchemaException("Couldn't unmarshal heterogeneous list into class without '"
-					+ DOMUtil.IS_LIST_ATTRIBUTE_NAME + "' attribute. Class: "
-					+ beanClass.getName() + " has the following properties: " + properties);
-		}
-		if (properties.size() > 2) {
-			throw new SchemaException("Couldn't unmarshal heterogeneous list into class with more than one property "
-					+ "other than '" + DOMUtil.IS_LIST_ATTRIBUTE_NAME + "'. Class " + beanClass.getName()
-					+ " has the following properties: " + properties);
-		}
-		String contentProperty = properties.stream()
-				.filter(p -> !DOMUtil.IS_LIST_ATTRIBUTE_NAME.equals(p))
-				.findFirst()
-				.orElseThrow(() -> new SchemaException("Couldn't unmarshal heterogeneous list into class without "
-						+ "content-holding property. Class: " + beanClass.getName() + "."));
-		return new QName(inspector.determineNamespace(beanClass), contentProperty);
-	}
+    // bean should have only two features: "list" attribute and multivalued property into which we should store the elements
+    @NotNull
+    <T> QName getHeterogeneousListPropertyName(Class<T> beanClass) throws SchemaException {
+        List<String> properties = inspector.getPropOrder(beanClass);
+        if (!properties.contains(DOMUtil.IS_LIST_ATTRIBUTE_NAME)) {
+            throw new SchemaException("Couldn't unmarshal heterogeneous list into class without '"
+                    + DOMUtil.IS_LIST_ATTRIBUTE_NAME + "' attribute. Class: "
+                    + beanClass.getName() + " has the following properties: " + properties);
+        }
+        if (properties.size() > 2) {
+            throw new SchemaException("Couldn't unmarshal heterogeneous list into class with more than one property "
+                    + "other than '" + DOMUtil.IS_LIST_ATTRIBUTE_NAME + "'. Class " + beanClass.getName()
+                    + " has the following properties: " + properties);
+        }
+        String contentProperty = properties.stream()
+                .filter(p -> !DOMUtil.IS_LIST_ATTRIBUTE_NAME.equals(p))
+                .findFirst()
+                .orElseThrow(() -> new SchemaException("Couldn't unmarshal heterogeneous list into class without "
+                        + "content-holding property. Class: " + beanClass.getName() + "."));
+        return new QName(inspector.determineNamespace(beanClass), contentProperty);
+    }
 
-	private <T> XNodeImpl marshallValue(T value, QName valueType, boolean isAttribute, SerializationContext ctx) throws SchemaException {
-		if (value == null) {
-			return null;
-		}
-		if (isAttribute) {
-			// hoping the value fits into primitive!
-			return createPrimitiveXNode(value, valueType, true);
-		} else {
-			return marshall(value, ctx);
-		}
-	}
+    private <T> XNodeImpl marshallValue(T value, QName valueType, boolean isAttribute, SerializationContext ctx) throws SchemaException {
+        if (value == null) {
+            return null;
+        }
+        if (isAttribute) {
+            // hoping the value fits into primitive!
+            return createPrimitiveXNode(value, valueType, true);
+        } else {
+            return marshall(value, ctx);
+        }
+    }
 
-	private <T> PrimitiveXNodeImpl<T> createPrimitiveXNode(T value, QName valueType, boolean isAttribute) {
-		PrimitiveXNodeImpl<T> xprim = new PrimitiveXNodeImpl<>();
-		xprim.setValue(value, valueType);
-		xprim.setAttribute(isAttribute);
-		return xprim;
-	}
+    private <T> PrimitiveXNodeImpl<T> createPrimitiveXNode(T value, QName valueType, boolean isAttribute) {
+        PrimitiveXNodeImpl<T> xprim = new PrimitiveXNodeImpl<>();
+        xprim.setValue(value, valueType);
+        xprim.setAttribute(isAttribute);
+        return xprim;
+    }
 
     private <T> PrimitiveXNodeImpl<T> createPrimitiveXNode(T val, QName type) {
         return createPrimitiveXNode(val, type, false);
@@ -477,61 +477,61 @@ public class BeanMarshaller {
 
     private XNodeImpl marshalRawType(Object value, SerializationContext sc) throws SchemaException {
         return (XNodeImpl) ((RawType) value).serializeToXNode();
-	}
+    }
 
-	private XNodeImpl marshalPolyString(Object value, SerializationContext sc) throws SchemaException {
-		if (value instanceof PolyString) {
-			return marshalPolyString((PolyString) value);
-		} else if (value instanceof PolyStringType) {
-			return marshalPolyString(((PolyStringType) value).toPolyString());
-		} else {
-			throw new IllegalArgumentException("Not a PolyString nor PolyStringType: " + value);
-		}
-	}
+    private XNodeImpl marshalPolyString(Object value, SerializationContext sc) throws SchemaException {
+        if (value instanceof PolyString) {
+            return marshalPolyString((PolyString) value);
+        } else if (value instanceof PolyStringType) {
+            return marshalPolyString(((PolyStringType) value).toPolyString());
+        } else {
+            throw new IllegalArgumentException("Not a PolyString nor PolyStringType: " + value);
+        }
+    }
 
-	XNodeImpl marshalPolyString(PolyString realValue) throws SchemaException {
-		if (realValue.isSimple()) {
-			PrimitiveXNodeImpl<PolyString> xprim = new PrimitiveXNodeImpl<>();
-			xprim.setValue(realValue, PolyStringType.COMPLEX_TYPE);
-			return xprim;
-		} else {
-			MapXNodeImpl xmap = new MapXNodeImpl();
+    XNodeImpl marshalPolyString(PolyString realValue) throws SchemaException {
+        if (realValue.isSimple()) {
+            PrimitiveXNodeImpl<PolyString> xprim = new PrimitiveXNodeImpl<>();
+            xprim.setValue(realValue, PolyStringType.COMPLEX_TYPE);
+            return xprim;
+        } else {
+            MapXNodeImpl xmap = new MapXNodeImpl();
 
-			PrimitiveXNodeImpl<String> xorig = new PrimitiveXNodeImpl<>();
-			xorig.setValue(realValue.getOrig(), DOMUtil.XSD_STRING);
-			xmap.put(PolyString.F_ORIG, xorig);
+            PrimitiveXNodeImpl<String> xorig = new PrimitiveXNodeImpl<>();
+            xorig.setValue(realValue.getOrig(), DOMUtil.XSD_STRING);
+            xmap.put(PolyString.F_ORIG, xorig);
 
-			PrimitiveXNodeImpl<String> xnorm = new PrimitiveXNodeImpl<>();
-			xnorm.setValue(realValue.getNorm(), DOMUtil.XSD_STRING);
-			xmap.put(PolyString.F_NORM, xnorm);
+            PrimitiveXNodeImpl<String> xnorm = new PrimitiveXNodeImpl<>();
+            xnorm.setValue(realValue.getNorm(), DOMUtil.XSD_STRING);
+            xmap.put(PolyString.F_NORM, xnorm);
 
-			PolyStringTranslationType translation = realValue.getTranslation();
-			if (translation != null) {
-				XNodeImpl xTranslation = marshall(translation);
-				xmap.put(PolyString.F_TRANSLATION, xTranslation);
-			}
+            PolyStringTranslationType translation = realValue.getTranslation();
+            if (translation != null) {
+                XNodeImpl xTranslation = marshall(translation);
+                xmap.put(PolyString.F_TRANSLATION, xTranslation);
+            }
 
-			Map<String, String> lang = realValue.getLang();
-			if (lang != null && !lang.isEmpty()) {
-				XNodeImpl xTranslation = serializePolyStringLang(lang);
-				xmap.put(PolyString.F_LANG, xTranslation);
-			}
+            Map<String, String> lang = realValue.getLang();
+            if (lang != null && !lang.isEmpty()) {
+                XNodeImpl xTranslation = serializePolyStringLang(lang);
+                xmap.put(PolyString.F_LANG, xTranslation);
+            }
 
-			return xmap;
-		}
-	}
+            return xmap;
+        }
+    }
 
-	private XNodeImpl serializePolyStringLang(Map<String, String> lang) {
-		MapXNodeImpl xmap = new MapXNodeImpl();
-		for (Map.Entry<String, String> langEntry : lang.entrySet()) {
-			PrimitiveXNodeImpl<String> xPrim = new PrimitiveXNodeImpl<>(langEntry.getValue());
-			xmap.put(new QName(PolyString.F_LANG.getNamespaceURI(), langEntry.getKey()), xPrim);
-		}
-		return xmap;
-	}
+    private XNodeImpl serializePolyStringLang(Map<String, String> lang) {
+        MapXNodeImpl xmap = new MapXNodeImpl();
+        for (Map.Entry<String, String> langEntry : lang.entrySet()) {
+            PrimitiveXNodeImpl<String> xPrim = new PrimitiveXNodeImpl<>(langEntry.getValue());
+            xmap.put(new QName(PolyString.F_LANG.getNamespaceURI(), langEntry.getKey()), xPrim);
+        }
+        return xmap;
+    }
 
-	private XNodeImpl marshalItemPathType(Object o, SerializationContext sc) {
-		ItemPathType itemPath = (ItemPathType) o;
+    private XNodeImpl marshalItemPathType(Object o, SerializationContext sc) {
+        ItemPathType itemPath = (ItemPathType) o;
         PrimitiveXNodeImpl<ItemPathType> xprim = new PrimitiveXNodeImpl<>();
         if (itemPath != null) {
             xprim.setValue(itemPath, ItemPathType.COMPLEX_TYPE);
@@ -540,7 +540,7 @@ public class BeanMarshaller {
     }
 
     private XNodeImpl marshalSchemaDefinition(Object o, SerializationContext ctx) {
-		SchemaDefinitionType schemaDefinitionType = (SchemaDefinitionType) o;
+        SchemaDefinitionType schemaDefinitionType = (SchemaDefinitionType) o;
         SchemaXNodeImpl xschema = new SchemaXNodeImpl();
         xschema.setSchemaElement(schemaDefinitionType.getSchema());
         MapXNodeImpl xmap = new MapXNodeImpl();
@@ -550,7 +550,7 @@ public class BeanMarshaller {
 
     // TODO create more appropriate interface to be able to simply serialize ProtectedStringType instances
     public <T> MapXNodeImpl marshalProtectedDataType(Object o, SerializationContext sc) throws SchemaException {
-		ProtectedDataType<T> protectedType = (ProtectedDataType<T>) o;
+        ProtectedDataType<T> protectedType = (ProtectedDataType<T>) o;
         MapXNodeImpl xmap = new MapXNodeImpl();
         if (protectedType.getEncryptedDataType() != null) {
             EncryptedDataType encryptedDataType = protectedType.getEncryptedDataType();
@@ -571,44 +571,44 @@ public class BeanMarshaller {
 
 
     //region Specific marshallers ==============================================================
-	private MapXNodeImpl marshalSearchFilterType(SearchFilterType value) throws SchemaException {
-		if (value == null) {
-			return null;
-		}
-		return (MapXNodeImpl) value.serializeToXNode(prismContext);
-	}
+    private MapXNodeImpl marshalSearchFilterType(SearchFilterType value) throws SchemaException {
+        if (value == null) {
+            return null;
+        }
+        return (MapXNodeImpl) value.serializeToXNode(prismContext);
+    }
 
-	//endregion
+    //endregion
 
-	@NotNull
-	public PrismContext getPrismContext() {
-		return prismContext;
-	}
+    @NotNull
+    public PrismContext getPrismContext() {
+        return prismContext;
+    }
 
-	private SchemaRegistry getSchemaRegistry() {
-		return prismContext.getSchemaRegistry();
-	}
+    private SchemaRegistry getSchemaRegistry() {
+        return prismContext.getSchemaRegistry();
+    }
 
-	public boolean canProcess(QName typeName) {
-		Class<Object> clazz = getSchemaRegistry().determineClassForType(typeName);
-		if (clazz != null && canProcess(clazz)) {
-			return true;
-		}
-		TypeDefinition td = getSchemaRegistry().findTypeDefinitionByType(typeName);
-		if (td instanceof SimpleTypeDefinition) {
-			return true;			// most probably dynamic enum, at this point
-		}
-		return false;
-	}
+    public boolean canProcess(QName typeName) {
+        Class<Object> clazz = getSchemaRegistry().determineClassForType(typeName);
+        if (clazz != null && canProcess(clazz)) {
+            return true;
+        }
+        TypeDefinition td = getSchemaRegistry().findTypeDefinitionByType(typeName);
+        if (td instanceof SimpleTypeDefinition) {
+            return true;            // most probably dynamic enum, at this point
+        }
+        return false;
+    }
 
-	public boolean canProcess(@NotNull Class<?> clazz) {
-		return !Containerable.class.isAssignableFrom(clazz) &&
-				(RawType.class.equals(clazz) || clazz.getAnnotation(XmlType.class) != null || XsdTypeMapper.getTypeFromClass(clazz) != null);
-	}
+    public boolean canProcess(@NotNull Class<?> clazz) {
+        return !Containerable.class.isAssignableFrom(clazz) &&
+                (RawType.class.equals(clazz) || clazz.getAnnotation(XmlType.class) != null || XsdTypeMapper.getTypeFromClass(clazz) != null);
+    }
 
-	public QName determineTypeForClass(Class<?> clazz) {
-		return inspector.determineTypeForClass(clazz);
-	}
+    public QName determineTypeForClass(Class<?> clazz) {
+        return inspector.determineTypeForClass(clazz);
+    }
 
 }
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,10 +19,10 @@ import javax.xml.namespace.QName;
  */
 public class IdentifierPathSegment extends ItemPathSegment {
 
-	public static final String SYMBOL = "#";
-	public static final QName QNAME = PrismConstants.T_ID;
+    public static final String SYMBOL = "#";
+    public static final QName QNAME = PrismConstants.T_ID;
 
-	@Override
+    @Override
     public boolean equivalent(Object obj) {
         return equals(obj);
     }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.trigger;
@@ -34,54 +34,54 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @Component
 public class CompletedTaskCleanupTriggerHandler implements SingleTriggerHandler {
 
-	public static final String HANDLER_URI = SchemaConstants.COMPLETED_TASK_CLEANUP_TRIGGER_HANDLER_URI;
+    public static final String HANDLER_URI = SchemaConstants.COMPLETED_TASK_CLEANUP_TRIGGER_HANDLER_URI;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(CompletedTaskCleanupTriggerHandler.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(CompletedTaskCleanupTriggerHandler.class);
 
-	@Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
-	@Autowired private RepositoryService repositoryService;
-	@Autowired private TaskManager taskManager;
+    @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
+    @Autowired private RepositoryService repositoryService;
+    @Autowired private TaskManager taskManager;
 
-	@PostConstruct
-	private void initialize() {
-		triggerHandlerRegistry.register(HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        triggerHandlerRegistry.register(HANDLER_URI, this);
+    }
 
-	@Override
-	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask task, OperationResult result) {
-		try {
-			// reload the task to minimize potential for race conflicts
-			// todo use repo preconditions to implement this
-			if (!(object.asObjectable() instanceof TaskType)) {
-				return;
-			}
-			TaskType completedTask = repositoryService.getObject(TaskType.class, object.getOid(), null, result).asObjectable();
-			LOGGER.trace("Checking completed task to be deleted {}", completedTask);
-			if (completedTask.getExecutionStatus() != TaskExecutionStatusType.CLOSED) {
-				LOGGER.debug("Task {} is not closed, not deleting it.", completedTask);
-				return;
-			}
-			XMLGregorianCalendar completion = completedTask.getCompletionTimestamp();
-			if (completion == null) {
-				LOGGER.debug("Task {} has no completion timestamp, not deleting it.", completedTask);
-				return;
-			}
-			if (completedTask.getCleanupAfterCompletion() == null) {
-				LOGGER.debug("Task {} has no 'cleanup after completion' set, not deleting it.", completedTask);
-				return;
-			}
-			completion.add(completedTask.getCleanupAfterCompletion());
-			if (!XmlTypeConverter.isBeforeNow(completion)) {
-				LOGGER.debug("Task {} should be deleted no earlier than {}, not deleting it.", completedTask, completion);
-				// We assume there is another trigger set to the correct time. This might not be the case if the administrator
-				// set 'cleanupAfterCompletion' after the task was completed. Let's jut ignore this situation.
-				return;
-			}
-			LOGGER.debug("Deleting completed task {}", completedTask);
-			taskManager.deleteTask(object.getOid(), result);
-		} catch (CommonException | RuntimeException | Error e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete completed task {}", e, object);
-			// do not retry this trigger execution
-		}
-	}
+    @Override
+    public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask task, OperationResult result) {
+        try {
+            // reload the task to minimize potential for race conflicts
+            // todo use repo preconditions to implement this
+            if (!(object.asObjectable() instanceof TaskType)) {
+                return;
+            }
+            TaskType completedTask = repositoryService.getObject(TaskType.class, object.getOid(), null, result).asObjectable();
+            LOGGER.trace("Checking completed task to be deleted {}", completedTask);
+            if (completedTask.getExecutionStatus() != TaskExecutionStatusType.CLOSED) {
+                LOGGER.debug("Task {} is not closed, not deleting it.", completedTask);
+                return;
+            }
+            XMLGregorianCalendar completion = completedTask.getCompletionTimestamp();
+            if (completion == null) {
+                LOGGER.debug("Task {} has no completion timestamp, not deleting it.", completedTask);
+                return;
+            }
+            if (completedTask.getCleanupAfterCompletion() == null) {
+                LOGGER.debug("Task {} has no 'cleanup after completion' set, not deleting it.", completedTask);
+                return;
+            }
+            completion.add(completedTask.getCleanupAfterCompletion());
+            if (!XmlTypeConverter.isBeforeNow(completion)) {
+                LOGGER.debug("Task {} should be deleted no earlier than {}, not deleting it.", completedTask, completion);
+                // We assume there is another trigger set to the correct time. This might not be the case if the administrator
+                // set 'cleanupAfterCompletion' after the task was completed. Let's jut ignore this situation.
+                return;
+            }
+            LOGGER.debug("Deleting completed task {}", completedTask);
+            taskManager.deleteTask(object.getOid(), result);
+        } catch (CommonException | RuntimeException | Error e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete completed task {}", e, object);
+            // do not retry this trigger execution
+        }
+    }
 }

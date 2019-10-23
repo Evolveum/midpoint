@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="00000000-0000-0000-0000-00000000000b"
@@ -14,12 +14,12 @@
         <targetRef oid="00000000-0000-0000-0000-000000000320" type="ArchetypeType"/> <!-- System role -->
     </assignment>
     <authorization>
-    	<name>gui-reviewer-access</name>
-    	<description>
-    		Allow access to list of certification cases in GUI. Allow access to pages that show object details,
-    		so the reviewer may examine data related to the request.
-    	</description>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#certificationDecisions</action>
+        <name>gui-reviewer-access</name>
+        <description>
+            Allow access to list of certification cases in GUI. Allow access to pages that show object details,
+            so the reviewer may examine data related to the request.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#certificationDecisions</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userDetails</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit</action>
@@ -31,10 +31,10 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#recordCertificationDecision</action>
     </authorization>
     <authorization>
-    	<name>users-read</name>
-    	<description>
-    		Allow to read basic user properties.
-    	</description>
+        <name>users-read</name>
+        <description>
+            Allow to read basic user properties.
+        </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
             <type>UserType</type>
@@ -47,10 +47,10 @@
         <item>employeeNumber</item>
     </authorization>
     <authorization>
-    	<name>roles-read</name>
-    	<description>
-    		Allow to read basic role properties.
-    	</description>
+        <name>roles-read</name>
+        <description>
+            Allow to read basic role properties.
+        </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
             <type>RoleType</type>
@@ -63,10 +63,10 @@
         <item>roleType</item>
     </authorization>
     <authorization>
-    	<name>orgs-read</name>
-    	<description>
-    		Allow to read basic org properties.
-    	</description>
+        <name>orgs-read</name>
+        <description>
+            Allow to read basic org properties.
+        </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
             <type>RoleType</type>
@@ -79,10 +79,10 @@
         <item>orgType</item>
     </authorization>
     <authorization>
-    	<name>services-read</name>
-    	<description>
-    		Allow to read basic service properties.
-    	</description>
+        <name>services-read</name>
+        <description>
+            Allow to read basic service properties.
+        </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
             <type>ServiceType</type>

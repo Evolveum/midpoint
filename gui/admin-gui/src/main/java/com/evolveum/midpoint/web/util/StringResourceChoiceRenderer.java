@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.util;
@@ -18,28 +18,28 @@ import org.apache.wicket.model.ResourceModel;
  *
  */
 public class StringResourceChoiceRenderer implements IChoiceRenderer<String> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	String keyPrefix;
+    String keyPrefix;
 
-	public StringResourceChoiceRenderer(String keyPrefix) {
-		super();
-		this.keyPrefix = keyPrefix;
-	}
+    public StringResourceChoiceRenderer(String keyPrefix) {
+        super();
+        this.keyPrefix = keyPrefix;
+    }
 
-	@Override
-	public Object getDisplayValue(String object) {
-		return new ResourceModel(keyPrefix+"."+object, object).getObject();
-	}
+    @Override
+    public Object getDisplayValue(String object) {
+        return new ResourceModel(keyPrefix+"."+object, object).getObject();
+    }
 
-	@Override
-	public String getIdValue(String object, int index) {
-		return String.valueOf(index);
-	}
+    @Override
+    public String getIdValue(String object, int index) {
+        return String.valueOf(index);
+    }
 
-	@Override
-	public String getObject(String id, IModel<? extends List<? extends String>> choices) {
-		return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
-	}
+    @Override
+    public String getObject(String id, IModel<? extends List<? extends String>> choices) {
+        return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
+    }
 
 }

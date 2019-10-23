@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,94 +29,94 @@ import java.util.List;
  */
 public abstract class DataLanguagePanel<T> extends MultiStateHorizontalButton {
 
-	public static final List<String> LANGUAGES = Arrays.asList(
-			PrismContext.LANG_XML,
-			PrismContext.LANG_JSON,
-			PrismContext.LANG_YAML);
+    public static final List<String> LANGUAGES = Arrays.asList(
+            PrismContext.LANG_XML,
+            PrismContext.LANG_JSON,
+            PrismContext.LANG_YAML);
 
-	public static final List<String> LABELS = Arrays.asList(
-			"PageDebugView.xmlViewButton",
-			"PageDebugView.xmlJsonButton",
-			"PageDebugView.xmlYamlButton");
+    public static final List<String> LABELS = Arrays.asList(
+            "PageDebugView.xmlViewButton",
+            "PageDebugView.xmlJsonButton",
+            "PageDebugView.xmlYamlButton");
 
-	private PageBase pageBase;
-	private Class<T> dataType;
-	private int currentLanguageIndex;       // always [0..N)
+    private PageBase pageBase;
+    private Class<T> dataType;
+    private int currentLanguageIndex;       // always [0..N)
 
-	public DataLanguagePanel(String id, String dataLanguage, Class<T> dataType, PageBase pageBase) {
-		super(id, getIndexFor(dataLanguage), LABELS, pageBase);
-		this.pageBase = pageBase;
-		this.dataType = dataType;
-		this.currentLanguageIndex = getIndexFor(dataLanguage);
-		setOutputMarkupId(true);
-	}
+    public DataLanguagePanel(String id, String dataLanguage, Class<T> dataType, PageBase pageBase) {
+        super(id, getIndexFor(dataLanguage), LABELS, pageBase);
+        this.pageBase = pageBase;
+        this.dataType = dataType;
+        this.currentLanguageIndex = getIndexFor(dataLanguage);
+        setOutputMarkupId(true);
+    }
 
-	private static int getIndexFor(String dataLanguage) {
-		int i = LANGUAGES.indexOf(dataLanguage);
-		return i >= 0 ? i : 0;
-	}
+    private static int getIndexFor(String dataLanguage) {
+        int i = LANGUAGES.indexOf(dataLanguage);
+        return i >= 0 ? i : 0;
+    }
 
-	@Override
-	protected void onStateChanged(int updatedIndex, AjaxRequestTarget target) {
-		String updatedLanguage = updatedIndex >= 0 && updatedIndex < LANGUAGES.size()
-				? LANGUAGES.get(updatedIndex) : LANGUAGES.get(0);
+    @Override
+    protected void onStateChanged(int updatedIndex, AjaxRequestTarget target) {
+        String updatedLanguage = updatedIndex >= 0 && updatedIndex < LANGUAGES.size()
+                ? LANGUAGES.get(updatedIndex) : LANGUAGES.get(0);
 
-		String currentObjectString = getObjectStringRepresentation();
-		if (StringUtils.isBlank(currentObjectString)) {
-			processLanguageSwitch(target, updatedIndex, updatedLanguage, currentObjectString);
-			return;
-		}
+        String currentObjectString = getObjectStringRepresentation();
+        if (StringUtils.isBlank(currentObjectString)) {
+            processLanguageSwitch(target, updatedIndex, updatedLanguage, currentObjectString);
+            return;
+        }
 
-		OperationResult result = new OperationResult(DataLanguagePanel.class.getName() + ".parseObject");
-		Holder<T> objectHolder = new Holder<>(null);
+        OperationResult result = new OperationResult(DataLanguagePanel.class.getName() + ".parseObject");
+        Holder<T> objectHolder = new Holder<>(null);
 
-		try {
-			pageBase.parseObject(currentObjectString, objectHolder, LANGUAGES.get(currentLanguageIndex), false, true, dataType, result);
-			if (result.isAcceptable()) {
-				Object updatedObject = objectHolder.getValue();
-				String updatedObjectString;
-				PrismSerializer<String> serializer = pageBase.getPrismContext().serializerFor(updatedLanguage);
-				if (List.class.isAssignableFrom(dataType)) {
-					@SuppressWarnings({ "unchecked", "raw" })
-					List<PrismObject<?>> list = (List<PrismObject<?>>) updatedObject;
-					if (list.size() != 1) {
-						updatedObjectString = serializer.serializeObjects(list, null);
-					} else {
-						updatedObjectString = serializer.serialize(list.get(0));
-					}
-				} else if (Objectable.class.isAssignableFrom(dataType)) {
-					updatedObjectString = serializer.serialize(((Objectable) updatedObject).asPrismObject());
-				} else {
-					updatedObjectString = serializer.serializeRealValue(updatedObject);
-				}
-				processLanguageSwitch(target, updatedIndex, updatedLanguage, updatedObjectString);
-			} else {
-				pageBase.showResult(result);
-				target.add(pageBase.getFeedbackPanel());
-			}
-		} catch (Exception ex) {
-			result.recordFatalError(createStringResource("DataLanguagePanel.message.onStateChanged.fatalError").getString(), ex);
-			pageBase.showResult(result);
-			target.add(this);
-			target.add(pageBase.getFeedbackPanel());
-		}
-	}
+        try {
+            pageBase.parseObject(currentObjectString, objectHolder, LANGUAGES.get(currentLanguageIndex), false, true, dataType, result);
+            if (result.isAcceptable()) {
+                Object updatedObject = objectHolder.getValue();
+                String updatedObjectString;
+                PrismSerializer<String> serializer = pageBase.getPrismContext().serializerFor(updatedLanguage);
+                if (List.class.isAssignableFrom(dataType)) {
+                    @SuppressWarnings({ "unchecked", "raw" })
+                    List<PrismObject<?>> list = (List<PrismObject<?>>) updatedObject;
+                    if (list.size() != 1) {
+                        updatedObjectString = serializer.serializeObjects(list, null);
+                    } else {
+                        updatedObjectString = serializer.serialize(list.get(0));
+                    }
+                } else if (Objectable.class.isAssignableFrom(dataType)) {
+                    updatedObjectString = serializer.serialize(((Objectable) updatedObject).asPrismObject());
+                } else {
+                    updatedObjectString = serializer.serializeRealValue(updatedObject);
+                }
+                processLanguageSwitch(target, updatedIndex, updatedLanguage, updatedObjectString);
+            } else {
+                pageBase.showResult(result);
+                target.add(pageBase.getFeedbackPanel());
+            }
+        } catch (Exception ex) {
+            result.recordFatalError(createStringResource("DataLanguagePanel.message.onStateChanged.fatalError").getString(), ex);
+            pageBase.showResult(result);
+            target.add(this);
+            target.add(pageBase.getFeedbackPanel());
+        }
+    }
 
-	private void processLanguageSwitch(AjaxRequestTarget target, int updatedIndex,
-			String updatedLanguage, String updatedObjectString) {
-		setSelectedIndex(updatedIndex);
-		currentLanguageIndex = updatedIndex;
-		onLanguageSwitched(target, updatedIndex, updatedLanguage, updatedObjectString);
-		target.add(this);
-		target.add(pageBase.getFeedbackPanel());
-	}
+    private void processLanguageSwitch(AjaxRequestTarget target, int updatedIndex,
+            String updatedLanguage, String updatedObjectString) {
+        setSelectedIndex(updatedIndex);
+        currentLanguageIndex = updatedIndex;
+        onLanguageSwitched(target, updatedIndex, updatedLanguage, updatedObjectString);
+        target.add(this);
+        target.add(pageBase.getFeedbackPanel());
+    }
 
-	protected abstract void onLanguageSwitched(AjaxRequestTarget target, int index, String updatedLanguage,
-			String objectString);
+    protected abstract void onLanguageSwitched(AjaxRequestTarget target, int index, String updatedLanguage,
+            String objectString);
 
-	protected abstract String getObjectStringRepresentation();
+    protected abstract String getObjectStringRepresentation();
 
-	protected boolean isValidateSchema() {
-		return false;
-	}
+    protected boolean isValidateSchema() {
+        return false;
+    }
 }

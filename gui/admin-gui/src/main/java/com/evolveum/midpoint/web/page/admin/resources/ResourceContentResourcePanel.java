@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.resources;
@@ -35,81 +35,81 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class ResourceContentResourcePanel extends ResourceContentPanel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String DOT_CLASS = ResourceContentResourcePanel.class.getName() + ".";
+    private static final String DOT_CLASS = ResourceContentResourcePanel.class.getName() + ".";
 
-	public ResourceContentResourcePanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
-			QName objectClass, ShadowKindType kind, String intent, String searchMode, PageBase pageBase) {
-		super(id, resourceModel, objectClass, kind, intent, searchMode, pageBase);
-	}
+    public ResourceContentResourcePanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
+            QName objectClass, ShadowKindType kind, String intent, String searchMode, PageBase pageBase) {
+        super(id, resourceModel, objectClass, kind, intent, searchMode, pageBase);
+    }
 
-	@Override
-	protected GetOperationOptionsBuilder addAdditionalOptions(GetOperationOptionsBuilder builder) {
-		return builder;
-	}
+    @Override
+    protected GetOperationOptionsBuilder addAdditionalOptions(GetOperationOptionsBuilder builder) {
+        return builder;
+    }
 
-	@Override
-	protected boolean isUseObjectCounting() {
-		return ResourceTypeUtil.isCountObjectsCapabilityEnabled(getResourceModel().getObject().asObjectable());
-	}
+    @Override
+    protected boolean isUseObjectCounting() {
+        return ResourceTypeUtil.isCountObjectsCapabilityEnabled(getResourceModel().getObject().asObjectable());
+    }
 
-	@Override
-	protected Search createSearch() {
-		List<SearchItemDefinition> availableDefs = new ArrayList<>();
-		availableDefs.addAll(createAttributeDefinitionList());
-		return new Search(ShadowType.class, availableDefs);
-	}
+    @Override
+    protected Search createSearch() {
+        List<SearchItemDefinition> availableDefs = new ArrayList<>();
+        availableDefs.addAll(createAttributeDefinitionList());
+        return new Search(ShadowType.class, availableDefs);
+    }
 
-	private <T extends ObjectType> List<SearchItemDefinition> createAttributeDefinitionList() {
+    private <T extends ObjectType> List<SearchItemDefinition> createAttributeDefinitionList() {
 
-		List<SearchItemDefinition> map = new ArrayList<>();
+        List<SearchItemDefinition> map = new ArrayList<>();
 
-		RefinedObjectClassDefinition ocDef = null;
-		try {
+        RefinedObjectClassDefinition ocDef = null;
+        try {
 
-			if (getKind() != null) {
+            if (getKind() != null) {
 
-				ocDef = getDefinitionByKind();
+                ocDef = getDefinitionByKind();
 
-			} else if (getObjectClass() != null) {
-				ocDef = getDefinitionByObjectClass();
+            } else if (getObjectClass() != null) {
+                ocDef = getDefinitionByObjectClass();
 
-			}
-		} catch (SchemaException e) {
-			warn("Could not get determine object class definition");
-			return map;
-		}
+            }
+        } catch (SchemaException e) {
+            warn("Could not get determine object class definition");
+            return map;
+        }
 
-		if (ocDef == null) {
-			return map;
-		}
+        if (ocDef == null) {
+            return map;
+        }
 
-		for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
-			map.add(new SearchItemDefinition(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def, null));
-		}
+        for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
+            map.add(new SearchItemDefinition(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def, null));
+        }
 
-		return map;
-	}
-	
-	private ItemName getAttributeName(ResourceAttributeDefinition def) {
-		return def.getItemName();
-	}
+        return map;
+    }
 
-	@Override
-	protected ModelExecuteOptions createModelOptions() {
-		return null;
-	}
+    private ItemName getAttributeName(ResourceAttributeDefinition def) {
+        return def.getItemName();
+    }
 
-	@Override
-	protected void initShadowStatistics(WebMarkupContainer totals) {
-		totals.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public boolean isVisible() {
-				return false;
-			}
-		});
-	}
+    @Override
+    protected ModelExecuteOptions createModelOptions() {
+        return null;
+    }
+
+    @Override
+    protected void initShadowStatistics(WebMarkupContainer totals) {
+        totals.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isVisible() {
+                return false;
+            }
+        });
+    }
 
 }

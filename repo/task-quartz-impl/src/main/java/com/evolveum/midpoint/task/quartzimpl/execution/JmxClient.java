@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,7 +29,7 @@ public class JmxClient {
 
         final BlockingQueue<Object> mailbox = new ArrayBlockingQueue<>(1);
         ExecutorService executor =
-                Executors.newSingleThreadExecutor(daemonThreadFactory);
+                Executors.newSingleThreadExecutor(DAEMON_THREAD_FACTORY);
         executor.submit(new Runnable() {
             public void run() {
                 try {
@@ -83,5 +83,5 @@ public class JmxClient {
             return t;
         }
     }
-    private static final ThreadFactory daemonThreadFactory = new DaemonThreadFactory();
+    private static final ThreadFactory DAEMON_THREAD_FACTORY = new DaemonThreadFactory();
 }

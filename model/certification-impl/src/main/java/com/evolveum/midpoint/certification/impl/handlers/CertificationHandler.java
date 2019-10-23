@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -36,16 +36,16 @@ public interface CertificationHandler {
      */
     <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> object,
             AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
-		    throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-		    CommunicationException, ConfigurationException, SecurityViolationException;
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
      * Implements the automated REVOKE for a given certification case.
      */
     void doRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, Task task,
-		    OperationResult caseResult) throws CommunicationException, ObjectAlreadyExistsException,
-		    ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException,
-		    ConfigurationException, ObjectNotFoundException;
+            OperationResult caseResult) throws CommunicationException, ObjectAlreadyExistsException,
+            ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
 
     /**
      * Returns the default objectType to search for when preparing a list of certification cases.

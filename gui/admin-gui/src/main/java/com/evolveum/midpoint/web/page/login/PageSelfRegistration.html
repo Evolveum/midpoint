@@ -25,17 +25,17 @@
         <div class="panel panel-default">
             <div class="box-body">
             <form wicket:id="mainForm">
-            	<div wicket:id="contentArea"></div>
+                <div wicket:id="contentArea"></div>
            </form>
-			    <wicket:fragment wicket:id="staticContent">
-			    	<div wicket:id="staticForm">
-			          <div style="text-align: center">
+                <wicket:fragment wicket:id="staticContent">
+                    <div wicket:id="staticForm">
+                      <div style="text-align: center">
                         <h3 wicket:id="welcome"/>
                     </div>
                     <div>
                         <label wicket:id="additionalText"></label>
                     </div>
-                    
+
                         <table class="table table-striped">
                             <tr>
                                 <td>
@@ -80,29 +80,29 @@
                             </tr>
                         </table>
                     </div>
-					<div class="col-md-offset-6">
-                        <div wicket:id="captcha"/>
-
-                        <a class="btn btn-default" wicket:id="back"/>
-                        <a class="btn btn-primary" wicket:id="submitRegistration"/>
-                    </div>	                   
-			    </wicket:fragment>
-			    <wicket:fragment wicket:id="dynamicContent">
-			          <div wicket:id="dynamicForm">
-                    </div>
-					<div class="col-md-offset-6">
+                    <div class="col-md-offset-6">
                         <div wicket:id="captcha"/>
 
                         <a class="btn btn-default" wicket:id="back"/>
                         <a class="btn btn-primary" wicket:id="submitRegistration"/>
                     </div>
-			    </wicket:fragment>
+                </wicket:fragment>
+                <wicket:fragment wicket:id="dynamicContent">
+                      <div wicket:id="dynamicForm">
+                    </div>
+                    <div class="col-md-offset-6">
+                        <div wicket:id="captcha"/>
 
-            	<wicket:fragment wicket:id="messageContent">
-	                <div style="text-align: center">
-	                    <h2 wicket:id="registrationInfo"></h2>
-	                </div>
-	            </wicket:fragment>
+                        <a class="btn btn-default" wicket:id="back"/>
+                        <a class="btn btn-primary" wicket:id="submitRegistration"/>
+                    </div>
+                </wicket:fragment>
+
+                <wicket:fragment wicket:id="messageContent">
+                    <div style="text-align: center">
+                        <h2 wicket:id="registrationInfo"></h2>
+                    </div>
+                </wicket:fragment>
             </div>
         </div>
     </div>

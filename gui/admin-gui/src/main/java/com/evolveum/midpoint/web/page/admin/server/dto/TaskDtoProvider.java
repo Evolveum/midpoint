@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -54,18 +54,18 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
 
     @Override
     public Iterator<? extends TaskDto> internalIterator(long first, long count) {
-		Collection<String> selectedOids = getSelectedOids();
+        Collection<String> selectedOids = getSelectedOids();
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_TASKS);
         Task operationTask = getTaskManager().createTaskInstance(OPERATION_LIST_TASKS);
         try {
-        	ObjectPaging paging = createPaging(first, count);
-        	ObjectQuery query = getQuery();
-        	if (query == null){
-        		query = getPrismContext().queryFactory().createQuery();
-        	}
-        	query.setPaging(paging);
+            ObjectPaging paging = createPaging(first, count);
+            ObjectQuery query = getQuery();
+            if (query == null){
+                query = getPrismContext().queryFactory().createQuery();
+            }
+            query.setPaging(paging);
 
             List<QName> propertiesToGet = new ArrayList<>();
             if (options.isUseClusterInformation()) {
@@ -76,8 +76,8 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
                 propertiesToGet.add(TaskType.F_NEXT_RETRY_TIMESTAMP);
             }
             Collection<SelectorOptions<GetOperationOptions>> searchOptions = getDefaultOptionsBuilder()
-		            .items(propertiesToGet.toArray(new Object[0])).retrieve()
-		            .build();
+                    .items(propertiesToGet.toArray(new Object[0])).retrieve()
+                    .build();
             List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, searchOptions, operationTask, result);
             for (PrismObject<TaskType> task : tasks) {
                 try {
@@ -97,29 +97,29 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
                 result.recomputeStatus();
             }
         }
-		setSelectedOids(selectedOids);
+        setSelectedOids(selectedOids);
         return getAvailableData().iterator();
     }
 
-	private Collection<String> getSelectedOids() {
-		Set<String> oids = new HashSet<>();
-		for (TaskDto taskDto : getAvailableData()) {
-			if (taskDto.isSelected()) {
-				oids.add(taskDto.getOid());
-			}
-		}
-		return oids;
-	}
+    private Collection<String> getSelectedOids() {
+        Set<String> oids = new HashSet<>();
+        for (TaskDto taskDto : getAvailableData()) {
+            if (taskDto.isSelected()) {
+                oids.add(taskDto.getOid());
+            }
+        }
+        return oids;
+    }
 
-	private void setSelectedOids(Collection<String> selectedOids) {
-		for (TaskDto taskDto : getAvailableData()) {
-			if (selectedOids.contains(taskDto.getOid())) {
-				taskDto.setSelected(true);
-			}
-		}
-	}
+    private void setSelectedOids(Collection<String> selectedOids) {
+        for (TaskDto taskDto : getAvailableData()) {
+            if (selectedOids.contains(taskDto.getOid())) {
+                taskDto.setSelected(true);
+            }
+        }
+    }
 
-	public TaskDto createTaskDto(PrismObject<TaskType> task, boolean subtasksLoaded, Task opTask, OperationResult result)
+    public TaskDto createTaskDto(PrismObject<TaskType> task, boolean subtasksLoaded, Task opTask, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
         return new TaskDto(task.asObjectable(), null, getModel(), getTaskService(),

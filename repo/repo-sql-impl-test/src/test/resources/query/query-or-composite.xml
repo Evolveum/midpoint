@@ -3,33 +3,33 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <query xmlns="http://prism.evolveum.com/xml/ns/public/query-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 <filter>
-	<or>
-		<equal>
-			<path>c:intent</path>
-			<value>some account type</value>
-		</equal>
-		<equal>
-			<path xmlns:f="http://midpoint.evolveum.com/blabla">c:attributes/f:foo</path>
-			<value xsi:type="xsd:string">foo value</value>
-		</equal>
-		<equal>
-			<path xmlns:p="http://example.com/p">c:extension/p:stringType</path>
-			<value xsi:type="xsd:string">uid=test,dc=example,dc=com</value>
-		</equal>
-		<ref>
-			<path>c:resourceRef</path>
-			<value>
-				<oid>d0db5be9-cb93-401f-b6c1-86ffffe4cd5e</oid>
-			</value>
-		</ref>
-	</or>
-	</filter>
+    <or>
+        <equal>
+            <path>c:intent</path>
+            <value>some account type</value>
+        </equal>
+        <equal>
+            <path xmlns:f="http://midpoint.evolveum.com/blabla">c:attributes/f:foo</path>
+            <value xsi:type="xsd:string">foo value</value>
+        </equal>
+        <equal>
+            <path xmlns:p="http://example.com/p">c:extension/p:stringType</path>
+            <value xsi:type="xsd:string">uid=test,dc=example,dc=com</value>
+        </equal>
+        <ref>
+            <path>c:resourceRef</path>
+            <value>
+                <oid>d0db5be9-cb93-401f-b6c1-86ffffe4cd5e</oid>
+            </value>
+        </ref>
+    </or>
+    </filter>
 </query>

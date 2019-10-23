@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -47,31 +47,31 @@ public class CaseManagementHelper {
 
     // TODO find a better name
     public CaseWorkItemType updateLoadedCaseWorkItem(GetContainerableIdOnlyResult result, Map<String, PrismObject<CaseType>> ownersMap,
-			Collection<SelectorOptions<GetOperationOptions>> options,
-			Session session, OperationResult operationResult)
-		    throws SchemaException, ObjectNotFoundException, DtoTranslationException {
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Session session, OperationResult operationResult)
+            throws SchemaException, ObjectNotFoundException, DtoTranslationException {
 
         String ownerOid = result.getOwnerOid();
         PrismObject<CaseType> aCase = resolveCase(ownerOid, ownersMap, session, operationResult);
-	    PrismContainer<Containerable> workItemContainer = aCase.findContainer(CaseType.F_WORK_ITEM);
-	    if (workItemContainer == null) {
-	    	throw new ObjectNotFoundException("Case " + aCase + " has no work items even if it should have " + result);
-	    }
-	    PrismContainerValue<?> workItemPcv = workItemContainer.findValue(result.getId());
-	    if (workItemPcv == null) {
-		    throw new ObjectNotFoundException("Case " + aCase + " has no work item " + result);
-	    }
-	    return (CaseWorkItemType) workItemPcv.asContainerable();
+        PrismContainer<Containerable> workItemContainer = aCase.findContainer(CaseType.F_WORK_ITEM);
+        if (workItemContainer == null) {
+            throw new ObjectNotFoundException("Case " + aCase + " has no work items even if it should have " + result);
+        }
+        PrismContainerValue<?> workItemPcv = workItemContainer.findValue(result.getId());
+        if (workItemPcv == null) {
+            throw new ObjectNotFoundException("Case " + aCase + " has no work item " + result);
+        }
+        return (CaseWorkItemType) workItemPcv.asContainerable();
     }
 
     @NotNull
     private PrismObject<CaseType> resolveCase(String caseOid, Map<String, PrismObject<CaseType>> cache, Session session,
-			OperationResult operationResult) throws DtoTranslationException, ObjectNotFoundException, SchemaException {
+            OperationResult operationResult) throws DtoTranslationException, ObjectNotFoundException, SchemaException {
         PrismObject<CaseType> aCase = cache.get(caseOid);
         if (aCase != null) {
             return aCase;
         }
-	    aCase = objectRetriever.getObjectInternal(session, CaseType.class, caseOid, null, false, operationResult);
+        aCase = objectRetriever.getObjectInternal(session, CaseType.class, caseOid, null, false, operationResult);
         cache.put(caseOid, aCase);
         return aCase;
     }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.rbac;
@@ -22,9 +22,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProces
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRbacLightInitialProjection extends TestRbac {
 
-	@Override
-	protected ModelExecuteOptions getDefaultOptions() {
-		return ModelExecuteOptions.createInitialPartialProcessing(
-				new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
-	}
+    @Override
+    protected ModelExecuteOptions getDefaultOptions() {
+        return ModelExecuteOptions.createInitialPartialProcessing(
+                new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
+    }
 }

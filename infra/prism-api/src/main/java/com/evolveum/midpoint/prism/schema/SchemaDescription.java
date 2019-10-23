@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,53 +20,53 @@ import java.util.Map;
  */
 public interface SchemaDescription extends DebugDumpable {
 
-	String getPath();
+    String getPath();
 
-	void setResourcePath(String path);
+    void setResourcePath(String path);
 
-	String getNamespace();
+    String getNamespace();
 
-	void setNamespace(String namespace);
+    void setNamespace(String namespace);
 
-	String getUsualPrefix();
+    String getUsualPrefix();
 
-	void setUsualPrefix(String usualPrefix);
+    void setUsualPrefix(String usualPrefix);
 
-	String getSourceDescription();
+    String getSourceDescription();
 
-	void setSourceDescription(String sourceDescription);
+    void setSourceDescription(String sourceDescription);
 
-	void setPath(String path);
+    void setPath(String path);
 
-	boolean isPrismSchema();
+    boolean isPrismSchema();
 
-	void setPrismSchema(boolean isMidPointSchema);
+    void setPrismSchema(boolean isMidPointSchema);
 
-	boolean isDefault();
+    boolean isDefault();
 
-	void setDefault(boolean isDefault);
+    void setDefault(boolean isDefault);
 
-	boolean isDeclaredByDefault();
+    boolean isDeclaredByDefault();
 
-	void setDeclaredByDefault(boolean isDeclaredByDefault);
+    void setDeclaredByDefault(boolean isDeclaredByDefault);
 
-	PrismSchema getSchema();
+    PrismSchema getSchema();
 
-	void setSchema(PrismSchema schema);
+    void setSchema(PrismSchema schema);
 
-	Package getCompileTimeClassesPackage();
+    Package getCompileTimeClassesPackage();
 
-	void setCompileTimeClassesPackage(Package compileTimeClassesPackage);
+    void setCompileTimeClassesPackage(Package compileTimeClassesPackage);
 
-	Map<QName, Class<?>> getXsdTypeTocompileTimeClassMap();
+    Map<QName, Class<?>> getXsdTypeTocompileTimeClassMap();
 
-	void setXsdTypeTocompileTimeClassMap(Map<QName, Class<?>> xsdTypeTocompileTimeClassMap);
+    void setXsdTypeTocompileTimeClassMap(Map<QName, Class<?>> xsdTypeTocompileTimeClassMap);
 
-	boolean canInputStream();
+    boolean canInputStream();
 
-	InputStream openInputStream();
+    InputStream openInputStream();
 
-	Source getSource();
+    Source getSource();
 
-	Element getDomElement();
+    Element getDomElement();
 }

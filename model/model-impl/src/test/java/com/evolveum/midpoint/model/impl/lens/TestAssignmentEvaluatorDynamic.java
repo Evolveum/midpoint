@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
@@ -21,17 +21,17 @@ import com.evolveum.midpoint.task.api.Task;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAssignmentEvaluatorDynamic extends TestAbstractAssignmentEvaluator {
 
-	protected static final File ROLE_CORP_GENERIC_METAROLE_DYNAMIC_FILE = new File(TEST_DIR, "role-corp-generic-metarole-dynamic.xml");
+    protected static final File ROLE_CORP_GENERIC_METAROLE_DYNAMIC_FILE = new File(TEST_DIR, "role-corp-generic-metarole-dynamic.xml");
 
-	protected static final File ROLE_CORP_JOB_METAROLE_DYNAMIC_FILE = new File(TEST_DIR, "role-corp-job-metarole-dynamic.xml");
+    protected static final File ROLE_CORP_JOB_METAROLE_DYNAMIC_FILE = new File(TEST_DIR, "role-corp-job-metarole-dynamic.xml");
 
-	protected static final File ROLE_CORP_MANAGER_DYNAMIC_FILE = new File(TEST_DIR, "role-corp-manager-dynamic.xml");
+    protected static final File ROLE_CORP_MANAGER_DYNAMIC_FILE = new File(TEST_DIR, "role-corp-manager-dynamic.xml");
 
-	protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+    protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
 
-	protected static final File[] ROLE_CORP_FILES = {
-			ROLE_METAROLE_SOD_NOTIFICATION_FILE,
-            ROLE_CORP_AUTH_FILE,			// TODO prepare a dynamic version of this file
+    protected static final File[] ROLE_CORP_FILES = {
+            ROLE_METAROLE_SOD_NOTIFICATION_FILE,
+            ROLE_CORP_AUTH_FILE,            // TODO prepare a dynamic version of this file
             ROLE_CORP_GENERIC_METAROLE_DYNAMIC_FILE,
             ROLE_CORP_JOB_METAROLE_DYNAMIC_FILE,
             ROLE_CORP_VISITOR_FILE,
@@ -42,32 +42,32 @@ public class TestAssignmentEvaluatorDynamic extends TestAbstractAssignmentEvalua
             ROLE_CORP_MANAGER_FILE
     };
 
-	@Override
-	public File[] getRoleCorpFiles() {
-		return ROLE_CORP_FILES;
-	}
+    @Override
+    public File[] getRoleCorpFiles() {
+        return ROLE_CORP_FILES;
+    }
 
 
-	 @Override
-	    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-	        super.initSystem(initTask, initResult);
+     @Override
+        public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+            super.initSystem(initTask, initResult);
 
-	        addObjects(getRoleCorpFiles());
+            addObjects(getRoleCorpFiles());
 
-//	        PrismObject<UserType> userJack = getObject(UserType.class, USER_JACK_OID);
-//	        ItemPath resourceNamePath = ItemPath.create(FocusType.F_EXTENSION, new QName(NS_PIRACY, "resourceName"));
-//	        ItemPath resourceRefPath = ItemPath.create(FocusType.F_EXTENSION, new QName(NS_PIRACY, "resourceRef"));
+//            PrismObject<UserType> userJack = getObject(UserType.class, USER_JACK_OID);
+//            ItemPath resourceNamePath = ItemPath.create(FocusType.F_EXTENSION, new QName(NS_PIRACY, "resourceName"));
+//            ItemPath resourceRefPath = ItemPath.create(FocusType.F_EXTENSION, new QName(NS_PIRACY, "resourceRef"));
 //
-//	       Collection modifications = new ArrayList<>();
-//	       modifications.add(PropertyDelta.createModificationAddProperty(resourceNamePath, userJack.getDefinition().findPropertyDefinition(resourceNamePath), "Dummy Resource"));
-//	       modifications.add(ReferenceDelta.createModificationAdd(resourceRefPath, userJack.getDefinition(), ObjectTypeUtil.createObjectRef("10000000-0000-0000-0000-000000000004", ObjectTypes.RESOURCE).asReferenceValue()));
+//           Collection modifications = new ArrayList<>();
+//           modifications.add(PropertyDelta.createModificationAddProperty(resourceNamePath, userJack.getDefinition().findPropertyDefinition(resourceNamePath), "Dummy Resource"));
+//           modifications.add(ReferenceDelta.createModificationAdd(resourceRefPath, userJack.getDefinition(), ObjectTypeUtil.createObjectRef("10000000-0000-0000-0000-000000000004", ObjectTypes.RESOURCE).asReferenceValue()));
 //
-//	       Collection deltas = new ArrayList<>();
-//	       deltas.add(ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext));
-//	       modelService.executeChanges(deltas, null, initTask, initResult);
+//           Collection deltas = new ArrayList<>();
+//           deltas.add(ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext));
+//           modelService.executeChanges(deltas, null, initTask, initResult);
 //
-//	       userTypeJack = getObject(UserType.class, USER_JACK_OID).asObjectable();
+//           userTypeJack = getObject(UserType.class, USER_JACK_OID).asObjectable();
 
-	    }
+        }
 
 }

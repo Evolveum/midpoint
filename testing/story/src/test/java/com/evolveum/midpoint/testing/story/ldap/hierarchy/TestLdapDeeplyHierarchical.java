@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2016-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -51,106 +51,106 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapDeeplyHierarchical extends AbstractLdapHierarchyTest {
 
-	public static final File TEST_DIR = new File(LDAP_HIERARCHY_TEST_DIR, "deeply-hierarchical");
-	private static final String LDAP_OU_INTENT = "ou";
+    public static final File TEST_DIR = new File(LDAP_HIERARCHY_TEST_DIR, "deeply-hierarchical");
+    private static final String LDAP_OU_INTENT = "ou";
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-	}
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+    }
 
-	@Override
-	protected File getTestDir() {
-		return TEST_DIR;
-	}
+    @Override
+    protected File getTestDir() {
+        return TEST_DIR;
+    }
 
-	@Override
-	protected PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
-		PrismObject<UserType> user = super.getAndAssertUser(username, directOrgGroupname, indirectGroupNames);
-		Entry accountEntry = openDJController.searchSingle("uid="+username);
+    @Override
+    protected PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+        PrismObject<UserType> user = super.getAndAssertUser(username, directOrgGroupname, indirectGroupNames);
+        Entry accountEntry = openDJController.searchSingle("uid="+username);
 
-		String expectedDn = getAccountDn(user);
-		assertEquals("Wrong account DN", expectedDn, accountEntry.getDN().toString().toLowerCase());
+        String expectedDn = getAccountDn(user);
+        assertEquals("Wrong account DN", expectedDn, accountEntry.getDN().toString().toLowerCase());
 
-		Entry groupEntry = openDJController.searchSingle("cn="+directOrgGroupname);
-		assertNotNull("No group LDAP entry for "+directOrgGroupname, groupEntry);
-		openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
+        Entry groupEntry = openDJController.searchSingle("cn="+directOrgGroupname);
+        assertNotNull("No group LDAP entry for "+directOrgGroupname, groupEntry);
+        openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
 
-		return user;
-	}
+        return user;
+    }
 
-	@Override
-	protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
-		PrismObject<OrgType> org = super.getAndAssertFunctionalOrg(orgName, directParentOrgOid);
-		if (directParentOrgOid != null && !ORG_TOP_OID.equals(directParentOrgOid)) {
-			Entry groupEntry = openDJController.searchSingle("cn="+orgName);
-			PrismObject<OrgType> parentOrg = getObject(OrgType.class, directParentOrgOid);
-			Entry parentGroupEntry = openDJController.searchSingle("cn="+parentOrg.getName());
-			assertNotNull("No group LDAP entry for "+parentOrg.getName(), parentGroupEntry);
-			display("parent group entry", openDJController.toHumanReadableLdifoid(parentGroupEntry));
-			openDJController.assertUniqueMember(parentGroupEntry, groupEntry.getDN().toString());
-		}
+    @Override
+    protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+        PrismObject<OrgType> org = super.getAndAssertFunctionalOrg(orgName, directParentOrgOid);
+        if (directParentOrgOid != null && !ORG_TOP_OID.equals(directParentOrgOid)) {
+            Entry groupEntry = openDJController.searchSingle("cn="+orgName);
+            PrismObject<OrgType> parentOrg = getObject(OrgType.class, directParentOrgOid);
+            Entry parentGroupEntry = openDJController.searchSingle("cn="+parentOrg.getName());
+            assertNotNull("No group LDAP entry for "+parentOrg.getName(), parentGroupEntry);
+            display("parent group entry", openDJController.toHumanReadableLdifoid(parentGroupEntry));
+            openDJController.assertUniqueMember(parentGroupEntry, groupEntry.getDN().toString());
+        }
 
-		String ouOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.GENERIC, LDAP_OU_INTENT);
-		PrismObject<ShadowType> ouShadow = getShadowModel(ouOid);
-		display("Org "+orgName+" ou shadow", ouShadow);
+        String ouOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.GENERIC, LDAP_OU_INTENT);
+        PrismObject<ShadowType> ouShadow = getShadowModel(ouOid);
+        display("Org "+orgName+" ou shadow", ouShadow);
 
-		Entry groupEntry = openDJController.searchSingle("ou="+orgName);
-		assertNotNull("No UO LDAP entry for "+orgName, groupEntry);
-		display("OU entry", openDJController.toHumanReadableLdifoid(groupEntry));
-		openDJController.assertObjectClass(groupEntry, "organizationalUnit");
+        Entry groupEntry = openDJController.searchSingle("ou="+orgName);
+        assertNotNull("No UO LDAP entry for "+orgName, groupEntry);
+        display("OU entry", openDJController.toHumanReadableLdifoid(groupEntry));
+        openDJController.assertObjectClass(groupEntry, "organizationalUnit");
 
-		String expectedDn = getOuDn(org);
-		assertEquals("Wrong OU DN", expectedDn, groupEntry.getDN().toString().toLowerCase());
+        String expectedDn = getOuDn(org);
+        assertEquals("Wrong OU DN", expectedDn, groupEntry.getDN().toString().toLowerCase());
 
-		return org;
-	}
+        return org;
+    }
 
-	private String getOuDn(PrismObject<OrgType> org) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		StringBuilder sb = new StringBuilder();
-		while (true) {
-			sb.append("ou=");
-			sb.append(org.getName().getOrig().toLowerCase());
-			sb.append(",");
-			List<ObjectReferenceType> parentOrgRefs = org.asObjectable().getParentOrgRef();
-			if (parentOrgRefs.isEmpty()) {
-				break;
-			}
-			String parentOid = parentOrgRefs.get(0).getOid();
-			if (ORG_TOP_OID.equals(parentOid)) {
-				break;
-			}
-			org = getObject(OrgType.class, parentOid);
-		}
-		sb.append("dc=example,dc=com");
-		return sb.toString();
-	}
+    private String getOuDn(PrismObject<OrgType> org) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        StringBuilder sb = new StringBuilder();
+        while (true) {
+            sb.append("ou=");
+            sb.append(org.getName().getOrig().toLowerCase());
+            sb.append(",");
+            List<ObjectReferenceType> parentOrgRefs = org.asObjectable().getParentOrgRef();
+            if (parentOrgRefs.isEmpty()) {
+                break;
+            }
+            String parentOid = parentOrgRefs.get(0).getOid();
+            if (ORG_TOP_OID.equals(parentOid)) {
+                break;
+            }
+            org = getObject(OrgType.class, parentOid);
+        }
+        sb.append("dc=example,dc=com");
+        return sb.toString();
+    }
 
-	private String getAccountDn(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		StringBuilder sb = new StringBuilder();
-		sb.append("uid=").append(user.getName().getOrig()).append(",");
-		PrismObject<FocusType> org = (PrismObject)user;
-		while (true) {
-			List<ObjectReferenceType> parentOrgRefs = org.asObjectable().getParentOrgRef();
-			if (parentOrgRefs.isEmpty()) {
-				break;
-			}
-			String parentOid = parentOrgRefs.get(0).getOid();
-			if (ORG_TOP_OID.equals(parentOid)) {
-				break;
-			}
-			org = (PrismObject)getObject(OrgType.class, parentOid);
-			sb.append("ou=");
-			sb.append(org.getName().getOrig().toLowerCase());
-			sb.append(",");
-		}
-		sb.append("dc=example,dc=com");
-		return sb.toString();
-	}
+    private String getAccountDn(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("uid=").append(user.getName().getOrig()).append(",");
+        PrismObject<FocusType> org = (PrismObject)user;
+        while (true) {
+            List<ObjectReferenceType> parentOrgRefs = org.asObjectable().getParentOrgRef();
+            if (parentOrgRefs.isEmpty()) {
+                break;
+            }
+            String parentOid = parentOrgRefs.get(0).getOid();
+            if (ORG_TOP_OID.equals(parentOid)) {
+                break;
+            }
+            org = (PrismObject)getObject(OrgType.class, parentOid);
+            sb.append("ou=");
+            sb.append(org.getName().getOrig().toLowerCase());
+            sb.append(",");
+        }
+        sb.append("dc=example,dc=com");
+        return sb.toString();
+    }
 
-	@Override
-	protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		reconcileAllOrgs();
-		reconcileAllUsers();
-	}
+    @Override
+    protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        reconcileAllOrgs();
+        reconcileAllUsers();
+    }
 }

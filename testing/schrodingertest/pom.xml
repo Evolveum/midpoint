@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -12,7 +12,7 @@
     <parent>
         <artifactId>testing</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.0.1-SNAPSHOT</version>
+        <version>4.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -21,7 +21,6 @@
     <properties>
         <project.starter.module>../../gui/admin-gui</project.starter.module>
         <project.app.package.name>com.evolveum.midpoint.web.boot.MidPointSpringApplication</project.app.package.name>
-        <selenium.version>3.141.59</selenium.version>
         <skipTests>false</skipTests>
         <server.port>8180</server.port>
         <midpoint.host>0.0.0.0</midpoint.host>
@@ -34,12 +33,11 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.6</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>schrodinger</artifactId>
-            <version>4.0.1-SNAPSHOT</version>
+            <version>4.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
@@ -48,7 +46,6 @@
         <dependency>
             <groupId>com.codeborne</groupId>
             <artifactId>selenide</artifactId>
-            <version>5.3.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>io.netty</groupId>
@@ -91,7 +88,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.0.1-SNAPSHOT</version>
+            <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -100,7 +97,6 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
-                <version>4.0.51.Final</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ch.qos.logback</groupId>
@@ -111,7 +107,6 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>23.0</version>
             </dependency>
 
         </dependencies>
@@ -189,7 +184,7 @@
                                                 <contains value="${project.app.package.name}" />
                                             </linecontains>
                                             <replacestring from="${project.app.package.name}" />
-						                    <trim/>
+                                            <trim/>
                                         </outputfilterchain>
                                     </redirector>
                                 </exec>
@@ -202,7 +197,7 @@
                                     <arg value="-15" />
                                     <arg value="${process.pid}" />
                                 </exec>
-				        </target>
+                        </target>
                         </configuration>
                         <goals>
                             <goal>run</goal>

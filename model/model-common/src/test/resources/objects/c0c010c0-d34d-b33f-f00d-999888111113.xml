@@ -2,93 +2,93 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<valuePolicy oid="c0c010c0-d34d-b33f-f00d-999888111111" version="0" 
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	
-	<name>Testing Bad Password Policy</name>
-	<description>This policy is intentionally insane. The limits conflict with overall length limits. This should fail.</description>
-	<lifetime>
-		<expiration>999</expiration>
-		<warnBeforeExpiration>9</warnBeforeExpiration>
-		<lockAfterExpiration>0</lockAfterExpiration>
-		<minPasswordAge>0</minPasswordAge>
-		<passwordHistoryLength>0</passwordHistoryLength>
-	</lifetime>
-	<stringPolicy>
-		<description>Testing string policy</description>
-		<limitations>
-			<minLength>14</minLength>
-			<maxLength>17</maxLength>
-			<minUniqueChars>3</minUniqueChars>
-			<checkAgainstDictionary>true</checkAgainstDictionary>
-			<checkPattern />
-			<limit>
-				<description>extreme</description>
-				<minOccurs>1</minOccurs>
-				<maxOccurs>2</maxOccurs>
-				<mustBeFirst>true</mustBeFirst>
-				<characterClass>
-					<value>345678</value>
-				</characterClass>
-			</limit>
-			<limit>
-				<description>Alphas</description>
-				<minOccurs>1</minOccurs>
-				<maxOccurs>2</maxOccurs>
-				<mustBeFirst>false</mustBeFirst>
-				<characterClass ref="alphas" />
-			</limit>
-			<limit>
-				<description>Numbers</description>
-				<minOccurs>1</minOccurs>
-				<maxOccurs>2</maxOccurs>
-				<mustBeFirst>false</mustBeFirst>
-				<characterClass ref="numbers" />
-			</limit>
-			<limit>
-				<description>Lowers</description>
-				<minOccurs>1</minOccurs>
-				<maxOccurs>2</maxOccurs>
-				<mustBeFirst>false</mustBeFirst>
-				<characterClass ref="lowers" />
-			</limit>
-			<limit>
-				<description>Specials</description>
-				<minOccurs>1</minOccurs>
-				<maxOccurs>2</maxOccurs>
-				<mustBeFirst>false</mustBeFirst>
-				<characterClass ref="special" />
-			</limit>
-			<limit>
-				<description>Alphanum</description>
-				<minOccurs>1</minOccurs>
-				<maxOccurs>3</maxOccurs>
-				<mustBeFirst>false</mustBeFirst>
-				<characterClass ref="alphanum" />
-			</limit>
-		</limitations>
-		<characterClass name="default">
-			<characterClass name="alphanum">
-				<characterClass name="alphas">
-					<characterClass name="lowers">
-						<value>abcd</value>
-					</characterClass>
-					<characterClass name="uppers">
-						<value>ABCD</value>
-					</characterClass>
-				</characterClass>
-				<characterClass name="numbers">
-					<value>1234</value>
-				</characterClass>
-			</characterClass>
-			<characterClass name="special">
-				<value>!@#$%+*</value>
-			</characterClass>
-		</characterClass>
-	</stringPolicy>
+<valuePolicy oid="c0c010c0-d34d-b33f-f00d-999888111111" version="0"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <name>Testing Bad Password Policy</name>
+    <description>This policy is intentionally insane. The limits conflict with overall length limits. This should fail.</description>
+    <lifetime>
+        <expiration>999</expiration>
+        <warnBeforeExpiration>9</warnBeforeExpiration>
+        <lockAfterExpiration>0</lockAfterExpiration>
+        <minPasswordAge>0</minPasswordAge>
+        <passwordHistoryLength>0</passwordHistoryLength>
+    </lifetime>
+    <stringPolicy>
+        <description>Testing string policy</description>
+        <limitations>
+            <minLength>14</minLength>
+            <maxLength>17</maxLength>
+            <minUniqueChars>3</minUniqueChars>
+            <checkAgainstDictionary>true</checkAgainstDictionary>
+            <checkPattern />
+            <limit>
+                <description>extreme</description>
+                <minOccurs>1</minOccurs>
+                <maxOccurs>2</maxOccurs>
+                <mustBeFirst>true</mustBeFirst>
+                <characterClass>
+                    <value>345678</value>
+                </characterClass>
+            </limit>
+            <limit>
+                <description>Alphas</description>
+                <minOccurs>1</minOccurs>
+                <maxOccurs>2</maxOccurs>
+                <mustBeFirst>false</mustBeFirst>
+                <characterClass ref="alphas" />
+            </limit>
+            <limit>
+                <description>Numbers</description>
+                <minOccurs>1</minOccurs>
+                <maxOccurs>2</maxOccurs>
+                <mustBeFirst>false</mustBeFirst>
+                <characterClass ref="numbers" />
+            </limit>
+            <limit>
+                <description>Lowers</description>
+                <minOccurs>1</minOccurs>
+                <maxOccurs>2</maxOccurs>
+                <mustBeFirst>false</mustBeFirst>
+                <characterClass ref="lowers" />
+            </limit>
+            <limit>
+                <description>Specials</description>
+                <minOccurs>1</minOccurs>
+                <maxOccurs>2</maxOccurs>
+                <mustBeFirst>false</mustBeFirst>
+                <characterClass ref="special" />
+            </limit>
+            <limit>
+                <description>Alphanum</description>
+                <minOccurs>1</minOccurs>
+                <maxOccurs>3</maxOccurs>
+                <mustBeFirst>false</mustBeFirst>
+                <characterClass ref="alphanum" />
+            </limit>
+        </limitations>
+        <characterClass name="default">
+            <characterClass name="alphanum">
+                <characterClass name="alphas">
+                    <characterClass name="lowers">
+                        <value>abcd</value>
+                    </characterClass>
+                    <characterClass name="uppers">
+                        <value>ABCD</value>
+                    </characterClass>
+                </characterClass>
+                <characterClass name="numbers">
+                    <value>1234</value>
+                </characterClass>
+            </characterClass>
+            <characterClass name="special">
+                <value>!@#$%+*</value>
+            </characterClass>
+        </characterClass>
+    </stringPolicy>
 </valuePolicy>

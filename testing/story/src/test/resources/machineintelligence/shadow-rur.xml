@@ -2,23 +2,23 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <shadow oid="shadow00-0000-0000-0000-111111111111"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-	<name>rur</name>
-	<resourceRef oid="10000000-0000-0000-0000-000000000001" type="ResourceType"/>
-	<objectClass>ri:AccountObjectClass</objectClass>
-	<attributes>
-		<ri:identifier>R.U.R</ri:identifier>
-		<ri:First_Name>Rossum</ri:First_Name>
-		<ri:Last_Name>Universal Robots</ri:Last_Name>
-		<ri:Display_Name>Rossum's Universal Robots</ri:Display_Name>
-		<ri:assignments>Universe/Manager/E/ACTIVE</ri:assignments>
-	</attributes>
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>rur</name>
+    <resourceRef oid="10000000-0000-0000-0000-000000000001" type="ResourceType"/>
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <attributes>
+        <ri:identifier>R.U.R</ri:identifier>
+        <ri:First_Name>Rossum</ri:First_Name>
+        <ri:Last_Name>Universal Robots</ri:Last_Name>
+        <ri:Display_Name>Rossum's Universal Robots</ri:Display_Name>
+        <ri:assignments>Universe/Manager/E/ACTIVE</ri:assignments>
+    </attributes>
 </shadow>

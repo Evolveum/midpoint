@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="c58f2665-e7c6-47a0-b106-974da5a990b4"
@@ -10,18 +10,18 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Self delegable</name>
     <authorization>
-    	<name>self-read</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<special>self</special>
-    	</object>
+        <name>self-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <special>self</special>
+        </object>
     </authorization>
     <authorization>
-    	<name>self-modify</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<object>
-    		<special>self</special>
-    	</object>
+        <name>self-modify</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <object>
+            <special>self</special>
+        </object>
     </authorization>
-	<delegable>true</delegable>
+    <delegable>true</delegable>
 </role>

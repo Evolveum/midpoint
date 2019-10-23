@@ -2,82 +2,82 @@
 <!--
   ~ Copyright (c) 2017 Evolveum, AMI Praha and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <lookupTable oid="00000000-0000-0000-0000-000000000210"
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
 
-	<name>Locales</name>
+    <name>Locales</name>
 
-	<row>
-		<key>cs</key>
-		<label>Čeština</label>
-	</row>
-	<row>
-		<key>de</key>
-		<label>Deutsch</label>
-	</row>
-	<row>
-		<key>et</key>
-		<label>Eesti</label>
-	</row>
-	<row>
-		<key>en</key>
-		<label>English</label>
-	</row>
-	<row>
-		<key>es</key>
-		<label>Español</label>
-	</row>
-	<row>
-		<key>fi</key>
-		<label>Suomi</label>
-	</row>
-	<row>
-		<key>fr</key>
-		<label>Français</label>
-	</row>
-	<row>
-		<key>hu</key>
-		<label>Magyar</label>
-	</row>
-	<row>
-		<key>it</key>
-		<label>Italiano</label>
-	</row>
-	<row>
-		<key>ja</key>
-		<label>日本語</label>
-	</row>
-	<row>
-		<key>lt</key>
-		<label>Lietuviškai</label>
-	</row>
-	<row>
-		<key>pl</key>
-		<label>Polski</label>
-	</row>
-	<row>
-		<key>pt_BR</key>
-		<label>Português (Brasil)</label>
-	</row>
-	<row>
-		<key>ru</key>
-		<label>Русский</label>
-	</row>
-	<row>
-		<key>sk</key>
-		<label>Slovenčina</label>
-	</row>
-	<row>
-		<key>tr</key>
-		<label>Türkçe</label>
-	</row>
-	<row>
-		<key>zh_CN</key>
-		<label>中文</label>
-	</row>
+    <row>
+        <key>cs</key>
+        <label>Čeština</label>
+    </row>
+    <row>
+        <key>de</key>
+        <label>Deutsch</label>
+    </row>
+    <row>
+        <key>et</key>
+        <label>Eesti</label>
+    </row>
+    <row>
+        <key>en</key>
+        <label>English</label>
+    </row>
+    <row>
+        <key>es</key>
+        <label>Español</label>
+    </row>
+    <row>
+        <key>fi</key>
+        <label>Suomi</label>
+    </row>
+    <row>
+        <key>fr</key>
+        <label>Français</label>
+    </row>
+    <row>
+        <key>hu</key>
+        <label>Magyar</label>
+    </row>
+    <row>
+        <key>it</key>
+        <label>Italiano</label>
+    </row>
+    <row>
+        <key>ja</key>
+        <label>日本語</label>
+    </row>
+    <row>
+        <key>lt</key>
+        <label>Lietuviškai</label>
+    </row>
+    <row>
+        <key>pl</key>
+        <label>Polski</label>
+    </row>
+    <row>
+        <key>pt_BR</key>
+        <label>Português (Brasil)</label>
+    </row>
+    <row>
+        <key>ru</key>
+        <label>Русский</label>
+    </row>
+    <row>
+        <key>sk</key>
+        <label>Slovenčina</label>
+    </row>
+    <row>
+        <key>tr</key>
+        <label>Türkçe</label>
+    </row>
+    <row>
+        <key>zh_CN</key>
+        <label>中文</label>
+    </row>
 
 </lookupTable>

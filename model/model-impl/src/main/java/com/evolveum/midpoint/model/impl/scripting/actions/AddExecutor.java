@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -69,17 +69,17 @@ public class AddExecutor extends BaseActionExecutor {
                     operationsHelper.recordEnd(context, objectType, started, ex);
                     exception = processActionException(ex, NAME, value, context);
                 }
-				context.println((exception != null ? "Attempted to add " : "Added ") + prismObject.toString() + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception));
+                context.println((exception != null ? "Attempted to add " : "Added ") + prismObject.toString() + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception));
             } else {
-				//noinspection ThrowableNotThrown
-				processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
+                //noinspection ThrowableNotThrown
+                processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
             }
             operationsHelper.trimAndCloneResult(result, globalResult, context);
         }
         return input;
     }
 
-	private ObjectDelta<? extends ObjectType> createAddDelta(ObjectType objectType) {
+    private ObjectDelta<? extends ObjectType> createAddDelta(ObjectType objectType) {
         return DeltaFactory.Object.createAddDelta(objectType.asPrismObject());
     }
 }

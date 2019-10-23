@@ -16,47 +16,47 @@
 
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-	<wicket:panel>
-		<div wicket:id="logging"/>
-		
-    	<div class="top-level-prism-container">
-	   		<div class="row prism-property">
-	       		<div class="container-fluid">
-					<div class="prism-header">
-						<div class="row">
-							<span class="prism-title"style="cursor: pointer;"><wicket:message key="LoggingConfigurationType.classLogger"/></span>
-						</div>
-					</div>
-					<div class="prism-properties">
-						<div wicket:id="loggers"/>
-					</div>
-				</div>
-			</div>
-		</div>
-		
-	    <div class="top-level-prism-container">
-	    	<div class="row prism-property">
-	       		<div class="container-fluid">
-					<div class="prism-header">
-						<div class="row">
-							<span class="prism-title"style="cursor: pointer;"><wicket:message key="LoggingConfigurationType.appender"/></span>
-						</div>
-					</div>
-					<div class="prism-properties">					
-						<div wicket:id="appenders"/>
-					</div>
-				</div>
-			</div>
-		</div>
-		
-		<div class="top-level-prism-container" wicket:id="audit"/>
-    	
-    	<wicket:fragment wicket:id="buttonToolbarFragment">
-    		<form wicket:id="choiceAppenderTypeForm">
-    			<div  wicket:id="appendersChoice" style="float:left;"/>
-            	<div wicket:id="newItemButton" style="float:left;"/>
-    		</form>
-    	</wicket:fragment>
-		
-	</wicket:panel>
+    <wicket:panel>
+        <div wicket:id="logging"/>
+
+        <div class="top-level-prism-container">
+               <div class="row prism-property">
+                   <div class="container-fluid">
+                    <div class="prism-header">
+                        <div class="row">
+                            <span class="prism-title"style="cursor: pointer;"><wicket:message key="LoggingConfigurationType.classLogger"/></span>
+                        </div>
+                    </div>
+                    <div class="prism-properties">
+                        <div wicket:id="loggers"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="top-level-prism-container">
+            <div class="row prism-property">
+                   <div class="container-fluid">
+                    <div class="prism-header">
+                        <div class="row">
+                            <span class="prism-title"style="cursor: pointer;"><wicket:message key="LoggingConfigurationType.appender"/></span>
+                        </div>
+                    </div>
+                    <div class="prism-properties">
+                        <div wicket:id="appenders"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="top-level-prism-container" wicket:id="audit"/>
+
+        <wicket:fragment wicket:id="buttonToolbarFragment">
+            <form wicket:id="choiceAppenderTypeForm">
+                <div  wicket:id="appendersChoice" style="float:left;"/>
+                <div wicket:id="newItemButton" style="float:left;"/>
+            </form>
+        </wicket:fragment>
+
+    </wicket:panel>
 </html>

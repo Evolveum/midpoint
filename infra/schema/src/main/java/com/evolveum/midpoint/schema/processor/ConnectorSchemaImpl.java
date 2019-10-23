@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.processor;
@@ -32,21 +32,21 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
     private String usualNamespacePrefix;
 
     protected ConnectorSchemaImpl(PrismContext prismContext) {
-		super(prismContext);
-	}
+        super(prismContext);
+    }
 
-	public ConnectorSchemaImpl(String namespace, PrismContext prismContext) {
-		super(namespace, prismContext);
-	}
+    public ConnectorSchemaImpl(String namespace, PrismContext prismContext) {
+        super(namespace, prismContext);
+    }
 
-	private ConnectorSchemaImpl(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
-		super(prismContext);
-		parseThis(element, true, shortDesc, prismContext);
-	}
+    private ConnectorSchemaImpl(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
+        super(prismContext);
+        parseThis(element, true, shortDesc, prismContext);
+    }
 
-	public static ConnectorSchemaImpl parse(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
-		return new ConnectorSchemaImpl(element, shortDesc, prismContext);
-	}
+    public static ConnectorSchemaImpl parse(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
+        return new ConnectorSchemaImpl(element, shortDesc, prismContext);
+    }
 
     public static String retrieveUsualNamespacePrefix(ConnectorType connectorType) {
         if (connectorType.getExtension() != null) {
@@ -60,53 +60,53 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
     }
 
     @Override
-	public Collection<ObjectClassComplexTypeDefinition> getObjectClassDefinitions() {
-		return getDefinitions(ObjectClassComplexTypeDefinition.class);
-	}
+    public Collection<ObjectClassComplexTypeDefinition> getObjectClassDefinitions() {
+        return getDefinitions(ObjectClassComplexTypeDefinition.class);
+    }
 
-//	/**
-//	 * Creates a new resource object definition and adds it to the schema.
-//	 *
-//	 * This is a preferred way how to create definition in the schema.
-//	 *
-//	 * @param localTypeName
-//	 *            type name "relative" to schema namespace
-//	 * @return new resource object definition
-//	 */
-//	public ObjectClassComplexTypeDefinition createObjectClassDefinition(String localTypeName) {
-//		QName typeName = new QName(getNamespace(), localTypeName);
-//		return createObjectClassDefinition(typeName);
-//	}
+//    /**
+//     * Creates a new resource object definition and adds it to the schema.
+//     *
+//     * This is a preferred way how to create definition in the schema.
+//     *
+//     * @param localTypeName
+//     *            type name "relative" to schema namespace
+//     * @return new resource object definition
+//     */
+//    public ObjectClassComplexTypeDefinition createObjectClassDefinition(String localTypeName) {
+//        QName typeName = new QName(getNamespace(), localTypeName);
+//        return createObjectClassDefinition(typeName);
+//    }
 
-//	/**
-//	 * Creates a new resource object definition and adds it to the schema.
-//	 *
-//	 * This is a preferred way how to create definition in the schema.
-//	 *
-//	 * @param typeName
-//	 *            type QName
-//	 * @return new resource object definition
-//	 */
-//	public ObjectClassComplexTypeDefinition createObjectClassDefinition(QName typeName) {
-//		ObjectClassComplexTypeDefinition cTypeDef = new ObjectClassComplexTypeDefinitionImpl(typeName, getPrismContext());
-//		add(cTypeDef);
-//		return cTypeDef;
-//	}
+//    /**
+//     * Creates a new resource object definition and adds it to the schema.
+//     *
+//     * This is a preferred way how to create definition in the schema.
+//     *
+//     * @param typeName
+//     *            type QName
+//     * @return new resource object definition
+//     */
+//    public ObjectClassComplexTypeDefinition createObjectClassDefinition(QName typeName) {
+//        ObjectClassComplexTypeDefinition cTypeDef = new ObjectClassComplexTypeDefinitionImpl(typeName, getPrismContext());
+//        add(cTypeDef);
+//        return cTypeDef;
+//    }
 
 
-	@Override
-	public ObjectClassComplexTypeDefinition findObjectClassDefinition(QName qName) {
-		ComplexTypeDefinition complexTypeDefinition = findComplexTypeDefinition(qName);
-		if (complexTypeDefinition == null) {
-			return null;
-		}
-		if (complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
-			return (ObjectClassComplexTypeDefinition)complexTypeDefinition;
-		} else {
-			throw new IllegalStateException("Expected the definition "+qName+" to be of type "+
-					ObjectClassComplexTypeDefinition.class+" but it was "+complexTypeDefinition.getClass());
-		}
-	}
+    @Override
+    public ObjectClassComplexTypeDefinition findObjectClassDefinition(QName qName) {
+        ComplexTypeDefinition complexTypeDefinition = findComplexTypeDefinition(qName);
+        if (complexTypeDefinition == null) {
+            return null;
+        }
+        if (complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
+            return (ObjectClassComplexTypeDefinition)complexTypeDefinition;
+        } else {
+            throw new IllegalStateException("Expected the definition "+qName+" to be of type "+
+                    ObjectClassComplexTypeDefinition.class+" but it was "+complexTypeDefinition.getClass());
+        }
+    }
 
 
     public void setUsualNamespacePrefix(String usualNamespacePrefix) {
@@ -114,7 +114,7 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
     }
 
     @Override
-	public String getUsualNamespacePrefix() {
+    public String getUsualNamespacePrefix() {
         return usualNamespacePrefix;
     }
 }

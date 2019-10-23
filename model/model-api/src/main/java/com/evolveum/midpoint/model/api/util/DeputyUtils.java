@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,52 +29,52 @@ import java.util.stream.Collectors;
  */
 public class DeputyUtils {
 
-	@NotNull
-	public static Collection<PrismReferenceValue> getDelegatorReferences(@NotNull UserType user,
-			@NotNull RelationRegistry relationRegistry) {
-		return user.getDelegatedRef().stream()
-				.filter(ref -> relationRegistry.isDelegation(ref.getRelation()))
-				.map(ref -> ref.asReferenceValue().clone())
-				.collect(Collectors.toList());
-	}
+    @NotNull
+    public static Collection<PrismReferenceValue> getDelegatorReferences(@NotNull UserType user,
+            @NotNull RelationRegistry relationRegistry) {
+        return user.getDelegatedRef().stream()
+                .filter(ref -> relationRegistry.isDelegation(ref.getRelation()))
+                .map(ref -> ref.asReferenceValue().clone())
+                .collect(Collectors.toList());
+    }
 
-	@NotNull
-	public static Collection<String> getDelegatorOids(@NotNull UserType user, @NotNull RelationRegistry relationRegistry) {
-		return getDelegatorReferences(user, relationRegistry).stream()
-				.map(PrismReferenceValue::getOid)
-				.collect(Collectors.toList());
-	}
+    @NotNull
+    public static Collection<String> getDelegatorOids(@NotNull UserType user, @NotNull RelationRegistry relationRegistry) {
+        return getDelegatorReferences(user, relationRegistry).stream()
+                .map(PrismReferenceValue::getOid)
+                .collect(Collectors.toList());
+    }
 
-	public static boolean isDelegationPresent(@NotNull UserType deputy, @NotNull String delegatorOid,
-			@NotNull RelationRegistry relationRegistry) {
-		return getDelegatorOids(deputy, relationRegistry).contains(delegatorOid);
-	}
+    public static boolean isDelegationPresent(@NotNull UserType deputy, @NotNull String delegatorOid,
+            @NotNull RelationRegistry relationRegistry) {
+        return getDelegatorOids(deputy, relationRegistry).contains(delegatorOid);
+    }
 
-	public static boolean isDelegationAssignment(AssignmentType assignment, @NotNull RelationRegistry relationRegistry) {
-		return assignment != null
-				&& assignment.getTargetRef() != null
-				&& relationRegistry.isDelegation(assignment.getTargetRef().getRelation());
-	}
+    public static boolean isDelegationAssignment(AssignmentType assignment, @NotNull RelationRegistry relationRegistry) {
+        return assignment != null
+                && assignment.getTargetRef() != null
+                && relationRegistry.isDelegation(assignment.getTargetRef().getRelation());
+    }
 
-	public static boolean isDelegationPath(@NotNull AssignmentPath assignmentPath, @NotNull RelationRegistry relationRegistry) {
-		for (AssignmentPathSegment segment : assignmentPath.getSegments()) {
-			if (!isDelegationAssignment(segment.getAssignment(), relationRegistry)) {
-				return false;
-			}
-		}
-		return true;
-	}
+    public static boolean isDelegationPath(@NotNull AssignmentPath assignmentPath, @NotNull RelationRegistry relationRegistry) {
+        for (AssignmentPathSegment segment : assignmentPath.getSegments()) {
+            if (!isDelegationAssignment(segment.getAssignment(), relationRegistry)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-	public static List<OtherPrivilegesLimitationType> extractLimitations(AssignmentPath assignmentPath) {
-		List<OtherPrivilegesLimitationType> rv = new ArrayList<>();
-		for (AssignmentPathSegment segment : assignmentPath.getSegments()) {
-			CollectionUtils.addIgnoreNull(rv, segment.getAssignment().getLimitOtherPrivileges());
-		}
-		return rv;
-	}
+    public static List<OtherPrivilegesLimitationType> extractLimitations(AssignmentPath assignmentPath) {
+        List<OtherPrivilegesLimitationType> rv = new ArrayList<>();
+        for (AssignmentPathSegment segment : assignmentPath.getSegments()) {
+            CollectionUtils.addIgnoreNull(rv, segment.getAssignment().getLimitOtherPrivileges());
+        }
+        return rv;
+    }
 
-	public static boolean limitationsAllow(List<OtherPrivilegesLimitationType> limitations, QName itemName,
-			AbstractWorkItemType workItem) {
-		return SchemaDeputyUtil.limitationsAllow(limitations, itemName);			// temporary solution; we do not use work items selectors yet
-	}
+    public static boolean limitationsAllow(List<OtherPrivilegesLimitationType> limitations, QName itemName,
+            AbstractWorkItemType workItem) {
+        return SchemaDeputyUtil.limitationsAllow(limitations, itemName);            // temporary solution; we do not use work items selectors yet
+    }
 }

@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="12345678-d34d-b33f-f00d-555555557703"
@@ -12,61 +12,61 @@
     <name>Wannabe</name>
     <description>A role full of conditions</description>
     <inducement id="1111">
-    	<construction id="60004" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <construction id="60004" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:title</ref>
                 <outbound>
-                	<source>
-                		<path>$user/description</path>
-                	</source>
-                	<source>
-                		<path>$user/honorificPrefix</path>
-                	</source>
-                	<expression>
-                		<script>
-                			<code>
-                				'Wannabe ' + honorificPrefix + ' ' + (description==null?"whatever":description)
-                			</code>
-                		</script>
-					</expression>
-				</outbound>
+                    <source>
+                        <path>$user/description</path>
+                    </source>
+                    <source>
+                        <path>$user/honorificPrefix</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                'Wannabe ' + honorificPrefix + ' ' + (description==null?"whatever":description)
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
-    	<condition>
-    		<source>
-    			<path>$user/honorificPrefix</path>
-    		</source>
-    		<expression>
-    			<script>
-    				<code>(Boolean)honorificPrefix?.trim()</code>
-    			</script>
-    		</expression>
-    	</condition>
+        </construction>
+        <condition>
+            <source>
+                <path>$user/honorificPrefix</path>
+            </source>
+            <expression>
+                <script>
+                    <code>(Boolean)honorificPrefix?.trim()</code>
+                </script>
+            </expression>
+        </condition>
     </inducement>
     <inducement id="1112">
-    	<!-- Honorable Wannabe -->
-    	<targetRef oid="12345678-d34d-b33f-f00d-555555557704" type="RoleType"/>
-    	<condition>
-    		<source>
-    			<path>$user/honorificSuffix</path>
-    		</source>
-    		<expression>
-    			<script>
-    				<code>(Boolean)honorificSuffix?.trim()</code>
-    			</script>
-    		</expression>
-    	</condition>
+        <!-- Honorable Wannabe -->
+        <targetRef oid="12345678-d34d-b33f-f00d-555555557704" type="RoleType"/>
+        <condition>
+            <source>
+                <path>$user/honorificSuffix</path>
+            </source>
+            <expression>
+                <script>
+                    <code>(Boolean)honorificSuffix?.trim()</code>
+                </script>
+            </expression>
+        </condition>
     </inducement>
     <condition>
-   		<source>
-   			<path>$user/subtype</path>
-   		</source>
-   		<expression>
-   			<script>
-   				<code>subtype == 'wannabe'</code>
-   			</script>
-   		</expression>
-   	</condition>
+           <source>
+               <path>$user/subtype</path>
+           </source>
+           <expression>
+               <script>
+                   <code>subtype == 'wannabe'</code>
+               </script>
+           </expression>
+       </condition>
 </role>

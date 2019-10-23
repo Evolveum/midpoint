@@ -3,25 +3,25 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <q:filter xsi:type="q:SearchFilterType"
-		xmlns="http://prism.evolveum.com/xml/ns/public/query-3"
-		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<and>
-		<equal>
+        xmlns="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <and>
+        <equal>
             <matching>insensitive</matching>
-			<path>c:tag</path>
-			<value>abc</value>
-		</equal>
-		<equal>
+            <path>c:tag</path>
+            <value>abc</value>
+        </equal>
+        <equal>
             <matching>norm</matching>
-			<path>c:name</path>
-			<value>someName</value>
-		</equal>
-	</and>
+            <path>c:name</path>
+            <value>someName</value>
+        </equal>
+    </and>
 </q:filter>

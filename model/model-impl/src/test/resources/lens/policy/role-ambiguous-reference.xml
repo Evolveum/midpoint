@@ -1,57 +1,57 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="38e1ca2b-bd0b-445b-bbaa-8b663e132e7e"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <name>Cyclic references</name>
-	<assignment>
-		<policyRule>
-			<name>rule-A</name>
-			<policyConstraints>
-				<name>constraint-A</name>
-				<ref>
-					<name>constraint-B</name>
-				</ref>
-			</policyConstraints>
-			<policyActions>
-				<!-- none -->
-			</policyActions>
-		</policyRule>
-	</assignment>
-	<assignment>
-		<policyRule>
-			<name>rule-B</name>
-			<policyConstraints>
-				<name>constraint-B</name>
-				<modification>
-					<item>name</item>
-				</modification>
-			</policyConstraints>
-			<policyActions>
-				<!-- none -->
-			</policyActions>
-		</policyRule>
-	</assignment>
-	<assignment>
-		<policyRule>
-			<name>rule-B-ambiguous</name>
-			<policyConstraints>
-				<name>constraint-B</name>
-				<modification>
-					<item>description</item>
-				</modification>
-			</policyConstraints>
-			<policyActions>
-				<!-- none -->
-			</policyActions>
-		</policyRule>
-	</assignment>
+    <assignment>
+        <policyRule>
+            <name>rule-A</name>
+            <policyConstraints>
+                <name>constraint-A</name>
+                <ref>
+                    <name>constraint-B</name>
+                </ref>
+            </policyConstraints>
+            <policyActions>
+                <!-- none -->
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <name>rule-B</name>
+            <policyConstraints>
+                <name>constraint-B</name>
+                <modification>
+                    <item>name</item>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <!-- none -->
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <name>rule-B-ambiguous</name>
+            <policyConstraints>
+                <name>constraint-B</name>
+                <modification>
+                    <item>description</item>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <!-- none -->
+            </policyActions>
+        </policyRule>
+    </assignment>
 </role>

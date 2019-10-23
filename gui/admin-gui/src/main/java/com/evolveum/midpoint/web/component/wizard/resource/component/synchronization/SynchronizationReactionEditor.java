@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -73,26 +73,26 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
 
     private Map<String, String> objectTemplateMap = new HashMap<>();
 
-	@NotNull private final SynchronizationStep parentStep;
+    @NotNull private final SynchronizationStep parentStep;
 
     public SynchronizationReactionEditor(String id, IModel<SynchronizationReactionType> model, SynchronizationStep parentStep,
-			PageResourceWizard parentPage) {
+            PageResourceWizard parentPage) {
         super(id, model);
-		this.parentStep = parentStep;
-		initLayout(parentPage);
+        this.parentStep = parentStep;
+        initLayout(parentPage);
     }
 
-	protected void initLayout(PageResourceWizard parentPage) {
-		Label label = new Label(ID_LABEL, new ResourceModel("SynchronizationReactionEditor.label.edit"));
+    protected void initLayout(PageResourceWizard parentPage) {
+        Label label = new Label(ID_LABEL, new ResourceModel("SynchronizationReactionEditor.label.edit"));
         add(label);
 
         TextField name = new TextField<>(ID_NAME, new PropertyModel<String>(getModel(), "name"));
-		name.add(new ReactionListUpdateBehavior());
-		parentPage.addEditingEnabledBehavior(name);
+        name.add(new ReactionListUpdateBehavior());
+        parentPage.addEditingEnabledBehavior(name);
         add(name);
 
         TextArea description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(getModel(), "description"));
-		parentPage.addEditingEnabledBehavior(description);
+        parentPage.addEditingEnabledBehavior(description);
         add(description);
 
         DropDownChoice situation = new DropDownChoice<>(ID_SITUATION,
@@ -100,14 +100,14 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
                 WebComponentUtil.createReadonlyModelFromEnum(SynchronizationSituationType.class),
             new EnumChoiceRenderer<>(this));
         situation.setNullValid(true);
-		situation.add(new ReactionListUpdateBehavior());
-		parentPage.addEditingEnabledBehavior(situation);
-		situation.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				((PageResourceWizard) getPageBase()).refreshIssues(target);
-			}
-		});
+        situation.add(new ReactionListUpdateBehavior());
+        parentPage.addEditingEnabledBehavior(situation);
+        situation.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                ((PageResourceWizard) getPageBase()).refreshIssues(target);
+            }
+        });
         add(situation);
 
         MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
@@ -136,12 +136,12 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
         };
         add(channel);
         TriStateComboPanel synchronize = new TriStateComboPanel(ID_SYNCHRONIZE, new PropertyModel<>(getModel(), "synchronize"));
-		synchronize.getBaseFormComponent().add(new ReactionListUpdateBehavior());
-		parentPage.addEditingEnabledBehavior(synchronize);
+        synchronize.getBaseFormComponent().add(new ReactionListUpdateBehavior());
+        parentPage.addEditingEnabledBehavior(synchronize);
         add(synchronize);
 
         CheckBox reconcile = new CheckBox(ID_RECONCILE, new PropertyModel<>(getModel(), "reconcile"));
-		parentPage.addEditingEnabledBehavior(reconcile);
+        parentPage.addEditingEnabledBehavior(reconcile);
         add(reconcile);
 
         DropDownChoice objectTemplateRef = new DropDownChoice<>(ID_OBJECT_TEMPLATE_REF,
@@ -154,7 +154,7 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
                     }
                 }, new ObjectReferenceChoiceRenderer(objectTemplateMap));
         objectTemplateRef.setNullValid(true);
-		parentPage.addEditingEnabledBehavior(objectTemplateRef);
+        parentPage.addEditingEnabledBehavior(objectTemplateRef);
         add(objectTemplateRef);
 
         MultiValueTextEditPanel action = new MultiValueTextEditPanel<SynchronizationActionType>(ID_ACTION,
@@ -180,19 +180,19 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
                 };
             }
 
-			@Override
-			protected void performAddValueHook(AjaxRequestTarget target, SynchronizationActionType added) {
-				target.add(parentStep.getReactionList());
-				((PageResourceWizard) getPageBase()).refreshIssues(target);
-			}
+            @Override
+            protected void performAddValueHook(AjaxRequestTarget target, SynchronizationActionType added) {
+                target.add(parentStep.getReactionList());
+                ((PageResourceWizard) getPageBase()).refreshIssues(target);
+            }
 
-			@Override
-			protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<SynchronizationActionType> item) {
-				target.add(parentStep.getReactionList());
-				((PageResourceWizard) getPageBase()).refreshIssues(target);
-			}
+            @Override
+            protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<SynchronizationActionType> item) {
+                target.add(parentStep.getReactionList());
+                ((PageResourceWizard) getPageBase()).refreshIssues(target);
+            }
 
-			@Override
+            @Override
             protected SynchronizationActionType createNewEmptyItem(){
                 return new SynchronizationActionType();
             }
@@ -284,10 +284,10 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
         window.show(target);
     }
 
-	private class ReactionListUpdateBehavior extends EmptyOnChangeAjaxFormUpdatingBehavior {
-		@Override
-		protected void onUpdate(AjaxRequestTarget target) {
-			target.add(parentStep.getReactionList());
-		}
-	}
+    private class ReactionListUpdateBehavior extends EmptyOnChangeAjaxFormUpdatingBehavior {
+        @Override
+        protected void onUpdate(AjaxRequestTarget target) {
+            target.add(parentStep.getReactionList());
+        }
+    }
 }

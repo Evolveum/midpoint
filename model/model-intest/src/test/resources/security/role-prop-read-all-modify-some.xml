@@ -1,32 +1,32 @@
 <!--
   ~ Copyright (c) 2014-2016 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="00000000-0000-0000-0000-00000000aa05"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Prop Read All Modify Some</name>    
+    <name>Prop Read All Modify Some</name>
     <authorization>
-    	<name>AUTZreadAllModify1</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <name>AUTZreadAllModify1</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     </authorization>
     <authorization>
-    	<name>AUTZreadAllModify2</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<item>c:fullName</item>
-    	<item>c:description</item>
+        <name>AUTZreadAllModify2</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <item>c:fullName</item>
+        <item>c:description</item>
     </authorization>
     <authorization>
-    	<name>AUTZreadAllModify3</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<phase>execution</phase>
-    	<item>c:metadata</item>
-    	<item>c:metadata/modifyTimestamp</item>
-    	<item>c:policyStatus</item>
-    	<item>c:assignment/c:metadata</item>
-    	<item>c:assignment/c:policyStatus</item>
+        <name>AUTZreadAllModify3</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
+        <item>c:metadata</item>
+        <item>c:metadata/modifyTimestamp</item>
+        <item>c:policyStatus</item>
+        <item>c:assignment/c:metadata</item>
+        <item>c:assignment/c:policyStatus</item>
     </authorization>
 </role>

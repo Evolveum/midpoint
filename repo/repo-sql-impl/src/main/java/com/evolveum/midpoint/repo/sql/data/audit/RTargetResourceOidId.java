@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -11,9 +11,9 @@ import java.io.Serializable;
 
 public class RTargetResourceOidId implements Serializable{
 
-	private static final long serialVersionUID = 1L;
-	private Long recordId;
-	private String resourceOid;
+    private static final long serialVersionUID = 1L;
+    private Long recordId;
+    private String resourceOid;
 
     public Long getRecordId() {
         return recordId;
@@ -24,12 +24,12 @@ public class RTargetResourceOidId implements Serializable{
     }
 
     public String getresourceOid() {
-		return resourceOid;
-	}
+        return resourceOid;
+    }
 
     public void setresourceOid(String resourceOid) {
-		this.resourceOid = resourceOid;
-	}
+        this.resourceOid = resourceOid;
+    }
 
 
     @Override

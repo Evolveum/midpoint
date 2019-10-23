@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <object xsi:type="AccountShadowType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -41,113 +41,113 @@
             </idc:ConnectorConfiguration>
         </connectorConfiguration>
         <schema>
-            
-        	<definition>
+
+            <definition>
             <xsd:schema elementFormDefault="qualified"
-					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
-					
-					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
-					<xsd:complexType name="GroupObjectClass">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<ra:resourceObject/>
-			                     <ra:identifier>icfs:uid</ra:identifier>
-			                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-			                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-			                     <ra:nativeObjectClass>__GROUP__</ra:nativeObjectClass>
-							</xsd:appinfo>
-						</xsd:annotation>
-						<xsd:sequence>
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="owner" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="uniqueMember" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
-							<xsd:element ref="icfs:name" />
-							<xsd:element ref="icfs:uid" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
-						</xsd:sequence>
-					</xsd:complexType>
-					<xsd:complexType name="AccountObjectClass">
-						<xsd:annotation>
-							<xsd:appinfo>
-								 <ra:resourceObject/>
-			                     <ra:identifier>icfs:uid</ra:identifier>
-			                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-			                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-			                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
-			                     <ra:account/>
-			                     <ra:default/>
-							</xsd:appinfo>
-						</xsd:annotation>
-						<xsd:sequence>
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="internationaliSDNNumber" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="x121Address" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="employeeType" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="pager" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="audio" type="xsd:base64Binary" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="departmentNumber" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="x500UniqueIdentifier" type="xsd:base64Binary" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="postalAddress" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="givenName" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="mail" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="photo" type="xsd:base64Binary" />
-							<xsd:element minOccurs="0" name="displayName" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPassword" type="xsd:base64Binary" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="physicalDeliveryOfficeName" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="manager" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="homePhone" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="postOfficeBox" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="homePostalAddress" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="roomNumber" type="xsd:string" />
-							<xsd:element minOccurs="0" name="employeeNumber" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="facsimileTelephoneNumber" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="userSMIMECertificate" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="l" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="userCertificate" type="xsd:base64Binary" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="teletexTerminalIdentifier" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="jpegPhoto" type="xsd:base64Binary" />
-							<xsd:element ref="icfs:name" />
-							<xsd:element minOccurs="0" name="preferredDeliveryMethod" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPKCS12" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="postalCode" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="labeledURI" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="telexNumber" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="carLicense" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="street" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="registeredAddress" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" name="sn" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="secretary" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="mobile" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="uid" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="initials" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="telephoneNumber" type="xsd:string" />
-							<xsd:element ref="icfs:uid" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="destinationIndicator" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="st" type="xsd:string" />
-							<xsd:element minOccurs="0" ref="icfs:password" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
-							<xsd:element minOccurs="0" name="preferredLanguage" type="xsd:string" />
-						</xsd:sequence>
-					</xsd:complexType>
-				</xsd:schema>
-			</definition>
+                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+                    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                    xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+                    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
+
+                    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+                    <xsd:complexType name="GroupObjectClass">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <ra:resourceObject/>
+                                 <ra:identifier>icfs:uid</ra:identifier>
+                                 <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                                 <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                                 <ra:nativeObjectClass>__GROUP__</ra:nativeObjectClass>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                        <xsd:sequence>
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="owner" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="uniqueMember" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
+                            <xsd:element ref="icfs:name" />
+                            <xsd:element ref="icfs:uid" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
+                        </xsd:sequence>
+                    </xsd:complexType>
+                    <xsd:complexType name="AccountObjectClass">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                 <ra:resourceObject/>
+                                 <ra:identifier>icfs:uid</ra:identifier>
+                                 <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                                 <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                                 <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+                                 <ra:account/>
+                                 <ra:default/>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                        <xsd:sequence>
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="internationaliSDNNumber" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="x121Address" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="employeeType" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="pager" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="audio" type="xsd:base64Binary" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="departmentNumber" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="x500UniqueIdentifier" type="xsd:base64Binary" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="postalAddress" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="givenName" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="mail" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="photo" type="xsd:base64Binary" />
+                            <xsd:element minOccurs="0" name="displayName" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="userPassword" type="xsd:base64Binary" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="physicalDeliveryOfficeName" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="manager" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="homePhone" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="postOfficeBox" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="homePostalAddress" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="roomNumber" type="xsd:string" />
+                            <xsd:element minOccurs="0" name="employeeNumber" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="facsimileTelephoneNumber" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="userSMIMECertificate" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="l" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="userCertificate" type="xsd:base64Binary" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="teletexTerminalIdentifier" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="jpegPhoto" type="xsd:base64Binary" />
+                            <xsd:element ref="icfs:name" />
+                            <xsd:element minOccurs="0" name="preferredDeliveryMethod" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="userPKCS12" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="postalCode" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="labeledURI" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="telexNumber" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="carLicense" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="street" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="registeredAddress" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" name="sn" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="secretary" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="mobile" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="uid" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="initials" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="telephoneNumber" type="xsd:string" />
+                            <xsd:element ref="icfs:uid" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="destinationIndicator" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="st" type="xsd:string" />
+                            <xsd:element minOccurs="0" ref="icfs:password" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
+                            <xsd:element minOccurs="0" name="preferredLanguage" type="xsd:string" />
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:schema>
+            </definition>
         </schema>
 
         <schemaHandling>

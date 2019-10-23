@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="8418e248-3efc-11e7-a546-931a90cb8ee3"
@@ -9,23 +9,23 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Read Role Members - Wrong</name>
-    <description>Wrong authorization to read members of the roles. This should NOT give access to role members.</description>    
+    <description>Wrong authorization to read members of the roles. This should NOT give access to role members.</description>
     <authorization>
-    	<name>autz-read-roles</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<type>RoleType</type>
-    	</object>
-    	<item>name</item>
-    	<item>description</item>
-    	<item>roleMembershipRef</item>
+        <name>autz-read-roles</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <item>name</item>
+        <item>description</item>
+        <item>roleMembershipRef</item>
     </authorization>
     <authorization>
-    	<name>autz-read-users</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<type>UserType</type>
-    	</object>
-    	<item>name</item>
+        <name>autz-read-users</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>name</item>
     </authorization>
 </role>

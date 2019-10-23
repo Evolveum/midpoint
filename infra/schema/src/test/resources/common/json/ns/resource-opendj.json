@@ -233,16 +233,16 @@
             }
           }
         } ],
-        "protected" : [ 
-        	{
-        		"filter" : {
-        			"@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
-			        "equal" : {
-          				"path" : "declare namespace icfs=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3\"; attributes/icfs:name",
-				        "value" : "uid=idm,ou=Administrators,dc=example,dc=com"
-				     }
-				}
-        	} ],
+        "protected" : [
+            {
+                "filter" : {
+                    "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+                    "equal" : {
+                          "path" : "declare namespace icfs=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3\"; attributes/icfs:name",
+                        "value" : "uid=idm,ou=Administrators,dc=example,dc=com"
+                     }
+                }
+            } ],
         "activation" : {
           "administrativeStatus" : {
             "outbound" : [ { } ],

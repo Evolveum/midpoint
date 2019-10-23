@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -52,7 +52,7 @@ public class ActionsExecutedInformation {
         this(null);
     }
 
-	public ActionsExecutedInformationType getStartValue() {
+    public ActionsExecutedInformationType getStartValue() {
         return (ActionsExecutedInformationType) startValue;
     }
 
@@ -215,16 +215,16 @@ public class ActionsExecutedInformation {
     }
 
     private static class ObjectActionExecuted {
-        String objectName;
-        String objectDisplayName;
-        QName objectType;
+        final String objectName;
+        final String objectDisplayName;
+        final QName objectType;
         String objectOid;
-        ChangeType changeType;
-        String channel;
-        Throwable exception;
-        XMLGregorianCalendar timestamp;
+        final ChangeType changeType;
+        final String channel;
+        final Throwable exception;
+        final XMLGregorianCalendar timestamp;
 
-        public ObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception, XMLGregorianCalendar timestamp) {
+        ObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception, XMLGregorianCalendar timestamp) {
             this.objectName = objectName;
             this.objectDisplayName = objectDisplayName;
             this.objectType = objectType;

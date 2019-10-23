@@ -251,11 +251,11 @@ public class MappingSetEvaluator {
         }
 
         List<Integer> processed = new ArrayList<>();
-        List<Integer> toProcess = Stream.iterate(0, t -> t+1).limit(requests.size()).collect(Collectors.toList());		// not a set: to preserve original order
+        List<Integer> toProcess = Stream.iterate(0, t -> t+1).limit(requests.size()).collect(Collectors.toList());        // not a set: to preserve original order
         while (!toProcess.isEmpty()) {
             LOGGER.trace("sortMappingsByDependencies: toProcess: {}, processed: {}", toProcess, processed);
             Integer available = toProcess.stream()
-                    .filter(i -> CollectionUtils.isSubCollection(dependencyMap.get(i), processed))	// cannot depend on yet-unprocessed mappings
+                    .filter(i -> CollectionUtils.isSubCollection(dependencyMap.get(i), processed))    // cannot depend on yet-unprocessed mappings
                     .findFirst().orElse(null);
             if (available == null) {
                 LOGGER.warn("Cannot sort mappings according to dependencies, there is a cycle involving mappings {}:\n{}",

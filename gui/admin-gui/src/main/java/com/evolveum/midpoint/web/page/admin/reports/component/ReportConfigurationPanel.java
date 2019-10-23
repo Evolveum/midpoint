@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
@@ -34,16 +34,16 @@ public class ReportConfigurationPanel extends BasePanel<ReportDto> {
 
     public ReportConfigurationPanel(String id, IModel<ReportDto> model) {
         super(id, model);
-		initLayout();
+        initLayout();
     }
 
     protected void initLayout() {
-    	ReportEngineSelectionType reportEngineType = getModel().getObject().getReportEngineType();
-    	
-    	if(ReportEngineSelectionType.DASHBOARD.equals(reportEngineType)) {
-    		add(new DashboardReportBasicConfigurationPanel(ID_BASIC_PANEL, getModel()));
-    	} else {
-    		add(new JasperReportBasicConfigurationPanel(ID_BASIC_PANEL, getModel()));
-    	}
+        ReportEngineSelectionType reportEngineType = getModel().getObject().getReportEngineType();
+
+        if(ReportEngineSelectionType.DASHBOARD.equals(reportEngineType)) {
+            add(new DashboardReportBasicConfigurationPanel(ID_BASIC_PANEL, getModel()));
+        } else {
+            add(new JasperReportBasicConfigurationPanel(ID_BASIC_PANEL, getModel()));
+        }
     }
 }

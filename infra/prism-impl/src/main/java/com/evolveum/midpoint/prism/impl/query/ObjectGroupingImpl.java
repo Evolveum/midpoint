@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -44,15 +44,12 @@ public class ObjectGroupingImpl implements ObjectGrouping {
     }
 
     public boolean equals(Object o, boolean exact) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         ObjectGroupingImpl that = (ObjectGroupingImpl) o;
-
-        if (groupBy != null ? !groupBy.equals(that.groupBy, exact) : that.groupBy != null)
+        if (groupBy != null ? !groupBy.equals(that.groupBy, exact) : that.groupBy != null) {
             return false;
+        }
         return true;
     }
 

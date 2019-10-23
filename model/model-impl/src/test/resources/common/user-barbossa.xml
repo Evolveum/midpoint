@@ -2,70 +2,70 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="c0c010c0-d34d-b33f-f00d-111111111112" 
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+<user oid="c0c010c0-d34d-b33f-f00d-111111111112"
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>barbossa</name>
 
     <assignment id="1001">
-		<construction>
-			<description>Brethren account construction</description>
-			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
-			<attribute>
-				<ref>ri:ship</ref>
-				<outbound>
-					<expression>
-						<value>Pirate Brethren, Inc.</value>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:location</ref>
-				<outbound>
-					<source>
-						<path>$focus/locality</path>
-					</source>
-					<expression>
-						<asIs/>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:weapon</ref>
-				<outbound>
-					<expression>
-						<value>Sword</value>
-					</expression>
-				</outbound>
-			</attribute>
-		</construction>
-	</assignment>
+        <construction>
+            <description>Brethren account construction</description>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+            <!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
+            <attribute>
+                <ref>ri:ship</ref>
+                <outbound>
+                    <expression>
+                        <value>Pirate Brethren, Inc.</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <outbound>
+                    <source>
+                        <path>$focus/locality</path>
+                    </source>
+                    <expression>
+                        <asIs/>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:weapon</ref>
+                <outbound>
+                    <expression>
+                        <value>Sword</value>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+    </assignment>
 
     <assignment>
-		<construction>
-			<description>Undead monkey account construction</description>
-			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
-			<attribute>
-				<ref>ri:weapon</ref>
-				<outbound>
-					<expression>
-						<value>Undead Monkey</value>
-					</expression>
-				</outbound>
-			</attribute>
-		</construction>
-	</assignment>
-    
+        <construction>
+            <description>Undead monkey account construction</description>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+            <!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
+            <attribute>
+                <ref>ri:weapon</ref>
+                <outbound>
+                    <expression>
+                        <value>Undead Monkey</value>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+    </assignment>
+
     <linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="ShadowType"/>
 
     <fullName>Hector Barbossa</fullName>
@@ -73,18 +73,18 @@
     <familyName>Barbossa</familyName>
     <locality>Caribbean</locality>
     <organizationalUnit>The crew of Pirate Brethren, Inc.</organizationalUnit>
-    
+
     <activation>
-    	<administrativeStatus>enabled</administrativeStatus>
-    	<effectiveStatus>enabled</effectiveStatus>
+        <administrativeStatus>enabled</administrativeStatus>
+        <effectiveStatus>enabled</effectiveStatus>
     </activation>
-    
+
     <credentials>
         <password>
-        	<value>
-	            <clearValue>deadjacktellnotales</clearValue>
+            <value>
+                <clearValue>deadjacktellnotales</clearValue>
             </value>
         </password>
     </credentials>
-    
+
 </user>

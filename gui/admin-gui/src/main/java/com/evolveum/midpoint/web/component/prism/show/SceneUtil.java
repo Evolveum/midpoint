@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,20 +29,20 @@ import java.util.List;
  */
 public class SceneUtil {
 
-	public static Scene visualizeObjectTreeDeltas(ObjectTreeDeltasType deltas, String displayNameKey,
-													  PrismContext prismContext, ModelInteractionService modelInteractionService,
-													  ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
-		List<Scene> scenes = new ArrayList<>();
-		if (deltas != null) {
-			if (deltas.getFocusPrimaryDelta() != null) {
-				ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(deltas.getFocusPrimaryDelta(), prismContext);
-				scenes.add(modelInteractionService.visualizeDelta(delta, objectRef, task, result));
-			}
-			for (ProjectionObjectDeltaType projectionObjectDelta : deltas.getProjectionPrimaryDelta()) {
-				ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(projectionObjectDelta.getPrimaryDelta(), prismContext);
-				scenes.add(modelInteractionService.visualizeDelta(delta, task, result));
-			}
-		}
-		return new WrapperScene(scenes, displayNameKey);
-	}
+    public static Scene visualizeObjectTreeDeltas(ObjectTreeDeltasType deltas, String displayNameKey,
+                                                      PrismContext prismContext, ModelInteractionService modelInteractionService,
+                                                      ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+        List<Scene> scenes = new ArrayList<>();
+        if (deltas != null) {
+            if (deltas.getFocusPrimaryDelta() != null) {
+                ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(deltas.getFocusPrimaryDelta(), prismContext);
+                scenes.add(modelInteractionService.visualizeDelta(delta, objectRef, task, result));
+            }
+            for (ProjectionObjectDeltaType projectionObjectDelta : deltas.getProjectionPrimaryDelta()) {
+                ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(projectionObjectDelta.getPrimaryDelta(), prismContext);
+                scenes.add(modelInteractionService.visualizeDelta(delta, task, result));
+            }
+        }
+        return new WrapperScene(scenes, displayNameKey);
+    }
 }

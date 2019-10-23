@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -32,52 +32,52 @@ import java.util.List;
  */
 public interface PrismSchema extends DebugDumpable, GlobalDefinitionsStore, DefinitionSearchImplementation {
 
-	/**
-	 * Returns schema namespace.
-	 *
-	 * All schema definitions are placed in the returned namespace.
-	 *
-	 * @return schema namespace
-	 *
-	 * TODO can be null?
-	 */
-	String getNamespace();
+    /**
+     * Returns schema namespace.
+     *
+     * All schema definitions are placed in the returned namespace.
+     *
+     * @return schema namespace
+     *
+     * TODO can be null?
+     */
+    String getNamespace();
 
-	/**
-	 * Returns set of definitions.
-	 *
-	 * The set contains all definitions of all types that were parsed. Order of definitions is insignificant.
-	 *
-	 * @return set of definitions
-	 */
-	@NotNull
-	Collection<Definition> getDefinitions();
+    /**
+     * Returns set of definitions.
+     *
+     * The set contains all definitions of all types that were parsed. Order of definitions is insignificant.
+     *
+     * @return set of definitions
+     */
+    @NotNull
+    Collection<Definition> getDefinitions();
 
-	/**
-	 * Returns set of definitions of a given type.
-	 *
-	 * The set contains all definitions of the given type that were parsed. Order of definitions is insignificant.
-	 *
-	 * @return set of definitions
-	 */
-	@NotNull
-	<T extends Definition> List<T> getDefinitions(@NotNull Class<T> type);
+    /**
+     * Returns set of definitions of a given type.
+     *
+     * The set contains all definitions of the given type that were parsed. Order of definitions is insignificant.
+     *
+     * @return set of definitions
+     */
+    @NotNull
+    <T extends Definition> List<T> getDefinitions(@NotNull Class<T> type);
 
-	@NotNull
-	default List<PrismObjectDefinition> getObjectDefinitions() {
-		return getDefinitions(PrismObjectDefinition.class);
-	}
+    @NotNull
+    default List<PrismObjectDefinition> getObjectDefinitions() {
+        return getDefinitions(PrismObjectDefinition.class);
+    }
 
-	@NotNull
-	default List<ComplexTypeDefinition> getComplexTypeDefinitions() {
-		return getDefinitions(ComplexTypeDefinition.class);
-	}
+    @NotNull
+    default List<ComplexTypeDefinition> getComplexTypeDefinitions() {
+        return getDefinitions(ComplexTypeDefinition.class);
+    }
 
-	// TODO nullability?
-	PrismContext getPrismContext();
+    // TODO nullability?
+    PrismContext getPrismContext();
 
-	@NotNull
-	Document serializeToXsd() throws SchemaException;
+    @NotNull
+    Document serializeToXsd() throws SchemaException;
 
-	boolean isEmpty();
+    boolean isEmpty();
 }

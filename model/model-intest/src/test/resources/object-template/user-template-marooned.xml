@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="766215e8-5f1e-11e6-94bb-c3b21af53235"
@@ -13,15 +13,15 @@
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>Marooned User Template</name>
-    
+
     <item>
-    	<ref>costCenter</ref>
-    	<mapping>
-	    	<strength>strong</strength>
-	    	<expression>
-	            <value>NOCOST</value>    	
-	    	</expression>
-	    </mapping>
+        <ref>costCenter</ref>
+        <mapping>
+            <strength>strong</strength>
+            <expression>
+                <value>NOCOST</value>
+            </expression>
+        </mapping>
     </item>
 
 </objectTemplate>

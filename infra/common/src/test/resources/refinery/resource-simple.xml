@@ -2,173 +2,173 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- Resource without schema handling and synchronization -->
 
-<object xsi:type="ResourceType" oid="10000000-0000-0000-0000-000000000003" 
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3" 
-	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-	<name>Localhost OpenDJ Simple</name>
-	<connectorRef oid="14e63399-8869-4787-9369-93f9d1311671" type="ConnectorType">
-		<and xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
-			<c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType" />
-			<c:equal>
-				<c:value>
-					<c:connectorType>org.identityconnectors.ldap.LdapConnector</c:connectorType>
-				</c:value>
-			</c:equal>
-		</and>
-	</connectorRef>
-	<connectorConfiguration>
-		<icfcldap:configurationProperties xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
-			xmlns:my="http://myself.me/schemas/whatever">
-			<icfcldap:port>1389</icfcldap:port>
-			<icfcldap:host>localhost</icfcldap:host>
-			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-			<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
-			<icfcldap:credentials>
-				<enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
-					<enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc" />
-					<ds:KeyInfo>
-						<ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
-					</ds:KeyInfo>
-					<enc:CipherData>
-						<enc:CipherValue>lg0Z08KE4rsE8GGvQsTqSMD1v7Id/sQAGg8f8VaA2jvwnno2f6vBkZbsDuYK8p9Y</enc:CipherValue>
-					</enc:CipherData>
-				</enc:EncryptedData>
-			</icfcldap:credentials>
-			<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
-			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-			<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
-		</icfcldap:configurationProperties>
-	</connectorConfiguration>
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003</namespace>
-	<schema>
-	  <definition>
-		<xsd:schema elementFormDefault="qualified"
-			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" 
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" 
-			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
-			
-			<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
-			<xsd:complexType name="GroupObjectClass">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<r:resourceObject />
-						<r:identifier ref="icfs:uid" />
-						<r:displayNameAttribute ref="icfs:name" />
-						<r:namingAttribute ref="icfs:name" />
-						<r:nativeObjectClass>__GROUP__</r:nativeObjectClass>
-					</xsd:appinfo>
-				</xsd:annotation>
-				<xsd:sequence>
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="owner" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="uniqueMember" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
-					<xsd:element ref="icfs:name" />
-					<xsd:element ref="icfs:uid" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
-				</xsd:sequence>
-			</xsd:complexType>
-			<xsd:complexType name="AccountObjectClass">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<r:account />
-						<r:resourceObject />
-						<r:identifier ref="icfs:uid" />
-						<r:displayNameAttribute ref="ri:uid" />
-						<r:namingAttribute ref="icfs:name" />
-						<r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
-						<r:default/>
-					</xsd:appinfo>
-				</xsd:annotation>
-				<xsd:sequence>
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="internationaliSDNNumber" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="x121Address" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="employeeType" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="pager" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="audio" type="xsd:base64Binary" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="departmentNumber" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="x500UniqueIdentifier" type="xsd:base64Binary" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="postalAddress" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="givenName" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="mail" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="photo" type="xsd:base64Binary" />
-					<xsd:element minOccurs="0" name="displayName" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPassword" type="xsd:base64Binary" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="physicalDeliveryOfficeName" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="manager" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="homePhone" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="postOfficeBox" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="homePostalAddress" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="roomNumber" type="xsd:string" />
-					<xsd:element minOccurs="0" name="employeeNumber" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="facsimileTelephoneNumber" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="userSMIMECertificate" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="l" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="userCertificate" type="xsd:base64Binary" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="teletexTerminalIdentifier" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="jpegPhoto" type="xsd:base64Binary" />
-					<xsd:element ref="icfs:name" />
-					<xsd:element minOccurs="0" name="preferredDeliveryMethod" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPKCS12" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="postalCode" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="labeledURI" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="telexNumber" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="carLicense" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="street" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="registeredAddress" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" name="sn" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="secretary" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="mobile" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="uid" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="initials" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="telephoneNumber" type="xsd:string" />
-					<xsd:element ref="icfs:uid" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="destinationIndicator" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="st" type="xsd:string" />
-					<xsd:element minOccurs="0" ref="icfs:password" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
-					<xsd:element minOccurs="0" name="preferredLanguage" type="xsd:string" />
-					<xsd:element minOccurs="0" name="ds-pwp-account-disabled" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<a:ignore/>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:complexType>
-		</xsd:schema>
-	  </definition>
-	</schema>
+<object xsi:type="ResourceType" oid="10000000-0000-0000-0000-000000000003"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+    xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+    <name>Localhost OpenDJ Simple</name>
+    <connectorRef oid="14e63399-8869-4787-9369-93f9d1311671" type="ConnectorType">
+        <and xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
+            <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType" />
+            <c:equal>
+                <c:value>
+                    <c:connectorType>org.identityconnectors.ldap.LdapConnector</c:connectorType>
+                </c:value>
+            </c:equal>
+        </and>
+    </connectorRef>
+    <connectorConfiguration>
+        <icfcldap:configurationProperties xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
+            xmlns:my="http://myself.me/schemas/whatever">
+            <icfcldap:port>1389</icfcldap:port>
+            <icfcldap:host>localhost</icfcldap:host>
+            <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
+            <icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
+            <icfcldap:credentials>
+                <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+                    <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc" />
+                    <ds:KeyInfo>
+                        <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
+                    </ds:KeyInfo>
+                    <enc:CipherData>
+                        <enc:CipherValue>lg0Z08KE4rsE8GGvQsTqSMD1v7Id/sQAGg8f8VaA2jvwnno2f6vBkZbsDuYK8p9Y</enc:CipherValue>
+                    </enc:CipherData>
+                </enc:EncryptedData>
+            </icfcldap:credentials>
+            <icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
+            <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+            <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
+        </icfcldap:configurationProperties>
+    </connectorConfiguration>
+    <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003</namespace>
+    <schema>
+      <definition>
+        <xsd:schema elementFormDefault="qualified"
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
+
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+            <xsd:complexType name="GroupObjectClass">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <r:resourceObject />
+                        <r:identifier ref="icfs:uid" />
+                        <r:displayNameAttribute ref="icfs:name" />
+                        <r:namingAttribute ref="icfs:name" />
+                        <r:nativeObjectClass>__GROUP__</r:nativeObjectClass>
+                    </xsd:appinfo>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="owner" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="uniqueMember" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
+                    <xsd:element ref="icfs:name" />
+                    <xsd:element ref="icfs:uid" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AccountObjectClass">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <r:account />
+                        <r:resourceObject />
+                        <r:identifier ref="icfs:uid" />
+                        <r:displayNameAttribute ref="ri:uid" />
+                        <r:namingAttribute ref="icfs:name" />
+                        <r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
+                        <r:default/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="internationaliSDNNumber" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="x121Address" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="employeeType" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="pager" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="audio" type="xsd:base64Binary" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="departmentNumber" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="x500UniqueIdentifier" type="xsd:base64Binary" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="postalAddress" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="givenName" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="mail" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="photo" type="xsd:base64Binary" />
+                    <xsd:element minOccurs="0" name="displayName" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="userPassword" type="xsd:base64Binary" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="physicalDeliveryOfficeName" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="manager" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="homePhone" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="postOfficeBox" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="homePostalAddress" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="roomNumber" type="xsd:string" />
+                    <xsd:element minOccurs="0" name="employeeNumber" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="facsimileTelephoneNumber" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="userSMIMECertificate" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="l" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="userCertificate" type="xsd:base64Binary" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="teletexTerminalIdentifier" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="jpegPhoto" type="xsd:base64Binary" />
+                    <xsd:element ref="icfs:name" />
+                    <xsd:element minOccurs="0" name="preferredDeliveryMethod" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="userPKCS12" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="postalCode" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="labeledURI" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="telexNumber" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="carLicense" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="street" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="registeredAddress" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" name="sn" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="secretary" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="mobile" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="uid" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="initials" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="telephoneNumber" type="xsd:string" />
+                    <xsd:element ref="icfs:uid" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="destinationIndicator" type="xsd:string" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="st" type="xsd:string" />
+                    <xsd:element minOccurs="0" ref="icfs:password" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
+                    <xsd:element minOccurs="0" name="preferredLanguage" type="xsd:string" />
+                    <xsd:element minOccurs="0" name="ds-pwp-account-disabled" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:ignore/>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+        </xsd:schema>
+      </definition>
+    </schema>
 </object>

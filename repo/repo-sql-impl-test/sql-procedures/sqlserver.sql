@@ -3,9 +3,9 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
--- Author:		lazyman
+-- Author:        lazyman
 -- Create date: 15.01.2013
--- Description:	used for db cleanup during testing, used by bamboo build system
+-- Description:    used for db cleanup during testing, used by bamboo build system
 -- =============================================
 CREATE PROCEDURE cleanupTestDatabaseProc
 AS

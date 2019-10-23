@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -124,11 +124,9 @@ public class UnaryLogicalOperatorFilterType
 
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = super.hashCode(locator, strategy);
-        {
-            Element theFilter;
-            theFilter = this.getFilter();
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "filter", theFilter), currentHashCode, theFilter);
-        }
+        Element theFilter;
+        theFilter = this.getFilter();
+        currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "filter", theFilter), currentHashCode, theFilter);
         return currentHashCode;
     }
 
@@ -148,7 +146,6 @@ public class UnaryLogicalOperatorFilterType
             return false;
         }
         final UnaryLogicalOperatorFilterType that = ((UnaryLogicalOperatorFilterType) object);
-        {
             Element lhsFilter;
             lhsFilter = this.getFilter();
             Element rhsFilter;
@@ -156,7 +153,6 @@ public class UnaryLogicalOperatorFilterType
             if (!strategy.equals(LocatorUtils.property(thisLocator, "filter", lhsFilter), LocatorUtils.property(thatLocator, "filter", rhsFilter), lhsFilter, rhsFilter)) {
                 return false;
             }
-        }
         return true;
     }
 
@@ -174,13 +170,11 @@ public class UnaryLogicalOperatorFilterType
      */
     @Override
     public UnaryLogicalOperatorFilterType clone() {
-        {
-            // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-            final UnaryLogicalOperatorFilterType clone = ((UnaryLogicalOperatorFilterType) super.clone());
-            // CWildcardTypeInfo: org.w3c.dom.Element
-            clone.filter = ((this.filter == null)?null:((this.getFilter() == null)?null:((Element) this.getFilter().cloneNode(true))));
-            return clone;
-        }
+        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
+        final UnaryLogicalOperatorFilterType clone = ((UnaryLogicalOperatorFilterType) super.clone());
+        // CWildcardTypeInfo: org.w3c.dom.Element
+        clone.filter = ((this.filter == null)?null:((this.getFilter() == null)?null:((Element) this.getFilter().cloneNode(true))));
+        return clone;
     }
 
 }

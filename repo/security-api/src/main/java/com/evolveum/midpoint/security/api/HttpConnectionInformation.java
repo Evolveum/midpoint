@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.security.api;
@@ -16,32 +16,32 @@ import java.io.Serializable;
  */
 public class HttpConnectionInformation implements Serializable {
 
-	private String remoteHostAddress;
-	private String localHostName;
-	private String sessionId;
+    private String remoteHostAddress;
+    private String localHostName;
+    private String sessionId;
 
-	public String getRemoteHostAddress() {
-		return remoteHostAddress;
-	}
+    public String getRemoteHostAddress() {
+        return remoteHostAddress;
+    }
 
-	public void setRemoteHostAddress(String remoteHostAddress) {
-		this.remoteHostAddress = remoteHostAddress;
-	}
+    public void setRemoteHostAddress(String remoteHostAddress) {
+        this.remoteHostAddress = remoteHostAddress;
+    }
 
-	public String getLocalHostName() {
-		return localHostName;
-	}
+    public String getLocalHostName() {
+        return localHostName;
+    }
 
-	public void setLocalHostName(String localHostName) {
-		this.localHostName = localHostName;
-	}
+    public void setLocalHostName(String localHostName) {
+        this.localHostName = localHostName;
+    }
 
-	public String getSessionId() {
-		return sessionId;
-	}
+    public String getSessionId() {
+        return sessionId;
+    }
 
-	public void setSessionId(String sessionId) {
-		this.sessionId = sessionId;
-	}
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
 
 }

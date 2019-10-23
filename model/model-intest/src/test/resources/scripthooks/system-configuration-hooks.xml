@@ -2,24 +2,24 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>SystemConfiguration</name>
     <modelHooks>
-    	<change>
-    		<hook>
-    			<name>org</name>
+        <change>
+            <hook>
+                <name>org</name>
                 <state>primary</state>
                 <focusType>c:UserType</focusType>
-    			<script>
-    				<code>
-    					import com.evolveum.midpoint.prism.delta.*;
-    					import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.prism.delta.*;
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                         import com.evolveum.midpoint.model.intest.util.StaticHookRecorder;
 
                         log.info('ORG HOOK WAS HERE: ' + modelContext)
@@ -34,26 +34,26 @@
                             log.info("orgName="+orgName)
                             org = midpoint.searchObjectByName(OrgType.class, orgName)
                             log.info("org="+org)
-                            
+
                             if (org == null) {
                                 // Org does not exist, lets create it
                                 org = midpoint.createEmptyObjectWithName(OrgType.class, orgName);
                                 topOrgRef = new ObjectReferenceType();
                                 topOrgRef.setOid('80808080-8888-6666-0000-100000000001');
                                 org.getParentOrgRef().add(topOrgRef);
-                                
+
                                 assignment = new AssignmentType();
                                 topOrgTarget = new ObjectReferenceType();
                                 topOrgTarget.setOid('80808080-8888-6666-0000-100000000001');
                                 topOrgTarget.setType(OrgType.COMPLEX_TYPE);
                                 assignment.setTargetRef(topOrgTarget);
                                 org.getAssignment().add(assignment)
-                                
+
                                 midpoint.addObject(org);
-                                
+
                                 log.info("org "+org+" created")
                             }
-                            
+
                             if (!midpoint.isDirectlyAssigned(org)) {
                                 // The org is not assigned. Let's assign it.
                                 log.info("BAR BAR BAR Not assigned")
@@ -69,9 +69,9 @@
                                 //modelContext.rot();
                             }
                         }
-    				</code>
-    			</script>
-    		</hook>
+                    </code>
+                </script>
+            </hook>
             <hook>
                 <name>Bar</name>
                 <script>
@@ -105,15 +105,15 @@
                     </code>
                 </script>
             </hook>
-    	</change>
+        </change>
     </modelHooks>
     <logging>
-    	<rootLoggerAppender>File Appender</rootLoggerAppender>
-    	<rootLoggerLevel>INFO</rootLoggerLevel>
+        <rootLoggerAppender>File Appender</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
         <classLogger>
-	        <level>TRACE</level>
-	        <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
-      	</classLogger>
+            <level>TRACE</level>
+            <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
+          </classLogger>
         <c:classLogger>
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.notifications</c:package>

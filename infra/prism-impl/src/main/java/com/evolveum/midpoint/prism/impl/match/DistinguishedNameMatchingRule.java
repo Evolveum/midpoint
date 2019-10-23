@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.match;
@@ -28,72 +28,72 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class DistinguishedNameMatchingRule implements MatchingRule<String> {
 
-	@Override
-	public QName getName() {
-		return PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME;
-	}
+    @Override
+    public QName getName() {
+        return PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME;
+    }
 
-	@Override
-	public boolean isSupported(QName xsdType) {
-		return (DOMUtil.XSD_STRING.equals(xsdType));
-	}
+    @Override
+    public boolean isSupported(QName xsdType) {
+        return (DOMUtil.XSD_STRING.equals(xsdType));
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public boolean match(String a, String b) throws SchemaException {
-		if (StringUtils.isBlank(a) && StringUtils.isBlank(b)) {
-			return true;
-		}
-		if (StringUtils.isBlank(a) || StringUtils.isBlank(b)) {
-			return false;
-		}
-		LdapName dnA;
-		try {
-			dnA = new LdapName(a);
-		} catch (InvalidNameException e) {
-			throw new SchemaException("String '"+a+"' is not a DN: "+e.getMessage(), e);
-		}
-		LdapName dnB;
-		try {
-			dnB = new LdapName(b);
-		} catch (InvalidNameException e) {
-			throw new SchemaException("String '"+b+"' is not a DN: "+e.getMessage(), e);
-		}
-		return dnA.equals(dnB);
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
+     */
+    @Override
+    public boolean match(String a, String b) throws SchemaException {
+        if (StringUtils.isBlank(a) && StringUtils.isBlank(b)) {
+            return true;
+        }
+        if (StringUtils.isBlank(a) || StringUtils.isBlank(b)) {
+            return false;
+        }
+        LdapName dnA;
+        try {
+            dnA = new LdapName(a);
+        } catch (InvalidNameException e) {
+            throw new SchemaException("String '"+a+"' is not a DN: "+e.getMessage(), e);
+        }
+        LdapName dnB;
+        try {
+            dnB = new LdapName(b);
+        } catch (InvalidNameException e) {
+            throw new SchemaException("String '"+b+"' is not a DN: "+e.getMessage(), e);
+        }
+        return dnA.equals(dnB);
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
-	 */
-	@Override
-	public String normalize(String original) throws SchemaException {
-		if (StringUtils.isBlank(original)) {
-			return null;
-		}
-		LdapName dn;
-		try {
-			dn = new LdapName(original);
-		} catch (InvalidNameException e) {
-			throw new SchemaException("String '"+original+"' is not a DN: "+e.getMessage(), e);
-		}
-		return StringUtils.lowerCase(dn.toString());
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
+     */
+    @Override
+    public String normalize(String original) throws SchemaException {
+        if (StringUtils.isBlank(original)) {
+            return null;
+        }
+        LdapName dn;
+        try {
+            dn = new LdapName(original);
+        } catch (InvalidNameException e) {
+            throw new SchemaException("String '"+original+"' is not a DN: "+e.getMessage(), e);
+        }
+        return StringUtils.lowerCase(dn.toString());
+    }
 
-	@Override
-	public boolean matchRegex(String a, String regex) throws SchemaException {
+    @Override
+    public boolean matchRegex(String a, String regex) throws SchemaException {
 
-		a = normalize(a);
+        a = normalize(a);
 
-		if (a == null){
-			return false;
-		}
+        if (a == null){
+            return false;
+        }
 
-		// Simple case-insensitive match
-		Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-		Matcher matcher = pattern.matcher(a);
-		return matcher.matches();
-	}
+        // Simple case-insensitive match
+        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(a);
+        return matcher.matches();
+    }
 
 }

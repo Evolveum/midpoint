@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.util.logging;
@@ -23,32 +23,32 @@ public class LoggingUtils {
     /**
      * Standard way of logging exception: message is presented at ERROR level, stack trace on DEBUG.
      */
-	public static void logException(Trace LOGGER, String message, Throwable ex, Object... objects) {
+    public static void logException(final Trace LOGGER, String message, Throwable ex, Object... objects) {
         logExceptionInternal(Level.ERROR, Level.DEBUG, LOGGER, message, ex, objects);
-	}
+    }
 
     /**
      * When logging unexpected exception, we always want to see the stack trace (so everything is logged on ERROR level)
      */
-    public static void logUnexpectedException(Trace LOGGER, String message, Throwable ex, Object... objects) {
+    public static void logUnexpectedException(final Trace LOGGER, String message, Throwable ex, Object... objects) {
         logExceptionInternal(Level.ERROR, Level.ERROR, LOGGER, message, ex, objects);
     }
 
     /**
      * Non-critical exceptions (warnings, with details as debug)
      */
-    public static void logExceptionAsWarning(Trace LOGGER, String message, Throwable ex, Object... objects) {
+    public static void logExceptionAsWarning(final Trace LOGGER, String message, Throwable ex, Object... objects) {
         logExceptionInternal(Level.WARN, Level.DEBUG, LOGGER, message, ex, objects);
     }
 
     /**
      * Exceptions that shouldn't be even visible on INFO level.
      */
-	public static void logExceptionOnDebugLevel(Trace LOGGER, String message, Throwable ex, Object... objects) {
+    public static void logExceptionOnDebugLevel(final Trace LOGGER, String message, Throwable ex, Object... objects) {
         logExceptionInternal(Level.DEBUG, Level.TRACE, LOGGER, message, ex, objects);
-	}
+    }
 
-    private static void logExceptionInternal(Level first, Level second, Trace LOGGER, String message, Throwable ex, Object... objects) {
+    private static void logExceptionInternal(Level first, Level second, final Trace LOGGER, String message, Throwable ex, Object... objects) {
         Validate.notNull(LOGGER, "Logger can't be null.");
         Validate.notNull(ex, "Exception can't be null.");
 
@@ -82,40 +82,40 @@ public class LoggingUtils {
     }
 
     public static void logStackTrace(final Trace LOGGER, String message) {
-		if (LOGGER.isTraceEnabled()) {
-			if (message != null) {
-				LOGGER.trace(message+":\n{}", dumpStackTrace(LoggingUtils.class));
-			} else {
-				LOGGER.trace("{}", dumpStackTrace(LoggingUtils.class));
-			}
-		}
-	}
+        if (LOGGER.isTraceEnabled()) {
+            if (message != null) {
+                LOGGER.trace(message+":\n{}", dumpStackTrace(LoggingUtils.class));
+            } else {
+                LOGGER.trace("{}", dumpStackTrace(LoggingUtils.class));
+            }
+        }
+    }
 
-	public static String dumpStackTrace(Class... classesToSkip) {
-		StackTraceElement[] fullStack = Thread.currentThread().getStackTrace();
-		String immediateClass = null;
-		String immediateMethod = null;
-		boolean firstFrameLogged = false;
-		StringBuilder sb = new StringBuilder();
-		OUTER: for (StackTraceElement stackElement: fullStack) {
-			if (!firstFrameLogged) {
-				if (stackElement.getClassName().equals(Thread.class.getName())) {
-					// skip call to thread.getStackTrace();
-					continue;
-				}
-				if (classesToSkip != null) {
-					for (Class classToSkip: classesToSkip) {
-						if (stackElement.getClassName().equals(classToSkip.getName())) {
-							continue OUTER;
-						}
-					}
-				}
-			}
-			firstFrameLogged = true;
+    public static String dumpStackTrace(Class... classesToSkip) {
+        StackTraceElement[] fullStack = Thread.currentThread().getStackTrace();
+        String immediateClass = null;
+        String immediateMethod = null;
+        boolean firstFrameLogged = false;
+        StringBuilder sb = new StringBuilder();
+        OUTER: for (StackTraceElement stackElement: fullStack) {
+            if (!firstFrameLogged) {
+                if (stackElement.getClassName().equals(Thread.class.getName())) {
+                    // skip call to thread.getStackTrace();
+                    continue;
+                }
+                if (classesToSkip != null) {
+                    for (Class classToSkip: classesToSkip) {
+                        if (stackElement.getClassName().equals(classToSkip.getName())) {
+                            continue OUTER;
+                        }
+                    }
+                }
+            }
+            firstFrameLogged = true;
 
-			sb.append(stackElement.toString());
-			sb.append("\n");
-		}
-		return sb.toString();
-	}
+            sb.append(stackElement.toString());
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
 }

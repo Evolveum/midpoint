@@ -1,43 +1,43 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  
+
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	  oid="e3c28c94-798a-4f93-85f8-de7cbe37315b">
-	<name>metarole-approval-role-approvers-first</name>
-	<description>Requests to assign role holding this metarole will be approved by the role approver(s) using "first decides" method</description>
-	<displayName>Metarole: approval by the role approver(s) - first decides</displayName>
-	<inducement>
-		<policyRule>
-			<policyConstraints>
-				<assignment>
-					<relation>q:any</relation>
-				</assignment>
-			</policyConstraints>
-			<policyActions>
-				<approval>
-					<compositionStrategy>
-						<!-- mergeIntoOrder (40) would be OK as well, but mergeable is better because we are sure the approval level
-						will be there, even if the base one would not exist. But beware when modifying these two levels (all, first),
-						keep in mind that for the "first" case, they are really merged. -->
-						<order>40</order>
-						<mergeable>true</mergeable>
-						<mergePriority>2</mergePriority>
-					</compositionStrategy>
-					<approvalSchema>
-						<level>
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      oid="e3c28c94-798a-4f93-85f8-de7cbe37315b">
+    <name>metarole-approval-role-approvers-first</name>
+    <description>Requests to assign role holding this metarole will be approved by the role approver(s) using "first decides" method</description>
+    <displayName>Metarole: approval by the role approver(s) - first decides</displayName>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                    <relation>q:any</relation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <compositionStrategy>
+                        <!-- mergeIntoOrder (40) would be OK as well, but mergeable is better because we are sure the approval level
+                        will be there, even if the base one would not exist. But beware when modifying these two levels (all, first),
+                        keep in mind that for the "first" case, they are really merged. -->
+                        <order>40</order>
+                        <mergeable>true</mergeable>
+                        <mergePriority>2</mergePriority>
+                    </compositionStrategy>
+                    <approvalSchema>
+                        <stage>
                             <name>Role approvers (first)</name>
                             <approverRelation>approver</approverRelation>
-							<evaluationStrategy>firstDecides</evaluationStrategy>
-							<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
-						</level>
-					</approvalSchema>
-				</approval>
-			</policyActions>
-		</policyRule>
-	</inducement>
+                            <evaluationStrategy>firstDecides</evaluationStrategy>
+                            <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
 </role>

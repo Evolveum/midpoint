@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.impl.opendj;
@@ -36,36 +36,36 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 @DirtiesContext
 public class TestOpenDjIncompletePassword extends TestOpenDj {
 
-	protected static final File RESOURCE_OPENDJ_INCOMPLETE_PASSWORD_FILE = new File(TEST_DIR, "resource-opendj-incomplete-password.xml");
+    protected static final File RESOURCE_OPENDJ_INCOMPLETE_PASSWORD_FILE = new File(TEST_DIR, "resource-opendj-incomplete-password.xml");
 
-	private static Trace LOGGER = TraceManager.getTrace(TestOpenDjIncompletePassword.class);
+    private static Trace LOGGER = TraceManager.getTrace(TestOpenDjIncompletePassword.class);
 
-	@Override
-	protected File getResourceOpenDjFile() {
-		return RESOURCE_OPENDJ_INCOMPLETE_PASSWORD_FILE;
-	}
+    @Override
+    protected File getResourceOpenDjFile() {
+        return RESOURCE_OPENDJ_INCOMPLETE_PASSWORD_FILE;
+    }
 
-	@Override
-	protected void assertPasswordCapability(PasswordCapabilityType capPassword) {
-		assertTrue("Wrong password capability readable flag: "+capPassword.isReadable(),
-				capPassword.isReadable() == Boolean.TRUE);
-	}
+    @Override
+    protected void assertPasswordCapability(PasswordCapabilityType capPassword) {
+        assertTrue("Wrong password capability readable flag: "+capPassword.isReadable(),
+                capPassword.isReadable() == Boolean.TRUE);
+    }
 
-	@Override
-	protected void assertShadowPassword(ShadowType provisioningShadow) {
-		CredentialsType credentials = provisioningShadow.getCredentials();
-		if (credentials == null) {
-			return;
-		}
-		PasswordType passwordType = credentials.getPassword();
-		if (passwordType == null) {
-			return;
-		}
-		ProtectedStringType passwordValue = passwordType.getValue();
-		assertNull("Unexpected password value in "+provisioningShadow+": "+passwordValue, passwordValue);
+    @Override
+    protected void assertShadowPassword(ShadowType provisioningShadow) {
+        CredentialsType credentials = provisioningShadow.getCredentials();
+        if (credentials == null) {
+            return;
+        }
+        PasswordType passwordType = credentials.getPassword();
+        if (passwordType == null) {
+            return;
+        }
+        ProtectedStringType passwordValue = passwordType.getValue();
+        assertNull("Unexpected password value in "+provisioningShadow+": "+passwordValue, passwordValue);
 
-		PrismContainerValue<PasswordType> passwordContainer = passwordType.asPrismContainerValue();
-		PrismProperty<ProtectedStringType> valueProp = passwordContainer.findProperty(PasswordType.F_VALUE);
-		assertTrue("Incomplete flag is NOT set for password value in "+provisioningShadow, valueProp.isIncomplete());
-	}
+        PrismContainerValue<PasswordType> passwordContainer = passwordType.asPrismContainerValue();
+        PrismProperty<ProtectedStringType> valueProp = passwordContainer.findProperty(PasswordType.F_VALUE);
+        assertTrue("Incomplete flag is NOT set for password value in "+provisioningShadow, valueProp.isIncomplete());
+    }
 }

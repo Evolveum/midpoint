@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="10000000-0000-0000-0000-000000000223"
@@ -12,46 +12,46 @@
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>Complex User Template Include</name>
     <mapping>
-    	<name>usertemplate-included-fullName</name>
-    	<!-- This mapping is NOT weak so if will in fact FORCE fullname consistency -->
-    	<source>
-    		<path>$user/givenName</path>
-    	</source>
-    	<source>
-    		<path>$user/familyName</path>
-    	</source>
-    	<expression>
-			<script>
-				<code>
-					givenName + ' ' + familyName
-				</code>
-         	</script>
-		</expression>
-    	<target>
-    		<path>$user/fullName</path>
-    	</target>
-    	<condition>
-     		<script>
-    			<code>givenName != null &amp;&amp; familyName != null</code>
-    		</script>  
-    	</condition>
+        <name>usertemplate-included-fullName</name>
+        <!-- This mapping is NOT weak so if will in fact FORCE fullname consistency -->
+        <source>
+            <path>$user/givenName</path>
+        </source>
+        <source>
+            <path>$user/familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    givenName + ' ' + familyName
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>$user/fullName</path>
+        </target>
+        <condition>
+             <script>
+                <code>givenName != null &amp;&amp; familyName != null</code>
+            </script>
+        </condition>
     </mapping>
-    
+
     <!-- Unconditional automatic assignment of Blue Dummy resource -->
     <mapping>
-    	<name>usertemplate-included-assignment-blue</name>
-    	<strength>strong</strength>
-    	<expression>
+        <name>usertemplate-included-assignment-blue</name>
+        <strength>strong</strength>
+        <expression>
             <value>
                 <construction>
                     <resourceRef oid="10000000-0000-0000-0000-000000000204" type="ResourceType"/>
                     <kind>account</kind>
                 </construction>
             </value>
-    	</expression>
-    	<target>
-    		<path>assignment</path>
-    	</target>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
     </mapping>
-    
+
 </objectTemplate>

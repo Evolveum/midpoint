@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -38,177 +38,177 @@ import static org.testng.AssertJUnit.assertEquals;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestDelegation extends AbstractWfTestPolicy {
 
-	private static final File TEST_RESOURCE_DIR = new File("src/test/resources/delegation");
+    private static final File TEST_RESOURCE_DIR = new File("src/test/resources/delegation");
 
-	private static final File ROLE_PRINCE_FILE = new File(TEST_RESOURCE_DIR, "role-prince.xml");
-	private static final String ROLE_PRINCE_OID = "9252328b-b0b4-458f-9397-31b67291d566";
-	
-	private static final File USER_LONGSHANKS_FILE = new File(TEST_RESOURCE_DIR, "user-longshanks.xml");
-	private static final String USER_LONGSHANKS_OID = "ad6f2526-4b59-4e57-9bb4-4584d34babc0";
+    private static final File ROLE_PRINCE_FILE = new File(TEST_RESOURCE_DIR, "role-prince.xml");
+    private static final String ROLE_PRINCE_OID = "9252328b-b0b4-458f-9397-31b67291d566";
 
-	private static final File USER_GIRTH_FILE = new File(TEST_RESOURCE_DIR, "user-girth.xml");
-	private static final String USER_GIRTH_OID = "11d242f4-a49f-4168-9ebc-60c4825b43c7";
+    private static final File USER_LONGSHANKS_FILE = new File(TEST_RESOURCE_DIR, "user-longshanks.xml");
+    private static final String USER_LONGSHANKS_OID = "ad6f2526-4b59-4e57-9bb4-4584d34babc0";
 
-	private static final File USER_KEEN_FILE = new File(TEST_RESOURCE_DIR, "user-keen.xml");
-	private static final String USER_KEEN_OID = "96cdc455-b433-405a-8877-140306cd570b";
+    private static final File USER_GIRTH_FILE = new File(TEST_RESOURCE_DIR, "user-girth.xml");
+    private static final String USER_GIRTH_OID = "11d242f4-a49f-4168-9ebc-60c4825b43c7";
 
-	@Override
-	protected PrismObject<UserType> getDefaultActor() {
-		return userAdministrator;
-	}
+    private static final File USER_KEEN_FILE = new File(TEST_RESOURCE_DIR, "user-keen.xml");
+    private static final String USER_KEEN_OID = "96cdc455-b433-405a-8877-140306cd570b";
 
-	private WorkItemId workItemId;
-	private String caseOid;
+    @Override
+    protected PrismObject<UserType> getDefaultActor() {
+        return userAdministrator;
+    }
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    private WorkItemId workItemId;
+    private String caseOid;
 
-		repoAddObjectFromFile(ROLE_PRINCE_FILE, initResult);
-		addAndRecompute(USER_LONGSHANKS_FILE, initTask, initResult);
-		addAndRecompute(USER_GIRTH_FILE, initTask, initResult);
-		addAndRecompute(USER_KEEN_FILE, initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
-	}
+        repoAddObjectFromFile(ROLE_PRINCE_FILE, initResult);
+        addAndRecompute(USER_LONGSHANKS_FILE, initTask, initResult);
+        addAndRecompute(USER_GIRTH_FILE, initTask, initResult);
+        addAndRecompute(USER_KEEN_FILE, initTask, initResult);
 
-	@Test
-	public void test100CreateTask() throws Exception {
-		final String TEST_NAME = "test100CreateTask";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		login(userAdministrator);
+        DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
+    }
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+    @Test
+    public void test100CreateTask() throws Exception {
+        final String TEST_NAME = "test100CreateTask";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator);
 
-		assignRole(userJackOid, ROLE_PRINCE_OID, task, result);				// should start approval process
-		assertNotAssignedRole(userJackOid, ROLE_PRINCE_OID, task, result);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		CaseWorkItemType workItem = getWorkItem(task, result);
-		workItemId = WorkItemId.of(workItem);
-		caseOid = CaseWorkItemUtil.getCaseRequired(workItem).getOid();
+        assignRole(userJackOid, ROLE_PRINCE_OID, task, result);                // should start approval process
+        assertNotAssignedRole(userJackOid, ROLE_PRINCE_OID, task, result);
 
-		display("work item", workItem);
-		display("case", getObjectViaRepo(CaseType.class, caseOid));
+        CaseWorkItemType workItem = getWorkItem(task, result);
+        workItemId = WorkItemId.of(workItem);
+        caseOid = CaseWorkItemUtil.getCaseRequired(workItem).getOid();
 
-		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), USER_LONGSHANKS_OID);
-	}
+        display("work item", workItem);
+        display("case", getObjectViaRepo(CaseType.class, caseOid));
 
-	@Test
-	public void test110DelegateToGirthUnauthorized() throws Exception {
-		final String TEST_NAME = "test110DelegateToGirthUnauthorized";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		login(getUserFromRepo(USER_KEEN_OID));
+        PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), USER_LONGSHANKS_OID);
+    }
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+    @Test
+    public void test110DelegateToGirthUnauthorized() throws Exception {
+        final String TEST_NAME = "test110DelegateToGirthUnauthorized";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(getUserFromRepo(USER_KEEN_OID));
 
-		try {
-			WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
-					.delegate(ort(USER_GIRTH_OID))
-					.method(ADD_ASSIGNEES);
-			workflowService.delegateWorkItem(workItemId, request, task, result);
-			fail("delegate succeeded even if it shouldn't");
-		} catch (SecurityViolationException e) {
-			// ok
-		}
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		CaseWorkItemType workItem = getWorkItem(task, result);
-		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), USER_LONGSHANKS_OID);
-	}
+        try {
+            WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
+                    .delegate(ort(USER_GIRTH_OID))
+                    .method(ADD_ASSIGNEES);
+            workflowService.delegateWorkItem(workItemId, request, task, result);
+            fail("delegate succeeded even if it shouldn't");
+        } catch (SecurityViolationException e) {
+            // ok
+        }
 
-	@Test
-	public void test120DelegateToGirth() throws Exception {
-		final String TEST_NAME = "test120DelegateToGirth";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		login(getUserFromRepo(USER_LONGSHANKS_OID));
+        CaseWorkItemType workItem = getWorkItem(task, result);
+        PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), USER_LONGSHANKS_OID);
+    }
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+    @Test
+    public void test120DelegateToGirth() throws Exception {
+        final String TEST_NAME = "test120DelegateToGirth";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(getUserFromRepo(USER_LONGSHANKS_OID));
 
-		WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
-				.delegate(ort(USER_GIRTH_OID))
-				.method(ADD_ASSIGNEES)
-				.comment("check this");
-		workflowService.delegateWorkItem(workItemId, request, task, result);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		result.computeStatus();
-		assertSuccess(result);
+        WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
+                .delegate(ort(USER_GIRTH_OID))
+                .method(ADD_ASSIGNEES)
+                .comment("check this");
+        workflowService.delegateWorkItem(workItemId, request, task, result);
 
-		CaseWorkItemType workItem = getWorkItem(task, result);
-		display("work item", workItem);
+        result.computeStatus();
+        assertSuccess(result);
 
-		PrismObject<CaseType> aCase = getObjectViaRepo(CaseType.class, caseOid);
-		display("task", aCase);
+        CaseWorkItemType workItem = getWorkItem(task, result);
+        display("work item", workItem);
 
-		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), USER_LONGSHANKS_OID, USER_GIRTH_OID);
-		assertRefEquals("Wrong originalAssigneeRef", ort(USER_LONGSHANKS_OID), workItem.getOriginalAssigneeRef());
+        PrismObject<CaseType> aCase = getObjectViaRepo(CaseType.class, caseOid);
+        display("task", aCase);
 
-		List<WorkItemDelegationEventType> events = ApprovalContextUtil.getWorkItemEvents(aCase.asObjectable(), workItemId.id, WorkItemDelegationEventType.class);
-		assertEquals("Wrong # of delegation events", 1, events.size());
-		WorkItemDelegationEventType event = events.get(0);
-		assertEquals("Wrong comment", "check this", event.getComment());
-		// TODO check content
-	}
+        PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), USER_LONGSHANKS_OID, USER_GIRTH_OID);
+        assertRefEquals("Wrong originalAssigneeRef", ort(USER_LONGSHANKS_OID), workItem.getOriginalAssigneeRef());
 
-	@Test
-	public void test130DelegateToKeenByReplace() throws Exception {
-		final String TEST_NAME = "test130DelegateToKeenByReplace";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		login(getUserFromRepo(USER_LONGSHANKS_OID));
+        List<WorkItemDelegationEventType> events = ApprovalContextUtil.getWorkItemEvents(aCase.asObjectable(), workItemId.id, WorkItemDelegationEventType.class);
+        assertEquals("Wrong # of delegation events", 1, events.size());
+        WorkItemDelegationEventType event = events.get(0);
+        assertEquals("Wrong comment", "check this", event.getComment());
+        // TODO check content
+    }
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+    @Test
+    public void test130DelegateToKeenByReplace() throws Exception {
+        final String TEST_NAME = "test130DelegateToKeenByReplace";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(getUserFromRepo(USER_LONGSHANKS_OID));
 
-		WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
-				.delegate(ort(USER_KEEN_OID))
-				.method(REPLACE_ASSIGNEES);
-		workflowService.delegateWorkItem(workItemId, request, task, result);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		result.computeStatus();
-		assertSuccess(result);
+        WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
+                .delegate(ort(USER_KEEN_OID))
+                .method(REPLACE_ASSIGNEES);
+        workflowService.delegateWorkItem(workItemId, request, task, result);
 
-		CaseWorkItemType workItem = getWorkItem(task, result);
-		display("work item", workItem);
+        result.computeStatus();
+        assertSuccess(result);
 
-		PrismObject<CaseType> aCase = getObjectViaRepo(CaseType.class, caseOid);
-		display("task", aCase);
+        CaseWorkItemType workItem = getWorkItem(task, result);
+        display("work item", workItem);
 
-		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), USER_KEEN_OID);
-		assertRefEquals("Wrong originalAssigneeRef", ort(USER_LONGSHANKS_OID), workItem.getOriginalAssigneeRef());
+        PrismObject<CaseType> aCase = getObjectViaRepo(CaseType.class, caseOid);
+        display("task", aCase);
 
-		List<WorkItemDelegationEventType> events = ApprovalContextUtil.getWorkItemEvents(aCase.asObjectable(), workItemId.id, WorkItemDelegationEventType.class);
-		assertEquals("Wrong # of delegation events", 2, events.size());
-		// TODO check content
-	}
+        PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), USER_KEEN_OID);
+        assertRefEquals("Wrong originalAssigneeRef", ort(USER_LONGSHANKS_OID), workItem.getOriginalAssigneeRef());
 
-	@Test
-	public void test140DelegateToNoneByReplace() throws Exception {
-		final String TEST_NAME = "test140DelegateToNoneByReplace";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		login(getUserFromRepo(USER_KEEN_OID));
+        List<WorkItemDelegationEventType> events = ApprovalContextUtil.getWorkItemEvents(aCase.asObjectable(), workItemId.id, WorkItemDelegationEventType.class);
+        assertEquals("Wrong # of delegation events", 2, events.size());
+        // TODO check content
+    }
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+    @Test
+    public void test140DelegateToNoneByReplace() throws Exception {
+        final String TEST_NAME = "test140DelegateToNoneByReplace";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(getUserFromRepo(USER_KEEN_OID));
 
-		WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
-				.method(REPLACE_ASSIGNEES);
-		workflowService.delegateWorkItem(workItemId, request, task, result);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		result.computeStatus();
-		assertSuccess(result);
+        WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
+                .method(REPLACE_ASSIGNEES);
+        workflowService.delegateWorkItem(workItemId, request, task, result);
 
-		CaseWorkItemType workItem = getWorkItem(task, result);
-		display("work item", workItem);
+        result.computeStatus();
+        assertSuccess(result);
 
-		PrismObject<CaseType> aCase = getObjectViaRepo(CaseType.class, caseOid);
-		display("task", aCase);
+        CaseWorkItemType workItem = getWorkItem(task, result);
+        display("work item", workItem);
 
-		assertEquals("Wrong assigneeRef count", 0, workItem.getAssigneeRef().size());
-		assertRefEquals("Wrong originalAssigneeRef", ort(USER_LONGSHANKS_OID), workItem.getOriginalAssigneeRef());
+        PrismObject<CaseType> aCase = getObjectViaRepo(CaseType.class, caseOid);
+        display("task", aCase);
 
-		List<WorkItemDelegationEventType> events = ApprovalContextUtil.getWorkItemEvents(aCase.asObjectable(), workItemId.id, WorkItemDelegationEventType.class);
-		assertEquals("Wrong # of delegation events", 3, events.size());
-		// TODO check content
-	}
+        assertEquals("Wrong assigneeRef count", 0, workItem.getAssigneeRef().size());
+        assertRefEquals("Wrong originalAssigneeRef", ort(USER_LONGSHANKS_OID), workItem.getOriginalAssigneeRef());
+
+        List<WorkItemDelegationEventType> events = ApprovalContextUtil.getWorkItemEvents(aCase.asObjectable(), workItemId.id, WorkItemDelegationEventType.class);
+        assertEquals("Wrong # of delegation events", 3, events.size());
+        // TODO check content
+    }
 }

@@ -2,13 +2,13 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- iteration, token expression, post-iteration condition that invokes isUniquAccountValue() -->
 <resource oid="10000000-0000-0000-0000-00000000a304"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -18,168 +18,168 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource Magenta</name>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>magenta</icfi:instanceId>
-			<icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
-		</icfc:configurationProperties>
+    <name>Dummy Resource Magenta</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-	</connectorConfiguration>
-	
-	<schemaHandling>
-		<objectType>
-			<kind>account</kind>
-			<intent>default</intent>
-			<displayName>Default Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<outbound>
-				    <strength>strong</strength>
-				    <source>
-				    	<path>$user/name</path>
-				    </source>
-					<expression>
-						<script>
-							<code>
-								name + iterationToken
-							</code>
-						</script>
-					</expression>
-				</outbound>
-				<inbound>
-					<!-- This avoids "kickback" of a name from account to a user. -->
-					<strength>weak</strength>
-					<target>
-						<path>$c:user/c:name</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>icfs:uid</ref>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<displayName>Full Name</displayName>
-				<outbound>
-					<source>
-						<path>$user/fullName</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:location</ref>
-				<displayName>Location</displayName>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>
-							$c:user/c:locality
-						</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:quote</ref>
-				<outbound>
-					<source>
-						<path>$user/description</path>
-					</source>
-					<expression>
-						<script>
-							<code>
-								if (iteration == 0) {
-									return description;
-								} else if (iteration == 1) {
-									return description + " -- " + user.getFullName();
-								} else {
-									description + " -- " + user.getFullName() + ' (' + iteration + ')';
-								}
-							</code>
-						</script>
-					</expression>
-				</outbound>
-				<inbound>
-					<target>
-						<path>organization</path>
-					</target>
-				</inbound>
-			</attribute>
+        <icfc:configurationProperties>
+            <icfi:instanceId>magenta</icfi:instanceId>
+            <icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
+        </icfc:configurationProperties>
 
-			<iteration>
-				<maxIterations>5</maxIterations>
-				<tokenExpression>
-					<script>
-						<code>
-							if (iteration == 0) {
-								return "";
-							} else {
-								return sprintf("%03d", iteration);
-							}
-						</code>
-					</script>
-				</tokenExpression>
-				<postIterationCondition>
-					<variable>
-						<name>quote</name>
-						<path>$shadow/attributes/ri:quote</path>
-					</variable>
-					<script>
-						<code>
-							log.debug("quote={}, user={}", quote, user);
-							if (user != null &amp;&amp; quote == null &amp;&amp; user.getName() != null &amp;&amp; user.getName().getOrig().equals("drake")) {
-								// Make sure it fails if executed without quote, this should not happen for user drake
-								throw new IllegalStateException("Kaboom!");
-							}
-							if (quote == null) {
-								// This may happen for users without description. If we let it go the method below fails
-								// But null quote is OK, no need to check uniqueness for this
-								return true;
-							}
-							return midpoint.isUniqueAccountValue(resource, shadow, 'quote', quote);
-						</code>
-					</script>
-				</postIterationCondition>
-			</iteration>
-            
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                name + iterationToken
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <!-- This avoids "kickback" of a name from account to a user. -->
+                    <strength>weak</strength>
+                    <target>
+                        <path>$c:user/c:name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <displayName>Location</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>
+                            $c:user/c:locality
+                        </path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:quote</ref>
+                <outbound>
+                    <source>
+                        <path>$user/description</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                if (iteration == 0) {
+                                    return description;
+                                } else if (iteration == 1) {
+                                    return description + " -- " + user.getFullName();
+                                } else {
+                                    description + " -- " + user.getFullName() + ' (' + iteration + ')';
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>organization</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <iteration>
+                <maxIterations>5</maxIterations>
+                <tokenExpression>
+                    <script>
+                        <code>
+                            if (iteration == 0) {
+                                return "";
+                            } else {
+                                return sprintf("%03d", iteration);
+                            }
+                        </code>
+                    </script>
+                </tokenExpression>
+                <postIterationCondition>
+                    <variable>
+                        <name>quote</name>
+                        <path>$shadow/attributes/ri:quote</path>
+                    </variable>
+                    <script>
+                        <code>
+                            log.debug("quote={}, user={}", quote, user);
+                            if (user != null &amp;&amp; quote == null &amp;&amp; user.getName() != null &amp;&amp; user.getName().getOrig().equals("drake")) {
+                                // Make sure it fails if executed without quote, this should not happen for user drake
+                                throw new IllegalStateException("Kaboom!");
+                            }
+                            if (quote == null) {
+                                // This may happen for users without description. If we let it go the method below fails
+                                // But null quote is OK, no need to check uniqueness for this
+                                return true;
+                            }
+                            return midpoint.isUniqueAccountValue(resource, shadow, 'quote', quote);
+                        </code>
+                    </script>
+                </postIterationCondition>
+            </iteration>
+
             <activation>
-            	<administrativeStatus>
-            		<outbound/>
-            	</administrativeStatus>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
             </activation>
-            
+
             <credentials>
                 <password>
                     <outbound>
-                    	<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
                     </outbound>
                 </password>
             </credentials>
-            
-		</objectType>
-		
-	</schemaHandling>
+
+        </objectType>
+
+    </schemaHandling>
 
 </resource>

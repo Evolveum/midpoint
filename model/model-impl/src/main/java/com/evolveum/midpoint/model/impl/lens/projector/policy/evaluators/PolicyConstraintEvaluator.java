@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,6 +27,6 @@ import javax.xml.bind.JAXBElement;
  */
 public interface PolicyConstraintEvaluator<T extends AbstractPolicyConstraintType> {
 
-	<AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger<?> evaluate(JAXBElement<T> constraint, PolicyRuleEvaluationContext<AH> ctx,
-			OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+    <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger<?> evaluate(JAXBElement<T> constraint, PolicyRuleEvaluationContext<AH> ctx,
+            OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 }

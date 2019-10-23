@@ -2,27 +2,27 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="5e8fdb32-4c4c-11e7-86a8-9706c2f85f86" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+<user oid="5e8fdb32-4c4c-11e7-86a8-9706c2f85f86"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
     <name>alice</name>
     <description>This user has many roles with construction for groups for the same resource</description>
     <fullName>Alice</fullName>
-        
+
     <!-- Role assignments will be generated -->
 
     <credentials>
         <password>
-        	<value>
-	            <t:clearValue>wonderland</t:clearValue>
+            <value>
+                <t:clearValue>wonderland</t:clearValue>
             </value>
         </password>
     </credentials>
-        
+
 </user>

@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -12,9 +12,9 @@
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
    xmlns:foo='http://midpoint.evolveum.com/xml/ns/samples/foo'>
 
-	<language>http://www.w3.org/TR/xpath/</language>
-	<code>
-		declare namespace bar='http://midpoint.evolveum.com/xml/ns/samples/bar';
-		$c:user/c:extension/foo:something/bar:somethingElse
+    <language>http://www.w3.org/TR/xpath/</language>
+    <code>
+        declare namespace bar='http://midpoint.evolveum.com/xml/ns/samples/bar';
+        $c:user/c:extension/foo:something/bar:somethingElse
     </code>
 </script>

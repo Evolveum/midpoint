@@ -1,67 +1,67 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- does NOT have "metarole-escalated" assigned -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="bb38a7fc-8610-49b0-a76d-7b01cb8a6de1">
-	<name>role-e2</name>
-	<assignment>
-		<policyRule>
-			<policyConstraints>
-				<assignment/>
-			</policyConstraints>
-			<policyActions>
-				<approval>
-					<approvalSchema>
-						<stage>
-							<approverRef oid="6f007608-415b-49e3-b388-0217d535fc7d" type="UserType"/>		<!-- bob -->
-							<approverRef oid="53b49582-de4b-4306-a135-41f46e64cbcc" type="UserType"/>		<!-- bobek -->
-							<evaluationStrategy>firstDecides</evaluationStrategy>
-							<duration>P3D</duration>
-							<timedActions>
-								<name>escalate</name>
-								<actions>
-									<escalate>
-										<name>auto-escalate</name>
-										<displayName>Automatic escalation at deadline</displayName>
-										<approverExpression>
-											<script>
-												<code>
-													def approverMap = [
-														'6f007608-415b-49e3-b388-0217d535fc7d':'00000001-d34d-b33f-f00d-LD1000000001',
-														'53b49582-de4b-4306-a135-41f46e64cbcc':'00000001-d34d-b33f-f00d-LD1000000002'
-													]
-													approverMap[workItem?.originalAssigneeRef?.oid]
-												</code>
-											</script>
-										</approverExpression>
-										<duration>P5D</duration>
-										<delegationMethod>addAssignees</delegationMethod>
-										<escalationLevelName>deputies</escalationLevelName>
-									</escalate>
-								</actions>
-							</timedActions>
-							<timedActions>
-								<name>reject</name>
-								<actions>
-									<complete>
-										<name>auto-reject</name>
-										<displayName>Automatic rejection at deadline</displayName>
-										<outcome>reject</outcome>
-									</complete>
-								</actions>
-								<escalationLevelFrom>1</escalationLevelFrom>
-								<escalationLevelTo>1</escalationLevelTo>
-							</timedActions>
-						</stage>
-					</approvalSchema>
-				</approval>
-			</policyActions>
-		</policyRule>
-	</assignment>
+      oid="bb38a7fc-8610-49b0-a76d-7b01cb8a6de1">
+    <name>role-e2</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approvalSchema>
+                        <stage>
+                            <approverRef oid="6f007608-415b-49e3-b388-0217d535fc7d" type="UserType"/>        <!-- bob -->
+                            <approverRef oid="53b49582-de4b-4306-a135-41f46e64cbcc" type="UserType"/>        <!-- bobek -->
+                            <evaluationStrategy>firstDecides</evaluationStrategy>
+                            <duration>P3D</duration>
+                            <timedActions>
+                                <name>escalate</name>
+                                <actions>
+                                    <escalate>
+                                        <name>auto-escalate</name>
+                                        <displayName>Automatic escalation at deadline</displayName>
+                                        <approverExpression>
+                                            <script>
+                                                <code>
+                                                    def approverMap = [
+                                                        '6f007608-415b-49e3-b388-0217d535fc7d':'00000001-d34d-b33f-f00d-LD1000000001',
+                                                        '53b49582-de4b-4306-a135-41f46e64cbcc':'00000001-d34d-b33f-f00d-LD1000000002'
+                                                    ]
+                                                    approverMap[workItem?.originalAssigneeRef?.oid]
+                                                </code>
+                                            </script>
+                                        </approverExpression>
+                                        <duration>P5D</duration>
+                                        <delegationMethod>addAssignees</delegationMethod>
+                                        <escalationLevelName>deputies</escalationLevelName>
+                                    </escalate>
+                                </actions>
+                            </timedActions>
+                            <timedActions>
+                                <name>reject</name>
+                                <actions>
+                                    <complete>
+                                        <name>auto-reject</name>
+                                        <displayName>Automatic rejection at deadline</displayName>
+                                        <outcome>reject</outcome>
+                                    </complete>
+                                </actions>
+                                <escalationLevelFrom>1</escalationLevelFrom>
+                                <escalationLevelTo>1</escalationLevelTo>
+                            </timedActions>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </assignment>
 </role>

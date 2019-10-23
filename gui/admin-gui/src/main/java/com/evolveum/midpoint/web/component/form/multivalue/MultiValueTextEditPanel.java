@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -46,13 +46,13 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
 
     private static final String CSS_DISABLED = " disabled";
 
-	@Nullable private final IModel<T> selectedModel;			// holding the selected item
+    @Nullable private final IModel<T> selectedModel;            // holding the selected item
 
     public MultiValueTextEditPanel(String id, IModel<List<T>> model, IModel<T> selectedModel, boolean inputEnabled, boolean showPlaceholder,
-			NonEmptyModel<Boolean> readOnlyModel) {
+            NonEmptyModel<Boolean> readOnlyModel) {
         super(id, model);
         setOutputMarkupId(true);
-		this.selectedModel = selectedModel;
+        this.selectedModel = selectedModel;
 
         initLayout(inputEnabled, showPlaceholder, readOnlyModel);
     }
@@ -88,7 +88,7 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
                 return "";
             }
         }));
-		placeholderAdd.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+        placeholderAdd.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         placeholderAdd.setOutputMarkupId(true);
         placeholderAdd.setOutputMarkupPlaceholderTag(true);
         placeholderContainer.add(placeholderAdd);
@@ -100,14 +100,14 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
                 TextField text = new TextField<>(ID_TEXT, createTextModel(item.getModel()));
                 text.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 text.add(AttributeAppender.replace("placeholder", createEmptyItemPlaceholder()));
-				if (selectedModel != null && item.getModelObject() == selectedModel.getObject()) {
-					text.add(AttributeAppender.append("style", "background-color: #FFFFD0;"));			// TODO color constant
-				}
+                if (selectedModel != null && item.getModelObject() == selectedModel.getObject()) {
+                    text.add(AttributeAppender.append("style", "background-color: #FFFFD0;"));            // TODO color constant
+                }
 
-				if (!inputEnabled) {
-					text.add(new AttributeModifier("disabled", "disabled"));
-				}
-				item.add(text);
+                if (!inputEnabled) {
+                    text.add(new AttributeModifier("disabled", "disabled"));
+                }
+                item.add(text);
 
                 WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
                 item.add(buttonGroup);
@@ -134,11 +134,11 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
                 editPerformed(target, item.getModelObject());
             }
 
-			@Override
-			protected void onError(AjaxRequestTarget target) {
-				target.add(getPageBase().getFeedbackPanel());
-			}
-		};
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(getPageBase().getFeedbackPanel());
+            }
+        };
         edit.add(new AttributeAppender("class", new IModel<String>() {
 
             @Override
@@ -160,7 +160,7 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
             }
         };
         add.add(new AttributeAppender("class", getPlusClassModifier(item)));
-		add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+        add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         buttonGroup.add(add);
 
         AjaxLink<Void> remove = new AjaxLink<Void>(ID_REMOVE) {
@@ -171,8 +171,8 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
             }
         };
         remove.add(new AttributeAppender("class", getMinusClassModifier()));
-		remove.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
-		buttonGroup.add(remove);
+        remove.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+        buttonGroup.add(remove);
     }
 
     protected String getPlusClassModifier(ListItem<T> item){
@@ -209,11 +209,11 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
 
     protected void addValuePerformed(AjaxRequestTarget target){
         List<T> objects = getModelObject();
-		T added = createNewEmptyItem();
-		objects.add(added);
-		performAddValueHook(target, added);
-		editPerformed(target, added);
-		target.add(this);
+        T added = createNewEmptyItem();
+        objects.add(added);
+        performAddValueHook(target, added);
+        editPerformed(target, added);
+        target.add(this);
     }
 
     protected IModel<String> createTextModel(final IModel<T> model) {

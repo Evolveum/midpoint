@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -59,8 +59,8 @@ import static org.testng.AssertJUnit.assertTrue;
  */
 public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
-	@Autowired
-	private OrgClosureManager closureManager;
+    @Autowired
+    private OrgClosureManager closureManager;
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractOrgClosureTest.class);
 
@@ -311,7 +311,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         ItemDelta itemDelta;
         if (!useReplace) {
             itemDelta = prismContext.deltaFactory().reference().createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF,
-		            existingValue.clone());
+                    existingValue.clone());
         } else {
             List<PrismReferenceValue> newValues = new ArrayList<>();
             for (ObjectReferenceType ort : org.getParentOrgRef()) {
@@ -330,7 +330,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         List<ItemDelta> modifications = new ArrayList<>();
         PrismReferenceValue existingValue = parentOrgRef.asReferenceValue();
         ItemDelta readdParent = prismContext.deltaFactory().reference().createModificationAdd(UserType.class, UserType.F_PARENT_ORG_REF,
-		        existingValue.clone());
+                existingValue.clone());
         modifications.add(readdParent);
         repositoryService.modifyObject(UserType.class, user.getOid(), modifications, opResult);
     }
@@ -1015,7 +1015,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         ort.setOid(childOid);
         ort.setType(OrgType.COMPLEX_TYPE);
         ItemDelta addParent = prismContext.deltaFactory().reference().createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF,
-		        ort.asReferenceValue());
+                ort.asReferenceValue());
         modifications.add(addParent);
         try {
             repositoryService.modifyObject(OrgType.class, parentOid, modifications, opResult);

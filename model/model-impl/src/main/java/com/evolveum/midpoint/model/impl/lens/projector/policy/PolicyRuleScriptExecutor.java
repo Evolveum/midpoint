@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
@@ -44,75 +44,75 @@ import java.util.Map;
 @Component
 public class PolicyRuleScriptExecutor {
 
-	private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleScriptExecutor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleScriptExecutor.class);
 
-	private static final String EXECUTE_SCRIPT_OPERATION = PolicyRuleScriptExecutor.class.getName() + ".executeScript";
+    private static final String EXECUTE_SCRIPT_OPERATION = PolicyRuleScriptExecutor.class.getName() + ".executeScript";
 
-	@Autowired private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    @Autowired private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
-	public <O extends ObjectType> void execute(@NotNull ModelContext<O> context, Task task, OperationResult result) {
-		LensFocusContext<?> focusContext = (LensFocusContext<?>) context.getFocusContext();
-		if (focusContext != null) {
-			for (EvaluatedPolicyRule rule : focusContext.getPolicyRules()) {
-				executeRuleScriptingActions(rule, context, task, result);
-			}
-			DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = ((LensContext<?>) context).getEvaluatedAssignmentTriple();
-			if (triple != null) {
-				for (EvaluatedAssignment<?> assignment : triple.getNonNegativeValues()) {
-					for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
-						executeRuleScriptingActions(rule, context, task, result);
-					}
-				}
-			}
-		}
-	}
+    public <O extends ObjectType> void execute(@NotNull ModelContext<O> context, Task task, OperationResult result) {
+        LensFocusContext<?> focusContext = (LensFocusContext<?>) context.getFocusContext();
+        if (focusContext != null) {
+            for (EvaluatedPolicyRule rule : focusContext.getPolicyRules()) {
+                executeRuleScriptingActions(rule, context, task, result);
+            }
+            DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = ((LensContext<?>) context).getEvaluatedAssignmentTriple();
+            if (triple != null) {
+                for (EvaluatedAssignment<?> assignment : triple.getNonNegativeValues()) {
+                    for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
+                        executeRuleScriptingActions(rule, context, task, result);
+                    }
+                }
+            }
+        }
+    }
 
-	private void executeRuleScriptingActions(EvaluatedPolicyRule rule, ModelContext<?> context, Task task, OperationResult result) {
-		if (rule.isTriggered()) {
-			for (ScriptExecutionPolicyActionType action : rule.getEnabledActions(ScriptExecutionPolicyActionType.class)) {
-				executeScriptingAction(action, rule, context, task, result);
-			}
-		}
-	}
+    private void executeRuleScriptingActions(EvaluatedPolicyRule rule, ModelContext<?> context, Task task, OperationResult result) {
+        if (rule.isTriggered()) {
+            for (ScriptExecutionPolicyActionType action : rule.getEnabledActions(ScriptExecutionPolicyActionType.class)) {
+                executeScriptingAction(action, rule, context, task, result);
+            }
+        }
+    }
 
-	private void executeScriptingAction(ScriptExecutionPolicyActionType action, EvaluatedPolicyRule rule, ModelContext<?> context, Task task, OperationResult parentResult) {
-		LOGGER.debug("Executing policy action scripts ({}) in action: {}\non rule:{}",
-				action.getExecuteScript().size(), action, rule.debugDumpLazily());
-		List<ExecuteScriptType> executeScript = action.getExecuteScript();
-		for (ExecuteScriptType executeScriptBean : executeScript) {
-			executeScript(action, rule, context, task, parentResult, executeScriptBean);
-		}
-	}
+    private void executeScriptingAction(ScriptExecutionPolicyActionType action, EvaluatedPolicyRule rule, ModelContext<?> context, Task task, OperationResult parentResult) {
+        LOGGER.debug("Executing policy action scripts ({}) in action: {}\non rule:{}",
+                action.getExecuteScript().size(), action, rule.debugDumpLazily());
+        List<ExecuteScriptType> executeScript = action.getExecuteScript();
+        for (ExecuteScriptType executeScriptBean : executeScript) {
+            executeScript(action, rule, context, task, parentResult, executeScriptBean);
+        }
+    }
 
-	private void executeScript(ScriptExecutionPolicyActionType action, EvaluatedPolicyRule rule, ModelContext<?> context,
-			Task task, OperationResult parentResult, ExecuteScriptType executeScriptBean) {
-		OperationResult result = parentResult.createSubresult(EXECUTE_SCRIPT_OPERATION);
-		try {
-			VariablesMap initialVariables = createInitialVariables(action, rule, context);
-			if (executeScriptBean.getInput() == null && context.getFocusContext() != null) {
-				PrismObject objectAny = ((LensFocusContext) context.getFocusContext()).getObjectAny();
-				if (objectAny != null) {
-					ValueListType input = new ValueListType();
-					input.getValue().add(objectAny.getValue().clone());
-					executeScriptBean.setInput(input);
-				}
-			}
-			scriptingExpressionEvaluator.evaluateExpression(executeScriptBean, initialVariables, false, task, result);
-		} catch (ScriptExecutionException | RuntimeException e) {
-			result.recordFatalError("Couldn't execute script policy action: " + e.getMessage(), e);
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script with id={} in scriptExecution policy action '{}' (rule '{}'): {}",
-					e, action.getId(), action.getName(), rule.getName(), e.getMessage());
-		} finally {
-			result.computeStatusIfUnknown();
-		}
-	}
+    private void executeScript(ScriptExecutionPolicyActionType action, EvaluatedPolicyRule rule, ModelContext<?> context,
+            Task task, OperationResult parentResult, ExecuteScriptType executeScriptBean) {
+        OperationResult result = parentResult.createSubresult(EXECUTE_SCRIPT_OPERATION);
+        try {
+            VariablesMap initialVariables = createInitialVariables(action, rule, context);
+            if (executeScriptBean.getInput() == null && context.getFocusContext() != null) {
+                PrismObject objectAny = ((LensFocusContext) context.getFocusContext()).getObjectAny();
+                if (objectAny != null) {
+                    ValueListType input = new ValueListType();
+                    input.getValue().add(objectAny.getValue().clone());
+                    executeScriptBean.setInput(input);
+                }
+            }
+            scriptingExpressionEvaluator.evaluateExpression(executeScriptBean, initialVariables, false, task, result);
+        } catch (ScriptExecutionException | RuntimeException e) {
+            result.recordFatalError("Couldn't execute script policy action: " + e.getMessage(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script with id={} in scriptExecution policy action '{}' (rule '{}'): {}",
+                    e, action.getId(), action.getName(), rule.getName(), e.getMessage());
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
 
-	private VariablesMap createInitialVariables(ScriptExecutionPolicyActionType action, EvaluatedPolicyRule rule,
-			ModelContext<?> context) {
-		VariablesMap rv = new VariablesMap();
-		rv.put(ExpressionConstants.VAR_POLICY_ACTION, action, ScriptExecutionPolicyActionType.class);
-		rv.put(ExpressionConstants.VAR_POLICY_RULE, rule, EvaluatedPolicyRule.class);
-		rv.put(ExpressionConstants.VAR_MODEL_CONTEXT, context, ModelContext.class);
-		return rv;
-	}
+    private VariablesMap createInitialVariables(ScriptExecutionPolicyActionType action, EvaluatedPolicyRule rule,
+            ModelContext<?> context) {
+        VariablesMap rv = new VariablesMap();
+        rv.put(ExpressionConstants.VAR_POLICY_ACTION, action, ScriptExecutionPolicyActionType.class);
+        rv.put(ExpressionConstants.VAR_POLICY_RULE, rule, EvaluatedPolicyRule.class);
+        rv.put(ExpressionConstants.VAR_MODEL_CONTEXT, context, ModelContext.class);
+        return rv;
+    }
 }

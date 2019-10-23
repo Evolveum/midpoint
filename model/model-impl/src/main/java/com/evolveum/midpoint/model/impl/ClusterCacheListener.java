@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl;
@@ -36,80 +36,80 @@ import java.util.stream.Collectors;
 
 @Component
 public class ClusterCacheListener implements CacheListener {
-	
-	private static final Trace LOGGER = TraceManager.getTrace(ClusterCacheListener.class);
 
-	@Autowired private TaskManager taskManager;
-	@Autowired private CacheDispatcher cacheDispatcher;
-	@Autowired private ClusterExecutionHelper clusterExecutionHelper;
-	
-	@PostConstruct
-	public void addListener() {
-		cacheDispatcher.registerCacheListener(this);
-	}
+    private static final Trace LOGGER = TraceManager.getTrace(ClusterCacheListener.class);
 
-	@Override
-	public <O extends ObjectType> void invalidate(Class<O> type, String oid, boolean clusterwide,
-			CacheInvalidationContext context) {
+    @Autowired private TaskManager taskManager;
+    @Autowired private CacheDispatcher cacheDispatcher;
+    @Autowired private ClusterExecutionHelper clusterExecutionHelper;
 
-		if (!canExecute(type, oid, clusterwide, context)) {
-			return;
-		}
+    @PostConstruct
+    public void addListener() {
+        cacheDispatcher.registerCacheListener(this);
+    }
 
-		Task task = taskManager.createTaskInstance("invalidate");
-		OperationResult result = task.getResult();
+    @Override
+    public <O extends ObjectType> void invalidate(Class<O> type, String oid, boolean clusterwide,
+            CacheInvalidationContext context) {
 
-		LOGGER.trace("Cache invalidation context {}", context);
+        if (!canExecute(type, oid, clusterwide, context)) {
+            return;
+        }
 
-		if (context != null && context.isTerminateSession()) {
-			CacheInvalidationDetails details = context.getDetails();
-			if (!(details instanceof TerminateSessionEvent)) {
-				LOGGER.warn("Cannot perform cluster-wide session termination, no details provided.");
-				return;
-			}
-			clusterExecutionHelper.execute((client, result1) -> {
-				client.path(ClusterRestService.EVENT_TERMINATE_SESSION);
+        Task task = taskManager.createTaskInstance("invalidate");
+        OperationResult result = task.getResult();
 
-				Response response = client.post(((TerminateSessionEvent)details).toEventType());
-				LOGGER.info("Cluster-wide cache clearance finished with status {}, {}", response.getStatusInfo().getStatusCode(),
-						response.getStatusInfo().getReasonPhrase());
-				response.close();
-			}, "session termination", result);
-			return;
-		}
+        LOGGER.trace("Cache invalidation context {}", context);
 
+        if (context != null && context.isTerminateSession()) {
+            CacheInvalidationDetails details = context.getDetails();
+            if (!(details instanceof TerminateSessionEvent)) {
+                LOGGER.warn("Cannot perform cluster-wide session termination, no details provided.");
+                return;
+            }
+            clusterExecutionHelper.execute((client, result1) -> {
+                client.path(ClusterRestService.EVENT_TERMINATE_SESSION);
 
-
-		clusterExecutionHelper.execute((client, result1) -> {
-			client.path(ClusterRestService.EVENT_INVALIDATION +
-					ObjectTypes.getRestTypeFromClass(type) + (oid != null ? "/" + oid : ""));
-			Response response = client.post(null);
-			LOGGER.info("Cluster-wide cache clearance finished with status {}, {}", response.getStatusInfo().getStatusCode(),
-					response.getStatusInfo().getReasonPhrase());
-			response.close();
-		}, "cache invalidation", result);
-	}
+                Response response = client.post(((TerminateSessionEvent)details).toEventType());
+                LOGGER.info("Cluster-wide cache clearance finished with status {}, {}", response.getStatusInfo().getStatusCode(),
+                        response.getStatusInfo().getReasonPhrase());
+                response.close();
+            }, "session termination", result);
+            return;
+        }
 
 
-	private <O extends ObjectType> boolean canExecute(Class<O> type, String oid, boolean clusterwide, CacheInvalidationContext context) {
-		if (!clusterwide) {
-			LOGGER.trace("Ignoring invalidate() call for type {} (oid={}) because clusterwide=false", type, oid);
-			return false;
-		}
 
-		if (!taskManager.isClustered()) {
-			LOGGER.trace("Node is not part of a cluster, skipping remote cache entry invalidation");
-			return false;
-		}
+        clusterExecutionHelper.execute((client, result1) -> {
+            client.path(ClusterRestService.EVENT_INVALIDATION +
+                    ObjectTypes.getRestTypeFromClass(type) + (oid != null ? "/" + oid : ""));
+            Response response = client.post(null);
+            LOGGER.info("Cluster-wide cache clearance finished with status {}, {}", response.getStatusInfo().getStatusCode(),
+                    response.getStatusInfo().getReasonPhrase());
+            response.close();
+        }, "cache invalidation", result);
+    }
 
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		if (authentication instanceof NodeAuthenticationToken || context != null && context.isFromRemoteNode()) {
-			// This is actually a safety check only. The invalidation call coming from the other node
-			// should be redistributed with clusterwide=false.
-			LOGGER.warn("Skipping cluster-wide cache invalidation as this is already a remotely-invoked invalidate() call");
-			return false;
-		}
 
-		return true;
-	}
+    private <O extends ObjectType> boolean canExecute(Class<O> type, String oid, boolean clusterwide, CacheInvalidationContext context) {
+        if (!clusterwide) {
+            LOGGER.trace("Ignoring invalidate() call for type {} (oid={}) because clusterwide=false", type, oid);
+            return false;
+        }
+
+        if (!taskManager.isClustered()) {
+            LOGGER.trace("Node is not part of a cluster, skipping remote cache entry invalidation");
+            return false;
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof NodeAuthenticationToken || context != null && context.isFromRemoteNode()) {
+            // This is actually a safety check only. The invalidation call coming from the other node
+            // should be redistributed with clusterwide=false.
+            LOGGER.warn("Skipping cluster-wide cache invalidation as this is already a remotely-invoked invalidate() call");
+            return false;
+        }
+
+        return true;
+    }
 }

@@ -2,165 +2,165 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="f486e3a7-6970-416e-8fe2-995358f59c46"
-				xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-				xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-				xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-				xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-				xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-				xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-				xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+                xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+                xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+                xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+                xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>User Template With Ranges</name>
-    
+
     <item>
-    	<ref>assignment</ref>
-    	
-		<mapping>
-			<expression>
-				<assignmentTargetSearch>
-					<targetType>OrgType</targetType>
-					<filter>
-						<q:equal>
-							<q:path>extension/managerId</q:path>
-							<expression>
-								<script>
-									<code>
-										user.employeeNumber
-									</code>
-								</script>
-							</expression>
-						</q:equal>
-					</filter>
-					<assignmentProperties>
-						<relation>manager</relation>
-					</assignmentProperties>
-				</assignmentTargetSearch>
-			</expression>
-			<target>
-				<set>
-					<condition>
-						<script>
-							<code>
-								import com.evolveum.midpoint.schema.constants.*
-								if (focus == null || configuration == null) {
-									throw new AssertionError("No 'focus' or 'configuration' variable present")	// MID-4760
-								}
-								input.targetRef != null &amp;&amp; input.targetRef.relation == SchemaConstants.ORG_MANAGER
-							</code>
-						</script>
-					</condition>
-				</set>
-			</target>
-			<condition>
-				<script>
-					<code>
-						user.employeeNumber != null
-					</code>
-				</script>
-			</condition>
-		</mapping>
-		
-		<!-- MID-5063 -->
-		<mapping>
-			<name>bloody-title-to-assignment</name>
-			<trace>true</trace>
-			<authoritative>true</authoritative>
-        	<strength>strong</strength>
-			<source>
-				<path>title</path>
-			</source>
-			<source>
-				<path>extension/funeralTimestamp</path>
-			</source>
-			<expression>
-				<assignmentTargetSearch>
-					<includeNullInputs>true</includeNullInputs>
-					<targetType>RoleType</targetType>
-					<filter>
-						<q:equal>
-							<q:path>name</q:path>
-							<expression>
-								<path>$title</path>
-							</expression>
-						</q:equal>
-					</filter>
-					<populate>
-						<populateItem>
-	                        <target>
-	                            <path>subtype</path>
-	                        </target>
-	                        <expression>
-	                            <value>bloody</value>
-	                        </expression>
-	                    </populateItem>
-	                    <populateItem>
-	                        <expression>
-	                            <path>$funeralTimestamp</path>
-	                        </expression>
-	                        <target>
-	                            <path>activation/validTo</path>
-	                        </target>
-	                    </populateItem>
-					</populate>
-				</assignmentTargetSearch>
-			</expression>
-			<target>
-				<set>
-					<condition>
-						<script>
-							<code>input.subtype.contains("bloody")</code>
-						</script>
-					</condition>
-				</set>
-			</target>
-			<condition>
-				<script>
-					<code>title?.startsWith("Bloody ")</code>
-				</script>
-			</condition>
-		</mapping>
-		
+        <ref>assignment</ref>
+
+        <mapping>
+            <expression>
+                <assignmentTargetSearch>
+                    <targetType>OrgType</targetType>
+                    <filter>
+                        <q:equal>
+                            <q:path>extension/managerId</q:path>
+                            <expression>
+                                <script>
+                                    <code>
+                                        user.employeeNumber
+                                    </code>
+                                </script>
+                            </expression>
+                        </q:equal>
+                    </filter>
+                    <assignmentProperties>
+                        <relation>manager</relation>
+                    </assignmentProperties>
+                </assignmentTargetSearch>
+            </expression>
+            <target>
+                <set>
+                    <condition>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.constants.*
+                                if (focus == null || configuration == null) {
+                                    throw new AssertionError("No 'focus' or 'configuration' variable present")    // MID-4760
+                                }
+                                input.targetRef != null &amp;&amp; input.targetRef.relation == SchemaConstants.ORG_MANAGER
+                            </code>
+                        </script>
+                    </condition>
+                </set>
+            </target>
+            <condition>
+                <script>
+                    <code>
+                        user.employeeNumber != null
+                    </code>
+                </script>
+            </condition>
+        </mapping>
+
+        <!-- MID-5063 -->
+        <mapping>
+            <name>bloody-title-to-assignment</name>
+            <trace>true</trace>
+            <authoritative>true</authoritative>
+            <strength>strong</strength>
+            <source>
+                <path>title</path>
+            </source>
+            <source>
+                <path>extension/funeralTimestamp</path>
+            </source>
+            <expression>
+                <assignmentTargetSearch>
+                    <includeNullInputs>true</includeNullInputs>
+                    <targetType>RoleType</targetType>
+                    <filter>
+                        <q:equal>
+                            <q:path>name</q:path>
+                            <expression>
+                                <path>$title</path>
+                            </expression>
+                        </q:equal>
+                    </filter>
+                    <populate>
+                        <populateItem>
+                            <target>
+                                <path>subtype</path>
+                            </target>
+                            <expression>
+                                <value>bloody</value>
+                            </expression>
+                        </populateItem>
+                        <populateItem>
+                            <expression>
+                                <path>$funeralTimestamp</path>
+                            </expression>
+                            <target>
+                                <path>activation/validTo</path>
+                            </target>
+                        </populateItem>
+                    </populate>
+                </assignmentTargetSearch>
+            </expression>
+            <target>
+                <set>
+                    <condition>
+                        <script>
+                            <code>input.subtype.contains("bloody")</code>
+                        </script>
+                    </condition>
+                </set>
+            </target>
+            <condition>
+                <script>
+                    <code>title?.startsWith("Bloody ")</code>
+                </script>
+            </condition>
+        </mapping>
+
     </item>
 
-	<item>
-		<ref>organization</ref>
-		<mapping>
-			<strength>strong</strength>
-			<source>
-				<path>organizationalUnit</path>
-			</source>
-			<source>
-				<path>employeeNumber</path>
-			</source>
-			<expression>
-				<script>
-					<code>
-						organizationalUnit != null ? 'OU: ' + organizationalUnit + ' ' + employeeNumber : null
-					</code>
-				</script>
-			</expression>
-			<target>
-				<set>
-					<condition>
-						<script>
-							<code>
-								basic.stringify(input).startsWith('OU: ')
-							</code>
-						</script>
-					</condition>
-				</set>
-			</target>
-			<condition>
-				<script>
-					<code>
-						employeeNumber != null
-					</code>
-				</script>
-			</condition>
-		</mapping>
-	</item>
+    <item>
+        <ref>organization</ref>
+        <mapping>
+            <strength>strong</strength>
+            <source>
+                <path>organizationalUnit</path>
+            </source>
+            <source>
+                <path>employeeNumber</path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        organizationalUnit != null ? 'OU: ' + organizationalUnit + ' ' + employeeNumber : null
+                    </code>
+                </script>
+            </expression>
+            <target>
+                <set>
+                    <condition>
+                        <script>
+                            <code>
+                                basic.stringify(input).startsWith('OU: ')
+                            </code>
+                        </script>
+                    </condition>
+                </set>
+            </target>
+            <condition>
+                <script>
+                    <code>
+                        employeeNumber != null
+                    </code>
+                </script>
+            </condition>
+        </mapping>
+    </item>
 
 </objectTemplate>

@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
   <!-- MID-4236 -->
@@ -13,18 +13,18 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Cobalt Neverland</name>
     <inducement>
-    	<construction >
-    		<resourceRef oid="7f8a927c-cac4-11e7-9733-9f90849f6d4a" type="c:ResourceType"/> <!-- Dummy Cobalt -->
-    		<kind>account</kind>
-    		<attribute>
+        <construction >
+            <resourceRef oid="7f8a927c-cac4-11e7-9733-9f90849f6d4a" type="c:ResourceType"/> <!-- Dummy Cobalt -->
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:location</ref>
                 <outbound>
-                	<strength>strong</strength>
-                	<expression>
-                		<value>Neverland</value>
-					</expression>
-				</outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>Neverland</value>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
 </role>

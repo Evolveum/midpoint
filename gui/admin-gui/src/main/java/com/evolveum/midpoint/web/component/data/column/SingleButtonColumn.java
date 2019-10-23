@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.data.column;
@@ -80,11 +80,11 @@ public class SingleButtonColumn<T extends Serializable> extends AbstractColumn<T
     public void clickPerformed(AjaxRequestTarget target, IModel<T> model){}
 
     public String getButtonCssSizeClass(){
-        return DoubleButtonColumn.BUTTON_SIZE_CLASS.SMALL.toString();
+        return DoubleButtonColumn.ButtonSizeClass.SMALL.toString();
     }
 
     public String getButtonCssColorClass(){
-        return DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString();
+        return DoubleButtonColumn.ButtonColorClass.DEFAULT.toString();
     }
 
     public String getCaption(){

@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014-2016 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="d867ca80-b18a-11e6-826e-1b0f95ef9125"
@@ -11,23 +11,23 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Prop Deny Modify Some</name>
     <authorization>
-    	<name>allow all</name>
-		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all</action>
+        <name>allow all</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all</action>
    </authorization>
     <authorization>
-    	<name>deny read some</name>
-    	<decision>deny</decision>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<item>additionalName</item>
-    	<item>description</item>
-    	<item>subtype</item>
-    	<item>locality</item>
+        <name>deny read some</name>
+        <decision>deny</decision>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <item>additionalName</item>
+        <item>description</item>
+        <item>subtype</item>
+        <item>locality</item>
     </authorization>
     <authorization>
-    	<name>deny modify some</name>
-    	<decision>deny</decision>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<item>givenName</item>
-    	<item>description</item>
+        <name>deny modify some</name>
+        <decision>deny</decision>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <item>givenName</item>
+        <item>description</item>
     </authorization>
 </role>

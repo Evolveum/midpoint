@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,7 +28,7 @@ import org.apache.wicket.model.IModel;
  */
 public class NavigatorPanel extends Panel {
 
-    private int PAGING_SIZE = 5;
+    private static final int PAGING_SIZE = 5;
 
     private static final String ID_PREVIOUS = "previous";
     private static final String ID_PREVIOUS_LINK = "previousLink";

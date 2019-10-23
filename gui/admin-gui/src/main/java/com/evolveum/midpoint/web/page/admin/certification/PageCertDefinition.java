@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -53,177 +53,177 @@ import java.util.List;
  * @author mederly
  */
 @PageDescriptor(url = "/admin/certification/definition",
-		action = {
-				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
-						label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
-						description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
-				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION,
-						label = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION_LABEL,
-						description = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION_DESCRIPTION)
-				})
+        action = {
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
+                        label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
+                        description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION,
+                        label = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION_LABEL,
+                        description = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION_DESCRIPTION)
+                })
 public class PageCertDefinition extends PageAdminCertification {
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageCertDefinition.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageCertDefinition.class);
 
-	private static final String DOT_CLASS = PageCertDefinition.class.getName() + ".";
+    private static final String DOT_CLASS = PageCertDefinition.class.getName() + ".";
 
-	private static final String OPERATION_LOAD_DEFINITION = DOT_CLASS + "loadDefinition";
+    private static final String OPERATION_LOAD_DEFINITION = DOT_CLASS + "loadDefinition";
 
-	private static final String ID_SUMMARY_PANEL = "summaryPanel";
-	private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_SUMMARY_PANEL = "summaryPanel";
+    private static final String ID_MAIN_FORM = "mainForm";
 
-	private static final String ID_BACK_BUTTON = "backButton";
-	private static final String ID_SAVE_BUTTON = "saveButton";
+    private static final String ID_BACK_BUTTON = "backButton";
+    private static final String ID_SAVE_BUTTON = "saveButton";
 
-	private static final String OPERATION_SAVE_DEFINITION = DOT_CLASS + "saveDefinition";
-	private static final String ID_TAB_PANEL = "tabPanel";
+    private static final String OPERATION_SAVE_DEFINITION = DOT_CLASS + "saveDefinition";
+    private static final String ID_TAB_PANEL = "tabPanel";
 
-	private LoadableModel<CertDefinitionDto> definitionModel;
-	private String definitionOid;
+    private LoadableModel<CertDefinitionDto> definitionModel;
+    private String definitionOid;
 
-	public PageCertDefinition(PageParameters parameters) {
-		definitionOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
-		initModels();
-		initLayout();
-	}
+    public PageCertDefinition(PageParameters parameters) {
+        definitionOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
+        initModels();
+        initLayout();
+    }
 
-	//region Data
-	private void initModels() {
-		definitionModel = new LoadableModel<CertDefinitionDto>(false) {
-			@Override
-			protected CertDefinitionDto load() {
-				if (definitionOid != null) {
-					return loadDefinition(definitionOid);
-				} else {
-					try {
-						return createDefinition();
-					} catch (SchemaException e) {
-						throw new SystemException(e.getMessage(), e);
-					}
-				}
-			}
-		};
-	}
+    //region Data
+    private void initModels() {
+        definitionModel = new LoadableModel<CertDefinitionDto>(false) {
+            @Override
+            protected CertDefinitionDto load() {
+                if (definitionOid != null) {
+                    return loadDefinition(definitionOid);
+                } else {
+                    try {
+                        return createDefinition();
+                    } catch (SchemaException e) {
+                        throw new SystemException(e.getMessage(), e);
+                    }
+                }
+            }
+        };
+    }
 
-	private CertDefinitionDto loadDefinition(String definitionOid) {
-		Task task = createSimpleTask(OPERATION_LOAD_DEFINITION);
-		OperationResult result = task.getResult();
-		CertDefinitionDto definitionDto = null;
-		try {
-			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
-			PrismObject<AccessCertificationDefinitionType> definitionObject =
-					WebModelServiceUtils.loadObject(AccessCertificationDefinitionType.class, definitionOid, options,
-							PageCertDefinition.this, task, result);
-			AccessCertificationDefinitionType definition = PrismObjectValue.asObjectable(definitionObject);
-			definitionDto = new CertDefinitionDto(definition, this);
-			result.recordSuccessIfUnknown();
-		} catch (Exception ex) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get definition", ex);
-			result.recordFatalError(getString("PageCertDefinition.message.loadDefinition.fatalError"), ex);
-		}
-		result.recomputeStatus();
+    private CertDefinitionDto loadDefinition(String definitionOid) {
+        Task task = createSimpleTask(OPERATION_LOAD_DEFINITION);
+        OperationResult result = task.getResult();
+        CertDefinitionDto definitionDto = null;
+        try {
+            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
+            PrismObject<AccessCertificationDefinitionType> definitionObject =
+                    WebModelServiceUtils.loadObject(AccessCertificationDefinitionType.class, definitionOid, options,
+                            PageCertDefinition.this, task, result);
+            AccessCertificationDefinitionType definition = PrismObjectValue.asObjectable(definitionObject);
+            definitionDto = new CertDefinitionDto(definition, this);
+            result.recordSuccessIfUnknown();
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get definition", ex);
+            result.recordFatalError(getString("PageCertDefinition.message.loadDefinition.fatalError"), ex);
+        }
+        result.recomputeStatus();
 
-		if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-			showResult(result);
-		}
-		return definitionDto;
-	}
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            showResult(result);
+        }
+        return definitionDto;
+    }
 
-	private CertDefinitionDto createDefinition() throws SchemaException {
-		AccessCertificationDefinitionType definition = getPrismContext().createObjectable(AccessCertificationDefinitionType.class);
-		definition.setHandlerUri(AccessCertificationApiConstants.DIRECT_ASSIGNMENT_HANDLER_URI);
-		AccessCertificationStageDefinitionType stage = new AccessCertificationStageDefinitionType(getPrismContext());
-		stage.setName("Stage 1");
-		stage.setNumber(1);
-		stage.setReviewerSpecification(new AccessCertificationReviewerSpecificationType(getPrismContext()));
-		definition.getStageDefinition().add(stage);
-		return new CertDefinitionDto(definition, this);
-	}
-	//endregion
+    private CertDefinitionDto createDefinition() throws SchemaException {
+        AccessCertificationDefinitionType definition = getPrismContext().createObjectable(AccessCertificationDefinitionType.class);
+        definition.setHandlerUri(AccessCertificationApiConstants.DIRECT_ASSIGNMENT_HANDLER_URI);
+        AccessCertificationStageDefinitionType stage = new AccessCertificationStageDefinitionType(getPrismContext());
+        stage.setName("Stage 1");
+        stage.setNumber(1);
+        stage.setReviewerSpecification(new AccessCertificationReviewerSpecificationType(getPrismContext()));
+        definition.getStageDefinition().add(stage);
+        return new CertDefinitionDto(definition, this);
+    }
+    //endregion
 
-	//region Layout
-	private void initLayout() {
-		CertDefinitionSummaryPanel summaryPanel = new CertDefinitionSummaryPanel(ID_SUMMARY_PANEL,
-				new PropertyModel<>(definitionModel, CertDefinitionDto.F_DEFINITION), this);
-		summaryPanel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(definitionModel.getObject().getOldDefinition().getOid())));
-		add(summaryPanel);
+    //region Layout
+    private void initLayout() {
+        CertDefinitionSummaryPanel summaryPanel = new CertDefinitionSummaryPanel(ID_SUMMARY_PANEL,
+                new PropertyModel<>(definitionModel, CertDefinitionDto.F_DEFINITION), this);
+        summaryPanel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(definitionModel.getObject().getOldDefinition().getOid())));
+        add(summaryPanel);
 
-		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
-		add(mainForm);
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        add(mainForm);
 
-		initTabs(mainForm);
-		initButtons(mainForm);
-	}
+        initTabs(mainForm);
+        initButtons(mainForm);
+    }
 
-	private void initTabs(Form mainForm) {
+    private void initTabs(Form mainForm) {
 
-		List<ITab> tabs = new ArrayList<>();
-		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.basic")) {
-			@Override
-			public WebMarkupContainer getPanel(String panelId) {
-				return new DefinitionBasicPanel(panelId, definitionModel);
-			}
-		});
-		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.scopeDefinition")) {
+        List<ITab> tabs = new ArrayList<>();
+        tabs.add(new AbstractTab(createStringResource("PageCertDefinition.basic")) {
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+                return new DefinitionBasicPanel(panelId, definitionModel);
+            }
+        });
+        tabs.add(new AbstractTab(createStringResource("PageCertDefinition.scopeDefinition")) {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
                 return new DefinitionScopePanel(panelId,
-						new PropertyModel<>(definitionModel, CertDefinitionDto.F_SCOPE_DEFINITION));
+                        new PropertyModel<>(definitionModel, CertDefinitionDto.F_SCOPE_DEFINITION));
             }
         });
-		tabs.add(new CountablePanelTab(createStringResource("PageCertDefinition.stagesDefinition")) {
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				return new DefinitionStagesPanel(panelId,
-						new PropertyModel<>(definitionModel, CertDefinitionDto.F_STAGE_DEFINITION), PageCertDefinition.this);
-			}
-			@Override
-			public String getCount() {
-				return String.valueOf(definitionModel.getObject().getNumberOfStages());
-			}
-		});
-		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.xmlDefinition")) {
-			@Override
-			public WebMarkupContainer getPanel(String panelId) {
-				return new DefinitionXmlPanel(panelId, definitionModel);
-			}
-		});
-		TabbedPanel tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, this, tabs, null);
-		mainForm.add(tabPanel);
-	}
+        tabs.add(new CountablePanelTab(createStringResource("PageCertDefinition.stagesDefinition")) {
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new DefinitionStagesPanel(panelId,
+                        new PropertyModel<>(definitionModel, CertDefinitionDto.F_STAGE_DEFINITION), PageCertDefinition.this);
+            }
+            @Override
+            public String getCount() {
+                return String.valueOf(definitionModel.getObject().getNumberOfStages());
+            }
+        });
+        tabs.add(new AbstractTab(createStringResource("PageCertDefinition.xmlDefinition")) {
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+                return new DefinitionXmlPanel(panelId, definitionModel);
+            }
+        });
+        TabbedPanel tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, this, tabs, null);
+        mainForm.add(tabPanel);
+    }
 
-	public TabbedPanel getTabPanel() {
-		return (TabbedPanel) get(createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL));
-	}
+    public TabbedPanel getTabPanel() {
+        return (TabbedPanel) get(createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL));
+    }
 
-	private void initButtons(final Form mainForm) {
-		AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON, createStringResource("PageCertDefinition.button.back")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				redirectBack();
-			}
-		};
-		mainForm.add(backButton);
+    private void initButtons(final Form mainForm) {
+        AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON, createStringResource("PageCertDefinition.button.back")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                redirectBack();
+            }
+        };
+        mainForm.add(backButton);
 
-		AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE_BUTTON,
-				createStringResource("PageCertDefinition.button.save")) {
-			@Override
-			protected void onSubmit(AjaxRequestTarget target) {
-				savePerformed(target);
-			}
-		};
-		mainForm.add(saveButton);
-	}
-	//endregion
+        AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE_BUTTON,
+                createStringResource("PageCertDefinition.button.save")) {
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                savePerformed(target);
+            }
+        };
+        mainForm.add(saveButton);
+    }
+    //endregion
 
-	//region Actions
-	public void savePerformed(AjaxRequestTarget target) {
-		CertDefinitionDto dto = definitionModel.getObject();
-//		if (StringUtils.isEmpty(dto.getXml())) {
-//			error(getString("CertDefinitionPage.message.cantSaveEmpty"));
-//			target.add(getFeedbackPanel());
-//			return;
-//		}
+    //region Actions
+    public void savePerformed(AjaxRequestTarget target) {
+        CertDefinitionDto dto = definitionModel.getObject();
+//        if (StringUtils.isEmpty(dto.getXml())) {
+//            error(getString("CertDefinitionPage.message.cantSaveEmpty"));
+//            target.add(getFeedbackPanel());
+//            return;
+//        }
 
         if (StringUtils.isEmpty(dto.getName())) {
             error(getString("CertDefinitionPage.message.cantSaveEmptyName"));
@@ -232,42 +232,42 @@ public class PageCertDefinition extends PageAdminCertification {
         }
 
         Task task = createSimpleTask(OPERATION_SAVE_DEFINITION);
-		OperationResult result = task.getResult();
-		try {
-			AccessCertificationDefinitionType oldObject = dto.getOldDefinition();
-			oldObject.asPrismObject().revive(getPrismContext());
+        OperationResult result = task.getResult();
+        try {
+            AccessCertificationDefinitionType oldObject = dto.getOldDefinition();
+            oldObject.asPrismObject().revive(getPrismContext());
 
-			AccessCertificationDefinitionType newObject = dto.getUpdatedDefinition(getPrismContext());
-			newObject.asPrismObject().revive(getPrismContext());
+            AccessCertificationDefinitionType newObject = dto.getUpdatedDefinition(getPrismContext());
+            newObject.asPrismObject().revive(getPrismContext());
 
-			ObjectDelta<AccessCertificationDefinitionType> delta;
-			if (oldObject.getOid() != null) {
-				delta = DiffUtil.diff(oldObject, newObject);
-			} else {
-				delta = DeltaFactory.Object.createAddDelta(newObject.asPrismObject());
-			}
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Access definition delta:\n{}", delta.debugDump());
-			}
-			delta.normalize();
-			if (!delta.isEmpty()) {
-				getPrismContext().adopt(delta);
-				ModelExecuteOptions options = new ModelExecuteOptions();
-				options.setRaw(true);
-				getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, result);
-			}
-			result.computeStatus();
-		} catch (Exception ex) {
-			result.recordFatalError(getString("PageCertDefinition.message.savePerformed.fatalError", ex.getMessage()), ex);
-		}
+            ObjectDelta<AccessCertificationDefinitionType> delta;
+            if (oldObject.getOid() != null) {
+                delta = DiffUtil.diff(oldObject, newObject);
+            } else {
+                delta = DeltaFactory.Object.createAddDelta(newObject.asPrismObject());
+            }
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Access definition delta:\n{}", delta.debugDump());
+            }
+            delta.normalize();
+            if (!delta.isEmpty()) {
+                getPrismContext().adopt(delta);
+                ModelExecuteOptions options = new ModelExecuteOptions();
+                options.setRaw(true);
+                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, result);
+            }
+            result.computeStatus();
+        } catch (Exception ex) {
+            result.recordFatalError(getString("PageCertDefinition.message.savePerformed.fatalError", ex.getMessage()), ex);
+        }
 
-		showResult(result);
+        showResult(result);
 
-		if (result.isError()) {
-			target.add(getFeedbackPanel());
-		} else {
-			redirectBack();
-		}
-	}
-	//endregion
+        if (result.isError()) {
+            target.add(getFeedbackPanel());
+        } else {
+            redirectBack();
+        }
+    }
+    //endregion
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -66,7 +66,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
     private static final String ID_PLAIN_TEXTAREA = "plain-textarea";
     private static final String ID_VIEW_BUTTON_PANEL = "viewButtonPanel";
-    
+
     private static final String ID_FORM = "mainForm";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDebugView.class);
@@ -75,10 +75,10 @@ public class PageDebugView extends PageAdminConfiguration {
     public static final String PARAM_OBJECT_TYPE = "objectType";
     static final String PARAM_SHOW_ALL_ITEMS = "showAllItems";
     private String dataLanguage = null;
-    
+
     private IModel<ObjectViewDto<?>> objectViewDtoModel;
     private DebugViewOptions debugViewConfiguration = new DebugViewOptions();
-   
+
     public PageDebugView() {
 
     }
@@ -106,21 +106,21 @@ public class PageDebugView extends PageAdminConfiguration {
 
         return createStringResource("PageDebugView.title", getName());
     }
-    
+
     private String getName() {
-    	if (objectViewDtoModel == null || objectViewDtoModel.getObject() == null) {
-    		return "";
-    	}
-    	
-    	return objectViewDtoModel.getObject().getName();
+        if (objectViewDtoModel == null || objectViewDtoModel.getObject() == null) {
+            return "";
+        }
+
+        return objectViewDtoModel.getObject().getName();
     }
 
     private LoadableModel<ObjectViewDto<?>> initObjectViewObject() {
         return new LoadableModel<ObjectViewDto<?>>(false) {
-           
-        	private static final long serialVersionUID = 1L;
 
-			@Override
+            private static final long serialVersionUID = 1L;
+
+            @Override
             protected ObjectViewDto<?> load() {
                 ObjectViewDto<?> objectViewDto = new ObjectViewDto<>();
                 StringValue objectOid = getPageParameters().get(PARAM_OBJECT_ID);
@@ -136,11 +136,11 @@ public class PageDebugView extends PageAdminConfiguration {
 
                     Class<? extends ObjectType> type = getTypeFromParameters();
 
-	                GetOperationOptionsBuilder optionsBuilder = getSchemaHelper().getOperationOptionsBuilder()
-			                .raw()
-			                .resolveNames()
-			                .tolerateRawData();
-	                if (getPageParameters().get(PARAM_SHOW_ALL_ITEMS).toBoolean(true)) {
+                    GetOperationOptionsBuilder optionsBuilder = getSchemaHelper().getOperationOptionsBuilder()
+                            .raw()
+                            .resolveNames()
+                            .tolerateRawData();
+                    if (getPageParameters().get(PARAM_SHOW_ALL_ITEMS).toBoolean(true)) {
                         optionsBuilder = optionsBuilder.retrieve();
                     }
                     PrismObject<? extends ObjectType> object = getModelService().getObject(type, objectOid.toString(), optionsBuilder.build(), task, result);
@@ -165,18 +165,18 @@ public class PageDebugView extends PageAdminConfiguration {
             }
         };
     }
-    
+
     private Class<? extends ObjectType> getTypeFromParameters() {
-    	StringValue objectType = getPageParameters().get(PARAM_OBJECT_TYPE);
+        StringValue objectType = getPageParameters().get(PARAM_OBJECT_TYPE);
         if (objectType != null && StringUtils.isNotBlank(objectType.toString())) {
             return getPrismContext().getSchemaRegistry().determineCompileTimeClass(new QName(SchemaConstantsGenerated.NS_COMMON, objectType.toString()));
         }
-        
+
         return ObjectType.class;
     }
 
     private void initLayout() {
-    	final Form<?> mainForm = new Form<>(ID_FORM);
+        final Form<?> mainForm = new Form<>(ID_FORM);
         add(mainForm);
         mainForm.add(createOptionCheckbox(DebugViewOptions.ID_ENCRYPT, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_ENCRYPT), "pageDebugView.encrypt", "pageDebugView.encrypt.help"));
         mainForm.add(createOptionCheckbox(DebugViewOptions.ID_VALIDATE_SCHEMA, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_VALIDATE_SCHEMA), "pageDebugView.validateSchema", "pageDebugView.validateSchema.help"));
@@ -194,33 +194,33 @@ public class PageDebugView extends PageAdminConfiguration {
         initViewButton(mainForm);
 
     }
-    
+
     private CheckBoxPanel createOptionCheckbox(String id, IModel<Boolean> model, String labelKey, String helpKey) {
-    	
-      	return new CheckBoxPanel(id, model, null, createStringResource(labelKey), createStringResource(helpKey)) {
 
-			private static final long serialVersionUID = 1L;
+          return new CheckBoxPanel(id, model, null, createStringResource(labelKey), createStringResource(helpKey)) {
 
-			@Override
-			public void onUpdate(AjaxRequestTarget target) {
-				if (DebugViewOptions.ID_SWITCH_TO_PLAINTEXT.equals(id)) {
-					target.add(getMainForm());
-				}
-			}
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onUpdate(AjaxRequestTarget target) {
+                if (DebugViewOptions.ID_SWITCH_TO_PLAINTEXT.equals(id)) {
+                    target.add(getMainForm());
+                }
+            }
         };
     }
-    
+
     private boolean isTrue(String panelId) {
-    	CheckBoxPanel panel = (CheckBoxPanel) get(createComponentPath(ID_FORM, panelId));
-    	if (panel == null) {
-    		LOGGER.error("Cannot find panel: {}", panelId);
-    		 return false;
-    	}
-    	
-    	return panel.getValue();
+        CheckBoxPanel panel = (CheckBoxPanel) get(createComponentPath(ID_FORM, panelId));
+        if (panel == null) {
+            LOGGER.error("Cannot find panel: {}", panelId);
+             return false;
+        }
+
+        return panel.getValue();
     }
     private Form<?> getMainForm() {
-    	return (Form<?>) get(ID_FORM);
+        return (Form<?>) get(ID_FORM);
     }
 
     private void initAceEditor(Form<?> mainForm){
@@ -235,21 +235,21 @@ public class PageDebugView extends PageAdminConfiguration {
                 new DataLanguagePanel<Objectable>(ID_VIEW_BUTTON_PANEL, dataLanguage, Objectable.class, PageDebugView.this) {
                     private static final long serialVersionUID = 1L;
 
-	                @Override
-	                protected void onLanguageSwitched(AjaxRequestTarget target, int updatedIndex, String updatedLanguage,
-			                String objectString) {
-		                objectViewDtoModel.getObject().setXml(objectString);
-		                dataLanguage = updatedLanguage;
-		                target.add(mainForm);
-	                }
-	                @Override
-	                protected String getObjectStringRepresentation() {
-		                return objectViewDtoModel.getObject().getXml();
-	                }
-	                @Override
-	                protected boolean isValidateSchema() {
-		                return isTrue(DebugViewOptions.ID_VALIDATE_SCHEMA);
-	                }
+                    @Override
+                    protected void onLanguageSwitched(AjaxRequestTarget target, int updatedIndex, String updatedLanguage,
+                            String objectString) {
+                        objectViewDtoModel.getObject().setXml(objectString);
+                        dataLanguage = updatedLanguage;
+                        target.add(mainForm);
+                    }
+                    @Override
+                    protected String getObjectStringRepresentation() {
+                        return objectViewDtoModel.getObject().getXml();
+                    }
+                    @Override
+                    protected boolean isValidateSchema() {
+                        return isTrue(DebugViewOptions.ID_VALIDATE_SCHEMA);
+                    }
                 };
         dataLanguagePanel.setOutputMarkupId(true);
         mainForm.add(dataLanguagePanel);
@@ -259,7 +259,7 @@ public class PageDebugView extends PageAdminConfiguration {
         AjaxSubmitButton saveButton = new AjaxSubmitButton("saveButton",
                 createStringResource("pageDebugView.button.save")) {
             private static final long serialVersionUID = 1L;
-            
+
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 savePerformed(target);
@@ -283,7 +283,7 @@ public class PageDebugView extends PageAdminConfiguration {
         };
         mainForm.add(backButton);
     }
-    
+
     public void savePerformed(AjaxRequestTarget target) {
         if (StringUtils.isEmpty(objectViewDtoModel.getObject().getXml())) {
             error(getString("pageDebugView.message.cantSaveEmpty"));
@@ -301,23 +301,23 @@ public class PageDebugView extends PageAdminConfiguration {
             Holder<? extends ObjectType> objectHolder = new Holder<>(null);
             validateObject(result, (Holder) objectHolder);
 
-			if (result.isAcceptable()) {
+            if (result.isAcceptable()) {
                 PrismObject<? extends ObjectType> newObject = objectHolder.getValue().asPrismObject();
 
-				ObjectDelta<? extends ObjectType> delta = oldObject.diff((PrismObject) newObject, EquivalenceStrategy.LITERAL);
+                ObjectDelta<? extends ObjectType> delta = oldObject.diff((PrismObject) newObject, EquivalenceStrategy.LITERAL);
 
                 if (delta.getPrismContext() == null) {
-                	LOGGER.warn("No prism context in delta {} after diff, adding it", delta);
-                	delta.revive(getPrismContext());
+                    LOGGER.warn("No prism context in delta {} after diff, adding it", delta);
+                    delta.revive(getPrismContext());
                 }
 
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Delta to be applied:\n{}", delta.debugDump());
                 }
-                
+
                 //quick fix for now (MID-1910), maybe it should be somewhere in objectViewModel..
 //                if (isReport(oldObject)){
-//                	ReportTypeUtil.applyConfigurationDefinition((PrismObject)newObject, delta, getPrismContext());
+//                    ReportTypeUtil.applyConfigurationDefinition((PrismObject)newObject, delta, getPrismContext());
 //                }
 
                 Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
@@ -329,7 +329,7 @@ public class PageDebugView extends PageAdminConfiguration {
                     options.setReevaluateSearchFilters(true);
                 }
                 if(!isTrue(DebugViewOptions.ID_ENCRYPT)) {
-                	options.setNoCrypt(true);
+                    options.setNoCrypt(true);
                 }
 
                 getModelService().executeChanges(deltas, options, task, result);
@@ -355,26 +355,26 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void validateObject(OperationResult result, Holder<Objectable> objectHolder) {
-	    parseObject(objectViewDtoModel.getObject().getXml(), (Holder<Objectable>) objectHolder, dataLanguage, isTrue(DebugViewOptions.ID_VALIDATE_SCHEMA), false, Objectable.class, result);
+        parseObject(objectViewDtoModel.getObject().getXml(), (Holder<Objectable>) objectHolder, dataLanguage, isTrue(DebugViewOptions.ID_VALIDATE_SCHEMA), false, Objectable.class, result);
     }
-    
-    
+
+
  class DebugViewOptions implements Serializable {
-    	
-	 	private static final long serialVersionUID = 1L;
-	 	
-		private final static String ID_ENCRYPT = "encrypt";
-    	private final static String ID_SAVE_AS_RAW = "saveAsRaw";
-    	private final static String ID_REEVALUATE_SEARCH_FILTERS = "reevaluateSearchFilters";
-    	private final static String ID_VALIDATE_SCHEMA = "validateSchema";
-    	private final static String ID_SWITCH_TO_PLAINTEXT = "switchToPlainText";
-    	
-    	private final boolean encrypt=true;
+
+         private static final long serialVersionUID = 1L;
+
+        private final static String ID_ENCRYPT = "encrypt";
+        private final static String ID_SAVE_AS_RAW = "saveAsRaw";
+        private final static String ID_REEVALUATE_SEARCH_FILTERS = "reevaluateSearchFilters";
+        private final static String ID_VALIDATE_SCHEMA = "validateSchema";
+        private final static String ID_SWITCH_TO_PLAINTEXT = "switchToPlainText";
+
+        private final boolean encrypt=true;
         private final boolean saveAsRaw=true;
         private final boolean reevaluateSearchFilters = false;
         private final boolean validateSchema = false;
         private final boolean switchToPlainText = false;
-    	
+
     }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
  package com.evolveum.midpoint.prism.impl.lex;
@@ -30,65 +30,65 @@ import java.util.List;
  */
 public interface LexicalProcessor<T> {
 
-	@NotNull
-	RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException;
+    @NotNull
+    RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException;
 
-	@NotNull
-	List<RootXNodeImpl> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException;
+    @NotNull
+    List<RootXNodeImpl> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException;
 
-	/**
-	 * Note that this interface does not contain handleError method. It seems that we are currently not able to successfully
-	 * recover from JSON/YAML parsing errors - so, after first exception we would get quite random (garbage) data from the
-	 * input stream. It is much more safe just to abort processing in that case.
-	 */
-	@FunctionalInterface
-	interface RootXNodeHandler {
-		/**
-		 * Called when a RootXNode was successfully retrieved from the input.
-		 * @return true if the processing should continue
-		 */
-		boolean handleData(RootXNodeImpl node);
-	}
+    /**
+     * Note that this interface does not contain handleError method. It seems that we are currently not able to successfully
+     * recover from JSON/YAML parsing errors - so, after first exception we would get quite random (garbage) data from the
+     * input stream. It is much more safe just to abort processing in that case.
+     */
+    @FunctionalInterface
+    interface RootXNodeHandler {
+        /**
+         * Called when a RootXNode was successfully retrieved from the input.
+         * @return true if the processing should continue
+         */
+        boolean handleData(RootXNodeImpl node);
+    }
 
-	void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext, RootXNodeHandler handler) throws SchemaException, IOException;
+    void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext, RootXNodeHandler handler) throws SchemaException, IOException;
 
-	/**
-	 * Checks if the processor can read from a given file. (Guessed by file extension, for now.)
-	 * Used for autodetection of language.
-	 */
-	boolean canRead(@NotNull File file) throws IOException;
+    /**
+     * Checks if the processor can read from a given file. (Guessed by file extension, for now.)
+     * Used for autodetection of language.
+     */
+    boolean canRead(@NotNull File file) throws IOException;
 
-	/**
-	 * Checks if the processor can read from a given string. Note this is only an approximative information (for now).
-	 * Used for autodetection of language.
-	 */
-	boolean canRead(@NotNull String dataString);
+    /**
+     * Checks if the processor can read from a given string. Note this is only an approximative information (for now).
+     * Used for autodetection of language.
+     */
+    boolean canRead(@NotNull String dataString);
 
-	/**
-	 * Serializes a root node into XNode tree.
-	 */
-	@NotNull
-	T write(@NotNull RootXNode xnode, @Nullable SerializationContext serializationContext) throws SchemaException;
+    /**
+     * Serializes a root node into XNode tree.
+     */
+    @NotNull
+    T write(@NotNull RootXNode xnode, @Nullable SerializationContext serializationContext) throws SchemaException;
 
-	/**
-	 * Serializes a non-root node into XNode tree.
-	 * So, xnode SHOULD NOT be a root node (at least for now).
-	 *
-	 * TODO consider removing - replacing by the previous form.
-	 */
-	@NotNull
-	T write(@NotNull XNode xnode, @NotNull QName rootElementName, @Nullable SerializationContext serializationContext) throws SchemaException;
+    /**
+     * Serializes a non-root node into XNode tree.
+     * So, xnode SHOULD NOT be a root node (at least for now).
+     *
+     * TODO consider removing - replacing by the previous form.
+     */
+    @NotNull
+    T write(@NotNull XNode xnode, @NotNull QName rootElementName, @Nullable SerializationContext serializationContext) throws SchemaException;
 
-	/**
-	 * TODO
-	 *
-	 * Not supported for NullLexicalProcessor, though.
-	 * @param roots
-	 * @param aggregateElementName
-	 * @param context
-	 * @return
-	 * @throws SchemaException
-	 */
-	@NotNull
-	T write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName, @Nullable SerializationContext context) throws SchemaException;
+    /**
+     * TODO
+     *
+     * Not supported for NullLexicalProcessor, though.
+     * @param roots
+     * @param aggregateElementName
+     * @param context
+     * @return
+     * @throws SchemaException
+     */
+    @NotNull
+    T write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName, @Nullable SerializationContext context) throws SchemaException;
 }

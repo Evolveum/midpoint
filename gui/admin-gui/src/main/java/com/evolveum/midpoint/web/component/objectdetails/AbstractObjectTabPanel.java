@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.objectdetails;
@@ -38,112 +38,112 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author semancik
  */
 public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	protected static final String ID_MAIN_FORM = "mainForm";
+    protected static final String ID_MAIN_FORM = "mainForm";
 
-	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectTabPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectTabPanel.class);
 
-	private LoadableModel<PrismObjectWrapper<O>> objectWrapperModel;
-//	protected PageBase pageBase;
-	private Form<PrismObjectWrapper<O>> mainForm;
+    private LoadableModel<PrismObjectWrapper<O>> objectWrapperModel;
+//    protected PageBase pageBase;
+    private Form<PrismObjectWrapper<O>> mainForm;
 
-	public AbstractObjectTabPanel(String id, Form<PrismObjectWrapper<O>> mainForm, LoadableModel<PrismObjectWrapper<O>> objectWrapperModel) {
-		super(id);
-		this.objectWrapperModel = objectWrapperModel;
-		this.mainForm = mainForm;
-//		this.pageBase = pageBase;
-	}
+    public AbstractObjectTabPanel(String id, Form<PrismObjectWrapper<O>> mainForm, LoadableModel<PrismObjectWrapper<O>> objectWrapperModel) {
+        super(id);
+        this.objectWrapperModel = objectWrapperModel;
+        this.mainForm = mainForm;
+//        this.pageBase = pageBase;
+    }
 
-	public LoadableModel<PrismObjectWrapper<O>> getObjectWrapperModel() {
-		return objectWrapperModel;
-	}
+    public LoadableModel<PrismObjectWrapper<O>> getObjectWrapperModel() {
+        return objectWrapperModel;
+    }
 
-	public PrismObjectWrapper<O> getObjectWrapper() {
-		return objectWrapperModel.getObject();
-	}
+    public PrismObjectWrapper<O> getObjectWrapper() {
+        return objectWrapperModel.getObject();
+    }
 
-	protected PrismContext getPrismContext() {
-		return getPageBase().getPrismContext();
-	}
+    protected PrismContext getPrismContext() {
+        return getPageBase().getPrismContext();
+    }
 
-	protected PageParameters getPageParameters() {
-		return getPageBase().getPageParameters();
-	}
+    protected PageParameters getPageParameters() {
+        return getPageBase().getPageParameters();
+    }
 
-	public PageBase getPageBase() {
-		return (PageBase) getPage();
-	}
+    public PageBase getPageBase() {
+        return (PageBase) getPage();
+    }
 
-	public Form<PrismObjectWrapper<O>> getMainForm() {
-		return mainForm;
-	}
+    public Form<PrismObjectWrapper<O>> getMainForm() {
+        return mainForm;
+    }
 
-	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-		return PageBase.createStringResourceStatic(this, resourceKey, objects);
-//		return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
-	}
+    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
+        return PageBase.createStringResourceStatic(this, resourceKey, objects);
+//        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+    }
 
-	public String getString(String resourceKey, Object... objects) {
-		return createStringResource(resourceKey, objects).getString();
-	}
+    public String getString(String resourceKey, Object... objects) {
+        return createStringResource(resourceKey, objects).getString();
+    }
 
-	protected String createComponentPath(String... components) {
-		return StringUtils.join(components, ":");
-	}
+    protected String createComponentPath(String... components) {
+        return StringUtils.join(components, ":");
+    }
 
-	protected void showResult(OperationResult result) {
-		getPageBase().showResult(result);
-	}
+    protected void showResult(OperationResult result) {
+        getPageBase().showResult(result);
+    }
 
-	protected void showResult(OperationResult result, boolean showSuccess) {
-		getPageBase().showResult(result, false);
-	}
+    protected void showResult(OperationResult result, boolean showSuccess) {
+        getPageBase().showResult(result, false);
+    }
 
 
-	protected WebMarkupContainer getFeedbackPanel() {
-		return getPageBase().getFeedbackPanel();
-	}
+    protected WebMarkupContainer getFeedbackPanel() {
+        return getPageBase().getFeedbackPanel();
+    }
 
-	public Object findParam(String param, String oid, OperationResult result) {
+    public Object findParam(String param, String oid, OperationResult result) {
 
-		Object object = null;
+        Object object = null;
 
-		//TODO: FIXME get(PARAM_OID) returns collection
-		for (OperationResult subResult : result.getSubresults()) {
-			if (subResult != null && subResult.getParams() != null) {
-				if (subResult.getParams().get(param) != null
-						&& subResult.getParams().get(OperationResult.PARAM_OID) != null
-						&& subResult.getParams().get(OperationResult.PARAM_OID).equals(oid)) {
-					return subResult.getParams().get(param);
-				}
-				object = findParam(param, oid, subResult);
+        //TODO: FIXME get(PARAM_OID) returns collection
+        for (OperationResult subResult : result.getSubresults()) {
+            if (subResult != null && subResult.getParams() != null) {
+                if (subResult.getParams().get(param) != null
+                        && subResult.getParams().get(OperationResult.PARAM_OID) != null
+                        && subResult.getParams().get(OperationResult.PARAM_OID).equals(oid)) {
+                    return subResult.getParams().get(param);
+                }
+                object = findParam(param, oid, subResult);
 
-			}
-		}
-		return object;
-	}
+            }
+        }
+        return object;
+    }
 
-	protected void showModalWindow(Popupable popupable, AjaxRequestTarget target) {
+    protected void showModalWindow(Popupable popupable, AjaxRequestTarget target) {
         getPageBase().showMainPopup(popupable, target);
-		target.add(getFeedbackPanel());
-	}
+        target.add(getFeedbackPanel());
+    }
 
-	protected Panel addPrismPropertyPanel(MarkupContainer parentComponent, String id, QName typeName, ItemPath propertyPath) {
-		
-		try {
-			//FIXME : really always visible?
-			ItemPanelSettingsBuilder settingsBuilder = new ItemPanelSettingsBuilder();
-			settingsBuilder.visibilityHandler(wrapper -> ItemVisibility.VISIBLE);
+    protected Panel addPrismPropertyPanel(MarkupContainer parentComponent, String id, QName typeName, ItemPath propertyPath) {
 
-			Panel panel = getPageBase().initItemPanel(id, typeName, PrismPropertyWrapperModel.fromContainerWrapper(getObjectWrapperModel(), propertyPath), settingsBuilder.build());
-			parentComponent.add(panel);
-			return panel;
-		} catch (SchemaException e) {
-			LOGGER.error("Cannot create panel for {}", typeName, e);
-			getSession().error("Cannot create panel for " + typeName + ", reason: " + e.getMessage());
-		}
-		
-		return null;		
-	}
+        try {
+            //FIXME : really always visible?
+            ItemPanelSettingsBuilder settingsBuilder = new ItemPanelSettingsBuilder();
+            settingsBuilder.visibilityHandler(wrapper -> ItemVisibility.VISIBLE);
+
+            Panel panel = getPageBase().initItemPanel(id, typeName, PrismPropertyWrapperModel.fromContainerWrapper(getObjectWrapperModel(), propertyPath), settingsBuilder.build());
+            parentComponent.add(panel);
+            return panel;
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot create panel for {}", typeName, e);
+            getSession().error("Cannot create panel for " + typeName + ", reason: " + e.getMessage());
+        }
+
+        return null;
+    }
 }

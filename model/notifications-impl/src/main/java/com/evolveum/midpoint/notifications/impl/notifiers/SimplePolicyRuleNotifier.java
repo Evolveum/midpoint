@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -49,19 +49,19 @@ public class SimplePolicyRuleNotifier extends GeneralNotifier {
 
     @Override
     protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
-		PolicyRuleEvent ruleEvent = (PolicyRuleEvent) event;
-		return "Policy rule '" + ruleEvent.getRuleName() + "' triggering notification";
+        PolicyRuleEvent ruleEvent = (PolicyRuleEvent) event;
+        return "Policy rule '" + ruleEvent.getRuleName() + "' triggering notification";
     }
 
     @Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task opTask, OperationResult opResult) throws SchemaException {
-		PolicyRuleEvent ruleEvent = (PolicyRuleEvent) event;
+        PolicyRuleEvent ruleEvent = (PolicyRuleEvent) event;
 
         StringBuilder body = new StringBuilder();
 
         body.append("Notification about policy rule-related event.\n\n");
-		// TODO TODO TODO
-		body.append(ruleEvent.getPolicyRule().debugDump());
+        // TODO TODO TODO
+        body.append(ruleEvent.getPolicyRule().debugDump());
         return body.toString();
     }
 

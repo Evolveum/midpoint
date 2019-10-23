@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -18,7 +18,7 @@ public class QNameObjectTypeChoiceRenderer implements IChoiceRenderer<QName> {
 
     private static final long serialVersionUID = 1L;
 
-	@Override
+    @Override
     public Object getDisplayValue(QName qname) {
         if (qname == null) {
             return null;

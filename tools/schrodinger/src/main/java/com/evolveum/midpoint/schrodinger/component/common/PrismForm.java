@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -103,17 +103,9 @@ public class PrismForm<T> extends Component<T> {
         String valueElement = value.getValue();
 
         if (!valueElement.isEmpty()) {
-
             return valueElement.equals(expectedValue);
-
-        } else if (!expectedValue.isEmpty()) {
-
-            return false;
-
         } else {
-
-            return true;
-
+            return expectedValue.isEmpty();
         }
 
     }
@@ -124,17 +116,9 @@ public class PrismForm<T> extends Component<T> {
         String selectedOptionText = value.getSelectedText();
 
         if (!selectedOptionText.isEmpty()) {
-
             return selectedOptionText.equals(expectedValue);
-
-        } else if (!expectedValue.isEmpty()) {
-
-            return false;
-
         } else {
-
-            return true;
-
+            return expectedValue.isEmpty();
         }
 
     }
@@ -160,6 +144,55 @@ public class PrismForm<T> extends Component<T> {
                 passwordInputs.forEach(inputElement -> inputElement.setValue(value));
             }
         }
+        return this;
+    }
+
+    public PrismForm<T> setPolyStringLocalizedValue(QName name, String locale, String value) {
+        SelenideElement property = findProperty(name);
+
+        property
+                .$(By.className("fa-language"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
+        SelenideElement localeInput =
+                property
+                        .$(Schrodinger.byDataId("fullDataContainer"))
+                        .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                        .$(Schrodinger.byElementAttributeValue("input", "value", locale));
+        boolean localeInputExists = localeInput.exists();
+        if (!localeInputExists){
+            SelenideElement localeDropDown =
+                    property
+                    .$(Schrodinger.byDataId("languagesList"))
+                            .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                    .$(By.tagName("select"))
+                            .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+            if (localeDropDown != null){
+                localeDropDown.selectOption(locale);
+
+                property
+                        .$(Schrodinger.byDataId("languageEditor"))
+                        .$(By.className("fa-plus-circle"))
+                        .shouldBe(Condition.visible)
+                        .click();
+            }
+
+            localeInput =
+                    property
+                            .$(Schrodinger.byDataId("fullDataContainer"))
+                            .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                            .$(Schrodinger.byElementAttributeValue("input", "value", locale))
+                            .shouldBe(Condition.visible);
+        }
+
+        localeInput
+                .parent()
+                .parent()
+                .$(Schrodinger.byDataId("translation"))
+                .shouldBe(Condition.visible)
+                .$(By.className("form-control"))
+                .setValue(value);
+
         return this;
     }
 

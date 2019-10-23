@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,16 +17,16 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EvaluatedMultiplicityTrigger extends EvaluatedPolicyRuleTrigger<MultiplicityPolicyConstraintType> {
 
-	public EvaluatedMultiplicityTrigger(@NotNull PolicyConstraintKindType kind, @NotNull MultiplicityPolicyConstraintType constraint,
-			LocalizableMessage message, LocalizableMessage shortMessage) {
-		super(kind, constraint, message, shortMessage, false);
-	}
+    public EvaluatedMultiplicityTrigger(@NotNull PolicyConstraintKindType kind, @NotNull MultiplicityPolicyConstraintType constraint,
+            LocalizableMessage message, LocalizableMessage shortMessage) {
+        super(kind, constraint, message, shortMessage, false);
+    }
 
-	@Override
-	public EvaluatedMultiplicityTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
-			PrismContext prismContext) {
-		EvaluatedMultiplicityTriggerType rv = new EvaluatedMultiplicityTriggerType();
-		fillCommonContent(rv);
-		return rv;
-	}
+    @Override
+    public EvaluatedMultiplicityTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+            PrismContext prismContext) {
+        EvaluatedMultiplicityTriggerType rv = new EvaluatedMultiplicityTriggerType();
+        fillCommonContent(rv);
+        return rv;
+    }
 }

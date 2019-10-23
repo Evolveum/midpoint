@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,11 +17,11 @@ import com.evolveum.midpoint.web.session.PageStorage;
  */
 public class WorkItemsStorage implements PageStorage{
 
-	private static final long serialVersionUID = 1L;
-	
-	private ObjectPaging workItemsPaging;
+    private static final long serialVersionUID = 1L;
 
-	private Search search;
+    private ObjectPaging workItemsPaging;
+
+    private Search search;
 
     @Override
     public Search getSearch() {
@@ -30,7 +30,7 @@ public class WorkItemsStorage implements PageStorage{
 
     @Override
     public void setSearch(Search search) {
-    	this.search = search;
+        this.search = search;
     }
 
     @Override
@@ -50,12 +50,12 @@ public class WorkItemsStorage implements PageStorage{
 
     @Override
     public String debugDump(int indent) {
-    	StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("WorkItemsStorage\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "workItemsPaging", workItemsPaging, indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "search", search, indent+1);
-		return sb.toString();
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("WorkItemsStorage\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "workItemsPaging", workItemsPaging, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "search", search, indent+1);
+        return sb.toString();
     }
 
 }

@@ -1,14 +1,14 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <user oid="71d27191-df8c-4513-836e-ed01c68a4ab4">
-	<name>bob-deputy-full</name>
-	<assignment>
-		<targetRef oid="c0c010c0-d34d-b33f-f00d-111111111134" type="UserType" relation="deputy"/>	<!-- bob -->
-	</assignment>
-	<fullName>Bob Deputy Full</fullName>
+    <name>bob-deputy-full</name>
+    <assignment>
+        <targetRef oid="c0c010c0-d34d-b33f-f00d-111111111134" type="UserType" relation="deputy"/>    <!-- bob -->
+    </assignment>
+    <fullName>Bob Deputy Full</fullName>
 </user>

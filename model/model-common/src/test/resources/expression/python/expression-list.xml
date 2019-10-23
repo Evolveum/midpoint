@@ -2,15 +2,15 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#python</language>
+    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#python</language>
     <!--<variable>-->
-    	<!--<name>jack</name>-->
-    	<!--<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>-->
+        <!--<name>jack</name>-->
+        <!--<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>-->
     <!--</variable>-->
-	<code>jack.getOrganizationalUnit()</code>
+    <code>jack.getOrganizationalUnit()</code>
 </script>

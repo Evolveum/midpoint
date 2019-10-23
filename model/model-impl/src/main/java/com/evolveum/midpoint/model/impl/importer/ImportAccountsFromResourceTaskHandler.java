@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.importer;
@@ -82,9 +82,9 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/import/handler-3";
 
     // WARNING! This task handler is efficiently singleton!
- 	// It is a spring bean and it is supposed to handle all search task instances
- 	// Therefore it must not have task-specific fields. It can only contain fields specific to
- 	// all tasks of a specified type
+     // It is a spring bean and it is supposed to handle all search task instances
+     // Therefore it must not have task-specific fields. It can only contain fields specific to
+     // all tasks of a specified type
 
     @Autowired private TaskManager taskManager;
     @Autowired private ProvisioningService provisioningService;
@@ -135,10 +135,10 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         task.setObjectRef(ObjectTypeUtil.createObjectRef(resource, prismContext));
 
         try {
-        	PrismProperty<QName> objectclassProp = objectclassPropertyDefinition.instantiate();
-        	objectclassProp.setRealValue(objectclass);
-        	task.setExtensionProperty(objectclassProp);
-        	task.flushPendingModifications(result);		// just to be sure (if the task was already persistent)
+            PrismProperty<QName> objectclassProp = objectclassPropertyDefinition.instantiate();
+            objectclassProp.setRealValue(objectclass);
+            task.setExtensionProperty(objectclassProp);
+            task.flushPendingModifications(result);        // just to be sure (if the task was already persistent)
 //          task.modify(modifications, result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
@@ -158,156 +158,156 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         // the run(task) method.
         // Note: the thread may be actually started on a different node
         taskManager.switchToBackground(task, result);
-		result.setBackgroundTaskOid(task.getOid());
+        result.setBackgroundTaskOid(task.getOid());
         result.computeStatus("Import launch failed");
 
         LOGGER.trace("Import from resource {} switched to background, control thread returning with task {}", ObjectTypeUtil.toShortString(resource), task);
     }
 
-	@Override
-	protected SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask,
-			OperationResult opResult) {
+    @Override
+    protected SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask,
+            OperationResult opResult) {
 
-		ResourceType resource = resolveObjectRef(ResourceType.class, runResult, coordinatorTask, opResult);
-		if (resource == null) {
-			return null;
-		}
+        ResourceType resource = resolveObjectRef(ResourceType.class, runResult, coordinatorTask, opResult);
+        if (resource == null) {
+            return null;
+        }
 
         return createHandler(partition, resource, null, runResult, coordinatorTask, opResult);
-	}
+    }
 
     // shadowToImport - it is used to derive objectClass/intent/kind when importing a single shadow
-	private SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, ResourceType resource, PrismObject<ShadowType> shadowToImport,
-			TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult) {
+    private SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, ResourceType resource, PrismObject<ShadowType> shadowToImport,
+            TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult) {
 
-		ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, shadowToImport, runResult, coordinatorTask, opResult);
-		if (objectClass == null) {
-			return null;
-		}
+        ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, shadowToImport, runResult, coordinatorTask, opResult);
+        if (objectClass == null) {
+            return null;
+        }
         return createHandler(partition, resource, objectClass, coordinatorTask);
-	}
+    }
 
     // shadowToImport - it is used to derive objectClass/intent/kind when importing a single shadow
-	private SynchronizeAccountResultHandler createHandlerForSingleShadow(@NotNull ResourceType resource, @NotNull PrismObject<ShadowType> shadowToImport,
-			TaskRunResult runResult, RunningTask task, OperationResult opResult) {
-		ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, shadowToImport, runResult, task, opResult);
-		if (objectClass == null) {
-			return null;
-		}
-		return createHandler(null, resource, objectClass, task);
-	}
+    private SynchronizeAccountResultHandler createHandlerForSingleShadow(@NotNull ResourceType resource, @NotNull PrismObject<ShadowType> shadowToImport,
+            TaskRunResult runResult, RunningTask task, OperationResult opResult) {
+        ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, shadowToImport, runResult, task, opResult);
+        if (objectClass == null) {
+            return null;
+        }
+        return createHandler(null, resource, objectClass, task);
+    }
 
-	private SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, @NotNull ResourceType resource, @NotNull ObjectClassComplexTypeDefinition objectClass,
-			RunningTask coordinatorTask) {
+    private SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, @NotNull ResourceType resource, @NotNull ObjectClassComplexTypeDefinition objectClass,
+            RunningTask coordinatorTask) {
         LOGGER.info("Start executing import from resource {}, importing object class {}", resource, objectClass.getTypeName());
 
-		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, objectClass, "import",
+        SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, objectClass, "import",
                 coordinatorTask, changeNotificationDispatcher, partition, taskManager);
         handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         handler.setForceAdd(true);
         handler.setStopOnError(false);
         handler.setContextDesc("from "+resource);
         handler.setLogObjectProgress(true);
-        
+
         return handler;
-	}
+    }
 
-	// TODO
-	@Override
-	protected Function<ItemPath, ItemDefinition<?>> getIdentifierDefinitionProvider(Task localCoordinatorTask,
-			OperationResult opResult) {
-    	TaskRunResult dummyRunResult = new TaskRunResult();
-		ResourceType resource = resolveObjectRef(ResourceType.class, dummyRunResult, localCoordinatorTask, opResult);
-		if (resource == null) {
-			return null;
-		}
-		ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, null, dummyRunResult, localCoordinatorTask, opResult);
-		if (objectClass == null) {
-			return null;
-		}
-		return itemPath -> {
-			if (itemPath.startsWithName(ShadowType.F_ATTRIBUTES)) {
-				return objectClass.findAttributeDefinition(itemPath.rest().asSingleName());
-			} else {
-				return null;
-			}
-		};
-	}
+    // TODO
+    @Override
+    protected Function<ItemPath, ItemDefinition<?>> getIdentifierDefinitionProvider(Task localCoordinatorTask,
+            OperationResult opResult) {
+        TaskRunResult dummyRunResult = new TaskRunResult();
+        ResourceType resource = resolveObjectRef(ResourceType.class, dummyRunResult, localCoordinatorTask, opResult);
+        if (resource == null) {
+            return null;
+        }
+        ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, null, dummyRunResult, localCoordinatorTask, opResult);
+        if (objectClass == null) {
+            return null;
+        }
+        return itemPath -> {
+            if (itemPath.startsWithName(ShadowType.F_ATTRIBUTES)) {
+                return objectClass.findAttributeDefinition(itemPath.rest().asSingleName());
+            } else {
+                return null;
+            }
+        };
+    }
 
-	@Nullable
-	private ObjectClassComplexTypeDefinition determineObjectClassDefinition(ResourceType resource,
-			PrismObject<ShadowType> shadowToImport, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
-		RefinedResourceSchema refinedSchema;
-		ObjectClassComplexTypeDefinition objectClass;
-		try {
-		    refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+    @Nullable
+    private ObjectClassComplexTypeDefinition determineObjectClassDefinition(ResourceType resource,
+            PrismObject<ShadowType> shadowToImport, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+        RefinedResourceSchema refinedSchema;
+        ObjectClassComplexTypeDefinition objectClass;
+        try {
+            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
 
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Refined schema:\n{}", refinedSchema.debugDump());
-			}
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Refined schema:\n{}", refinedSchema.debugDump());
+            }
 
-			if (shadowToImport != null) {
-			    objectClass = ModelImplUtils.determineObjectClass(refinedSchema, shadowToImport);
-			} else {
-			    objectClass = ModelImplUtils.determineObjectClass(refinedSchema, coordinatorTask);
-			}
-			if (objectClass == null) {
-			    LOGGER.error("Import: No objectclass specified and no default can be determined.");
-			    opResult.recordFatalError("No objectclass specified and no default can be determined");
-			    runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-				return null;
-			}
-		} catch (SchemaException e) {
-		    LOGGER.error("Import: Schema error during processing account definition: {}",e.getMessage());
-		    opResult.recordFatalError("Schema error during processing account definition: "+e.getMessage(),e);
-		    runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			return null;
-		}
-		return objectClass;
-	}
+            if (shadowToImport != null) {
+                objectClass = ModelImplUtils.determineObjectClass(refinedSchema, shadowToImport);
+            } else {
+                objectClass = ModelImplUtils.determineObjectClass(refinedSchema, coordinatorTask);
+            }
+            if (objectClass == null) {
+                LOGGER.error("Import: No objectclass specified and no default can be determined.");
+                opResult.recordFatalError("No objectclass specified and no default can be determined");
+                runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+                return null;
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Import: Schema error during processing account definition: {}",e.getMessage());
+            opResult.recordFatalError("Schema error during processing account definition: "+e.getMessage(),e);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return null;
+        }
+        return objectClass;
+    }
 
-	@Override
+    @Override
     protected Class<? extends ObjectType> getType(Task task) {
         return ShadowType.class;
     }
-	
-    @Override
-	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(
-			SynchronizeAccountResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask,
-			OperationResult opResult) {
-		Collection<SelectorOptions<GetOperationOptions>> options = super.createSearchOptions(resultHandler, runResult, coordinatorTask, opResult);
-		GetOperationOptions doDiscovery = new GetOperationOptions();
-		doDiscovery.setDoNotDiscovery(false);
-		if (options == null) {
-			options = SelectorOptions.createCollection(doDiscovery);
-		} else {
-			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-			if (rootOptions == null) {
-				options.add(SelectorOptions.create(doDiscovery));
-			} else {
-				rootOptions.setDoNotDiscovery(false);
-			}
-		}
-		return options;
-	}
 
-	@Override
-	protected ObjectQuery createQuery(SynchronizeAccountResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) {
+    @Override
+    protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(
+            SynchronizeAccountResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask,
+            OperationResult opResult) {
+        Collection<SelectorOptions<GetOperationOptions>> options = super.createSearchOptions(resultHandler, runResult, coordinatorTask, opResult);
+        GetOperationOptions doDiscovery = new GetOperationOptions();
+        doDiscovery.setDoNotDiscovery(false);
+        if (options == null) {
+            options = SelectorOptions.createCollection(doDiscovery);
+        } else {
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            if (rootOptions == null) {
+                options.add(SelectorOptions.create(doDiscovery));
+            } else {
+                rootOptions.setDoNotDiscovery(false);
+            }
+        }
+        return options;
+    }
+
+    @Override
+    protected ObjectQuery createQuery(SynchronizeAccountResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) {
         try {
-	        ObjectQuery query = createQueryFromTaskIfExists(handler, runResult, task, opResult);
-	        if (query != null) {
-	        	return query;
-	        } else {
-		        return ObjectQueryUtil.createResourceAndObjectClassQuery(handler.getResourceOid(),
-				        handler.getObjectClass().getTypeName(), prismContext);
-	        }
-		} catch (SchemaException e) {
-			LOGGER.error("Import: Schema error during creating search query: {}",e.getMessage());
+            ObjectQuery query = createQueryFromTaskIfExists(handler, runResult, task, opResult);
+            if (query != null) {
+                return query;
+            } else {
+                return ObjectQueryUtil.createResourceAndObjectClassQuery(handler.getResourceOid(),
+                        handler.getObjectClass().getTypeName(), prismContext);
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Import: Schema error during creating search query: {}",e.getMessage());
             opResult.recordFatalError("Schema error during creating search query: "+e.getMessage(),e);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
-		}
-	}
+        }
+    }
 
     @Override
     public String getCategoryName(Task task) {
@@ -319,31 +319,31 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
      */
     public boolean importSingleShadow(String shadowOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-    	PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, shadowOid, null, task, parentResult);
-    	PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, ShadowUtil.getResourceOid(shadow), null, task, parentResult);
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, shadowOid, null, task, parentResult);
+        PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, ShadowUtil.getResourceOid(shadow), null, task, parentResult);
 
-    	// Create a result handler just for one object. Invoke the handle() method manually.
-    	TaskRunResult runResult = new TaskRunResult();
-    	RunningTask fakeRunningTask = taskManager.createFakeRunningTask(task);
-		SynchronizeAccountResultHandler resultHandler = createHandlerForSingleShadow(resource.asObjectable(), shadow, runResult, fakeRunningTask, parentResult);
-		if (resultHandler == null) {
-			return false;
-		}
-		// This is required for proper error reporting
-		resultHandler.setStopOnError(true);
+        // Create a result handler just for one object. Invoke the handle() method manually.
+        TaskRunResult runResult = new TaskRunResult();
+        RunningTask fakeRunningTask = taskManager.createFakeRunningTask(task);
+        SynchronizeAccountResultHandler resultHandler = createHandlerForSingleShadow(resource.asObjectable(), shadow, runResult, fakeRunningTask, parentResult);
+        if (resultHandler == null) {
+            return false;
+        }
+        // This is required for proper error reporting
+        resultHandler.setStopOnError(true);
 
-		boolean cont = initializeRun(resultHandler, runResult, task, parentResult);
-		if (!cont) {
-			return false;
-		}
+        boolean cont = initializeRun(resultHandler, runResult, task, parentResult);
+        if (!cont) {
+            return false;
+        }
 
-		cont = resultHandler.handle(shadow, parentResult);
-		if (!cont) {
-			return false;
-		}
+        cont = resultHandler.handle(shadow, parentResult);
+        if (!cont) {
+            return false;
+        }
 
-		finish(resultHandler, runResult, fakeRunningTask, parentResult);
+        finish(resultHandler, runResult, fakeRunningTask, parentResult);
 
-		return true;
+        return true;
     }
 }

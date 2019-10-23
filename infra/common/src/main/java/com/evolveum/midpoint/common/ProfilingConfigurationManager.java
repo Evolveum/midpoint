@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -32,9 +32,9 @@ public class ProfilingConfigurationManager {
      *  related to profilingConfiguration
      * */
     public static LoggingConfigurationType checkSystemProfilingConfiguration(PrismObject<SystemConfigurationType> systemConfigurationPrism){
-    	if (systemConfigurationPrism == null) {
-    		return null;
-    	}
+        if (systemConfigurationPrism == null) {
+            return null;
+        }
         SystemConfigurationType systemConfig = systemConfigurationPrism.asObjectable();
         ProfilingConfigurationType profilingConfig = systemConfig.getProfilingConfiguration();
         boolean isSubsystemConfig;
@@ -103,8 +103,9 @@ public class ProfilingConfigurationManager {
         }
 
         //Check the dump interval
-        if(profilingConfig.getDumpInterval() != null)
+        if(profilingConfig.getDumpInterval() != null) {
             dumpInterval = profilingConfig.getDumpInterval();
+        }
 
         performanceProfiling = checkXsdBooleanValue(profilingConfig.isPerformanceStatistics());
         requestProfiling = checkXsdBooleanValue(profilingConfig.isRequestFilter());
@@ -120,9 +121,6 @@ public class ProfilingConfigurationManager {
     }
 
     private static boolean checkXsdBooleanValue(Boolean value){
-        if(value == null || !value)
-            return false;
-        else
-            return true;
+        return value != null && value;
     }
 }

@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="8582e1e2-c9ee-11e7-8fa9-63e7c62604c6"
@@ -13,176 +13,176 @@
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>User Template: RunAs</name>
-    
+
     <mapping>
-		<name>org001</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
-    		<runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
+        <name>org001</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
+            <runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
             <script>
-            	<code>'001' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'001' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
 
     <mapping>
-		<name>org002</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
-    		<runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
+        <name>org002</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
+            <runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
             <script>
-            	<code>'002' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'002' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-    	<mapping>
-		<name>org003</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
-    		<runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
+
+        <mapping>
+        <name>org003</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
+            <runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
             <script>
-            	<code>'003' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'003' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org004</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
-    		<runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
+
+    <mapping>
+        <name>org004</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
+            <runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
             <script>
-            	<code>'004' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'004' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org005</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
-    		<runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
+
+    <mapping>
+        <name>org005</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
+            <runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
             <script>
-            	<code>'005' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'005' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org006</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
-    		<runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
+
+    <mapping>
+        <name>org006</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
+            <runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
             <script>
-            	<code>'006' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'006' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org007</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
-    		<runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
+
+    <mapping>
+        <name>org007</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
+            <runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
             <script>
-            	<code>'007' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'007' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org008</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
-    		<runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
+
+    <mapping>
+        <name>org008</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
+            <runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
             <script>
-            	<code>'008' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'008' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org009</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
-    		<runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
+
+    <mapping>
+        <name>org009</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
+            <runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
             <script>
-            	<code>'009' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'009' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org010</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
-    		<runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
+
+    <mapping>
+        <name>org010</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
+            <runAsRef oid="20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed"/> <!-- Robot -->
             <script>
-            	<code>'010' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'010' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
+
 
 </objectTemplate>

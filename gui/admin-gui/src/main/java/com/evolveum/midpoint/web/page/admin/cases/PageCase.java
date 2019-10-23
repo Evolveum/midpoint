@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.cases;
@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -76,7 +77,8 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
             protected List<ITab> createTabs(final PageAdminObjectDetails<CaseType> parentPage) {
                 List<ITab> tabs = super.createTabs(parentPage);
 
-                if (matchCaseType(SystemObjectsType.ARCHETYPE_APPROVAL_CASE)) {
+                if (matchCaseType(SystemObjectsType.ARCHETYPE_APPROVAL_CASE)
+                        && CaseTypeUtil.approvalSchemaExists(getObject() != null ? getObject().asObjectable() : null)) {
                     tabs.add(0,
                             new PanelTab(parentPage.createStringResource("PageCase.approvalTab"),
                                     getTabVisibility(ComponentConstants.UI_CASE_TAB_APPROVAL_URL, true, parentPage)) {
@@ -142,22 +144,23 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
                             });
                 }
 
-                tabs.add(
-                        new CountablePanelTab(parentPage.createStringResource("PageCase.events"),
-                                getTabVisibility(ComponentConstants.UI_CASE_TAB_EVENTS_URL, false, parentPage)) {
-
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public WebMarkupContainer createPanel(String panelId) {
-                                return new CaseEventsTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
-                            }
-
-                            @Override
-                            public String getCount() {
-                                return Integer.toString(countEvents());
-                            }
-                        });
+                // commented now as it doesn't display informative data
+//                tabs.add(
+//                        new CountablePanelTab(parentPage.createStringResource("PageCase.events"),
+//                                getTabVisibility(ComponentConstants.UI_CASE_TAB_EVENTS_URL, false, parentPage)) {
+//
+//                            private static final long serialVersionUID = 1L;
+//
+//                            @Override
+//                            public WebMarkupContainer createPanel(String panelId) {
+//                                return new CaseEventsTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+//                            }
+//
+//                            @Override
+//                            public String getCount() {
+//                                return Integer.toString(countEvents());
+//                            }
+//                        });
                 return tabs;
             }
 

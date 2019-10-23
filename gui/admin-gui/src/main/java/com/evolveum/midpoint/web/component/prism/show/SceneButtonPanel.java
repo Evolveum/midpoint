@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,9 +22,9 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
  * @author lazyman
  */
 public class SceneButtonPanel extends Panel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public static final String ID_MINIMIZE_BUTTON = "minimizeButton";
+    public static final String ID_MINIMIZE_BUTTON = "minimizeButton";
     public static final String ID_ICON = "icon";
 
     public SceneButtonPanel(String id, IModel<SceneDto> model) {
@@ -35,7 +35,7 @@ public class SceneButtonPanel extends Panel {
 
     private void initLayout(final IModel<SceneDto> model) {
         AjaxLink<String> minimize = new AjaxLink<String>(ID_MINIMIZE_BUTTON) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -46,7 +46,7 @@ public class SceneButtonPanel extends Panel {
 
         Label icon = new Label(ID_ICON);
         icon.add(AttributeModifier.append("class", new IModel<String>() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -61,7 +61,7 @@ public class SceneButtonPanel extends Panel {
         minimize.add(icon);
 
         icon.add(new AttributeAppender("title", new IModel<String>() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {

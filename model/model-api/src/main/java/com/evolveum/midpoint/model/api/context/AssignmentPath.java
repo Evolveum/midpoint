@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -33,87 +33,87 @@ import java.util.List;
  */
 public interface AssignmentPath extends DebugDumpable, ShortDumpable, Cloneable {
 
-	List<? extends AssignmentPathSegment> getSegments();
-	
-	/**
-	 * Returns segment specified by index. Negative indexes work in reverse direction.
-	 * @throws IndexOutOfBoundsException
-	 */
-	AssignmentPathSegment getSegment(int index);
+    List<? extends AssignmentPathSegment> getSegments();
 
-	AssignmentPathSegment first();
+    /**
+     * Returns segment specified by index. Negative indexes work in reverse direction.
+     * @throws IndexOutOfBoundsException
+     */
+    AssignmentPathSegment getSegment(int index);
 
-	boolean isEmpty();
+    AssignmentPathSegment first();
 
-	int size();
+    boolean isEmpty();
 
-//	EvaluationOrder getEvaluationOrder();
+    int size();
 
-	AssignmentPathSegment last();
+//    EvaluationOrder getEvaluationOrder();
 
-	// beforeLast(0) means last()
-	// beforeLast(1) means one before last()
-	AssignmentPathSegment beforeLast(int n);
+    AssignmentPathSegment last();
 
-	int countTargetOccurrences(ObjectType target);
+    // beforeLast(0) means last()
+    // beforeLast(1) means one before last()
+    AssignmentPathSegment beforeLast(int n);
 
-	/**
-	 * Returns a "user understandable" part of this path. I.e. only those objects that are of "order 1" above the focal object.
-	 * E.g. from chain of
-	 *
-	 * jack =(a)=> Engineer =(i)=> Employee =(a)=> PersonMetarole =(i2)=> Person =(i)=> Entity
-	 *
-	 * the result would be
-	 *
-	 * Engineer -> Employee -> Person -> Entity
-	 *
-	 * TODO find a better name
-	 */
-	@NotNull
-	List<ObjectType> getFirstOrderChain();
-	
-	/**
-	 * In the context of meta-roles this is the role that the currently-processed inducement "applies to".
-	 * I.e. the role that would contain this inducement in case that meta-roles were not used.
-	 * Technically, this is the last element in the "first order chain" or roles.
-	 * 
-	 * Note: proto- is the opposite of meta-
-	 */
-	ObjectType getProtoRole();
+    int countTargetOccurrences(ObjectType target);
 
-	/**
-	 * Shallow clone.
-	 */
-	AssignmentPath clone();
+    /**
+     * Returns a "user understandable" part of this path. I.e. only those objects that are of "order 1" above the focal object.
+     * E.g. from chain of
+     *
+     * jack =(a)=> Engineer =(i)=> Employee =(a)=> PersonMetarole =(i2)=> Person =(i)=> Entity
+     *
+     * the result would be
+     *
+     * Engineer -> Employee -> Person -> Entity
+     *
+     * TODO find a better name
+     */
+    @NotNull
+    List<ObjectType> getFirstOrderChain();
 
-	AssignmentPath cloneFirst(int n);
+    /**
+     * In the context of meta-roles this is the role that the currently-processed inducement "applies to".
+     * I.e. the role that would contain this inducement in case that meta-roles were not used.
+     * Technically, this is the last element in the "first order chain" or roles.
+     *
+     * Note: proto- is the opposite of meta-
+     */
+    ObjectType getProtoRole();
 
-	AssignmentPathType toAssignmentPathType(boolean includeAssignmentsContent);
+    /**
+     * Shallow clone.
+     */
+    AssignmentPath clone();
 
-	ExtensionType collectExtensions(int startAt) throws SchemaException;
+    AssignmentPath cloneFirst(int n);
 
-	static ExtensionType collectExtensions(AssignmentPathType path, int startAt, ModelService modelService, Task task, OperationResult result)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException {
-		return AssignmentPathUtil.collectExtensions(path, startAt, modelService, task, result);
-	}
-	
-	// Groovy [] operator
-	default AssignmentPathSegment getAt(int index) {
-		return getSegment(index);
-	}
+    AssignmentPathType toAssignmentPathType(boolean includeAssignmentsContent);
 
-	/**
-	 * Returns true if the path matches specified order constraints. All of them must match.
-	 * Although there are some defaults, it is recommended to specify constraints explicitly.
-	 * Currently not supported on empty paths.
-	 *
-	 * Not all parts of OrderConstraintsType are supported. Namely, resetOrder item has no meaning here.
-	 */
-	boolean matches(@NotNull List<OrderConstraintsType> orderConstraints);
+    ExtensionType collectExtensions(int startAt) throws SchemaException;
 
-	/**
-	 * Preliminary (limited) implementation. To be used to compare paths pointing to the same target object. Use with care.
-	 */
-	boolean equivalent(AssignmentPath other);
+    static ExtensionType collectExtensions(AssignmentPathType path, int startAt, ModelService modelService, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        return AssignmentPathUtil.collectExtensions(path, startAt, modelService, task, result);
+    }
+
+    // Groovy [] operator
+    default AssignmentPathSegment getAt(int index) {
+        return getSegment(index);
+    }
+
+    /**
+     * Returns true if the path matches specified order constraints. All of them must match.
+     * Although there are some defaults, it is recommended to specify constraints explicitly.
+     * Currently not supported on empty paths.
+     *
+     * Not all parts of OrderConstraintsType are supported. Namely, resetOrder item has no meaning here.
+     */
+    boolean matches(@NotNull List<OrderConstraintsType> orderConstraints);
+
+    /**
+     * Preliminary (limited) implementation. To be used to compare paths pointing to the same target object. Use with care.
+     */
+    boolean equivalent(AssignmentPath other);
 }

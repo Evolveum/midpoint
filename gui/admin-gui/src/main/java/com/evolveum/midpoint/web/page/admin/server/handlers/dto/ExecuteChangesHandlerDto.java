@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,39 +22,39 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  */
 public class ExecuteChangesHandlerDto extends QueryBasedHandlerDto {
 
-	public static final String F_OBJECT_DELTA_XML = "objectDeltaXml";
-	public static final String F_OPTIONS = "options";
+    public static final String F_OBJECT_DELTA_XML = "objectDeltaXml";
+    public static final String F_OPTIONS = "options";
 
-	public ExecuteChangesHandlerDto(TaskDto taskDto) {
-		super(taskDto);
-	}
+    public ExecuteChangesHandlerDto(TaskDto taskDto) {
+        super(taskDto);
+    }
 
-	public String getObjectDeltaXml() {
-		ObjectDeltaType objectDeltaType = taskDto.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, ObjectDeltaType.class);
-		if (objectDeltaType == null) {
-			return null;
-		}
-		PrismContext prismContext = MidPointApplication.get().getPrismContext();
-		try {
-			return WebXmlUtil.stripNamespaceDeclarations(
-					prismContext.xmlSerializer().serializeAnyData(objectDeltaType, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA));
-		} catch (SchemaException e) {
-			throw new SystemException("Couldn't serialize object delta: " + e.getMessage(), e);
-		}
-	}
+    public String getObjectDeltaXml() {
+        ObjectDeltaType objectDeltaType = taskDto.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, ObjectDeltaType.class);
+        if (objectDeltaType == null) {
+            return null;
+        }
+        PrismContext prismContext = MidPointApplication.get().getPrismContext();
+        try {
+            return WebXmlUtil.stripNamespaceDeclarations(
+                    prismContext.xmlSerializer().serializeAnyData(objectDeltaType, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA));
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't serialize object delta: " + e.getMessage(), e);
+        }
+    }
 
-	public String getOptions() {
-		ModelExecuteOptionsType options = taskDto.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS, ModelExecuteOptionsType.class);
-		if (options == null) {
-			return null;
-		}
-		PrismContext prismContext = MidPointApplication.get().getPrismContext();
-		try {
-			return WebXmlUtil.stripNamespaceDeclarations(
-					prismContext.xmlSerializer().serializeAnyData(options, SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS));
-		} catch (SchemaException e) {
-			throw new SystemException("Couldn't serialize model execute options: " + e.getMessage(), e);
-		}
-	}
+    public String getOptions() {
+        ModelExecuteOptionsType options = taskDto.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS, ModelExecuteOptionsType.class);
+        if (options == null) {
+            return null;
+        }
+        PrismContext prismContext = MidPointApplication.get().getPrismContext();
+        try {
+            return WebXmlUtil.stripNamespaceDeclarations(
+                    prismContext.xmlSerializer().serializeAnyData(options, SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS));
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't serialize model execute options: " + e.getMessage(), e);
+        }
+    }
 
 }

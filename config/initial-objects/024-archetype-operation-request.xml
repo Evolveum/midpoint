@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000341"
@@ -11,30 +11,30 @@
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>Operation request</name>
     <description>
-    	Archetype for cases that describe operation requests, e.g. role assignment requests.
+        Archetype for cases that describe operation requests, e.g. role assignment requests.
     </description>
     <archetypePolicy>
-    	<display>
-    		<label>Operation request</label>
-    		<pluralLabel>Operation requests</pluralLabel>
-    		<icon>
-    			<cssClass>fa fa-play-circle</cssClass>
-    		</icon>
-    	</display>
-    	<adminGuiConfiguration>
-    		<objectDetails>
-    			<forms>
-    				<formSpecification>
-    					<panelUri>http://midpoint.evolveum.com/xml/ns/public/gui/component-3#caseTabOverviewRequest</panelUri>
-    				</formSpecification>
-    				<includeDefaultForms>true</includeDefaultForms>
-    			</forms>
-    		</objectDetails>
-    	</adminGuiConfiguration>
+        <display>
+            <label>Operation request</label>
+            <pluralLabel>Operation requests</pluralLabel>
+            <icon>
+                <cssClass>fa fa-play-circle</cssClass>
+            </icon>
+        </display>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <forms>
+                    <formSpecification>
+                        <panelUri>http://midpoint.evolveum.com/xml/ns/public/gui/component-3#caseTabOverviewRequest</panelUri>
+                    </formSpecification>
+                    <includeDefaultForms>true</includeDefaultForms>
+                </forms>
+            </objectDetails>
+        </adminGuiConfiguration>
     </archetypePolicy>
     <assignment>
-    	<assignmentRelation>
-    		<holderType>CaseType</holderType>
-    	</assignmentRelation>
+        <assignmentRelation>
+            <holderType>CaseType</holderType>
+        </assignmentRelation>
     </assignment>
 </archetype>

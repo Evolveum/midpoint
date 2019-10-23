@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,27 +19,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseIn
  */
 public class WorkItemOperationSourceInfo {
 
-	private final ObjectReferenceType initiatorRef;
-	private final WorkItemEventCauseInformationType cause;
-	private final AbstractWorkItemActionType source;
+    private final ObjectReferenceType initiatorRef;
+    private final WorkItemEventCauseInformationType cause;
+    private final AbstractWorkItemActionType source;
 
-	public WorkItemOperationSourceInfo(ObjectReferenceType initiatorRef,
-			WorkItemEventCauseInformationType cause,
-			AbstractWorkItemActionType source) {
-		this.initiatorRef = initiatorRef;
-		this.cause = cause;
-		this.source = source;
-	}
+    public WorkItemOperationSourceInfo(ObjectReferenceType initiatorRef,
+            WorkItemEventCauseInformationType cause,
+            AbstractWorkItemActionType source) {
+        this.initiatorRef = initiatorRef;
+        this.cause = cause;
+        this.source = source;
+    }
 
-	public ObjectReferenceType getInitiatorRef() {
-		return initiatorRef;
-	}
+    public ObjectReferenceType getInitiatorRef() {
+        return initiatorRef;
+    }
 
-	public WorkItemEventCauseInformationType getCause() {
-		return cause;
-	}
+    public WorkItemEventCauseInformationType getCause() {
+        return cause;
+    }
 
-	public AbstractWorkItemActionType getSource() {
-		return source;
-	}
+    public AbstractWorkItemActionType getSource() {
+        return source;
+    }
 }

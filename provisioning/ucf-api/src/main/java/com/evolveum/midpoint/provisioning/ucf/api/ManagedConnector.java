@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
@@ -20,7 +20,7 @@ import java.lang.annotation.Target;
  */
 public @interface ManagedConnector {
 
-	String type() default "";
-	String version() default "1.0.0";
+    String type() default "";
+    String version() default "1.0.0";
 
 }

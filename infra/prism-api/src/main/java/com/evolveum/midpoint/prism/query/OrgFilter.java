@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -14,19 +14,19 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
  */
 public interface OrgFilter extends ObjectFilter {
 
-	enum Scope {
-		ONE_LEVEL,
-		SUBTREE,
-		ANCESTORS       // EXPERIMENTAL; OID has to belong to an OrgType!
-	}
+    enum Scope {
+        ONE_LEVEL,
+        SUBTREE,
+        ANCESTORS       // EXPERIMENTAL; OID has to belong to an OrgType!
+    }
 
-	PrismReferenceValue getOrgRef();
+    PrismReferenceValue getOrgRef();
 
-	Scope getScope();
+    Scope getScope();
 
-	boolean isRoot();
+    boolean isRoot();
 
-	@Override
-	OrgFilter clone();
+    @Override
+    OrgFilter clone();
 
 }

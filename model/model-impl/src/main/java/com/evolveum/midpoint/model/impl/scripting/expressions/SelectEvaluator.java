@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,25 +27,25 @@ import java.util.List;
 public class SelectEvaluator extends BaseExpressionEvaluator {
 
     public PipelineData evaluate(SelectExpressionType selectExpression, PipelineData input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
-		if (selectExpression.getPath() == null) {
-        	return input;
-		}
-		ItemPath path = selectExpression.getPath().getItemPath();
-		PipelineData output = PipelineData.createEmpty();
-		for (PipelineItem item : input.getData()) {
-			Object o = item.getValue().find(path);
-			if (o != null) {
-				if (o instanceof Item) {
-					List<? extends PrismValue> values = ((Item<? extends PrismValue, ?>) o).getValues();
-					values.forEach((v) ->
-							output.addValue(v, item.getResult().clone(), item.getVariables()));        // clone to avoid aggregating subresults into unrelated results
-				} else {
-					throw new ScriptExecutionException(
-							"In 'select' commands, only property/container/reference selection is supported for now. Select on '"
-									+ path + "' returned this instead: " + o);
-				}
-			}
-		}
-		return output;
-	}
+        if (selectExpression.getPath() == null) {
+            return input;
+        }
+        ItemPath path = selectExpression.getPath().getItemPath();
+        PipelineData output = PipelineData.createEmpty();
+        for (PipelineItem item : input.getData()) {
+            Object o = item.getValue().find(path);
+            if (o != null) {
+                if (o instanceof Item) {
+                    List<? extends PrismValue> values = ((Item<? extends PrismValue, ?>) o).getValues();
+                    values.forEach((v) ->
+                            output.addValue(v, item.getResult().clone(), item.getVariables()));        // clone to avoid aggregating subresults into unrelated results
+                } else {
+                    throw new ScriptExecutionException(
+                            "In 'select' commands, only property/container/reference selection is supported for now. Select on '"
+                                    + path + "' returned this instead: " + o);
+                }
+            }
+        }
+        return output;
+    }
 }

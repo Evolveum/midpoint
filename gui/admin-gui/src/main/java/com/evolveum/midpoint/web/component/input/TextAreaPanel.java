@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,9 +29,9 @@ public class TextAreaPanel<T> extends InputPanel {
         };
         text.add(AttributeModifier.append("style", "max-width: 100%"));
 
-		if (rowsOverride != null) {
-			text.add(new AttributeModifier("rows", rowsOverride));
-		}
+        if (rowsOverride != null) {
+            text.add(new AttributeModifier("rows", rowsOverride));
+        }
 
         add(text);
     }

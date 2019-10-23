@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,8 +21,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface PerformerCommentsFormatter {
 
-	String formatComment(@NotNull AbstractWorkItemType workItem, Task task, OperationResult result);
+    String formatComment(@NotNull AbstractWorkItemType workItem, Task task, OperationResult result);
 
-	String formatComment(@NotNull WorkItemCompletionEventType event, Task task, OperationResult result);
+    String formatComment(@NotNull WorkItemCompletionEventType event, Task task, OperationResult result);
 
 }

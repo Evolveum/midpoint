@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -11,9 +11,9 @@ import java.io.Serializable;
 
 public class RAuditItemId implements Serializable{
 
-	private static final long serialVersionUID = 1L;
-	private Long recordId;
-	private String changedItemPath;
+    private static final long serialVersionUID = 1L;
+    private Long recordId;
+    private String changedItemPath;
 
     public Long getRecordId() {
         return recordId;
@@ -24,12 +24,12 @@ public class RAuditItemId implements Serializable{
     }
 
     public String getChangedItemPath() {
-		return changedItemPath;
-	}
+        return changedItemPath;
+    }
 
     public void setChangedItemPath(String changedItemPath) {
-		this.changedItemPath = changedItemPath;
-	}
+        this.changedItemPath = changedItemPath;
+    }
 
 
     @Override

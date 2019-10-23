@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -26,51 +26,51 @@ import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 @Component
 public class EnumPanelFactory<T extends Enum<?>> extends AbstractGuiComponentFactory<T> {
 
-	private static final long serialVersionUID = 1L;
-	
-	@Autowired GuiComponentRegistry registry;
-	
-	@PostConstruct
-	public void register() {
-		registry.addToRegistry(this);
-	}
-	
-	private boolean isEnum(ItemWrapper<?, ?, ?, ?> property) {
-		
-		if (!(property instanceof PrismPropertyWrapper)) {
-			return false;
-		}
+    private static final long serialVersionUID = 1L;
 
-		Class<T> valueType = property.getTypeClass();
-		if (valueType == null) {
-			valueType = property.getPrismContext() != null ?
-					property.getPrismContext().getSchemaRegistry().getCompileTimeClass(property.getTypeName()) : null;
-		}
-		
-		if (valueType != null) {
-			return valueType.isEnum();
-		}
-		
-		return (((PrismPropertyWrapper)property).getAllowedValues() != null && ((PrismPropertyWrapper)property).getAllowedValues().size() > 0);
-	}
+    @Autowired GuiComponentRegistry registry;
 
-	@Override
-	public <IW extends ItemWrapper> boolean match(IW wrapper) {
-		return (isEnum(wrapper));
-	}
+    @PostConstruct
+    public void register() {
+        registry.addToRegistry(this);
+    }
 
-	@Override
-	protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
-		Class<T> clazz = panelCtx.getTypeClass();
+    private boolean isEnum(ItemWrapper<?, ?, ?, ?> property) {
 
-		if (clazz != null) {
-			return WebComponentUtil.createEnumPanel(clazz, panelCtx.getComponentId(), panelCtx.getRealValueModel(),
-					panelCtx.getParentComponent());
-		}
+        if (!(property instanceof PrismPropertyWrapper)) {
+            return false;
+        }
 
-		return WebComponentUtil.createEnumPanel(panelCtx.unwrapWrapperModel(), panelCtx.getComponentId(),
-				panelCtx.getRealValueModel());
+        Class<T> valueType = property.getTypeClass();
+        if (valueType == null) {
+            valueType = property.getPrismContext() != null ?
+                    property.getPrismContext().getSchemaRegistry().getCompileTimeClass(property.getTypeName()) : null;
+        }
 
-	}
+        if (valueType != null) {
+            return valueType.isEnum();
+        }
+
+        return (((PrismPropertyWrapper)property).getAllowedValues() != null && ((PrismPropertyWrapper)property).getAllowedValues().size() > 0);
+    }
+
+    @Override
+    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+        return (isEnum(wrapper));
+    }
+
+    @Override
+    protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
+        Class<T> clazz = panelCtx.getTypeClass();
+
+        if (clazz != null) {
+            return WebComponentUtil.createEnumPanel(clazz, panelCtx.getComponentId(), panelCtx.getRealValueModel(),
+                    panelCtx.getParentComponent());
+        }
+
+        return WebComponentUtil.createEnumPanel(panelCtx.unwrapWrapperModel(), panelCtx.getComponentId(),
+                panelCtx.getRealValueModel());
+
+    }
 
 }

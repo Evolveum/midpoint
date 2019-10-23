@@ -16,71 +16,71 @@
   -->
 
 <html xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:wicket="http://wicket.apache.org">
+    xmlns:wicket="http://wicket.apache.org">
 <body>
-	<wicket:panel>
-		<div wicket:id="resourcePopup" />
-		<!--<div wicket:id="assignablePopup" />
-		<div wicket:id="assignableOrgPopup" />-->
-		<div wicket:id="addOrgPopup" />
+    <wicket:panel>
+        <div wicket:id="resourcePopup" />
+        <!--<div wicket:id="assignablePopup" />
+        <div wicket:id="assignableOrgPopup" />-->
+        <div wicket:id="addOrgPopup" />
 
-		<div wicket:id="confirmDeleteOrgPopup" />
-		<div wicket:id="confirmDeleteShadowPopup" />
-		<div wicket:id="confirmDeleteAssignmentPopup" />
+        <div wicket:id="confirmDeleteOrgPopup" />
+        <div wicket:id="confirmDeleteShadowPopup" />
+        <div wicket:id="confirmDeleteAssignmentPopup" />
 
-		<div wicket:id="assignmentsPreviewPopup" />
+        <div wicket:id="assignmentsPreviewPopup" />
 
-		<div class="row">
-			<div class="col-md-6">
-				<div wicket:id="focusForm" />
-			</div>
-			<div class="col-md-6">
-				<div wicket:id="shadows">
-					<div class="row assignable-header">
-						<div class="col-xs-10">
-							<input type="checkbox" wicket:id="shadowCheckAll" />
-							<h3>
-								<wicket:message key="pageAdminFocus.projections" />
-							</h3>
-						</div>
-						<div class="col-xs-2 cog" wicket:id="shadowMenu"
-							about="shadowMenu" />
-					</div>
-					<div wicket:id="shadowList">
-						<div wicket:id="shadow" />
-					</div>
-				</div>
-				
-				<div wicket:id="orgs">
-					<div class="row assignable-header">
-						<div class="col-xs-10">
-							<input type="checkbox" wicket:id="orgCheckAll" />
-							<h3>
-								<wicket:message key="pageAdminFocus.organizations" />
-							</h3>
-						</div>
-						<div class="col-xs-2 cog" wicket:id="orgMenu"
-							about="orgMenu" />
-					</div>
-					<div wicket:id="orgList">
-						<div wicket:id="org" />
-					</div>
-				</div>
+        <div class="row">
+            <div class="col-md-6">
+                <div wicket:id="focusForm" />
+            </div>
+            <div class="col-md-6">
+                <div wicket:id="shadows">
+                    <div class="row assignable-header">
+                        <div class="col-xs-10">
+                            <input type="checkbox" wicket:id="shadowCheckAll" />
+                            <h3>
+                                <wicket:message key="pageAdminFocus.projections" />
+                            </h3>
+                        </div>
+                        <div class="col-xs-2 cog" wicket:id="shadowMenu"
+                            about="shadowMenu" />
+                    </div>
+                    <div wicket:id="shadowList">
+                        <div wicket:id="shadow" />
+                    </div>
+                </div>
 
-				<div class="row assignable-header">
-					<div wicket:id="assignmentsContainer" about="assignmentsContainer">
-						<div wicket:id="assignmentsPanel" />
-					</div>
-				</div>
+                <div wicket:id="orgs">
+                    <div class="row assignable-header">
+                        <div class="col-xs-10">
+                            <input type="checkbox" wicket:id="orgCheckAll" />
+                            <h3>
+                                <wicket:message key="pageAdminFocus.organizations" />
+                            </h3>
+                        </div>
+                        <div class="col-xs-2 cog" wicket:id="orgMenu"
+                            about="orgMenu" />
+                    </div>
+                    <div wicket:id="orgList">
+                        <div wicket:id="org" />
+                    </div>
+                </div>
+
+                <div class="row assignable-header">
+                    <div wicket:id="assignmentsContainer" about="assignmentsContainer">
+                        <div wicket:id="assignmentsPanel" />
+                    </div>
+                </div>
 
                 <div wicket:id="tasks">
                     <h3><wicket:message key="pageUser.tasks"/></h3>
                     <div wicket:id="taskTable"/>
                 </div>
-			</div>
-		</div>
-		 
-	</wicket:panel>
+            </div>
+        </div>
+
+    </wicket:panel>
 </body>
 </html>
 

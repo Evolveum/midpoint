@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2016-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.self;
@@ -230,11 +230,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
             @Override
             public boolean isVisible(){
                 if (SchemaConstants.OBJECT_COLLECTION_ROLE_CATALOG_URI.equals(viewType)){
-                    if (StringUtils.isEmpty(getRoleCatalogOid())){
-                        return false;
-                    } else {
-                        return true;
-                    }
+                    return !StringUtils.isEmpty(getRoleCatalogOid());
                 }
 
                 RoleManagementConfigurationType config = roleManagementConfigModel.getObject();

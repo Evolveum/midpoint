@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -58,12 +58,12 @@ public interface ScriptingService {
      *             to it, to execute the script.
      * @param parentResult
      * @throws SchemaException
-     * @throws ConfigurationException 
-     * @throws CommunicationException 
+     * @throws ConfigurationException
+     * @throws CommunicationException
      */
     void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
     void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
-    
+
     /**
      * Asynchronously executes any scripting expression.
      *
@@ -74,11 +74,11 @@ public interface ScriptingService {
      *             to it, to execute the script.
      * @param parentResult
      * @throws SchemaException
-     * @throws ConfigurationException 
-     * @throws CommunicationException 
+     * @throws ConfigurationException
+     * @throws CommunicationException
      */
     void evaluateIterativeExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
-    
+
     /**
      * Synchronously executes any scripting expression (with no input data).
      *
@@ -91,11 +91,11 @@ public interface ScriptingService {
      */
 
     ScriptExecutionResult evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result)
-			throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-	ScriptExecutionResult evaluateExpression(@NotNull ExecuteScriptType executeScriptCommand,
-			@NotNull VariablesMap initialVariables, boolean recordProgressAndIterationStatistics, @NotNull Task task,
-			@NotNull OperationResult result)
-			throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    ScriptExecutionResult evaluateExpression(@NotNull ExecuteScriptType executeScriptCommand,
+            @NotNull VariablesMap initialVariables, boolean recordProgressAndIterationStatistics, @NotNull Task task,
+            @NotNull OperationResult result)
+            throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 }

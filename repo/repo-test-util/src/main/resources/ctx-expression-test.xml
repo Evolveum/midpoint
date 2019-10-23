@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <beans
@@ -13,22 +13,22 @@
      http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
         default-autowire="byName">
 
-	<!-- Spring context for basic expression evaluation to be used in some tests (mostly common or provisioning-impl) -->
+    <!-- Spring context for basic expression evaluation to be used in some tests (mostly common or provisioning-impl) -->
 
     <context:annotation-config/>
     <context:spring-configured/>
 
-	<!-- Definition of basic expression factory - just with simple evaluators -->
-	
-	<bean id="repoObjectResolver" class="com.evolveum.midpoint.repo.common.RepoObjectResolver" />
-            
-    <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory" 
-    		scope="singleton">
+    <!-- Definition of basic expression factory - just with simple evaluators -->
+
+    <bean id="repoObjectResolver" class="com.evolveum.midpoint.repo.common.RepoObjectResolver" />
+
+    <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory"
+            scope="singleton">
         <constructor-arg ref="securityContextManager"/>
         <constructor-arg ref="prismContext"/>
-		<constructor-arg ref="localizationService" />
+        <constructor-arg ref="localizationService" />
         <property name="defaultEvaluatorFactory" ref="asIsExpressionEvaluatorFactory"/>
-		<property name="objectResolver" ref="repoObjectResolver"/>
+        <property name="objectResolver" ref="repoObjectResolver"/>
     </bean>
-    
+
 </beans>

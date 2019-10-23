@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2016-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="0abbde4c-ab3f-11e6-910d-d7dabf5f09f0"
@@ -13,12 +13,12 @@
     <name>Drinker</name>
     <description>Rum drinker. Almost empty role that is assigned to the org in a way similar to role catalog.</description>
     <assignment>
-    	<!-- Ministry of Rum -->
-    	<targetRef oid="00000000-8888-6666-0000-100000000004" type="OrgType"/>
+        <!-- Ministry of Rum -->
+        <targetRef oid="00000000-8888-6666-0000-100000000004" type="OrgType"/>
     </assignment>
     <delegable>true</delegable>
     <idempotence>conservative</idempotence>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#drink</action>
+        <action>http://midpoint.evolveum.com/xml/ns/test/authorization#drink</action>
     </authorization>
 </role>

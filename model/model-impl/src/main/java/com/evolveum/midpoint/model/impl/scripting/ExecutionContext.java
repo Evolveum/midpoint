@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -53,23 +53,23 @@ public class ExecutionContext {
         this.recordProgressAndIterationStatistics = recordProgressAndIterationStatistics;
     }
 
-	public Task getTask() {
+    public Task getTask() {
         return task;
     }
 
-	public ScriptingExpressionEvaluationOptionsType getOptions() {
-		return options;
-	}
+    public ScriptingExpressionEvaluationOptionsType getOptions() {
+        return options;
+    }
 
-	public boolean isContinueOnAnyError() {
-    	return options != null && Boolean.TRUE.equals(options.isContinueOnAnyError());
-	}
+    public boolean isContinueOnAnyError() {
+        return options != null && Boolean.TRUE.equals(options.isContinueOnAnyError());
+    }
 
-	public boolean isHideOperationResults() {
+    public boolean isHideOperationResults() {
         return options != null && Boolean.TRUE.equals(options.isHideOperationResults());
     }
 
-	public PipelineData getGlobalVariable(String name) {
+    public PipelineData getGlobalVariable(String name) {
         return globalVariables.get(name);
     }
 
@@ -137,9 +137,9 @@ public class ExecutionContext {
         return scriptingExpressionEvaluator.getModelService();
     }
 
-	public PrismContext getPrismContext() {
-		return scriptingExpressionEvaluator.getPrismContext();
-	}
+    public PrismContext getPrismContext() {
+        return scriptingExpressionEvaluator.getPrismContext();
+    }
 
     public boolean isPrivileged() {
         return privileged;

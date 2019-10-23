@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -93,13 +93,13 @@ public class Property implements Serializable, Comparable<Property> {
             return null;
         }
 
-		if (def.getDisplayName() != null) {
-			StringResourceModel nameModel = PageBase.createStringResourceStatic(null, def.getDisplayName());
-			if (StringUtils.isNotEmpty(nameModel.getString())) {
-				return nameModel.getString();
-			}
-		}
-        String name = def.getDisplayName();		// TODO this is always null here, isn't it?
+        if (def.getDisplayName() != null) {
+            StringResourceModel nameModel = PageBase.createStringResourceStatic(null, def.getDisplayName());
+            if (StringUtils.isNotEmpty(nameModel.getString())) {
+                return nameModel.getString();
+            }
+        }
+        String name = def.getDisplayName();        // TODO this is always null here, isn't it?
         if (StringUtils.isEmpty(name)) {
             name = def.getItemName().getLocalPart();
         }

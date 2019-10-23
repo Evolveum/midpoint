@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -78,14 +78,16 @@ public class ROExtDate extends ROExtBase<Timestamp> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof ROExtDate))
-            return false;
-        if (!super.equals(o))
-            return false;
-        ROExtDate that = (ROExtDate) o;
-        return Objects.equals(value, that.value);
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        ROExtDate roExtDate = (ROExtDate) o;
+        return Objects.equals(value, roExtDate.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), value);
     }
 
     @Override

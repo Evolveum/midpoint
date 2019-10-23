@@ -1,13 +1,14 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism.impl;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
@@ -50,7 +51,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Radovan Semancik
  */
 public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProperty<T>> implements PrismPropertyDefinition<T>,
-		MutablePrismPropertyDefinition<T> {
+        MutablePrismPropertyDefinition<T> {
 
     private static final long serialVersionUID = 7259761997904371009L;
     private QName valueType;
@@ -75,21 +76,21 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
      * @return Object array. May be null.
      */
     @Override
-	public Collection<? extends DisplayableValue<T>> getAllowedValues() {
+    public Collection<? extends DisplayableValue<T>> getAllowedValues() {
         return allowedValues;
     }
 
     @Override
-	public T defaultValue(){
-    	return defaultValue;
+    public T defaultValue(){
+        return defaultValue;
     }
 
     @Override
-	public QName getValueType() {
+    public QName getValueType() {
         return valueType;
     }
 
-	/**
+    /**
      * This is XSD annotation that specifies whether a property should
      * be indexed in the storage. It can only apply to properties. It
      * has following meaning:
@@ -103,139 +104,110 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
      * not.
      */
     @Override
-	public Boolean isIndexed() {
-		return indexed;
-	}
+    public Boolean isIndexed() {
+        return indexed;
+    }
 
-	public void setIndexed(Boolean indexed) {
-		this.indexed = indexed;
-	}
+    public void setIndexed(Boolean indexed) {
+        this.indexed = indexed;
+    }
 
-	/**
-	 * Returns matching rule name. Matching rules are algorithms that specify
-	 * how to compare, normalize and/or order the values. E.g. there are matching
-	 * rules for case insensitive string comparison, for LDAP DNs, etc.
-	 *
-	 * @return matching rule name
-	 */
-	@Override
-	public QName getMatchingRuleQName() {
-		return matchingRuleQName;
-	}
+    /**
+     * Returns matching rule name. Matching rules are algorithms that specify
+     * how to compare, normalize and/or order the values. E.g. there are matching
+     * rules for case insensitive string comparison, for LDAP DNs, etc.
+     *
+     * @return matching rule name
+     */
+    @Override
+    public QName getMatchingRuleQName() {
+        return matchingRuleQName;
+    }
 
-	@Override
-	public void setMatchingRuleQName(QName matchingRuleQName) {
-		this.matchingRuleQName = matchingRuleQName;
-	}
+    @Override
+    public void setMatchingRuleQName(QName matchingRuleQName) {
+        this.matchingRuleQName = matchingRuleQName;
+    }
 
-	@NotNull
-	@Override
+    @NotNull
+    @Override
     public PrismProperty<T> instantiate() {
         return instantiate(getItemName());
     }
 
     @NotNull
-	@Override
+    @Override
     public PrismProperty<T> instantiate(QName name) {
         name = DefinitionUtil.addNamespaceIfApplicable(name, this.itemName);
         return new PrismPropertyImpl<>(name, this, prismContext);
     }
 
     @Override
-	public PropertyDelta<T> createEmptyDelta(ItemPath path) {
-		return new PropertyDeltaImpl<>(path, this, prismContext);
-	}
-
-	@Override
-	public boolean canBeDefinitionOf(PrismValue pvalue) {
-		if (pvalue == null) {
-			return false;
-		}
-		if (!(pvalue instanceof PrismPropertyValue<?>)) {
-			return false;
-		}
-		Itemable parent = pvalue.getParent();
-		if (parent != null) {
-			if (!(parent instanceof PrismProperty<?>)) {
-				return false;
-			}
-			return canBeDefinitionOf((PrismProperty)parent);
-		} else {
-			// TODO: maybe look actual value java type?
-			return true;
-		}
-	}
-
-	@NotNull
-	@Override
-	public PrismPropertyDefinitionImpl<T> clone() {
-		PrismPropertyDefinitionImpl<T> clone = new PrismPropertyDefinitionImpl<>(getItemName(), getTypeName(), getPrismContext());
-		copyDefinitionData(clone);
-		return clone;
-	}
-
-	protected void copyDefinitionData(PrismPropertyDefinitionImpl<T> clone) {
-		super.copyDefinitionData(clone);
-        clone.indexed = this.indexed;
-        clone.defaultValue = this.defaultValue;
-		clone.allowedValues = this.allowedValues;
-		clone.valueType = this.valueType;
-	}
-
-	protected void extendToString(StringBuilder sb) {
-		super.extendToString(sb);
-		if (indexed != null && indexed) {
-			sb.append(",I");
-		}
-		if (allowedValues != null && !allowedValues.isEmpty()) {
-			sb.append(",AVals:").append(allowedValues.size());
-		}
-	}
+    public PropertyDelta<T> createEmptyDelta(ItemPath path) {
+        return new PropertyDeltaImpl<>(path, this, prismContext);
+    }
 
     @Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + ((allowedValues == null) ? 0 : allowedValues.hashCode());
-		result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
-		result = prime * result + ((indexed == null) ? 0 : indexed.hashCode());
-		result = prime * result + ((valueType == null) ? 0 : valueType.hashCode());
-		return result;
-	}
+    public boolean canBeDefinitionOf(PrismValue pvalue) {
+        if (pvalue == null) {
+            return false;
+        }
+        if (!(pvalue instanceof PrismPropertyValue<?>)) {
+            return false;
+        }
+        Itemable parent = pvalue.getParent();
+        if (parent != null) {
+            if (!(parent instanceof PrismProperty<?>)) {
+                return false;
+            }
+            return canBeDefinitionOf((PrismProperty)parent);
+        } else {
+            // TODO: maybe look actual value java type?
+            return true;
+        }
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		PrismPropertyDefinitionImpl other = (PrismPropertyDefinitionImpl) obj;
-		if (allowedValues == null) {
-			if (other.allowedValues != null)
-				return false;
-		} else if (!allowedValues.equals(other.allowedValues))
-			return false;
-		if (defaultValue == null) {
-			if (other.defaultValue != null)
-				return false;
-		} else if (!defaultValue.equals(other.defaultValue))
-			return false;
-		if (indexed == null) {
-			if (other.indexed != null)
-				return false;
-		} else if (!indexed.equals(other.indexed))
-			return false;
-		if (valueType == null) {
-			if (other.valueType != null)
-				return false;
-		} else if (!valueType.equals(other.valueType))
-			return false;
-		return true;
-	}
+    @NotNull
+    @Override
+    public PrismPropertyDefinitionImpl<T> clone() {
+        PrismPropertyDefinitionImpl<T> clone = new PrismPropertyDefinitionImpl<>(getItemName(), getTypeName(), getPrismContext());
+        copyDefinitionData(clone);
+        return clone;
+    }
 
-	/**
+    protected void copyDefinitionData(PrismPropertyDefinitionImpl<T> clone) {
+        super.copyDefinitionData(clone);
+        clone.indexed = this.indexed;
+        clone.defaultValue = this.defaultValue;
+        clone.allowedValues = this.allowedValues;
+        clone.valueType = this.valueType;
+    }
+
+    protected void extendToString(StringBuilder sb) {
+        super.extendToString(sb);
+        if (indexed != null && indexed) {
+            sb.append(",I");
+        }
+        if (allowedValues != null && !allowedValues.isEmpty()) {
+            sb.append(",AVals:").append(allowedValues.size());
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        PrismPropertyDefinitionImpl<?> that = (PrismPropertyDefinitionImpl<?>) o;
+        return Objects.equals(valueType, that.valueType) && Objects.equals(allowedValues, that.allowedValues) && Objects.equals(indexed, that.indexed) && Objects.equals(defaultValue, that.defaultValue) && Objects.equals(matchingRuleQName, that.matchingRuleQName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), valueType, allowedValues, indexed, defaultValue, matchingRuleQName);
+    }
+
+    /**
      * Return a human readable name of this class suitable for logs.
      */
     protected String getDebugDumpClassName() {
@@ -247,8 +219,8 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
         return "property";
     }
 
-	@Override
-	public MutablePrismPropertyDefinition<T> toMutable() {
-		return this;
-	}
+    @Override
+    public MutablePrismPropertyDefinition<T> toMutable() {
+        return this;
+    }
 }

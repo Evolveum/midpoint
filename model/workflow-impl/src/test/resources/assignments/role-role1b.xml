@@ -1,21 +1,21 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="00000001-d34d-b33f-f00d-00000000001b">
-	<name>Role1b</name>
-	<assignment> <!-- metarole 1 'default' -->
-		<targetRef oid="00000001-d34d-b33f-f00d-M00000000001" type="RoleType"/>
-	</assignment>
-	<activation>
-		<administrativeStatus>disabled</administrativeStatus>
-	</activation>
-	<inducement>
-		<targetRef oid="00000001-d34d-b33f-f00d-00000000010b" type="RoleType" />
-	</inducement>
-	<delegable>true</delegable>
+      oid="00000001-d34d-b33f-f00d-00000000001b">
+    <name>Role1b</name>
+    <assignment> <!-- metarole 1 'default' -->
+        <targetRef oid="00000001-d34d-b33f-f00d-M00000000001" type="RoleType"/>
+    </assignment>
+    <activation>
+        <administrativeStatus>disabled</administrativeStatus>
+    </activation>
+    <inducement>
+        <targetRef oid="00000001-d34d-b33f-f00d-00000000010b" type="RoleType" />
+    </inducement>
+    <delegable>true</delegable>
 </role>

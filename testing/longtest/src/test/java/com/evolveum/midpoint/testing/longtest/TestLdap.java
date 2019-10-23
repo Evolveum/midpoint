@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.longtest;
@@ -73,14 +73,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdap extends AbstractLongTest {
 
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap");
+    public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap");
 
-	protected static final File ROLE_PIRATE_FILE = new File(TEST_DIR, "role-pirate.xml");
-	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
+    protected static final File ROLE_PIRATE_FILE = new File(TEST_DIR, "role-pirate.xml");
+    protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
 
-	private static final String USER_LECHUCK_NAME = "lechuck";
-	private static final String ACCOUNT_LECHUCK_NAME = "lechuck";
-	private static final String ACCOUNT_CHARLES_NAME = "charles";
+    private static final String USER_LECHUCK_NAME = "lechuck";
+    private static final String ACCOUNT_LECHUCK_NAME = "lechuck";
+    private static final String ACCOUNT_CHARLES_NAME = "charles";
 
     protected static final File TASK_DELETE_OPENDJ_SHADOWS_FILE = new File(TEST_DIR, "task-delete-opendj-shadows.xml");
     protected static final String TASK_DELETE_OPENDJ_SHADOWS_OID = "412218e4-184b-11e5-9c9b-3c970e467874";
@@ -89,14 +89,14 @@ public class TestLdap extends AbstractLongTest {
     protected static final String TASK_DELETE_OPENDJ_ACCOUNTS_OID = "b22c5d72-18d4-11e5-b266-001e8c717e5b";
 
     private static final int NUM_INITIAL_USERS = 3;
-	// Make it at least 1501 so it will go over the 3000 entries size limit
-	private static final int NUM_LDAP_ENTRIES = 1600;
-//	private static final int NUM_LDAP_ENTRIES = 100;
+    // Make it at least 1501 so it will go over the 3000 entries size limit
+    private static final int NUM_LDAP_ENTRIES = 1600;
+//    private static final int NUM_LDAP_ENTRIES = 100;
 
-	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
+    private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
 
-	protected ResourceType resourceOpenDjType;
-	protected PrismObject<ResourceType> resourceOpenDj;
+    protected ResourceType resourceOpenDjType;
+    protected PrismObject<ResourceType> resourceOpenDj;
 
     @Autowired
     private ReconciliationTaskHandler reconciliationTaskHandler;
@@ -115,23 +115,23 @@ public class TestLdap extends AbstractLongTest {
         openDJController.stop();
     }
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		// Users
-		repoAddObjectFromFile(USER_BARBOSSA_FILE, initResult);
-		repoAddObjectFromFile(USER_GUYBRUSH_FILE, initResult);
+        // Users
+        repoAddObjectFromFile(USER_BARBOSSA_FILE, initResult);
+        repoAddObjectFromFile(USER_GUYBRUSH_FILE, initResult);
 
-		// Roles
-		repoAddObjectFromFile(ROLE_PIRATE_FILE, initResult);
+        // Roles
+        repoAddObjectFromFile(ROLE_PIRATE_FILE, initResult);
 
-		// Resources
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
-		resourceOpenDjType = resourceOpenDj.asObjectable();
-		openDJController.setResource(resourceOpenDj);
+        // Resources
+        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
+        resourceOpenDjType = resourceOpenDj.asObjectable();
+        openDJController.setResource(resourceOpenDj);
 
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         //initProfiling - start
         ProfilingDataManager profilingManager = ProfilingDataManager.getInstance();
@@ -144,24 +144,24 @@ public class TestLdap extends AbstractLongTest {
         profilingManager.appendProfilingToTest();
         //initProfiling - end
 
-		display("initial LDAP content", openDJController.dumpEntries());
-	}
+        display("initial LDAP content", openDJController.dumpEntries());
+    }
 
-	@Test
+    @Test
     public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
+        final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
 
         assertUsers(NUM_INITIAL_USERS);
-	}
+    }
 
-	/**
-	 * Barbossa is already member of LDAP group "pirates". The role adds this group as well.
-	 * This should go smoothly. No error expected.
-	 */
-	@Test
+    /**
+     * Barbossa is already member of LDAP group "pirates". The role adds this group as well.
+     * This should go smoothly. No error expected.
+     */
+    @Test
     public void test200AssignRolePiratesToBarbossa() throws Exception {
-		final String TEST_NAME = "test200AssignRolePiratesToBarbossa";
+        final String TEST_NAME = "test200AssignRolePiratesToBarbossa";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -181,15 +181,15 @@ public class TestLdap extends AbstractLongTest {
         openDJController.assertUniqueMember(LDAP_GROUP_PIRATES_DN, accountDn);
 
         assertUsers(NUM_INITIAL_USERS);
-	}
+    }
 
-	/**
-	 * Just a first step for the following test.
-	 * Also, Guybrush has a photo. Check that binary property mapping works.
-	 */
-	@Test
+    /**
+     * Just a first step for the following test.
+     * Also, Guybrush has a photo. Check that binary property mapping works.
+     */
+    @Test
     public void test202AssignLdapAccountToGuybrush() throws Exception {
-		final String TEST_NAME = "test202AssignLdapAccountToGuybrush";
+        final String TEST_NAME = "test202AssignLdapAccountToGuybrush";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -197,18 +197,18 @@ public class TestLdap extends AbstractLongTest {
         OperationResult result = task.getResult();
 
         byte[] photoIn = Files.readAllBytes(Paths.get(DOT_JPG_FILENAME));
-		display("Photo in", MiscUtil.binaryToHex(photoIn));
+        display("Photo in", MiscUtil.binaryToHex(photoIn));
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_JPEG_PHOTO, task, result,
-        		photoIn);
+                photoIn);
 
         Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-		       .item(UserType.F_JPEG_PHOTO).retrieve()
-		       .build();
-		PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, options, task, result);
+               .item(UserType.F_JPEG_PHOTO).retrieve()
+               .build();
+        PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, options, task, result);
         display("User before", userBefore);
         byte[] userJpegPhotoBefore = userBefore.asObjectable().getJpegPhoto();
         assertEquals("Photo byte length changed (user before)", photoIn.length, userJpegPhotoBefore.length);
-		assertTrue("Photo bytes do not match (user before)", Arrays.equals(photoIn, userJpegPhotoBefore));
+        assertTrue("Photo bytes do not match (user before)", Arrays.equals(photoIn, userJpegPhotoBefore));
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -220,46 +220,46 @@ public class TestLdap extends AbstractLongTest {
 
         Entry entry = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         byte[] jpegPhotoLdap = OpenDJController.getAttributeValueBinary(entry, "jpegPhoto");
-		assertNotNull("No jpegPhoto in LDAP entry", jpegPhotoLdap);
-		assertEquals("Byte length changed (LDAP)", photoIn.length, jpegPhotoLdap.length);
-		assertTrue("Bytes do not match (LDAP)", Arrays.equals(photoIn, jpegPhotoLdap));
+        assertNotNull("No jpegPhoto in LDAP entry", jpegPhotoLdap);
+        assertEquals("Byte length changed (LDAP)", photoIn.length, jpegPhotoLdap.length);
+        assertTrue("Bytes do not match (LDAP)", Arrays.equals(photoIn, jpegPhotoLdap));
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, options, task, result);
-		display("User after", userAfter);
-		String accountOid = getSingleLinkOid(userAfter);
-		PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, options, task, result);
+        display("User after", userAfter);
+        String accountOid = getSingleLinkOid(userAfter);
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
 
-		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-		ItemName jpegPhotoQName = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "jpegPhoto");
-		PrismProperty<byte[]> jpegPhotoAttr = attributesContainer.findProperty(jpegPhotoQName);
-		byte[] photoBytesOut = jpegPhotoAttr.getValues().get(0).getValue();
+        PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+        ItemName jpegPhotoQName = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "jpegPhoto");
+        PrismProperty<byte[]> jpegPhotoAttr = attributesContainer.findProperty(jpegPhotoQName);
+        byte[] photoBytesOut = jpegPhotoAttr.getValues().get(0).getValue();
 
-		display("Photo bytes out", MiscUtil.binaryToHex(photoBytesOut));
+        display("Photo bytes out", MiscUtil.binaryToHex(photoBytesOut));
 
-		assertEquals("Photo byte length changed (shadow)", photoIn.length, photoBytesOut.length);
-		assertTrue("Photo bytes do not match (shadow)", Arrays.equals(photoIn, photoBytesOut));
+        assertEquals("Photo byte length changed (shadow)", photoIn.length, photoBytesOut.length);
+        assertTrue("Photo bytes do not match (shadow)", Arrays.equals(photoIn, photoBytesOut));
 
-		assertUsers(NUM_INITIAL_USERS);
-	}
+        assertUsers(NUM_INITIAL_USERS);
+    }
 
-	/**
-	 * Add guybrush to LDAP group before he gets the role. Make sure that the DN in the uniqueMember
-	 * attribute does not match (wrong case). This will check matching rule implementation in provisioning.
-	 */
-	@Test
+    /**
+     * Add guybrush to LDAP group before he gets the role. Make sure that the DN in the uniqueMember
+     * attribute does not match (wrong case). This will check matching rule implementation in provisioning.
+     */
+    @Test
     public void test204AssignRolePiratesToGuybrush() throws Exception {
-		final String TEST_NAME = "test204AssignRolePiratesToGuybrush";
+        final String TEST_NAME = "test204AssignRolePiratesToGuybrush";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         openDJController.executeLdifChange(
-        		"dn: cn=Pirates,ou=groups,dc=example,dc=com\n" +
-        		"changetype: modify\n" +
-        		"add: uniqueMember\n" +
-        		"uniqueMember: uid=GuyBrush,ou=pEOPle,dc=EXAMPLE,dc=cOm"
-        	);
+                "dn: cn=Pirates,ou=groups,dc=example,dc=com\n" +
+                "changetype: modify\n" +
+                "add: uniqueMember\n" +
+                "uniqueMember: uid=GuyBrush,ou=pEOPle,dc=EXAMPLE,dc=cOm"
+            );
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -274,12 +274,12 @@ public class TestLdap extends AbstractLongTest {
         openDJController.assertUniqueMember(LDAP_GROUP_PIRATES_DN, accountDn);
 
         assertUsers(NUM_INITIAL_USERS);
-	}
+    }
 
 
-	@Test
+    @Test
     public void test400RenameLeChuckConflicting() throws Exception {
-		final String TEST_NAME = "test400RenameLeChuckConflicting";
+        final String TEST_NAME = "test400RenameLeChuckConflicting";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -304,7 +304,7 @@ public class TestLdap extends AbstractLongTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(userLechuckOid, UserType.F_NAME, task, result,
-        		PrismTestUtil.createPolyString(ACCOUNT_CHARLES_NAME));
+                PrismTestUtil.createPolyString(ACCOUNT_CHARLES_NAME));
 
         // THEN
         displayThen(TEST_NAME);
@@ -313,11 +313,11 @@ public class TestLdap extends AbstractLongTest {
         assertNoOpenDjAccount(ACCOUNT_LECHUCK_NAME);
 
         assertUsers(NUM_INITIAL_USERS + 1);
-	}
+    }
 
-	@Test
+    @Test
     public void test800BigLdapSearch() throws Exception {
-		final String TEST_NAME = "test800BigLdapSearch";
+        final String TEST_NAME = "test800BigLdapSearch";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -331,21 +331,21 @@ public class TestLdap extends AbstractLongTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID,
-        		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), prismContext);
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), prismContext);
 
         final MutableInt count = new MutableInt(0);
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
-			@Override
-			public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
-				count.increment();
-				display("Found",shadow);
-				return true;
-			}
-		};
+            @Override
+            public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
+                count.increment();
+                display("Found",shadow);
+                return true;
+            }
+        };
 
         // WHEN
         displayWhen(TEST_NAME);
-		modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
+        modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -358,11 +358,11 @@ public class TestLdap extends AbstractLongTest {
         assertEquals("Unexpected number of search results", NUM_LDAP_ENTRIES + 8, count.getValue());
 
         assertUsers(NUM_INITIAL_USERS + 1);
-	}
+    }
 
-	@Test
+    @Test
     public void test810BigImport() throws Exception {
-		final String TEST_NAME = "test810BigImport";
+        final String TEST_NAME = "test810BigImport";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -379,7 +379,7 @@ public class TestLdap extends AbstractLongTest {
         displayWhen(TEST_NAME);
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
         modelService.importFromResource(RESOURCE_OPENDJ_OID,
-        		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -394,7 +394,7 @@ public class TestLdap extends AbstractLongTest {
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
         assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
-	}
+    }
 
     @Test
     public void test820BigReconciliation() throws Exception {
@@ -409,11 +409,11 @@ public class TestLdap extends AbstractLongTest {
 //        System.out.println("openDJController.isRunning = " + openDJController.isRunning());
 //        OperationResult testResult = modelService.testResource(RESOURCE_OPENDJ_OID, task);
 //        System.out.println("Test resource result = " + testResult.debugDump());
-        
+
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
 
         ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         reconciliationTaskHandler.launch(resource,
@@ -529,27 +529,27 @@ public class TestLdap extends AbstractLongTest {
     }
 
     private void assertOpenDjAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-    	ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID,
-        		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID,
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), prismContext);
 
         final MutableInt count = new MutableInt(0);
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
-			@Override
-			public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
-				count.increment();
-				display("Found",shadow);
-				return true;
-			}
-		};
-		Collection<SelectorOptions<GetOperationOptions>> options = null;
-		if (raw) {
-			options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-		}
-		modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
+            @Override
+            public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
+                count.increment();
+                display("Found",shadow);
+                return true;
+            }
+        };
+        Collection<SelectorOptions<GetOperationOptions>> options = null;
+        if (raw) {
+            options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+        }
+        modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
         assertEquals("Unexpected number of search results (raw="+raw+")", expected, count.getValue());
-	}
+    }
 
-	private String toDn(String username) {
-		return "uid="+username+","+OPENDJ_PEOPLE_SUFFIX;
-	}
+    private String toDn(String username) {
+        return "uid="+username+","+OPENDJ_PEOPLE_SUFFIX;
+    }
 }

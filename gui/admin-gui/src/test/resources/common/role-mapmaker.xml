@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="10000000-0000-0000-0000-000000001605"
@@ -14,26 +14,26 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Mapmaker</name>
     <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
-    		<kind>account</kind>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+            <kind>account</kind>
             <association>
-            	<ref>ri:group</ref>
-            	<outbound>
-            		<expression>
-            			<associationTargetSearch>
-            				<filter>
-								<q:equal>
-									<q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+                <ref>ri:group</ref>
+                <outbound>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
                                         attributes/icfs:name</q:path>
-									<q:value>mapmakers</q:value>
-								</q:equal>
-            				</filter>
-            				<searchStrategy>onResourceIfNeeded</searchStrategy>
-            			</associationTargetSearch>
-            		</expression>
-            	</outbound>
+                                    <q:value>mapmakers</q:value>
+                                </q:equal>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                        </associationTargetSearch>
+                    </expression>
+                </outbound>
             </association>
-    	</construction>
+        </construction>
     </inducement>
 </role>

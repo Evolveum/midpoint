@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -34,12 +34,12 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
 
    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapperFromObjectWrapperModel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapperFromObjectWrapperModel.class);
 
     private ItemPath path;
 
     public ContainerWrapperFromObjectWrapperModel(IModel<PrismObjectWrapper<O>> model, ItemPath path) {
-    	super(model);
+        super(model);
         Validate.notNull(path, "Item path must not be null.");
         this.path = path;
     }
@@ -49,38 +49,38 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
     public void detach() {
     }
 
-	@Override
-	public PrismContainerWrapper<C> getObject() {
-//		PrismContainerWrapper<C> containerWrapper = getWrapper().findContainer(path);
-//		return containerWrapper;
-		return null;
-	}
+    @Override
+    public PrismContainerWrapper<C> getObject() {
+//        PrismContainerWrapper<C> containerWrapper = getWrapper().findContainer(path);
+//        return containerWrapper;
+        return null;
+    }
 
-	@Override
-	public void setObject(com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper<C> arg0) {
-		throw new UnsupportedOperationException("ContainerWrapperFromObjectWrapperModel.setObject called");
+    @Override
+    public void setObject(com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper<C> arg0) {
+        throw new UnsupportedOperationException("ContainerWrapperFromObjectWrapperModel.setObject called");
 
-	}
+    }
 
-	public IModel<? extends List<PrismContainerValueWrapper<C>>> getValuesModel() {
-		return new IModel<List<PrismContainerValueWrapper<C>>>() {
+    public IModel<? extends List<PrismContainerValueWrapper<C>>> getValuesModel() {
+        return new IModel<List<PrismContainerValueWrapper<C>>>() {
 
-			@Override
-			public void detach() {
-				
-			}
+            @Override
+            public void detach() {
 
-			@Override
-			public List<PrismContainerValueWrapper<C>> getObject() {
-				return ContainerWrapperFromObjectWrapperModel.this.getObject().getValues();
-			}
+            }
 
-			@Override
-			public void setObject(List<PrismContainerValueWrapper<C>> object) {
-				throw new UnsupportedOperationException();
-			}
-			
-		};
-	}
+            @Override
+            public List<PrismContainerValueWrapper<C>> getObject() {
+                return ContainerWrapperFromObjectWrapperModel.this.getObject().getValues();
+            }
+
+            @Override
+            public void setObject(List<PrismContainerValueWrapper<C>> object) {
+                throw new UnsupportedOperationException();
+            }
+
+        };
+    }
 
 }

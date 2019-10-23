@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2014-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema;
@@ -18,228 +18,227 @@ import java.util.*;
  *
  */
 public class SearchResultList<T> implements List<T>, Cloneable, Serializable, ShortDumpable {
-	
-	private List<T> list = null;
-	private SearchResultMetadata metadata = null;
 
-	public SearchResultList() { }
+    private List<T> list = null;
+    private SearchResultMetadata metadata = null;
 
-	public SearchResultList(List<T> list) {
-		super();
-		this.list = list;
-	}
+    public SearchResultList() { }
 
-	public SearchResultList(List<T> list, SearchResultMetadata metadata) {
-		super();
-		this.list = list;
-		this.metadata = metadata;
-	}
+    public SearchResultList(List<T> list) {
+        super();
+        this.list = list;
+    }
 
-	public List<T> getList() {
-		return list;
-	}
+    public SearchResultList(List<T> list, SearchResultMetadata metadata) {
+        super();
+        this.list = list;
+        this.metadata = metadata;
+    }
 
-	public void setList(List<T> list) {
-		this.list = list;
-	}
+    public List<T> getList() {
+        return list;
+    }
 
-	public SearchResultMetadata getMetadata() {
-		return metadata;
-	}
+    public void setList(List<T> list) {
+        this.list = list;
+    }
 
-	public void setMetadata(SearchResultMetadata metadata) {
-		this.metadata = metadata;
-	}
+    public SearchResultMetadata getMetadata() {
+        return metadata;
+    }
 
-	public int size() {
-		if (list == null) {
-			return 0;
-		}
-		return list.size();
-	}
+    public void setMetadata(SearchResultMetadata metadata) {
+        this.metadata = metadata;
+    }
 
-	public boolean isEmpty() {
-		return list == null || list.isEmpty();
-	}
+    public int size() {
+        if (list == null) {
+            return 0;
+        }
+        return list.size();
+    }
 
-	public boolean contains(Object o) {
-		return list != null && list.contains(o);
-	}
+    public boolean isEmpty() {
+        return list == null || list.isEmpty();
+    }
 
-	@NotNull
-	public Iterator<T> iterator() {
-		return list != null ? list.iterator() : Collections.emptyIterator();
-	}
+    public boolean contains(Object o) {
+        return list != null && list.contains(o);
+    }
 
-	@NotNull
-	public Object[] toArray() {
-		return getInitializedList().toArray();
-	}
+    @NotNull
+    public Iterator<T> iterator() {
+        return list != null ? list.iterator() : Collections.emptyIterator();
+    }
 
-	@NotNull
-	public <TT> TT[] toArray(@NotNull TT[] a) {
-		//noinspection SuspiciousToArrayCall
-		return getInitializedList().toArray(a);
-	}
+    @NotNull
+    public Object[] toArray() {
+        return getInitializedList().toArray();
+    }
 
-	public boolean add(T e) {
-		return getInitializedList().add(e);
-	}
+    @NotNull
+    public <TT> TT[] toArray(@NotNull TT[] a) {
+        //noinspection SuspiciousToArrayCall
+        return getInitializedList().toArray(a);
+    }
 
-	public boolean remove(Object o) {
-		return list != null && list.remove(o);
-	}
+    public boolean add(T e) {
+        return getInitializedList().add(e);
+    }
 
-	public boolean containsAll(@NotNull Collection<?> c) {
-		return list != null && list.containsAll(c);
-	}
+    public boolean remove(Object o) {
+        return list != null && list.remove(o);
+    }
 
-	public boolean addAll(@NotNull Collection<? extends T> c) {
-		return getInitializedList().addAll(c);
-	}
+    public boolean containsAll(@NotNull Collection<?> c) {
+        return list != null && list.containsAll(c);
+    }
 
-	public boolean addAll(int index, @NotNull Collection<? extends T> c) {
-		return getInitializedList().addAll(index, c);
-	}
+    public boolean addAll(@NotNull Collection<? extends T> c) {
+        return getInitializedList().addAll(c);
+    }
 
-	public boolean removeAll(@NotNull Collection<?> c) {
-		return list != null && list.removeAll(c);
-	}
+    public boolean addAll(int index, @NotNull Collection<? extends T> c) {
+        return getInitializedList().addAll(index, c);
+    }
 
-	public boolean retainAll(@NotNull Collection<?> c) {
-		return list != null && list.retainAll(c);
-	}
+    public boolean removeAll(@NotNull Collection<?> c) {
+        return list != null && list.removeAll(c);
+    }
 
-	public void clear() {
-		if (list != null) {
-			list.clear();
-		}
-	}
+    public boolean retainAll(@NotNull Collection<?> c) {
+        return list != null && list.retainAll(c);
+    }
 
-	public T get(int index) {
-		return list != null ? list.get(index) : null;
-	}
+    public void clear() {
+        if (list != null) {
+            list.clear();
+        }
+    }
 
-	public T set(int index, T element) {
-		return getInitializedList().set(index, element);
-	}
+    public T get(int index) {
+        return list != null ? list.get(index) : null;
+    }
 
-	public void add(int index, T element) {
-		getInitializedList().add(index, element);
-	}
+    public T set(int index, T element) {
+        return getInitializedList().set(index, element);
+    }
 
-	public T remove(int index) {
-		return list != null ? list.remove(index) : null;
-	}
+    public void add(int index, T element) {
+        getInitializedList().add(index, element);
+    }
 
-	public int indexOf(Object o) {
-		return list != null ? list.indexOf(o) : -1;
-	}
+    public T remove(int index) {
+        return list != null ? list.remove(index) : null;
+    }
 
-	public int lastIndexOf(Object o) {
-		return list != null ? list.lastIndexOf(o) : -1;
-	}
+    public int indexOf(Object o) {
+        return list != null ? list.indexOf(o) : -1;
+    }
 
-	@NotNull
-	public ListIterator<T> listIterator() {
-		return list != null ? list.listIterator() : Collections.emptyListIterator();
-	}
+    public int lastIndexOf(Object o) {
+        return list != null ? list.lastIndexOf(o) : -1;
+    }
 
-	@NotNull
-	public ListIterator<T> listIterator(int index) {
-		return list != null ? list.listIterator(index) : Collections.emptyListIterator();
-	}
+    @NotNull
+    public ListIterator<T> listIterator() {
+        return list != null ? list.listIterator() : Collections.emptyListIterator();
+    }
 
-	@NotNull
-	public List<T> subList(int fromIndex, int toIndex) {
-		return getInitializedList().subList(fromIndex, toIndex);
-	}
+    @NotNull
+    public ListIterator<T> listIterator(int index) {
+        return list != null ? list.listIterator(index) : Collections.emptyListIterator();
+    }
 
-	// Do NOT auto-generate -- there are manual changes here
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((list == null) ? Collections.emptyList().hashCode() : list.hashCode());
-		result = prime * result + ((metadata == null) ? 0 : metadata.hashCode());
-		return result;
-	}
+    @NotNull
+    public List<T> subList(int fromIndex, int toIndex) {
+        return getInitializedList().subList(fromIndex, toIndex);
+    }
 
-	// Do NOT auto-generate -- there are manual changes here
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		SearchResultList other = (SearchResultList) obj;
-		if (list == null || list.isEmpty()) {
-			if (other.list != null && !other.list.isEmpty())
-				return false;
-		} else if (!list.equals(other.list))
-			return false;
-		if (metadata == null) {
-			return other.metadata == null;
-		} else {
-			return metadata.equals(other.metadata);
-		}
-	}
+    // Do NOT auto-generate -- there are manual changes here
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((list == null) ? Collections.emptyList().hashCode() : list.hashCode());
+        result = prime * result + ((metadata == null) ? 0 : metadata.hashCode());
+        return result;
+    }
 
-	@Override
-	public String toString() {
-		if (metadata == null) {
-			if (list == null) {
-				return "SearchResultList(null)";
-			} else {
-				return "SearchResultList("+list+")";
-			}
-		} else {
-			if (list == null) {
-				return "SearchResultList("+metadata+")";
-			} else {
-				return "SearchResultList("+list+", "+metadata+")";
-			}
-		}
-	}
+    // Do NOT auto-generate -- there are manual changes here
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        SearchResultList other = (SearchResultList) obj;
+        if (list == null || list.isEmpty()) {
+            if (other.list != null && !other.list.isEmpty()) {
+                return false;
+            }
+        } else if (!list.equals(other.list)) {
+            return false;
+        }
+        if (metadata == null) {
+            return other.metadata == null;
+        } else {
+            return metadata.equals(other.metadata);
+        }
+    }
 
-	@SuppressWarnings("MethodDoesntCallSuperMethod")
-	public SearchResultList<T> clone() {
-		SearchResultList<T> clone = new SearchResultList<>();
-		clone.metadata = this.metadata;		// considered read-only object
-		if (this.list != null) {
-			clone.list = new ArrayList<>(this.list.size());
-			for (T item : this.list) {
-				clone.list.add(CloneUtil.clone(item));
-			}
-		}
-		return clone;
-	}
+    @Override
+    public String toString() {
+        if (metadata == null) {
+            if (list == null) {
+                return "SearchResultList(null)";
+            } else {
+                return "SearchResultList("+list+")";
+            }
+        } else {
+            if (list == null) {
+                return "SearchResultList("+metadata+")";
+            } else {
+                return "SearchResultList("+list+", "+metadata+")";
+            }
+        }
+    }
 
-	private List<T> getInitializedList() {
-		if (list == null) {
-			list = new ArrayList<>();
-		}
-		return list;
-	}
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    public SearchResultList<T> clone() {
+        SearchResultList<T> clone = new SearchResultList<>();
+        clone.metadata = this.metadata;        // considered read-only object
+        if (this.list != null) {
+            clone.list = new ArrayList<>(this.list.size());
+            for (T item : this.list) {
+                clone.list.add(CloneUtil.clone(item));
+            }
+        }
+        return clone;
+    }
 
-	@Override
-	public void shortDump(StringBuilder sb) {
-		if (metadata == null) {
-			if (list == null) {
-				sb.append("null");
-			} else {
-				sb.append(list.size()).append(" results");
-			}
-		} else {
-			if (list == null) {
-				sb.append("null, metadata=(");
-			} else {
-				sb.append(list.size()).append(" results, metadata=(");
-			}
-			metadata.shortDump(sb);
-			sb.append(")");
-		}
-	}
+    private List<T> getInitializedList() {
+        if (list == null) {
+            list = new ArrayList<>();
+        }
+        return list;
+    }
+
+    @Override
+    public void shortDump(StringBuilder sb) {
+        if (metadata == null) {
+            if (list == null) {
+                sb.append("null");
+            } else {
+                sb.append(list.size()).append(" results");
+            }
+        } else {
+            if (list == null) {
+                sb.append("null, metadata=(");
+            } else {
+                sb.append(list.size()).append(" results, metadata=(");
+            }
+            metadata.shortDump(sb);
+            sb.append(")");
+        }
+    }
 }

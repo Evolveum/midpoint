@@ -2,14 +2,14 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- MULTIGREEN dummy resource. This is authoritative source resource, but it also has outbound mappings. -->
 
 <resource oid="128469e0-6759-11e9-8520-db9fa0f25495"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -19,397 +19,397 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource MultiGreen</name>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>multi-green</icfi:instanceId>
-			<icfi:supportValidity>true</icfi:supportValidity>
-			<icfi:generateDefaultValues>true</icfi:generateDefaultValues>
-		</icfc:configurationProperties>
+    <name>Dummy Resource MultiGreen</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-	</connectorConfiguration>
-	
-	<schemaHandling>
-		<objectType>
-			<displayName>Default Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<multiplicity>
-				<maxOccurs>unbounded</maxOccurs>
-				<!-- No tag expression, default algorithm will be used. -->
-			</multiplicity>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<outbound>
-				    <strength>weak</strength>
-				    <source>
-				    	<path>$focus/name</path>
-				    </source>
-					<expression>
-						<script>
-							<code>
-								name + iterationToken
-							</code>
-						</script>
-					</expression>
-				</outbound>
-				<inbound>
-					<!-- This avoids "kickback" of a name from account to a user. -->
-					<strength>weak</strength>
-					<target>
-						<path>$c:user/c:name</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>icfs:uid</ref>
-				<displayName>UID</displayName>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<displayName>Full Name</displayName>
-				<outbound>
-					<source>
-						<path>$focus/fullName</path>
-					</source>
-				</outbound>
-				<inbound>
-					<strength>weak</strength>
-					<target>
-						<path>$focus/fullName</path>
-					</target>
-				</inbound>
-				<inbound>
-					<description>
-						Normal mapping to a multi-value user attribute.
-						Therefore organizationalUnit should have values from all the accounts.
-					</description>
-					<target>
-						<path>organizationalUnit</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:location</ref>
-				<displayName>Location</displayName>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>
-							$c:user/c:locality
-						</path>
-					</source>
-				</outbound>
-				<inbound>
-					<strength>strong</strength>
-					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
-					<expression>
-						<script>
-							<code>'Came from ' + input</code>
-						</script>
-					</expression>
-					<target>
-						<path>description</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:ship</ref>
-				<displayName>Ship</displayName>
-				<inbound>
-					<target>
-						<path>employeeNumber</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:loot</ref>
-				<displayName>Loot</displayName>
-				<outbound>
-					<channel>http://pirates.net/avast</channel>
-					<expression>
-						<value>10000</value>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:weapon</ref>
-				<displayName>Weapon</displayName>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>
-							$focus/extension/piracy:weapon
-						</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:drink</ref>
-				<displayName>Drink</displayName>
-				<tolerant>false</tolerant>
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<value>rum</value>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:quote</ref>
-				<displayName>Quote</displayName>
-				<tolerant>true</tolerant>
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<value>Arr!</value>
-					</expression>
-				</outbound>
-			</attribute>
-			
-			<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
-			
-			<activation>
-            	<administrativeStatus>
-            		<outbound>
-                    	<expression>
-                        	<asIs/>
+        <icfc:configurationProperties>
+            <icfi:instanceId>multi-green</icfi:instanceId>
+            <icfi:supportValidity>true</icfi:supportValidity>
+            <icfi:generateDefaultValues>true</icfi:generateDefaultValues>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <multiplicity>
+                <maxOccurs>unbounded</maxOccurs>
+                <!-- No tag expression, default algorithm will be used. -->
+            </multiplicity>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                name + iterationToken
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <!-- This avoids "kickback" of a name from account to a user. -->
+                    <strength>weak</strength>
+                    <target>
+                        <path>$c:user/c:name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <source>
+                        <path>$focus/fullName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <path>$focus/fullName</path>
+                    </target>
+                </inbound>
+                <inbound>
+                    <description>
+                        Normal mapping to a multi-value user attribute.
+                        Therefore organizationalUnit should have values from all the accounts.
+                    </description>
+                    <target>
+                        <path>organizationalUnit</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <displayName>Location</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>
+                            $c:user/c:locality
+                        </path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
+                    <expression>
+                        <script>
+                            <code>'Came from ' + input</code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>description</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ship</ref>
+                <displayName>Ship</displayName>
+                <inbound>
+                    <target>
+                        <path>employeeNumber</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:loot</ref>
+                <displayName>Loot</displayName>
+                <outbound>
+                    <channel>http://pirates.net/avast</channel>
+                    <expression>
+                        <value>10000</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:weapon</ref>
+                <displayName>Weapon</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>
+                            $focus/extension/piracy:weapon
+                        </path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:drink</ref>
+                <displayName>Drink</displayName>
+                <tolerant>false</tolerant>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>rum</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:quote</ref>
+                <displayName>Quote</displayName>
+                <tolerant>true</tolerant>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>Arr!</value>
+                    </expression>
+                </outbound>
+            </attribute>
+
+            <iteration>
+                <maxIterations>5</maxIterations>
+            </iteration>
+
+            <activation>
+                <administrativeStatus>
+                    <outbound>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            		<inbound/>
-            	</administrativeStatus>
-            	<validFrom>
-            		<outbound>
-                    	<expression>
-                        	<asIs/>
+                    </outbound>
+                    <inbound/>
+                </administrativeStatus>
+                <validFrom>
+                    <outbound>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            		<inbound/>
-            	</validFrom>
-            	<validTo>
-            		<outbound>
-                    	<expression>
-                        	<asIs/>
+                    </outbound>
+                    <inbound/>
+                </validFrom>
+                <validTo>
+                    <outbound>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            		<inbound/>
-            	</validTo>
+                    </outbound>
+                    <inbound/>
+                </validTo>
             </activation>
-			
-			<credentials>
+
+            <credentials>
                 <password>
                     <outbound>
-                    	<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
                     </outbound>
                     <inbound>
-                    	<strength>weak</strength>
+                        <strength>weak</strength>
                         <expression>
                             <generate/>
                         </expression>
                     </inbound>
                 </password>
             </credentials>
-            
-		</objectType>
-		
-		<objectType>
-			<kind>account</kind>
-			<intent>admin</intent>
-			<displayName>Admin Account</displayName>
-			<default>false</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<multiplicity>
-				<maxOccurs>unbounded</maxOccurs>
-				<tag>
-					<expression>
-						<script>
-							<code>basic.getAttributeValue(projection, "title");</code>
-						</script>
-					</expression>
-				</tag>
-			</multiplicity>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<outbound>
-				    <strength>weak</strength>
-				    <source>
-				    	<path>name</path>
-				    </source>
-				</outbound>
-				<inbound>
-					<!-- This avoids "kickback" of a name from account to a user. -->
-					<strength>weak</strength>
-					<target>
-						<path>name</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>icfs:uid</ref>
-				<displayName>UID</displayName>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<displayName>Full Name</displayName>
-				<outbound>
-					<source>
-						<path>fullName</path>
-					</source>
-				</outbound>
-				<!-- admin accounts do not set (inbound) full name -->
-			</attribute>
-			
-			<activation>
-            	<administrativeStatus>
-            		<outbound>
-                    	<expression>
-                        	<asIs/>
+
+        </objectType>
+
+        <objectType>
+            <kind>account</kind>
+            <intent>admin</intent>
+            <displayName>Admin Account</displayName>
+            <default>false</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <multiplicity>
+                <maxOccurs>unbounded</maxOccurs>
+                <tag>
+                    <expression>
+                        <script>
+                            <code>basic.getAttributeValue(projection, "title");</code>
+                        </script>
+                    </expression>
+                </tag>
+            </multiplicity>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <!-- This avoids "kickback" of a name from account to a user. -->
+                    <strength>weak</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                </outbound>
+                <!-- admin accounts do not set (inbound) full name -->
+            </attribute>
+
+            <activation>
+                <administrativeStatus>
+                    <outbound>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            	</administrativeStatus>
+                    </outbound>
+                </administrativeStatus>
             </activation>
-			
-			<credentials>
+
+            <credentials>
                 <password>
                     <outbound>
-                    	<expression>
-                        	<asIs/>
+                        <expression>
+                            <asIs/>
                         </expression>
                     </outbound>
                 </password>
             </credentials>
-            
-		</objectType>
-		
-	</schemaHandling>
-	
-	<projection>
-		<assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
-	</projection>
-	
-	<consistency>
-		<avoidDuplicateValues>true</avoidDuplicateValues>
-	</consistency>
-	
-	<synchronization>
-		<objectSynchronization>
-			<name>default account type</name>
-			<enabled>true</enabled>
-			<condition>
-				<script>
-					<code>
-						title = basic.getAttributeValue(projection, "title");
-						log.info("DEFAULT: title: {}", title)
-						title == null
-					</code>
-				</script>
-			</condition>
-			<correlation>
-				<q:equal>
-					<q:path>employeeNumber</q:path>
-					<expression>
-						<path>$projection/attributes/ship</path>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-	            </action>
-	        </reaction>
-        </objectSynchronization>
-        
+
+        </objectType>
+
+    </schemaHandling>
+
+    <projection>
+        <assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
+    </projection>
+
+    <consistency>
+        <avoidDuplicateValues>true</avoidDuplicateValues>
+    </consistency>
+
+    <synchronization>
         <objectSynchronization>
-			<name>admin account type</name>
-			<kind>account</kind>
-			<intent>admin</intent>
-			<enabled>true</enabled>
-			<condition>
-				<script>
-					<code>
-						title = basic.getAttributeValue(projection, "title");
-						log.info("ADMIN: title: {}", title)
-						title != null
-					</code>
-				</script>
-			</condition>
-			<correlation>
-				<q:equal>
-					<q:path>employeeNumber</q:path>
-					<expression>
-						<path>$projection/attributes/ship</path>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-	            </action>
-	        </reaction>
+            <name>default account type</name>
+            <enabled>true</enabled>
+            <condition>
+                <script>
+                    <code>
+                        title = basic.getAttributeValue(projection, "title");
+                        log.info("DEFAULT: title: {}", title)
+                        title == null
+                    </code>
+                </script>
+            </condition>
+            <correlation>
+                <q:equal>
+                    <q:path>employeeNumber</q:path>
+                    <expression>
+                        <path>$projection/attributes/ship</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
         </objectSynchronization>
-	</synchronization>
+
+        <objectSynchronization>
+            <name>admin account type</name>
+            <kind>account</kind>
+            <intent>admin</intent>
+            <enabled>true</enabled>
+            <condition>
+                <script>
+                    <code>
+                        title = basic.getAttributeValue(projection, "title");
+                        log.info("ADMIN: title: {}", title)
+                        title != null
+                    </code>
+                </script>
+            </condition>
+            <correlation>
+                <q:equal>
+                    <q:path>employeeNumber</q:path>
+                    <expression>
+                        <path>$projection/attributes/ship</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
 
 </resource>

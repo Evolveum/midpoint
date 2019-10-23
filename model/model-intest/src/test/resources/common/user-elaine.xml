@@ -2,36 +2,36 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="c0c010c0-d34d-b33f-f00d-11111111111e" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+<user oid="c0c010c0-d34d-b33f-f00d-11111111111e"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>elaine</name>
 
     <assignment>
-		<construction>
-			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-		</construction>
-	</assignment>
-	
-	<assignment>
-		<construction>
-			<resourceRef oid="10000000-0000-0000-0000-000000000104"/>
-		</construction>
-	</assignment>
-	
-	<assignment>
-		<construction>
-			<resourceRef oid="10000000-0000-0000-0000-000000000204"/>
-		</construction>
-	</assignment>
-    
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+        </construction>
+    </assignment>
+
+    <assignment>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000104"/>
+        </construction>
+    </assignment>
+
+    <assignment>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000204"/>
+        </construction>
+    </assignment>
+
     <linkRef oid="c0c010c0-d34d-b33f-f00d-22220004000e" type="c:ShadowType"/>
     <linkRef oid="c0c010c0-d34d-b33f-f00d-22220104000e" type="c:ShadowType"/>
     <linkRef oid="c0c010c0-d34d-b33f-f00d-22220204000e" type="c:ShadowType"/>
@@ -40,33 +40,33 @@
     <givenName>Elaine</givenName>
     <familyName>Marley</familyName>
     <locality>Melee Island</locality>
-    
-    <activation>
-    	<administrativeStatus>enabled</administrativeStatus>
-    	<effectiveStatus>enabled</effectiveStatus>
-    </activation>
-    
-    <credentials> 
-         <password>
-         	 <!--MID-4350  -->
-	         <failedLogins>0</failedLogins>
-	         <lastSuccessfulLogin>
-	            <timestamp>2018-01-10T18:12:30.264+01:00</timestamp>
-	            <from>0:0:0:0:0:0:0:1</from>
-	         </lastSuccessfulLogin>
-	         <previousSuccessfulLogin>
-	            <timestamp>2018-01-10T17:01:36.659+01:00</timestamp>
-	            <from>0:0:0:0:0:0:0:1</from>
-	         </previousSuccessfulLogin>
-	         <lastFailedLogin>
-	            <timestamp>2018-01-10T17:01:30.615+01:00</timestamp>
-	            <from>0:0:0:0:0:0:0:1</from>
-	         </lastFailedLogin>
 
-        	<value> 
- 	            <clearValue>P1ranhaD0GZ</clearValue>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+        <effectiveStatus>enabled</effectiveStatus>
+    </activation>
+
+    <credentials>
+         <password>
+              <!--MID-4350  -->
+             <failedLogins>0</failedLogins>
+             <lastSuccessfulLogin>
+                <timestamp>2018-01-10T18:12:30.264+01:00</timestamp>
+                <from>0:0:0:0:0:0:0:1</from>
+             </lastSuccessfulLogin>
+             <previousSuccessfulLogin>
+                <timestamp>2018-01-10T17:01:36.659+01:00</timestamp>
+                <from>0:0:0:0:0:0:0:1</from>
+             </previousSuccessfulLogin>
+             <lastFailedLogin>
+                <timestamp>2018-01-10T17:01:30.615+01:00</timestamp>
+                <from>0:0:0:0:0:0:0:1</from>
+             </lastFailedLogin>
+
+            <value>
+                 <clearValue>P1ranhaD0GZ</clearValue>
              </value>
          </password>
      </credentials>
-    
+
 </user>

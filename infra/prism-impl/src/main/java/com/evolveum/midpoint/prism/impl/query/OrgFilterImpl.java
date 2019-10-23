@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -15,7 +15,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class OrgFilterImpl extends ObjectFilterImpl implements OrgFilter {
+public final class OrgFilterImpl extends ObjectFilterImpl implements OrgFilter {
 
     private PrismReferenceValue baseOrgRef;
     private Scope scope;
@@ -67,17 +67,17 @@ public class OrgFilterImpl extends ObjectFilterImpl implements OrgFilter {
             return new OrgFilterImpl(getOrgRef(), getScope());
         }
     }
-    
-    
+
+
 
     @Override
-	public void checkConsistence(boolean requireDefinitions) {
-		if (baseOrgRef == null) {
-			throw new IllegalArgumentException("Null baseOrgRef in "+this);
-		}
-	}
+    public void checkConsistence(boolean requireDefinitions) {
+        if (baseOrgRef == null) {
+            throw new IllegalArgumentException("Null baseOrgRef in "+this);
+        }
+    }
 
-	@Override
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -89,28 +89,24 @@ public class OrgFilterImpl extends ObjectFilterImpl implements OrgFilter {
 
     @Override
     public boolean equals(Object obj, boolean exact) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         OrgFilterImpl other = (OrgFilterImpl) obj;
         if (baseOrgRef == null) {
-            if (other.baseOrgRef != null)
-                return false;
-        } else if (!baseOrgRef.equals(other.baseOrgRef))
+            if (other.baseOrgRef != null) return false;
+        } else if (!baseOrgRef.equals(other.baseOrgRef)) {
             return false;
-        if (scope != other.scope)
-            return false;
-        if (root != other.root)
-            return false;
+        }
+        if (scope != other.scope) return false;
+        if (root != other.root) return false;
         return true;
     }
 
+    // Just to make checkstyle happy
     @Override
-    public String debugDump() {
-        return debugDump(0);
+    public boolean equals(Object o) {
+        return super.equals(o);
     }
 
     @Override
@@ -152,6 +148,6 @@ public class OrgFilterImpl extends ObjectFilterImpl implements OrgFilter {
 
     @Override
     public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-        return false;
+        throw new UnsupportedOperationException("Matching object and ORG filter is not supported yet");
     }
 }

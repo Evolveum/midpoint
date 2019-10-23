@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,40 +21,40 @@ import java.util.Map;
  */
 public class RepositoryQueryDiagResponse {
 
-	public static class ParameterValue {
-		public final Object value;
-		public final String displayValue;
+    public static class ParameterValue {
+        public final Object value;
+        public final String displayValue;
 
-		public ParameterValue(Object value, String displayValue) {
-			this.value = value;
-			this.displayValue = displayValue;
-		}
-	}
+        public ParameterValue(Object value, String displayValue) {
+            this.value = value;
+            this.displayValue = displayValue;
+        }
+    }
 
-	private final List<?> queryResult;			// contains either list of prism objects (in case of midPoint query)
-												// or a list of lower-level, e.g. java objects (in case of implementation-level query)
+    private final List<?> queryResult;            // contains either list of prism objects (in case of midPoint query)
+                                                // or a list of lower-level, e.g. java objects (in case of implementation-level query)
 
-	private final Object implementationLevelQuery;
-	private final Map<String,ParameterValue> implementationLevelQueryParameters;		// values are non-null
+    private final Object implementationLevelQuery;
+    private final Map<String,ParameterValue> implementationLevelQueryParameters;        // values are non-null
 
-	public RepositoryQueryDiagResponse(List<?> queryResult, Object implementationLevelQuery, Map<String, ParameterValue> implementationLevelQueryParameters) {
-		if (implementationLevelQuery != null) {
-			Validate.notNull(implementationLevelQueryParameters);
-		}
-		this.queryResult = queryResult;
-		this.implementationLevelQuery = implementationLevelQuery;
-		this.implementationLevelQueryParameters = implementationLevelQueryParameters;
-	}
+    public RepositoryQueryDiagResponse(List<?> queryResult, Object implementationLevelQuery, Map<String, ParameterValue> implementationLevelQueryParameters) {
+        if (implementationLevelQuery != null) {
+            Validate.notNull(implementationLevelQueryParameters);
+        }
+        this.queryResult = queryResult;
+        this.implementationLevelQuery = implementationLevelQuery;
+        this.implementationLevelQueryParameters = implementationLevelQueryParameters;
+    }
 
-	public List<?> getQueryResult() {
-		return queryResult;
-	}
+    public List<?> getQueryResult() {
+        return queryResult;
+    }
 
-	public Object getImplementationLevelQuery() {
-		return implementationLevelQuery;
-	}
+    public Object getImplementationLevelQuery() {
+        return implementationLevelQuery;
+    }
 
-	public Map<String, ParameterValue> getImplementationLevelQueryParameters() {
-		return implementationLevelQueryParameters;
-	}
+    public Map<String, ParameterValue> getImplementationLevelQueryParameters() {
+        return implementationLevelQueryParameters;
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component;
@@ -61,9 +61,9 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null,
                 getPredefinedRelation() != null ? Arrays.asList(getPredefinedRelation()) : getSupportedRelations(), false));
     }
-    
+
     protected List<QName> getSupportedRelations() {
-    	return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
+        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
     }
 
     protected QName getPredefinedRelation(){
@@ -107,7 +107,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     protected boolean isInducement(){
-    	PrismContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
+        PrismContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
         if (assignmentWrapper != null && assignmentWrapper.getPath() != null && assignmentWrapper.getPath().containsNameExactly(AbstractRoleType.F_INDUCEMENT)){
             return true;
         }
@@ -115,7 +115,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     protected <O extends FocusType> PrismObject<O> getTargetedAssignemntObject() {
-    	PrismContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
+        PrismContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
         if (assignmentWrapper == null){
             return null;
         }

@@ -11,10 +11,10 @@ resource:
   connectorConfiguration:
     configurationProperties:
       port: "389"
-      host: 
+      host:
         expression:
           const: "ldapHostname"
-      baseContexts: 
+      baseContexts:
         expression:
           script:
             code: "'dc='+basic.const('orgname')+',dc=com'"

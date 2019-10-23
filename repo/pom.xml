@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -13,7 +13,7 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.0.1-SNAPSHOT</version>
+        <version>4.1-SNAPSHOT</version>
         <relativePath>../build-system/pom.xml</relativePath>
     </parent>
     <scm>
@@ -22,8 +22,8 @@
         <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
     <modules>
-    	<module>audit-api</module>
-    	<module>audit-impl</module>
+        <module>audit-api</module>
+        <module>audit-impl</module>
         <module>repo-api</module>
         <module>repo-cache</module>
         <module>system-init</module>
@@ -33,10 +33,10 @@
         <module>repo-sql-impl-test</module>
         <module>task-api</module>
         <module>task-quartz-impl</module>
-    	<module>security-api</module>
-    	<module>security-impl</module>
-    	<module>security-enforcer-api</module>
-    	<module>security-enforcer-impl</module>
+        <module>security-api</module>
+        <module>security-impl</module>
+        <module>security-enforcer-api</module>
+        <module>security-enforcer-impl</module>
     </modules>
     <build>
         <plugins>
@@ -51,8 +51,8 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies> 
-    	<dependency> <!-- Not used, but required for surefire plugin not to complain -->
+    <dependencies>
+        <dependency> <!-- Not used, but required for surefire plugin not to complain -->
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -60,7 +60,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.0.1-SNAPSHOT</version>
+            <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

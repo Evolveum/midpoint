@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -36,15 +36,15 @@ public class SceneItemPanel extends Panel {
     }
 
     private void initLayout(final IModel<SceneItemDto> model) {
-		ListView<SceneItemLineDto> items = new ListView<SceneItemLineDto>(ID_ITEM_LINES,
+        ListView<SceneItemLineDto> items = new ListView<SceneItemLineDto>(ID_ITEM_LINES,
             new PropertyModel<>(model, SceneItemDto.F_LINES)) {
 
-			@Override
-			protected void populateItem(ListItem<SceneItemLineDto> item) {
-				SceneItemLinePanel panel = new SceneItemLinePanel(ID_ITEM_LINE, item.getModel());
-				item.add(panel);
-			}
-		};
+            @Override
+            protected void populateItem(ListItem<SceneItemLineDto> item) {
+                SceneItemLinePanel panel = new SceneItemLinePanel(ID_ITEM_LINE, item.getModel());
+                item.add(panel);
+            }
+        };
         items.setReuseItems(true);
         add(items);
     }

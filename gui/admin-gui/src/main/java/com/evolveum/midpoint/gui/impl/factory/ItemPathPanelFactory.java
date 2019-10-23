@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -30,32 +30,32 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 @Component
 public class ItemPathPanelFactory extends AbstractGuiComponentFactory<ItemPathType> implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@Autowired private transient GuiComponentRegistry registry;
+    @Autowired private transient GuiComponentRegistry registry;
 
-	@PostConstruct
-	public void register() {
-		registry.addToRegistry(this);
-	}
-	
-	@Override
-	public <IW extends ItemWrapper> boolean match(IW wrapper) {
-		return ItemPathType.COMPLEX_TYPE.equals(wrapper.getTypeName());
-	}
+    @PostConstruct
+    public void register() {
+        registry.addToRegistry(this);
+    }
 
-	@Override
-	protected Panel getPanel(PrismPropertyPanelContext<ItemPathType> panelCtx) {
-		return new ItemPathPanel(panelCtx.getComponentId(), (ItemPathType) panelCtx.getRealValueModel().getObject()) {
+    @Override
+    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+        return ItemPathType.COMPLEX_TYPE.equals(wrapper.getTypeName());
+    }
 
-			private static final long serialVersionUID = 1L;
+    @Override
+    protected Panel getPanel(PrismPropertyPanelContext<ItemPathType> panelCtx) {
+        return new ItemPathPanel(panelCtx.getComponentId(), (ItemPathType) panelCtx.getRealValueModel().getObject()) {
 
-			@Override
-			protected void onUpdate(ItemPathDto itemPathDto) {
-				panelCtx.getRealValueModel().setObject(new ItemPathType(itemPathDto.toItemPath()));
+            private static final long serialVersionUID = 1L;
 
-			}
-		};
-	}
-	
+            @Override
+            protected void onUpdate(ItemPathDto itemPathDto) {
+                panelCtx.getRealValueModel().setObject(new ItemPathType(itemPathDto.toItemPath()));
+
+            }
+        };
+    }
+
 }

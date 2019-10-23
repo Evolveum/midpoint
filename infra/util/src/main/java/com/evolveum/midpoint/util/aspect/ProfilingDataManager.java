@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -24,7 +24,7 @@ import java.util.*;
  *
  *  @author shood
  * */
-public class ProfilingDataManager {
+public final class ProfilingDataManager {
 
     /*
     *   private instance of ProfilingDataManager
@@ -33,22 +33,22 @@ public class ProfilingDataManager {
 
     private static final int DEFAULT_DUMP_INTERVAL = 30;
     private static final int DEFAULT_PERF_DUMP_INTERVAL = 10;
-    private static byte TOP_TEN_METHOD_NUMBER = 5;
+    private static byte topTenMethodNumber = 5;
 
     private static boolean profilingTest = false;
 
-    public static enum Subsystem {
+    public enum Subsystem {
         REPOSITORY,
         TASK_MANAGER,
         PROVISIONING,
-		SYNCHRONIZATION_SERVICE,
+        SYNCHRONIZATION_SERVICE,
         MODEL,
         UCF,
         WORKFLOW,
         WEB
     }
 
-    public static final List<Subsystem> subsystems = Arrays.asList(Subsystem.values());
+    public static final List<Subsystem> SUBSYSTEMS = Arrays.asList(Subsystem.values());
 
     public static final String INDENT_STRING = " ";
     private static final String ARGS_NULL = "NULL";
@@ -63,9 +63,9 @@ public class ProfilingDataManager {
     private static boolean isWorkflowProfiled = false;
     private static boolean isWebProfiled = false;
 
-    private static final ArrayComparator arrayComparator = new ArrayComparator();
+    private static final ArrayComparator ARRAY_COMPARATOR = new ArrayComparator();
 
-    private static Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
 
     private long lastDumpTimestamp;
     private long lastPerformanceDumpTimestamp;
@@ -118,7 +118,7 @@ public class ProfilingDataManager {
     public void configureProfilingDataManagerForTest(Map<Subsystem, Boolean> subsystems, boolean performance){
         subsystemConfiguration(subsystems);
 
-        TOP_TEN_METHOD_NUMBER = 10;
+        topTenMethodNumber = 10;
         profilingDataManager = new ProfilingDataManager(30, performance);
         profilingTest = true;
     }
@@ -158,8 +158,9 @@ public class ProfilingDataManager {
     }
 
     private void logEventProcessingDuration(String key, long est){
-        if(performanceMap.get(key) != null)
+        if (performanceMap.get(key) != null) {
             performanceMap.get(key).updateProcessTimeList(est);
+        }
     }
 
     public void prepareRequestProfilingEvent(ProfilingDataLog requestEvent){
@@ -175,8 +176,8 @@ public class ProfilingDataManager {
         return key;
     }
 
-    public synchronized void dumpToLog(){
-        if(profilingTest){
+    public synchronized void dumpToLog() {
+        if (profilingTest) {
             return;
         }
 
@@ -241,7 +242,7 @@ public class ProfilingDataManager {
             logMap.get(key).update(eventLog);
         }
 
-        if(logMap.get(key).getSlowestMethodList().size() < TOP_TEN_METHOD_NUMBER){
+        if(logMap.get(key).getSlowestMethodList().size() < topTenMethodNumber){
             eventLog.setArgs(prepareArguments(eventLog.args));
             logMap.get(key).getSlowestMethodList().add(eventLog);
             sort(logMap.get(key).getSlowestMethodList());
@@ -254,7 +255,7 @@ public class ProfilingDataManager {
             }
         }
 
-        if(logMap.get(key).getSlowestMethodList().size() > TOP_TEN_METHOD_NUMBER){
+        if(logMap.get(key).getSlowestMethodList().size() > topTenMethodNumber){
             logMap.get(key).getSlowestMethodList().remove(logMap.get(key).getSlowestMethodList().size()-1);
         }
     }
@@ -291,19 +292,19 @@ public class ProfilingDataManager {
         performanceMap.clear();
     }
 
-    private ProfilingDataLog prepareProfilingDataLog(String className, String methodName, long startTime, Object[] args){
+    private ProfilingDataLog prepareProfilingDataLog(String className, String methodName, long startTime, Object[] args) {
         long eTime = calculateTime(startTime);
         long timestamp = System.currentTimeMillis();
 
         return new ProfilingDataLog(className, methodName, eTime, timestamp, args);
     }
 
-    private synchronized static List<ProfilingDataLog> sort(List<ProfilingDataLog> list){
-        Collections.sort(list, arrayComparator);
+    private synchronized static List<ProfilingDataLog> sort(List<ProfilingDataLog> list) {
+        Collections.sort(list, ARRAY_COMPARATOR);
         return list;
     }
 
-    private static class ArrayComparator implements Comparator<ProfilingDataLog>{
+    private static class ArrayComparator implements Comparator<ProfilingDataLog> {
 
         @Override
         public int compare(ProfilingDataLog o1, ProfilingDataLog o2) {
@@ -326,36 +327,38 @@ public class ProfilingDataManager {
 
     private String[] prepareArguments(Object[] args){
 
-        if(args == null || args.length == 0)
-            return new String[]{ARGS_EMPTY};
+        if(args == null || args.length == 0) {
+            return new String[] { ARGS_EMPTY };
+        }
 
         StringBuilder sb = new StringBuilder();
 
         for(Object o: args){
-            if(o == null)
+            if (o == null) {
                 sb.append(ARGS_NULL);
-            else
+            } else {
                 sb.append(o.toString());
+            }
 
             sb.append(INDENT_STRING);
         }
 
-        return new String[]{sb.toString()};
+        return new String[] { sb.toString() };
     }
 
-    public void appendProfilingToTest(){
+    public void appendProfilingToTest() {
         OperationExecutionLogger.activateSubsystemProfiling();
     }
 
-    public void stopProfilingAfterTest(){
+    public void stopProfilingAfterTest() {
         OperationExecutionLogger.deactivateSubsystemProfiling();
     }
 
-    public void printMapAfterTest(){
+    public void printMapAfterTest() {
         printEverything(true);
     }
 
-    public Map<String, MethodUsageStatistics> getProfilingData(){
+    public Map<String, MethodUsageStatistics> getProfilingData() {
         return performanceMap;
     }
 }

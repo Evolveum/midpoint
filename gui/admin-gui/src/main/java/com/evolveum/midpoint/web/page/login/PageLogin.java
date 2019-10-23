@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -42,9 +42,9 @@ import javax.servlet.http.HttpSession;
  */
 @PageDescriptor(url = "/login", permitAll = true)
 public class PageLogin extends PageBase {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
 
     private static final String ID_FORGET_PASSWORD = "forgetpassword";
     private static final String ID_SELF_REGISTRATION = "selfRegistration";
@@ -53,11 +53,11 @@ public class PageLogin extends PageBase {
     private static final String DOT_CLASS = PageLogin.class.getName() + ".";
     protected static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = DOT_CLASS + "loadPasswordResetPolicy";
     private static final String OPERATION_LOAD_REGISTRATION_POLICY = DOT_CLASS + "loadRegistrationPolicy";
-    
+
     public PageLogin() {
         BookmarkablePageLink<String> link = new BookmarkablePageLink<>(ID_FORGET_PASSWORD, PageForgotPassword.class);
         link.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -71,12 +71,12 @@ public class PageLogin extends PageBase {
                 }
 
                 if (securityPolicy == null) {
-                	return false;
+                    return false;
                 }
-                
+
                 CredentialsPolicyType creds = securityPolicy.getCredentials();
-                
-                // TODO: Not entirely correct. This means we have reset somehow configured, but not necessarily enabled. 
+
+                // TODO: Not entirely correct. This means we have reset somehow configured, but not necessarily enabled.
                 if (creds != null
                         && ((creds.getSecurityQuestions() != null
                         && creds.getSecurityQuestions().getQuestionNumber() != null) || (securityPolicy.getCredentialsReset() != null))) {
@@ -87,17 +87,17 @@ public class PageLogin extends PageBase {
             }
         });
         add(link);
-        
+
         AjaxLink<String> registration = new AjaxLink<String>(ID_SELF_REGISTRATION) {
-        	private static final long serialVersionUID = 1L;
-        	
-        	@Override
-        	public void onClick(AjaxRequestTarget target) {
-        		setResponsePage(PageSelfRegistration.class);
-        	}
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                setResponsePage(PageSelfRegistration.class);
+            }
         };
         registration.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -105,13 +105,13 @@ public class PageLogin extends PageBase {
 
                 RegistrationsPolicyType registrationPolicies = null;
                 try {
-                	Task task = createAnonymousTask(OPERATION_LOAD_REGISTRATION_POLICY);
-                	registrationPolicies = getModelInteractionService().getFlowPolicy(null, task, parentResult);
+                    Task task = createAnonymousTask(OPERATION_LOAD_REGISTRATION_POLICY);
+                    registrationPolicies = getModelInteractionService().getFlowPolicy(null, task, parentResult);
 
-                	if (registrationPolicies == null || registrationPolicies.getSelfRegistration() == null) {
-                		registrationPolicies = getModelInteractionService().getRegistrationPolicy(null, task, parentResult);
-                	}
-                	
+                    if (registrationPolicies == null || registrationPolicies.getSelfRegistration() == null) {
+                        registrationPolicies = getModelInteractionService().getRegistrationPolicy(null, task, parentResult);
+                    }
+
                 } catch (CommonException e) {
                     LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
                 }

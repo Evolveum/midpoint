@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.prism;
@@ -33,87 +33,87 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public class ShadowPanel extends BasePanel<ShadowWrapper> {
 
-	private static final long serialVersionUID = 1L;
-	
-	private static final Trace LOGGER = TraceManager.getTrace(ShadowPanel.class);
-	
-	protected static final String ID_SHADOWS_CONTAINER = "shadowContainer";
+    private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowPanel.class);
+
+    protected static final String ID_SHADOWS_CONTAINER = "shadowContainer";
 
 
-	private static final String ID_ATTRIBUTES = "attributes";
-	private static final String ID_ASSOCIATIONS = "associations";
-	private static final String ID_ACTIVATION = "activation";
-	private static final String ID_PASSWORD = "password";
-	private static final String ID_ERROR = "error";
+    private static final String ID_ATTRIBUTES = "attributes";
+    private static final String ID_ASSOCIATIONS = "associations";
+    private static final String ID_ACTIVATION = "activation";
+    private static final String ID_PASSWORD = "password";
+    private static final String ID_ERROR = "error";
 
 
-	public ShadowPanel(String id, IModel<ShadowWrapper> model) {
-		super(id, model);
-	}
-	
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
-		initLayout();
-		setOutputMarkupId(true);
-	}
-	
-	private void initLayout() {
-		
-		
-		try {
+    public ShadowPanel(String id, IModel<ShadowWrapper> model) {
+        super(id, model);
+    }
 
-			ItemPanelSettingsBuilder attributesSettingsBuilder = new ItemPanelSettingsBuilder().visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
-				Panel attributesPanel = getPageBase().initItemPanel(ID_ATTRIBUTES, ShadowAttributesType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ATTRIBUTES), 
-					attributesSettingsBuilder.build());
-			add(attributesPanel);
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+        setOutputMarkupId(true);
+    }
 
-			ItemPanelSettingsBuilder associationBuilder = new ItemPanelSettingsBuilder().visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
-    		Panel associationsPanel = getPageBase().initItemPanel(ID_ASSOCIATIONS, ShadowAssociationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ASSOCIATION),
-    				associationBuilder.build());
-    		associationsPanel.add(new VisibleBehaviour(() -> checkAssociationsVisibility()));
-    		add(associationsPanel);
-    		
+    private void initLayout() {
 
-    		ItemPanelSettingsBuilder activationBuilder = new ItemPanelSettingsBuilder().visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
-    		Panel activationPanel = getPageBase().initItemPanel(ID_ACTIVATION, ActivationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ACTIVATION), 
-    				activationBuilder.build());
-    		activationPanel.add(new VisibleBehaviour(() -> isActivationSupported()));
-    		add(activationPanel);
 
-    		ItemPanelSettingsBuilder passwordSettingsBuilder = new ItemPanelSettingsBuilder().visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
-    		Panel passwordPanel = getPageBase().initItemPanel(ID_PASSWORD, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.create(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)), 
-    				passwordSettingsBuilder.build());
-    		passwordPanel.add(new VisibleBehaviour(() -> isCredentialsSupported()));
-    		add(passwordPanel);
-		} catch (SchemaException e) {
-			getSession().error("Cannot create panels for shadow, reason: " + e.getMessage());
-			LOGGER.error("Cannot create panels for shadow, reason: {}", e.getMessage(), e);
-//			ErrorPanel errorPanel = new ErrorPanel(ID_ERROR, createStringResource("Error creatinf shadow panels"));
-//			specificContainers.add(errorPanel);
-		}
-	}
-	
-	private ItemVisibility checkShadowContainerVisibility(ItemWrapper itemWrapper, IModel<ShadowWrapper> model) {
+        try {
 
-		ShadowType shadowType = model.getObject().getObjectOld().asObjectable();
-		return WebComponentUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, shadowType);
-	}
-	
-	private boolean checkAssociationsVisibility() {
-		
-		ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
-		return WebComponentUtil.isAssociationSupported(shadowType);
-		
-	}
+            ItemPanelSettingsBuilder attributesSettingsBuilder = new ItemPanelSettingsBuilder().visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+                Panel attributesPanel = getPageBase().initItemPanel(ID_ATTRIBUTES, ShadowAttributesType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ATTRIBUTES),
+                    attributesSettingsBuilder.build());
+            add(attributesPanel);
 
-	private boolean isActivationSupported() {
-		ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
-		return WebComponentUtil.isActivationSupported(shadowType);
-	}
+            ItemPanelSettingsBuilder associationBuilder = new ItemPanelSettingsBuilder().visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+            Panel associationsPanel = getPageBase().initItemPanel(ID_ASSOCIATIONS, ShadowAssociationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ASSOCIATION),
+                    associationBuilder.build());
+            associationsPanel.add(new VisibleBehaviour(() -> checkAssociationsVisibility()));
+            add(associationsPanel);
 
-	private boolean isCredentialsSupported() {
-		ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
-		return WebComponentUtil.isPasswordSupported(shadowType);
-	}
+
+            ItemPanelSettingsBuilder activationBuilder = new ItemPanelSettingsBuilder().visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+            Panel activationPanel = getPageBase().initItemPanel(ID_ACTIVATION, ActivationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ACTIVATION),
+                    activationBuilder.build());
+            activationPanel.add(new VisibleBehaviour(() -> isActivationSupported()));
+            add(activationPanel);
+
+            ItemPanelSettingsBuilder passwordSettingsBuilder = new ItemPanelSettingsBuilder().visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+            Panel passwordPanel = getPageBase().initItemPanel(ID_PASSWORD, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.create(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)),
+                    passwordSettingsBuilder.build());
+            passwordPanel.add(new VisibleBehaviour(() -> isCredentialsSupported()));
+            add(passwordPanel);
+        } catch (SchemaException e) {
+            getSession().error("Cannot create panels for shadow, reason: " + e.getMessage());
+            LOGGER.error("Cannot create panels for shadow, reason: {}", e.getMessage(), e);
+//            ErrorPanel errorPanel = new ErrorPanel(ID_ERROR, createStringResource("Error creatinf shadow panels"));
+//            specificContainers.add(errorPanel);
+        }
+    }
+
+    private ItemVisibility checkShadowContainerVisibility(ItemWrapper itemWrapper, IModel<ShadowWrapper> model) {
+
+        ShadowType shadowType = model.getObject().getObjectOld().asObjectable();
+        return WebComponentUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, shadowType);
+    }
+
+    private boolean checkAssociationsVisibility() {
+
+        ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
+        return WebComponentUtil.isAssociationSupported(shadowType);
+
+    }
+
+    private boolean isActivationSupported() {
+        ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
+        return WebComponentUtil.isActivationSupported(shadowType);
+    }
+
+    private boolean isCredentialsSupported() {
+        ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
+        return WebComponentUtil.isPasswordSupported(shadowType);
+    }
 }

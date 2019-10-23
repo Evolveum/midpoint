@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.self;
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -82,6 +83,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private static final String OPERATION_REQUEST_ASSIGNMENTS = DOT_CLASS + "requestAssignments";
     private static final String OPERATION_WF_TASK_CREATED = "com.evolveum.midpoint.wf.impl.hook.WfHook.invoke";
     private static final String OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS = "reviewAssignmentConflicts";
+    private static final String OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT = "loadAssignmentTargetUserObject";
 
     private IModel<List<AssignmentEditorDto>> assignmentsModel;
     private OperationResult backgroundTaskOperationResult = null;
@@ -117,6 +119,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
         AssignmentTablePanel panel = new AssignmentTablePanel<UserType>(ID_ASSIGNMENT_TABLE_PANEL,
                 assignmentsModel){
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected List<InlineMenuItem> createAssignmentMenu() {
                 List<InlineMenuItem> items = new ArrayList<>();
@@ -138,11 +142,17 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 items.add(item);
                 return items;
             }
-            
+
             @Override
-            		public IModel<String> getLabel() {
-            			return createStringResource("PageAssignmentsList.assignmentsToRequest");
-            		}
+            public IModel<String> getLabel() {
+                return createStringResource("PageAssignmentsList.assignmentsToRequest");
+            }
+
+            @Override
+            protected boolean isRelationEditable() {
+                return false;
+            }
+
         };
         mainForm.add(panel);
 
@@ -150,27 +160,32 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 new IModel<List<UserType>>() {
                     @Override
                     public List<UserType> getObject() {
-                        return getSessionStorage().getRoleCatalog().getTargetUserList();
+                        return WebComponentUtil.loadTargetUsersListForShoppingCart(OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT,
+                                PageAssignmentsList.this);
                     }
                 },
-                true, createStringResource("AssignmentCatalogPanel.selectTargetUser")){
+                true, createStringResource("AssignmentCatalogPanel.selectTargetUser")) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected String getUserButtonLabel(){
+            protected String getUserButtonLabel() {
                 return getTargetUserSelectionButtonLabel(getModelObject());
             }
 
             @Override
-            protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
+            protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target) {
                 super.onDeleteSelectedUsersPerformed(target);
-                getSessionStorage().getRoleCatalog().setTargetUserList(new ArrayList<>());
+                getSessionStorage().getRoleCatalog().setTargetUserOidsList(new ArrayList<>());
                 targetUserChangePerformed(target);
             }
 
             @Override
-            protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList){
-                getSessionStorage().getRoleCatalog().setTargetUserList(usersList);
+            protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList) {
+                if (CollectionUtils.isNotEmpty(usersList)){
+                    List<String> usersOidsList = new ArrayList<>();
+                    usersList.forEach(user -> usersOidsList.add(user.getOid()));
+                    getSessionStorage().getRoleCatalog().setTargetUserOidsList(usersOidsList);
+                }
                 targetUserChangePerformed(target);
             }
 
@@ -202,8 +217,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         AjaxButton requestAssignments = new AjaxButton(ID_REQUEST_BUTTON, createStringResource("PageAssignmentsList.requestButton")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (getSessionStorage().getRoleCatalog().getTargetUserList() == null ||
-                        getSessionStorage().getRoleCatalog().getTargetUserList().size() <= 1) {
+                if (getSessionStorage().getRoleCatalog().getTargetUserOidsList() == null ||
+                        getSessionStorage().getRoleCatalog().getTargetUserOidsList().size() <= 1) {
                     onSingleUserRequestPerformed(target);
                 } else {
                     onMultiUserRequestPerformed(target);
@@ -278,9 +293,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             result.recomputeStatus();
         }
 
-        findBackgroundTaskOperation(result);
-        if (backgroundTaskOperationResult != null
-                && StringUtils.isNotEmpty(backgroundTaskOperationResult.getAsynchronousOperationReference())){
+        if (hasBackgroundTaskOperation(result)){
             result.setMessage(createStringResource("PageAssignmentsList.requestInProgress").getString());
             showResult(result);
             clearStorage();
@@ -340,9 +353,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                         "Failed to execute operaton " + result.getOperation(), e);
                 target.add(getFeedbackPanel());
             }
-            findBackgroundTaskOperation(result);
-            if (backgroundTaskOperationResult != null
-                    && StringUtils.isNotEmpty(backgroundTaskOperationResult.getAsynchronousOperationReference())) {
+            if (hasBackgroundTaskOperation(result)) {
                 result.setMessage(createStringResource("PageAssignmentsList.requestInProgress").getString());
                 showResult(result);
                 clearStorage();
@@ -367,8 +378,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         if (storage.getRoleCatalog().getAssignmentShoppingCart() != null) {
             storage.getRoleCatalog().getAssignmentShoppingCart().clear();
         }
-        if (storage.getRoleCatalog().getTargetUserList() != null){
-            storage.getRoleCatalog().getTargetUserList().clear();
+        if (storage.getRoleCatalog().getTargetUserOidsList() != null){
+            storage.getRoleCatalog().getTargetUserOidsList().clear();
         }
         storage.getRoleCatalog().setRequestDescription("");
     }
@@ -411,24 +422,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
 
-    private void findBackgroundTaskOperation(OperationResult result){
-        if (backgroundTaskOperationResult != null) {
-            return;
-        } else {
-            List<OperationResult> subresults = result.getSubresults();
-            if (subresults == null || subresults.size() == 0) {
-                return;
-            }
-            for (OperationResult subresult : subresults) {
-                if (subresult.getOperation().equals(OPERATION_WF_TASK_CREATED)) {
-                    backgroundTaskOperationResult = subresult;
-                    return;
-                } else {
-                    findBackgroundTaskOperation(subresult);
-                }
-            }
-        }
-        return;
+    private boolean hasBackgroundTaskOperation(OperationResult result){
+        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        return StringUtils.isNotEmpty(caseOid);
     }
 
     private void handleModifyAssignmentDelta(AssignmentEditorDto assDto,
@@ -469,8 +465,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
             partialProcessing.setInbound(SKIP);
             partialProcessing.setProjection(SKIP);
-			ModelExecuteOptions recomputeOptions = ModelExecuteOptions.createPartialProcessing(partialProcessing);
-			modelContext = getModelInteractionService()
+            ModelExecuteOptions recomputeOptions = ModelExecuteOptions.createPartialProcessing(partialProcessing);
+            modelContext = getModelInteractionService()
                     .previewChanges(WebComponentUtil.createDeltaCollection(delta), recomputeOptions, task, result);
             DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext
                     .getEvaluatedAssignmentTriple();
@@ -512,24 +508,24 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
        });
        return sb.toString();
     }
-    
+
     private void fillInConflictedObjects(EvaluatedAssignment<UserType> evaluatedAssignment, Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean isWarning, Map<String, ConflictDto> conflictsMap) {
-    	
-    	for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
-        	
-       	 if (trigger instanceof EvaluatedExclusionTrigger) {
+
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+
+            if (trigger instanceof EvaluatedExclusionTrigger) {
               fillInFromEvaluatedExclusionTrigger(evaluatedAssignment, (EvaluatedExclusionTrigger) trigger, isWarning, conflictsMap);
            } else if (trigger instanceof EvaluatedCompositeTrigger) {
-        	   EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
-           	   Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
-           	   fillInConflictedObjects(evaluatedAssignment, innerTriggers, isWarning, conflictsMap);
+               EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
+                  Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
+                  fillInConflictedObjects(evaluatedAssignment, innerTriggers, isWarning, conflictsMap);
            }
-    	} 
-    	
+        }
+
     }
 
     private void fillInFromEvaluatedExclusionTrigger(EvaluatedAssignment<UserType> evaluatedAssignment, EvaluatedExclusionTrigger exclusionTrigger, boolean isWarning, Map<String, ConflictDto> conflictsMap) {
-//    	 EvaluatedExclusionTrigger exclusionTrigger = (EvaluatedExclusionTrigger) trigger;
+//         EvaluatedExclusionTrigger exclusionTrigger = (EvaluatedExclusionTrigger) trigger;
          EvaluatedAssignment<F> conflictingAssignment = exclusionTrigger.getConflictingAssignment();
          PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
          PrismObject<F> exclusionTargetObj = (PrismObject<F>)conflictingAssignment.getTarget();
@@ -578,7 +574,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         ObjectDelta delta = null;
         try{
             delta = getPrismContext().deltaFactory().object()
-		            .createModificationAddContainer(UserType.class, user == null ? "fakeOid" : user.getOid(),
+                    .createModificationAddContainer(UserType.class, user == null ? "fakeOid" : user.getOid(),
                 FocusType.F_ASSIGNMENT, getAddAssignmentContainerValues(assignmentsModel.getObject()));
             if (!getSessionStorage().getRoleCatalog().isMultiUserRequest()) {
                 delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT,
@@ -593,19 +589,11 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
     private ObjectQuery getTaskQuery(){
-        List<UserType> userList;
-        if (getSessionStorage().getRoleCatalog().isSelfRequest()){
-            userList = new ArrayList<>();
-            userList.add(getPrincipalUser());
-        } else {
-            userList = getSessionStorage().getRoleCatalog().getTargetUserList();
-        }
-        Set<String> oids = new HashSet<>();
-        for (UserType user : userList){
-            oids.add(user.getOid());
-        }
+        List<String> targetUsersOids = getSessionStorage().getRoleCatalog().isSelfRequest() ?
+                Arrays.asList(getPrincipalUser().getOid()) :
+                getSessionStorage().getRoleCatalog().getTargetUserOidsList();
         QueryFactory queryFactory = getPrismContext().queryFactory();
-        return queryFactory.createQuery(queryFactory.createInOid(oids));
+        return queryFactory.createQuery(queryFactory.createInOid(targetUsersOids));
     }
 
     private PrismContainerValue[] getAddAssignmentContainerValues(List<AssignmentEditorDto> assignments) throws SchemaException {
@@ -658,10 +646,16 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
     private PrismObject<UserType> getTargetUser() throws SchemaException {
-        List<UserType> usersList = getSessionStorage().getRoleCatalog().getTargetUserList();
-        PrismObject<UserType> user = getSessionStorage().getRoleCatalog().isSelfRequest() ?
-                getPrincipalUser().asPrismObject()
-                : usersList.get(0).asPrismObject();
+        String targetUserOid = getSessionStorage().getRoleCatalog().isSelfRequest() ?
+                getPrincipalUser().getOid() :
+                getSessionStorage().getRoleCatalog().getTargetUserOidsList().get(0);
+        Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT);
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT);
+        PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class,
+                targetUserOid, PageAssignmentsList.this, task, result);
+        if (user == null){
+            return null;
+        }
         getPrismContext().adopt(user);
         return user;
     }

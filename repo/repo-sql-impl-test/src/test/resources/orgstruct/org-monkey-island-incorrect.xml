@@ -2,126 +2,126 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
- 
+
 <objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
          xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
 
-	<!-- Users -->
-	
-	<user>
-		<name>cheese1</name>
-		<description>The owner of Scumm Bar</description>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType"/>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType" relation="org:manager"/>
-		<fullName>Ignatius Cheese1</fullName>
-		<givenName>Ignatius1</givenName>
-		<familyName>Cheese1</familyName>
-		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType"/>
-		</assignment>
-		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType" relation="org:manager"/>
-		</assignment>
-	</user>
+    <!-- Users -->
 
-	<user>
-		<name>elaine1</name>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType" relation="org:manager"/>
-		<fullName>Elaine Marley1</fullName>
-		<givenName>Elaine1</givenName>
-		<familyName>Marley1</familyName>
-		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType"/>
-		</assignment>
-		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType" relation="org:manager"/>
-		</assignment>	
-	</user>
-	
-	
-	<!-- Functional organizational structure -->
+    <user>
+        <name>cheese1</name>
+        <description>The owner of Scumm Bar</description>
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType"/>
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType" relation="org:manager"/>
+        <fullName>Ignatius Cheese1</fullName>
+        <givenName>Ignatius1</givenName>
+        <familyName>Cheese1</familyName>
+        <assignment>
+            <targetRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType"/>
+        </assignment>
+        <assignment>
+            <targetRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType" relation="org:manager"/>
+        </assignment>
+    </user>
 
-	<org oid="00000000-8888-6666-0000-100000000007">
-		<name>F0007</name>
-		<description>The office of the most respectful Governor 2.</description>
-		<displayName>Governor Office 2</displayName>
-		<identifier>0007</identifier>
-		<orgType>functional</orgType>
-		<costCenter>CC0</costCenter>
-		<locality>The Governor's Mansion</locality>
-	</org>
-
-	<org oid="00000000-8888-6666-0000-100000000008">
-		<name>F0008</name>
-		<description>Defending the scum since the ancient times 2.</description>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType"/>
-		<displayName>Ministry of Defense 2</displayName>
-		<identifier>0008</identifier>
-		<orgType>functional</orgType>
-		<locality>The towers, bastions and bars 2</locality>
-	</org>
-
-	<org oid="00000000-8888-6666-0000-100000000009">
-		<name>F0009</name>
-		<description>Offending. Anyone. Anywhere 2.</description>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000007" type="c:OrgType"/>
-		<displayName>Ministry of Offense 2</displayName>
-		<identifier>0009</identifier>
-		<orgType>functional</orgType>
-		<costCenter>CC666</costCenter>
-	</org>
-	
-	<org oid="00000000-8888-6666-0000-100000000010">
-		<name>F00010</name>
-		<description>Hosting the worst scumm of the Caribbean 2.</description>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType"/>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000012" type="c:OrgType"/>
-		<displayName>Scumm Bar 2</displayName>
-		<identifier>00010</identifier>
-		<orgType>functional</orgType>
-		<locality>Mêlée Island</locality>
-	</org>
-	
-	<org oid="00000000-8888-6666-0000-100000000011">
-		<name>F00011</name>
-		<description>Swashing, buckling and insulting. Hard. 2</description>
-		<displayName>Swashbuckler Section 2</displayName>
-		<identifier>00011</identifier>
-		<orgType>functional</orgType>
-	</org>
+    <user>
+        <name>elaine1</name>
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType" relation="org:manager"/>
+        <fullName>Elaine Marley1</fullName>
+        <givenName>Elaine1</givenName>
+        <familyName>Marley1</familyName>
+        <assignment>
+            <targetRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType"/>
+        </assignment>
+        <assignment>
+            <targetRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType" relation="org:manager"/>
+        </assignment>
+    </user>
 
 
-	<!-- Project organizational structure -->
+    <!-- Functional organizational structure -->
 
-	<org oid="00000000-8888-6666-0000-200000000003">
-		<name>PRoot2</name>
-		<description>Project organizational structure root2</description>
-		<displayName>Projects 2</displayName>
-		<orgType>project</orgType>
-	</org>
+    <org oid="00000000-8888-6666-0000-100000000007">
+        <name>F0007</name>
+        <description>The office of the most respectful Governor 2.</description>
+        <displayName>Governor Office 2</displayName>
+        <identifier>0007</identifier>
+        <orgType>functional</orgType>
+        <costCenter>CC0</costCenter>
+        <locality>The Governor's Mansion</locality>
+    </org>
 
-	<org oid="00000000-8888-6666-0000-200000000004">
-		<name>P0004</name>
-		<parentOrgRef oid="00000000-8888-6666-0000-200000000003" type="c:OrgType"/>
-		<displayName>Save Elaine 2</displayName>
-		<identifier>0004</identifier>
-		<orgType>project</orgType>
-	</org>
+    <org oid="00000000-8888-6666-0000-100000000008">
+        <name>F0008</name>
+        <description>Defending the scum since the ancient times 2.</description>
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType"/>
+        <displayName>Ministry of Defense 2</displayName>
+        <identifier>0008</identifier>
+        <orgType>functional</orgType>
+        <locality>The towers, bastions and bars 2</locality>
+    </org>
 
-	<org oid="00000000-8888-6666-0000-200000000005">
-		<name>P0005</name>
-		<parentOrgRef oid="00000000-8888-6666-0000-200000000004" type="c:OrgType"/>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType"/>
-		<displayName>Kidnap and marry Elaine 2</displayName>
-		<identifier>0005</identifier>
-		<orgType>project</orgType>
-	</org>
-	
-	
+    <org oid="00000000-8888-6666-0000-100000000009">
+        <name>F0009</name>
+        <description>Offending. Anyone. Anywhere 2.</description>
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000007" type="c:OrgType"/>
+        <displayName>Ministry of Offense 2</displayName>
+        <identifier>0009</identifier>
+        <orgType>functional</orgType>
+        <costCenter>CC666</costCenter>
+    </org>
+
+    <org oid="00000000-8888-6666-0000-100000000010">
+        <name>F00010</name>
+        <description>Hosting the worst scumm of the Caribbean 2.</description>
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000009" type="c:OrgType"/>
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000012" type="c:OrgType"/>
+        <displayName>Scumm Bar 2</displayName>
+        <identifier>00010</identifier>
+        <orgType>functional</orgType>
+        <locality>Mêlée Island</locality>
+    </org>
+
+    <org oid="00000000-8888-6666-0000-100000000011">
+        <name>F00011</name>
+        <description>Swashing, buckling and insulting. Hard. 2</description>
+        <displayName>Swashbuckler Section 2</displayName>
+        <identifier>00011</identifier>
+        <orgType>functional</orgType>
+    </org>
+
+
+    <!-- Project organizational structure -->
+
+    <org oid="00000000-8888-6666-0000-200000000003">
+        <name>PRoot2</name>
+        <description>Project organizational structure root2</description>
+        <displayName>Projects 2</displayName>
+        <orgType>project</orgType>
+    </org>
+
+    <org oid="00000000-8888-6666-0000-200000000004">
+        <name>P0004</name>
+        <parentOrgRef oid="00000000-8888-6666-0000-200000000003" type="c:OrgType"/>
+        <displayName>Save Elaine 2</displayName>
+        <identifier>0004</identifier>
+        <orgType>project</orgType>
+    </org>
+
+    <org oid="00000000-8888-6666-0000-200000000005">
+        <name>P0005</name>
+        <parentOrgRef oid="00000000-8888-6666-0000-200000000004" type="c:OrgType"/>
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType"/>
+        <displayName>Kidnap and marry Elaine 2</displayName>
+        <identifier>0005</identifier>
+        <orgType>project</orgType>
+    </org>
+
+
 
 </objects>

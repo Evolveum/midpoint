@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,7 +27,7 @@ public class CertWorkItemDto extends CertCaseOrWorkItemDto {
 
     public static final String F_COMMENT = "comment";
     @SuppressWarnings("unused")
-	public static final String F_RESPONSE = "response";
+    public static final String F_RESPONSE = "response";
 
     @NotNull private final AccessCertificationWorkItemType workItem;
 
@@ -57,7 +57,7 @@ public class CertWorkItemDto extends CertCaseOrWorkItemDto {
         return workItem.getId();
     }
 
-	public Integer getEscalationLevelNumber() {
+    public Integer getEscalationLevelNumber() {
         int n = ApprovalContextUtil.getEscalationLevelNumber(workItem);
         return n != 0 ? n : null;
     }

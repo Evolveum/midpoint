@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui;
@@ -38,58 +38,58 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 //@ImportResource(locations = {
-//		"classpath:ctx-init.xml"
+//        "classpath:ctx-init.xml"
 //})
 public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrationTest {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(TestPageSystemConfiguration.class);
-	
-	private static final String MAIN_FORM = "mainPanel:mainForm";
-	private static final String FORM_INPUT_DESCRIPTION = "tabPanel:panel:basicSystemConfiguration:values:0:value:propertiesLabel:properties:1:property:values:0:valueContainer:form:input:input";
-	private static final String FORM_SAVE = "save";
-	
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
-		
-		LOGGER.info("adding system config page");
-		addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, initResult);
-	}
-	
-	@Test
-	public void test000testPageSystemConfiguration() {
-		renderPage();
-	}
-	
-	@Test
-	public void test001testModifySystemConfig() throws Exception {
-		renderPage();
-		
-		tester.clickLink(MAIN_FORM +":tabPanel:panel:basicSystemConfiguration:values:0:value:showEmptyButton");
-		
-		FormTester formTester = tester.newFormTester(MAIN_FORM, false);
-		String des = "new description";
-		formTester.setValue(FORM_INPUT_DESCRIPTION, des);
+    private static final transient Trace LOGGER = TraceManager.getTrace(TestPageSystemConfiguration.class);
 
-		formTester = formTester.submit(FORM_SAVE);
-		
-		Thread.sleep(5000);
-		
-		tester.assertRenderedPage(PageDashboardInfo.class);
-		
-		PrismObject<SystemConfigurationType> sysConf = getObject(SystemConfigurationType.class, "00000000-0000-0000-0000-000000000001");
-		assertEquals(des, sysConf.getRealValue().getDescription());
-	}
-	
-	private PageSystemConfiguration renderPage() {
-		LOGGER.info("render page system configuration");
-		PageParameters params = new PageParameters();
-		PageSystemConfiguration pageAccount = tester.startPage(PageSystemConfiguration.class, params);
-		
-		tester.assertRenderedPage(PageSystemConfiguration.class);
-		
-		return pageAccount;
-	}
-	
+    private static final String MAIN_FORM = "mainPanel:mainForm";
+    private static final String FORM_INPUT_DESCRIPTION = "tabPanel:panel:basicSystemConfiguration:values:0:value:propertiesLabel:properties:1:property:values:0:valueContainer:form:input:input";
+    private static final String FORM_SAVE = "save";
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
+
+        LOGGER.info("adding system config page");
+        addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, initResult);
+    }
+
+    @Test
+    public void test000testPageSystemConfiguration() {
+        renderPage();
+    }
+
+    @Test
+    public void test001testModifySystemConfig() throws Exception {
+        renderPage();
+
+        tester.clickLink(MAIN_FORM +":tabPanel:panel:basicSystemConfiguration:values:0:value:showEmptyButton");
+
+        FormTester formTester = tester.newFormTester(MAIN_FORM, false);
+        String des = "new description";
+        formTester.setValue(FORM_INPUT_DESCRIPTION, des);
+
+        formTester = formTester.submit(FORM_SAVE);
+
+        Thread.sleep(5000);
+
+        tester.assertRenderedPage(PageDashboardInfo.class);
+
+        PrismObject<SystemConfigurationType> sysConf = getObject(SystemConfigurationType.class, "00000000-0000-0000-0000-000000000001");
+        assertEquals(des, sysConf.getRealValue().getDescription());
+    }
+
+    private PageSystemConfiguration renderPage() {
+        LOGGER.info("render page system configuration");
+        PageParameters params = new PageParameters();
+        PageSystemConfiguration pageAccount = tester.startPage(PageSystemConfiguration.class, params);
+
+        tester.assertRenderedPage(PageSystemConfiguration.class);
+
+        return pageAccount;
+    }
+
 }

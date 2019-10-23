@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -12,50 +12,50 @@
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         oid="00000000-3333-3333-TEST-20000000000"
         version="0">
-	<name>Test report - task</name>
-	<description>TEST Report without design.</description>
-	<orientation>landscape</orientation>
-	<export>csv</export>
-	 <!-- datasource sample, provider instance is obtained from spring context -->
-	<field>
-		<nameReport>name</nameReport>
-		<nameHeader>Name</nameHeader>
-		<itemPath>c:name</itemPath>
-		<sortOrderNumber>1</sortOrderNumber>
-		<sortOrder>ascending</sortOrder>
-		<width>10</width>
-		<classType>xsd:string</classType>
-	</field>
-	<field>
-		<nameReport>firstName</nameReport>
-		<nameHeader>First Name</nameHeader>
-		<itemPath>c:givenName</itemPath>
-		<width>10</width>
-		<classType>xsd:string</classType>
-	</field>
-	<field>
-		<nameReport>lastName</nameReport>
-		<nameHeader>Last Name</nameHeader>
-		<itemPath>c:familyName</itemPath>
-		<width>10</width>
-		<classType>xsd:string</classType>
-	</field>
-	<field>
-		<nameReport>activation</nameReport>
-		<nameHeader>Activation</nameHeader>
-		<itemPath>c:activation/c:administrativeStatus</itemPath>
-		<width>10</width>
-		<classType>c:ActivationStatusType</classType>
-	</field>
-	<!-- configuration properties -->
-	<configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
-		<r:logoPath>src/test/resources/reports/logo.jpg</r:logoPath>
-		<r:type>UserType</r:type>
-	</configuration>
-	<!-- report parameters configuration schema sample with different options -->
-	<configurationSchema>
-		<definition>
-			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    <name>Test report - task</name>
+    <description>TEST Report without design.</description>
+    <orientation>landscape</orientation>
+    <export>csv</export>
+     <!-- datasource sample, provider instance is obtained from spring context -->
+    <field>
+        <nameReport>name</nameReport>
+        <nameHeader>Name</nameHeader>
+        <itemPath>c:name</itemPath>
+        <sortOrderNumber>1</sortOrderNumber>
+        <sortOrder>ascending</sortOrder>
+        <width>10</width>
+        <classType>xsd:string</classType>
+    </field>
+    <field>
+        <nameReport>firstName</nameReport>
+        <nameHeader>First Name</nameHeader>
+        <itemPath>c:givenName</itemPath>
+        <width>10</width>
+        <classType>xsd:string</classType>
+    </field>
+    <field>
+        <nameReport>lastName</nameReport>
+        <nameHeader>Last Name</nameHeader>
+        <itemPath>c:familyName</itemPath>
+        <width>10</width>
+        <classType>xsd:string</classType>
+    </field>
+    <field>
+        <nameReport>activation</nameReport>
+        <nameHeader>Activation</nameHeader>
+        <itemPath>c:activation/c:administrativeStatus</itemPath>
+        <width>10</width>
+        <classType>c:ActivationStatusType</classType>
+    </field>
+    <!-- configuration properties -->
+    <configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
+        <r:logoPath>src/test/resources/reports/logo.jpg</r:logoPath>
+        <r:type>UserType</r:type>
+    </configuration>
+    <!-- report parameters configuration schema sample with different options -->
+    <configurationSchema>
+        <definition>
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
@@ -63,27 +63,27 @@
                     elementFormDefault="qualified"
                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
 
-				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
 
-				<xsd:complexType name="ConfigurationType">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<a:container/>
-						</xsd:appinfo>
-					</xsd:annotation>
-					<xsd:sequence>
-						<!-- sample how query api datasource configuration should look like-->
-						<xsd:element name="type" type="xsd:QName"/>
-						
-						<!-- special design parameters for all evolveum reports -->
-						<xsd:element name="logoPath" type="xsd:string"/>
-						
-					</xsd:sequence>
-				</xsd:complexType>
-				<xsd:element name="configuration" type="r:ConfigurationType"/>
-			</xsd:schema>
-		</definition>
-	</configurationSchema>
+                <xsd:complexType name="ConfigurationType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:container/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <!-- sample how query api datasource configuration should look like-->
+                        <xsd:element name="type" type="xsd:QName"/>
+
+                        <!-- special design parameters for all evolveum reports -->
+                        <xsd:element name="logoPath" type="xsd:string"/>
+
+                    </xsd:sequence>
+                </xsd:complexType>
+                <xsd:element name="configuration" type="r:ConfigurationType"/>
+            </xsd:schema>
+        </definition>
+    </configurationSchema>
 </report>

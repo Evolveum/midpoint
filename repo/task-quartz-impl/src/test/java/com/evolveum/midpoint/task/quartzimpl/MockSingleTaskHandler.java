@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl;
@@ -31,7 +31,7 @@ import static com.evolveum.midpoint.task.quartzimpl.TaskTestUtil.createExtension
  */
 public class MockSingleTaskHandler implements TaskHandler {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(MockSingleTaskHandler.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(MockSingleTaskHandler.class);
     private String MOCK_HANDLER_URI = "http://midpoint.evolveum.com/test/mock";
     private String NS_EXT = "http://myself.me/schemas/whatever";
     private ItemName L1_FLAG_QNAME = new ItemName(NS_EXT, "l1Flag", "m");
@@ -39,44 +39,44 @@ public class MockSingleTaskHandler implements TaskHandler {
 
     private TaskManagerQuartzImpl taskManager;
 
-	private String id;
+    private String id;
 
     private PrismPropertyDefinition l1FlagDefinition;
     private PrismPropertyDefinition wfsFlagDefinition;
 
 
     MockSingleTaskHandler(String id, TaskManagerQuartzImpl taskManager) {
-		this.id = id;
+        this.id = id;
         this.taskManager = taskManager;
 
         l1FlagDefinition = taskManager.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(L1_FLAG_QNAME);
         Validate.notNull(l1FlagDefinition, "l1Flag property is unknown");
         wfsFlagDefinition = taskManager.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(WFS_FLAG_QNAME);
         Validate.notNull(wfsFlagDefinition, "wfsFlag property is unknown");
-	}
+    }
 
-	private boolean hasRun = false;
+    private boolean hasRun = false;
     private int executions = 0;
 
-	@Override
-	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-		LOGGER.info("MockSingle.run starting (id = " + id + ")");
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+        LOGGER.info("MockSingle.run starting (id = " + id + ")");
 
-		OperationResult opResult = new OperationResult(MockSingleTaskHandler.class.getName()+".run");
-		TaskRunResult runResult = new TaskRunResult();
+        OperationResult opResult = new OperationResult(MockSingleTaskHandler.class.getName()+".run");
+        TaskRunResult runResult = new TaskRunResult();
 
-		runResult.setOperationResult(opResult);
+        runResult.setOperationResult(opResult);
 
-		// TODO
-		task.incrementProgressAndStoreStatsIfNeeded();
+        // TODO
+        task.incrementProgressAndStoreStatsIfNeeded();
 
-		opResult.recordSuccess();
+        opResult.recordSuccess();
 
-		// This "run" is finished. But the task goes on ...
-		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+        // This "run" is finished. But the task goes on ...
+        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 
-		hasRun = true;
-		executions++;
+        hasRun = true;
+        executions++;
 
         if ("L1".equals(id)) {
             PrismProperty<Boolean> l1flag = task.getExtensionPropertyOrClone(L1_FLAG_QNAME);
@@ -87,7 +87,7 @@ public class MockSingleTaskHandler implements TaskHandler {
                 ScheduleType l2Schedule = new ScheduleType();
                 l2Schedule.setInterval(2);
                 task.pushHandlerUri(AbstractTaskManagerTest.L2_TASK_HANDLER_URI, l2Schedule, TaskBinding.TIGHT, createExtensionDelta(l1FlagDefinition, true,
-		                taskManager.getPrismContext()));
+                        taskManager.getPrismContext()));
                 try {
                     task.flushPendingModifications(opResult);
                 } catch(Exception e) {
@@ -149,38 +149,38 @@ public class MockSingleTaskHandler implements TaskHandler {
 
         }
 
-		LOGGER.info("MockSingle.run stopping");
-		return runResult;
-	}
+        LOGGER.info("MockSingle.run stopping");
+        return runResult;
+    }
 
-	@Override
-	public Long heartbeat(Task task) {
-		// TODO Auto-generated method stub
-		return 0L;
-	}
-	@Override
-	public void refreshStatus(Task task) {
-		// TODO Auto-generated method stub
+    @Override
+    public Long heartbeat(Task task) {
+        // TODO Auto-generated method stub
+        return 0L;
+    }
+    @Override
+    public void refreshStatus(Task task) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	public boolean hasRun() {
-		return hasRun;
-	}
+    public boolean hasRun() {
+        return hasRun;
+    }
 
-	public void resetHasRun() {
-		hasRun = false;
-	}
+    public void resetHasRun() {
+        hasRun = false;
+    }
 
-	public int getExecutions() {
-		return executions;
-	}
+    public int getExecutions() {
+        return executions;
+    }
 
-	public void resetExecutions() {
-		executions = 0;
-	}
+    public void resetExecutions() {
+        executions = 0;
+    }
 
-	@Override
+    @Override
     public String getCategoryName(Task task) {
         return TaskCategory.MOCK;
     }

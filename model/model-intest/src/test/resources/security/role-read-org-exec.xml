@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
   <!-- MID-4931 -->
@@ -12,11 +12,11 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Read org exec</name>
     <authorization>
-    	<name>read-org-exec</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<phase>execution</phase>
-    	<object>
-    		<type>OrgType</type>
-    	</object>
+        <name>read-org-exec</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <phase>execution</phase>
+        <object>
+            <type>OrgType</type>
+        </object>
     </authorization>
 </role>

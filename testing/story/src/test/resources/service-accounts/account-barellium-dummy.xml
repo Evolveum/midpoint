@@ -2,25 +2,25 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <shadow oid="fe0d6d9a-a77d-11e8-a144-0bbeb63fd26b"
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-	<resourceRef oid="0069ac14-8377-11e8-b404-5b5a1a8af0db"/>
-	<objectClass>ri:AccountObjectClass</objectClass>
-	<kind>account</kind>
-	<intent>service</intent>
-	<attributes>
-		<icfs:name>barellium</icfs:name>
-		<ri:fullname>Barellium Magnum</ri:fullname>
-	</attributes>
-	<activation>
-		<administrativeStatus>enabled</administrativeStatus>
-	</activation>
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <resourceRef oid="0069ac14-8377-11e8-b404-5b5a1a8af0db"/>
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <kind>account</kind>
+    <intent>service</intent>
+    <attributes>
+        <icfs:name>barellium</icfs:name>
+        <ri:fullname>Barellium Magnum</ri:fullname>
+    </attributes>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
 </shadow>

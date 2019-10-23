@@ -2,37 +2,37 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <s:pipeline list="true" xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
-	<s:sequence list="true">
-		<s:search xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:SearchExpressionType">
-			<s:type>RoleType</s:type>
-			<s:searchFilter>
-				<equal>
-					<path>name</path>
-					<value>AAAAA</value>
-				</equal>
-			</s:searchFilter>
-		</s:search>
-		<s:action xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:ActionExpressionType">
-			<s:type>log</s:type>
-		</s:action>
-	</s:sequence>
-	<s:sequence list="true">
-		<s:action xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:ActionExpressionType">
-			<s:type>delete</s:type>
-		</s:action>
-		<s:action xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:ActionExpressionType">
-			<s:type>assign</s:type>
-			<s:parameter xmlns:qn81="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-				<s:name>role</s:name>
-				<value xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">rome555c-7797-11e2-94a6-001e8c717e5b</value>
-			</s:parameter>
-		</s:action>
-		<s:search xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:SearchExpressionType">
-			<s:type>UserType</s:type>
-		</s:search>
-	</s:sequence>
+    <s:sequence list="true">
+        <s:search xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:SearchExpressionType">
+            <s:type>RoleType</s:type>
+            <s:searchFilter>
+                <equal>
+                    <path>name</path>
+                    <value>AAAAA</value>
+                </equal>
+            </s:searchFilter>
+        </s:search>
+        <s:action xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:ActionExpressionType">
+            <s:type>log</s:type>
+        </s:action>
+    </s:sequence>
+    <s:sequence list="true">
+        <s:action xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:ActionExpressionType">
+            <s:type>delete</s:type>
+        </s:action>
+        <s:action xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:ActionExpressionType">
+            <s:type>assign</s:type>
+            <s:parameter xmlns:qn81="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+                <s:name>role</s:name>
+                <value xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">rome555c-7797-11e2-94a6-001e8c717e5b</value>
+            </s:parameter>
+        </s:action>
+        <s:search xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:SearchExpressionType">
+            <s:type>UserType</s:type>
+        </s:search>
+    </s:sequence>
 </s:pipeline>

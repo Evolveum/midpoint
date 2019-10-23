@@ -2,20 +2,20 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="integration" parallel="false">
-	<listeners>
-		<listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
-	</listeners>
+    <listeners>
+        <listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
+    </listeners>
     <test name="Model Integration" preserve-order="true" parallel="false" verbose="10">
         <classes>
-        	<class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
-        	<class name="com.evolveum.midpoint.model.intest.TestModelServiceContractCaching"/>
-        	<class name="com.evolveum.midpoint.model.intest.TestModelCrudService"/>
-        	<class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
+            <class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
+            <class name="com.evolveum.midpoint.model.intest.TestModelServiceContractCaching"/>
+            <class name="com.evolveum.midpoint.model.intest.TestModelCrudService"/>
+            <class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
             <class name="com.evolveum.midpoint.model.intest.TestMultiResource"/>
             <class name="com.evolveum.midpoint.model.intest.TestMultiAccount"/>
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplate"/>
@@ -133,7 +133,7 @@
             <class name="com.evolveum.midpoint.model.intest.manual.TestManualGrouping"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualGrouping"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualGroupingProposed"/>
-            <!--  DISABLED MID-4166 
+            <!--  DISABLED MID-4166
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualSlowProposed"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisableSlowProposed"/> -->
             <class name="com.evolveum.midpoint.model.intest.manual.TestDummyItsmIntegration"/>

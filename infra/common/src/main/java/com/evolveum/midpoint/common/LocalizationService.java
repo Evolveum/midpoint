@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,7 +29,7 @@ public interface LocalizationService {
     default String translate(LocalizableMessage msg) {
         return translate(msg, getDefaultLocale());
     }
-    
+
     String translate(PolyString polyString, Locale locale, boolean allowOrig);
 
     default String translate(PolyString polyString) {
@@ -44,6 +44,6 @@ public interface LocalizationService {
      * Fills-in message and localizedMessage based on userFriendlyMessage, if needed.
      */
     <T extends CommonException> T translate(T e);
-    
+
     Locale getDefaultLocale();
 }

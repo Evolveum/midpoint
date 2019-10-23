@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -53,12 +53,12 @@ public class SchemaStep extends WizardStep {
     private static final String ID_ACE_EDITOR = "aceEditor";
 
     @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> model;
-	@NotNull private final PageResourceWizard parentPage;
+    @NotNull private final PageResourceWizard parentPage;
 
     public SchemaStep(@NotNull NonEmptyLoadableModel<PrismObject<ResourceType>> model, @NotNull PageResourceWizard parentPage) {
         super(parentPage);
         this.model = model;
-		this.parentPage = parentPage;
+        this.parentPage = parentPage;
         setOutputMarkupId(true);
 
         initLayout();
@@ -84,16 +84,16 @@ public class SchemaStep extends WizardStep {
     }
 
     private IModel<String> createStringModel(String resourceKey) {
-    	return PageBase.createStringResourceStatic(this, resourceKey);
+        return PageBase.createStringResourceStatic(this, resourceKey);
     }
 
     private IModel<String> createXmlEditorModel() {
         return new IModel<String>() {
-			@Override
-			public void detach() {
-			}
+            @Override
+            public void detach() {
+            }
 
-			@Override
+            @Override
             public String getObject() {
                 PrismObject<ResourceType> resource = model.getObject();
                 PrismContainer xmlSchema = resource.findContainer(ResourceType.F_SCHEMA);
@@ -106,33 +106,33 @@ public class SchemaStep extends WizardStep {
                 try {
                     return page.getPrismContext().xmlSerializer().serialize(xmlSchema.getValue(), SchemaConstantsGenerated.C_SCHEMA);
                 } catch (SchemaException|RuntimeException ex) {
-					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't serialize resource schema", ex);
-					return WebComponentUtil.exceptionToString("Couldn't serialize resource schema", ex);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't serialize resource schema", ex);
+                    return WebComponentUtil.exceptionToString("Couldn't serialize resource schema", ex);
                 }
             }
 
-			@Override
-			public void setObject(String object) {
-				// ignore (it's interesting that this is called sometimes, even when the ACE is set to be read only)
-			}
-		};
+            @Override
+            public void setObject(String object) {
+                // ignore (it's interesting that this is called sometimes, even when the ACE is set to be read only)
+            }
+        };
     }
 
     private void reloadPerformed(AjaxRequestTarget target) {
         Task task = getPageBase().createSimpleTask(OPERATION_RELOAD_RESOURCE_SCHEMA);
         OperationResult result = task.getResult();
 
-		try {
-			ResourceUtils.deleteSchema(model.getObject(), parentPage.getModelService(), parentPage.getPrismContext(), task, result);
-			parentPage.resetModels();
-			result.computeStatusIfUnknown();
-		} catch (CommonException|RuntimeException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reload the schema", e);
-			result.recordFatalError(createStringResource("SchemaStep.message.reload.fatalError", e.getMessage()).getString(), e);
-		}
+        try {
+            ResourceUtils.deleteSchema(model.getObject(), parentPage.getModelService(), parentPage.getPrismContext(), task, result);
+            parentPage.resetModels();
+            result.computeStatusIfUnknown();
+        } catch (CommonException|RuntimeException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reload the schema", e);
+            result.recordFatalError(createStringResource("SchemaStep.message.reload.fatalError", e.getMessage()).getString(), e);
+        }
 
-//		if (result.isSuccess()) {
-//			LOGGER.info(getString("SchemaStep.message.reload.ok", WebComponentUtil.getName(resource)));
+//        if (result.isSuccess()) {
+//            LOGGER.info(getString("SchemaStep.message.reload.ok", WebComponentUtil.getName(resource)));
 //            result.recordSuccess();
 //        } else {
 //            LOGGER.error(getString("SchemaStep.message.reload.fail", WebComponentUtil.getName(resource)));

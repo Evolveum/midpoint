@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.sync;
@@ -51,71 +51,71 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
 @Component
 public class LiveSyncTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/live-sync/handler-3";
+    public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/live-sync/handler-3";
 
     @Autowired private TaskManager taskManager;
-	@Autowired private ProvisioningService provisioningService;
-	@Autowired private PrismContext prismContext;
-	@Autowired private SyncTaskHelper helper;
+    @Autowired private ProvisioningService provisioningService;
+    @Autowired private PrismContext prismContext;
+    @Autowired private SyncTaskHelper helper;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(LiveSyncTaskHandler.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(LiveSyncTaskHandler.class);
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(HANDLER_URI, this);
+    }
 
-	@NotNull
-	@Override
-	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-		return new StatisticsCollectionStrategy()
-				.fromStoredValues()
-				.maintainIterationStatistics()
-				.maintainSynchronizationStatistics()
-				.maintainActionsExecutedStatistics();
-	}
+    @NotNull
+    @Override
+    public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+        return new StatisticsCollectionStrategy()
+                .fromStoredValues()
+                .maintainIterationStatistics()
+                .maintainSynchronizationStatistics()
+                .maintainActionsExecutedStatistics();
+    }
 
-	@Override
-	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-		LOGGER.trace("LiveSyncTaskHandler.run starting");
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+        LOGGER.trace("LiveSyncTaskHandler.run starting");
 
 
-		OperationResult opResult = new OperationResult(OperationConstants.LIVE_SYNC);
-		TaskRunResult runResult = new TaskRunResult();
-		runResult.setOperationResult(opResult);
+        OperationResult opResult = new OperationResult(OperationConstants.LIVE_SYNC);
+        TaskRunResult runResult = new TaskRunResult();
+        runResult.setOperationResult(opResult);
 
-		if (task.getChannel() == null) {
-			task.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
-		}
+        if (task.getChannel() == null) {
+            task.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+        }
 
-		final String CTX = "Live Sync";
+        final String CTX = "Live Sync";
 
-		TargetInfo targetInfo = helper.getTargetInfo(LOGGER, task, opResult, runResult, CTX);
-		if (targetInfo == null) {
-			return runResult;
-		}
+        TargetInfo targetInfo = helper.getTargetInfo(LOGGER, task, opResult, runResult, CTX);
+        if (targetInfo == null) {
+            return runResult;
+        }
 
-		int changesProcessed;
+        int changesProcessed;
 
-		try {
-			// Calling synchronize(..) in provisioning.
-			// This will detect the changes and notify model about them.
-			// It will use extension of task to store synchronization state
+        try {
+            // Calling synchronize(..) in provisioning.
+            // This will detect the changes and notify model about them.
+            // It will use extension of task to store synchronization state
             ModelImplUtils.clearRequestee(task);
-			changesProcessed = provisioningService.synchronize(targetInfo.coords, task, partition, opResult);
-		} catch (Throwable t) {
-			helper.processException(LOGGER, t, opResult, runResult, partition, CTX);
-			return runResult;
-		}
+            changesProcessed = provisioningService.synchronize(targetInfo.coords, task, partition, opResult);
+        } catch (Throwable t) {
+            helper.processException(LOGGER, t, opResult, runResult, partition, CTX);
+            return runResult;
+        }
 
         opResult.createSubresult(OperationConstants.LIVE_SYNC_STATISTICS).recordStatus(OperationResultStatus.SUCCESS, "Changes processed: " + changesProcessed);
         opResult.computeStatus();
 
         // This "run" is finished. But the task goes on ...
-		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {})", targetInfo.resource);
-		return runResult;
-	}
+        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+        LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {})", targetInfo.resource);
+        return runResult;
+    }
 
     @Override
     public String getCategoryName(Task task) {

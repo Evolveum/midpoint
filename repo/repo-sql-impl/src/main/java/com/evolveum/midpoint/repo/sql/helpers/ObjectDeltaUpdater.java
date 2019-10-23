@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -75,7 +75,7 @@ public class ObjectDeltaUpdater {
     @Autowired private ExtItemDictionary extItemDictionary;
     @Autowired private BaseHelper baseHelper;
 
-    private static class Context {
+    private static final class Context {
         private final RepoModifyOptions options;
         private final PrismIdentifierGenerator<?> idGenerator;
         private final Session session;
@@ -235,12 +235,13 @@ public class ObjectDeltaUpdater {
         RFocus<?> focus = (RFocus<?>) bean;
         Set<RFocusPhoto> photos = focus.getJpegPhoto();
 
-        if (delta.isDelete()) {
+        if (isDelete(delta)) {
             photos.clear();
             return;
         }
 
         MapperContext context = new MapperContext();
+
         context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary,
                 baseHelper.getConfiguration()));
         context.setDelta(delta);
@@ -269,6 +270,19 @@ public class ObjectDeltaUpdater {
         oldPhoto.setPhoto(photo.getPhoto());
     }
 
+    private boolean isDelete(ItemDelta delta) {
+        if (delta.isDelete()) {
+            return true;
+        }
+
+        if (delta.isReplace()) {
+            if (delta.getAnyValue() == null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
     @SuppressWarnings("Duplicates")
     private void handleWholeMetadata(Metadata<?> bean, ItemDelta delta) {
         PrismValue value = null;

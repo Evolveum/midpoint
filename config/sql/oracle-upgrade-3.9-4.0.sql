@@ -18,7 +18,7 @@ CREATE INDEX iDashboardNameOrig
   ON m_dashboard (name_orig) INITRANS 30;
 ALTER TABLE m_dashboard
   ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
-  
+
 ALTER TABLE m_dashboard
   ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 

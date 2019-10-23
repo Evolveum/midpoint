@@ -1203,8 +1203,8 @@ COMMIT;
 --#     I added "SelectMethod=cursor;" to my Connection URL in the config file.
 --#     It Seems to work, hopefully no side effects.
 --#
---#		example:
---#		"jdbc:microsoft:sqlserver://dbmachine:1433;SelectMethod=cursor";
+--#        example:
+--#        "jdbc:microsoft:sqlserver://dbmachine:1433;SelectMethod=cursor";
 --#
 --# Another user has pointed out that you will probably need to use the
 --# JTDS driver

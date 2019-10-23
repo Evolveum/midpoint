@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -47,18 +47,18 @@ public class ExclusionCertificationHandler extends BaseCertificationHandler {
     @Override
     public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> objectPrism,
             AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) {
-		F focus = objectPrism.asObjectable();
+        F focus = objectPrism.asObjectable();
         List<AccessCertificationCaseType> caseList = new ArrayList<>();
-		for (AssignmentType assignment : focus.getAssignment()) {
-			if (assignment.getPolicySituation().contains(SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION)) {
-				processAssignment(assignment, focus, caseList);
-			}
+        for (AssignmentType assignment : focus.getAssignment()) {
+            if (assignment.getPolicySituation().contains(SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION)) {
+                processAssignment(assignment, focus, caseList);
+            }
         }
         return caseList;
     }
 
-	private void processAssignment(AssignmentType assignment, ObjectType object, List<AccessCertificationCaseType> caseList) {
-		AccessCertificationAssignmentCaseType assignmentCase = new AccessCertificationAssignmentCaseType(prismContext);
+    private void processAssignment(AssignmentType assignment, ObjectType object, List<AccessCertificationCaseType> caseList) {
+        AccessCertificationAssignmentCaseType assignmentCase = new AccessCertificationAssignmentCaseType(prismContext);
         assignmentCase.setAssignment(assignment.clone());
         assignmentCase.setObjectRef(ObjectTypeUtil.createObjectRef(object, prismContext));
         assignmentCase.setTenantRef(assignment.getTenantRef());
@@ -67,10 +67,10 @@ public class ExclusionCertificationHandler extends BaseCertificationHandler {
         if (assignment.getTargetRef() != null) {
             assignmentCase.setTargetRef(assignment.getTargetRef());
         } else {
-        	// very strange: assignment with no target, but participating in the exclusion?
-			// maybe a dynamic target, though
-		}
-		caseList.add(assignmentCase);
+            // very strange: assignment with no target, but participating in the exclusion?
+            // maybe a dynamic target, though
+        }
+        caseList.add(assignmentCase);
     }
 
 
@@ -79,7 +79,7 @@ public class ExclusionCertificationHandler extends BaseCertificationHandler {
         if (!(aCase instanceof AccessCertificationAssignmentCaseType)) {
             throw new IllegalStateException("Expected " + AccessCertificationAssignmentCaseType.class + ", got " + aCase.getClass() + " instead");
         }
-		revokeAssignmentCase((AccessCertificationAssignmentCaseType) aCase, campaign, caseResult, task);
+        revokeAssignmentCase((AccessCertificationAssignmentCaseType) aCase, campaign, caseResult, task);
     }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -65,11 +65,11 @@ public class MidPointProfilingServletFilter implements Filter {
             long startTime = System.nanoTime();
 
             try {
-            	chain.doFilter(request, response);
-        	} catch (IOException | ServletException | RuntimeException | Error e) {
+                chain.doFilter(request, response);
+            } catch (IOException | ServletException | RuntimeException | Error e) {
                 logException(e);
-        		throw e;
-        	}
+                throw e;
+            }
 
             long elapsedTime = System.nanoTime() - startTime;
 
@@ -81,12 +81,12 @@ public class MidPointProfilingServletFilter implements Filter {
                 }
             }
         } else {
-        	try {
-        		chain.doFilter(request, response);
-        	} catch (IOException | ServletException | RuntimeException | Error e) {
-        		logException(e);
-        		throw e;
-        	}
+            try {
+                chain.doFilter(request, response);
+            } catch (IOException | ServletException | RuntimeException | Error e) {
+                logException(e);
+                throw e;
+            }
          }
     }
 

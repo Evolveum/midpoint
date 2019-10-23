@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -49,43 +49,43 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
 
     public SearchFilterPanel(String id, @NotNull final NonEmptyModel<T> filterModel, @NotNull NonEmptyModel<Boolean> readOnlyModel) {
         super(id, filterModel);
-		clauseStringModel = new LoadableModel<String>(false) {
-			@Override
-			protected String load() {
-				return loadFilterClause(getPageBase().getPrismContext());
-			}
-		};
-		initLayout(readOnlyModel);
+        clauseStringModel = new LoadableModel<String>(false) {
+            @Override
+            protected String load() {
+                return loadFilterClause(getPageBase().getPrismContext());
+            }
+        };
+        initLayout(readOnlyModel);
     }
 
-	private String loadFilterClause(PrismContext prismContext) {
-		try {
-			T filter = getModelObject();
-			if (filter.containsFilterClause()) {
-				RootXNode clause = filter.getFilterClauseAsRootXNode();
-				String xml = prismContext.xmlSerializer().serialize(clause);
-				return WebXmlUtil.stripNamespaceDeclarations(xml);
-			} else {
-				return null;
-			}
-		} catch (SchemaException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Could not load filterClause from SearchFilterType object.", e);
-			// TODO - find better solution to inform user about fail in filterClause loading
-			return e.getMessage();
-		}
-	}
+    private String loadFilterClause(PrismContext prismContext) {
+        try {
+            T filter = getModelObject();
+            if (filter.containsFilterClause()) {
+                RootXNode clause = filter.getFilterClauseAsRootXNode();
+                String xml = prismContext.xmlSerializer().serialize(clause);
+                return WebXmlUtil.stripNamespaceDeclarations(xml);
+            } else {
+                return null;
+            }
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not load filterClause from SearchFilterType object.", e);
+            // TODO - find better solution to inform user about fail in filterClause loading
+            return e.getMessage();
+        }
+    }
 
 
-	protected void initLayout(NonEmptyModel<Boolean> readOnlyModel) {
+    protected void initLayout(NonEmptyModel<Boolean> readOnlyModel) {
 
-		TextArea<String> description = new TextArea<>(ID_DESCRIPTION,
-				new PropertyModel<String>(getModel(), SearchFilterType.F_DESCRIPTION.getLocalPart()));
-		description.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
-		add(description);
+        TextArea<String> description = new TextArea<>(ID_DESCRIPTION,
+                new PropertyModel<String>(getModel(), SearchFilterType.F_DESCRIPTION.getLocalPart()));
+        description.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+        add(description);
 
-		AceEditor clause = new AceEditor(ID_FILTER_CLAUSE, clauseStringModel);
-		clause.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
-		add(clause);
+        AceEditor clause = new AceEditor(ID_FILTER_CLAUSE, clauseStringModel);
+        clause.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+        add(clause);
 
         AjaxSubmitLink update = new AjaxSubmitLink(ID_BUTTON_UPDATE) {
 
@@ -94,7 +94,7 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
                 updateClausePerformed(target);
             }
         };
-		update.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+        update.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         add(update);
 
         Label clauseTooltip = new Label(ID_T_CLAUSE);
@@ -115,17 +115,17 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
         target.add(getPageBase().getFeedbackPanel());
     }
 
-	private void updateFilterClause(PrismContext context) throws SchemaException {
-		final String clauseString = clauseStringModel.getObject();
-		if (StringUtils.isNotEmpty(clauseString)) {
-			LOGGER.trace("Filter Clause to serialize: {}", clauseString);
-			RootXNode filterClauseNode = ExpressionUtil.parseSearchFilter(clauseString, context);
-			getModelObject().setFilterClauseXNode(filterClauseNode);
-		} else {
-			if (getModelObject() != null) {
-				getModelObject().setFilterClauseXNode((MapXNode) null);
-			}
-		}
-	}
+    private void updateFilterClause(PrismContext context) throws SchemaException {
+        final String clauseString = clauseStringModel.getObject();
+        if (StringUtils.isNotEmpty(clauseString)) {
+            LOGGER.trace("Filter Clause to serialize: {}", clauseString);
+            RootXNode filterClauseNode = ExpressionUtil.parseSearchFilter(clauseString, context);
+            getModelObject().setFilterClauseXNode(filterClauseNode);
+        } else {
+            if (getModelObject() != null) {
+                getModelObject().setFilterClauseXNode((MapXNode) null);
+            }
+        }
+    }
 
 }

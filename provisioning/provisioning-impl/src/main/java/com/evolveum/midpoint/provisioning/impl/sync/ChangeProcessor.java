@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -60,7 +60,7 @@ public class ChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChangeProcessor.class);
 
-    private static String OP_PROCESS_SYNCHRONIZATION = ChangeProcessor.class.getName() + ".processSynchronization";
+    private static final String OP_PROCESS_SYNCHRONIZATION = ChangeProcessor.class.getName() + ".processSynchronization";
 
     @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired private ShadowManager shadowManager;
@@ -83,6 +83,15 @@ public class ChangeProcessor {
             if (ctx == null) {
                 request.setSuccess(true);
                 return;
+            }
+
+            // This is a bit of hack to propagate information about async update channel to upper layers
+            // e.g. to implement MID-5853. In async update scenario the task here is the newly-created
+            // that is used to execute the request. On the other hand, the task in globalCtx is the original
+            // one that was used to start listening for changes. TODO This is to be cleaned up.
+            // But for the time being let's forward with this hack.
+            if (SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI.equals(task.getChannel())) {
+                ctx.setChannelOverride(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
             }
 
             if (change.getObjectDelta() != null) {
@@ -137,7 +146,7 @@ public class ChangeProcessor {
                 // going to be deleted or whether it stays. Model needs to adjust links accordingly.
                 // And we need to modify ResourceObjectChangeListener for that. Keeping all dead
                 // shadows is much easier.
-                //				deleteShadowFromRepoIfNeeded(change, result);
+                //                deleteShadowFromRepoIfNeeded(change, result);
                 request.setSuccess(true);
             } else {
                 request.setSuccess(false);

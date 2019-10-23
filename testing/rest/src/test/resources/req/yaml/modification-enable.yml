@@ -15,7 +15,7 @@
 #
 ---
 '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
-objectModification : 
+objectModification :
   itemDelta :
     '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
     modificationType : "replace"

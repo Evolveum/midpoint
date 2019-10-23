@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -43,12 +43,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintTy
 
 public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicyConfigurationType>> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
 
-	private static final Trace LOGGER = TraceManager.getTrace(ObjectPolicyConfigurationEditor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectPolicyConfigurationEditor.class);
 
-	private static final String DOT_CLASS = ObjectPolicyConfigurationEditor.class.getName() + ".";
+    private static final String DOT_CLASS = ObjectPolicyConfigurationEditor.class.getName() + ".";
 
     private static final String ID_LABEL = "label";
     private static final String ID_REPEATER = "repeater";
@@ -98,15 +98,15 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
         add(addFirst);
 
         ListView<ObjectPolicyConfigurationType> repeater = new ListView<ObjectPolicyConfigurationType>(ID_REPEATER, getModel()) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(final ListItem<ObjectPolicyConfigurationType> item) {
                 WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
                 textWrapper.add(AttributeAppender.prepend("class", new IModel<String>(){
-					private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-					@Override
+                    @Override
                     public String getObject(){
                         if(item.getIndex() > 0){
                             return OFFSET_CLASS + " " + CLASS_MULTI_VALUE;
@@ -120,7 +120,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
                 TextField<String> name = new TextField<>(ID_NAME, createNameModel(item.getModel()));
                 name.setOutputMarkupId(true);
                 name.add(new AjaxFormComponentUpdatingBehavior("blur") {
-                	private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {}
@@ -133,7 +133,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
                 textWrapper.add(feedback);
 
                 AjaxLink<String> edit = new AjaxLink<String>(ID_BUTTON_EDIT) {
-                	private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -144,7 +144,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
 
                 WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
                 buttonGroup.add(AttributeAppender.append("class", new IModel<String>() {
-                	private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public String getObject() {
@@ -170,12 +170,12 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
         List<ObjectPolicyConfigurationType> list = getModelObject();
         for(ObjectPolicyConfigurationType o: list){
             if(old.equals(o)){
-            		o.getPropertyConstraint().clear();
-            		for (PropertyConstraintType constraintType : newC.getPropertyConstraint()) {
-            			PrismContainerValue<PropertyConstraintType> constraint = constraintType.asPrismContainerValue();
-            			o.getPropertyConstraint().add(constraint.clone().asContainerable());
-            		}
-            		o.setObjectTemplateRef(newC.getObjectTemplateRef());
+                    o.getPropertyConstraint().clear();
+                    for (PropertyConstraintType constraintType : newC.getPropertyConstraint()) {
+                        PrismContainerValue<PropertyConstraintType> constraint = constraintType.asPrismContainerValue();
+                        o.getPropertyConstraint().add(constraint.clone().asContainerable());
+                    }
+                    o.setObjectTemplateRef(newC.getObjectTemplateRef());
                 o.setType(newC.getType());
                 o.setSubtype(newC.getSubtype());
                 added = true;
@@ -189,7 +189,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem<ObjectPolicyConfigurationType> item){
         AjaxLink<String> add = new AjaxLink<String>(ID_BUTTON_ADD) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -197,7 +197,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
             }
         };
         add.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -207,7 +207,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
         buttonGroup.add(add);
 
         AjaxLink<String> remove = new AjaxLink<String>(ID_BUTTON_REMOVE) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -215,7 +215,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
             }
         };
         remove.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -248,9 +248,9 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
 
     private IModel<String> createNameModel(final IModel<ObjectPolicyConfigurationType> model){
         return new LoadableModel<String>() {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public String load() {
                 StringBuilder sb = new StringBuilder();
                 ObjectPolicyConfigurationType config = model.getObject();
@@ -259,25 +259,25 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
                     ObjectReferenceType ref = config.getObjectTemplateRef();
 
                     if (ref != null) {
-                    	sb.append(WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()));
+                        sb.append(WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()));
                     }
 
                     if (config.getConflictResolution() != null) {
-                    	if (sb.length() > 0) {
-                    		sb.append(" ");
-	                    }
+                        if (sb.length() > 0) {
+                            sb.append(" ");
+                        }
                         sb.append(getString("ObjectPolicyConfigurationEditor.conflictResolution"));
                     }
 
                     if(config.getType() != null) {
-                    	if (sb.length() > 0) {
-		                    sb.append(": ");
-	                    }
+                        if (sb.length() > 0) {
+                            sb.append(": ");
+                        }
                         sb.append(config.getType().getLocalPart());
                     }
 
                     if (config.getSubtype() != null) {
-                    	sb.append("(").append(config.getSubtype()).append(")");
+                        sb.append("(").append(config.getSubtype()).append(")");
                     }
                 }
 
@@ -310,10 +310,10 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
     }
 
     private void editPerformed(AjaxRequestTarget target, ListItem<ObjectPolicyConfigurationType> item){
-    	ObjectPolicyPanel objectPolicyPanel = new ObjectPolicyPanel(getPageBase().getMainPopupBodyId(), item.getModelObject()) {
-    		private static final long serialVersionUID = 1L;
+        ObjectPolicyPanel objectPolicyPanel = new ObjectPolicyPanel(getPageBase().getMainPopupBodyId(), item.getModelObject()) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
              protected void savePerformed(AjaxRequestTarget target){
                  ObjectPolicyConfigurationType oldConfig = getModel().getObject().getConfig();
                  OperationResult result = new OperationResult(DOT_CLASS + "preparePropertyConstraint");
@@ -324,9 +324,9 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
                  getPageBase().showResult(result, false);
                  target.add(ObjectPolicyConfigurationEditor.this);
              }
-    	};
-    	objectPolicyPanel.setOutputMarkupId(true);
-    	getPageBase().showMainPopup(objectPolicyPanel, target);
+        };
+        objectPolicyPanel.setOutputMarkupId(true);
+        getPageBase().showMainPopup(objectPolicyPanel, target);
     }
 
 }

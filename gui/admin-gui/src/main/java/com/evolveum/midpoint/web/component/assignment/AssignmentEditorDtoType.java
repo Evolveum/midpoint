@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,7 +29,7 @@ public enum AssignmentEditorDtoType {
 
     POLICY_RULE(null, PolicyRuleType.COMPLEX_TYPE, GuiStyleConstants.CLASS_FILE_TEXT),
 
-	PERSONA_CONSTRUCTION(null, PersonaConstructionType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_USER_ICON);
+    PERSONA_CONSTRUCTION(null, PersonaConstructionType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_USER_ICON);
 
     private Class<? extends ObjectType> type;
     private QName qname;
@@ -77,7 +77,7 @@ public enum AssignmentEditorDtoType {
         throw new IllegalArgumentException("Unknown assignment type '" + type + "'.");
     }
 
-	public String getIconCssClass() {
-		return iconCssClass;
-	}
+    public String getIconCssClass() {
+        return iconCssClass;
+    }
 }

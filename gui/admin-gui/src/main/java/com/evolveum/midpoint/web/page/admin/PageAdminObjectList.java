@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin;
@@ -60,7 +60,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         super(parameters);
         initLayout();
     }
-    
+
     protected void initLayout() {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
@@ -173,12 +173,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
             @Override
             protected String getStorageKey() {
-                StringValue collectionName = getCollectionNameParameterValue();
-                String collectionNameValue = collectionName != null ? collectionName.toString() : "";
-                String key = isCollectionViewPage() ? WebComponentUtil.getObjectListPageStorageKey(collectionNameValue) :
-                        super.getStorageKey();
-//WebComponentUtil.getObjectListPageStorageKey(getType().getSimpleName()
-                return key;
+                return PageAdminObjectList.this.getStorageKey();
             }
 
             protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<O>> provider){
@@ -199,6 +194,14 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     protected abstract List<InlineMenuItem> createRowActions();
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
+
+    protected String getStorageKey(){
+        StringValue collectionName = getCollectionNameParameterValue();
+        String collectionNameValue = collectionName != null ? collectionName.toString() : "";
+        String key = isCollectionViewPage() ? WebComponentUtil.getObjectListPageStorageKey(collectionNameValue) :
+                WebComponentUtil.getObjectListPageStorageKey(getType().getSimpleName());
+        return key;
+    }
 
     protected boolean isCreateNewObjectEnabled(){
         return true;

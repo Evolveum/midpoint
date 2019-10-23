@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async;
@@ -20,66 +20,66 @@ import java.util.Objects;
 @SuppressWarnings({ "WeakerAccess", "unused" })
 public class AsyncUpdateConnectorConfiguration {
 
-	private AsyncUpdateSourcesType sources;
-	private ExpressionType transformExpression;
-	private AsyncUpdateErrorHandlingActionType errorHandlingAction;
-	private ProcessTracingConfigurationType processTracingConfiguration;
+    private AsyncUpdateSourcesType sources;
+    private ExpressionType transformExpression;
+    private AsyncUpdateErrorHandlingActionType errorHandlingAction;
+    private ProcessTracingConfigurationType processTracingConfiguration;
 
-	@ConfigurationProperty
-	public AsyncUpdateSourcesType getSources() {
-		return sources;
-	}
+    @ConfigurationProperty
+    public AsyncUpdateSourcesType getSources() {
+        return sources;
+    }
 
-	public void setSources(AsyncUpdateSourcesType sources) {
-		this.sources = sources;
-	}
+    public void setSources(AsyncUpdateSourcesType sources) {
+        this.sources = sources;
+    }
 
-	@ConfigurationProperty
-	public ExpressionType getTransformExpression() {
-		return transformExpression;
-	}
+    @ConfigurationProperty
+    public ExpressionType getTransformExpression() {
+        return transformExpression;
+    }
 
-	public void setTransformExpression(ExpressionType transformExpression) {
-		this.transformExpression = transformExpression;
-	}
+    public void setTransformExpression(ExpressionType transformExpression) {
+        this.transformExpression = transformExpression;
+    }
 
-	@ConfigurationProperty
-	public AsyncUpdateErrorHandlingActionType getErrorHandlingAction() {
-		return errorHandlingAction;
-	}
+    @ConfigurationProperty
+    public AsyncUpdateErrorHandlingActionType getErrorHandlingAction() {
+        return errorHandlingAction;
+    }
 
-	public void setErrorHandlingAction(AsyncUpdateErrorHandlingActionType errorHandlingAction) {
-		this.errorHandlingAction = errorHandlingAction;
-	}
+    public void setErrorHandlingAction(AsyncUpdateErrorHandlingActionType errorHandlingAction) {
+        this.errorHandlingAction = errorHandlingAction;
+    }
 
-	@ConfigurationProperty
-	public ProcessTracingConfigurationType getProcessTracingConfiguration() {
-		return processTracingConfiguration;
-	}
+    @ConfigurationProperty
+    public ProcessTracingConfigurationType getProcessTracingConfiguration() {
+        return processTracingConfiguration;
+    }
 
-	public void setProcessTracingConfiguration(
-			ProcessTracingConfigurationType processTracingConfiguration) {
-		this.processTracingConfiguration = processTracingConfiguration;
-	}
+    public void setProcessTracingConfiguration(
+            ProcessTracingConfigurationType processTracingConfiguration) {
+        this.processTracingConfiguration = processTracingConfiguration;
+    }
 
-	public void validate() {
-		if (getAllSources().isEmpty()) {
-			throw new IllegalStateException("No asynchronous update sources were configured");
-		}
-	}
+    public void validate() {
+        if (getAllSources().isEmpty()) {
+            throw new IllegalStateException("No asynchronous update sources were configured");
+        }
+    }
 
-	@NotNull
-	List<AsyncUpdateSourceType> getAllSources() {
-		List<AsyncUpdateSourceType> allSources = new ArrayList<>();
-		if (sources != null) {
-			allSources.addAll(sources.getAmqp091());
-			allSources.addAll(sources.getOther());
-		}
-		return allSources;
-	}
+    @NotNull
+    List<AsyncUpdateSourceType> getAllSources() {
+        List<AsyncUpdateSourceType> allSources = new ArrayList<>();
+        if (sources != null) {
+            allSources.addAll(sources.getAmqp091());
+            allSources.addAll(sources.getOther());
+        }
+        return allSources;
+    }
 
-	boolean hasSourcesChanged(AsyncUpdateConnectorConfiguration other) {
-		// we can consider weaker comparison here in the future
-		return other == null || !Objects.equals(other.sources, sources);
-	}
+    boolean hasSourcesChanged(AsyncUpdateConnectorConfiguration other) {
+        // we can consider weaker comparison here in the future
+        return other == null || !Objects.equals(other.sources, sources);
+    }
 }

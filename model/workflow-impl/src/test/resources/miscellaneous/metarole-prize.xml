@@ -2,50 +2,50 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role oid="2330f9df-83bc-4270-86fc-27fca2b616a7"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<name>prize</name>
-	<inducement>
-		<policyRule>
-			<name>pruning-gold</name>
-			<policyConstraints>
-				<exclusion>
-					<targetRef oid="0b3ad53e-7c1d-41d0-a447-ce94cd25c46a" type="RoleType"/>	<!-- gold -->
-				</exclusion>
-			</policyConstraints>
-			<policyActions>
-				<prune/>
-			</policyActions>
-		</policyRule>
-	</inducement>
-	<inducement>
-		<policyRule>
-			<name>pruning-silver</name>
-			<policyConstraints>
-				<exclusion>
-					<targetRef oid="ee5206f8-930a-4c85-bfee-c16e4462df23" type="RoleType"/> <!-- silver -->
-				</exclusion>
-			</policyConstraints>
-			<policyActions>
-				<prune/>
-			</policyActions>
-		</policyRule>
-	</inducement>
-	<inducement>
-		<policyRule>
-			<name>pruning-bronze</name>
-			<policyConstraints>
-				<exclusion>
-					<targetRef oid="f16f4dd7-2830-4d0a-b6ed-9fbf253dbaf3" type="RoleType"/> <!-- bronze -->
-				</exclusion>
-			</policyConstraints>
-			<policyActions>
-				<prune/>
-			</policyActions>
-		</policyRule>
-	</inducement>
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>prize</name>
+    <inducement>
+        <policyRule>
+            <name>pruning-gold</name>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="0b3ad53e-7c1d-41d0-a447-ce94cd25c46a" type="RoleType"/>    <!-- gold -->
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <prune/>
+            </policyActions>
+        </policyRule>
+    </inducement>
+    <inducement>
+        <policyRule>
+            <name>pruning-silver</name>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="ee5206f8-930a-4c85-bfee-c16e4462df23" type="RoleType"/> <!-- silver -->
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <prune/>
+            </policyActions>
+        </policyRule>
+    </inducement>
+    <inducement>
+        <policyRule>
+            <name>pruning-bronze</name>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="f16f4dd7-2830-4d0a-b6ed-9fbf253dbaf3" type="RoleType"/> <!-- bronze -->
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <prune/>
+            </policyActions>
+        </policyRule>
+    </inducement>
 </role>

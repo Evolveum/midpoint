@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.self.component;
@@ -50,14 +50,14 @@ public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
     public LinksPanel(String id, IModel<List<RichHyperlinkType>> model) {
         super(id, model);
     }
-    
+
     @Override
     protected void onInitialize() {
-    	super.onInitialize();
-    	initLayout();
+        super.onInitialize();
+        initLayout();
     }
 
-  
+
     protected void initLayout() {
 
         final List<RichHyperlinkType> linksList = getModel().getObject();
@@ -90,20 +90,20 @@ public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
 
             WebMarkupContainer column = new WebMarkupContainer(columnView.newChildId());
             Link<Void> linkItem = new Link<Void>(ID_LINK) {
-            	
-            	private static final long serialVersionUID = 1L;
 
-				@Override
-				public void onClick() {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				@Override
-				protected void onComponentTag(ComponentTag tag) {
-					super.onComponentTag(tag);
-					
-					String rootContext = "";
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void onClick() {
+                    // TODO Auto-generated method stub
+
+                }
+
+                @Override
+                protected void onComponentTag(ComponentTag tag) {
+                    super.onComponentTag(tag);
+
+                    String rootContext = "";
                     //TODO: what is this for???
                     if (link.getTargetUrl() != null && !link.getTargetUrl().startsWith("http://") &&
                             !link.getTargetUrl().startsWith("https://") &&
@@ -118,10 +118,10 @@ public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
                         }
                     }
                     tag.put("href", rootContext + (link.getTargetUrl() == null ? "#" : link.getTargetUrl()));
-				}
-			};
-            
-         
+                }
+            };
+
+
             linkItem.add(new Label(ID_IMAGE) {
 
                 @Override

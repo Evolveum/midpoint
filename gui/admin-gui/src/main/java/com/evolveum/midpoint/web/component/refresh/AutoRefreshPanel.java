@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,102 +27,102 @@ import org.apache.wicket.model.Model;
  */
 public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
 
-	private static final String ID_REFRESH_NOW = "refreshNow";
-	private static final String ID_START = "start";
-	private static final String ID_PAUSE = "pause";
-	private static final String ID_STATUS = "status";
+    private static final String ID_REFRESH_NOW = "refreshNow";
+    private static final String ID_START = "start";
+    private static final String ID_PAUSE = "pause";
+    private static final String ID_STATUS = "status";
 
-	public AutoRefreshPanel(String id, IModel<AutoRefreshDto> model, Refreshable refreshable, boolean inSummaryPanel) {
-		super(id, model);
-		initLayout(refreshable, inSummaryPanel);
-	}
+    public AutoRefreshPanel(String id, IModel<AutoRefreshDto> model, Refreshable refreshable, boolean inSummaryPanel) {
+        super(id, model);
+        initLayout(refreshable, inSummaryPanel);
+    }
 
-	private void initLayout(final Refreshable refreshable, boolean inSummaryPanel) {
+    private void initLayout(final Refreshable refreshable, boolean inSummaryPanel) {
 
-		final LinkIconPanel refreshNow = new LinkIconPanel(ID_REFRESH_NOW, new Model("fa fa-refresh"), createStringResource("autoRefreshPanel.refreshNow")) {
-			@Override
-			protected void onClickPerformed(AjaxRequestTarget target) {
-				refreshable.refresh(target);
-			}
-		};
-//		refreshNow.setRenderBodyOnly(true);
-		add(refreshNow);
+        final LinkIconPanel refreshNow = new LinkIconPanel(ID_REFRESH_NOW, new Model("fa fa-refresh"), createStringResource("autoRefreshPanel.refreshNow")) {
+            @Override
+            protected void onClickPerformed(AjaxRequestTarget target) {
+                refreshable.refresh(target);
+            }
+        };
+//        refreshNow.setRenderBodyOnly(true);
+        add(refreshNow);
 
-		final LinkIconPanel resumeRefreshing = new LinkIconPanel(ID_START, new Model("fa fa-play"), createStringResource("autoRefreshPanel.resumeRefreshing")) {
-			@Override
-			protected void onClickPerformed(AjaxRequestTarget target) {
-				getModelObject().setEnabled(true);
-				refreshable.refresh(target);
-				startRefreshing(refreshable, target);
-			}
-		};
-//		resumeRefreshing.setRenderBodyOnly(true);
-		resumeRefreshing.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return !getModelObject().isEnabled();
-			}
-		});
-		add(resumeRefreshing);
+        final LinkIconPanel resumeRefreshing = new LinkIconPanel(ID_START, new Model("fa fa-play"), createStringResource("autoRefreshPanel.resumeRefreshing")) {
+            @Override
+            protected void onClickPerformed(AjaxRequestTarget target) {
+                getModelObject().setEnabled(true);
+                refreshable.refresh(target);
+                startRefreshing(refreshable, target);
+            }
+        };
+//        resumeRefreshing.setRenderBodyOnly(true);
+        resumeRefreshing.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return !getModelObject().isEnabled();
+            }
+        });
+        add(resumeRefreshing);
 
-		final LinkIconPanel pauseRefreshing = new LinkIconPanel(ID_PAUSE, new Model("fa fa-pause"), createStringResource("autoRefreshPanel.pauseRefreshing")) {
-			@Override
-			protected void onClickPerformed(AjaxRequestTarget target) {
-				getModelObject().setEnabled(false);
-				refreshable.refresh(target);
-				stopRefreshing(refreshable, target);
-			}
-		};
-//		pauseRefreshing.setRenderBodyOnly(true);
-		pauseRefreshing.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return getModelObject().isEnabled();
-			}
-		});
-		add(pauseRefreshing);
+        final LinkIconPanel pauseRefreshing = new LinkIconPanel(ID_PAUSE, new Model("fa fa-pause"), createStringResource("autoRefreshPanel.pauseRefreshing")) {
+            @Override
+            protected void onClickPerformed(AjaxRequestTarget target) {
+                getModelObject().setEnabled(false);
+                refreshable.refresh(target);
+                stopRefreshing(refreshable, target);
+            }
+        };
+//        pauseRefreshing.setRenderBodyOnly(true);
+        pauseRefreshing.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return getModelObject().isEnabled();
+            }
+        });
+        add(pauseRefreshing);
 
-		final Label status = new Label(ID_STATUS, new IModel<String>() {
-			@Override
-			public String getObject() {
-				AutoRefreshDto dto = getModelObject();
-				if (dto.isEnabled()) {
-					return createStringResource("autoRefreshPanel.refreshingEach", dto.getInterval() / 1000).getString();
-				} else {
-					return createStringResource("autoRefreshPanel.noRefreshing").getString();
-				}
-			}
-		});
-//		status.setRenderBodyOnly(true);
-		add(status);
+        final Label status = new Label(ID_STATUS, new IModel<String>() {
+            @Override
+            public String getObject() {
+                AutoRefreshDto dto = getModelObject();
+                if (dto.isEnabled()) {
+                    return createStringResource("autoRefreshPanel.refreshingEach", dto.getInterval() / 1000).getString();
+                } else {
+                    return createStringResource("autoRefreshPanel.noRefreshing").getString();
+                }
+            }
+        });
+//        status.setRenderBodyOnly(true);
+        add(status);
 
-		if (inSummaryPanel) {
-			add(new AttributeModifier("class", "summary-tag"));
-		}
-	}
+        if (inSummaryPanel) {
+            add(new AttributeModifier("class", "summary-tag"));
+        }
+    }
 
-	public void startRefreshing(final Refreshable refreshable, AjaxRequestTarget target) {
-		stopRefreshing(refreshable, target);
-		int refreshInterval = refreshable.getRefreshInterval();
-		getModel().getObject().setInterval(refreshInterval);
+    public void startRefreshing(final Refreshable refreshable, AjaxRequestTarget target) {
+        stopRefreshing(refreshable, target);
+        int refreshInterval = refreshable.getRefreshInterval();
+        getModel().getObject().setInterval(refreshInterval);
 
-		Component parent = refreshable.getRefreshingBehaviorParent();
-		RemovableAjaxTimerBehavior refreshingBehavior = new RemovableAjaxTimerBehavior(parent, refreshInterval) {
-			@Override
-			protected void handleOnTimer(AjaxRequestTarget target1) {
-				refreshable.refresh(target1);
-			}
-		};
-		parent.add(refreshingBehavior);
-	}
+        Component parent = refreshable.getRefreshingBehaviorParent();
+        RemovableAjaxTimerBehavior refreshingBehavior = new RemovableAjaxTimerBehavior(parent, refreshInterval) {
+            @Override
+            protected void handleOnTimer(AjaxRequestTarget target1) {
+                refreshable.refresh(target1);
+            }
+        };
+        parent.add(refreshingBehavior);
+    }
 
-	public void stopRefreshing(Refreshable refreshable, AjaxRequestTarget target) {
-		Component refreshingBehaviorParent = refreshable.getRefreshingBehaviorParent();
-		for (Behavior behavior : refreshingBehaviorParent.getBehaviors()) {
-			if (behavior instanceof RemovableAjaxTimerBehavior) {
-				((RemovableAjaxTimerBehavior) behavior).remove(target);
-			}
-		}
-	}
+    public void stopRefreshing(Refreshable refreshable, AjaxRequestTarget target) {
+        Component refreshingBehaviorParent = refreshable.getRefreshingBehaviorParent();
+        for (Behavior behavior : refreshingBehaviorParent.getBehaviors()) {
+            if (behavior instanceof RemovableAjaxTimerBehavior) {
+                ((RemovableAjaxTimerBehavior) behavior).remove(target);
+            }
+        }
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -39,31 +39,31 @@ import java.util.Locale;
  *  @author semancik
  * */
 public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_INPUT = "input";
-	
-	private LookupTableType lookupTable = null;
-	private boolean strict;
-	
-//	public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type) {
-//		this(id, model, type, StringAutoCompleteRenderer.INSTANCE);
-//	}
-	
-	public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type, boolean strict, LookupTableType lookuptable) {
-		this(id, model, type, StringAutoCompleteRenderer.INSTANCE);
-		this.lookupTable = lookuptable;
-		this.strict = strict;
-	}
-	
-	public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type, IAutoCompleteRenderer<T> renderer) {
-		super(id);
+    private static final String ID_INPUT = "input";
+
+    private LookupTableType lookupTable = null;
+    private boolean strict;
+
+//    public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type) {
+//        this(id, model, type, StringAutoCompleteRenderer.INSTANCE);
+//    }
+
+    public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type, boolean strict, LookupTableType lookuptable) {
+        this(id, model, type, StringAutoCompleteRenderer.INSTANCE);
+        this.lookupTable = lookuptable;
+        this.strict = strict;
+    }
+
+    public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type, IAutoCompleteRenderer<T> renderer) {
+        super(id);
 
         AutoCompleteSettings autoCompleteSettings = createAutoCompleteSettings();
 
         // this has to be copied because the  AutoCompleteTextField dies if renderer=null
         final AutoCompleteTextField<T> input = new AutoCompleteTextField<T>(ID_INPUT, model, type, renderer, autoCompleteSettings) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected Iterator<T> getChoices(String input) {
@@ -75,52 +75,52 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
                 super.updateAjaxAttributes(attributes);
                 attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ONE_SECOND, true));
             }
-            
-			@Override
-			public <C> IConverter<C> getConverter(Class<C> type) {
-				return new IConverter<C>() {
 
-					private static final long serialVersionUID = 1L;
+            @Override
+            public <C> IConverter<C> getConverter(Class<C> type) {
+                return new IConverter<C>() {
 
-					@Override
-					public C convertToObject(String value, Locale arg1) throws ConversionException {
-						if (lookupTable == null) {
-							return (C) value;
-						}
+                    private static final long serialVersionUID = 1L;
 
-						for (LookupTableRowType row : lookupTable.getRow()) {
-							if (value.equals(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null))) {
-								return (C) row.getKey();
-							}
-						}
+                    @Override
+                    public C convertToObject(String value, Locale arg1) throws ConversionException {
+                        if (lookupTable == null) {
+                            return (C) value;
+                        }
 
-						if (strict) {
-							throw new ConversionException("Cannot convert " + value);
-						}
+                        for (LookupTableRowType row : lookupTable.getRow()) {
+                            if (value.equals(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null))) {
+                                return (C) row.getKey();
+                            }
+                        }
 
-						return (C) value;
+                        if (strict) {
+                            throw new ConversionException("Cannot convert " + value);
+                        }
 
-					}
+                        return (C) value;
 
-					@Override
-					public String convertToString(C key, Locale arg1) {
-						if (lookupTable != null) {
-							for (LookupTableRowType row : lookupTable.getRow()) {
-								if (key.equals(row.getKey())) {
-									return (String) WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null);
-								}
-							}
-						}
-						return (String) key;
-					}
-				};
-			}
+                    }
+
+                    @Override
+                    public String convertToString(C key, Locale arg1) {
+                        if (lookupTable != null) {
+                            for (LookupTableRowType row : lookupTable.getRow()) {
+                                if (key.equals(row.getKey())) {
+                                    return (String) WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null);
+                                }
+                            }
+                        }
+                        return (String) key;
+                    }
+                };
+            }
         };
 
         input.setType(type);
         if (model instanceof LookupPropertyModel) {
             input.add(new OnChangeAjaxBehavior() {
-            	private static final long serialVersionUID = 1L;
+                private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
@@ -189,9 +189,9 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 
     protected void updateFeedbackPanel(AutoCompleteTextField input, boolean isError, AjaxRequestTarget target){
 
-  
+
     }
-    
-    
+
+
 }
 

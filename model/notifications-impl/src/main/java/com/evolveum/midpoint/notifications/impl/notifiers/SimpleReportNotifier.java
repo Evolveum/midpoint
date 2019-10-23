@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -58,9 +58,9 @@ import java.util.Date;
 public class SimpleReportNotifier extends GeneralNotifier {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleReportNotifier.class);
-    
+
     private static final String REPORT_HTML_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/html/create/handler-3";
-    
+
     @Autowired private ModelService modelService;
 
     @PostConstruct
@@ -71,7 +71,7 @@ public class SimpleReportNotifier extends GeneralNotifier {
     @Override
     protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         if (!(event instanceof TaskEvent) || ((TaskEvent)event).getTask() == null
-        		|| ((TaskEvent)event).getTask().getCategory() == null || !((TaskEvent)event).getTask().getHandlerUri().equals(REPORT_HTML_CREATE_TASK_URI)) {
+                || ((TaskEvent)event).getTask().getCategory() == null || !((TaskEvent)event).getTask().getHandlerUri().equals(REPORT_HTML_CREATE_TASK_URI)) {
             LOGGER.trace("{} is not applicable for this kind of event, continuing in the handler chain; event class = {}", getClass().getSimpleName(), event.getClass());
             return false;
         }
@@ -85,8 +85,8 @@ public class SimpleReportNotifier extends GeneralNotifier {
 
     @Override
     protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
-		final TaskEvent taskEvent = (TaskEvent) event;
-		final String taskName = PolyString.getOrig(taskEvent.getTask().getName());
+        final TaskEvent taskEvent = (TaskEvent) event;
+        final String taskName = PolyString.getOrig(taskEvent.getTask().getName());
 
         if (event.isAdd()) {
             return "Task '" + taskName + "' start notification";
@@ -99,45 +99,45 @@ public class SimpleReportNotifier extends GeneralNotifier {
 
     @Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task opTask, OperationResult opResult) throws SchemaException {
-		final TaskEvent taskEvent = (TaskEvent) event;
-		final Task task = taskEvent.getTask();
-		
-		
-		String outputOid = task.getExtensionPropertyRealValue(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME);
+        final TaskEvent taskEvent = (TaskEvent) event;
+        final Task task = taskEvent.getTask();
 
-		if (outputOid == null || outputOid.isEmpty()) {
-			throw new IllegalStateException("Unexpected oid of report output, oid is null or empty");
-		}
-		
-		PrismObject<ReportOutputType> reportOutput = null;
-		try {
-			reportOutput = modelService.getObject(ReportOutputType.class, outputOid, null, opTask, opTask.getResult());
-		} catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException
-				| ExpressionEvaluationException e) {
-			getLogger().error("Could't get Report output with oid " + outputOid, e);
-		}
-		
-		if (reportOutput == null) {
-			throw new IllegalStateException("Unexpected report output, report output is null");
-		}
-		
-		String body = "";
-		try {
-			byte[] encoded = Files.readAllBytes(Paths.get(reportOutput.asObjectable().getFilePath()));
-			body = new String(encoded, Charset.defaultCharset());
-		} catch (IOException e) {
-			getLogger().error("Couldn't create body from ReportOutput with oid " + outputOid, e);
-		}
-		  return body;
+
+        String outputOid = task.getExtensionPropertyRealValue(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME);
+
+        if (outputOid == null || outputOid.isEmpty()) {
+            throw new IllegalStateException("Unexpected oid of report output, oid is null or empty");
+        }
+
+        PrismObject<ReportOutputType> reportOutput = null;
+        try {
+            reportOutput = modelService.getObject(ReportOutputType.class, outputOid, null, opTask, opTask.getResult());
+        } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException
+                | ExpressionEvaluationException e) {
+            getLogger().error("Could't get Report output with oid " + outputOid, e);
+        }
+
+        if (reportOutput == null) {
+            throw new IllegalStateException("Unexpected report output, report output is null");
+        }
+
+        String body = "";
+        try {
+            byte[] encoded = Files.readAllBytes(Paths.get(reportOutput.asObjectable().getFilePath()));
+            body = new String(encoded, Charset.defaultCharset());
+        } catch (IOException e) {
+            getLogger().error("Couldn't create body from ReportOutput with oid " + outputOid, e);
+        }
+          return body;
     }
 
     @Override
     protected Trace getLogger() {
         return LOGGER;
     }
-    
+
     protected String getContentType() {
-    	return "text/html";
+        return "text/html";
     };
 
 }

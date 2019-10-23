@@ -2,36 +2,36 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- MID-5210 -->
 
 <shadow oid="cef31578-5493-11e9-bbed-17f032005a6b"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-	<name>uid=poly,ou=People,dc=example,dc=com</name>
-	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
-	<objectClass>ri:inetOrgPerson</objectClass>
-	<kind>account</kind>
-	<attributes>
-		<ri:dn>uid=poly,ou=People,dc=example,dc=com</ri:dn>
-		<ri:uid>poly</ri:uid>
-		<ri:cn>Poly the Parrot</ri:cn>
-		<ri:sn>Poly</ri:sn>
-		<ri:description xsi:type="t:PolyStringType">
-			<t:orig>Poly the Parrot</t:orig>
-			<t:lang>
-				<en>Polly the Parrot</en>
-				<sk>Papagáj Poly</sk>
-				<cz>Papoušek Poly</cz>
-				<hr>Papiga Poly</hr>
-				<ru>Попугай Поли</ru>
-			</t:lang>
-		</ri:description>
-	</attributes>
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+    <name>uid=poly,ou=People,dc=example,dc=com</name>
+    <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+    <objectClass>ri:inetOrgPerson</objectClass>
+    <kind>account</kind>
+    <attributes>
+        <ri:dn>uid=poly,ou=People,dc=example,dc=com</ri:dn>
+        <ri:uid>poly</ri:uid>
+        <ri:cn>Poly the Parrot</ri:cn>
+        <ri:sn>Poly</ri:sn>
+        <ri:description xsi:type="t:PolyStringType">
+            <t:orig>Poly the Parrot</t:orig>
+            <t:lang>
+                <en>Polly the Parrot</en>
+                <sk>Papagáj Poly</sk>
+                <cz>Papoušek Poly</cz>
+                <hr>Papiga Poly</hr>
+                <ru>Попугай Поли</ru>
+            </t:lang>
+        </ri:description>
+    </attributes>
 </shadow>

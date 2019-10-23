@@ -15,13 +15,13 @@
 #
 ---
 '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
-objectModification: 
-  itemDelta: 
+objectModification:
+  itemDelta:
     '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
     modificationType: "add"
     path: "assignment"
-    value: 
+    value:
       '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      targetRef: 
+      targetRef:
         oid: "82005ae4-d90b-11e4-bdcc-001e8c717e5b"
         type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleType"

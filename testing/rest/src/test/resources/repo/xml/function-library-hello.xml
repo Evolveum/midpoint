@@ -2,20 +2,20 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<functionLibrary oid="03eadaea-d82a-11e8-866b-9bd3716fdfc1" 
+<functionLibrary oid="03eadaea-d82a-11e8-866b-9bd3716fdfc1"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
 
-	<name>Hello</name>
+    <name>Hello</name>
 
-	<function>
+    <function>
         <name>hello</name>
         <parameter>
             <name>value</name>

@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="4a579cd0-0f17-11e7-967c-130ecd6fb7dc"
@@ -12,62 +12,62 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Relative Pirate</name>
     <inducement>
-    	<construction>
-    		<resourceRef oid="adcd4654-0f15-11e7-8337-0bdf60ad7bcd"/> <!-- Dummy Relative -->
-    		<kind>account</kind>
-    		<attribute>
+        <construction>
+            <resourceRef oid="adcd4654-0f15-11e7-8337-0bdf60ad7bcd"/> <!-- Dummy Relative -->
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:title</ref>
                 <outbound>
-                	<expression>
-						<value>Bloody Pirate</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>Bloody Pirate</value>
+                    </expression>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:location</ref>
                 <outbound>
-                	<source>
-						<path>locality</path>
-					</source>
-					<condition>
-						<script>
-							<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-							<code>
-								assert resource != null
-								locality?.getNorm() != "hidden"
-							</code>
-						</script>
-					</condition>
-				</outbound>
+                    <source>
+                        <path>locality</path>
+                    </source>
+                    <condition>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <code>
+                                assert resource != null
+                                locality?.getNorm() != "hidden"
+                            </code>
+                        </script>
+                    </condition>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:weapon</ref>
                 <outbound>
-                	<expression>
-						<value>cutlass</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>cutlass</value>
+                    </expression>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:gossip</ref>
                 <outbound>
-                	<source>
-                		<path>$user/fullName</path>
-                	</source>
-                	<source>
-                		<path>$user/locality</path>
-                	</source>
-                	<expression>
-						<script>
-							<code>fullName + ' is the best pirate ' + ( locality == null ? 'the world' : locality ) + ' has ever seen'</code> 
-						</script>
-					</expression>
-				</outbound>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                    <source>
+                        <path>$user/locality</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>fullName + ' is the best pirate ' + ( locality == null ? 'the world' : locality ) + ' has ever seen'</code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#loot</action>
-    	<phase>execution</phase>
+        <action>http://midpoint.evolveum.com/xml/ns/test/authorization#loot</action>
+        <phase>execution</phase>
     </authorization>
 </role>

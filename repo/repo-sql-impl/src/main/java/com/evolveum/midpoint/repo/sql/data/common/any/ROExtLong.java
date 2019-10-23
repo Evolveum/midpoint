@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -77,14 +77,16 @@ public class ROExtLong extends ROExtBase<Long> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof ROExtLong))
-            return false;
-        if (!super.equals(o))
-            return false;
-        ROExtLong that = (ROExtLong) o;
-        return Objects.equals(value, that.value);
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        ROExtLong roExtLong = (ROExtLong) o;
+        return Objects.equals(value, roExtLong.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), value);
     }
 
     @Override

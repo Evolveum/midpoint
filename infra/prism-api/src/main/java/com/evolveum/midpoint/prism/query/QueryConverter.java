@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,47 +20,47 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface QueryConverter {
 
-	// 1. Parsing
+    // 1. Parsing
 
-	// 1a. Parsing filters
+    // 1a. Parsing filters
 
-	ObjectFilter parseFilter(XNode xnode, Class<? extends Containerable> clazz) throws SchemaException;
+    ObjectFilter parseFilter(XNode xnode, Class<? extends Containerable> clazz) throws SchemaException;
 
-	ObjectFilter parseFilter(@NotNull SearchFilterType filter, @NotNull Class<? extends Containerable> clazz) throws SchemaException;
+    ObjectFilter parseFilter(@NotNull SearchFilterType filter, @NotNull Class<? extends Containerable> clazz) throws SchemaException;
 
-	ObjectFilter parseFilter(@NotNull SearchFilterType filter, @NotNull PrismContainerDefinition<?> objDef) throws SchemaException;
+    ObjectFilter parseFilter(@NotNull SearchFilterType filter, @NotNull PrismContainerDefinition<?> objDef) throws SchemaException;
 
-	/**
-	 * Tries to parse as much from filter as possible, without knowing the definition of object(s) to which the
-	 * filter will be applied. It is used mainly to parse path specifications, in order to avoid namespace loss
-	 * when serializing raw (unparsed) paths and QNames - see MID-1969.
-	 * @param xfilter
-	 * @param pc
-	 */
-	void parseFilterPreliminarily(MapXNode xfilter, ParsingContext pc) throws SchemaException;
+    /**
+     * Tries to parse as much from filter as possible, without knowing the definition of object(s) to which the
+     * filter will be applied. It is used mainly to parse path specifications, in order to avoid namespace loss
+     * when serializing raw (unparsed) paths and QNames - see MID-1969.
+     * @param xfilter
+     * @param pc
+     */
+    void parseFilterPreliminarily(MapXNode xfilter, ParsingContext pc) throws SchemaException;
 
-	// 1b. Parsing queries
+    // 1b. Parsing queries
 
-	<O extends Objectable> ObjectQuery createObjectQuery(Class<O> clazz, QueryType queryType) throws SchemaException;
+    <O extends Objectable> ObjectQuery createObjectQuery(Class<O> clazz, QueryType queryType) throws SchemaException;
 
-	<O extends Objectable> ObjectQuery createObjectQuery(Class<O> clazz, SearchFilterType filterType) throws SchemaException;
+    <O extends Objectable> ObjectQuery createObjectQuery(Class<O> clazz, SearchFilterType filterType) throws SchemaException;
 
-	// 2. Serializing
+    // 2. Serializing
 
-	// 2a. Serializing filters
+    // 2a. Serializing filters
 
-	SearchFilterType createSearchFilterType(ObjectFilter filter) throws SchemaException;
+    SearchFilterType createSearchFilterType(ObjectFilter filter) throws SchemaException;
 
-	<O extends Objectable> ObjectFilter createObjectFilter(Class<O> clazz, SearchFilterType filterType)
-			throws SchemaException;
+    <O extends Objectable> ObjectFilter createObjectFilter(Class<O> clazz, SearchFilterType filterType)
+            throws SchemaException;
 
-	<O extends Objectable> ObjectFilter createObjectFilter(PrismObjectDefinition<O> objectDefinition, SearchFilterType filterType)
-			throws SchemaException;
+    <O extends Objectable> ObjectFilter createObjectFilter(PrismObjectDefinition<O> objectDefinition, SearchFilterType filterType)
+            throws SchemaException;
 
-	MapXNode serializeFilter(ObjectFilter filter) throws SchemaException;
+    MapXNode serializeFilter(ObjectFilter filter) throws SchemaException;
 
-	// 2b. Serializing queries
+    // 2b. Serializing queries
 
-	QueryType createQueryType(ObjectQuery query) throws SchemaException;
+    QueryType createQueryType(ObjectQuery query) throws SchemaException;
 
 }

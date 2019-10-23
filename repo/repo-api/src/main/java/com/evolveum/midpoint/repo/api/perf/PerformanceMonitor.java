@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -14,21 +14,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryStatistics
  */
 public interface PerformanceMonitor {
 
-	void clearGlobalPerformanceInformation();
+    void clearGlobalPerformanceInformation();
 
-	PerformanceInformation getGlobalPerformanceInformation();
+    PerformanceInformation getGlobalPerformanceInformation();
 
-	/**
-	 * Starts gathering thread-local performance information, clearing existing (if any).
-	 */
-	void startThreadLocalPerformanceInformationCollection();
+    /**
+     * Starts gathering thread-local performance information, clearing existing (if any).
+     */
+    void startThreadLocalPerformanceInformationCollection();
 
-	/**
-	 * Stops gathering thread-local performance information, clearing existing (if any).
-	 */
-	void stopThreadLocalPerformanceInformationCollection();
+    /**
+     * Stops gathering thread-local performance information, clearing existing (if any).
+     */
+    void stopThreadLocalPerformanceInformationCollection();
 
-	PerformanceInformation getThreadLocalPerformanceInformation();
+    PerformanceInformation getThreadLocalPerformanceInformation();
 
-	void setConfiguration(RepositoryStatisticsReportingConfigurationType statistics);
+    void setConfiguration(RepositoryStatisticsReportingConfigurationType statistics);
 }

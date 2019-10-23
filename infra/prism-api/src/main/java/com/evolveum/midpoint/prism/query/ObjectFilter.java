@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -18,23 +18,23 @@ import java.io.Serializable;
 
 public interface ObjectFilter extends DebugDumpable, Serializable, Revivable {
 
-	/**
-	 * Does a SHALLOW clone.
-	 */
-	ObjectFilter clone();
-	
-	boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException;
-	
-	void accept(Visitor visitor);
+    /**
+     * Does a SHALLOW clone.
+     */
+    ObjectFilter clone();
 
-	@Override
-	void revive(PrismContext prismContext) throws SchemaException;
+    boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException;
 
-	void checkConsistence(boolean requireDefinitions);
+    void accept(Visitor visitor);
 
-	boolean equals(Object o, boolean exact);
+    @Override
+    void revive(PrismContext prismContext) throws SchemaException;
 
-	PrismContext getPrismContext();
+    void checkConsistence(boolean requireDefinitions);
 
-	void setPrismContext(PrismContext prismContext);
+    boolean equals(Object o, boolean exact);
+
+    PrismContext getPrismContext();
+
+    void setPrismContext(PrismContext prismContext);
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,19 +17,19 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SchemaFactoryImpl implements SchemaFactory {
 
-	@NotNull private final PrismContext prismContext;
+    @NotNull private final PrismContext prismContext;
 
-	public SchemaFactoryImpl(@NotNull PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
+    public SchemaFactoryImpl(@NotNull PrismContext prismContext) {
+        this.prismContext = prismContext;
+    }
 
-	@Override
-	public MutablePrismSchema createPrismSchema() {
-		return new PrismSchemaImpl(prismContext);
-	}
+    @Override
+    public MutablePrismSchema createPrismSchema() {
+        return new PrismSchemaImpl(prismContext);
+    }
 
-	@Override
-	public MutablePrismSchema createPrismSchema(String namespace) {
-		return new PrismSchemaImpl(namespace, prismContext);
-	}
+    @Override
+    public MutablePrismSchema createPrismSchema(String namespace) {
+        return new PrismSchemaImpl(namespace, prismContext);
+    }
 }

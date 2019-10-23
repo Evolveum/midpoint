@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.session;
@@ -10,7 +10,6 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
@@ -46,7 +45,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private List<AssignmentEditorDto> assignmentShoppingCart;   //  a list of assignments in the shopping cart
     private AssignmentViewType viewType = null;      //the current view type
     private int defaultTabIndex = -1;
-    private List<UserType> targetUserList = new ArrayList<>();
+    private List<String> targetUserOidsList = new ArrayList<>();
     private UserType assignmentsUserOwner = null;
     private List<ConflictDto> conflictsList;
     private String requestDescription = "";
@@ -184,12 +183,12 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
         this.selectedOid = selectedOid;
     }
 
-    public List<UserType> getTargetUserList() {
-        return targetUserList;
+    public List<String> getTargetUserOidsList() {
+        return targetUserOidsList;
     }
 
-    public void setTargetUserList(List<UserType> targetUserList) {
-        this.targetUserList = targetUserList;
+    public void setTargetUserOidsList(List<String> targetUserOidsList) {
+        this.targetUserOidsList = targetUserOidsList;
     }
 
     public UserType getAssignmentsUserOwner() {
@@ -201,11 +200,11 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     }
 
     public boolean isSelfRequest(){
-        return getTargetUserList() == null || getTargetUserList().size() == 0;
+        return getTargetUserOidsList() == null || getTargetUserOidsList().size() == 0;
     }
 
     public boolean isMultiUserRequest(){
-        return getTargetUserList() != null && getTargetUserList().size() > 1;
+        return getTargetUserOidsList() != null && getTargetUserOidsList().size() > 1;
     }
 
     public int getAssignmentRequestLimit() {

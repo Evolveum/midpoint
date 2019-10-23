@@ -2,48 +2,48 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <c:change xsi:type="c:ResourceObjectShadowChangeDescriptionType" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3' xmlns='http://default.com/whatever'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd" xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/c0c010c0-d34d-b33f-f00d-333222111111"
-	
-	xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
+    xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3' xmlns='http://default.com/whatever'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd" xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/c0c010c0-d34d-b33f-f00d-333222111111"
+
+    xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
    http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-3.xsd
    '>
 
-	<i:objectChange xsi:type="c:ObjectChangeAdditionType">
-		<i:object xsi:type="i:AccountShadowType" oid="c0c010c0-d34d-b44f-f11d-333222111111">
-			<c:name>will</c:name>
-			<i:resourceRef oid="c0c010c0-d34d-b33f-f00d-333222111111" type="ResourceType" />
-			<i:objectClass>dj:Account</i:objectClass>
-			<i:attributes>
-				<icfs:__UID__>12345678-d34d-b33f-f00d-999888777111</icfs:__UID__>
-				<icfs:__NAME__>uid=will,ou=people,dc=example,dc=com</icfs:__NAME__>
-				<dj:uid>will</dj:uid>
-				<dj:cn>Will Turner</dj:cn>
-				<dj:givenName>Will</dj:givenName>
-				<dj:sn>Turner</dj:sn>
-			</i:attributes>
-		</i:object>
-	</i:objectChange>
-	<i:sourceChannel>
-		http://midpoint.evolveum.com/xml/ns/public/common/concepts-1#Synchronization
-	</i:sourceChannel>
-	<i:shadow xsi:type="i:AccountShadowType" oid="c0c010c0-d34d-b44f-f11d-333222111111">
-		<c:name>will</c:name>
-		<i:resourceRef oid="c0c010c0-d34d-b33f-f00d-333222111111" type="ResourceType" />
-		<i:objectClass>dj:Account</i:objectClass>
-		<i:attributes>
-			<icfs:uid>12345678-d34d-b33f-f00d-999888777111</icfs:uid>
-			<icfs:name>uid=will,ou=people,dc=example,dc=com</icfs:name>
-			<dj:uid>will</dj:uid>
-			<dj:cn>Will Turner</dj:cn>
-			<dj:givenName>Will</dj:givenName>
-			<dj:sn>Turner</dj:sn>
-		</i:attributes>
-	</i:shadow>
+    <i:objectChange xsi:type="c:ObjectChangeAdditionType">
+        <i:object xsi:type="i:AccountShadowType" oid="c0c010c0-d34d-b44f-f11d-333222111111">
+            <c:name>will</c:name>
+            <i:resourceRef oid="c0c010c0-d34d-b33f-f00d-333222111111" type="ResourceType" />
+            <i:objectClass>dj:Account</i:objectClass>
+            <i:attributes>
+                <icfs:__UID__>12345678-d34d-b33f-f00d-999888777111</icfs:__UID__>
+                <icfs:__NAME__>uid=will,ou=people,dc=example,dc=com</icfs:__NAME__>
+                <dj:uid>will</dj:uid>
+                <dj:cn>Will Turner</dj:cn>
+                <dj:givenName>Will</dj:givenName>
+                <dj:sn>Turner</dj:sn>
+            </i:attributes>
+        </i:object>
+    </i:objectChange>
+    <i:sourceChannel>
+        http://midpoint.evolveum.com/xml/ns/public/common/concepts-1#Synchronization
+    </i:sourceChannel>
+    <i:shadow xsi:type="i:AccountShadowType" oid="c0c010c0-d34d-b44f-f11d-333222111111">
+        <c:name>will</c:name>
+        <i:resourceRef oid="c0c010c0-d34d-b33f-f00d-333222111111" type="ResourceType" />
+        <i:objectClass>dj:Account</i:objectClass>
+        <i:attributes>
+            <icfs:uid>12345678-d34d-b33f-f00d-999888777111</icfs:uid>
+            <icfs:name>uid=will,ou=people,dc=example,dc=com</icfs:name>
+            <dj:uid>will</dj:uid>
+            <dj:cn>Will Turner</dj:cn>
+            <dj:givenName>Will</dj:givenName>
+            <dj:sn>Turner</dj:sn>
+        </i:attributes>
+    </i:shadow>
 </c:change>
 

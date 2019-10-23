@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.prism;
@@ -18,47 +18,47 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  *
  */
 public class PrismReferenceValueWrapperImpl<T extends Referencable> extends PrismValueWrapperImpl<T, PrismReferenceValue> {
-	
-	private static final long serialVersionUID = 1L;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(PrismReferenceValueWrapperImpl.class);
+    private static final long serialVersionUID = 1L;
 
-	public PrismReferenceValueWrapperImpl(ItemWrapper<?, ?, ?, ?> parent, PrismReferenceValue value, ValueStatus status) {
-		super(parent, value, status);
-	}
-	
-	private boolean editEnabled = true;
-	private boolean isLink = false;
+    private static final transient Trace LOGGER = TraceManager.getTrace(PrismReferenceValueWrapperImpl.class);
 
-	@Override
-	public void setRealValue(T realValueReferencable) {
-//		LOGGER.info("#####$$$$$Nothing to do");
-		PrismReferenceValue value = getNewValue();
-		PrismReferenceValue realValue = realValueReferencable.asReferenceValue();
-		value.setOid(realValue.getOid());
-		value.setOriginType(realValue.getOriginType());
-		value.setOriginObject(realValue.getOriginObject());
-		value.setTargetName(realValue.getTargetName());
-		value.setTargetType(realValue.getTargetType());
-		value.setRelation(realValue.getRelation());
-		value.setFilter(realValue.getFilter());
+    public PrismReferenceValueWrapperImpl(ItemWrapper<?, ?, ?, ?> parent, PrismReferenceValue value, ValueStatus status) {
+        super(parent, value, status);
+    }
 
-		setStatus(ValueStatus.MODIFIED);
-	}
-	
-	public boolean isEditEnabled() {
-		return editEnabled;
-	}
-	
-	public void setEditEnabled(boolean editEnabled) {
-		this.editEnabled = editEnabled;
-	}
+    private boolean editEnabled = true;
+    private boolean isLink = false;
 
-	public boolean isLink() {
-		return isLink;
-	}
+    @Override
+    public void setRealValue(T realValueReferencable) {
+//        LOGGER.info("#####$$$$$Nothing to do");
+        PrismReferenceValue value = getNewValue();
+        PrismReferenceValue realValue = realValueReferencable.asReferenceValue();
+        value.setOid(realValue.getOid());
+        value.setOriginType(realValue.getOriginType());
+        value.setOriginObject(realValue.getOriginObject());
+        value.setTargetName(realValue.getTargetName());
+        value.setTargetType(realValue.getTargetType());
+        value.setRelation(realValue.getRelation());
+        value.setFilter(realValue.getFilter());
 
-	public void setLink(boolean link) {
-		isLink = link;
-	}
+        setStatus(ValueStatus.MODIFIED);
+    }
+
+    public boolean isEditEnabled() {
+        return editEnabled;
+    }
+
+    public void setEditEnabled(boolean editEnabled) {
+        this.editEnabled = editEnabled;
+    }
+
+    public boolean isLink() {
+        return isLink;
+    }
+
+    public void setLink(boolean link) {
+        isLink = link;
+    }
 }

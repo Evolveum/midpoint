@@ -2,14 +2,14 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- GREEN dummy resource. This is authoritative source resource, but it also has outbound mappings. -->
 
 <resource oid="10000000-0000-0000-0000-000000000404"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -19,127 +19,127 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource Green</name>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>green</icfi:instanceId>
-			<icfi:supportValidity>true</icfi:supportValidity>
-			<icfi:generateDefaultValues>true</icfi:generateDefaultValues>
-		</icfc:configurationProperties>
+    <name>Dummy Resource Green</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-	</connectorConfiguration>
-	
-	<schemaHandling>
-		<objectType>
-			<displayName>Default Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<outbound>
-				    <strength>weak</strength>
-				    <source>
-				    	<path>$user/name</path>
-				    </source>
-					<expression>
-						<script>
-							<code>
-								name + iterationToken
-							</code>
-						</script>
-					</expression>
-				</outbound>
-				<inbound>
-					<!-- This avoids "kickback" of a name from account to a user. -->
-					<strength>weak</strength>
-					<target>
-						<path>$c:user/c:name</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>icfs:uid</ref>
-				<displayName>UID</displayName>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<displayName>Full Name</displayName>
-				<outbound>
-					<source>
-						<path>$user/fullName</path>
-					</source>
-				</outbound>
-				<inbound>
-					<strength>strong</strength>
-					<target>
-						<path>$user/fullName</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:location</ref>
-				<displayName>Location</displayName>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>
-							$c:user/c:locality
-						</path>
-					</source>
-				</outbound>
-				<inbound>
-					<strength>strong</strength>
-					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
-					<expression>
-						<script>
-							<code>'Came from ' + input</code>
-						</script>
-					</expression>
-					<target>
-						<path>description</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:ship</ref>
-				<displayName>Ship</displayName>
-				<inbound>
-					<strength>strong</strength>
-					<expression>
-						<script><!-- MID-4405 -->
-							<code>
-								assert configuration != null : 'no configuration'
-								assert configuration.getLogging() != null : 'no logging in configuration'
-								'The crew of ' + input
-							</code>
-						</script>
-					</expression>
-					<target>
-						<path>organizationalUnit</path>
-						<set>
-							<predefined>all</predefined>
-						</set>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
+        <icfc:configurationProperties>
+            <icfi:instanceId>green</icfi:instanceId>
+            <icfi:supportValidity>true</icfi:supportValidity>
+            <icfi:generateDefaultValues>true</icfi:generateDefaultValues>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                name + iterationToken
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <!-- This avoids "kickback" of a name from account to a user. -->
+                    <strength>weak</strength>
+                    <target>
+                        <path>$c:user/c:name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>$user/fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <displayName>Location</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>
+                            $c:user/c:locality
+                        </path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
+                    <expression>
+                        <script>
+                            <code>'Came from ' + input</code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>description</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ship</ref>
+                <displayName>Ship</displayName>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script><!-- MID-4405 -->
+                            <code>
+                                assert configuration != null : 'no configuration'
+                                assert configuration.getLogging() != null : 'no logging in configuration'
+                                'The crew of ' + input
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>organizationalUnit</path>
+                        <set>
+                            <predefined>all</predefined>
+                        </set>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
             <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:internalId</ref>
             <inbound>
             <strength>strong</strength>
@@ -149,328 +149,328 @@
                </target>
             </inbound>
          </attribute>
-			<attribute>
-				<ref>ri:loot</ref>
-				<displayName>Loot</displayName>
-				<outbound>
-					<channel>http://pirates.net/avast</channel>
-					<expression>
-						<value>10000</value>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:weapon</ref>
-				<displayName>Weapon</displayName>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>
-							$user/extension/piracy:weapon
-						</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:drink</ref>
-				<displayName>Drink</displayName>
-				<tolerant>false</tolerant>
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<value>rum</value>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:quote</ref>
-				<displayName>Quote</displayName>
-				<tolerant>true</tolerant>
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<value>Arr!</value>
-					</expression>
-				</outbound>
-			</attribute>
-			
-			<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
-            
+            <attribute>
+                <ref>ri:loot</ref>
+                <displayName>Loot</displayName>
+                <outbound>
+                    <channel>http://pirates.net/avast</channel>
+                    <expression>
+                        <value>10000</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:weapon</ref>
+                <displayName>Weapon</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>
+                            $user/extension/piracy:weapon
+                        </path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:drink</ref>
+                <displayName>Drink</displayName>
+                <tolerant>false</tolerant>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>rum</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:quote</ref>
+                <displayName>Quote</displayName>
+                <tolerant>true</tolerant>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>Arr!</value>
+                    </expression>
+                </outbound>
+            </attribute>
+
+            <iteration>
+                <maxIterations>5</maxIterations>
+            </iteration>
+
             <protected>
-				<filter>
-					<q:equal>
-						<q:path>attributes/name</q:path>
-						<q:value>daviejones</q:value>
-					</q:equal>
-				</filter>
-			</protected>
-			<protected>
-				<filter>
-					<q:equal>
-						<q:path>attributes/name</q:path>
-						<q:value>calypso</q:value>
-					</q:equal>
-				</filter>
-			</protected>
-			
-			<activation>
-            	<administrativeStatus>
-            		<outbound>
-            			<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/name</q:path>
+                        <q:value>daviejones</q:value>
+                    </q:equal>
+                </filter>
+            </protected>
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/name</q:path>
+                        <q:value>calypso</q:value>
+                    </q:equal>
+                </filter>
+            </protected>
+
+            <activation>
+                <administrativeStatus>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            		<inbound/>
-            	</administrativeStatus>
-            	<validFrom>
-            		<outbound>
-            			<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
+                    </outbound>
+                    <inbound/>
+                </administrativeStatus>
+                <validFrom>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            		<inbound/>
-            	</validFrom>
-            	<validTo>
-            		<outbound>
-            			<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
+                    </outbound>
+                    <inbound/>
+                </validFrom>
+                <validTo>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            		<inbound/>
-            	</validTo>
+                    </outbound>
+                    <inbound/>
+                </validTo>
             </activation>
-			
-			<credentials>
+
+            <credentials>
                 <password>
                     <outbound>
-                    	<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
                     </outbound>
                     <inbound>
-                    	<strength>weak</strength>
+                        <strength>weak</strength>
                         <expression>
                             <generate/>
                         </expression>
                     </inbound>
                 </password>
             </credentials>
-            
-		</objectType>
-		
-		<objectType>
-			<kind>account</kind>
-			<intent>admin</intent>
-			<displayName>Admin Account</displayName>
-			<default>false</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<outbound>
-				    <strength>weak</strength>
-				    <source>
-				    	<path>$user/name</path>
-				    </source>
-					<expression>
-						<script>
-							<code>
-								'X' + name
-							</code>
-						</script>
-					</expression>
-				</outbound>
-				<inbound>
-					<!-- This avoids "kickback" of a name from account to a user. -->
-					<strength>weak</strength>
-					<expression>
-						<script>
-							<code>
-								input?.substring(1)
-							</code>
-						</script>
-					</expression>
-					<target>
-						<path>$c:user/c:name</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>icfs:uid</ref>
-				<displayName>UID</displayName>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<displayName>Full Name</displayName>
-				<outbound>
-					<source>
-						<path>$user/fullName</path>
-					</source>
-				</outbound>
-				<inbound>
-					<strength>weak</strength>
-					<target>
-						<path>$user/fullName</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:weapon</ref>
-				<displayName>Weapon</displayName>
-				<outbound>
-					<strength>weak</strength>
-					<expression>
-						<value>Administrative Powers</value>
-					</expression>
-				</outbound>
-			</attribute>
-			
-			<activation>
-            	<administrativeStatus>
-            		<outbound>
-            			<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
-                        </expression>
-            		</outbound>
-            		<inbound>
-            			<strength>weak</strength>
-            		</inbound>
-            	</administrativeStatus>
-            </activation>
-			
-			<credentials>
-                <password>
+
+        </objectType>
+
+        <objectType>
+            <kind>account</kind>
+            <intent>admin</intent>
+            <displayName>Admin Account</displayName>
+            <default>false</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                'X' + name
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <!-- This avoids "kickback" of a name from account to a user. -->
+                    <strength>weak</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                input?.substring(1)
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>$c:user/c:name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <path>$user/fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:weapon</ref>
+                <displayName>Weapon</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <expression>
+                        <value>Administrative Powers</value>
+                    </expression>
+                </outbound>
+            </attribute>
+
+            <activation>
+                <administrativeStatus>
                     <outbound>
-                    	<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
                     </outbound>
                     <inbound>
-                    	<strength>weak</strength>
+                        <strength>weak</strength>
+                    </inbound>
+                </administrativeStatus>
+            </activation>
+
+            <credentials>
+                <password>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                        <strength>weak</strength>
                         <expression>
                             <generate/>
                         </expression>
                     </inbound>
                 </password>
             </credentials>
-            
-		</objectType>
-		
-	</schemaHandling>
-	
-	<projection>
-		<assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
-	</projection>
-	
-	<consistency>
-		<avoidDuplicateValues>true</avoidDuplicateValues>
-	</consistency>
-	
-	<synchronization>
-		<objectSynchronization>
-			<name>default account type</name>
-			<enabled>true</enabled>
-			<condition>
-				<script>
-					<code>
-						import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
-						name = basic.getAttributeValue(shadow, ICFS_NAME);
-						log.info("name: {}", name)
-						!(name ==~ /X.*/)
-					</code>
-				</script>
-			</condition>
-			<correlation>
-				<q:equal>
-					<q:path>c:name</q:path>
-					<expression>
-						<path>$account/attributes/icfs:name</path>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-	            </action>
-	        </reaction>
-        </objectSynchronization>
-        
+
+        </objectType>
+
+    </schemaHandling>
+
+    <projection>
+        <assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
+    </projection>
+
+    <consistency>
+        <avoidDuplicateValues>true</avoidDuplicateValues>
+    </consistency>
+
+    <synchronization>
         <objectSynchronization>
-			<name>admin account type</name>
-			<kind>account</kind>
-			<intent>admin</intent>
-			<enabled>true</enabled>
-			<condition>
-				<script>
-					<code>
-						import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
-						basic.getAttributeValue(shadow, ICFS_NAME) ==~ /X.*/
-					</code>
-				</script>
-			</condition>
-			<correlation>
-				<q:equal>
-					<q:path>c:name</q:path>
-					<expression>
-						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                            $account/attributes/icfs:name</path>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-	            </action>
-	        </reaction>
+            <name>default account type</name>
+            <enabled>true</enabled>
+            <condition>
+                <script>
+                    <code>
+                        import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
+                        name = basic.getAttributeValue(shadow, ICFS_NAME);
+                        log.info("name: {}", name)
+                        !(name ==~ /X.*/)
+                    </code>
+                </script>
+            </condition>
+            <correlation>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <path>$account/attributes/icfs:name</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
         </objectSynchronization>
-	</synchronization>
+
+        <objectSynchronization>
+            <name>admin account type</name>
+            <kind>account</kind>
+            <intent>admin</intent>
+            <enabled>true</enabled>
+            <condition>
+                <script>
+                    <code>
+                        import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
+                        basic.getAttributeValue(shadow, ICFS_NAME) ==~ /X.*/
+                    </code>
+                </script>
+            </condition>
+            <correlation>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+                            $account/attributes/icfs:name</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
 
 </resource>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -106,12 +106,12 @@ public class PageBulkAction extends PageAdminConfiguration {
         try {
             parsed = getPrismContext().parserFor(bulkActionDto.getScript()).parseRealValue();
             if (parsed == null) {
-            	result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.provided").getString());
+                result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.provided").getString());
             } else if (!(parsed instanceof ExecuteScriptType) && !(parsed instanceof ScriptingExpressionType)) {
-            	result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.notBulkAction", "{scripting-3}ScriptingExpressionType", parsed.getClass()).getString());
+                result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.notBulkAction", "{scripting-3}ScriptingExpressionType", parsed.getClass()).getString());
             }
         } catch (SchemaException|RuntimeException e) {
-        	result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.parse").getString(), e);
+            result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.parse").getString(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse bulk action object", e);
         }
 
@@ -126,7 +126,7 @@ public class PageBulkAction extends PageAdminConfiguration {
                     }
                     result.recordStatus(OperationResultStatus.IN_PROGRESS, createStringResource("PageBulkAction.message.startPerformed.inProgress", task.getName()).getString());
                 } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-                	result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.submit").getString(), e);
+                    result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.submit").getString(), e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
                 }
             } else {

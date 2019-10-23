@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,63 +21,63 @@ import java.util.Collection;
  */
 public class DeltaFactoryImpl implements DeltaFactory {
 
-	@NotNull private final PrismContext prismContext;
-	@NotNull private final PropertyDeltaFactoryImpl propertyDeltaFactory;
-	@NotNull private final ReferenceDeltaFactoryImpl referenceDeltaFactory;
-	@NotNull private final ContainerDeltaFactoryImpl containerDeltaFactory;
-	@NotNull private final ObjectDeltaFactoryImpl objectDeltaFactory;
+    @NotNull private final PrismContext prismContext;
+    @NotNull private final PropertyDeltaFactoryImpl propertyDeltaFactory;
+    @NotNull private final ReferenceDeltaFactoryImpl referenceDeltaFactory;
+    @NotNull private final ContainerDeltaFactoryImpl containerDeltaFactory;
+    @NotNull private final ObjectDeltaFactoryImpl objectDeltaFactory;
 
-	public DeltaFactoryImpl(@NotNull PrismContext prismContext) {
-		this.prismContext = prismContext;
-		this.propertyDeltaFactory = new PropertyDeltaFactoryImpl(prismContext);
-		this.referenceDeltaFactory = new ReferenceDeltaFactoryImpl(prismContext);
-		this.containerDeltaFactory = new ContainerDeltaFactoryImpl(prismContext);
-		this.objectDeltaFactory = new ObjectDeltaFactoryImpl(prismContext);
-	}
+    public DeltaFactoryImpl(@NotNull PrismContext prismContext) {
+        this.prismContext = prismContext;
+        this.propertyDeltaFactory = new PropertyDeltaFactoryImpl(prismContext);
+        this.referenceDeltaFactory = new ReferenceDeltaFactoryImpl(prismContext);
+        this.containerDeltaFactory = new ContainerDeltaFactoryImpl(prismContext);
+        this.objectDeltaFactory = new ObjectDeltaFactoryImpl(prismContext);
+    }
 
-	@Override
-	public Property property() {
-		return propertyDeltaFactory;
-	}
+    @Override
+    public Property property() {
+        return propertyDeltaFactory;
+    }
 
-	@Override
-	public Reference reference() {
-		return referenceDeltaFactory;
-	}
+    @Override
+    public Reference reference() {
+        return referenceDeltaFactory;
+    }
 
-	@Override
-	public Container container() {
-		return containerDeltaFactory;
-	}
+    @Override
+    public Container container() {
+        return containerDeltaFactory;
+    }
 
-	@Override
-	public Object object() {
-		return objectDeltaFactory;
-	}
+    @Override
+    public Object object() {
+        return objectDeltaFactory;
+    }
 
-	@Override
-	public <T> DeltaSetTriple<T> createDeltaSetTriple() {
-		return new DeltaSetTripleImpl<>();
-	}
+    @Override
+    public <T> DeltaSetTriple<T> createDeltaSetTriple() {
+        return new DeltaSetTripleImpl<>();
+    }
 
-	@Override
-	public <V> DeltaSetTriple<V> createDeltaSetTriple(Collection<V> zeroSet, Collection<V> plusSet, Collection<V> minusSet) {
-		return new DeltaSetTripleImpl<>(zeroSet, plusSet, minusSet);
-	}
+    @Override
+    public <V> DeltaSetTriple<V> createDeltaSetTriple(Collection<V> zeroSet, Collection<V> plusSet, Collection<V> minusSet) {
+        return new DeltaSetTripleImpl<>(zeroSet, plusSet, minusSet);
+    }
 
-	@Override
-	public <V extends PrismValue> PrismValueDeltaSetTriple<V> createPrismValueDeltaSetTriple() {
-		return new PrismValueDeltaSetTripleImpl<>();
-	}
+    @Override
+    public <V extends PrismValue> PrismValueDeltaSetTriple<V> createPrismValueDeltaSetTriple() {
+        return new PrismValueDeltaSetTripleImpl<>();
+    }
 
-	@Override
-	public <V extends PrismValue> PrismValueDeltaSetTriple<V> createPrismValueDeltaSetTriple(Collection<V> zeroSet,
-			Collection<V> plusSet, Collection<V> minusSet) {
-		return new PrismValueDeltaSetTripleImpl<>(zeroSet, plusSet, minusSet);
-	}
+    @Override
+    public <V extends PrismValue> PrismValueDeltaSetTriple<V> createPrismValueDeltaSetTriple(Collection<V> zeroSet,
+            Collection<V> plusSet, Collection<V> minusSet) {
+        return new PrismValueDeltaSetTripleImpl<>(zeroSet, plusSet, minusSet);
+    }
 
-	@Override
-	public <K, V> DeltaMapTriple<K, V> createDeltaMapTriple() {
-		return new DeltaMapTripleImpl<>();
-	}
+    @Override
+    public <K, V> DeltaMapTriple<K, V> createDeltaMapTriple() {
+        return new DeltaMapTripleImpl<>();
+    }
 }

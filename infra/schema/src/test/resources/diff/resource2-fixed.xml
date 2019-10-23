@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -12,30 +12,30 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-								  
-	<name>Embedded Test OpenDJ</name>
-	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd" type="ConnectorType"/>
 
-	<c:schemaHandling>
+    <name>Embedded Test OpenDJ</name>
+    <connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd" type="ConnectorType"/>
+
+    <c:schemaHandling>
         <objectType>
             <objectClass>AccountObjectClass</objectClass>
             <attribute>
                 <ref>abc</ref>
             </attribute>
         </objectType>
-	</c:schemaHandling>
-	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-		<configured>
-			<cap:activation>
-				<cap:status>
-					<cap:attribute>ds-pwp-account-disabled</cap:attribute>
-					<cap:enableValue/>
-					<cap:disableValue>true</cap:disableValue>
-				</cap:status>
-			</cap:activation>
-		</configured>
-	</capabilities>
+    </c:schemaHandling>
+
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <configured>
+            <cap:activation>
+                <cap:status>
+                    <cap:attribute>ds-pwp-account-disabled</cap:attribute>
+                    <cap:enableValue/>
+                    <cap:disableValue>true</cap:disableValue>
+                </cap:status>
+            </cap:activation>
+        </configured>
+    </capabilities>
 
     <synchronization>
         <objectSynchronization>

@@ -1,10 +1,9 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -37,7 +36,7 @@ public class ActionsExecutedObjectsTableLineDto implements Comparable<ActionsExe
     public static final String F_LAST_SUCCESS_TIMESTAMP = "lastSuccessTimestamp";
     public static final String F_FAILURE_COUNT = "failureCount";
 
-    private static QName TYPES_ORDER[] = {
+    private static final QName[] TYPES_ORDER = {
             UserType.COMPLEX_TYPE, OrgType.COMPLEX_TYPE, RoleType.COMPLEX_TYPE, ShadowType.COMPLEX_TYPE,
             ResourceType.COMPLEX_TYPE, ReportType.COMPLEX_TYPE
     };

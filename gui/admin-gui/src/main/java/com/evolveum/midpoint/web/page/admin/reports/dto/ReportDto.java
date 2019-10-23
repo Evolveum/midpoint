@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.reports.dto;
@@ -69,33 +69,33 @@ public class ReportDto implements Serializable {
         this.searchOnResource = false;
         this.reportEngineType = reportType.getReportEngine();
         if(ReportEngineSelectionType.DASHBOARD.equals(reportEngineType)) {
-        	DashboardReportEngineConfigurationType dashboardConfig = reportType.getDashboard();
-        	if(dashboardConfig != null) {
-        		dashboardRef = dashboardConfig.getDashboardRef();
-        	}
+            DashboardReportEngineConfigurationType dashboardConfig = reportType.getDashboard();
+            if(dashboardConfig != null) {
+                dashboardRef = dashboardConfig.getDashboardRef();
+            }
         } else {
-        	JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
-        	if (jasperConfig == null) {
-    	        this.exportType = reportType.getExport();
-    	//    	this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
-    	        this.jasperReportDto = new JasperReportDto(reportType.getTemplate(), onlyForPromptingParams);
-    	        this.templateStyle = reportType.getTemplateStyle();
-    	        this.parent = !BooleanUtils.isFalse(reportType.isParent());
-    	        this.virtualizer = reportType.getVirtualizer();
-    	        this.virtualizerKickOn = reportType.getVirtualizerKickOn();
-    	        this.maxPages = reportType.getMaxPages();
-    	        this.timeout = reportType.getTimeout();
-        	} else {
-    	        this.exportType = jasperConfig.getExport();
-    	//    	this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
-    	        this.jasperReportDto = new JasperReportDto(jasperConfig.getTemplate(), onlyForPromptingParams);
-    	        this.templateStyle = jasperConfig.getTemplateStyle();
-    	        this.parent = !BooleanUtils.isFalse(jasperConfig.isParent());
-    	        this.virtualizer = jasperConfig.getVirtualizer();
-    	        this.virtualizerKickOn = jasperConfig.getVirtualizerKickOn();
-    	        this.maxPages = jasperConfig.getMaxPages();
-    	        this.timeout = jasperConfig.getTimeout();    		
-        	}
+            JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
+            if (jasperConfig == null) {
+                this.exportType = reportType.getExport();
+        //        this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
+                this.jasperReportDto = new JasperReportDto(reportType.getTemplate(), onlyForPromptingParams);
+                this.templateStyle = reportType.getTemplateStyle();
+                this.parent = !BooleanUtils.isFalse(reportType.isParent());
+                this.virtualizer = reportType.getVirtualizer();
+                this.virtualizerKickOn = reportType.getVirtualizerKickOn();
+                this.maxPages = reportType.getMaxPages();
+                this.timeout = reportType.getTimeout();
+            } else {
+                this.exportType = jasperConfig.getExport();
+        //        this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
+                this.jasperReportDto = new JasperReportDto(jasperConfig.getTemplate(), onlyForPromptingParams);
+                this.templateStyle = jasperConfig.getTemplateStyle();
+                this.parent = !BooleanUtils.isFalse(jasperConfig.isParent());
+                this.virtualizer = jasperConfig.getVirtualizer();
+                this.virtualizerKickOn = jasperConfig.getVirtualizerKickOn();
+                this.maxPages = jasperConfig.getMaxPages();
+                this.timeout = jasperConfig.getTimeout();
+            }
         }
     }
 
@@ -132,19 +132,19 @@ public class ReportDto implements Serializable {
         reportType.setDescription(description);
         reportType.setReportEngine(reportEngineType);
         if(ReportEngineSelectionType.DASHBOARD.equals(reportEngineType)) {
-        	DashboardReportEngineConfigurationType dashboardEngine = new DashboardReportEngineConfigurationType();
-        	dashboardEngine.setDashboardRef(dashboardRef);
-        	reportType.setDashboard(dashboardEngine);
+            DashboardReportEngineConfigurationType dashboardEngine = new DashboardReportEngineConfigurationType();
+            dashboardEngine.setDashboardRef(dashboardRef);
+            reportType.setDashboard(dashboardEngine);
         } else {
-        	JasperReportEngineConfigurationType jasperConfig = new JasperReportEngineConfigurationType();
-        	jasperConfig.setExport(exportType);
-        	jasperConfig.setTemplate(jasperReportDto.getTemplate());
-        	jasperConfig.setTemplateStyle(templateStyle);
-        	jasperConfig.setVirtualizer(virtualizer);
-        	jasperConfig.setVirtualizerKickOn(virtualizerKickOn);
-        	jasperConfig.setMaxPages(maxPages);
-        	jasperConfig.setTimeout(timeout);
-        	reportType.setJasper(jasperConfig);
+            JasperReportEngineConfigurationType jasperConfig = new JasperReportEngineConfigurationType();
+            jasperConfig.setExport(exportType);
+            jasperConfig.setTemplate(jasperReportDto.getTemplate());
+            jasperConfig.setTemplateStyle(templateStyle);
+            jasperConfig.setVirtualizer(virtualizer);
+            jasperConfig.setVirtualizerKickOn(virtualizerKickOn);
+            jasperConfig.setMaxPages(maxPages);
+            jasperConfig.setTimeout(timeout);
+            reportType.setJasper(jasperConfig);
         }
 
         return reportType.asPrismObject();
@@ -161,14 +161,14 @@ public class ReportDto implements Serializable {
     public void setOid(String oid) {
         this.oid = oid;
     }
-    
+
     public ReportEngineSelectionType getReportEngineType() {
-		return reportEngineType;
-	}
-    
+        return reportEngineType;
+    }
+
     public void setReportEngineType(ReportEngineSelectionType reportEngineType) {
-		this.reportEngineType = reportEngineType;
-	}
+        this.reportEngineType = reportEngineType;
+    }
 
 //    public String getXml() {
 //        return xml;
@@ -236,12 +236,12 @@ public class ReportDto implements Serializable {
     public void setTimeout(Integer timeout) {
         this.timeout = timeout;
     }
-    
+
     public ObjectReferenceType getDashboardRef() {
-		return dashboardRef;
-	}
-    
+        return dashboardRef;
+    }
+
     public void setDashboardRef(ObjectReferenceType dashboardRef) {
-		this.dashboardRef = dashboardRef;
-	}
+        this.dashboardRef = dashboardRef;
+    }
 }

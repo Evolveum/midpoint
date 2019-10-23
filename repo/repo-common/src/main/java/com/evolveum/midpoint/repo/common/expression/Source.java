@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.common.expression;
@@ -29,75 +29,75 @@ import org.jetbrains.annotations.NotNull;
  */
 public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemDeltaItem<V,D> implements DebugDumpable, ShortDumpable {
 
-	private QName name;
+    private QName name;
 
-	public Source(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew, QName name, D definition) {
-		super(itemOld, delta, itemNew, definition);
-		this.name = name;
-	}
+    public Source(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew, QName name, D definition) {
+        super(itemOld, delta, itemNew, definition);
+        this.name = name;
+    }
 
-	public Source(ItemDeltaItem<V,D> idi, QName name) {
-		super(idi);
-		this.name = name;
-	}
+    public Source(ItemDeltaItem<V,D> idi, QName name) {
+        super(idi);
+        this.name = name;
+    }
 
-	public QName getName() {
-		return name;
-	}
+    public QName getName() {
+        return name;
+    }
 
-	public void setName(QName name) {
-		this.name = name;
-	}
-	
-	public Item<V,D> getEmptyItem() throws SchemaException {
-		ItemDefinition definition = getDefinition();
-		if (definition == null) {
-			throw new IllegalStateException("No definition in source "+this);
-		}
-		return definition.instantiate(getElementName());
-	}
+    public void setName(QName name) {
+        this.name = name;
+    }
 
-	@Override
-	public String toString() {
-		return "Source(" + shortDump() + ")";
-	}
+    public Item<V,D> getEmptyItem() throws SchemaException {
+        ItemDefinition definition = getDefinition();
+        if (definition == null) {
+            throw new IllegalStateException("No definition in source "+this);
+        }
+        return definition.instantiate(getElementName());
+    }
 
-	@Override
-	public void shortDump(StringBuilder sb) {
-		sb.append(PrettyPrinter.prettyPrint(name)).append(": old=").append(getItemOld()).append(", delta=").append(getDelta()).append(", new=").append(getItemNew());
-	}
-	
-	public void mediumDump(StringBuilder sb) {
-		sb.append("Source ").append(PrettyPrinter.prettyPrint(name)).append(":\n");
-		sb.append("  old: ").append(getItemOld()).append("\n");
-		sb.append("  delta: ").append(getDelta()).append("\n");
-		if (getSubItemDeltas() != null) {
-			sb.append("  subitem deltas: ").append(getSubItemDeltas()).append("\n");
-		}
-		sb.append("  new: ").append(getItemNew());
-	}
+    @Override
+    public String toString() {
+        return "Source(" + shortDump() + ")";
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("Source ").append(PrettyPrinter.prettyPrint(name));
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "old", getItemOld(), indent +1);
-		DebugUtil.debugDumpWithLabelLn(sb, "delta", getDelta(), indent +1);
-		DebugUtil.debugDumpWithLabelLn(sb, "new", getItemNew(), indent +1);
-		return sb.toString();
-	}
+    @Override
+    public void shortDump(StringBuilder sb) {
+        sb.append(PrettyPrinter.prettyPrint(name)).append(": old=").append(getItemOld()).append(", delta=").append(getDelta()).append(", new=").append(getItemNew());
+    }
 
-	@NotNull
-	public ItemDeltaItemType toItemDeltaItemType() throws SchemaException {
-		ItemDeltaItemType rv = new ItemDeltaItemType();
-		rv.setOldItem(ItemType.fromItem(getItemOld()));
-		ItemDelta<V, D> delta = getDelta();
-		if (delta != null) {
-			rv.getDelta().addAll(DeltaConvertor.toItemDeltaTypes(delta));
-		}
-		rv.setNewItem(ItemType.fromItem(getItemNew()));
-		return rv;
-	}
+    public void mediumDump(StringBuilder sb) {
+        sb.append("Source ").append(PrettyPrinter.prettyPrint(name)).append(":\n");
+        sb.append("  old: ").append(getItemOld()).append("\n");
+        sb.append("  delta: ").append(getDelta()).append("\n");
+        if (getSubItemDeltas() != null) {
+            sb.append("  subitem deltas: ").append(getSubItemDeltas()).append("\n");
+        }
+        sb.append("  new: ").append(getItemNew());
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("Source ").append(PrettyPrinter.prettyPrint(name));
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "old", getItemOld(), indent +1);
+        DebugUtil.debugDumpWithLabelLn(sb, "delta", getDelta(), indent +1);
+        DebugUtil.debugDumpWithLabelLn(sb, "new", getItemNew(), indent +1);
+        return sb.toString();
+    }
+
+    @NotNull
+    public ItemDeltaItemType toItemDeltaItemType() throws SchemaException {
+        ItemDeltaItemType rv = new ItemDeltaItemType();
+        rv.setOldItem(ItemType.fromItem(getItemOld()));
+        ItemDelta<V, D> delta = getDelta();
+        if (delta != null) {
+            rv.getDelta().addAll(DeltaConvertor.toItemDeltaTypes(delta));
+        }
+        rv.setNewItem(ItemType.fromItem(getItemNew()));
+        return rv;
+    }
 }

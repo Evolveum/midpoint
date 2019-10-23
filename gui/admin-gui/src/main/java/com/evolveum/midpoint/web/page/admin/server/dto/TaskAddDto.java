@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -42,24 +42,24 @@ public class TaskAddDto implements Serializable {
     public static final String F_THREAD_STOP = "threadStop";
     public static final String F_MISFIRE_ACTION = "misfireAction";
 
-	private String category;
-	private TaskAddResourcesDto resource;
-	private String name;
+    private String category;
+    private TaskAddResourcesDto resource;
+    private String name;
 
-	//Scheduling
-	private boolean reccuring;
-	private boolean bound;
-	private Integer interval;
-	private String cron;
-	private Date notStartBefore;
-	private Date notStartAfter;
+    //Scheduling
+    private boolean reccuring;
+    private boolean bound;
+    private Integer interval;
+    private String cron;
+    private Date notStartBefore;
+    private Date notStartAfter;
 
-	private boolean runUntilNodeDown;
+    private boolean runUntilNodeDown;
 
-	//Advanced
-	private boolean suspendedState;
-	private ThreadStopActionType threadStop;
-	private MisfireActionType misfireAction = MisfireActionType.EXECUTE_IMMEDIATELY;
+    //Advanced
+    private boolean suspendedState;
+    private ThreadStopActionType threadStop;
+    private MisfireActionType misfireAction = MisfireActionType.EXECUTE_IMMEDIATELY;
 
     private boolean dryRun;
     private QName focusType;
@@ -68,109 +68,109 @@ public class TaskAddDto implements Serializable {
     private String objectClass;
     private List<QName> objectClassList;
 
-	public String getCategory() {
-		return category;
-	}
+    public String getCategory() {
+        return category;
+    }
 
-	public void setCategory(String category) {
-		this.category = category;
-	}
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
-	public TaskAddResourcesDto getResource() {
-		return resource;
-	}
+    public TaskAddResourcesDto getResource() {
+        return resource;
+    }
 
-	public void setResource(TaskAddResourcesDto resource) {
-		this.resource = resource;
-	}
+    public void setResource(TaskAddResourcesDto resource) {
+        this.resource = resource;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public Boolean getReccuring() {
-		return reccuring;
-	}
+    public Boolean getReccuring() {
+        return reccuring;
+    }
 
-	public void setReccuring(Boolean reccuring) {
-		this.reccuring = reccuring;
-	}
+    public void setReccuring(Boolean reccuring) {
+        this.reccuring = reccuring;
+    }
 
-	public Boolean getBound() {
-		return bound;
-	}
+    public Boolean getBound() {
+        return bound;
+    }
 
-	public void setBound(Boolean bound) {
-		this.bound = bound;
-	}
+    public void setBound(Boolean bound) {
+        this.bound = bound;
+    }
 
-	public Integer getInterval() {
-		return interval;
-	}
+    public Integer getInterval() {
+        return interval;
+    }
 
-	public void setInterval(Integer interval) {
-		this.interval = interval;
-	}
+    public void setInterval(Integer interval) {
+        this.interval = interval;
+    }
 
-	public String getCron() {
-		return cron;
-	}
+    public String getCron() {
+        return cron;
+    }
 
-	public void setCron(String cron) {
-		this.cron = cron;
-	}
+    public void setCron(String cron) {
+        this.cron = cron;
+    }
 
-	public Date getNotStartBefore() {
-		return notStartBefore;
-	}
+    public Date getNotStartBefore() {
+        return notStartBefore;
+    }
 
-	public void setNotStartBefore(Date notStartBefore) {
-		this.notStartBefore = notStartBefore;
-	}
+    public void setNotStartBefore(Date notStartBefore) {
+        this.notStartBefore = notStartBefore;
+    }
 
-	public Date getNotStartAfter() {
-		return notStartAfter;
-	}
+    public Date getNotStartAfter() {
+        return notStartAfter;
+    }
 
-	public void setNotStartAfter(Date notStartAfter) {
-		this.notStartAfter = notStartAfter;
-	}
+    public void setNotStartAfter(Date notStartAfter) {
+        this.notStartAfter = notStartAfter;
+    }
 
-	public Boolean getRunUntilNodeDown() {
-		return runUntilNodeDown;
-	}
+    public Boolean getRunUntilNodeDown() {
+        return runUntilNodeDown;
+    }
 
-	public void setRunUntilNodeDown(Boolean runUntilNodeDown) {
-		this.runUntilNodeDown = runUntilNodeDown;
-	}
+    public void setRunUntilNodeDown(Boolean runUntilNodeDown) {
+        this.runUntilNodeDown = runUntilNodeDown;
+    }
 
-	public Boolean getSuspendedState() {
-		return suspendedState;
-	}
+    public Boolean getSuspendedState() {
+        return suspendedState;
+    }
 
-	public void setSuspendedState(Boolean suspendedState) {
-		this.suspendedState = suspendedState;
-	}
+    public void setSuspendedState(Boolean suspendedState) {
+        this.suspendedState = suspendedState;
+    }
 
-	public ThreadStopActionType getThreadStop() {
-		return threadStop;
-	}
+    public ThreadStopActionType getThreadStop() {
+        return threadStop;
+    }
 
-	public void setThreadStop(ThreadStopActionType threadStop) {
-		this.threadStop = threadStop;
-	}
+    public void setThreadStop(ThreadStopActionType threadStop) {
+        this.threadStop = threadStop;
+    }
 
-	public MisfireActionType getMisfireAction() {
-		return misfireAction;
-	}
+    public MisfireActionType getMisfireAction() {
+        return misfireAction;
+    }
 
-	public void setMisfireAction(MisfireActionType misfireAction) {
-		this.misfireAction = misfireAction;
-	}
+    public void setMisfireAction(MisfireActionType misfireAction) {
+        this.misfireAction = misfireAction;
+    }
 
     public boolean isDryRun() {
         return dryRun;
@@ -181,12 +181,12 @@ public class TaskAddDto implements Serializable {
     }
 
     public QName getFocusType() {
-		return focusType;
-	}
+        return focusType;
+    }
 
     public void setFocusType(QName focusType) {
-		this.focusType = focusType;
-	}
+        this.focusType = focusType;
+    }
 
     public ShadowKindType getKind() {
         return kind;

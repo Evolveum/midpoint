@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -53,12 +53,12 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
     private static final String ID_INCLUDE_INDUCEMENTS = "includeInducements";
     private static final String ID_INCLUDE_ASSIGNMENTS = "includeAssignments";
     private static final String ID_ASSIGNMENTS_INDUCEMENTS_HELP = "scopeAssignmentsInducementsHelp";
-	private static final String ID_INCLUDE_RESOURCES = "includeResources";
-	private static final String ID_INCLUDE_ROLES = "includeRoles";
+    private static final String ID_INCLUDE_RESOURCES = "includeResources";
+    private static final String ID_INCLUDE_ROLES = "includeRoles";
     private static final String ID_INCLUDE_ORGS = "includeOrgs";
     private static final String ID_INCLUDE_USERS = "includeUsers";
     private static final String ID_INCLUDE_SERVICES = "includeServices";
-	private static final String ID_INCLUDE_TARGET_TYPES_HELP = "scopeIncludeTargetTypesHelp";
+    private static final String ID_INCLUDE_TARGET_TYPES_HELP = "scopeIncludeTargetTypesHelp";
     private static final String ID_INCLUDE_ENABLED_ITEMS_ONLY = "includeEnabledItemsOnly";
     private static final String ID_INCLUDE_BY_STATUS_HELP = "scopeIncludeByStatusHelp";
     private static final String ID_SCOPE_RELATIONS = "relations";
@@ -98,29 +98,29 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
                 WebComponentUtil.createReadonlyModelFromEnum(DefinitionScopeObjectType.class),
                 new EnumChoiceRenderer<DefinitionScopeObjectType>());
         add(objectTypeChooser);
-		add(WebComponentUtil.createHelp(ID_OBJECT_TYPE_HELP));
+        add(WebComponentUtil.createHelp(ID_OBJECT_TYPE_HELP));
 
         TextArea filterTextArea = new TextArea(ID_SEARCH_FILTER, new PropertyModel<String>(getModel(), DefinitionScopeDto.F_SEARCH_FILTER_TEXT));
         filterTextArea.setOutputMarkupId(true);
         add(filterTextArea);
-		add(WebComponentUtil.createHelp(ID_SEARCH_FILTER_HELP));
+        add(WebComponentUtil.createHelp(ID_SEARCH_FILTER_HELP));
 
         add(new CheckBox(ID_INCLUDE_ASSIGNMENTS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ASSIGNMENTS)));
         add(new CheckBox(ID_INCLUDE_INDUCEMENTS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_INDUCEMENTS)));
-		add(WebComponentUtil.createHelp(ID_ASSIGNMENTS_INDUCEMENTS_HELP));
+        add(WebComponentUtil.createHelp(ID_ASSIGNMENTS_INDUCEMENTS_HELP));
 
-		add(new CheckBox(ID_INCLUDE_RESOURCES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_RESOURCES)));
+        add(new CheckBox(ID_INCLUDE_RESOURCES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_RESOURCES)));
         add(new CheckBox(ID_INCLUDE_ROLES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ROLES)));
         add(new CheckBox(ID_INCLUDE_ORGS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ORGS)));
-		add(new CheckBox(ID_INCLUDE_SERVICES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_SERVICES)));
-		add(new CheckBox(ID_INCLUDE_USERS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_USERS)));
-		add(WebComponentUtil.createHelp(ID_INCLUDE_TARGET_TYPES_HELP));
+        add(new CheckBox(ID_INCLUDE_SERVICES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_SERVICES)));
+        add(new CheckBox(ID_INCLUDE_USERS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_USERS)));
+        add(WebComponentUtil.createHelp(ID_INCLUDE_TARGET_TYPES_HELP));
 
         add(new CheckBox(ID_INCLUDE_ENABLED_ITEMS_ONLY, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ENABLED_ITEMS_ONLY)));
-		add(WebComponentUtil.createHelp(ID_INCLUDE_BY_STATUS_HELP));
+        add(WebComponentUtil.createHelp(ID_INCLUDE_BY_STATUS_HELP));
 
-		List<QName> relationsList = WebComponentUtil.getAllRelations(getPageBase());
-		relationsList.add(0, new QName(PrismConstants.NS_QUERY, "any"));
+        List<QName> relationsList = WebComponentUtil.getAllRelations(getPageBase());
+        relationsList.add(0, new QName(PrismConstants.NS_QUERY, "any"));
         ListMultipleChoicePanel<QName> relationsPanel = new ListMultipleChoicePanel<QName>(ID_SCOPE_RELATIONS, new ListModel<QName>(getModelObject().getRelationList()),
                 new ListModel<QName>(relationsList), new QNameObjectTypeChoiceRenderer(), null);
         relationsPanel.setOutputMarkupId(true);

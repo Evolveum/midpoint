@@ -2,21 +2,21 @@
 <!--
   ~ Copyright (c) 2010-2013 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  
+
  <!-- This is a runtime schema that defines data types used in the
       <extension> part of the objects. It should be loaded during
       test initialization (creation of prism context). -->
-      
+
 <xsd:schema elementFormDefault="qualified"
             targetNamespace="http://midpoint.evolveum.com/xml/ns/test/extension"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/extension"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-            
+
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 
     <xsd:element name="stringType" type="xsd:string"/>
@@ -24,9 +24,9 @@
     <xsd:element name="doubleType" type="xsd:double"/>
 
     <xsd:element name="intType" type="xsd:int"/>
-    
+
     <xsd:element name="integerType" type="xsd:integer"/>
-    
+
     <xsd:element name="decimalType" type="xsd:decimal"/>
 
     <xsd:element name="longType" type="xsd:long"/>
@@ -55,25 +55,25 @@
                 <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
             </xsd:appinfo>
         </xsd:annotation>
-    </xsd:element> 
-    
+    </xsd:element>
+
     <xsd:complexType name="UserExtensionType">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:extension ref="c:UserType"/>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element ref="tns:stringType" minOccurs="0"/>
-			<xsd:element ref="tns:doubleType" minOccurs="0"/>
-			<xsd:element ref="tns:intType" minOccurs="0"/>
-			<xsd:element ref="tns:integerType" minOccurs="0"/>
-			<xsd:element ref="tns:decimalType" minOccurs="0"/>
-			<xsd:element ref="tns:longType" minOccurs="0"/>
-			<xsd:element ref="tns:dateType" minOccurs="0"/>
-			
-			<xsd:element name="ship" type="xsd:string" minOccurs="0"/>
-		</xsd:sequence>
-	</xsd:complexType>
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:UserType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:stringType" minOccurs="0"/>
+            <xsd:element ref="tns:doubleType" minOccurs="0"/>
+            <xsd:element ref="tns:intType" minOccurs="0"/>
+            <xsd:element ref="tns:integerType" minOccurs="0"/>
+            <xsd:element ref="tns:decimalType" minOccurs="0"/>
+            <xsd:element ref="tns:longType" minOccurs="0"/>
+            <xsd:element ref="tns:dateType" minOccurs="0"/>
+
+            <xsd:element name="ship" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
 </xsd:schema>

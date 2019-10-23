@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
@@ -70,26 +70,26 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestClockwork extends AbstractLensTest {
 
-	@Autowired private Clockwork clockwork;
-	@Autowired private TaskManager taskManager;
+    @Autowired private Clockwork clockwork;
+    @Autowired private TaskManager taskManager;
 
-	public TestClockwork() throws JAXBException {
-		super();
-	}
+    public TestClockwork() throws JAXBException {
+        super();
+    }
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult)
-			throws Exception {
-		super.initSystem(initTask, initResult);
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-		InternalMonitor.reset();
-		InternalMonitor.setTrace(InternalOperationClasses.SHADOW_FETCH_OPERATIONS, true);
-	}
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult)
+            throws Exception {
+        super.initSystem(initTask, initResult);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        InternalMonitor.reset();
+        InternalMonitor.setTrace(InternalOperationClasses.SHADOW_FETCH_OPERATIONS, true);
+    }
 
     // tests specific bug dealing with preservation of null values in focus secondary deltas
     @Test
     public void test010SerializeAddUserBarbossa() throws Exception {
-    	final String TEST_NAME = "test010SerializeAddUserBarbossa";
+        final String TEST_NAME = "test010SerializeAddUserBarbossa";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -121,94 +121,94 @@ public class TestClockwork extends AbstractLensTest {
         assertEquals("Secondary deltas are not preserved - their number differs", context.getFocusContext().getSecondaryDeltas().size(), context2.getFocusContext().getSecondaryDeltas().size());
         for (int i = 0; i < context.getFocusContext().getSecondaryDeltas().size(); i++) {
             assertTrue("Secondary delta #" + i + " is not preserved correctly, "
-            		+ "expected:\n" + context.getFocusContext().getSecondaryDelta(i).debugDump()
-            		+ "but was\n" + context2.getFocusContext().getSecondaryDelta(i).debugDump(), 
-            		context.getFocusContext().getSecondaryDelta(i).equals(context2.getFocusContext().getSecondaryDelta(i)));
+                    + "expected:\n" + context.getFocusContext().getSecondaryDelta(i).debugDump()
+                    + "but was\n" + context2.getFocusContext().getSecondaryDelta(i).debugDump(),
+                    context.getFocusContext().getSecondaryDelta(i).equals(context2.getFocusContext().getSecondaryDelta(i)));
         }
     }
 
-	@Test
+    @Test
     public void test020AssignAccountToJackSync() throws Exception {
-		final String TEST_NAME = "test020AssignAccountToJackSync";
+        final String TEST_NAME = "test020AssignAccountToJackSync";
         displayTestTitle(TEST_NAME);
 
         try {
 
-	        // GIVEN
-	        Task task = createTask(TEST_NAME);
-	        OperationResult result = task.getResult();
+            // GIVEN
+            Task task = createTask(TEST_NAME);
+            OperationResult result = task.getResult();
 
-	        LensContext<UserType> context = createJackAssignAccountContext(result);
+            LensContext<UserType> context = createJackAssignAccountContext(result);
 
-	        display("Input context", context);
+            display("Input context", context);
 
-	        assertFocusModificationSanity(context);
-	        mockClockworkHook.reset();
-	        mockClockworkHook.setRecord(true);
-	        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+            assertFocusModificationSanity(context);
+            mockClockworkHook.reset();
+            mockClockworkHook.setRecord(true);
+            rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-	        // WHEN
-	        displayWhen(TEST_NAME);
-	        clockwork.run(context, task, result);
+            // WHEN
+            displayWhen(TEST_NAME);
+            clockwork.run(context, task, result);
 
-	        // THEN
-	        displayThen(TEST_NAME);
-	        mockClockworkHook.setRecord(false);
-	        display("Output context", context);
-	        display("Hook contexts", mockClockworkHook);
-	        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
+            // THEN
+            displayThen(TEST_NAME);
+            mockClockworkHook.setRecord(false);
+            display("Output context", context);
+            display("Hook contexts", mockClockworkHook);
+            assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
-	        assertJackAssignAccountContext(context);
-	        assertJackAccountShadow(context);
+            assertJackAssignAccountContext(context);
+            assertJackAccountShadow(context);
 
-	        List<LensContext<?>> hookContexts = mockClockworkHook.getContexts();
-	        assertFalse("No contexts recorded by the hook", hookContexts.isEmpty());
+            List<LensContext<?>> hookContexts = mockClockworkHook.getContexts();
+            assertFalse("No contexts recorded by the hook", hookContexts.isEmpty());
 
-		} finally {
-			displayCleanup(TEST_NAME);
-	    	mockClockworkHook.reset();
-	    	unassignJackAccount();
-	    	assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-	    }
-	}
+        } finally {
+            displayCleanup(TEST_NAME);
+            mockClockworkHook.reset();
+            unassignJackAccount();
+            assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+        }
+    }
 
-	@Test
+    @Test
     public void test030AssignAccountToJackAsyncNoserialize() throws Exception {
-		final String TEST_NAME = "test030AssignAccountToJackAsyncNoserialize";
+        final String TEST_NAME = "test030AssignAccountToJackAsyncNoserialize";
         try {
 
-        	assignAccountToJackAsync(TEST_NAME, false);
+            assignAccountToJackAsync(TEST_NAME, false);
 
         } finally {
-        	displayCleanup(TEST_NAME);
-        	mockClockworkHook.reset();
-        	unassignJackAccount();
-        	assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+            displayCleanup(TEST_NAME);
+            mockClockworkHook.reset();
+            unassignJackAccount();
+            assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         }
-	}
+    }
 
-	@Test
+    @Test
     public void test031AssignAccountToJackAsyncSerialize() throws Exception {
-		final String TEST_NAME = "test031AssignAccountToJackAsyncSerialize";
+        final String TEST_NAME = "test031AssignAccountToJackAsyncSerialize";
         try {
 
-        	assignAccountToJackAsync(TEST_NAME, true);
+            assignAccountToJackAsync(TEST_NAME, true);
 
         } finally {
-        	displayCleanup(TEST_NAME);
-        	mockClockworkHook.reset();
-        	unassignJackAccount();
-        	assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+            displayCleanup(TEST_NAME);
+            mockClockworkHook.reset();
+            unassignJackAccount();
+            assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         }
-	}
+    }
 
-	/**
-	 * User barbossa has a direct account assignment. This assignment has an expression for enabledisable flag.
-	 * Let's disable user, the account should be disabled as well.
-	 */
-	@Test
+    /**
+     * User barbossa has a direct account assignment. This assignment has an expression for enabledisable flag.
+     * Let's disable user, the account should be disabled as well.
+     */
+    @Test
     public void test053ModifyUserBarbossaDisable() throws Exception {
-		final String TEST_NAME = "test053ModifyUserBarbossaDisable";
+        final String TEST_NAME = "test053ModifyUserBarbossaDisable";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -235,7 +235,7 @@ public class TestClockwork extends AbstractLensTest {
 
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
-        		ActivationStatusType.DISABLED);
+                ActivationStatusType.DISABLED);
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
@@ -250,7 +250,7 @@ public class TestClockwork extends AbstractLensTest {
         assertEquals("Unexpected number of account secondary changes", 4, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.DISABLED);
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
-        		SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+                SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
 
         ContainerDelta<TriggerType> triggerDelta = accountSecondaryDelta.findContainerDelta(ObjectType.F_TRIGGER);
         assertNotNull("No trigger delta in account secondary delta", triggerDelta);
@@ -265,10 +265,10 @@ public class TestClockwork extends AbstractLensTest {
 
     }
 
-	private void assignAccountToJackAsync(String testName, boolean serialize) throws Exception {
-		displayTestTitle(testName);
+    private void assignAccountToJackAsync(String testName, boolean serialize) throws Exception {
+        displayTestTitle(testName);
 
-		// GIVEN
+        // GIVEN
         Task task = createTask(testName);
         OperationResult result = task.getResult();
 
@@ -288,17 +288,17 @@ public class TestClockwork extends AbstractLensTest {
         displayWhen(testName);
         while(context.getState() != ModelState.FINAL) {
 
-        	display("CLICK START: "+context.getState());
-        	HookOperationMode mode = clockwork.click(context, task, result);
-        	display("CLICK END: "+context.getState());
+            display("CLICK START: "+context.getState());
+            HookOperationMode mode = clockwork.click(context, task, result);
+            display("CLICK END: "+context.getState());
 
-        	assertTrue("Unexpected INITIAL state of the context", context.getState() != ModelState.INITIAL);
-        	assertEquals("Wrong mode after click in "+context.getState(), HookOperationMode.BACKGROUND, mode);
-        	assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
+            assertTrue("Unexpected INITIAL state of the context", context.getState() != ModelState.INITIAL);
+            assertEquals("Wrong mode after click in "+context.getState(), HookOperationMode.BACKGROUND, mode);
+            assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
-        	if (serialize) {
+            if (serialize) {
 
-        		display("Context before serialization", context);
+                display("Context before serialization", context);
 
                 LensContextType lensContextType = context.toLensContextType();
                 String xml = prismContext.xmlSerializer().serializeRealValue(lensContextType, SchemaConstants.C_MODEL_CONTEXT);
@@ -323,13 +323,13 @@ public class TestClockwork extends AbstractLensTest {
 
         assertJackAssignAccountContext(context);
         assertJackAccountShadow(context);
-	}
+    }
 
-	private void assertJackAssignAccountContext(LensContext<UserType> context) {
+    private void assertJackAssignAccountContext(LensContext<UserType> context) {
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
         if (context.getFocusContext().getSecondaryDelta() != null) {
-        	assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
-        		ActivationStatusType.ENABLED);
+            assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
+                ActivationStatusType.ENABLED);
         }
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -348,20 +348,20 @@ public class TestClockwork extends AbstractLensTest {
         PrismAsserts.assertPropertyAdd(executedDelta, getIcfsNameAttributePath(), "jack");
         PrismAsserts.assertPropertyAdd(executedDelta, getDummyResourceController().getAttributeFullnamePath(), "Jack Sparrow");
 
-	}
+    }
 
-	private ObjectDelta<?> getExecutedDelta(LensProjectionContext ctx) {
-		List<LensObjectDeltaOperation<ShadowType>> executedDeltas = ctx.getExecutedDeltas();
-		if (executedDeltas.isEmpty()) {
-			return null;
-		}
-		if (executedDeltas.size() > 1) {
-			AssertJUnit.fail("More than one executed delta in "+ctx);
-		}
-		return executedDeltas.get(0).getObjectDelta();
-	}
+    private ObjectDelta<?> getExecutedDelta(LensProjectionContext ctx) {
+        List<LensObjectDeltaOperation<ShadowType>> executedDeltas = ctx.getExecutedDeltas();
+        if (executedDeltas.isEmpty()) {
+            return null;
+        }
+        if (executedDeltas.size() > 1) {
+            AssertJUnit.fail("More than one executed delta in "+ctx);
+        }
+        return executedDeltas.get(0).getObjectDelta();
+    }
 
-	private void assertJackAccountShadow(LensContext<UserType> context) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertJackAccountShadow(LensContext<UserType> context) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
         LensProjectionContext accContext = accountContexts.iterator().next();
@@ -378,22 +378,22 @@ public class TestClockwork extends AbstractLensTest {
         PrismContainer<?> attributes = newAccount.findContainer(ShadowType.F_ATTRIBUTES);
         assertEquals("jack", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
         assertEquals("Jack Sparrow", attributes.findProperty(new ItemName(ResourceTypeUtil.getResourceNamespace(getDummyResourceType()), "fullname")).getRealValue());
-	}
+    }
 
-	private LensContext<UserType> createJackAssignAccountContext(OperationResult result) throws SchemaException, ObjectNotFoundException, IOException, JAXBException {
-		LensContext<UserType> context = createUserLensContext();
+    private LensContext<UserType> createJackAssignAccountContext(OperationResult result) throws SchemaException, ObjectNotFoundException, IOException, JAXBException {
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
         return context;
-	}
+    }
 
-	private void unassignJackAccount() throws SchemaException, ObjectNotFoundException, IOException, JAXBException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
-		Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".unassignJackAccount");
-		LensContext<UserType> context = createUserLensContext();
-		OperationResult result = task.getResult();
+    private void unassignJackAccount() throws SchemaException, ObjectNotFoundException, IOException, JAXBException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
+        Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".unassignJackAccount");
+        LensContext<UserType> context = createUserLensContext();
+        OperationResult result = task.getResult();
         fillContextWithUser(context, USER_JACK_OID, result);
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY);
         clockwork.run(context, task, result);
-	}
+    }
 
 }

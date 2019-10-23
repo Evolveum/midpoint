@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2015-2016 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="e53baf94-aa99-11e6-962a-5362ec2dd7df"
@@ -12,14 +12,14 @@
     <name>Immutable</name>
     <description>Role that cannot be modified because there is a modification rule with enforcement action.</description>
     <assignment>
-    	<policyRule>
-    		<name>immutable</name>
-    		<policyConstraints>
-		    	<modification/>
-		    </policyConstraints>
-		    <policyActions>
-		    	<enforcement/>
-		    </policyActions>
-    	</policyRule>
+        <policyRule>
+            <name>immutable</name>
+            <policyConstraints>
+                <modification/>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
     </assignment>
 </role>

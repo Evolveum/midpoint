@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2016-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -44,7 +44,6 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
-import com.evolveum.midpoint.testing.story.TestTrafo;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -80,135 +79,135 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractLdapTest extends AbstractStoryTest {
 
-	public static final File LDAP_TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap");
-	
-	protected static final String NS_EXT_LDAP = "http://midpoint.evolveum.com/xml/ns/story/ldap/ext";
-	protected static final ItemName TITLE_MAP_QNAME = new ItemName(NS_EXT_LDAP, "titleMap");
-	protected static final ItemName TITLE_MAP_KEY_QNAME = new ItemName(NS_EXT_LDAP, "key");
-	protected static final ItemName TITLE_MAP_VALUE_QNAME = new ItemName(NS_EXT_LDAP, "value");
-	protected static final ItemPath PATH_EXTENSION_TITLE_MAP = ItemPath.create(ObjectType.F_EXTENSION, TITLE_MAP_QNAME);
-	
-	protected static final String LDAP_ATTRIBUTE_DESCRIPTION = "description";
-	protected static final String LDAP_ATTRIBUTE_CN = "cn";
+    public static final File LDAP_TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap");
 
-	protected static final String OBJECTCLASS_INETORGPERSON = "inetOrgPerson";
+    protected static final String NS_EXT_LDAP = "http://midpoint.evolveum.com/xml/ns/story/ldap/ext";
+    protected static final ItemName TITLE_MAP_QNAME = new ItemName(NS_EXT_LDAP, "titleMap");
+    protected static final ItemName TITLE_MAP_KEY_QNAME = new ItemName(NS_EXT_LDAP, "key");
+    protected static final ItemName TITLE_MAP_VALUE_QNAME = new ItemName(NS_EXT_LDAP, "value");
+    protected static final ItemPath PATH_EXTENSION_TITLE_MAP = ItemPath.create(ObjectType.F_EXTENSION, TITLE_MAP_QNAME);
 
-	protected abstract String getLdapResourceOid();
-	
-	protected void dumpLdap() throws DirectoryException {
-		display("LDAP server tree", openDJController.dumpTree());
-		display("LDAP server content", openDJController.dumpEntries());
-	}
+    protected static final String LDAP_ATTRIBUTE_DESCRIPTION = "description";
+    protected static final String LDAP_ATTRIBUTE_CN = "cn";
 
-	//// should be in AbstractModelIntegrationTest
+    protected static final String OBJECTCLASS_INETORGPERSON = "inetOrgPerson";
 
-	protected void modifyOrgAssignment(String orgOid, String roleOid, QName refType, QName relation, Task task,
-			PrismContainer<?> extension, ActivationType activationType, boolean add, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<OrgType> orgDelta = createAssignmentOrgDelta(orgOid, roleOid, refType, relation, extension,
-				activationType, add);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(orgDelta);
-		modelService.executeChanges(deltas, null, task, result);
-	}
+    protected abstract String getLdapResourceOid();
 
-	protected ObjectDelta<OrgType> createAssignmentOrgDelta(String orgOid, String roleOid, QName refType, QName relation,
-			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
-		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
-		modifications.add((createAssignmentModification(roleOid, refType, relation, extension, activationType, add)));
-		ObjectDelta<OrgType> userDelta = prismContext.deltaFactory().object().createModifyDelta(orgOid, modifications, OrgType.class
-		);
-		return userDelta;
-	}
+    protected void dumpLdap() throws DirectoryException {
+        display("LDAP server tree", openDJController.dumpTree());
+        display("LDAP server content", openDJController.dumpEntries());
+    }
 
-	protected void assignRoleToOrg(String orgOid, String roleOid, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		assignRoleToOrg(orgOid, roleOid, (ActivationType) null, task, result);
-	}
+    //// should be in AbstractModelIntegrationTest
 
-	protected void assignRoleToOrg(String orgOid, String roleOid, ActivationType activationType, Task task,
-			OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyOrgAssignment(orgOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, true, result);
-	}
+    protected void modifyOrgAssignment(String orgOid, String roleOid, QName refType, QName relation, Task task,
+            PrismContainer<?> extension, ActivationType activationType, boolean add, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+        ObjectDelta<OrgType> orgDelta = createAssignmentOrgDelta(orgOid, roleOid, refType, relation, extension,
+                activationType, add);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(orgDelta);
+        modelService.executeChanges(deltas, null, task, result);
+    }
 
-	protected void unassignRoleFromOrg(String orgOid, String roleOid, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		unassignRoleFromOrg(orgOid, roleOid, (ActivationType) null, task, result);
-	}
+    protected ObjectDelta<OrgType> createAssignmentOrgDelta(String orgOid, String roleOid, QName refType, QName relation,
+            PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
+        modifications.add((createAssignmentModification(roleOid, refType, relation, extension, activationType, add)));
+        ObjectDelta<OrgType> userDelta = prismContext.deltaFactory().object().createModifyDelta(orgOid, modifications, OrgType.class
+        );
+        return userDelta;
+    }
 
-	protected void unassignRoleFromOrg(String orgOid, String roleOid, ActivationType activationType, Task task,
-			OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyOrgAssignment(orgOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, false, result);
-	}
+    protected void assignRoleToOrg(String orgOid, String roleOid, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+        assignRoleToOrg(orgOid, roleOid, (ActivationType) null, task, result);
+    }
 
-	protected <F extends FocusType> void assertOrgNotAssignedRole(PrismObject<F> focus, String roleOid) {
-		assertNotAssigned(focus, roleOid, RoleType.COMPLEX_TYPE);
-		// assertNotAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
-	}
+    protected void assignRoleToOrg(String orgOid, String roleOid, ActivationType activationType, Task task,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+        modifyOrgAssignment(orgOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, true, result);
+    }
 
-	// TODO: maybe a replacement for MidpointAsserts.assertNotAssigned()
-	// it can be used not only for user
-	protected <F extends FocusType> void assertNotAssigned(PrismObject<F> focus, String targetOid, QName refType) {
-		F focusType = focus.asObjectable();
-		for (AssignmentType assignmentType : focusType.getAssignment()) {
-			ObjectReferenceType targetRef = assignmentType.getTargetRef();
-			if (targetRef != null) {
-				if (refType.equals(targetRef.getType())) {
-					if (targetOid.equals(targetRef.getOid())) {
-						AssertJUnit.fail(focus + " does have assigned " + refType.getLocalPart() + " " + targetOid
-								+ " while not expecting it");
-					}
-				}
-			}
-		}
-	}
-	
-	protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		assertLdapConnectorInstances(expectedConnectorInstances, expectedConnectorInstances);
-	}
-	
-	protected void assertLdapConnectorInstances(int expectedConnectorInstancesMin, int expectedConnectorInstancesMax) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		Task task = createTask(TestLdapSyncMassive.class.getName() + ".assertLdapConnectorInstances");
-		OperationResult result = task.getResult();
-		List<ConnectorOperationalStatus> stats = provisioningService.getConnectorOperationalStatus(getLdapResourceOid(), task, result);
-		display("Resource connector stats", stats);
-		assertSuccess(result);
+    protected void unassignRoleFromOrg(String orgOid, String roleOid, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+        unassignRoleFromOrg(orgOid, roleOid, (ActivationType) null, task, result);
+    }
 
-		assertEquals("unexpected number of stats", 1, stats.size());
-		ConnectorOperationalStatus stat = stats.get(0);
+    protected void unassignRoleFromOrg(String orgOid, String roleOid, ActivationType activationType, Task task,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+        modifyOrgAssignment(orgOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, false, result);
+    }
 
-		int actualConnectorInstances = stat.getPoolStatusNumIdle() + stat.getPoolStatusNumActive();
-		
-		if (actualConnectorInstances < expectedConnectorInstancesMin) {
-			fail("Number of LDAP connector instances too low: "+actualConnectorInstances+", expected at least "+expectedConnectorInstancesMin);
-		}
-		if (actualConnectorInstances > expectedConnectorInstancesMax) {
-			fail("Number of LDAP connector instances too high: "+actualConnectorInstances+", expected at most "+expectedConnectorInstancesMax);
-		}
-	}
+    protected <F extends FocusType> void assertOrgNotAssignedRole(PrismObject<F> focus, String roleOid) {
+        assertNotAssigned(focus, roleOid, RoleType.COMPLEX_TYPE);
+        // assertNotAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
+    }
+
+    // TODO: maybe a replacement for MidpointAsserts.assertNotAssigned()
+    // it can be used not only for user
+    protected <F extends FocusType> void assertNotAssigned(PrismObject<F> focus, String targetOid, QName refType) {
+        F focusType = focus.asObjectable();
+        for (AssignmentType assignmentType : focusType.getAssignment()) {
+            ObjectReferenceType targetRef = assignmentType.getTargetRef();
+            if (targetRef != null) {
+                if (refType.equals(targetRef.getType())) {
+                    if (targetOid.equals(targetRef.getOid())) {
+                        AssertJUnit.fail(focus + " does have assigned " + refType.getLocalPart() + " " + targetOid
+                                + " while not expecting it");
+                    }
+                }
+            }
+        }
+    }
+
+    protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        assertLdapConnectorInstances(expectedConnectorInstances, expectedConnectorInstances);
+    }
+
+    protected void assertLdapConnectorInstances(int expectedConnectorInstancesMin, int expectedConnectorInstancesMax) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        Task task = createTask(TestLdapSyncMassive.class.getName() + ".assertLdapConnectorInstances");
+        OperationResult result = task.getResult();
+        List<ConnectorOperationalStatus> stats = provisioningService.getConnectorOperationalStatus(getLdapResourceOid(), task, result);
+        display("Resource connector stats", stats);
+        assertSuccess(result);
+
+        assertEquals("unexpected number of stats", 1, stats.size());
+        ConnectorOperationalStatus stat = stats.get(0);
+
+        int actualConnectorInstances = stat.getPoolStatusNumIdle() + stat.getPoolStatusNumActive();
+
+        if (actualConnectorInstances < expectedConnectorInstancesMin) {
+            fail("Number of LDAP connector instances too low: "+actualConnectorInstances+", expected at least "+expectedConnectorInstancesMin);
+        }
+        if (actualConnectorInstances > expectedConnectorInstancesMax) {
+            fail("Number of LDAP connector instances too high: "+actualConnectorInstances+", expected at most "+expectedConnectorInstancesMax);
+        }
+    }
 
 
-	protected void assertLdapAccounts(int expectedNumber) throws DirectoryException {
-		List<? extends Entry> entries = openDJController.search("objectclass="+OBJECTCLASS_INETORGPERSON);
-		assertEquals("Wrong number of LDAP accounts ("+OBJECTCLASS_INETORGPERSON+")", expectedNumber, entries.size());
-	}
+    protected void assertLdapAccounts(int expectedNumber) throws DirectoryException {
+        List<? extends Entry> entries = openDJController.search("objectclass="+OBJECTCLASS_INETORGPERSON);
+        assertEquals("Wrong number of LDAP accounts ("+OBJECTCLASS_INETORGPERSON+")", expectedNumber, entries.size());
+    }
 
-	protected int getNumberOfLdapAccounts() {
-		return 4;   // idm, jgibbs, hbarbossa, jbeckett
-	}
-	
-	protected Entry getLdapEntryByUid(String uid) throws DirectoryException {
-		return openDJController.searchSingle("uid="+uid);
-	}
+    protected int getNumberOfLdapAccounts() {
+        return 4;   // idm, jgibbs, hbarbossa, jbeckett
+    }
 
-	protected void assertCn(Entry entry, String expectedValue) {
-		OpenDJController.assertAttribute(entry, LDAP_ATTRIBUTE_CN, expectedValue);
-	}
+    protected Entry getLdapEntryByUid(String uid) throws DirectoryException {
+        return openDJController.searchSingle("uid="+uid);
+    }
+
+    protected void assertCn(Entry entry, String expectedValue) {
+        OpenDJController.assertAttribute(entry, LDAP_ATTRIBUTE_CN, expectedValue);
+    }
 
 }

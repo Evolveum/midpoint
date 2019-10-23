@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -42,145 +42,145 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
  */
 public class StartInstruction implements DebugDumpable {
 
-	@SuppressWarnings("unused")
-	private static final Trace LOGGER = TraceManager.getTrace(StartInstruction.class);
+    @SuppressWarnings("unused")
+    private static final Trace LOGGER = TraceManager.getTrace(StartInstruction.class);
 
-	protected final CaseType aCase;
-	private final ChangeProcessor changeProcessor;
+    protected final CaseType aCase;
+    private final ChangeProcessor changeProcessor;
 
     //region Constructors
     protected StartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
         this.changeProcessor = changeProcessor;
-	    PrismContext prismContext = changeProcessor.getPrismContext();
-	    aCase = new CaseType(prismContext);
-	    ObjectReferenceType approvalArchetypeRef = ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE);
-	    aCase.getArchetypeRef().add(approvalArchetypeRef.clone());
-	    aCase.beginAssignment().targetRef(approvalArchetypeRef).end();
-		aCase.setMetadata(new MetadataType(prismContext));
-	    aCase.getMetadata().setCreateTimestamp(createXMLGregorianCalendar(new Date()));
+        PrismContext prismContext = changeProcessor.getPrismContext();
+        aCase = new CaseType(prismContext);
+        ObjectReferenceType approvalArchetypeRef = ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE);
+        aCase.getArchetypeRef().add(approvalArchetypeRef.clone());
+        aCase.beginAssignment().targetRef(approvalArchetypeRef).end();
+        aCase.setMetadata(new MetadataType(prismContext));
+        aCase.getMetadata().setCreateTimestamp(createXMLGregorianCalendar(new Date()));
     }
 
-	public static StartInstruction create(ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
-		return new StartInstruction(changeProcessor, archetypeOid);
-	}
-	//endregion
+    public static StartInstruction create(ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
+        return new StartInstruction(changeProcessor, archetypeOid);
+    }
+    //endregion
 
     // region Getters and setters
     protected ChangeProcessor getChangeProcessor() {
-		return changeProcessor;
-	}
+        return changeProcessor;
+    }
 
-	protected PrismContext getPrismContext() { return changeProcessor.getPrismContext(); }
+    protected PrismContext getPrismContext() { return changeProcessor.getPrismContext(); }
 
     public void setName(String name) {
-    	aCase.setName(PolyStringType.fromOrig(name));
+        aCase.setName(PolyStringType.fromOrig(name));
     }
 
     public void setName(String name, LocalizableMessage localizable) {
-	    PolyStringType polyName = PolyStringType.fromOrig(name);
-	    if (localizable != null) {
-		    if (!(localizable instanceof SingleLocalizableMessage)) {
-			    throw new UnsupportedOperationException(
-					    "Localizable messages other than SingleLocalizableMessage cannot be used for approval case names: "
-							    + localizable);
-		    } else {
-			    polyName.setTranslation(PolyStringTranslationType.fromLocalizableMessage((SingleLocalizableMessage) localizable));
-		    }
-	    }
-	    aCase.setName(polyName);
+        PolyStringType polyName = PolyStringType.fromOrig(name);
+        if (localizable != null) {
+            if (!(localizable instanceof SingleLocalizableMessage)) {
+                throw new UnsupportedOperationException(
+                        "Localizable messages other than SingleLocalizableMessage cannot be used for approval case names: "
+                                + localizable);
+            } else {
+                polyName.setTranslation(PolyStringTranslationType.fromLocalizableMessage((SingleLocalizableMessage) localizable));
+            }
+        }
+        aCase.setName(polyName);
     }
 
     public boolean startsWorkflowProcess() {
-	    ApprovalContextType actx = getApprovalContext();
-	    return actx != null && actx.getApprovalSchema() != null;
+        ApprovalContextType actx = getApprovalContext();
+        return actx != null && actx.getApprovalSchema() != null;
     }
 
     public void setModelContext(ModelContext<?> context) throws SchemaException {
-    	LensContextType bean;
-	    if (context != null) {
-		    boolean reduced = context.getState() == ModelState.PRIMARY;
-		    bean = ((LensContext) context).toLensContextType(reduced ? LensContext.ExportType.REDUCED : LensContext.ExportType.OPERATIONAL);
-	    } else {
-	    	bean = null;
-	    }
-	    aCase.setModelContext(bean);
+        LensContextType bean;
+        if (context != null) {
+            boolean reduced = context.getState() == ModelState.PRIMARY;
+            bean = ((LensContext) context).toLensContextType(reduced ? LensContext.ExportType.REDUCED : LensContext.ExportType.OPERATIONAL);
+        } else {
+            bean = null;
+        }
+        aCase.setModelContext(bean);
     }
 
-	public void setObjectRef(ObjectReferenceType ref, OperationResult result) {
-		ref = getChangeProcessor().getMiscHelper().resolveObjectReferenceName(ref, result);
-		aCase.setObjectRef(ref);
-	}
+    public void setObjectRef(ObjectReferenceType ref, OperationResult result) {
+        ref = getChangeProcessor().getMiscHelper().resolveObjectReferenceName(ref, result);
+        aCase.setObjectRef(ref);
+    }
 
-	public void setObjectRef(ModelInvocationContext<?> ctx) {
-		ObjectType focus = ctx.getFocusObjectNewOrOld();
-		ObjectDelta<?> primaryDelta = ctx.modelContext.getFocusContext().getPrimaryDelta();
-		ObjectReferenceType ref;
-		if (primaryDelta != null && primaryDelta.isAdd()) {
-			ref = ObjectTypeUtil.createObjectRefWithFullObject(focus, getPrismContext());
-		} else {
-			ref = ObjectTypeUtil.createObjectRef(focus, getPrismContext());
-		}
-		aCase.setObjectRef(ref);
-	}
+    public void setObjectRef(ModelInvocationContext<?> ctx) {
+        ObjectType focus = ctx.getFocusObjectNewOrOld();
+        ObjectDelta<?> primaryDelta = ctx.modelContext.getFocusContext().getPrimaryDelta();
+        ObjectReferenceType ref;
+        if (primaryDelta != null && primaryDelta.isAdd()) {
+            ref = ObjectTypeUtil.createObjectRefWithFullObject(focus, getPrismContext());
+        } else {
+            ref = ObjectTypeUtil.createObjectRef(focus, getPrismContext());
+        }
+        aCase.setObjectRef(ref);
+    }
 
-	public void setTargetRef(ObjectReferenceType ref, OperationResult result) {
-		ref = getChangeProcessor().getMiscHelper().resolveObjectReferenceName(ref, result);
-		aCase.setTargetRef(ref);
-	}
+    public void setTargetRef(ObjectReferenceType ref, OperationResult result) {
+        ref = getChangeProcessor().getMiscHelper().resolveObjectReferenceName(ref, result);
+        aCase.setTargetRef(ref);
+    }
 
     public void setRequesterRef(PrismObject<UserType> requester) {
-		aCase.setRequestorRef(createObjectRef(requester, getPrismContext()));
+        aCase.setRequestorRef(createObjectRef(requester, getPrismContext()));
     }
 
-	public ApprovalContextType getApprovalContext() {
-		return aCase.getApprovalContext();
-	}
+    public ApprovalContextType getApprovalContext() {
+        return aCase.getApprovalContext();
+    }
 
-	//endregion
+    //endregion
 
     //region Diagnostics
 
-	@Override
-	public String toString() {
-		return "StartInstruction{" +
-				"aCase=" + aCase +
-				", changeProcessor=" + changeProcessor +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "StartInstruction{" +
+                "aCase=" + aCase +
+                ", changeProcessor=" + changeProcessor +
+                '}';
+    }
 
-	@Override
+    @Override
     public String debugDump() {
         return debugDump(0);
     }
 
-	@Override
+    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
 
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("Start instruction: ");
-		sb.append(startsWorkflowProcess() ? "with-process" : "no-process").append(", model-context: ");
-		sb.append(aCase.getModelContext() != null ? "YES" : "no").append("\n");
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("Case:\n");
-		sb.append(aCase.asPrismContainerValue().debugDump(indent+2)).append("\n");
+        sb.append(startsWorkflowProcess() ? "with-process" : "no-process").append(", model-context: ");
+        sb.append(aCase.getModelContext() != null ? "YES" : "no").append("\n");
+        DebugUtil.indentDebugDump(sb, indent+1);
+        sb.append("Case:\n");
+        sb.append(aCase.asPrismContainerValue().debugDump(indent+2)).append("\n");
         return sb.toString();
     }
 
     public void setParent(CaseType parent) {
-    	aCase.setParentRef(ObjectTypeUtil.createObjectRef(parent, getPrismContext()));
+        aCase.setParentRef(ObjectTypeUtil.createObjectRef(parent, getPrismContext()));
     }
     //endregion
 
-	//region "Output" methods
-	public CaseType getCase() {
-    	if (startsWorkflowProcess()) {
-    		// These cases will be open explicitly using the workflow engine
-    		aCase.setState(SchemaConstants.CASE_STATE_CREATED);
-	    } else {
-		    aCase.setState(SchemaConstants.CASE_STATE_OPEN);
-	    }
-		return aCase;
-	}
-	//endregion
+    //region "Output" methods
+    public CaseType getCase() {
+        if (startsWorkflowProcess()) {
+            // These cases will be open explicitly using the workflow engine
+            aCase.setState(SchemaConstants.CASE_STATE_CREATED);
+        } else {
+            aCase.setState(SchemaConstants.CASE_STATE_OPEN);
+        }
+        return aCase;
+    }
+    //endregion
 }

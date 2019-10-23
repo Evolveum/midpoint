@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,50 +23,50 @@ import java.util.List;
  * @author mederly
  */
 public interface ResourceAttributeContainerDefinition extends PrismContainerDefinition<ShadowAttributesType> {
-	@Override
-	ObjectClassComplexTypeDefinition getComplexTypeDefinition();
+    @Override
+    ObjectClassComplexTypeDefinition getComplexTypeDefinition();
 
-	// TODO: rename to getPrimaryIdentifiers
-	Collection<? extends ResourceAttributeDefinition> getPrimaryIdentifiers();
+    // TODO: rename to getPrimaryIdentifiers
+    Collection<? extends ResourceAttributeDefinition> getPrimaryIdentifiers();
 
-	Collection<? extends ResourceAttributeDefinition> getSecondaryIdentifiers();
+    Collection<? extends ResourceAttributeDefinition> getSecondaryIdentifiers();
 
-	Collection<? extends ResourceAttributeDefinition> getAllIdentifiers();
+    Collection<? extends ResourceAttributeDefinition> getAllIdentifiers();
 
-	ResourceAttributeDefinition getDescriptionAttribute();
+    ResourceAttributeDefinition getDescriptionAttribute();
 
-	ResourceAttributeDefinition getNamingAttribute();
+    ResourceAttributeDefinition getNamingAttribute();
 
-	String getNativeObjectClass();
+    String getNativeObjectClass();
 
-	boolean isDefaultInAKind();
+    boolean isDefaultInAKind();
 
-	String getIntent();
+    String getIntent();
 
-	ShadowKindType getKind();
+    ShadowKindType getKind();
 
-	ResourceAttributeDefinition getDisplayNameAttribute();
+    ResourceAttributeDefinition getDisplayNameAttribute();
 
-	@NotNull
-	ResourceAttributeContainer instantiate();
+    @NotNull
+    ResourceAttributeContainer instantiate();
 
-	@NotNull
-	ResourceAttributeContainer instantiate(QName name);
+    @NotNull
+    ResourceAttributeContainer instantiate(QName name);
 
-	@NotNull
-	ResourceAttributeContainerDefinition clone();
+    @NotNull
+    ResourceAttributeContainerDefinition clone();
 
-	<T> ResourceAttributeDefinition<T> findAttributeDefinition(QName elementQName, boolean caseInsensitive);
+    <T> ResourceAttributeDefinition<T> findAttributeDefinition(QName elementQName, boolean caseInsensitive);
 
-	ResourceAttributeDefinition findAttributeDefinition(ItemPath elementPath);
+    ResourceAttributeDefinition findAttributeDefinition(ItemPath elementPath);
 
-	ResourceAttributeDefinition findAttributeDefinition(String elementLocalname);
+    ResourceAttributeDefinition findAttributeDefinition(String elementLocalname);
 
-	List<? extends ResourceAttributeDefinition> getAttributeDefinitions();
+    List<? extends ResourceAttributeDefinition> getAttributeDefinitions();
 
-	// Only attribute definitions should be here.
-	@Override
-	List<? extends ResourceAttributeDefinition> getDefinitions();
+    // Only attribute definitions should be here.
+    @Override
+    List<? extends ResourceAttributeDefinition> getDefinitions();
 
-	<T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition();
+    <T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition();
 }

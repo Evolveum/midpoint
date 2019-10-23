@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -45,23 +45,23 @@ public class TestQueryBuilder {
     public static final QName ASSIGNMENT_TYPE_QNAME = new QName(NS_FOO, "AssignmentType");
     private static MatchingRuleRegistry matchingRuleRegistry;
 
-	@BeforeSuite
-	public void setupDebug() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
+    @BeforeSuite
+    public void setupDebug() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
+        PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
 
-		matchingRuleRegistry = MatchingRuleRegistryFactory.createRegistry();
-	}
+        matchingRuleRegistry = MatchingRuleRegistryFactory.createRegistry();
+    }
 
     @BeforeMethod
     public void beforeMethod(Method method) throws Exception {
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> START TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
     }
 
-	@Test
-	public void test100EmptyFilter() throws Exception{
-		ObjectQuery actual = getPrismContext().queryFor(UserType.class).build();
-		ObjectQuery expected = ObjectQueryImpl.createObjectQuery((ObjectFilter) null);
+    @Test
+    public void test100EmptyFilter() throws Exception{
+        ObjectQuery actual = getPrismContext().queryFor(UserType.class).build();
+        ObjectQuery expected = ObjectQueryImpl.createObjectQuery((ObjectFilter) null);
         compare(actual, expected);
     }
 

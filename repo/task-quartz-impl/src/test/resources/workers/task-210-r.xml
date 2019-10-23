@@ -2,55 +2,55 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <task oid="44444444-2222-2222-2223-210r00000000"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-	<name>task-210-root</name>
-	<extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
-		<mext:kind>account</mext:kind>
-	</extension>
-	<taskIdentifier>44444444-2222-2222-2223-210r00000000</taskIdentifier>
-	<ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />
-	<executionStatus>runnable</executionStatus>
-	<handlerUri>http://midpoint.evolveum.com/test/partitioned-wb-task-handler</handlerUri>
-	<objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="ResourceType" />
-	<workManagement>
-		<partitions>
-			<partition>
-				<index>2</index>
-				<workManagement>
-					<taskKind>coordinator</taskKind>
-					<workers>
-						<workersPerNode>
-							<count>3</count>
-						</workersPerNode>
-					</workers>
-				</workManagement>
-				<executionEnvironment>
-					<cachingProfile>profile2</cachingProfile>
-				</executionEnvironment>
-			</partition>
-			<partition>
-				<index>3</index>
-				<workManagement>
-					<taskKind>coordinator</taskKind>
-					<workers>
-						<workersPerNode>
-							<count>2</count>
-						</workersPerNode>
-					</workers>
-				</workManagement>
-			</partition>
-		</partitions>
-	</workManagement>
-	<recurrence>single</recurrence>
-	<binding>loose</binding>
-	<executionEnvironment>
-		<cachingProfile>profile1</cachingProfile>
-	</executionEnvironment>
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <name>task-210-root</name>
+    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+        <mext:kind>account</mext:kind>
+    </extension>
+    <taskIdentifier>44444444-2222-2222-2223-210r00000000</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />
+    <executionStatus>runnable</executionStatus>
+    <handlerUri>http://midpoint.evolveum.com/test/partitioned-wb-task-handler</handlerUri>
+    <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="ResourceType" />
+    <workManagement>
+        <partitions>
+            <partition>
+                <index>2</index>
+                <workManagement>
+                    <taskKind>coordinator</taskKind>
+                    <workers>
+                        <workersPerNode>
+                            <count>3</count>
+                        </workersPerNode>
+                    </workers>
+                </workManagement>
+                <executionEnvironment>
+                    <cachingProfile>profile2</cachingProfile>
+                </executionEnvironment>
+            </partition>
+            <partition>
+                <index>3</index>
+                <workManagement>
+                    <taskKind>coordinator</taskKind>
+                    <workers>
+                        <workersPerNode>
+                            <count>2</count>
+                        </workersPerNode>
+                    </workers>
+                </workManagement>
+            </partition>
+        </partitions>
+    </workManagement>
+    <recurrence>single</recurrence>
+    <binding>loose</binding>
+    <executionEnvironment>
+        <cachingProfile>profile1</cachingProfile>
+    </executionEnvironment>
 </task>

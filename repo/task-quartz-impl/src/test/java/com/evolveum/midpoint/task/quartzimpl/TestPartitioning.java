@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl;
@@ -37,58 +37,58 @@ import static org.testng.AssertJUnit.assertEquals;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestPartitioning extends AbstractTaskManagerTest {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(TestPartitioning.class);
-	public static final long DEFAULT_SLEEP_INTERVAL = 250L;
-	public static final long DEFAULT_TIMEOUT = 30000L;
+    private static final transient Trace LOGGER = TraceManager.getTrace(TestPartitioning.class);
+    public static final long DEFAULT_SLEEP_INTERVAL = 250L;
+    public static final long DEFAULT_TIMEOUT = 30000L;
 
-	@Autowired private WorkStateManager workStateManager;
+    @Autowired private WorkStateManager workStateManager;
 
-	private static String taskFilename(String testName, String subId) {
-		return "src/test/resources/partitioning/task-" + testNumber(testName) + "-" + subId + ".xml";
-	}
+    private static String taskFilename(String testName, String subId) {
+        return "src/test/resources/partitioning/task-" + testNumber(testName) + "-" + subId + ".xml";
+    }
 
-	private static String taskFilename(String testName) {
-		return taskFilename(testName, "0");
-	}
+    private static String taskFilename(String testName) {
+        return taskFilename(testName, "0");
+    }
 
-	private static String taskOid(String testName, String subId) {
-		return "44444444-2222-2222-8888-" + testNumber(testName) + subId + "00000000";
-	}
+    private static String taskOid(String testName, String subId) {
+        return "44444444-2222-2222-8888-" + testNumber(testName) + subId + "00000000";
+    }
 
-	private static String taskOid(String test) {
-		return taskOid(test, "0");
-	}
+    private static String taskOid(String test) {
+        return taskOid(test, "0");
+    }
 
-	private static String testNumber(String test) {
-		return test.substring(4, 7);
-	}
+    private static String testNumber(String test) {
+        return test.substring(4, 7);
+    }
 
-	@NotNull
-	protected String workerTaskFilename(String TEST_NAME) {
-		return taskFilename(TEST_NAME, "w");
-	}
+    @NotNull
+    protected String workerTaskFilename(String TEST_NAME) {
+        return taskFilename(TEST_NAME, "w");
+    }
 
-	@NotNull
-	protected String coordinatorTaskFilename(String TEST_NAME) {
-		return taskFilename(TEST_NAME, "c");
-	}
+    @NotNull
+    protected String coordinatorTaskFilename(String TEST_NAME) {
+        return taskFilename(TEST_NAME, "c");
+    }
 
-	@NotNull
-	protected String workerTaskOid(String TEST_NAME) {
-		return taskOid(TEST_NAME, "w");
-	}
+    @NotNull
+    protected String workerTaskOid(String TEST_NAME) {
+        return taskOid(TEST_NAME, "w");
+    }
 
-	@NotNull
-	protected String coordinatorTaskOid(String TEST_NAME) {
-		return taskOid(TEST_NAME, "c");
-	}
+    @NotNull
+    protected String coordinatorTaskOid(String TEST_NAME) {
+        return taskOid(TEST_NAME, "c");
+    }
 
-	@PostConstruct
-	public void initialize() throws Exception {
-		super.initialize();
-		workStateManager.setFreeBucketWaitIntervalOverride(1000L);
-		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
-	}
+    @PostConstruct
+    public void initialize() throws Exception {
+        super.initialize();
+        workStateManager.setFreeBucketWaitIntervalOverride(1000L);
+        DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
+    }
 
     @Test
     public void test000Integrity() {
@@ -102,40 +102,40 @@ public class TestPartitioning extends AbstractTaskManagerTest {
         OperationResult result = createResult(TEST_NAME, LOGGER);
 
         // WHEN
-	    addObjectFromFile(taskFilename(TEST_NAME, "m"));
+        addObjectFromFile(taskFilename(TEST_NAME, "m"));
 
-	    // THEN
-	    String masterTaskOid = taskOid(TEST_NAME, "m");
-	    try {
-		    waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
+        // THEN
+        String masterTaskOid = taskOid(TEST_NAME, "m");
+        try {
+            waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
-		    TaskQuartzImpl masterTask = taskManager.getTask(masterTaskOid, result);
-		    List<Task> partitions = masterTask.listSubtasks(result);
+            TaskQuartzImpl masterTask = taskManager.getTask(masterTaskOid, result);
+            List<Task> partitions = masterTask.listSubtasks(result);
 
-		    display("master task", masterTask);
-		    display("partition tasks", partitions);
+            display("master task", masterTask);
+            display("partition tasks", partitions);
 
-		    assertEquals("Wrong # of partitions", 3, partitions.size());
+            assertEquals("Wrong # of partitions", 3, partitions.size());
 
-		    waitForTaskRunnable(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskRunnable(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
-		    assertEquals("Wrong # of handler executions", 3, singleHandler1.getExecutions());
+            assertEquals("Wrong # of handler executions", 3, singleHandler1.getExecutions());
 
-		    // WHEN
-		    taskManager.scheduleTasksNow(singleton(masterTaskOid), result);
+            // WHEN
+            taskManager.scheduleTasksNow(singleton(masterTaskOid), result);
 
-		    // THEN
-		    waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 2);
-		    waitForTaskRunnable(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            // THEN
+            waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 2);
+            waitForTaskRunnable(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
-		    masterTask = taskManager.getTask(masterTaskOid, result);
-		    partitions = masterTask.listSubtasks(result);
-		    display("master task (after 2nd run)", masterTask);
-		    display("partition tasks (after 2nd run)", partitions);
+            masterTask = taskManager.getTask(masterTaskOid, result);
+            partitions = masterTask.listSubtasks(result);
+            display("master task (after 2nd run)", masterTask);
+            display("partition tasks (after 2nd run)", partitions);
 
-		    assertEquals("Wrong # of handler executions", 6, singleHandler1.getExecutions());
-	    } finally {
-		    suspendAndDeleteTasks(masterTaskOid);
-	    }
+            assertEquals("Wrong # of handler executions", 6, singleHandler1.getExecutions());
+        } finally {
+            suspendAndDeleteTasks(masterTaskOid);
+        }
     }
 }

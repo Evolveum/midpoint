@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -31,7 +31,7 @@
             </jaxb:globalBindings>
         </xsd:appinfo>
     </xsd:annotation>
-        
+
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3" schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
         <xsd:annotation>
             <xsd:documentation>
@@ -39,9 +39,9 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
-    
+
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/test/foo-types-1" schemaLocation="http://midpoint.evolveum.com/xml/ns/test/foo-types-1"/>
-    
+
     <xsd:element name="name" type="t:PolyStringType"/>
     <xsd:element name="displayName" type="xsd:string"/>
     <xsd:element name="description" type="xsd:string"/>
@@ -70,24 +70,24 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:name" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:displayName>ObjectType.name</a:displayName>
-            			<a:displayOrder>0</a:displayOrder>
-            			<a:help>Short unique name of the object</a:help>
-            			<a:emphasized>true</a:emphasized>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectType.name</a:displayName>
+                        <a:displayOrder>0</a:displayOrder>
+                        <a:help>Short unique name of the object</a:help>
+                        <a:emphasized>true</a:emphasized>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:displayName>ObjectType.extension</a:displayName>
-            			<a:displayOrder>1000</a:displayOrder>
-            			<a:help>Object extension contains extra properties</a:help>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectType.extension</a:displayName>
+                        <a:displayOrder>1000</a:displayOrder>
+                        <a:help>Object extension contains extra properties</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="parentOrg" type="tns:ObjectType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
@@ -113,24 +113,24 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
-                	<!-- Single-valued properties -->
+                    <!-- Single-valued properties -->
                     <xsd:element name="fullName" type="xsd:string">
-                    	<xsd:annotation>
-                    		<xsd:appinfo>
-                    			<a:displayName>UserType.fullName</a:displayName>
-                    			<a:displayOrder>10</a:displayOrder>
-		            			<a:help>User full name</a:help>
-		            			<a:emphasized>true</a:emphasized>
-                    		</xsd:appinfo>
-                    	</xsd:annotation>
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>UserType.fullName</a:displayName>
+                                <a:displayOrder>10</a:displayOrder>
+                                <a:help>User full name</a:help>
+                                <a:emphasized>true</a:emphasized>
+                            </xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="givenName" type="xsd:string" minOccurs="0"/>
                     <xsd:element name="familyName" type="xsd:string" minOccurs="0">
-                    	<xsd:annotation>
-                    		<xsd:appinfo>
-		            			<a:emphasized>true</a:emphasized>
-                    		</xsd:appinfo>
-                    	</xsd:annotation>
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:emphasized>true</a:emphasized>
+                            </xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
                     <!-- Multi-valued property -->
                     <xsd:element name="additionalNames" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
@@ -140,28 +140,28 @@
                     <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded"/>
                     <!-- Single-valued container -->
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0">
-                    	<xsd:annotation>
-		            		<xsd:appinfo>
-		            			<a:displayName>ActivationType.activation</a:displayName>
-		            			<a:displayOrder>1200</a:displayOrder>
-		            			<a:help>User activation properties</a:help>
-		            		</xsd:appinfo>
-		            	</xsd:annotation>
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>ActivationType.activation</a:displayName>
+                                <a:displayOrder>1200</a:displayOrder>
+                                <a:help>User activation properties</a:help>
+                            </xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0"/>
                     <xsd:element name="account" type="tns:AccountType" minOccurs="0" maxOccurs="unbounded">
-                    	<xsd:annotation>
-                    		<xsd:appinfo>
-                    			<a:objectReference>tns:accountRef</a:objectReference>
-                    		</xsd:appinfo>
-                    	</xsd:annotation>
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:accountRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="accountRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                    	<xsd:annotation>
-                    		<xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:AccountType</a:objectReferenceTargetType>
-                    		</xsd:appinfo>
-                    	</xsd:annotation>
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:AccountType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
                     <!-- element that has different names in XML/JSON/YAML and in java bean -->
                     <xsd:element name="special" type="xsd:string" minOccurs="0" maxOccurs="1"/>
@@ -183,26 +183,26 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="user" type="tns:UserType"/>
-    
+
     <xsd:complexType name="ObjectReferenceType">
         <xsd:annotation>
             <xsd:documentation>
                 Reference to an object. It contains OID of the object that it refers to.
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:objectReference/>
+                <a:objectReference/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
-        		<xsd:annotation>
-        			<xsd:documentation>
-        				Free-form description of this reference. Usually used to describe the purpose of
-        				a search filter embedded in the reference.
-        			</xsd:documentation>
-        		</xsd:annotation>
-        	</xsd:element>
-        	<xsd:element name="filter" minOccurs="0" maxOccurs="1">
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free-form description of this reference. Usually used to describe the purpose of
+                        a search filter embedded in the reference.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="filter" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Filter that can be used to dynamically lookup the reference OID e.g. during imports.
@@ -211,17 +211,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
                 <xsd:complexType>
-                	<xsd:sequence>
-                		<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-                	</xsd:sequence>
+                    <xsd:sequence>
+                        <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                    </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="object" minOccurs="0" maxOccurs="1">
                 <xsd:complexType>
-                	<xsd:sequence>
-                		<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-                	</xsd:sequence>
-                	<xsd:anyAttribute namespace="##any" processContents="lax"/>
+                    <xsd:sequence>
+                        <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                    </xsd:sequence>
+                    <xsd:anyAttribute namespace="##any" processContents="lax"/>
                 </xsd:complexType>
             </xsd:element>
         </xsd:sequence>
@@ -250,13 +250,13 @@
             </xsd:annotation>
         </xsd:attribute>
     </xsd:complexType>
-    
-    
+
+
     <xsd:complexType name="AccountType">
         <xsd:complexContent>
             <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
-                	<xsd:element name="attributes" type="tns:AttributesType" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="attributes" type="tns:AttributesType" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -264,85 +264,85 @@
     <xsd:element name="account" type="tns:AccountType"/>
 
     <xsd:complexType name="AssignmentType">
-    	<xsd:annotation>
+        <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="description" type="xsd:string" minOccurs="0"/>
             <xsd:element name="note" type="xsd:string" minOccurs="0"/>
-        	<xsd:element name="accountConstruction" type="tns:AccountConstructionType" minOccurs="0"/>
-        	<xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
+            <xsd:element name="accountConstruction" type="tns:AccountConstructionType" minOccurs="0"/>
+            <xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="AccountConstructionType">
-    	<xsd:annotation>
-    		<xsd:documentation>
-    			Account construction type is NOT a container. It is a complex-type property.
-    			This tests the ability to deal with complex type properties and also with
-    			dateTime and RawType fields in them.
-    		</xsd:documentation>
+        <xsd:annotation>
+            <xsd:documentation>
+                Account construction type is NOT a container. It is a complex-type property.
+                This tests the ability to deal with complex type properties and also with
+                dateTime and RawType fields in them.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="howto" type="xsd:string" minOccurs="0"/>
-        	<xsd:element name="when" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="howto" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="when" type="xsd:dateTime" minOccurs="0"/>
             <xsd:element name="value" type="t:RawType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
-	<xsd:complexType name="ActivationType">
-    	<xsd:annotation>
-    		<xsd:documentation>
-    			ActivationTyps is a container, therefore the following elements are properties.
-    			This tests the ability to deal with boolean and dateTime properties.
-    		</xsd:documentation>
+    <xsd:complexType name="ActivationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                ActivationTyps is a container, therefore the following elements are properties.
+                This tests the ability to deal with boolean and dateTime properties.
+            </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
                 <a:operational>true</a:operational>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="enabled" type="xsd:boolean" minOccurs="0"/>
-        	<xsd:element name="validFrom" type="xsd:dateTime" minOccurs="0"/>
-        	<xsd:element name="validTo" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="validFrom" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="validTo" type="xsd:dateTime" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="AttributesType">
-    	<xsd:annotation>
+        <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+            <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="DummyProtectedStringType">
-    	<xsd:annotation>
-    		<xsd:documentation>
-    			This type mimmicks a complex type that may be used in properties.
-    		</xsd:documentation>
-    	</xsd:annotation>
+        <xsd:annotation>
+            <xsd:documentation>
+                This type mimmicks a complex type that may be used in properties.
+            </xsd:documentation>
+        </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="value" type="xsd:string"/>
+            <xsd:element name="value" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="FooObjectClass">
-    	<xsd:annotation>
+        <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element ref="ft:uid" minOccurs="0"/>
-        	<xsd:element ref="ft:name" minOccurs="1" maxOccurs="1"/>
-        	<xsd:element name="foo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="ft:uid" minOccurs="0"/>
+            <xsd:element ref="ft:name" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="foo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -350,7 +350,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
-                	<xsd:element name="schema" type="t:SchemaDefinitionType" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="schema" type="t:SchemaDefinitionType" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

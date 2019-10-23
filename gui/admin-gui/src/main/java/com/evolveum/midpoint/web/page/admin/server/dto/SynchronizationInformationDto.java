@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,11 +25,11 @@ public class SynchronizationInformationDto {
     public static final String F_COUNT_UNMATCHED = "countUnmatched";
 
     private SynchronizationInformationType synchronizationInformationType;
-	private boolean useAfter;
+    private boolean useAfter;
 
     public SynchronizationInformationDto(SynchronizationInformationType synchronizationInformationType, boolean useAfter) {
         this.synchronizationInformationType = synchronizationInformationType;
-		this.useAfter = useAfter;
+        this.useAfter = useAfter;
     }
 
     public int getCountProtected() {

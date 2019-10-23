@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -261,12 +261,12 @@ public class JmxConnector {
                 new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" + address + "/jmxrmi");
 
         Map<String,Object> env = new HashMap<>();
-		String jmxUsername = taskManager.getConfiguration().getJmxUsername();
-		String jmxPassword = taskManager.getConfiguration().getJmxPassword();
-		if (jmxUsername != null || jmxPassword != null) {
-			String[] creds = { jmxUsername, jmxPassword };
-			env.put(JMXConnector.CREDENTIALS, creds);
-		}
+        String jmxUsername = taskManager.getConfiguration().getJmxUsername();
+        String jmxPassword = taskManager.getConfiguration().getJmxPassword();
+        if (jmxUsername != null || jmxPassword != null) {
+            String[] creds = { jmxUsername, jmxPassword };
+            env.put(JMXConnector.CREDENTIALS, creds);
+        }
         return JmxClient.connectWithTimeout(url, env,
                 taskManager.getConfiguration().getJmxConnectTimeout(), TimeUnit.SECONDS);
     }
@@ -307,21 +307,21 @@ public class JmxConnector {
                 }
             }
         } finally {
-			closeJmxConnection(connectorHolder, address);
-		}
+            closeJmxConnection(connectorHolder, address);
+        }
     }
 
-	private void closeJmxConnection(Holder<JMXConnector> connectorHolder, String nodeInfo) {
-		try {
-			if (!connectorHolder.isEmpty()) {
-				connectorHolder.getValue().close();
-			}
-		} catch (IOException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Cannot close JMX connection to {}", e, nodeInfo);
-		}
-	}
+    private void closeJmxConnection(Holder<JMXConnector> connectorHolder, String nodeInfo) {
+        try {
+            if (!connectorHolder.isEmpty()) {
+                connectorHolder.getValue().close();
+            }
+        } catch (IOException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot close JMX connection to {}", e, nodeInfo);
+        }
+    }
 
-	private QuartzSchedulerMBean getSchedulerBean(NodeType node, Holder<JMXConnector> connectorHolder,
+    private QuartzSchedulerMBean getSchedulerBean(NodeType node, Holder<JMXConnector> connectorHolder,
             OperationResult result) {
         String nodeName = node.getNodeIdentifier();
         String address = node.getHostname() + ":" + node.getJmxPort();
@@ -331,10 +331,10 @@ public class JmxConnector {
             MBeanServerConnection serverConnection = connector.getMBeanServerConnection();
             QuartzSchedulerMBean bean = getMBeanProxy(nodeName, serverConnection);
             if (bean == null) {
-				String message = "Cannot connect to the Quartz Scheduler bean at remote node " + nodeName + " at "
-						+ address + " because the JMX object for scheduler cannot be found on that node.";
-				LOGGER.warn("{}", message);
-				result.recordFatalError(message);
+                String message = "Cannot connect to the Quartz Scheduler bean at remote node " + nodeName + " at "
+                        + address + " because the JMX object for scheduler cannot be found on that node.";
+                LOGGER.warn("{}", message);
+                result.recordFatalError(message);
             }
             return bean;
         } catch (IOException|MalformedObjectNameException e) {

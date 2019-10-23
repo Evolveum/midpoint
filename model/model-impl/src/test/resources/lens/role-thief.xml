@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="5ad00bd6-c550-466f-b15e-4d5fb195b369"
@@ -10,31 +10,31 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Thief</name>
     <assignment>
-    	<policyRule>
-    		<name>criminal exclusion separated</name>
-    		<policyConstraints>
-		    	<exclusion>
-			    	<targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
-		    	</exclusion>
-		    </policyConstraints>
-			<policyActions>
-				<!-- no enforcement -->
-				<record/>
-			</policyActions>
-    	</policyRule>
+        <policyRule>
+            <name>criminal exclusion separated</name>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <!-- no enforcement -->
+                <record/>
+            </policyActions>
+        </policyRule>
     </assignment>
-	<assignment>
-		<policyRule>
-			<policyConstraints>
-				<situation>
-					<situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
-				</situation>
-			</policyConstraints>
-			<policyActions>
-				<notification>
-					<name>dummy</name>
-				</notification>
-			</policyActions>
-		</policyRule>
-	</assignment>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <situation>
+                    <situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
+                </situation>
+            </policyConstraints>
+            <policyActions>
+                <notification>
+                    <name>dummy</name>
+                </notification>
+            </policyActions>
+        </policyRule>
+    </assignment>
 </role>

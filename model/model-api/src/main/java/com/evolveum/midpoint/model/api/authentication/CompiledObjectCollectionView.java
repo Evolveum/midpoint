@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2018-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api.authentication;
@@ -35,197 +35,193 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurati
  */
 @Experimental
 public class CompiledObjectCollectionView implements DebugDumpable, Serializable {
-	private static final long serialVersionUID = 1L;
-	
-	private QName objectType;
-	private final String viewIdentifier;
-	
-	private List<GuiActionType> actions = new ArrayList<>();
-	private CollectionRefSpecificationType collection;
-	private List<GuiObjectColumnType> columns = new ArrayList<>();
-	private DisplayType display;
-	private GuiObjectListViewAdditionalPanelsType additionalPanels;
-	private DistinctSearchOptionType distinct;
-	private Boolean disableSorting;
-	private Boolean disableCounting;
-	private SearchBoxConfigurationType searchBoxConfiguration;
-	private ObjectFilter filter;
-	private ObjectFilter domainFilter;
-	private Integer displayOrder;
-	
-	// Only used to construct "default" view definition. May be not needed later on.
-	public CompiledObjectCollectionView() {
-		super();
-		objectType = null;
-		viewIdentifier = null;
-	}
+    private static final long serialVersionUID = 1L;
 
-	public CompiledObjectCollectionView(QName objectType, String viewIdentifier) {
-		super();
-		this.objectType = objectType;
-		this.viewIdentifier = viewIdentifier;
-	}
+    private QName objectType;
+    private final String viewIdentifier;
 
-	public QName getObjectType() {
-		return objectType;
-	}
+    private List<GuiActionType> actions = new ArrayList<>();
+    private CollectionRefSpecificationType collection;
+    private List<GuiObjectColumnType> columns = new ArrayList<>();
+    private DisplayType display;
+    private GuiObjectListViewAdditionalPanelsType additionalPanels;
+    private DistinctSearchOptionType distinct;
+    private Boolean disableSorting;
+    private Boolean disableCounting;
+    private SearchBoxConfigurationType searchBoxConfiguration;
+    private ObjectFilter filter;
+    private ObjectFilter domainFilter;
+    private Integer displayOrder;
 
-	public void setObjectType(QName objectType) {
-		this.objectType = objectType;
-	}
+    // Only used to construct "default" view definition. May be not needed later on.
+    public CompiledObjectCollectionView() {
+        super();
+        objectType = null;
+        viewIdentifier = null;
+    }
 
-	public <O extends ObjectType> Class<O> getTargetClass() {
-		if (objectType == null) {
-			return null;
-		}
-		return ObjectTypes.getObjectTypeClass(objectType);
-	}
-	
-	public String getViewIdentifier() {
-		return viewIdentifier;
-	}
+    public CompiledObjectCollectionView(QName objectType, String viewIdentifier) {
+        super();
+        this.objectType = objectType;
+        this.viewIdentifier = viewIdentifier;
+    }
 
-	@NotNull
-	public List<GuiActionType> getActions() {
-		return actions;
-	}
+    public QName getObjectType() {
+        return objectType;
+    }
 
-	public CollectionRefSpecificationType getCollection() {
-		return collection;
-	}
+    public void setObjectType(QName objectType) {
+        this.objectType = objectType;
+    }
 
-	public void setCollection(CollectionRefSpecificationType collection) {
-		this.collection = collection;
-	}
+    public <O extends ObjectType> Class<O> getTargetClass() {
+        if (objectType == null) {
+            return null;
+        }
+        return ObjectTypes.getObjectTypeClass(objectType);
+    }
 
-	/**
-	 * Returns column definition list (already ordered).
-	 * May return empty list if there is no definition. Which means that default columns should be used.
-	 */
-	public List<GuiObjectColumnType> getColumns() {
-		return columns;
-	}
-	
-	public DisplayType getDisplay() {
-		return display;
-	}
+    public String getViewIdentifier() {
+        return viewIdentifier;
+    }
 
-	public void setDisplay(DisplayType display) {
-		this.display = display;
-	}
+    @NotNull
+    public List<GuiActionType> getActions() {
+        return actions;
+    }
 
-	public GuiObjectListViewAdditionalPanelsType getAdditionalPanels() {
-		return additionalPanels;
-	}
-		
-	public void setAdditionalPanels(GuiObjectListViewAdditionalPanelsType additionalPanels) {
-		this.additionalPanels = additionalPanels;
-	}
+    public CollectionRefSpecificationType getCollection() {
+        return collection;
+    }
 
-	public DistinctSearchOptionType getDistinct() {
-		return distinct;
-	}
-	
-	public void setDistinct(DistinctSearchOptionType distinct) {
-		this.distinct = distinct;
-	}
+    public void setCollection(CollectionRefSpecificationType collection) {
+        this.collection = collection;
+    }
 
-	public Boolean isDisableSorting() {
-		return disableSorting;
-	}
-	
-	public Boolean getDisableSorting() {
-		return disableSorting;
-	}
+    /**
+     * Returns column definition list (already ordered).
+     * May return empty list if there is no definition. Which means that default columns should be used.
+     */
+    public List<GuiObjectColumnType> getColumns() {
+        return columns;
+    }
 
-	public void setDisableSorting(Boolean disableSorting) {
-		this.disableSorting = disableSorting;
-	}
+    public DisplayType getDisplay() {
+        return display;
+    }
 
-	public Boolean isDisableCounting() {
-		return disableCounting;
-	}
+    public void setDisplay(DisplayType display) {
+        this.display = display;
+    }
 
-	public void setDisableCounting(Boolean disableCounting) {
-		this.disableCounting = disableCounting;
-	}
+    public GuiObjectListViewAdditionalPanelsType getAdditionalPanels() {
+        return additionalPanels;
+    }
 
-	public SearchBoxConfigurationType getSearchBoxConfiguration() {
-		return searchBoxConfiguration;
-	}
+    public void setAdditionalPanels(GuiObjectListViewAdditionalPanelsType additionalPanels) {
+        this.additionalPanels = additionalPanels;
+    }
 
-	public void setSearchBoxConfiguration(SearchBoxConfigurationType searchBoxConfiguration) {
-		this.searchBoxConfiguration = searchBoxConfiguration;
-	}
+    public DistinctSearchOptionType getDistinct() {
+        return distinct;
+    }
 
-	public ObjectFilter getFilter() {
-		return filter;
-	}
+    public void setDistinct(DistinctSearchOptionType distinct) {
+        this.distinct = distinct;
+    }
 
-	public void setFilter(ObjectFilter filter) {
-		this.filter = filter;
-	}
+    public Boolean isDisableSorting() {
+        return disableSorting;
+    }
 
-	public ObjectFilter getDomainFilter() {
-		return domainFilter;
-	}
+    public Boolean getDisableSorting() {
+        return disableSorting;
+    }
 
-	public void setDomainFilter(ObjectFilter domainFilter) {
-		this.domainFilter = domainFilter;
-	}
-	
-	public boolean hasDomain() {
-		return domainFilter != null;
-	}
+    public void setDisableSorting(Boolean disableSorting) {
+        this.disableSorting = disableSorting;
+    }
 
-	public Integer getDisplayOrder() {
-		return displayOrder;
-	}
+    public Boolean isDisableCounting() {
+        return disableCounting;
+    }
 
-	public void setDisplayOrder(Integer displayOrder) {
-		this.displayOrder = displayOrder;
-	}
+    public void setDisableCounting(Boolean disableCounting) {
+        this.disableCounting = disableCounting;
+    }
 
-	public boolean match(QName expectedObjectType, String expectedViewIdentifier) {
-		if (!QNameUtil.match(objectType, expectedObjectType)) {
-			return false;
-		}
-		if (expectedViewIdentifier == null) {
-			if (isAllObjectsView()) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-		return expectedViewIdentifier.equals(viewIdentifier);
-	}
-	
-	public boolean match(QName expectedObjectType) {
-		return QNameUtil.match(objectType, expectedObjectType);
-	}
+    public SearchBoxConfigurationType getSearchBoxConfiguration() {
+        return searchBoxConfiguration;
+    }
 
-	
-	private boolean isAllObjectsView() {
-		return collection == null;
-	}
+    public void setSearchBoxConfiguration(SearchBoxConfigurationType searchBoxConfiguration) {
+        this.searchBoxConfiguration = searchBoxConfiguration;
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CompiledObjectCollectionView.class, indent);
-		DebugUtil.debugDumpWithLabelLn(sb, "objectType", objectType, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "viewIdentifier", viewIdentifier, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "actions", actions, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "columns", columns, indent + 1);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "display", display, indent + 1);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "additionalPanels", additionalPanels, indent + 1);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "distinct", distinct, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "disableSorting", disableSorting, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "disableCounting", disableCounting, indent + 1);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "searchBoxConfiguration", searchBoxConfiguration, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "filter", filter, indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "domainFilter", domainFilter, indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "displayOrder", displayOrder, indent + 1);
-		return sb.toString();
-	}
-	
+    public ObjectFilter getFilter() {
+        return filter;
+    }
+
+    public void setFilter(ObjectFilter filter) {
+        this.filter = filter;
+    }
+
+    public ObjectFilter getDomainFilter() {
+        return domainFilter;
+    }
+
+    public void setDomainFilter(ObjectFilter domainFilter) {
+        this.domainFilter = domainFilter;
+    }
+
+    public boolean hasDomain() {
+        return domainFilter != null;
+    }
+
+    public Integer getDisplayOrder() {
+        return displayOrder;
+    }
+
+    public void setDisplayOrder(Integer displayOrder) {
+        this.displayOrder = displayOrder;
+    }
+
+    public boolean match(QName expectedObjectType, String expectedViewIdentifier) {
+        if (!QNameUtil.match(objectType, expectedObjectType)) {
+            return false;
+        }
+        if (expectedViewIdentifier == null) {
+            return isAllObjectsView();
+        }
+        return expectedViewIdentifier.equals(viewIdentifier);
+    }
+
+    public boolean match(QName expectedObjectType) {
+        return QNameUtil.match(objectType, expectedObjectType);
+    }
+
+
+    private boolean isAllObjectsView() {
+        return collection == null;
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CompiledObjectCollectionView.class, indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "objectType", objectType, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "viewIdentifier", viewIdentifier, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "actions", actions, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "columns", columns, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "display", display, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "additionalPanels", additionalPanels, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "distinct", distinct, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "disableSorting", disableSorting, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "disableCounting", disableCounting, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "searchBoxConfiguration", searchBoxConfiguration, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "filter", filter, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "domainFilter", domainFilter, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "displayOrder", displayOrder, indent + 1);
+        return sb.toString();
+    }
+
 }

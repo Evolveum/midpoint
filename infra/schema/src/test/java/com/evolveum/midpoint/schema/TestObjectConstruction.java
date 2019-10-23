@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2016 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema;
@@ -32,45 +32,45 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class TestObjectConstruction {
 
-	@BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-	}
+    @BeforeSuite
+    public void setup() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
 
-	@Test
-	public void testUserConstruction() throws Exception {
-		System.out.println("\n\n ===[ testUserConstruction ]===\n");
+    @Test
+    public void testUserConstruction() throws Exception {
+        System.out.println("\n\n ===[ testUserConstruction ]===\n");
 
-		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+        // GIVEN
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-		// WHEN
-		PrismObject<UserType> user = prismContext.createObject(UserType.class);
+        // WHEN
+        PrismObject<UserType> user = prismContext.createObject(UserType.class);
 
-		// THEN
-		assertNotNull(user);
-		SchemaTestUtil.assertUserDefinition(user.getDefinition());
-	}
+        // THEN
+        assertNotNull(user);
+        SchemaTestUtil.assertUserDefinition(user.getDefinition());
+    }
 
-	@Test
-	public void testObjectTypeConstruction() throws Exception {
-		System.out.println("\n\n ===[ testObjectTypeConstruction ]===\n");
+    @Test
+    public void testObjectTypeConstruction() throws Exception {
+        System.out.println("\n\n ===[ testObjectTypeConstruction ]===\n");
 
-		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+        // GIVEN
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-		try {
-			// WHEN
-			PrismObject<ObjectType> object = prismContext.createObject(ObjectType.class);
+        try {
+            // WHEN
+            PrismObject<ObjectType> object = prismContext.createObject(ObjectType.class);
 
-			fail("unexpected success");
-		} catch (SchemaException e) {
-			// This is expected, abstract object types cannot be instantiated
-			assertTrue(e.getMessage().contains("abstract"));
-		}
+            fail("unexpected success");
+        } catch (SchemaException e) {
+            // This is expected, abstract object types cannot be instantiated
+            assertTrue(e.getMessage().contains("abstract"));
+        }
 
-	}
+    }
 
 
 }

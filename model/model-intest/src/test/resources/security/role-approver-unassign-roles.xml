@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="5d9cead8-3a2e-11e7-8609-f762a755b58e"
@@ -9,55 +9,55 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
-    <name>Approver unassign roles</name>    
+    <name>Approver unassign roles</name>
     <description>Role that allows role approvers to see users that have the role assigned and also to unassign the role</description>
     <authorization>
-    	<name>appr-read-roles</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<enforcementStrategy>maySkipOnSearch</enforcementStrategy>
-    	<object>
-    		<type>RoleType</type>
-    		<roleRelation>
-    			<subjectRelation>org:approver</subjectRelation>
-    			<includeMembers>false</includeMembers>
-    			<includeReferenceRole>true</includeReferenceRole>
-    		</roleRelation>
-    	</object>
+        <name>appr-read-roles</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <enforcementStrategy>maySkipOnSearch</enforcementStrategy>
+        <object>
+            <type>RoleType</type>
+            <roleRelation>
+                <subjectRelation>org:approver</subjectRelation>
+                <includeMembers>false</includeMembers>
+                <includeReferenceRole>true</includeReferenceRole>
+            </roleRelation>
+        </object>
     </authorization>
     <authorization>
-    	<name>appr-read-users</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<enforcementStrategy>maySkipOnSearch</enforcementStrategy>
-    	<object>
-    		<type>UserType</type>
-    		<roleRelation>
-    			<subjectRelation>org:approver</subjectRelation>
-    			<objectRelation>org:default</objectRelation>
-    		</roleRelation>
-    	</object>
+        <name>appr-read-users</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <enforcementStrategy>maySkipOnSearch</enforcementStrategy>
+        <object>
+            <type>UserType</type>
+            <roleRelation>
+                <subjectRelation>org:approver</subjectRelation>
+                <objectRelation>org:default</objectRelation>
+            </roleRelation>
+        </object>
     </authorization>
     <authorization>
-    	<name>appr-unassign</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
-    	<phase>request</phase>
-    	<object>
-    		<type>UserType</type>
-    		<roleRelation>
-    			<subjectRelation>org:approver</subjectRelation>
-    			<objectRelation>org:default</objectRelation>
-    		</roleRelation>
-    	</object>
-    	<target>
-    		<type>RoleType</type>
-    		<roleRelation>
-    			<subjectRelation>org:approver</subjectRelation>
-    			<includeMembers>false</includeMembers>
-    			<includeReferenceRole>true</includeReferenceRole>
-    		</roleRelation>
-    	</target>
+        <name>appr-unassign</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+        <phase>request</phase>
+        <object>
+            <type>UserType</type>
+            <roleRelation>
+                <subjectRelation>org:approver</subjectRelation>
+                <objectRelation>org:default</objectRelation>
+            </roleRelation>
+        </object>
+        <target>
+            <type>RoleType</type>
+            <roleRelation>
+                <subjectRelation>org:approver</subjectRelation>
+                <includeMembers>false</includeMembers>
+                <includeReferenceRole>true</includeReferenceRole>
+            </roleRelation>
+        </target>
     </authorization>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<phase>execution</phase>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
     </authorization>
 </role>

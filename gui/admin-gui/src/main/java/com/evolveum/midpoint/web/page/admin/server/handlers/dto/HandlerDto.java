@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,34 +22,34 @@ import java.util.Collection;
  * @author mederly
  */
 public class HandlerDto implements Serializable {
-	public static final String F_OBJECT_REF_NAME = "objectRefName";
-	public static final String F_OBJECT_REF = "objectRef";
+    public static final String F_OBJECT_REF_NAME = "objectRefName";
+    public static final String F_OBJECT_REF = "objectRef";
 
-	protected TaskDto taskDto;
+    protected TaskDto taskDto;
 
-	public HandlerDto(TaskDto taskDto) {
-		this.taskDto = taskDto;
-	}
+    public HandlerDto(TaskDto taskDto) {
+        this.taskDto = taskDto;
+    }
 
-	public TaskDto getTaskDto() {
-		return taskDto;
-	}
+    public TaskDto getTaskDto() {
+        return taskDto;
+    }
 
-	public String getObjectRefName() {
-		return taskDto.getObjectRefName();
-	}
+    public String getObjectRefName() {
+        return taskDto.getObjectRefName();
+    }
 
-	public ObjectReferenceType getObjectRef() {
-		return taskDto.getObjectRef();
-	}
+    public ObjectReferenceType getObjectRef() {
+        return taskDto.getObjectRef();
+    }
 
-	public HandlerDtoEditableState getEditableState() {
-		return null;
-	}
+    public HandlerDtoEditableState getEditableState() {
+        return null;
+    }
 
-	@NotNull
-	public Collection<? extends ItemDelta<?, ?>> getDeltasToExecute(HandlerDtoEditableState origState, HandlerDtoEditableState currState, PrismContext prismContext)
-			throws SchemaException {
-		return new ArrayList<>();
-	}
+    @NotNull
+    public Collection<? extends ItemDelta<?, ?>> getDeltasToExecute(HandlerDtoEditableState origState, HandlerDtoEditableState currState, PrismContext prismContext)
+            throws SchemaException {
+        return new ArrayList<>();
+    }
 }

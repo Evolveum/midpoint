@@ -2,11 +2,11 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <report oid="222bf2b8-c89b-11e7-bf36-ebd4e4d45a80"
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -33,19 +33,19 @@
    <maxPages>10000</maxPages>
    <timeout>300000</timeout>
    <postReportScript>
-		<macro>
-			<name>file</name>
+        <macro>
+            <name>file</name>
             <asIs/>
-		</macro>
-		<macro>
-			<name>name</name>
-			<script>
-				<code>
-					object.getName().getOrig()
-				</code>
-			</script>
-		</macro>
-		<executionMethod>shell</executionMethod>
-		<code>cp %file% "target/%name%.pdf"</code>
-	</postReportScript>
+        </macro>
+        <macro>
+            <name>name</name>
+            <script>
+                <code>
+                    object.getName().getOrig()
+                </code>
+            </script>
+        </macro>
+        <executionMethod>shell</executionMethod>
+        <code>cp %file% "target/%name%.pdf"</code>
+    </postReportScript>
 </report>

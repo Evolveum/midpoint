@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,42 +20,42 @@ import org.apache.wicket.model.IModel;
  */
 public class ShadowSummaryPanel extends ObjectSummaryPanel<ShadowType> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public ShadowSummaryPanel(String id, IModel<ShadowType> model, ModelServiceLocator locator) {
-		super(id, ShadowType.class, model, locator);
-	}
-
-	@Override
-	protected void onBeforeRender() {
-		super.onBeforeRender();
-
-
-		// todo implement custom layout
-	}
-	
-	@Override
-	protected IModel<String> getTitleModel() {
-		return WebComponentUtil.getResourceLabelModel(getModelObject(), getPageBase());
-    }
-	
-	@Override
-	protected IModel<String> getTitle2Model() {
-		return WebComponentUtil.getResourceAttributesLabelModel(getModelObject(), getPageBase());
+    public ShadowSummaryPanel(String id, IModel<ShadowType> model, ModelServiceLocator locator) {
+        super(id, ShadowType.class, model, locator);
     }
 
-	@Override
-	protected String getIconCssClass() {
-		return WebComponentUtil.createShadowIcon(getModelObject().asPrismContainer());	//todo fix
-	}
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
 
-	@Override
-	protected String getIconBoxAdditionalCssClass() {
-		return "summary-panel-resource";	//todo fix
-	}
 
-	@Override
-	protected String getBoxAdditionalCssClass() {
-		return "summary-panel-resource";	//todo fix
-	}
+        // todo implement custom layout
+    }
+
+    @Override
+    protected IModel<String> getTitleModel() {
+        return WebComponentUtil.getResourceLabelModel(getModelObject(), getPageBase());
+    }
+
+    @Override
+    protected IModel<String> getTitle2Model() {
+        return WebComponentUtil.getResourceAttributesLabelModel(getModelObject(), getPageBase());
+    }
+
+    @Override
+    protected String getIconCssClass() {
+        return WebComponentUtil.createShadowIcon(getModelObject().asPrismContainer());    //todo fix
+    }
+
+    @Override
+    protected String getIconBoxAdditionalCssClass() {
+        return "summary-panel-resource";    //todo fix
+    }
+
+    @Override
+    protected String getBoxAdditionalCssClass() {
+        return "summary-panel-resource";    //todo fix
+    }
 }

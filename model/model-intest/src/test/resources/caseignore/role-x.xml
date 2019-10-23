@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="ef7edff4-813c-11e4-b893-3c970e467874"
@@ -10,35 +10,35 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    <name>X</name>    
+    <name>X</name>
         <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000001204" type="ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000001204" type="ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>icfs:name</ref>
                 <outbound>
-				    <source>
-				    	<path>$user/name</path>
-				    </source>
-					<expression>
-						<script>
-							<code>
-								'X-' + name
-							</code>
-						</script>
-					</expression>
-				</outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                'X-' + name
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
-    		<attribute>
+            <attribute>
                 <ref>ri:title</ref>
                 <outbound>
-                	<expression>
-						<value>XXX</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>XXX</value>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
 
 </role>

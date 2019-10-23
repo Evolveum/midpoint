@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -67,11 +67,11 @@ public class Table<T> extends Component<T> {
     }
 
     public boolean containsText(String value){
-        return $(byText(value)).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S).is(Condition.visible);
+        return $(byText(value)).is(Condition.visible);
     }
 
     public boolean containsLinkTextPartially(String value){
-        return $(byPartialLinkText(value)).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S).is(Condition.visible);
+        return $(byPartialLinkText(value)).is(Condition.visible);
     }
 
     public boolean buttonToolBarExists(){

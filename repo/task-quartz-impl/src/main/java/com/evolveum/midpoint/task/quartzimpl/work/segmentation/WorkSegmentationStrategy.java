@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,55 +22,55 @@ import java.util.List;
  */
 public interface WorkSegmentationStrategy {
 
-	/**
-	 * Finds or creates a free (unallocated and not complete) bucket.
-	 */
-	@NotNull
-	GetBucketResult getBucket(@NotNull TaskWorkStateType workState) throws SchemaException;
+    /**
+     * Finds or creates a free (unallocated and not complete) bucket.
+     */
+    @NotNull
+    GetBucketResult getBucket(@NotNull TaskWorkStateType workState) throws SchemaException;
 
-	/**
-	 * Estimates total number of buckets. Might utilize current work state, if available.
-	 * @return null if the number cannot be determined
-	 */
-	default Integer estimateNumberOfBuckets(@Nullable TaskWorkStateType workState) {
-		return null;
-	}
+    /**
+     * Estimates total number of buckets. Might utilize current work state, if available.
+     * @return null if the number cannot be determined
+     */
+    default Integer estimateNumberOfBuckets(@Nullable TaskWorkStateType workState) {
+        return null;
+    }
 
-	class GetBucketResult {
-		public static class NothingFound extends GetBucketResult {
-			public final boolean definite;
+    class GetBucketResult {
+        public static class NothingFound extends GetBucketResult {
+            public final boolean definite;
 
-			public NothingFound(boolean definite) {
-				this.definite = definite;
-			}
-		}
-		/**
-		 * The getBucket() method found existing bucket.
-		 */
-		public static class FoundExisting extends GetBucketResult {
-			/**
-			 * Free bucket that is provided as a result of the operation; or null if no bucket could be obtained.
-			 */
-			@NotNull public final WorkBucketType bucket;
+            public NothingFound(boolean definite) {
+                this.definite = definite;
+            }
+        }
+        /**
+         * The getBucket() method found existing bucket.
+         */
+        public static class FoundExisting extends GetBucketResult {
+            /**
+             * Free bucket that is provided as a result of the operation; or null if no bucket could be obtained.
+             */
+            @NotNull public final WorkBucketType bucket;
 
-			public FoundExisting(@NotNull WorkBucketType bucket) {
-				this.bucket = bucket;
-			}
-		}
-		/**
-		 * The getBucket() method created one or more buckets.
-		 */
-		public static class NewBuckets extends GetBucketResult {
-			/**
-			 * New buckets.
-			 */
-			@NotNull public final List<WorkBucketType> newBuckets;
-			public final int selected;
+            public FoundExisting(@NotNull WorkBucketType bucket) {
+                this.bucket = bucket;
+            }
+        }
+        /**
+         * The getBucket() method created one or more buckets.
+         */
+        public static class NewBuckets extends GetBucketResult {
+            /**
+             * New buckets.
+             */
+            @NotNull public final List<WorkBucketType> newBuckets;
+            public final int selected;
 
-			public NewBuckets(@NotNull List<WorkBucketType> newBuckets, int selected) {
-				this.newBuckets = newBuckets;
-				this.selected = selected;
-			}
-		}
-	}
+            public NewBuckets(@NotNull List<WorkBucketType> newBuckets, int selected) {
+                this.newBuckets = newBuckets;
+                this.selected = selected;
+            }
+        }
+    }
 }

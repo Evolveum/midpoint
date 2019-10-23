@@ -5,7 +5,7 @@
       "sourceId": "ldap",
       "membershipType": "flattened",
       "fieldName": "members",
-      "groupId": "00000000000000000000000000000003",
+      "groupId": "ref:affiliation:staff",
       "changeOccurred": false,
       "createdOnMicros": 1551884899000200,
       "subjectId": "banderson",

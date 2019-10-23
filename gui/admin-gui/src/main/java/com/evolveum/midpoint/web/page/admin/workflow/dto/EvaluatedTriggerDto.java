@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,34 +19,34 @@ import java.io.Serializable;
  */
 public class EvaluatedTriggerDto implements Serializable {
 
-	public static final String F_MESSAGE = "message";
-	public static final String F_CHILDREN = "children";
+    public static final String F_MESSAGE = "message";
+    public static final String F_CHILDREN = "children";
 
-	@NotNull private final EvaluatedPolicyRuleTriggerType trigger;
-	@NotNull private final EvaluatedTriggerGroupDto children;
-	private boolean highlighted;
+    @NotNull private final EvaluatedPolicyRuleTriggerType trigger;
+    @NotNull private final EvaluatedTriggerGroupDto children;
+    private boolean highlighted;
 
-	public EvaluatedTriggerDto(TreeNode<EvaluatedPolicyRuleUtil.AugmentedTrigger<EvaluatedTriggerGroupDto.HighlightingInformation>> node) {
-		this.trigger = node.getUserObject().trigger;
-		this.children = new EvaluatedTriggerGroupDto(null, node.getChildren());
-		this.highlighted = node.getUserObject().additionalData.value;
-	}
+    public EvaluatedTriggerDto(TreeNode<EvaluatedPolicyRuleUtil.AugmentedTrigger<EvaluatedTriggerGroupDto.HighlightingInformation>> node) {
+        this.trigger = node.getUserObject().trigger;
+        this.children = new EvaluatedTriggerGroupDto(null, node.getChildren());
+        this.highlighted = node.getUserObject().additionalData.value;
+    }
 
-	@NotNull
-	public EvaluatedPolicyRuleTriggerType getTrigger() {
-		return trigger;
-	}
+    @NotNull
+    public EvaluatedPolicyRuleTriggerType getTrigger() {
+        return trigger;
+    }
 
-	public LocalizableMessageType getMessage() {
-		return trigger.getMessage();
-	}
+    public LocalizableMessageType getMessage() {
+        return trigger.getMessage();
+    }
 
-	@NotNull
-	public EvaluatedTriggerGroupDto getChildren() {
-		return children;
-	}
+    @NotNull
+    public EvaluatedTriggerGroupDto getChildren() {
+        return children;
+    }
 
-	public boolean isHighlighted() {
-		return highlighted;
-	}
+    public boolean isHighlighted() {
+        return highlighted;
+    }
 }

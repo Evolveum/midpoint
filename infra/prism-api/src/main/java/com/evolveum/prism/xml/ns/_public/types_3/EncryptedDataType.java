@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,12 +27,12 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  *
- * 				TODO
- * 				Contains data protected by (reversible) encryption.
+ *                 TODO
+ *                 Contains data protected by (reversible) encryption.
  *
- * 				Loosely based on XML encryption standard. But we cannot use full
- * 				standard as we are not bound to XML. We need this to work also for
- * 				JSON and YAML and other languages.
+ *                 Loosely based on XML encryption standard. But we cannot use full
+ *                 standard as we are not bound to XML. We need this to work also for
+ *                 JSON and YAML and other languages.
  *
  *
  * <p>Java class for EncryptedDataType complex type.
@@ -107,48 +107,48 @@ public class EncryptedDataType implements Serializable, Cloneable, JaxbVisitable
         this.cipherData = value;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((cipherData == null) ? 0 : cipherData.hashCode());
-		result = prime * result + ((encryptionMethod == null) ? 0 : encryptionMethod.hashCode());
-		result = prime * result + ((keyInfo == null) ? 0 : keyInfo.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((cipherData == null) ? 0 : cipherData.hashCode());
+        result = prime * result + ((encryptionMethod == null) ? 0 : encryptionMethod.hashCode());
+        result = prime * result + ((keyInfo == null) ? 0 : keyInfo.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		EncryptedDataType other = (EncryptedDataType) obj;
-		if (cipherData == null) {
-			if (other.cipherData != null)
-				return false;
-		} else if (!cipherData.equals(other.cipherData))
-			return false;
-		if (encryptionMethod == null) {
-			if (other.encryptionMethod != null)
-				return false;
-		} else if (!encryptionMethod.equals(other.encryptionMethod))
-			return false;
-		if (keyInfo == null) {
-			if (other.keyInfo != null)
-				return false;
-		} else if (!keyInfo.equals(other.keyInfo))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        EncryptedDataType other = (EncryptedDataType) obj;
+        if (cipherData == null) {
+            if (other.cipherData != null)
+                return false;
+        } else if (!cipherData.equals(other.cipherData))
+            return false;
+        if (encryptionMethod == null) {
+            if (other.encryptionMethod != null)
+                return false;
+        } else if (!encryptionMethod.equals(other.encryptionMethod))
+            return false;
+        if (keyInfo == null) {
+            if (other.keyInfo != null)
+                return false;
+        } else if (!keyInfo.equals(other.keyInfo))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "EncryptedDataType(encryptionMethod=" + encryptionMethod + ", keyInfo=" + keyInfo
-				+ ", cipherData=" + cipherData + ")";
-	}
+    @Override
+    public String toString() {
+        return "EncryptedDataType(encryptionMethod=" + encryptionMethod + ", keyInfo=" + keyInfo
+                + ", cipherData=" + cipherData + ")";
+    }
 
     @Override
     public EncryptedDataType clone() {
@@ -159,17 +159,17 @@ public class EncryptedDataType implements Serializable, Cloneable, JaxbVisitable
         return cloned;
     }
 
-	@Override
-	public void accept(JaxbVisitor visitor) {
-		visitor.visit(this);
-		if (encryptionMethod != null) {
-			encryptionMethod.accept(visitor);
-		}
-		if (keyInfo != null) {
-			keyInfo.accept(visitor);
-		}
-		if (cipherData != null) {
-			cipherData.accept(visitor);
-		}
-	}
+    @Override
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
+        if (encryptionMethod != null) {
+            encryptionMethod.accept(visitor);
+        }
+        if (keyInfo != null) {
+            keyInfo.accept(visitor);
+        }
+        if (cipherData != null) {
+            cipherData.accept(visitor);
+        }
+    }
 }

@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="471a49a2-d8fe-11e8-9b6b-730d02c33833"
@@ -11,27 +11,27 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Group Metarole</name>
 
-	<inducement>
-		<construction>
-			<resourceRef oid="82230126-d85c-11e8-bc12-537988b7843a" type="ResourceType" /> <!-- Dir -->
-			<kind>account</kind>
-			<intent>default</intent>
-			<association>
-				<c:ref>ri:group</c:ref>
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<associationFromLink>
-							<projectionDiscriminator>
-								<kind>entitlement</kind>
-								<intent>group</intent>
-							</projectionDiscriminator>
-						</associationFromLink>
-					</expression>
-				</outbound>
-			</association>
-		</construction>
-		<order>2</order>
-		<focusType>UserType</focusType>
-	</inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="82230126-d85c-11e8-bc12-537988b7843a" type="ResourceType" /> <!-- Dir -->
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <c:ref>ri:group</c:ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>group</intent>
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <order>2</order>
+        <focusType>UserType</focusType>
+    </inducement>
 </role>

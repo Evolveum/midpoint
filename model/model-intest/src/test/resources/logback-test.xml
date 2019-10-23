@@ -2,52 +2,52 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <configuration>
-	<appender name="X" class="ch.qos.logback.core.FileAppender">
-		<file>./target/test.log</file>
-		<encoder>
-			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
-		</encoder>
-	</appender>
-	<appender name="TracingAppender" class="com.evolveum.midpoint.util.logging.TracingAppender">
-		<layout>
-			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
-		</layout>
-	</appender>
-	<turboFilter class="com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter"/>
+    <appender name="X" class="ch.qos.logback.core.FileAppender">
+        <file>./target/test.log</file>
+        <encoder>
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="TracingAppender" class="com.evolveum.midpoint.util.logging.TracingAppender">
+        <layout>
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+        </layout>
+    </appender>
+    <turboFilter class="com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter"/>
 
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="OFF"/>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
-	<logger name="com.evolveum.midpoint.schema" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.intest" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.sync.LiveSyncTaskHandler" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.sync.SynchronizeAccountResultHandler" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.provisioning.impl.ChangeNotificationDispatcherImpl" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.test" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.common.Clock" level="DEBUG" />
-	
-	<!-- Temporary, to hunt down MID-3036 -->
-	<logger name="com.evolveum.midpoint.task" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor" level="DEBUG" /> <!-- should be DEBUG -->
-		
-	<logger name="PROFILING" level="OFF" />
-	<logger name="com.evolveum.midpoint.audit.log" level="TRACE" />
-	<logger name="com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitorImpl" level="DEBUG" />	<!-- to show final statistics -->
-	
-    <!-- "TRACE" is just too much info, "DEBUG" should be enough for the following talkative components ... 
+    <logger name="com.evolveum.midpoint.schema" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.intest" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.sync.LiveSyncTaskHandler" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizeAccountResultHandler" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.ChangeNotificationDispatcherImpl" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.test" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.common.Clock" level="DEBUG" />
+
+    <!-- Temporary, to hunt down MID-3036 -->
+    <logger name="com.evolveum.midpoint.task" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor" level="DEBUG" /> <!-- should be DEBUG -->
+
+    <logger name="PROFILING" level="OFF" />
+    <logger name="com.evolveum.midpoint.audit.log" level="TRACE" />
+    <logger name="com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitorImpl" level="DEBUG" />    <!-- to show final statistics -->
+
+    <!-- "TRACE" is just too much info, "DEBUG" should be enough for the following talkative components ...
          if any of the following is set to "TRACE" then it was changed by mistake and should be changed back -->
     <logger name="com.evolveum.midpoint.model.api.op" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.impl.lens.Clockwork" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.impl.lens.projector" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="TRACE" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ContextLoader" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.Clockwork" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="TRACE" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ContextLoader" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.PasswordPolicyProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ProjectionValuesProcessor" level="DEBUG" />
@@ -57,9 +57,9 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.DependencyProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusProcessor" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentHolderProcessor" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.InboundProcessor" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusProcessor" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentHolderProcessor" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.InboundProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusPolicyProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor" level="DEBUG" />
@@ -67,21 +67,21 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentTripleEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.IvwoConsolidator" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.ShadowConstraintsChecker" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.MetadataManager" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.PersonaProcessor" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.ClockworkAuthorizationHelper" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.expr.OrgStructFunctionsImpl" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.util" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.sync" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.IvwoConsolidator" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.ShadowConstraintsChecker" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.MetadataManager" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.PersonaProcessor" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.ClockworkAuthorizationHelper" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.expr.OrgStructFunctionsImpl" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.util" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.sync" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ConnectorManager" level="DEBUG" />
@@ -91,16 +91,16 @@
     <logger name="com.evolveum.midpoint.provisioning.impl.task" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.errorhandling" level="DEBUG" />
 <!--    <logger name="com.evolveum.midpoint.provisioning.impl.sync" level="TRACE" />-->
-	<logger name="com.evolveum.midpoint.repo.common.expression" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.repo.common.expression.Expression" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.common.mapping" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AbstractValueTransformationExpressionEvaluator" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentExpressionEvaluator" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssociationExpressionEvaluator" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.controller.ObjectMerger" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.repo.common.expression" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.repo.common.expression.Expression" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.common.mapping" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.common.expression.evaluator.AbstractValueTransformationExpressionEvaluator" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentExpressionEvaluator" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssociationExpressionEvaluator" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.controller.ObjectMerger" level="DEBUG" />
     <logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
     <logger name="com.evolveum.midpoint.security" level="DEBUG" />
     <logger name="com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl" level="TRACE" />
@@ -119,24 +119,24 @@
     <logger name="com.evolveum.icf.dummy" level="INFO" />
     <logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.util.DeleteTaskHandler" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.repo" level="INFO" />
-	<logger name="com.evolveum.midpoint.repo.operation" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.repo.sql.util.MidpointPersisterUtil" level="INFO" />
-	<logger name="com.evolveum.midpoint.repo.cache" level="INFO" />
-	<logger name="com.evolveum.midpoint.repo.common.task" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.common.SystemObjectCache" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.controller.AuditController" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.schema.internals.InternalMonitor" level="INFO" />
-	
-	<logger name="com.evolveum.midpoint.repo.common.expression.ExpressionUtil" level="DEBUG"/>
-	
-	<logger name="org.identityconnectors.framework" level="TRACE" />
-	<logger name="com.evolveum.icf.dummy.connector" level="DEBUG" />
-	<logger name="com.evolveum.icf.dummy.resource" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.repo" level="INFO" />
+    <logger name="com.evolveum.midpoint.repo.operation" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.repo.sql.util.MidpointPersisterUtil" level="INFO" />
+    <logger name="com.evolveum.midpoint.repo.cache" level="INFO" />
+    <logger name="com.evolveum.midpoint.repo.common.task" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.common.SystemObjectCache" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.controller.AuditController" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.schema.internals.InternalMonitor" level="INFO" />
 
-	<root level="INFO">
-		<appender-ref ref="X" />
-		<appender-ref ref="TracingAppender" />
-	</root>
+    <logger name="com.evolveum.midpoint.repo.common.expression.ExpressionUtil" level="DEBUG"/>
+
+    <logger name="org.identityconnectors.framework" level="TRACE" />
+    <logger name="com.evolveum.icf.dummy.connector" level="DEBUG" />
+    <logger name="com.evolveum.icf.dummy.resource" level="DEBUG" />
+
+    <root level="INFO">
+        <appender-ref ref="X" />
+        <appender-ref ref="TracingAppender" />
+    </root>
 </configuration>
 

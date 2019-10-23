@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="00000000-0000-0000-0000-00000001aa00"
@@ -11,18 +11,18 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Read Campaigns of jack</name>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<type>AccessCertificationCampaignType</type>
-    		<filter>
-    			<q:ref>
-    				<q:path>ownerRef</q:path>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>AccessCertificationCampaignType</type>
+            <filter>
+                <q:ref>
+                    <q:path>ownerRef</q:path>
                     <q:value>
                         <oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
                         <type>UserType</type>
                     </q:value>
-    			</q:ref>
-    		</filter>
-    	</object>
+                </q:ref>
+            </filter>
+        </object>
     </authorization>
 </role>

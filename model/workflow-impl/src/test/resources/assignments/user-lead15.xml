@@ -1,18 +1,18 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <user oid="00000001-d34d-b33f-f00d-L00000000015">
-	<name>lead15</name>
-	<assignment> <!-- approver -->
-		<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
-	</assignment>
-	<assignment> <!-- role15 -->
-		<targetRef oid="00000001-d34d-b33f-f00d-000000000015" type="RoleType" relation="approver"/>
-	</assignment>
-	<fullName>Lead15</fullName>
-	<familyName>Lead15</familyName>
+    <name>lead15</name>
+    <assignment> <!-- approver -->
+        <targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
+    </assignment>
+    <assignment> <!-- role15 -->
+        <targetRef oid="00000001-d34d-b33f-f00d-000000000015" type="RoleType" relation="approver"/>
+    </assignment>
+    <fullName>Lead15</fullName>
+    <familyName>Lead15</familyName>
 </user>

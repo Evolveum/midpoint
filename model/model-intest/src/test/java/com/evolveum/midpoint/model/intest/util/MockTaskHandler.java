@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.util;
@@ -30,44 +30,44 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
 @Component
 public class MockTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/mock/handler-3";
+    public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/mock/handler-3";
 
-	@Autowired private TaskManager taskManager;
+    @Autowired private TaskManager taskManager;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(MockTaskHandler.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(MockTaskHandler.class);
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(HANDLER_URI, this);
+    }
 
-	@Override
-	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-		LOGGER.trace("MockTaskHandler.run starting");
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+        LOGGER.trace("MockTaskHandler.run starting");
 
-		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION);
-		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
-		TaskRunResult runResult = new TaskRunResult();
-		runResult.setOperationResult(opResult);
+        OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION);
+        opResult.setStatus(OperationResultStatus.IN_PROGRESS);
+        TaskRunResult runResult = new TaskRunResult();
+        runResult.setOperationResult(opResult);
 
-		opResult.recordSuccess();
-		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		runResult.setProgress(1L);
+        opResult.recordSuccess();
+        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+        runResult.setProgress(1L);
 
-		LOGGER.trace("MockTaskHandler.run ending");
+        LOGGER.trace("MockTaskHandler.run ending");
 
-		return runResult;
-	}
+        return runResult;
+    }
 
-	@Override
-	public Long heartbeat(Task task) {
-		return 0L;
-	}
+    @Override
+    public Long heartbeat(Task task) {
+        return 0L;
+    }
 
-	@Override
-	public void refreshStatus(Task task) {
-		// Do nothing. Everything is fresh already.
-	}
+    @Override
+    public void refreshStatus(Task task) {
+        // Do nothing. Everything is fresh already.
+    }
 
     @Override
     public String getCategoryName(Task task) {

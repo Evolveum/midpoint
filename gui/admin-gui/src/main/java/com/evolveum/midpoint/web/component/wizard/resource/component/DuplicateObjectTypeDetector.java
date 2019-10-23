@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component;
@@ -20,77 +20,77 @@ import java.util.Set;
  */
 public class DuplicateObjectTypeDetector {
 
-	@NotNull final private Set<ObjectTypeRecord> records = new HashSet<>();
-	@NotNull final private Set<ObjectTypeRecord> duplicates = new HashSet<>();
+    @NotNull final private Set<ObjectTypeRecord> records = new HashSet<>();
+    @NotNull final private Set<ObjectTypeRecord> duplicates = new HashSet<>();
 
-	public boolean hasDuplicates() {
-		return !duplicates.isEmpty();
-	}
+    public boolean hasDuplicates() {
+        return !duplicates.isEmpty();
+    }
 
-	public String getDuplicatesList() {
-		StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		for (ObjectTypeRecord duplicate : duplicates) {
-			if (first) {
-				first = false;
-			} else {
-				sb.append(", ");
-			}
-			sb.append(duplicate.kind).append("/").append(duplicate.intent);
-		}
-		return sb.toString();
-	}
+    public String getDuplicatesList() {
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (ObjectTypeRecord duplicate : duplicates) {
+            if (first) {
+                first = false;
+            } else {
+                sb.append(", ");
+            }
+            sb.append(duplicate.kind).append("/").append(duplicate.intent);
+        }
+        return sb.toString();
+    }
 
-	private static class ObjectTypeRecord {
+    private static class ObjectTypeRecord {
 
-		@NotNull public final ShadowKindType kind;
-		@NotNull public final String intent;
+        @NotNull public final ShadowKindType kind;
+        @NotNull public final String intent;
 
-		ObjectTypeRecord(ShadowKindType kind, String intent) {
-			this.kind = kind != null ? kind : ShadowKindType.ACCOUNT;
-			this.intent = intent != null ? intent : SchemaConstants.INTENT_DEFAULT;
-		}
+        ObjectTypeRecord(ShadowKindType kind, String intent) {
+            this.kind = kind != null ? kind : ShadowKindType.ACCOUNT;
+            this.intent = intent != null ? intent : SchemaConstants.INTENT_DEFAULT;
+        }
 
-		ObjectTypeRecord(ResourceObjectTypeDefinitionType definition) {
-			this(definition.getKind(), definition.getIntent());
-		}
+        ObjectTypeRecord(ResourceObjectTypeDefinitionType definition) {
+            this(definition.getKind(), definition.getIntent());
+        }
 
-		ObjectTypeRecord(ObjectSynchronizationType synchronization) {
-			this(synchronization.getKind(), synchronization.getIntent());
-		}
+        ObjectTypeRecord(ObjectSynchronizationType synchronization) {
+            this(synchronization.getKind(), synchronization.getIntent());
+        }
 
-		@Override
-		public boolean equals(Object o) {
-			if (this == o)
-				return true;
-			if (o == null || getClass() != o.getClass())
-				return false;
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
 
-			ObjectTypeRecord that = (ObjectTypeRecord) o;
+            ObjectTypeRecord that = (ObjectTypeRecord) o;
 
-			return kind == that.kind && intent.equals(that.intent);
-		}
+            return kind == that.kind && intent.equals(that.intent);
+        }
 
-		@Override
-		public int hashCode() {
-			int result = kind.hashCode();
-			result = 31 * result + intent.hashCode();
-			return result;
-		}
-	}
+        @Override
+        public int hashCode() {
+            int result = kind.hashCode();
+            result = 31 * result + intent.hashCode();
+            return result;
+        }
+    }
 
-	public void add(ResourceObjectTypeDefinitionType objectType) {
-		add(new ObjectTypeRecord(objectType));
-	}
+    public void add(ResourceObjectTypeDefinitionType objectType) {
+        add(new ObjectTypeRecord(objectType));
+    }
 
-	public void add(ObjectSynchronizationType synchronization) {
-		add(new ObjectTypeRecord(synchronization));
-	}
+    public void add(ObjectSynchronizationType synchronization) {
+        add(new ObjectTypeRecord(synchronization));
+    }
 
-	private void add(ObjectTypeRecord objectTypeRecord) {
-		if (!records.add(objectTypeRecord)) {
-			duplicates.add(objectTypeRecord);
-		}
-	}
+    private void add(ObjectTypeRecord objectTypeRecord) {
+        if (!records.add(objectTypeRecord)) {
+            duplicates.add(objectTypeRecord);
+        }
+    }
 
 }

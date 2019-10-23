@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,26 +25,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
  */
 public class WaitForTasksTaskHandler implements TaskHandler {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(WaitForTasksTaskHandler.class);
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/wait-for-tasks/handler-3";
+    private static final transient Trace LOGGER = TraceManager.getTrace(WaitForTasksTaskHandler.class);
+    public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/wait-for-tasks/handler-3";
 
-	private static WaitForTasksTaskHandler instance = null;
-	private TaskManagerQuartzImpl taskManagerImpl;
+    private static WaitForTasksTaskHandler instance = null;
+    private TaskManagerQuartzImpl taskManagerImpl;
 
-	private WaitForTasksTaskHandler() {}
-	
-	public static void instantiateAndRegister(TaskManagerQuartzImpl taskManager) {
-		if (instance == null) {
-			instance = new WaitForTasksTaskHandler();
+    private WaitForTasksTaskHandler() {}
+
+    public static void instantiateAndRegister(TaskManagerQuartzImpl taskManager) {
+        if (instance == null) {
+            instance = new WaitForTasksTaskHandler();
         }
-		taskManager.registerHandler(HANDLER_URI, instance);
-		instance.taskManagerImpl = taskManager;
-	}
+        taskManager.registerHandler(HANDLER_URI, instance);
+        instance.taskManagerImpl = taskManager;
+    }
 
-	@Override
-	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 
-		OperationResult result = task.getResult().createSubresult(WaitForTasksTaskHandler.class.getName()+".run");
+        OperationResult result = task.getResult().createSubresult(WaitForTasksTaskHandler.class.getName()+".run");
         result.recordInProgress();
 
         LOGGER.debug("WaitForTasksTaskHandler run starting; in task " + task.getName());
@@ -55,24 +55,24 @@ public class WaitForTasksTaskHandler implements TaskHandler {
         } catch (SchemaException | ObjectNotFoundException e) {
             throw new SystemException("Couldn't mark task as waiting for prerequisite tasks", e);       // should not occur; will be handled by task runner
         }
-		LOGGER.debug("WaitForTasksTaskHandler run finishing; in task " + task.getName());
+        LOGGER.debug("WaitForTasksTaskHandler run finishing; in task " + task.getName());
 
         result.computeStatus();
 
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(result);
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		return runResult;
-	}
+        return runResult;
+    }
 
-	@Override
-	public Long heartbeat(Task task) {
-		return null;		// not to overwrite progress information!
-	}
+    @Override
+    public Long heartbeat(Task task) {
+        return null;        // not to overwrite progress information!
+    }
 
-	@Override
-	public void refreshStatus(Task task) {
-	}
+    @Override
+    public void refreshStatus(Task task) {
+    }
 
     @Override
     public String getCategoryName(Task task) {

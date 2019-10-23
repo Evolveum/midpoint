@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -44,8 +44,8 @@ import java.util.Objects;
         @Index(name = "iOpExecTaskOid", columnList = "taskRef_targetOid"),
         @Index(name = "iOpExecInitiatorOid", columnList = "initiatorRef_targetOid"),
         @Index(name = "iOpExecStatus", columnList = "status"),
-		@Index(name = "iOpExecStatus", columnList = "status"),
-		@Index(name = "iOpExecOwnerOid", columnList = "owner_oid")})
+        @Index(name = "iOpExecStatus", columnList = "status"),
+        @Index(name = "iOpExecOwnerOid", columnList = "owner_oid")})
 @Persister(impl = MidPointSingleTablePersister.class)
 public class ROperationExecution implements Container<RObject<?>> {
 
@@ -72,24 +72,24 @@ public class ROperationExecution implements Container<RObject<?>> {
         this.setOwner(owner);
     }
 
-	@Id
-	@JoinColumn(foreignKey = @ForeignKey(name = "fk_op_exec_owner"))
-	@MapsId("owner")
-	@ManyToOne(fetch = FetchType.LAZY)
-	@NotQueryable
-	@Override
+    @Id
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_op_exec_owner"))
+    @MapsId("owner")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @NotQueryable
+    @Override
     public RObject<?> getOwner() {
         return owner;
     }
 
-	@Override
-	public void setOwner(RObject owner) {
-		this.owner = owner;
-	}
+    @Override
+    public void setOwner(RObject owner) {
+        this.owner = owner;
+    }
 
-	@Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
+    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
-	@Override
+    @Override
     public String getOwnerOid() {
         if (owner != null && ownerOid == null) {
             ownerOid = owner.getOid();
@@ -97,11 +97,11 @@ public class ROperationExecution implements Container<RObject<?>> {
         return ownerOid;
     }
 
-	public void setOwnerOid(String ownerOid) {
-		this.ownerOid = ownerOid;
-	}
+    public void setOwnerOid(String ownerOid) {
+        this.ownerOid = ownerOid;
+    }
 
-	@Id
+    @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
@@ -110,46 +110,46 @@ public class ROperationExecution implements Container<RObject<?>> {
         return id;
     }
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-	@Embedded
+    @Embedded
     public REmbeddedReference getInitiatorRef() {
         return initiatorRef;
     }
 
-	public void setInitiatorRef(REmbeddedReference initiatorRef) {
-		this.initiatorRef = initiatorRef;
-	}
+    public void setInitiatorRef(REmbeddedReference initiatorRef) {
+        this.initiatorRef = initiatorRef;
+    }
 
-	@Embedded
+    @Embedded
     public REmbeddedReference getTaskRef() {
         return taskRef;
     }
 
-	public void setTaskRef(REmbeddedReference taskRef) {
-		this.taskRef = taskRef;
-	}
+    public void setTaskRef(REmbeddedReference taskRef) {
+        this.taskRef = taskRef;
+    }
 
-	public ROperationResultStatus getStatus() {
-		return status;
-	}
+    public ROperationResultStatus getStatus() {
+        return status;
+    }
 
-	public void setStatus(ROperationResultStatus status) {
-		this.status = status;
-	}
+    public void setStatus(ROperationResultStatus status) {
+        this.status = status;
+    }
 
-	@Column(name = "timestampValue")
-	public XMLGregorianCalendar getTimestamp() {
-		return timestamp;
-	}
+    @Column(name = "timestampValue")
+    public XMLGregorianCalendar getTimestamp() {
+        return timestamp;
+    }
 
-	public void setTimestamp(XMLGregorianCalendar timestamp) {
-		this.timestamp = timestamp;
-	}
+    public void setTimestamp(XMLGregorianCalendar timestamp) {
+        this.timestamp = timestamp;
+    }
 
-	@Transient
+    @Transient
     @Override
     public Boolean isTransient() {
         return trans;
@@ -160,61 +160,61 @@ public class ROperationExecution implements Container<RObject<?>> {
         this.trans = trans;
     }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof ROperationExecution))
-			return false;
-		ROperationExecution that = (ROperationExecution) o;
-		return Objects.equals(trans, that.trans) &&
-				Objects.equals(getOwnerOid(), that.getOwnerOid()) &&
-				Objects.equals(id, that.id) &&
-				Objects.equals(initiatorRef, that.initiatorRef) &&
-				Objects.equals(taskRef, that.taskRef) &&
-				Objects.equals(timestamp, that.timestamp) &&
-				status == that.status;
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(trans, getOwnerOid(), id, initiatorRef, taskRef, status);
-	}
-
-	public static void fromJaxb(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
-									RObject parent, RepositoryContext repositoryContext) throws DtoTranslationException {
-		repo.setOwner(parent);
-		fromJaxb(jaxb, repo, repositoryContext, null);
-	}
-
-	public static void fromJaxb(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
-			ObjectType parent, RepositoryContext repositoryContext,
-			IdGeneratorResult generatorResult) throws DtoTranslationException {
-		repo.setOwnerOid(parent.getOid());
-		fromJaxb(jaxb, repo, repositoryContext, generatorResult);
-	}
-
-	private static void fromJaxb(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
-			RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
-    	if (generatorResult != null) {
-			repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
-		}
-        repo.setId(RUtil.toInteger(jaxb.getId()));
-		repo.setTaskRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTaskRef(), repositoryContext.relationRegistry));
-		repo.setInitiatorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getInitiatorRef(), repositoryContext.relationRegistry));
-		repo.setStatus(RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
-		repo.setTimestamp(jaxb.getTimestamp());
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof ROperationExecution))
+            return false;
+        ROperationExecution that = (ROperationExecution) o;
+        return Objects.equals(trans, that.trans) &&
+                Objects.equals(getOwnerOid(), that.getOwnerOid()) &&
+                Objects.equals(id, that.id) &&
+                Objects.equals(initiatorRef, that.initiatorRef) &&
+                Objects.equals(taskRef, that.taskRef) &&
+                Objects.equals(timestamp, that.timestamp) &&
+                status == that.status;
     }
 
-	@Override
-	public String toString() {
-		return "ROperationExecution{" +
-				"ownerOid='" + ownerOid + '\'' +
-				", id=" + id +
-				", initiatorRef=" + initiatorRef +
-				", taskRef=" + taskRef +
-				", status=" + status +
-				", timestamp=" + timestamp +
-				'}';
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(trans, getOwnerOid(), id, initiatorRef, taskRef, status);
+    }
+
+    public static void fromJaxb(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
+                                    RObject parent, RepositoryContext repositoryContext) throws DtoTranslationException {
+        repo.setOwner(parent);
+        fromJaxb(jaxb, repo, repositoryContext, null);
+    }
+
+    public static void fromJaxb(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
+            ObjectType parent, RepositoryContext repositoryContext,
+            IdGeneratorResult generatorResult) throws DtoTranslationException {
+        repo.setOwnerOid(parent.getOid());
+        fromJaxb(jaxb, repo, repositoryContext, generatorResult);
+    }
+
+    private static void fromJaxb(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
+            RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
+        if (generatorResult != null) {
+            repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
+        }
+        repo.setId(RUtil.toInteger(jaxb.getId()));
+        repo.setTaskRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTaskRef(), repositoryContext.relationRegistry));
+        repo.setInitiatorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getInitiatorRef(), repositoryContext.relationRegistry));
+        repo.setStatus(RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
+        repo.setTimestamp(jaxb.getTimestamp());
+    }
+
+    @Override
+    public String toString() {
+        return "ROperationExecution{" +
+                "ownerOid='" + ownerOid + '\'' +
+                ", id=" + id +
+                ", initiatorRef=" + initiatorRef +
+                ", taskRef=" + taskRef +
+                ", status=" + status +
+                ", timestamp=" + timestamp +
+                '}';
+    }
 }

@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -15,7 +15,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.0.1-SNAPSHOT</version>
+        <version>4.1-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -26,47 +26,47 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.0.1-SNAPSHOT</version>
-			<exclusions>
-				<exclusion>
-					<groupId>javax.activation</groupId>
-					<artifactId>activation</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.xml.bind</groupId>
-					<artifactId>jaxb-api</artifactId>
-				</exclusion>
-			</exclusions>
+            <version>4.1-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.activation</groupId>
+                    <artifactId>activation</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-impl</artifactId>
-            <version>4.0.1-SNAPSHOT</version>
+            <version>4.1-SNAPSHOT</version>
             <exclusions>
-				<exclusion>
-					<groupId>com.sun.activation</groupId>
-					<artifactId>javax.activation</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.xml.bind</groupId>
-					<artifactId>jaxb-api</artifactId>
-				</exclusion>
-			</exclusions>
+                <exclusion>
+                    <groupId>com.sun.activation</groupId>
+                    <artifactId>javax.activation</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>4.0.1-SNAPSHOT</version>
+            <version>4.1-SNAPSHOT</version>
             <exclusions>
-				<exclusion>
-					<groupId>javax.activation</groupId>
-					<artifactId>activation</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.xml.bind</groupId>
-					<artifactId>jaxb-api</artifactId>
-				</exclusion>
-			</exclusions>
+                <exclusion>
+                    <groupId>javax.activation</groupId>
+                    <artifactId>activation</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -109,9 +109,9 @@
             <artifactId>stax-api</artifactId>
         </dependency>
         <dependency>
-			<groupId>net.sf.jasperreports</groupId>
-			<artifactId>jasperreports</artifactId>
-		</dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations-java5</artifactId>
@@ -128,11 +128,11 @@
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-jms</artifactId>
             <exclusions>
-				<exclusion>
-					<groupId>com.sun.xml.bind</groupId>
-					<artifactId>jaxb-xjc</artifactId>
-				</exclusion>
-			</exclusions>
+                <exclusion>
+                    <groupId>com.sun.xml.bind</groupId>
+                    <artifactId>jaxb-xjc</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency> -->
         <dependency>
             <groupId>org.jvnet.jaxb2_commons</groupId>
@@ -143,27 +143,27 @@
             <artifactId>commons-lang3</artifactId>
         </dependency>
         <dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
-		</dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+        </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
         </dependency>
-        
-		<dependency>
-		    <groupId>javax.xml.ws</groupId>
-			<artifactId>jaxws-api</artifactId>
-		</dependency>
-		<dependency>
-		    <groupId>javax.annotation</groupId>
-    		<artifactId>javax.annotation-api</artifactId>
-		</dependency>
-		<dependency>
-    		<groupId>org.apache.geronimo.specs</groupId>
-    		<artifactId>geronimo-ws-metadata_2.0_spec</artifactId>
-		</dependency>
-        
+
+        <dependency>
+            <groupId>javax.xml.ws</groupId>
+            <artifactId>jaxws-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-ws-metadata_2.0_spec</artifactId>
+        </dependency>
+
         <!--  Testing dependencies  -->
         <dependency>
             <groupId>org.testng</groupId>
@@ -173,7 +173,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.0.1-SNAPSHOT</version>
+            <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -256,7 +256,7 @@
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
-                                        <!-- 										<extraargs>-version</extraargs> -->
+                                        <!--                                         <extraargs>-version</extraargs> -->
                                         <extraarg>-xjc-Xmidpoint</extraarg>
                                     </extraargs>
                                 </wsdlOption>
@@ -288,7 +288,7 @@
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
-                                        <!-- 										<extraargs>-version</extraargs> -->
+                                        <!--                                         <extraargs>-version</extraargs> -->
                                         <extraarg>-xjc-Xmidpoint</extraarg>
                                     </extraargs>
                                 </wsdlOption>
@@ -313,19 +313,19 @@
                     <dependency>
                         <groupId>com.evolveum.midpoint.tools</groupId>
                         <artifactId>xjc-plugin</artifactId>
-                        <version>4.0.1-SNAPSHOT</version>
+                        <version>4.1-SNAPSHOT</version>
                     </dependency>
                     <dependency>
-		                <groupId>com.sun.xml.bind</groupId>
-		                <artifactId>jaxb-xjc</artifactId>
-		                <version>${jaxb-xjc.version}</version>
-		            </dependency>
+                        <groupId>com.sun.xml.bind</groupId>
+                        <artifactId>jaxb-xjc</artifactId>
+                        <version>${jaxb-xjc.version}</version>
+                    </dependency>
                 </dependencies>
             </plugin>
             <plugin>
                 <groupId>com.evolveum.midpoint.infra</groupId>
                 <artifactId>prism-maven-plugin</artifactId>
-                <version>4.0.1-SNAPSHOT</version>
+                <version>4.1-SNAPSHOT</version>
                 <configuration>
                     <schemaFiles>
                         <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
@@ -28,210 +28,210 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class EvaluatedAssignmentTargetCache implements DebugDumpable {
 
-	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentTargetCache.class);
+    private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentTargetCache.class);
 
-	// Triple. Target processed for addition is not necessarily reusable for deletion
-	// This is indexed by OID and relation only
-	private DeltaTriple<Set<Key>> processedKeys;
+    // Triple. Target processed for addition is not necessarily reusable for deletion
+    // This is indexed by OID and relation only
+    private DeltaTriple<Set<Key>> processedKeys;
 
-	// Triple. Target processed for addition is not necessarily reusable for deletion
-	// This is indexed by OID, relation and order
-	private DeltaTriple<Set<OrderKey>> processedOrderKeys;
-
-
-	public EvaluatedAssignmentTargetCache() {
-		processedOrderKeys = new DeltaTriple<>(() -> new HashSet<>());
-		processedKeys = new DeltaTriple<>(() -> new HashSet<>());
-	}
-
-	public void reset() {
-		processedOrderKeys.foreach(set -> set.clear());
-		processedKeys.foreach(set -> set.clear());
-	}
-
-	public void recordProcessing(AssignmentPathSegmentImpl segment, PlusMinusZero mode) {
-		ObjectType targetType = segment.getTarget();
-		if (!(targetType instanceof AbstractRoleType)) {
-			return;
-		}
-		if (!isCacheable((AbstractRoleType)targetType)) {
-			return;
-		}
-		processedOrderKeys.get(mode).add(new OrderKey(segment));
-
-		if (targetType.getOid() != null) {
-			processedKeys.get(mode).add(new Key(segment));
-		}
-	}
-
-	private boolean isCacheable(AbstractRoleType targetType) {
-		IdempotenceType idempotence = targetType.getIdempotence();
-		return idempotence != null && idempotence != IdempotenceType.NONE;
-	}
-
-	public boolean canSkip(AssignmentPathSegmentImpl segment, PlusMinusZero mode) {
-		ObjectType target = segment.getTarget();
-		if (!(target instanceof AbstractRoleType)) {
-//			LOGGER.trace("Non-skippable target: {}", target);
-			return false;
-		}
-		IdempotenceType idempotence = ((AbstractRoleType)target).getIdempotence();
-		if (idempotence == null || idempotence == IdempotenceType.NONE) {
-//			LOGGER.trace("Not idempotent target: {}", target);
-			return false;
-		}
-		if (idempotence == IdempotenceType.CONSERVATIVE && !segment.isMatchingOrder()) {
-//			LOGGER.trace("Conservative idempotent and order is not matching: {}", target);
-			return false;
-		}
-		if (idempotence == IdempotenceType.AGGRESSIVE) {
-			// Aggressive idempotence implies that this is not a meta-role
-			// Therefore we want to skip all evaluation except for order=1
-			// We skip these evaluations even if we have NOT seen this role
-			// before. If we do not skip this evaluation then the role will
-			// be remembered as evaluation and it will not be re-evaluated
-			// in non-meta context.
-			if (!segment.getEvaluationOrder().isOrderOne()) {
-//				LOGGER.trace("Aggressive idempotent and non-one order: {}: {}", segment.getEvaluationOrder(), target);
-				return true;
-			}
-			return processedKeys.get(mode).contains(new Key(segment));
-		} else {
-			return processedOrderKeys.get(mode).contains(new OrderKey(segment));
-		}
-	}
-
-	private class Key {
-		private String targetOid;
-		private QName relation;
-
-		public Key(AssignmentPathSegmentImpl segment) {
-			super();
-			this.targetOid = segment.getTarget().getOid();
-			this.relation = segment.getRelation();
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + getOuterType().hashCode();
-			result = prime * result + ((relation == null) ? 0 : relation.hashCode());
-			result = prime * result + ((targetOid == null) ? 0 : targetOid.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			Key other = (Key) obj;
-			if (!getOuterType().equals(other.getOuterType())) {
-				return false;
-			}
-			if (relation == null) {
-				if (other.relation != null) {
-					return false;
-				}
-			} else if (!relation.equals(other.relation)) {
-				return false;
-			}
-			if (targetOid == null) {
-				if (other.targetOid != null) {
-					return false;
-				}
-			} else if (!targetOid.equals(other.targetOid)) {
-				return false;
-			}
-			return true;
-		}
-
-		private EvaluatedAssignmentTargetCache getOuterType() {
-			return EvaluatedAssignmentTargetCache.this;
-		}
-
-		@Override
-		public String toString() {
-			return "Key(" + content() + ")";
-		}
+    // Triple. Target processed for addition is not necessarily reusable for deletion
+    // This is indexed by OID, relation and order
+    private DeltaTriple<Set<OrderKey>> processedOrderKeys;
 
 
-		protected String content() {
-			return targetOid + "[" + relation + "]";
-		}
+    public EvaluatedAssignmentTargetCache() {
+        processedOrderKeys = new DeltaTriple<>(() -> new HashSet<>());
+        processedKeys = new DeltaTriple<>(() -> new HashSet<>());
+    }
 
-	}
+    public void reset() {
+        processedOrderKeys.foreach(set -> set.clear());
+        processedKeys.foreach(set -> set.clear());
+    }
 
-	private class OrderKey extends Key {
-		private EvaluationOrder evaluationOrder;
+    public void recordProcessing(AssignmentPathSegmentImpl segment, PlusMinusZero mode) {
+        ObjectType targetType = segment.getTarget();
+        if (!(targetType instanceof AbstractRoleType)) {
+            return;
+        }
+        if (!isCacheable((AbstractRoleType)targetType)) {
+            return;
+        }
+        processedOrderKeys.get(mode).add(new OrderKey(segment));
 
-		public OrderKey(AssignmentPathSegmentImpl segment) {
-			super(segment);
-			this.evaluationOrder = segment.getEvaluationOrder();
-		}
+        if (targetType.getOid() != null) {
+            processedKeys.get(mode).add(new Key(segment));
+        }
+    }
 
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = super.hashCode();
-			result = prime * result + getOuterType().hashCode();
-			result = prime * result + ((evaluationOrder == null) ? 0 : evaluationOrder.hashCode());
-			return result;
-		}
+    private boolean isCacheable(AbstractRoleType targetType) {
+        IdempotenceType idempotence = targetType.getIdempotence();
+        return idempotence != null && idempotence != IdempotenceType.NONE;
+    }
 
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (!super.equals(obj)) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			OrderKey other = (OrderKey) obj;
-			if (!getOuterType().equals(other.getOuterType())) {
-				return false;
-			}
-			if (evaluationOrder == null) {
-				if (other.evaluationOrder != null) {
-					return false;
-				}
-			} else if (!evaluationOrder.equals(other.evaluationOrder)) {
-				return false;
-			}
-			return true;
-		}
+    public boolean canSkip(AssignmentPathSegmentImpl segment, PlusMinusZero mode) {
+        ObjectType target = segment.getTarget();
+        if (!(target instanceof AbstractRoleType)) {
+//            LOGGER.trace("Non-skippable target: {}", target);
+            return false;
+        }
+        IdempotenceType idempotence = ((AbstractRoleType)target).getIdempotence();
+        if (idempotence == null || idempotence == IdempotenceType.NONE) {
+//            LOGGER.trace("Not idempotent target: {}", target);
+            return false;
+        }
+        if (idempotence == IdempotenceType.CONSERVATIVE && !segment.isMatchingOrder()) {
+//            LOGGER.trace("Conservative idempotent and order is not matching: {}", target);
+            return false;
+        }
+        if (idempotence == IdempotenceType.AGGRESSIVE) {
+            // Aggressive idempotence implies that this is not a meta-role
+            // Therefore we want to skip all evaluation except for order=1
+            // We skip these evaluations even if we have NOT seen this role
+            // before. If we do not skip this evaluation then the role will
+            // be remembered as evaluation and it will not be re-evaluated
+            // in non-meta context.
+            if (!segment.getEvaluationOrder().isOrderOne()) {
+//                LOGGER.trace("Aggressive idempotent and non-one order: {}: {}", segment.getEvaluationOrder(), target);
+                return true;
+            }
+            return processedKeys.get(mode).contains(new Key(segment));
+        } else {
+            return processedOrderKeys.get(mode).contains(new OrderKey(segment));
+        }
+    }
 
-		private EvaluatedAssignmentTargetCache getOuterType() {
-			return EvaluatedAssignmentTargetCache.this;
-		}
+    private class Key {
+        private String targetOid;
+        private QName relation;
 
-		@Override
-		public String toString() {
-			return "OrderKey("+ content() + ": order=" + evaluationOrder + ")";
-		}
+        public Key(AssignmentPathSegmentImpl segment) {
+            super();
+            this.targetOid = segment.getTarget().getOid();
+            this.relation = segment.getRelation();
+        }
 
-	}
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + getOuterType().hashCode();
+            result = prime * result + ((relation == null) ? 0 : relation.hashCode());
+            result = prime * result + ((targetOid == null) ? 0 : targetOid.hashCode());
+            return result;
+        }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilder(EvaluatedAssignmentTargetCache.class, indent);
-		sb.append("\n");
-		DebugUtil.debugDumpLabelLn(sb, "processedKeys", indent + 1);
-		processedKeys.debugDumpNoTitle(sb, indent + 2);
-		sb.append("\n");
-		DebugUtil.debugDumpLabelLn(sb, "processedOrderKeys", indent + 1);
-		processedOrderKeys.debugDumpNoTitle(sb, indent + 2);
-		return sb.toString();
-	}
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            Key other = (Key) obj;
+            if (!getOuterType().equals(other.getOuterType())) {
+                return false;
+            }
+            if (relation == null) {
+                if (other.relation != null) {
+                    return false;
+                }
+            } else if (!relation.equals(other.relation)) {
+                return false;
+            }
+            if (targetOid == null) {
+                if (other.targetOid != null) {
+                    return false;
+                }
+            } else if (!targetOid.equals(other.targetOid)) {
+                return false;
+            }
+            return true;
+        }
+
+        private EvaluatedAssignmentTargetCache getOuterType() {
+            return EvaluatedAssignmentTargetCache.this;
+        }
+
+        @Override
+        public String toString() {
+            return "Key(" + content() + ")";
+        }
+
+
+        protected String content() {
+            return targetOid + "[" + relation + "]";
+        }
+
+    }
+
+    private class OrderKey extends Key {
+        private EvaluationOrder evaluationOrder;
+
+        public OrderKey(AssignmentPathSegmentImpl segment) {
+            super(segment);
+            this.evaluationOrder = segment.getEvaluationOrder();
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = super.hashCode();
+            result = prime * result + getOuterType().hashCode();
+            result = prime * result + ((evaluationOrder == null) ? 0 : evaluationOrder.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!super.equals(obj)) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            OrderKey other = (OrderKey) obj;
+            if (!getOuterType().equals(other.getOuterType())) {
+                return false;
+            }
+            if (evaluationOrder == null) {
+                if (other.evaluationOrder != null) {
+                    return false;
+                }
+            } else if (!evaluationOrder.equals(other.evaluationOrder)) {
+                return false;
+            }
+            return true;
+        }
+
+        private EvaluatedAssignmentTargetCache getOuterType() {
+            return EvaluatedAssignmentTargetCache.this;
+        }
+
+        @Override
+        public String toString() {
+            return "OrderKey("+ content() + ": order=" + evaluationOrder + ")";
+        }
+
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilder(EvaluatedAssignmentTargetCache.class, indent);
+        sb.append("\n");
+        DebugUtil.debugDumpLabelLn(sb, "processedKeys", indent + 1);
+        processedKeys.debugDumpNoTitle(sb, indent + 2);
+        sb.append("\n");
+        DebugUtil.debugDumpLabelLn(sb, "processedOrderKeys", indent + 1);
+        processedOrderKeys.debugDumpNoTitle(sb, indent + 2);
+        return sb.toString();
+    }
 
 }

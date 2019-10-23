@@ -1,15 +1,15 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <user oid="afc1c45d-fdb8-48cf-860b-b305f96a07e3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<name>bob-deputy-no-assignments</name>
-	<assignment>
-		<targetRef oid="c0c010c0-d34d-b33f-f00d-111111111134" type="UserType" relation="deputy"/>	<!-- bob -->
-		<limitTargetContent/>
-	</assignment>
-	<fullName>Bob Deputy No Assignments</fullName>
+    <name>bob-deputy-no-assignments</name>
+    <assignment>
+        <targetRef oid="c0c010c0-d34d-b33f-f00d-111111111134" type="UserType" relation="deputy"/>    <!-- bob -->
+        <limitTargetContent/>
+    </assignment>
+    <fullName>Bob Deputy No Assignments</fullName>
 </user>

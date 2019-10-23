@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.xnode;
@@ -32,224 +32,224 @@ import org.jetbrains.annotations.NotNull;
 
 public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNodeImpl> {
 
-	// We want to maintain ordering, hence the List
-	private List<Entry> subnodes = new ArrayList<>();
+    // We want to maintain ordering, hence the List
+    private List<Entry> subnodes = new ArrayList<>();
 
-	public int size() {
-		return subnodes.size();
-	}
+    public int size() {
+        return subnodes.size();
+    }
 
-	public boolean isEmpty() {
-		return subnodes.isEmpty();
-	}
+    public boolean isEmpty() {
+        return subnodes.isEmpty();
+    }
 
-	public boolean containsKey(Object key) {
-		if (!(key instanceof QName)) {
-			throw new IllegalArgumentException("Key must be QName, but it is "+key);
-		}
-		return findEntry((QName)key) != null;
-	}
+    public boolean containsKey(Object key) {
+        if (!(key instanceof QName)) {
+            throw new IllegalArgumentException("Key must be QName, but it is "+key);
+        }
+        return findEntry((QName)key) != null;
+    }
 
-	public boolean containsValue(Object value) {
-		if (!(value instanceof XNodeImpl)) {
-			throw new IllegalArgumentException("Value must be XNode, but it is "+value);
-		}
-		return findEntry((XNodeImpl)value) != null;
-	}
+    public boolean containsValue(Object value) {
+        if (!(value instanceof XNodeImpl)) {
+            throw new IllegalArgumentException("Value must be XNode, but it is "+value);
+        }
+        return findEntry((XNodeImpl)value) != null;
+    }
 
-	public XNodeImpl get(Object key) {
-		if (!(key instanceof QName)) {
-			throw new IllegalArgumentException("Key must be QName, but it is "+key);
-		}
-		Entry entry = findEntry((QName)key);
-		if (entry == null) {
-			return null;
-		}
-		return entry.getValue();
-	}
+    public XNodeImpl get(Object key) {
+        if (!(key instanceof QName)) {
+            throw new IllegalArgumentException("Key must be QName, but it is "+key);
+        }
+        Entry entry = findEntry((QName)key);
+        if (entry == null) {
+            return null;
+        }
+        return entry.getValue();
+    }
 
     public XNodeImpl put(Map.Entry<QName, XNodeImpl> entry) {
         return put(entry.getKey(), entry.getValue());
     }
 
-	public XNodeImpl put(QName key, XNode value) {
-		return put(key, (XNodeImpl) value);
-	}
+    public XNodeImpl put(QName key, XNode value) {
+        return put(key, (XNodeImpl) value);
+    }
 
-	public XNodeImpl put(QName key, XNodeImpl value) {
-		XNodeImpl previous = removeEntry(key);
-		subnodes.add(new Entry(key, value));
-		return previous;
-	}
+    public XNodeImpl put(QName key, XNodeImpl value) {
+        XNodeImpl previous = removeEntry(key);
+        subnodes.add(new Entry(key, value));
+        return previous;
+    }
 
-	public Entry putReturningEntry(QName key, XNodeImpl value, boolean doNotRemovePrevious) {
-		if (!doNotRemovePrevious) {
-			removeEntry(key);
-		}
-		Entry e = new Entry(key, value);
-		subnodes.add(e);
-		return e;
-	}
+    public Entry putReturningEntry(QName key, XNodeImpl value, boolean doNotRemovePrevious) {
+        if (!doNotRemovePrevious) {
+            removeEntry(key);
+        }
+        Entry e = new Entry(key, value);
+        subnodes.add(e);
+        return e;
+    }
 
-	public XNodeImpl remove(Object key) {
-		if (!(key instanceof QName)) {
-			throw new IllegalArgumentException("Key must be QName, but it is "+key);
-		}
-		return removeEntry((QName)key);
-	}
+    public XNodeImpl remove(Object key) {
+        if (!(key instanceof QName)) {
+            throw new IllegalArgumentException("Key must be QName, but it is "+key);
+        }
+        return removeEntry((QName)key);
+    }
 
-	public void putAll(Map<? extends QName, ? extends XNodeImpl> m) {
-		for (Map.Entry<?, ?> entry: m.entrySet()) {
-			put((QName)entry.getKey(), (XNodeImpl)entry.getValue());
-		}
-	}
+    public void putAll(Map<? extends QName, ? extends XNodeImpl> m) {
+        for (Map.Entry<?, ?> entry: m.entrySet()) {
+            put((QName)entry.getKey(), (XNodeImpl)entry.getValue());
+        }
+    }
 
-	public void clear() {
-		subnodes.clear();
-	}
+    public void clear() {
+        subnodes.clear();
+    }
 
-	@NotNull
-	public Set<QName> keySet() {
-		Set<QName> keySet = new HashSet<>();
-		for (Entry entry: subnodes) {
-			keySet.add(entry.getKey());
-		}
-		return keySet;
-	}
+    @NotNull
+    public Set<QName> keySet() {
+        Set<QName> keySet = new HashSet<>();
+        for (Entry entry: subnodes) {
+            keySet.add(entry.getKey());
+        }
+        return keySet;
+    }
 
-	@NotNull
-	public Collection<XNodeImpl> values() {
-		Collection<XNodeImpl> values = new ArrayList<>(subnodes.size());
-		for (Entry entry: subnodes) {
-			values.add(entry.getValue());
-		}
-		return values;
-	}
+    @NotNull
+    public Collection<XNodeImpl> values() {
+        Collection<XNodeImpl> values = new ArrayList<>(subnodes.size());
+        for (Entry entry: subnodes) {
+            values.add(entry.getValue());
+        }
+        return values;
+    }
 
-	@Override
-	public java.util.Map.Entry<QName, XNodeImpl> getSingleSubEntry(String errorContext) throws SchemaException {
-		if (isEmpty()) {
-			return null;
-		}
+    @Override
+    public java.util.Map.Entry<QName, XNodeImpl> getSingleSubEntry(String errorContext) throws SchemaException {
+        if (isEmpty()) {
+            return null;
+        }
 
-		if (size() > 1) {
-			throw new SchemaException("More than one element in " + errorContext +" : "+dumpKeyNames());
-		}
+        if (size() > 1) {
+            throw new SchemaException("More than one element in " + errorContext +" : "+dumpKeyNames());
+        }
 
-		return subnodes.get(0);
-	}
+        return subnodes.get(0);
+    }
 
-	@Override
-	public RootXNode getSingleSubEntryAsRoot(String errorContext) throws SchemaException {
-		java.util.Map.Entry<QName, XNodeImpl> entry = getSingleSubEntry(errorContext);
-		return entry != null ? new RootXNodeImpl(entry.getKey(), entry.getValue()) : null;
-	}
+    @Override
+    public RootXNode getSingleSubEntryAsRoot(String errorContext) throws SchemaException {
+        java.util.Map.Entry<QName, XNodeImpl> entry = getSingleSubEntry(errorContext);
+        return entry != null ? new RootXNodeImpl(entry.getKey(), entry.getValue()) : null;
+    }
 
-	public Entry getSingleEntryThatDoesNotMatch(QName... excludedKeys) throws SchemaException {
-		Entry found = null;
-		OUTER: for (Entry subentry: subnodes) {
-			for (QName excludedKey: excludedKeys) {
-				if (QNameUtil.match(subentry.getKey(), excludedKey)) {
-					continue OUTER;
-				}
-			}
-			if (found != null) {
-				throw new SchemaException("More than one extension subnode found under "+this+": "+found.getKey()+" and "+subentry.getKey());
-			} else {
-				found = subentry;
-			}
-		}
-		return found;
-	}
+    public Entry getSingleEntryThatDoesNotMatch(QName... excludedKeys) throws SchemaException {
+        Entry found = null;
+        OUTER: for (Entry subentry: subnodes) {
+            for (QName excludedKey: excludedKeys) {
+                if (QNameUtil.match(subentry.getKey(), excludedKey)) {
+                    continue OUTER;
+                }
+            }
+            if (found != null) {
+                throw new SchemaException("More than one extension subnode found under "+this+": "+found.getKey()+" and "+subentry.getKey());
+            } else {
+                found = subentry;
+            }
+        }
+        return found;
+    }
 
-	@NotNull
-	public Set<java.util.Map.Entry<QName, XNodeImpl>> entrySet() {
-		Set<java.util.Map.Entry<QName, XNodeImpl>> entries = new Set<Map.Entry<QName, XNodeImpl>>() {
+    @NotNull
+    public Set<java.util.Map.Entry<QName, XNodeImpl>> entrySet() {
+        Set<java.util.Map.Entry<QName, XNodeImpl>> entries = new Set<Map.Entry<QName, XNodeImpl>>() {
 
-			@Override
-			public int size() {
-				return subnodes.size();
-			}
+            @Override
+            public int size() {
+                return subnodes.size();
+            }
 
-			@Override
-			public boolean isEmpty() {
-				return subnodes.isEmpty();
-			}
+            @Override
+            public boolean isEmpty() {
+                return subnodes.isEmpty();
+            }
 
-			@Override
-			public boolean contains(Object o) {
-				return subnodes.contains(o);
-			}
+            @Override
+            public boolean contains(Object o) {
+                return subnodes.contains(o);
+            }
 
-			@Override
-			public Iterator<java.util.Map.Entry<QName, XNodeImpl>> iterator() {
-				return (Iterator)subnodes.iterator();
-			}
+            @Override
+            public Iterator<java.util.Map.Entry<QName, XNodeImpl>> iterator() {
+                return (Iterator)subnodes.iterator();
+            }
 
-			@Override
-			public Object[] toArray() {
-				return subnodes.toArray();
-			}
-			@Override
-			public <T> T[] toArray(T[] a) {
-				return subnodes.toArray(a);
-			}
-			@Override
-			public boolean add(java.util.Map.Entry<QName, XNodeImpl> e) {
-				throw new UnsupportedOperationException();
-//				put(e.getKey(), e.getValue());
-//				return true;
-			}
+            @Override
+            public Object[] toArray() {
+                return subnodes.toArray();
+            }
+            @Override
+            public <T> T[] toArray(T[] a) {
+                return subnodes.toArray(a);
+            }
+            @Override
+            public boolean add(java.util.Map.Entry<QName, XNodeImpl> e) {
+                throw new UnsupportedOperationException();
+//                put(e.getKey(), e.getValue());
+//                return true;
+            }
 
-			@Override
-			public boolean remove(Object o) {
-				throw new UnsupportedOperationException();
-			}
+            @Override
+            public boolean remove(Object o) {
+                throw new UnsupportedOperationException();
+            }
 
-			@Override
-			public boolean containsAll(Collection<?> c) {
-				return subnodes.containsAll(c);
-			}
+            @Override
+            public boolean containsAll(Collection<?> c) {
+                return subnodes.containsAll(c);
+            }
 
-			@Override
-			public boolean addAll(Collection<? extends java.util.Map.Entry<QName, XNodeImpl>> c) {
-				throw new UnsupportedOperationException();
-			}
+            @Override
+            public boolean addAll(Collection<? extends java.util.Map.Entry<QName, XNodeImpl>> c) {
+                throw new UnsupportedOperationException();
+            }
 
-			@Override
-			public boolean retainAll(Collection<?> c) {
-				throw new UnsupportedOperationException();
-			}
+            @Override
+            public boolean retainAll(Collection<?> c) {
+                throw new UnsupportedOperationException();
+            }
 
-			@Override
-			public boolean removeAll(Collection<?> c) {
-				throw new UnsupportedOperationException();
-			}
+            @Override
+            public boolean removeAll(Collection<?> c) {
+                throw new UnsupportedOperationException();
+            }
 
-			@Override
-			public void clear() {
-				throw new UnsupportedOperationException();
-			}
-		};
-		return entries;
-	}
+            @Override
+            public void clear() {
+                throw new UnsupportedOperationException();
+            }
+        };
+        return entries;
+    }
 
-	public <T> T getParsedPrimitiveValue(QName key, QName typeName) throws SchemaException {
-		XNodeImpl xnode = get(key);
-		if (xnode == null) {
-			return null;
-		}
-		if (!(xnode instanceof PrimitiveXNodeImpl<?>)) {
-			throw new SchemaException("Expected that field "+key+" will be primitive, but it is "+xnode.getDesc());
-		}
-		PrimitiveXNodeImpl<T> xprim = (PrimitiveXNodeImpl<T>)xnode;
-		return xprim.getParsedValue(typeName, null);			// TODO expected class
-	}
+    public <T> T getParsedPrimitiveValue(QName key, QName typeName) throws SchemaException {
+        XNodeImpl xnode = get(key);
+        if (xnode == null) {
+            return null;
+        }
+        if (!(xnode instanceof PrimitiveXNodeImpl<?>)) {
+            throw new SchemaException("Expected that field "+key+" will be primitive, but it is "+xnode.getDesc());
+        }
+        PrimitiveXNodeImpl<T> xprim = (PrimitiveXNodeImpl<T>)xnode;
+        return xprim.getParsedValue(typeName, null);            // TODO expected class
+    }
 
-	public void merge(MapXNodeImpl other) {
-		for (java.util.Map.Entry<QName, XNodeImpl> otherEntry: other.entrySet()) {
-			QName otherKey = otherEntry.getKey();
-			XNodeImpl otherValue = otherEntry.getValue();
+    public void merge(MapXNodeImpl other) {
+        for (java.util.Map.Entry<QName, XNodeImpl> otherEntry: other.entrySet()) {
+            QName otherKey = otherEntry.getKey();
+            XNodeImpl otherValue = otherEntry.getValue();
             merge (otherKey, otherValue);
         }
     }
@@ -275,179 +275,179 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
         }
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-		for (Entry subentry: subnodes) {
-			if (subentry.value != null) {
-				subentry.value.accept(visitor);
-			} else {
-				//throw new IllegalStateException("null value of key " + subentry.key + " in map: " + debugDump());
-			}
-		}
-	}
-
-	public boolean equals(Object o) {
-		if (!(o instanceof MapXNodeImpl)){
-			return false;
-		}
-		MapXNodeImpl other = (MapXNodeImpl) o;
-		return MiscUtil.unorderedCollectionEquals(this.entrySet(), other.entrySet());
-	}
-
-	public int hashCode() {
-		int result = 0xCAFEBABE;
-        for (XNodeImpl node : this.values()) {
-        	if (node != null){
-        		result = result ^ node.hashCode();          // using XOR instead of multiplying and adding in order to achieve commutativity
-        	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+        for (Entry subentry: subnodes) {
+            if (subentry.value != null) {
+                subentry.value.accept(visitor);
+            } else {
+                //throw new IllegalStateException("null value of key " + subentry.key + " in map: " + debugDump());
+            }
         }
-		return result;
-	}
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpMapMultiLine(sb, this, indent, true, dumpSuffix());
-		return sb.toString();
-	}
+    public boolean equals(Object o) {
+        if (!(o instanceof MapXNodeImpl)){
+            return false;
+        }
+        MapXNodeImpl other = (MapXNodeImpl) o;
+        return MiscUtil.unorderedCollectionEquals(this.entrySet(), other.entrySet());
+    }
 
-	@Override
-	public String getDesc() {
-		return "map";
-	}
+    public int hashCode() {
+        int result = 0xCAFEBABE;
+        for (XNodeImpl node : this.values()) {
+            if (node != null){
+                result = result ^ node.hashCode();          // using XOR instead of multiplying and adding in order to achieve commutativity
+            }
+        }
+        return result;
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder("XNode(map:"+subnodes.size()+" entries)");
-		sb.append("\n");
-		subnodes.forEach(entry -> {
-			sb.append(entry.toString());
-			sb.append("; \n");
-		});
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.debugDumpMapMultiLine(sb, this, indent, true, dumpSuffix());
+        return sb.toString();
+    }
 
-	private Entry findEntry(QName qname) {
-		for (Entry entry: subnodes) {
-			if (QNameUtil.match(qname,entry.getKey())) {
-				return entry;
-			}
-		}
-		return null;
-	}
+    @Override
+    public String getDesc() {
+        return "map";
+    }
 
-	private Entry findEntry(XNodeImpl xnode) {
-		for (Entry entry: subnodes) {
-			if (entry.getValue().equals(xnode)) {
-				return entry;
-			}
-		}
-		return null;
-	}
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("XNode(map:"+subnodes.size()+" entries)");
+        sb.append("\n");
+        subnodes.forEach(entry -> {
+            sb.append(entry.toString());
+            sb.append("; \n");
+        });
+        return sb.toString();
+    }
 
-	private XNodeImpl removeEntry(QName key) {
-		Iterator<Entry> iterator = subnodes.iterator();
-		while (iterator.hasNext()) {
-			Entry entry = iterator.next();
-			if (QNameUtil.match(key,entry.getKey())) {
-				iterator.remove();
-				return entry.getValue();
-			}
-		}
-		return null;
-	}
+    private Entry findEntry(QName qname) {
+        for (Entry entry: subnodes) {
+            if (QNameUtil.match(qname,entry.getKey())) {
+                return entry;
+            }
+        }
+        return null;
+    }
 
-	public String dumpKeyNames() {
-		StringBuilder sb = new StringBuilder();
-		Iterator<Entry> iterator = subnodes.iterator();
-		while (iterator.hasNext()) {
-			Entry entry = iterator.next();
-			sb.append(PrettyPrinter.prettyPrint(entry.getKey()));
-			if (iterator.hasNext()) {
-				sb.append(",");
-			}
-		}
-		return sb.toString();
-	}
+    private Entry findEntry(XNodeImpl xnode) {
+        for (Entry entry: subnodes) {
+            if (entry.getValue().equals(xnode)) {
+                return entry;
+            }
+        }
+        return null;
+    }
 
-	public void qualifyKey(QName key, String newNamespace) {
-		for (Entry entry : subnodes) {
-			if (key.equals(entry.getKey())) {
-				entry.qualifyKey(newNamespace);
-			}
-		}
-	}
+    private XNodeImpl removeEntry(QName key) {
+        Iterator<Entry> iterator = subnodes.iterator();
+        while (iterator.hasNext()) {
+            Entry entry = iterator.next();
+            if (QNameUtil.match(key,entry.getKey())) {
+                iterator.remove();
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
 
-	public XNodeImpl replace(QName key, XNodeImpl value) {
-		for (Entry entry : subnodes) {
-			if (entry.getKey().equals(key)) {
-				XNodeImpl previous = entry.getValue();
-				entry.setValue(value);
-				return previous;
-			}
-		}
-		return put(key, value);
-	}
+    public String dumpKeyNames() {
+        StringBuilder sb = new StringBuilder();
+        Iterator<Entry> iterator = subnodes.iterator();
+        while (iterator.hasNext()) {
+            Entry entry = iterator.next();
+            sb.append(PrettyPrinter.prettyPrint(entry.getKey()));
+            if (iterator.hasNext()) {
+                sb.append(",");
+            }
+        }
+        return sb.toString();
+    }
 
-	public RootXNodeImpl getEntryAsRoot(@NotNull QName key) {
-		XNodeImpl xnode = get(key);
-		return xnode != null ? new RootXNodeImpl(key, xnode) : null;
-	}
+    public void qualifyKey(QName key, String newNamespace) {
+        for (Entry entry : subnodes) {
+            if (key.equals(entry.getKey())) {
+                entry.qualifyKey(newNamespace);
+            }
+        }
+    }
 
-	@NotNull
-	public RootXNodeImpl getSingleEntryMapAsRoot() {
-		if (!isSingleEntryMap()) {
-			throw new IllegalStateException("Expected to be called on single-entry map");
-		}
-		QName key = keySet().iterator().next();
-		return new RootXNodeImpl(key, get(key));
-	}
+    public XNodeImpl replace(QName key, XNodeImpl value) {
+        for (Entry entry : subnodes) {
+            if (entry.getKey().equals(key)) {
+                XNodeImpl previous = entry.getValue();
+                entry.setValue(value);
+                return previous;
+            }
+        }
+        return put(key, value);
+    }
 
-	private static class Entry implements Map.Entry<QName, XNodeImpl>, Serializable {
+    public RootXNodeImpl getEntryAsRoot(@NotNull QName key) {
+        XNodeImpl xnode = get(key);
+        return xnode != null ? new RootXNodeImpl(key, xnode) : null;
+    }
 
-		private QName key;
-		private XNodeImpl value;
+    @NotNull
+    public RootXNodeImpl getSingleEntryMapAsRoot() {
+        if (!isSingleEntryMap()) {
+            throw new IllegalStateException("Expected to be called on single-entry map");
+        }
+        QName key = keySet().iterator().next();
+        return new RootXNodeImpl(key, get(key));
+    }
 
-		public Entry(QName key) {
-			super();
-			this.key = key;
-		}
+    private static class Entry implements Map.Entry<QName, XNodeImpl>, Serializable {
 
-		public Entry(QName key, XNodeImpl value) {
-			super();
-			this.key = key;
-			this.value = value;
-		}
+        private QName key;
+        private XNodeImpl value;
 
-		public void qualifyKey(String newNamespace) {
-			Validate.notNull(key, "Key is null");
-			if (StringUtils.isNotEmpty(key.getNamespaceURI())) {
-				throw new IllegalStateException("Cannot qualify already qualified key: " + key);
-			}
-			key = new QName(newNamespace, key.getLocalPart());
-		}
+        Entry(QName key) {
+            super();
+            this.key = key;
+        }
 
-		@Override
-		public QName getKey() {
-			return key;
-		}
+        Entry(QName key, XNodeImpl value) {
+            super();
+            this.key = key;
+            this.value = value;
+        }
 
-		@Override
-		public XNodeImpl getValue() {
-			return value;
-		}
+        public void qualifyKey(String newNamespace) {
+            Validate.notNull(key, "Key is null");
+            if (StringUtils.isNotEmpty(key.getNamespaceURI())) {
+                throw new IllegalStateException("Cannot qualify already qualified key: " + key);
+            }
+            key = new QName(newNamespace, key.getLocalPart());
+        }
 
-		@Override
-		public XNodeImpl setValue(XNodeImpl value) {
-			this.value = value;
-			return value;
-		}
+        @Override
+        public QName getKey() {
+            return key;
+        }
 
-		@Override
-		public String toString() {
-			return "E(" + key + ": " + value + ")";
-		}
+        @Override
+        public XNodeImpl getValue() {
+            return value;
+        }
+
+        @Override
+        public XNodeImpl setValue(XNodeImpl value) {
+            this.value = value;
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return "E(" + key + ": " + value + ")";
+        }
 
         /**
          * Compares two entries of the MapXNode.
@@ -483,14 +483,14 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
         }
     }
 
-	@NotNull
-	@Override
-	public MapXNodeImpl clone() {
-		return (MapXNodeImpl) super.clone();        // fixme brutal hack
-	}
+    @NotNull
+    @Override
+    public MapXNodeImpl clone() {
+        return (MapXNodeImpl) super.clone();        // fixme brutal hack
+    }
 
-	@Override
-	public Map<QName, ? extends XNode> asMap() {
-		return this;
-	}
+    @Override
+    public Map<QName, ? extends XNode> asMap() {
+        return this;
+    }
 }

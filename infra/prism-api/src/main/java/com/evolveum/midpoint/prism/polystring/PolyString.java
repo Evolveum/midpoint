@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.polystring;
@@ -41,305 +41,302 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  */
 public class PolyString implements Matchable<PolyString>, Recomputable, Structured, DebugDumpable, ShortDumpable, Serializable, Comparable<Object> {
-	private static final long serialVersionUID = -5070443143609226661L;
+    private static final long serialVersionUID = -5070443143609226661L;
 
-	public static final ItemName F_ORIG = new ItemName(PrismConstants.NS_TYPES, "orig");
-	public static final ItemName F_NORM = new ItemName(PrismConstants.NS_TYPES, "norm");
-	public static final ItemName F_TRANSLATION = new ItemName(PrismConstants.NS_TYPES, "translation");
-	public static final ItemName F_LANG = new ItemName(PrismConstants.NS_TYPES, "lang");
+    public static final ItemName F_ORIG = new ItemName(PrismConstants.NS_TYPES, "orig");
+    public static final ItemName F_NORM = new ItemName(PrismConstants.NS_TYPES, "norm");
+    public static final ItemName F_TRANSLATION = new ItemName(PrismConstants.NS_TYPES, "translation");
+    public static final ItemName F_LANG = new ItemName(PrismConstants.NS_TYPES, "lang");
 
-	private String orig;
-	private String norm = null;
-	private PolyStringTranslationType translation;
-	private Map<String,String> lang;
+    private String orig;
+    private String norm = null;
+    private PolyStringTranslationType translation;
+    private Map<String,String> lang;
 
-	public PolyString(String orig) {
-		this(orig, null);
-	}
+    public PolyString(String orig) {
+        this(orig, null);
+    }
 
-	public PolyString(String orig, String norm) {
-		this(orig, norm, null);
-	}
-	
-	// TODO: we may need a builder for this ... hopefully I do not expect that there will be
-	// any more properties in a near future
-	
-	public PolyString(String orig, String norm, PolyStringTranslationType translation) {
-		this(orig, norm, translation, null);
-	}
+    public PolyString(String orig, String norm) {
+        this(orig, norm, null);
+    }
 
-	public PolyString(String orig, String norm, PolyStringTranslationType translation, Map<String,String> lang) {
-		super();
-		this.orig = orig;
-		this.norm = norm;
-		this.translation = translation;
-		this.lang = lang;
-		if (isNull()) {
-			throw new IllegalArgumentException("Cannot create PolyString with all null attribute values");
-		}
-	}
+    // TODO: we may need a builder for this ... hopefully I do not expect that there will be
+    // any more properties in a near future
 
-	public String getOrig() {
-		return orig;
-	}
-	
-	/**
-	 * Used to set computed values of orig, e.g. in cases of translation. Not very clean.
-	 */
-	public void setComputedOrig(String computedOrig) {
-		this.orig = computedOrig;
-	}
+    public PolyString(String orig, String norm, PolyStringTranslationType translation) {
+        this(orig, norm, translation, null);
+    }
 
-	public String getNorm() {
-		return norm;
-	}
+    public PolyString(String orig, String norm, PolyStringTranslationType translation, Map<String,String> lang) {
+        super();
+        this.orig = orig;
+        this.norm = norm;
+        this.translation = translation;
+        this.lang = lang;
+        if (isNull()) {
+            throw new IllegalArgumentException("Cannot create PolyString with all null attribute values");
+        }
+    }
 
-	public PolyStringTranslationType getTranslation() {
-		return translation;
-	}
+    public String getOrig() {
+        return orig;
+    }
 
-	public Map<String, String> getLang() {
-		return lang;
-	}
+    /**
+     * Used to set computed values of orig, e.g. in cases of translation. Not very clean.
+     */
+    public void setComputedOrig(String computedOrig) {
+        this.orig = computedOrig;
+    }
 
-	/**
-	 * Do NOT rely on this method too much. It may disappear later, e.g. when we align PolyString and PolyString type and
-	 * make PolyString really immutable.
-	 */
-	@Experimental
-	public void setTranslation(PolyStringTranslationType translation) {
-		this.translation = translation;
-	}
-	
-	/**
-	 * Do NOT rely on this method too much. It may disappear later, e.g. when we align PolyString and PolyString type and
-	 * make PolyString really immutable.
-	 */
-	@Experimental
-	public void setLang(Map<String, String> lang) {
-		this.lang = lang;
-	}
+    public String getNorm() {
+        return norm;
+    }
 
-	public boolean isEmpty() {
-		return isOrigEmpty() && isLocalizationKeyEmpty() && isLanguageMapEmpty();
-	}
+    public PolyStringTranslationType getTranslation() {
+        return translation;
+    }
 
-	public boolean isNull() {
-		return orig == null && norm == null && (translation == null || translation.getKey() == null) && lang == null;
-	}
+    public Map<String, String> getLang() {
+        return lang;
+    }
 
-	private boolean isOrigEmpty(){
-		return StringUtils.isEmpty(orig);
-	}
+    /**
+     * Do NOT rely on this method too much. It may disappear later, e.g. when we align PolyString and PolyString type and
+     * make PolyString really immutable.
+     */
+    @Experimental
+    public void setTranslation(PolyStringTranslationType translation) {
+        this.translation = translation;
+    }
 
-	private boolean isLocalizationKeyEmpty(){
-		return translation == null || StringUtils.isEmpty(translation.getKey());
-	}
+    /**
+     * Do NOT rely on this method too much. It may disappear later, e.g. when we align PolyString and PolyString type and
+     * make PolyString really immutable.
+     */
+    @Experimental
+    public void setLang(Map<String, String> lang) {
+        this.lang = lang;
+    }
 
-	private boolean isLanguageMapEmpty(){
-		return lang == null || lang.isEmpty();
-	}
+    public boolean isEmpty() {
+        return isOrigEmpty() && isLocalizationKeyEmpty() && isLanguageMapEmpty();
+    }
 
-	public void recompute(PolyStringNormalizer normalizer) {
-		norm = normalizer.normalize(orig);
-	}
+    public boolean isNull() {
+        return orig == null && norm == null && (translation == null || translation.getKey() == null) && lang == null;
+    }
 
-	public boolean isComputed() {
-		return !(norm == null);
-	}
+    private boolean isOrigEmpty(){
+        return StringUtils.isEmpty(orig);
+    }
 
-	@Override
-	public Object resolve(ItemPath subpath) {
-		if (subpath == null || subpath.isEmpty()) {
-			return this;
-		}
-		if (subpath.size() > 1) {
-			throw new IllegalArgumentException("Cannot resolve path "+subpath+" on polystring "+this+", the path is too deep");
-		}
-		Object first = subpath.first();
-		if (!ItemPath.isName(first)) {
-			throw new IllegalArgumentException("Cannot resolve non-name path "+subpath+" on polystring "+this);
-		}
-		QName itemName = ItemPath.toName(first);
-		if (QNameUtil.match(F_ORIG, itemName)) {
-			return orig;
-		} else if (QNameUtil.match(F_NORM, itemName)) {
-			return norm;
-		} else if (QNameUtil.match(F_TRANSLATION, itemName)) {
-			return translation;
-		} else if (QNameUtil.match(F_LANG, itemName)) {
-			return lang;
-		} else {
-			throw new IllegalArgumentException("Unknown path segment "+itemName);
-		}
-	}
+    private boolean isLocalizationKeyEmpty(){
+        return translation == null || StringUtils.isEmpty(translation.getKey());
+    }
 
-	// Groovy operator overload
-	public PolyString plus(Object other) {
-		if (other == null) {
-			return this;
-		}
-		return new PolyString(this.orig + other.toString());
-	}
+    private boolean isLanguageMapEmpty(){
+        return lang == null || lang.isEmpty();
+    }
 
-	// Groovy operator overload
-	public PolyString getAt(int index) {
-		return new PolyString(this.orig.substring(index, index+1));
-	}
+    public void recompute(PolyStringNormalizer normalizer) {
+        norm = normalizer.normalize(orig);
+    }
 
-	@Override
-	public int compareTo(Object other) {
-		if (other == null) {
-			return 1;
-		}
-		String otherString = other.toString();
-		return this.orig.compareTo(otherString);
-	}
+    public boolean isComputed() {
+        return !(norm == null);
+    }
 
-//	public PolyString getAt(Range at) {
-//		// TODO
-//	}
+    @Override
+    public Object resolve(ItemPath subpath) {
+        if (subpath == null || subpath.isEmpty()) {
+            return this;
+        }
+        if (subpath.size() > 1) {
+            throw new IllegalArgumentException("Cannot resolve path "+subpath+" on polystring "+this+", the path is too deep");
+        }
+        Object first = subpath.first();
+        if (!ItemPath.isName(first)) {
+            throw new IllegalArgumentException("Cannot resolve non-name path "+subpath+" on polystring "+this);
+        }
+        QName itemName = ItemPath.toName(first);
+        if (QNameUtil.match(F_ORIG, itemName)) {
+            return orig;
+        } else if (QNameUtil.match(F_NORM, itemName)) {
+            return norm;
+        } else if (QNameUtil.match(F_TRANSLATION, itemName)) {
+            return translation;
+        } else if (QNameUtil.match(F_LANG, itemName)) {
+            return lang;
+        } else {
+            throw new IllegalArgumentException("Unknown path segment "+itemName);
+        }
+    }
+
+    // Groovy operator overload
+    public PolyString plus(Object other) {
+        if (other == null) {
+            return this;
+        }
+        return new PolyString(this.orig + other.toString());
+    }
+
+    // Groovy operator overload
+    public PolyString getAt(int index) {
+        return new PolyString(this.orig.substring(index, index+1));
+    }
+
+    @Override
+    public int compareTo(Object other) {
+        if (other == null) {
+            return 1;
+        }
+        String otherString = other.toString();
+        return this.orig.compareTo(otherString);
+    }
+
+//    public PolyString getAt(Range at) {
+//        // TODO
+//    }
 //
-//	public PolyString getAt(IntRange at) {
-//		// TODO
-//	}
+//    public PolyString getAt(IntRange at) {
+//        // TODO
+//    }
 
-	public int length() {
-		return orig.length();
-	}
+    public int length() {
+        return orig.length();
+    }
 
-	public PolyString trim() {
-		return new PolyString(orig.trim(), norm != null ? norm.trim() : norm);
-	}
+    public PolyString trim() {
+        return new PolyString(orig.trim(), norm != null ? norm.trim() : norm);
+    }
 
-	public String substring(int from, int to) {
-		return this.orig.substring(from,to);
-	}
+    public String substring(int from, int to) {
+        return this.orig.substring(from,to);
+    }
 
-	/**
-	 * Helper function that checks whether this original string begins with the specified value.
-	 *
-	 * @param value the value
-	 * @return the string
-	 */
-	public boolean startsWith(String value) {
-		return this.orig.startsWith(value);
-	}
+    /**
+     * Helper function that checks whether this original string begins with the specified value.
+     *
+     * @param value the value
+     * @return the string
+     */
+    public boolean startsWith(String value) {
+        return this.orig.startsWith(value);
+    }
 
-	/**
-	 * Helper function that checks whether this original string ends with the specified value.
-	 *
-	 * @param value the value
-	 * @return the string
-	 */
-	public boolean endsWith(String value) {
-		return this.orig.endsWith(value);
-	}
+    /**
+     * Helper function that checks whether this original string ends with the specified value.
+     *
+     * @param value the value
+     * @return the string
+     */
+    public boolean endsWith(String value) {
+        return this.orig.endsWith(value);
+    }
 
-	// Do NOT auto-generate this: there are manual changes!
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((lang == null || lang.isEmpty()) ? 0 : lang.hashCode());
-		result = prime * result + ((norm == null) ? 0 : norm.hashCode());
-		result = prime * result + ((orig == null) ? 0 : orig.hashCode());
-		result = prime * result + ((translation == null) ? 0 : translation.hashCode());
-		return result;
-	}
+    // Do NOT auto-generate this: there are manual changes!
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((lang == null || lang.isEmpty()) ? 0 : lang.hashCode());
+        result = prime * result + ((norm == null) ? 0 : norm.hashCode());
+        result = prime * result + ((orig == null) ? 0 : orig.hashCode());
+        result = prime * result + ((translation == null) ? 0 : translation.hashCode());
+        return result;
+    }
 
-	// Do NOT auto-generate this: there are manual changes!
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		PolyString other = (PolyString) obj;
-		if (lang == null || lang.isEmpty()) {
-			if (other.lang != null && !other.lang.isEmpty()) {
-				return false;
-			}
-		} else if (!lang.equals(other.lang)) {
-			return false;
-		}
-		if (norm == null) {
-			if (other.norm != null) {
-				return false;
-			}
-		} else if (!norm.equals(other.norm)) {
-			return false;
-		}
-		if (orig == null) {
-			if (other.orig != null) {
-				return false;
-			}
-		} else if (!orig.equals(other.orig)) {
-			return false;
-		}
-		if (translation == null) {
-			if (other.translation != null) {
-				return false;
-			}
-		} else if (!translation.equals(other.translation)) {
-			return false;
-		}
-		return true;
-	}
+    // Do NOT auto-generate this: there are manual changes!
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        PolyString other = (PolyString) obj;
+        if (lang == null || lang.isEmpty()) {
+            if (other.lang != null && !other.lang.isEmpty()) {
+                return false;
+            }
+        } else if (!lang.equals(other.lang)) {
+            return false;
+        }
+        if (norm == null) {
+            if (other.norm != null) {
+                return false;
+            }
+        } else if (!norm.equals(other.norm)) {
+            return false;
+        }
+        if (orig == null) {
+            if (other.orig != null) {
+                return false;
+            }
+        } else if (!orig.equals(other.orig)) {
+            return false;
+        }
+        if (translation == null) {
+            if (other.translation != null) {
+                return false;
+            }
+        } else if (!translation.equals(other.translation)) {
+            return false;
+        }
+        return true;
+    }
 
-	@Override
-	public boolean equalsOriginalValue(Recomputable obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		PolyString other = (PolyString) obj;
-		if (orig == null) {
-			if (other.orig != null)
-				return false;
-		} else if (!orig.equals(other.orig))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equalsOriginalValue(Recomputable obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        PolyString other = (PolyString) obj;
+        if (orig == null) {
+            if (other.orig != null) return false;
+        } else if (!orig.equals(other.orig)) {
+            return false;
+        }
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return orig;
-	}
+    @Override
+    public String toString() {
+        return orig;
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("PolyString(");
-		sb.append(orig);
-		if (norm != null) {
-			sb.append(",");
-			sb.append(norm);
-		}
-		if (translation != null) {
-			sb.append(";translation=");
-			sb.append(translation.getKey());
-		}
-		if (lang != null) {
-			sb.append(";lang=");
-			sb.append(lang);
-		}
-		sb.append(")");
-		return sb.toString();
-	}
-	
-	@Override
-	public void shortDump(StringBuilder sb) {
-		sb.append(orig);
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("PolyString(");
+        sb.append(orig);
+        if (norm != null) {
+            sb.append(",");
+            sb.append(norm);
+        }
+        if (translation != null) {
+            sb.append(";translation=");
+            sb.append(translation.getKey());
+        }
+        if (lang != null) {
+            sb.append(";lang=");
+            sb.append(lang);
+        }
+        sb.append(")");
+        return sb.toString();
+    }
+
+    @Override
+    public void shortDump(StringBuilder sb) {
+        sb.append(orig);
+    }
 
     public static String getOrig(PolyString s) {
         return s != null ? s.getOrig() : null;
@@ -349,55 +346,52 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
         return s != null ? s.getOrig() : null;
     }
 
-	@Override
-	public boolean match(PolyString other) {
-		if (this == other)
-			return true;
-		if (other == null)
-			return false;
+    @Override
+    public boolean match(PolyString other) {
+        if (this == other) return true;
+        if (other == null) return false;
+        if (norm == null) {
+            if (other.norm != null) return false;
+        } else if (!norm.equals(other.norm)) {
+            return false;
+        }
+        return true;
+    }
 
-		if (norm == null) {
-			if (other.norm != null)
-				return false;
-		} else if (!norm.equals(other.norm))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean matches(String regex) {
+        return Pattern.matches(regex, norm) || Pattern.matches(regex, orig);
+    }
 
-	@Override
-	public boolean matches(String regex) {
-		return Pattern.matches(regex, norm) || Pattern.matches(regex, orig);
-	}
+    /**
+     * Returns true if the PolyString form contains only simple string.
+     * I.e. returns true if the polystring can be serialized in a simplified form of a single string.
+     * Returns true in case that there are language mutations, translation, etc.
+     */
+    public boolean isSimple() {
+        return translation == null && lang == null;
+    }
 
-	/**
-	 * Returns true if the PolyString form contains only simple string.
-	 * I.e. returns true if the polystring can be serialized in a simplified form of a single string.
-	 * Returns true in case that there are language mutations, translation, etc.
-	 */
-	public boolean isSimple() {
-		return translation == null && lang == null;
-	}
+    @Override
+    public void checkConsistence() {
+        if (orig == null) {
+            throw new IllegalStateException("Null orig");
+        }
+        if (norm == null) {
+            throw new IllegalStateException("Null norm");
+        }
+    }
 
-	@Override
-	public void checkConsistence() {
-		if (orig == null) {
-			throw new IllegalStateException("Null orig");
-		}
-		if (norm == null) {
-			throw new IllegalStateException("Null norm");
-		}
-	}
+    public static PolyString toPolyString(PolyStringType value) {
+        return value != null ? value.toPolyString() : null;
+    }
 
-	public static PolyString toPolyString(PolyStringType value) {
-		return value != null ? value.toPolyString() : null;
-	}
+    public static PolyStringType toPolyStringType(PolyString value) {
+        return value != null ? new PolyStringType(value) : null;
+    }
 
-	public static PolyStringType toPolyStringType(PolyString value) {
-		return value != null ? new PolyStringType(value) : null;
-	}
-
-	public static PolyString fromOrig(String orig) {
-		return new PolyString(orig);
-	}
+    public static PolyString fromOrig(String orig) {
+        return new PolyString(orig);
+    }
 
 }

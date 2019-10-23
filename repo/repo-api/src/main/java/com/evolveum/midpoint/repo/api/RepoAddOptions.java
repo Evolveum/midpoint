@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.api;
@@ -16,67 +16,67 @@ import com.evolveum.midpoint.util.ShortDumpable;
  *
  */
 public class RepoAddOptions extends AbstractOptions implements Serializable, ShortDumpable {
-	private static final long serialVersionUID = -6243926109579064467L;
+    private static final long serialVersionUID = -6243926109579064467L;
 
-	private boolean overwrite = false;
-	private boolean allowUnencryptedValues = false;
+    private boolean overwrite = false;
+    private boolean allowUnencryptedValues = false;
 
-	public boolean isOverwrite() {
-		return overwrite;
-	}
+    public boolean isOverwrite() {
+        return overwrite;
+    }
 
-	public void setOverwrite(boolean overwrite) {
-		this.overwrite = overwrite;
-	}
+    public void setOverwrite(boolean overwrite) {
+        this.overwrite = overwrite;
+    }
 
-	public static boolean isOverwrite(RepoAddOptions options) {
-		if (options == null) {
-			return false;
-		}
-		return options.isOverwrite();
-	}
+    public static boolean isOverwrite(RepoAddOptions options) {
+        if (options == null) {
+            return false;
+        }
+        return options.isOverwrite();
+    }
 
-	public static RepoAddOptions createOverwrite() {
-		RepoAddOptions opts = new RepoAddOptions();
-		opts.setOverwrite(true);
-		return opts;
-	}
+    public static RepoAddOptions createOverwrite() {
+        RepoAddOptions opts = new RepoAddOptions();
+        opts.setOverwrite(true);
+        return opts;
+    }
 
 
-	public boolean isAllowUnencryptedValues() {
-		return allowUnencryptedValues;
-	}
+    public boolean isAllowUnencryptedValues() {
+        return allowUnencryptedValues;
+    }
 
-	public void setAllowUnencryptedValues(boolean allowUnencryptedValues) {
-		this.allowUnencryptedValues = allowUnencryptedValues;
-	}
+    public void setAllowUnencryptedValues(boolean allowUnencryptedValues) {
+        this.allowUnencryptedValues = allowUnencryptedValues;
+    }
 
-	public static boolean isAllowUnencryptedValues(RepoAddOptions options) {
-		if (options == null) {
-			return false;
-		}
-		return options.isAllowUnencryptedValues();
-	}
+    public static boolean isAllowUnencryptedValues(RepoAddOptions options) {
+        if (options == null) {
+            return false;
+        }
+        return options.isAllowUnencryptedValues();
+    }
 
-	public static RepoAddOptions createAllowUnencryptedValues() {
-		RepoAddOptions opts = new RepoAddOptions();
-		opts.setAllowUnencryptedValues(true);
-		return opts;
-	}
+    public static RepoAddOptions createAllowUnencryptedValues() {
+        RepoAddOptions opts = new RepoAddOptions();
+        opts.setAllowUnencryptedValues(true);
+        return opts;
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder("RepoAddOptions(");
-		shortDump(sb);
-		sb.append(")");
-		return sb.toString();
-	}
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("RepoAddOptions(");
+        shortDump(sb);
+        sb.append(")");
+        return sb.toString();
+    }
 
-	@Override
-	public void shortDump(StringBuilder sb) {
-		appendFlag(sb, "overwrite", overwrite);
-		appendFlag(sb, "allowUnencryptedValues", allowUnencryptedValues);
-		removeLastComma(sb);
-	}
+    @Override
+    public void shortDump(StringBuilder sb) {
+        appendFlag(sb, "overwrite", overwrite);
+        appendFlag(sb, "allowUnencryptedValues", allowUnencryptedValues);
+        removeLastComma(sb);
+    }
 
 }

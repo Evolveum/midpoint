@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -45,6 +45,7 @@ public class AsyncUpdater {
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
         ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, callerTask, callerResult);
+
         ChangeListener listener = (change, listenerTask, listenerResult) -> {
             ProcessChangeRequest request = new ProcessChangeRequest(change, ctx, false);
             changeProcessor.execute(request, listenerTask, null, listenerResult);

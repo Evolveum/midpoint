@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,26 +20,26 @@ import org.apache.wicket.model.IModel;
  */
 public class GenericColumn<T, S> extends AbstractColumn<T, S> implements IExportableColumn<T, S>
 {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private final SerializableFunction<IModel<T>, IModel<?>> dataModelProvider;
+    private final SerializableFunction<IModel<T>, IModel<?>> dataModelProvider;
 
-	public GenericColumn(IModel<String> displayModel, S sortProperty, SerializableFunction<IModel<T>, IModel<?>> dataModelProvider) {
-		super(displayModel, sortProperty);
-		this.dataModelProvider = dataModelProvider;
-	}
+    public GenericColumn(IModel<String> displayModel, S sortProperty, SerializableFunction<IModel<T>, IModel<?>> dataModelProvider) {
+        super(displayModel, sortProperty);
+        this.dataModelProvider = dataModelProvider;
+    }
 
-	public GenericColumn(IModel<String> displayModel, SerializableFunction<IModel<T>, IModel<?>> dataModelProvider) {
-		this(displayModel, null, dataModelProvider);
-	}
+    public GenericColumn(IModel<String> displayModel, SerializableFunction<IModel<T>, IModel<?>> dataModelProvider) {
+        this(displayModel, null, dataModelProvider);
+    }
 
-	@Override
-	public void populateItem(Item<ICellPopulator<T>> item, String componentId, IModel<T> rowModel) {
-		item.add(new Label(componentId, getDataModel(rowModel)));
-	}
+    @Override
+    public void populateItem(Item<ICellPopulator<T>> item, String componentId, IModel<T> rowModel) {
+        item.add(new Label(componentId, getDataModel(rowModel)));
+    }
 
-	@Override
-	public IModel<?> getDataModel(IModel<T> rowModel) {
-		return dataModelProvider.apply(rowModel);
-	}
+    @Override
+    public IModel<?> getDataModel(IModel<T> rowModel) {
+        return dataModelProvider.apply(rowModel);
+    }
 }

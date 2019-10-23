@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="a8df34a8-f6f0-11e8-b98e-eb03652d943f"
@@ -12,11 +12,11 @@
     <name>Test</name>
     <description>Testing user archetype. Archetype that induces an account.</description>
     <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-    		<kind>account</kind>
-    		<intent>test</intent>
-    	</construction>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+            <kind>account</kind>
+            <intent>test</intent>
+        </construction>
     </inducement>
     <!-- TODO: display -->
 </archetype>

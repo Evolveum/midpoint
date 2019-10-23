@@ -2,29 +2,29 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<name>domain mapping</name>
-	<source>
-    	<path>additionalName</path>
+    <name>domain mapping</name>
+    <source>
+        <path>additionalName</path>
     </source>
     <source>
-    	<!-- we need multivalue input -->
-    	<path>employeeType</path>
-    	<set>
-    		<condition>
-    			<script>
-    				<code>employeeType.isNumber()</code>
-    			</script>
-    		</condition>
-    	</set>
+        <!-- we need multivalue input -->
+        <path>employeeType</path>
+        <set>
+            <condition>
+                <script>
+                    <code>employeeType.isNumber()</code>
+                </script>
+            </condition>
+        </set>
     </source>
-	<expression>
-		<script>
-			<code>'Pirate '+ additionalName + ' ('+employeeType+')'</code>
-		</script>
-	</expression>
+    <expression>
+        <script>
+            <code>'Pirate '+ additionalName + ' ('+employeeType+')'</code>
+        </script>
+    </expression>
 </mapping>

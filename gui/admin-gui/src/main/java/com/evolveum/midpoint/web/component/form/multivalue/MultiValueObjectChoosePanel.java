@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.form.multivalue;
@@ -127,8 +127,8 @@ public abstract class MultiValueObjectChoosePanel<R extends Referencable> extend
         ListView<R> multiValuesPanel = new ListView<R>(ID_MULTI_SHADOW_REF_VALUE, MultiValueObjectChoosePanel.this.getModel()){
             private static final long serialVersionUID = 1L;
 
-				@Override
-	            protected void populateItem(final ListItem<R> item) {
+                @Override
+                protected void populateItem(final ListItem<R> item) {
                     ValueChoosePanel<R> valueChoosePanel = new ValueChoosePanel<R>(ID_REFERENCE_VALUE_INPUT, item.getModel()){
                         private static final long serialVersionUID = 1L;
 

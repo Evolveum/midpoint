@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -33,7 +33,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "m_task", indexes = {
-		@javax.persistence.Index(name = "iTaskObjectOid", columnList = "objectRef_targetOid"),
+        @javax.persistence.Index(name = "iTaskObjectOid", columnList = "objectRef_targetOid"),
         @javax.persistence.Index(name = "iTaskNameOrig", columnList = "name_orig")},
         uniqueConstraints = @UniqueConstraint(name = "uc_task_identifier", columnNames = {"taskIdentifier"}))
 @ForeignKey(name = "fk_task")

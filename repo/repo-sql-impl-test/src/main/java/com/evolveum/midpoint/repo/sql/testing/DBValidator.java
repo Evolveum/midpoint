@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -71,7 +71,7 @@ public class DBValidator {
         }
     }
 
-    private static final void validate(String sql, String message, Session session) {
+    private static void validate(String sql, String message, Session session) {
         Query query = session.createNativeQuery(sql);
         List nullAssignments = query.list();
         if (!nullAssignments.isEmpty()) {

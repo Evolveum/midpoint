@@ -2,51 +2,51 @@
 <!--
   ~ Copyright (c) 2015 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <c:user oid="1696229e-d90a-11e4-9ce6-001e8c717e5b" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<c:name>darthadder</c:name>
-	<c:assignment>
-		<!-- REST -->
-		<c:targetRef oid="20bbf2f2-d48d-11e4-a091-001e8c717e5b" type="c:RoleType"/>
-	</c:assignment>
-	<c:assignment>
-		<!-- Reader -->
-		<c:targetRef oid="eb243068-d48d-11e4-a83a-001e8c717e5b" type="c:RoleType"/>
-	</c:assignment>
-	<c:assignment>
-		<!-- Adder -->
-		<c:targetRef oid="8a48a97e-d909-11e4-8413-001e8c717e5b" type="c:RoleType"/>
-	</c:assignment>
-	<c:activation>
-		<c:administrativeStatus>enabled</c:administrativeStatus>
-	</c:activation>
-	<c:fullName>Darth Adder</c:fullName>
-	<c:givenName>Darth</c:givenName>
-	<c:familyName>Adder</c:familyName>
-	<c:employeeType>user</c:employeeType>
-	<c:employeeType>123user</c:employeeType>
-	<c:employeeType>employeE</c:employeeType>
-	<c:employeeNumber>123456</c:employeeNumber>
-	<c:organization>Org1</c:organization>
-	<c:organization>Org2</c:organization>
-	<c:organization>Org3</c:organization>
-	<c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-		<c:password>
-			<c:value xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
-				<clearValue>Iamy0urUncle</clearValue>
-			</c:value>
-		</c:password>
-		<securityQuestions>
-			<questionAnswer id="1">
-				<questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</questionIdentifier>
-				<questionAnswer>
-					<t:clearValue>Iamy0urUncle</t:clearValue>
-				</questionAnswer>
-			</questionAnswer>
-		</securityQuestions>
-	</c:credentials>
+    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <c:name>darthadder</c:name>
+    <c:assignment>
+        <!-- REST -->
+        <c:targetRef oid="20bbf2f2-d48d-11e4-a091-001e8c717e5b" type="c:RoleType"/>
+    </c:assignment>
+    <c:assignment>
+        <!-- Reader -->
+        <c:targetRef oid="eb243068-d48d-11e4-a83a-001e8c717e5b" type="c:RoleType"/>
+    </c:assignment>
+    <c:assignment>
+        <!-- Adder -->
+        <c:targetRef oid="8a48a97e-d909-11e4-8413-001e8c717e5b" type="c:RoleType"/>
+    </c:assignment>
+    <c:activation>
+        <c:administrativeStatus>enabled</c:administrativeStatus>
+    </c:activation>
+    <c:fullName>Darth Adder</c:fullName>
+    <c:givenName>Darth</c:givenName>
+    <c:familyName>Adder</c:familyName>
+    <c:employeeType>user</c:employeeType>
+    <c:employeeType>123user</c:employeeType>
+    <c:employeeType>employeE</c:employeeType>
+    <c:employeeNumber>123456</c:employeeNumber>
+    <c:organization>Org1</c:organization>
+    <c:organization>Org2</c:organization>
+    <c:organization>Org3</c:organization>
+    <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        <c:password>
+            <c:value xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+                <clearValue>Iamy0urUncle</clearValue>
+            </c:value>
+        </c:password>
+        <securityQuestions>
+            <questionAnswer id="1">
+                <questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</questionIdentifier>
+                <questionAnswer>
+                    <t:clearValue>Iamy0urUncle</t:clearValue>
+                </questionAnswer>
+            </questionAnswer>
+        </securityQuestions>
+    </c:credentials>
 </c:user>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,19 +17,19 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
  */
 public interface Refreshable {
 
-	/**
-	 * Called on manually requested refresh action.
-	 * @param target The request target.
-	 */
-	void refresh(AjaxRequestTarget target);
+    /**
+     * Called on manually requested refresh action.
+     * @param target The request target.
+     */
+    void refresh(AjaxRequestTarget target);
 
-	/**
-	 * Component to which the refreshing timer should be attached.
-	 */
-	Component getRefreshingBehaviorParent();
+    /**
+     * Component to which the refreshing timer should be attached.
+     */
+    Component getRefreshingBehaviorParent();
 
-	/**
-	 * Current refreshing interval (may depend on page content).
-	 */
-	int getRefreshInterval();
+    /**
+     * Current refreshing interval (may depend on page content).
+     */
+    int getRefreshInterval();
 }

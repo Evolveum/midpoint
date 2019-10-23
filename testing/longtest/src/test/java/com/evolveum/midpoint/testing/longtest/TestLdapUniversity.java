@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -57,30 +57,30 @@ import static org.testng.AssertJUnit.assertEquals;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapUniversity extends AbstractModelIntegrationTest {
 
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap-university");
+    public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap-university");
 
-	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
-	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
+    public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
+    public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
     protected static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
-	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
-	protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
+    protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
+    protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
-	protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
-	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
+    protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
+    protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
-	protected static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj-university.xml");
+    protected static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj-university.xml");
     protected static final String RESOURCE_OPENDJ_NAME = "Localhost OpenDJ";
-	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
+    protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
+    protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 
-	// Make it at least 1501 so it will go over the 3000 entries size limit
-	private static final int NUM_LDAP_ENTRIES = 3100;
+    // Make it at least 1501 so it will go over the 3000 entries size limit
+    private static final int NUM_LDAP_ENTRIES = 3100;
 
-	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
+    private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
 
-	protected ResourceType resourceOpenDjType;
-	protected PrismObject<ResourceType> resourceOpenDj;
+    protected ResourceType resourceOpenDjType;
+    protected PrismObject<ResourceType> resourceOpenDj;
 
     @Autowired private ReconciliationTaskHandler reconciliationTaskHandler;
     @Autowired private MidpointConfiguration midpointConfiguration;
@@ -95,42 +95,42 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         openDJController.stop();
     }
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		modelService.postInit(initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        modelService.postInit(initResult);
 
-		// System Configuration
+        // System Configuration
         PrismObject<SystemConfigurationType> config;
-		try {
-			config = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
-		} catch (ObjectAlreadyExistsException e) {
-			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
-					"looks like the previous test haven't cleaned it up", e);
-		}
+        try {
+            config = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+        } catch (ObjectAlreadyExistsException e) {
+            throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
+                    "looks like the previous test haven't cleaned it up", e);
+        }
 
         LoggingConfigurationManager.configure(
                 ProfilingConfigurationManager.checkSystemProfilingConfiguration(config),
                 config.asObjectable().getVersion(), midpointConfiguration, initResult);
 
-		// administrator
-		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
-		login(userAdministrator);
+        // administrator
+        PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
+        repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
+        login(userAdministrator);
 
-		// Resources
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
-		resourceOpenDjType = resourceOpenDj.asObjectable();
-		openDJController.setResource(resourceOpenDj);
+        // Resources
+        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
+        resourceOpenDjType = resourceOpenDj.asObjectable();
+        openDJController.setResource(resourceOpenDj);
 
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		display("initial LDAP content", openDJController.dumpEntries());
-	}
+        display("initial LDAP content", openDJController.dumpEntries());
+    }
 
-	@Test
+    @Test
     public void test100BigImportWithLinking() throws Exception {
-		final String TEST_NAME = "test100BigImportWithLinking";
+        final String TEST_NAME = "test100BigImportWithLinking";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -150,7 +150,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         TestUtil.displayWhen(TEST_NAME);
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 5);
         modelService.importFromResource(RESOURCE_OPENDJ_OID,
-        		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -171,7 +171,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 
         assertUser("e0(u0)", task, result);
         assertUser("e1(u1)", task, result);
-	}
+    }
 
     private void createUsers(String prefix, OperationResult result) throws ObjectAlreadyExistsException, SchemaException {
         final int TICK=100;
@@ -249,9 +249,9 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         final int TICK = 1000;
 //        List<String> namesToAdd = new ArrayList<>(BATCH);
         for(int i=0; i < NUM_LDAP_ENTRIES; i++) {
-        	String name = "user"+i;
-        	Entry entry = createEntry(prefix+i, "e"+i, name);
-        	openDJController.addEntry(entry);
+            String name = "user"+i;
+            Entry entry = createEntry(prefix+i, "e"+i, name);
+            openDJController.addEntry(entry);
 //            namesToAdd.add(entry.getDN().toNormalizedString());
 //            if (namesToAdd.size() == BATCH) {
 //                addToGroups(namesToAdd);
@@ -268,7 +268,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         long ldapPopEnd = System.currentTimeMillis();
 
         display("Loaded "+NUM_LDAP_ENTRIES+" LDAP entries in "+((ldapPopEnd-ldapPopStart)/1000)+" seconds");
-	}
+    }
 
     private void addToGroups(List<String> namesToAdd) throws IOException, LDIFException {
         for (int groupIndex = 1; groupIndex <= 10; groupIndex++) {
@@ -277,23 +277,23 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
     }
 
     private Entry createEntry(String uid, String empno, String name) throws IOException, LDIFException {
-		StringBuilder sb = new StringBuilder();
-		String dn = "uid="+uid+","+openDJController.getSuffixPeople();
-		sb.append("dn: ").append(dn).append("\n");
-		sb.append("objectClass: inetOrgPerson\n");
-		sb.append("uid: ").append(uid).append("\n");
+        StringBuilder sb = new StringBuilder();
+        String dn = "uid="+uid+","+openDJController.getSuffixPeople();
+        sb.append("dn: ").append(dn).append("\n");
+        sb.append("objectClass: inetOrgPerson\n");
+        sb.append("uid: ").append(uid).append("\n");
         sb.append("employeenumber: ").append(empno).append("\n");
-		sb.append("cn: ").append(name).append("\n");
-		sb.append("sn: ").append(name).append("\n");
-		LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(sb.toString(), "utf-8"));
+        sb.append("cn: ").append(name).append("\n");
+        sb.append("sn: ").append(name).append("\n");
+        LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(sb.toString(), "utf-8"));
         LDIFReader ldifReader = new LDIFReader(importConfig);
         Entry ldifEntry = ldifReader.readEntry();
-		return ldifEntry;
-	}
+        return ldifEntry;
+    }
 
-	private String toDn(String username) {
-		return "uid="+username+","+OPENDJ_PEOPLE_SUFFIX;
-	}
+    private String toDn(String username) {
+        return "uid="+username+","+OPENDJ_PEOPLE_SUFFIX;
+    }
 
     private String groupDn(int groupIndex) {
         return "cn="+groupCn(groupIndex)+","+OPENDJ_GROUPS_SUFFIX;

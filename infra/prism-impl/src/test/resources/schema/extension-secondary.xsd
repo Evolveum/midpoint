@@ -2,14 +2,14 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  
+
  <!-- This is a runtime schema that defines data types used in the
       <extension> part of the objects. It should be loaded during
       test initialization (creation of prism context). -->
-      
+
 <xsd:schema elementFormDefault="qualified"
             targetNamespace="http://midpoint.evolveum.com/xml/ns/test/extension/secondary"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/extension/secondary"
@@ -17,12 +17,12 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
-				schemaLocation="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"/>
 
-	<!-- collides with the primary one -->
+    <!-- collides with the primary one -->
     <xsd:element name="stringType" type="xsd:string"/>
 
-	<xsd:element name="secondaryStringType" type="xsd:string"/>
+    <xsd:element name="secondaryStringType" type="xsd:string"/>
 
 </xsd:schema>

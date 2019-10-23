@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.wf.impl.objects;
@@ -52,316 +52,316 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
 
     protected static final Trace LOGGER = TraceManager.getTrace(TestObjectLifecycleAdvanced.class);
 
-	private static final File TEST_OBJECT_RESOURCE_DIR = new File("src/test/resources/objects-advanced");
+    private static final File TEST_OBJECT_RESOURCE_DIR = new File("src/test/resources/objects-advanced");
 
-	private static final File METAROLE_CONSTRAINTS_FILE = new File(TEST_OBJECT_RESOURCE_DIR, "metarole-constraints.xml");
-	protected static final File ROLE_EMPLOYEE_FILE = new File(TEST_OBJECT_RESOURCE_DIR, "role-employee.xml");
-	protected static final File USER_EMPLOYEE_OWNER_FILE = new File(TEST_OBJECT_RESOURCE_DIR, "user-employee-owner.xml");
-	protected static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_OBJECT_RESOURCE_DIR, "system-configuration.xml");
+    private static final File METAROLE_CONSTRAINTS_FILE = new File(TEST_OBJECT_RESOURCE_DIR, "metarole-constraints.xml");
+    protected static final File ROLE_EMPLOYEE_FILE = new File(TEST_OBJECT_RESOURCE_DIR, "role-employee.xml");
+    protected static final File USER_EMPLOYEE_OWNER_FILE = new File(TEST_OBJECT_RESOURCE_DIR, "user-employee-owner.xml");
+    protected static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_OBJECT_RESOURCE_DIR, "system-configuration.xml");
 
-	protected String metaroleConstraintsOid;
-	protected String userEmployeeOwnerOid;
+    protected String metaroleConstraintsOid;
+    protected String userEmployeeOwnerOid;
 
-	String roleEmployeeOid;
+    String roleEmployeeOid;
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		metaroleConstraintsOid = addAndRecompute(METAROLE_CONSTRAINTS_FILE, initTask, initResult);
-		userEmployeeOwnerOid = addAndRecomputeUser(USER_EMPLOYEE_OWNER_FILE, initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        metaroleConstraintsOid = addAndRecompute(METAROLE_CONSTRAINTS_FILE, initTask, initResult);
+        userEmployeeOwnerOid = addAndRecomputeUser(USER_EMPLOYEE_OWNER_FILE, initTask, initResult);
 
-		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
-	}
+        DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
+    }
 
-	@Override
-	protected File getSystemConfigurationFile() {
-		return SYSTEM_CONFIGURATION_FILE;
-	}
+    @Override
+    protected File getSystemConfigurationFile() {
+        return SYSTEM_CONFIGURATION_FILE;
+    }
 
-	@Override
-	protected PrismObject<UserType> getDefaultActor() {
-		return userAdministrator;
-	}
+    @Override
+    protected PrismObject<UserType> getDefaultActor() {
+        return userAdministrator;
+    }
 
-	@Test
-	public void test010CreateRoleEmployee() throws Exception {
-		final String TEST_NAME = "test010CreateRoleEmployee";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		login(userAdministrator);
+    @Test
+    public void test010CreateRoleEmployee() throws Exception {
+        final String TEST_NAME = "test010CreateRoleEmployee";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator);
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		PrismObject<RoleType> employee = prismContext.parseObject(ROLE_EMPLOYEE_FILE);
-		executeTest(TEST_NAME, new TestDetails() {
-					@Override
-					protected LensContext createModelContext(OperationResult result) throws Exception {
-						LensContext<RoleType> lensContext = createLensContext(RoleType.class);
-						addFocusDeltaToContext(lensContext, DeltaFactory.Object.createAddDelta(employee));
-						return lensContext;
-					}
+        PrismObject<RoleType> employee = prismContext.parseObject(ROLE_EMPLOYEE_FILE);
+        executeTest(TEST_NAME, new TestDetails() {
+                    @Override
+                    protected LensContext createModelContext(OperationResult result) throws Exception {
+                        LensContext<RoleType> lensContext = createLensContext(RoleType.class);
+                        addFocusDeltaToContext(lensContext, DeltaFactory.Object.createAddDelta(employee));
+                        return lensContext;
+                    }
 
-					@Override
-					protected void afterFirstClockworkRun(CaseType rootCase,
-							CaseType case0, List<CaseType> subcases,
-							List<CaseWorkItemType> workItems,
-							Task opTask, OperationResult result) throws Exception {
-//						ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
-//						ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
-//						assertTrue("Non-empty primary focus delta: " + realDelta0.debugDump(), realDelta0.isEmpty());
-						assertNoObject(employee);
-						ExpectedTask expectedTask = new ExpectedTask(null, "Adding role \"" + employee.asObjectable().getName().getOrig() + "\"");
-						ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
-						assertWfContextAfterClockworkRun(rootCase, subcases, workItems, result,
-								null,
-								Collections.singletonList(expectedTask),
-								Collections.singletonList(expectedWorkItem));
+                    @Override
+                    protected void afterFirstClockworkRun(CaseType rootCase,
+                            CaseType case0, List<CaseType> subcases,
+                            List<CaseWorkItemType> workItems,
+                            Task opTask, OperationResult result) throws Exception {
+//                        ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+//                        ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
+//                        assertTrue("Non-empty primary focus delta: " + realDelta0.debugDump(), realDelta0.isEmpty());
+                        assertNoObject(employee);
+                        ExpectedTask expectedTask = new ExpectedTask(null, "Adding role \"" + employee.asObjectable().getName().getOrig() + "\"");
+                        ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
+                        assertWfContextAfterClockworkRun(rootCase, subcases, workItems, result,
+                                null,
+                                Collections.singletonList(expectedTask),
+                                Collections.singletonList(expectedWorkItem));
 
-						CaseType subcase = subcases.get(0);
-						ApprovalContextType wfc = subcase.getApprovalContext();
-						assertEquals("Wrong # of attached policy rules entries", 1, wfc.getPolicyRules().getEntry().size());
-						SchemaAttachedPolicyRuleType attachedRule = wfc.getPolicyRules().getEntry().get(0);
-						assertEquals(1, attachedRule.getStageMin().intValue());
-						assertEquals(1, attachedRule.getStageMax().intValue());
-						assertEquals("Wrong # of attached triggers", 1, attachedRule.getRule().getTrigger().size());
-						EvaluatedPolicyRuleTriggerType trigger = attachedRule.getRule().getTrigger().get(0);
-						assertEquals("Wrong constraintKind in trigger", PolicyConstraintKindType.OBJECT_MODIFICATION, trigger.getConstraintKind());
+                        CaseType subcase = subcases.get(0);
+                        ApprovalContextType wfc = subcase.getApprovalContext();
+                        assertEquals("Wrong # of attached policy rules entries", 1, wfc.getPolicyRules().getEntry().size());
+                        SchemaAttachedPolicyRuleType attachedRule = wfc.getPolicyRules().getEntry().get(0);
+                        assertEquals(1, attachedRule.getStageMin().intValue());
+                        assertEquals(1, attachedRule.getStageMax().intValue());
+                        assertEquals("Wrong # of attached triggers", 1, attachedRule.getRule().getTrigger().size());
+                        EvaluatedPolicyRuleTriggerType trigger = attachedRule.getRule().getTrigger().get(0);
+                        assertEquals("Wrong constraintKind in trigger", PolicyConstraintKindType.OBJECT_MODIFICATION, trigger.getConstraintKind());
 
-						CaseWorkItemType workItem = subcases.get(0).getWorkItem().get(0);
-						assertEquals("Wrong # of additional information", 0, workItem.getAdditionalInformation().size());
-					}
+                        CaseWorkItemType workItem = subcases.get(0).getWorkItem().get(0);
+                        assertEquals("Wrong # of additional information", 0, workItem.getAdditionalInformation().size());
+                    }
 
-					@Override
-					protected void afterCase0Finishes(CaseType rootCase, Task opTask,
-							OperationResult result) throws Exception {
-						assertNoObject(employee);
-					}
+                    @Override
+                    protected void afterCase0Finishes(CaseType rootCase, Task opTask,
+                            OperationResult result) throws Exception {
+                        assertNoObject(employee);
+                    }
 
-					@Override
-					protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
-							Task opTask, OperationResult result) {
-						new PrismObjectAsserter<>(employee).assertSanity();
-					}
+                    @Override
+                    protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
+                            Task opTask, OperationResult result) {
+                        new PrismObjectAsserter<>(employee).assertSanity();
+                    }
 
-					@Override
-					protected boolean executeImmediately() {
-						return false;
-					}
+                    @Override
+                    protected boolean executeImmediately() {
+                        return false;
+                    }
 
-					@Override
-					protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
-						login(getUser(userEmployeeOwnerOid));
-						return true;
-					}
-				}, 1);
-
-
-		roleEmployeeOid = searchObjectByName(RoleType.class, "employee").getOid();
-
-		PrismReferenceValue employeeOwner = getPrismContext().itemFactory().createReferenceValue(roleEmployeeOid, RoleType.COMPLEX_TYPE).relation(SchemaConstants.ORG_OWNER);
-		executeChanges(prismContext.deltaFor(UserType.class)
-				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(employeeOwner, prismContext))
-				.asObjectDelta(userEmployeeOwnerOid),
-				null, task, result);
-		display("Employee role", getRole(roleEmployeeOid));
-		display("Employee owner", getUser(userEmployeeOwnerOid));
-	}
-
-	@Test
-	public void test020ActivateIncompleteRole() throws Exception {
-		final String TEST_NAME = "test020ActivateIncompleteRole";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		login(userAdministrator);
-
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		@SuppressWarnings({ "raw"})
-		ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
-				.item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
-				.asObjectDelta(roleEmployeeOid);
-
-		RecordingProgressListener recordingListener = new RecordingProgressListener();
-		try {
-			modelService.executeChanges(Collections.singleton(activateRoleDelta), null, task,
-					Collections.singleton(recordingListener), result);
-			fail("unexpected success");
-		} catch (PolicyViolationException e) {
-			System.out.println("Got expected exception: " + e.getMessage());
-		}
-
-		//noinspection unchecked
-		LensContext<RoleType> context = (LensContext<RoleType>) recordingListener.getModelContext();
-		System.out.println(context.dumpFocusPolicyRules(0));
-		EvaluatedPolicyRule incompleteActivationRule = context.getFocusContext().getPolicyRules().stream()
-				.filter(rule -> "disallow-incomplete-role-activation".equals(rule.getName()))
-				.findFirst()
-				.orElseThrow(() -> new AssertionError("rule not found"));
-		assertEquals("Wrong # of triggers in incompleteActivationRule", 2, incompleteActivationRule.getTriggers().size());  // objectState + or
-	}
-
-	/**
-	 * This time let's fill-in the description as well.
-	 */
-	@Test
-	public void test030ActivateIncompleteRoleAgain() throws Exception {
-		final String TEST_NAME = "test030ActivateIncompleteRoleAgain";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		login(userAdministrator);
-
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		@SuppressWarnings({ "raw"})
-		ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
-				.item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
-				.item(RoleType.F_DESCRIPTION).replace("hi")
-				.asObjectDelta(roleEmployeeOid);
-
-		RecordingProgressListener recordingListener = new RecordingProgressListener();
-		try {
-			modelService.executeChanges(Collections.singleton(activateRoleDelta), null, task,
-					Collections.singleton(recordingListener), result);
-			fail("unexpected success");
-		} catch (PolicyViolationException e) {
-			System.out.println("Got expected exception: " + e.getMessage());
-		}
-
-		//noinspection unchecked
-		LensContext<RoleType> context = (LensContext<RoleType>) recordingListener.getModelContext();
-		System.out.println(context.dumpFocusPolicyRules(0));
-		EvaluatedPolicyRule incompleteActivationRule = context.getFocusContext().getPolicyRules().stream()
-				.filter(rule -> "disallow-incomplete-role-activation".equals(rule.getName()))
-				.findFirst()
-				.orElseThrow(() -> new AssertionError("rule not found"));
-		assertEquals("Wrong # of triggers in incompleteActivationRule", 2, incompleteActivationRule.getTriggers().size());
-	}
-
-	@Test
-	public void test040AddApprover() throws Exception {
-		final String TEST_NAME = "test040AddApprover";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		login(userAdministrator);
-
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		assignRole(userEmployeeOwnerOid, roleEmployeeOid, SchemaConstants.ORG_APPROVER, task, result);
-		result.computeStatus();
-		assertSuccess(result);
-	}
+                    @Override
+                    protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
+                        login(getUser(userEmployeeOwnerOid));
+                        return true;
+                    }
+                }, 1);
 
 
-	@Test
-	public void test045ActivateCompleteRole() throws Exception {
-		final String TEST_NAME = "test045ActivateCompleteRole";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		login(userAdministrator);
+        roleEmployeeOid = searchObjectByName(RoleType.class, "employee").getOid();
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        PrismReferenceValue employeeOwner = getPrismContext().itemFactory().createReferenceValue(roleEmployeeOid, RoleType.COMPLEX_TYPE).relation(SchemaConstants.ORG_OWNER);
+        executeChanges(prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(employeeOwner, prismContext))
+                .asObjectDelta(userEmployeeOwnerOid),
+                null, task, result);
+        display("Employee role", getRole(roleEmployeeOid));
+        display("Employee owner", getUser(userEmployeeOwnerOid));
+    }
 
-		@SuppressWarnings({ "raw"})
-		ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
-				.item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
-				.item(RoleType.F_DESCRIPTION).replace("hi")
-				.asObjectDelta(roleEmployeeOid);
+    @Test
+    public void test020ActivateIncompleteRole() throws Exception {
+        final String TEST_NAME = "test020ActivateIncompleteRole";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator);
 
-		executeTest(TEST_NAME, new TestDetails() {
-			@Override
-			protected LensContext createModelContext(OperationResult result) throws Exception {
-				LensContext<RoleType> lensContext = createLensContext(RoleType.class);
-				addFocusDeltaToContext(lensContext, activateRoleDelta);
-				return lensContext;
-			}
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-			@Override
-			protected void afterFirstClockworkRun(CaseType rootCase,
-					CaseType case0, List<CaseType> subcases,
-					List<CaseWorkItemType> workItems,
-					Task opTask, OperationResult result) throws Exception {
-				ExpectedTask expectedTask = new ExpectedTask(null, "Matching state: after operation (\"active lifecycleState\")");
-				ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
-				assertWfContextAfterClockworkRun(rootCase, subcases, workItems, result,
-						null,
-						Collections.singletonList(expectedTask),
-						Collections.singletonList(expectedWorkItem));
+        @SuppressWarnings({ "raw"})
+        ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
+                .item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
+                .asObjectDelta(roleEmployeeOid);
 
-				ApprovalContextType wfc = subcases.get(0).getApprovalContext();
-				assertEquals("Wrong # of attached policy rules entries", 1, wfc.getPolicyRules().getEntry().size());
-				SchemaAttachedPolicyRuleType attachedRule = wfc.getPolicyRules().getEntry().get(0);
-				assertEquals(1, attachedRule.getStageMin().intValue());
-				assertEquals(1, attachedRule.getStageMax().intValue());
-				assertEquals("Wrong # of attached triggers", 1, attachedRule.getRule().getTrigger().size());
-				EvaluatedPolicyRuleTriggerType trigger = attachedRule.getRule().getTrigger().get(0);
-				assertEquals("Wrong constraintKind in trigger", PolicyConstraintKindType.TRANSITION, trigger.getConstraintKind());
+        RecordingProgressListener recordingListener = new RecordingProgressListener();
+        try {
+            modelService.executeChanges(Collections.singleton(activateRoleDelta), null, task,
+                    Collections.singleton(recordingListener), result);
+            fail("unexpected success");
+        } catch (PolicyViolationException e) {
+            System.out.println("Got expected exception: " + e.getMessage());
+        }
 
-				CaseWorkItemType workItem = subcases.get(0).getWorkItem().get(0);
-				assertEquals("Wrong # of additional information", 0, workItem.getAdditionalInformation().size());
-			}
+        //noinspection unchecked
+        LensContext<RoleType> context = (LensContext<RoleType>) recordingListener.getModelContext();
+        System.out.println(context.dumpFocusPolicyRules(0));
+        EvaluatedPolicyRule incompleteActivationRule = context.getFocusContext().getPolicyRules().stream()
+                .filter(rule -> "disallow-incomplete-role-activation".equals(rule.getName()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("rule not found"));
+        assertEquals("Wrong # of triggers in incompleteActivationRule", 2, incompleteActivationRule.getTriggers().size());  // objectState + or
+    }
 
-			@Override
-			protected void afterCase0Finishes(CaseType rootCase, Task opTask, OperationResult result) {
-				//assertNoObject(employee);
-			}
+    /**
+     * This time let's fill-in the description as well.
+     */
+    @Test
+    public void test030ActivateIncompleteRoleAgain() throws Exception {
+        final String TEST_NAME = "test030ActivateIncompleteRoleAgain";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator);
 
-			@Override
-			protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
-					Task opTask, OperationResult result) {
-				//assertObject(employee);
-			}
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-			@Override
-			protected boolean executeImmediately() {
-				return false;
-			}
+        @SuppressWarnings({ "raw"})
+        ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
+                .item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
+                .item(RoleType.F_DESCRIPTION).replace("hi")
+                .asObjectDelta(roleEmployeeOid);
 
-			@Override
-			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
-				login(getUser(userEmployeeOwnerOid));
-				return true;
-			}
-		}, 1);
-	}
+        RecordingProgressListener recordingListener = new RecordingProgressListener();
+        try {
+            modelService.executeChanges(Collections.singleton(activateRoleDelta), null, task,
+                    Collections.singleton(recordingListener), result);
+            fail("unexpected success");
+        } catch (PolicyViolationException e) {
+            System.out.println("Got expected exception: " + e.getMessage());
+        }
+
+        //noinspection unchecked
+        LensContext<RoleType> context = (LensContext<RoleType>) recordingListener.getModelContext();
+        System.out.println(context.dumpFocusPolicyRules(0));
+        EvaluatedPolicyRule incompleteActivationRule = context.getFocusContext().getPolicyRules().stream()
+                .filter(rule -> "disallow-incomplete-role-activation".equals(rule.getName()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("rule not found"));
+        assertEquals("Wrong # of triggers in incompleteActivationRule", 2, incompleteActivationRule.getTriggers().size());
+    }
+
+    @Test
+    public void test040AddApprover() throws Exception {
+        final String TEST_NAME = "test040AddApprover";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        assignRole(userEmployeeOwnerOid, roleEmployeeOid, SchemaConstants.ORG_APPROVER, task, result);
+        result.computeStatus();
+        assertSuccess(result);
+    }
 
 
-//	@Test
-//	public void test100ModifyRolePirateDescription() throws Exception {
-//		final String TEST_NAME = "test100ModifyRolePirateDescription";
-//		TestUtil.displayTestTitle(this, TEST_NAME);
-//		login(userAdministrator);
+    @Test
+    public void test045ActivateCompleteRole() throws Exception {
+        final String TEST_NAME = "test045ActivateCompleteRole";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        @SuppressWarnings({ "raw"})
+        ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
+                .item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
+                .item(RoleType.F_DESCRIPTION).replace("hi")
+                .asObjectDelta(roleEmployeeOid);
+
+        executeTest(TEST_NAME, new TestDetails() {
+            @Override
+            protected LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<RoleType> lensContext = createLensContext(RoleType.class);
+                addFocusDeltaToContext(lensContext, activateRoleDelta);
+                return lensContext;
+            }
+
+            @Override
+            protected void afterFirstClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    List<CaseWorkItemType> workItems,
+                    Task opTask, OperationResult result) throws Exception {
+                ExpectedTask expectedTask = new ExpectedTask(null, "Matching state: after operation (\"active lifecycleState\")");
+                ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
+                assertWfContextAfterClockworkRun(rootCase, subcases, workItems, result,
+                        null,
+                        Collections.singletonList(expectedTask),
+                        Collections.singletonList(expectedWorkItem));
+
+                ApprovalContextType wfc = subcases.get(0).getApprovalContext();
+                assertEquals("Wrong # of attached policy rules entries", 1, wfc.getPolicyRules().getEntry().size());
+                SchemaAttachedPolicyRuleType attachedRule = wfc.getPolicyRules().getEntry().get(0);
+                assertEquals(1, attachedRule.getStageMin().intValue());
+                assertEquals(1, attachedRule.getStageMax().intValue());
+                assertEquals("Wrong # of attached triggers", 1, attachedRule.getRule().getTrigger().size());
+                EvaluatedPolicyRuleTriggerType trigger = attachedRule.getRule().getTrigger().get(0);
+                assertEquals("Wrong constraintKind in trigger", PolicyConstraintKindType.TRANSITION, trigger.getConstraintKind());
+
+                CaseWorkItemType workItem = subcases.get(0).getWorkItem().get(0);
+                assertEquals("Wrong # of additional information", 0, workItem.getAdditionalInformation().size());
+            }
+
+            @Override
+            protected void afterCase0Finishes(CaseType rootCase, Task opTask, OperationResult result) {
+                //assertNoObject(employee);
+            }
+
+            @Override
+            protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
+                    Task opTask, OperationResult result) {
+                //assertObject(employee);
+            }
+
+            @Override
+            protected boolean executeImmediately() {
+                return false;
+            }
+
+            @Override
+            protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
+                login(getUser(userEmployeeOwnerOid));
+                return true;
+            }
+        }, 1);
+    }
+
+
+//    @Test
+//    public void test100ModifyRolePirateDescription() throws Exception {
+//        final String TEST_NAME = "test100ModifyRolePirateDescription";
+//        TestUtil.displayTestTitle(this, TEST_NAME);
+//        login(userAdministrator);
 //
-//		ObjectDelta<RoleType> descriptionDelta = (ObjectDelta<RoleType>) DeltaBuilder.deltaFor(RoleType.class, prismContext)
-//				.item(RoleType.F_DESCRIPTION).replace("Bloody pirate")
-//				.asObjectDelta(roleEmployeeOid);
-//		ObjectDelta<RoleType> delta0 = ObjectDelta.createModifyDelta(roleEmployeeOid, Collections.emptyList(), RoleType.class, prismContext);
-//		//noinspection UnnecessaryLocalVariable
-//		ObjectDelta<RoleType> delta1 = descriptionDelta;
-//		ExpectedTask expectedTask = new ExpectedTask(null, "Modification of pirate");
-//		ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
-//		modifyObject(TEST_NAME, descriptionDelta, delta0, delta1, false, true, userEmployeeOwnerOid,
-//				Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem),
-//				() -> {},
-//				() -> assertNull("Description is modified", getRoleSimple(roleEmployeeOid).getDescription()),
-//				() -> assertEquals("Description was NOT modified", "Bloody pirate", getRoleSimple(roleEmployeeOid).getDescription()));
-//	}
+//        ObjectDelta<RoleType> descriptionDelta = (ObjectDelta<RoleType>) DeltaBuilder.deltaFor(RoleType.class, prismContext)
+//                .item(RoleType.F_DESCRIPTION).replace("Bloody pirate")
+//                .asObjectDelta(roleEmployeeOid);
+//        ObjectDelta<RoleType> delta0 = ObjectDelta.createModifyDelta(roleEmployeeOid, Collections.emptyList(), RoleType.class, prismContext);
+//        //noinspection UnnecessaryLocalVariable
+//        ObjectDelta<RoleType> delta1 = descriptionDelta;
+//        ExpectedTask expectedTask = new ExpectedTask(null, "Modification of pirate");
+//        ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
+//        modifyObject(TEST_NAME, descriptionDelta, delta0, delta1, false, true, userEmployeeOwnerOid,
+//                Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem),
+//                () -> {},
+//                () -> assertNull("Description is modified", getRoleSimple(roleEmployeeOid).getDescription()),
+//                () -> assertEquals("Description was NOT modified", "Bloody pirate", getRoleSimple(roleEmployeeOid).getDescription()));
+//    }
 //
-//	@Test
-//	public void test200DeleteRolePirate() throws Exception {
-//		final String TEST_NAME = "test200DeleteRolePirate";
-//		TestUtil.displayTestTitle(this, TEST_NAME);
-//		login(userAdministrator);
+//    @Test
+//    public void test200DeleteRolePirate() throws Exception {
+//        final String TEST_NAME = "test200DeleteRolePirate";
+//        TestUtil.displayTestTitle(this, TEST_NAME);
+//        login(userAdministrator);
 //
-//		ExpectedTask expectedTask = new ExpectedTask(null, "Deletion of pirate");
-//		ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
-//		deleteObject(TEST_NAME, RoleType.class, roleEmployeeOid, false, true, userEmployeeOwnerOid,
-//				Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem));
-//	}
+//        ExpectedTask expectedTask = new ExpectedTask(null, "Deletion of pirate");
+//        ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
+//        deleteObject(TEST_NAME, RoleType.class, roleEmployeeOid, false, true, userEmployeeOwnerOid,
+//                Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem));
+//    }
 //
-//	@Test
-//	public void zzzMarkAsNotInitialized() {
-//		display("Setting class as not initialized");
-//		unsetSystemInitialized();
-//	}
+//    @Test
+//    public void zzzMarkAsNotInitialized() {
+//        display("Setting class as not initialized");
+//        unsetSystemInitialized();
+//    }
 
 }

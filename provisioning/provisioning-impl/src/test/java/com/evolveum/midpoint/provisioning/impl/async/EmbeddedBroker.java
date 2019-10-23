@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,41 +20,41 @@ import java.util.concurrent.TimeoutException;
 
 public class EmbeddedBroker {
 
-	private final SystemLauncher broker = new SystemLauncher();
+    private final SystemLauncher broker = new SystemLauncher();
 
-	void start() throws Exception {
-		System.out.println("Starting the broker");
-		Map<String, Object> attributes = new HashMap<>();
-		attributes.put("type", "Memory");
-		attributes.put("initialConfigurationLocation", findResourcePath("async/qpid-config.json"));
-		broker.startup(attributes);
-	}
+    void start() throws Exception {
+        System.out.println("Starting the broker");
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("type", "Memory");
+        attributes.put("initialConfigurationLocation", findResourcePath("async/qpid-config.json"));
+        broker.startup(attributes);
+    }
 
-	private String findResourcePath(String fileName) {
-		return EmbeddedBroker.class.getClassLoader().getResource(fileName).toExternalForm();
-	}
+    private String findResourcePath(String fileName) {
+        return EmbeddedBroker.class.getClassLoader().getResource(fileName).toExternalForm();
+    }
 
-	void stop() {
-		System.out.println("Stopping the broker");
-		broker.shutdown();
-	}
+    void stop() {
+        System.out.println("Stopping the broker");
+        broker.shutdown();
+    }
 
-	void send(String queueName, String message) throws IOException, TimeoutException {
-		ConnectionFactory factory = new ConnectionFactory();
-		factory.setHost("localhost");
-		try (Connection connection = factory.newConnection();
-				Channel channel = connection.createChannel()) {
-			channel.basicPublish("", queueName, null, message.getBytes(StandardCharsets.UTF_8));
-			System.out.println("Sent '" + message + "'");
-		}
-	}
+    void send(String queueName, String message) throws IOException, TimeoutException {
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost("localhost");
+        try (Connection connection = factory.newConnection();
+                Channel channel = connection.createChannel()) {
+            channel.basicPublish("", queueName, null, message.getBytes(StandardCharsets.UTF_8));
+            System.out.println("Sent '" + message + "'");
+        }
+    }
 
-	public void createQueue(String queueName) throws IOException, TimeoutException {
-		ConnectionFactory factory = new ConnectionFactory();
-		factory.setHost("localhost");
-		try (Connection connection = factory.newConnection();
-				Channel channel = connection.createChannel()) {
-			channel.queueDeclare(queueName, true, false, false, new HashMap<>());
-		}
-	}
+    public void createQueue(String queueName) throws IOException, TimeoutException {
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost("localhost");
+        try (Connection connection = factory.newConnection();
+                Channel channel = connection.createChannel()) {
+            channel.queueDeclare(queueName, true, false, false, new HashMap<>());
+        }
+    }
 }

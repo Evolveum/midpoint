@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.report.impl;
@@ -84,8 +84,8 @@ import org.apache.commons.lang.WordUtils;
  */
 public class ReportUtils {
 
-    private static String MIDPOINT_HOME = System.getProperty("midpoint.home");
-    private static String EXPORT_DIR = MIDPOINT_HOME + "export/";
+    private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
+    private static final String EXPORT_DIR = MIDPOINT_HOME + "export/";
 
     private static final Trace LOGGER = TraceManager
             .getTrace(ReportUtils.class);
@@ -182,14 +182,14 @@ public class ReportUtils {
     }
 
     public static ExportType getExport(ReportType report) {
-    	JasperReportEngineConfigurationType jasperConfig = report.getJasper();
-    	if (jasperConfig == null) {
-    		return report.getExport();
-    	} else {
-    		return jasperConfig.getExport();
-    	}
+        JasperReportEngineConfigurationType jasperConfig = report.getJasper();
+        if (jasperConfig == null) {
+            return report.getExport();
+        } else {
+            return jasperConfig.getExport();
+        }
     }
-    
+
     public static String getReportOutputFilePath(ReportType reportType) {
         File exportFolder = new File(EXPORT_DIR);
         if (!exportFolder.exists() || !exportFolder.isDirectory()) {
@@ -266,49 +266,49 @@ public class ReportUtils {
         return val;
     }
 
-	public static String getPropertyString(String key, Object values, String defaultValue) {
-		if (key == null || values == null) {
-			return defaultValue;
-		}
+    public static String getPropertyString(String key, Object values, String defaultValue) {
+        if (key == null || values == null) {
+            return defaultValue;
+        }
 
-		if (!List.class.isAssignableFrom(values.getClass())) {
-			return getPropertyString((key.endsWith(".") ? key + values.toString() : key + "." + values.toString()), defaultValue);
-		}
-		List listValues=  (List) values;
-		StringBuilder builder = new StringBuilder();
-		Iterator<Object> objects = listValues.iterator();
-		ResourceBundle bundle;
-		try {
-			bundle = ResourceBundle.getBundle("localization/schema", new Locale("en", "US"));
-		} catch (MissingResourceException e) {
-			return defaultValue.toString() != null ? defaultValue.toString() : key; // workaround for Jasper Studio
-		}
+        if (!List.class.isAssignableFrom(values.getClass())) {
+            return getPropertyString((key.endsWith(".") ? key + values.toString() : key + "." + values.toString()), defaultValue);
+        }
+        List listValues=  (List) values;
+        StringBuilder builder = new StringBuilder();
+        Iterator<Object> objects = listValues.iterator();
+        ResourceBundle bundle;
+        try {
+            bundle = ResourceBundle.getBundle("localization/schema", new Locale("en", "US"));
+        } catch (MissingResourceException e) {
+            return defaultValue.toString() != null ? defaultValue.toString() : key; // workaround for Jasper Studio
+        }
 
-		while (objects.hasNext()) {
-			Object o = objects.next();
-			if (o.getClass().isEnum()) {
-				String constructedKey = (key.endsWith(".")) ? key + ((Enum) o).name(): key +"." + ((Enum) o).name();
-				if (bundle != null && bundle.containsKey(constructedKey)) {
-					builder.append(bundle.getString(constructedKey));
-				} else {
-					builder.append(prettyPrintForReport(o));
-				}
-			} else {
-				String constructedKey = (key.endsWith(".")) ? key + o.toString() : key + "." + o.toString();
-				if (bundle != null && bundle.containsKey(key)) {
-					builder.append(bundle.getString(constructedKey));
-				} else {
-					builder.append(prettyPrintForReport(o));
-				}
-			}
-			if (objects.hasNext()) {
-				builder.append(", ");
-			}
-		}
+        while (objects.hasNext()) {
+            Object o = objects.next();
+            if (o.getClass().isEnum()) {
+                String constructedKey = (key.endsWith(".")) ? key + ((Enum) o).name(): key +"." + ((Enum) o).name();
+                if (bundle != null && bundle.containsKey(constructedKey)) {
+                    builder.append(bundle.getString(constructedKey));
+                } else {
+                    builder.append(prettyPrintForReport(o));
+                }
+            } else {
+                String constructedKey = (key.endsWith(".")) ? key + o.toString() : key + "." + o.toString();
+                if (bundle != null && bundle.containsKey(key)) {
+                    builder.append(bundle.getString(constructedKey));
+                } else {
+                    builder.append(prettyPrintForReport(o));
+                }
+            }
+            if (objects.hasNext()) {
+                builder.append(", ");
+            }
+        }
 
-		return builder.toString();
+        return builder.toString();
 
-	}
+    }
 
     public static String prettyPrintForReport(QName qname) {
         String ret = "";
@@ -501,7 +501,7 @@ public class ReportUtils {
         sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter
         return sb.toString();
     }
-    
+
     private static String printItemDeltaValues(ItemDelta itemDelta, Collection values) {
         StringBuilder sb = new StringBuilder();
         for (Object value : values) {
@@ -516,9 +516,9 @@ public class ReportUtils {
     }
 
     private static String printItemDeltaValue(ItemPath itemPath, Object value) {
-    	if(value instanceof PrismValue) {
-    		value = ((PrismValue) value).getRealValue();
-    	}
+        if(value instanceof PrismValue) {
+            value = ((PrismValue) value).getRealValue();
+        }
         if (value instanceof MetadataType) {
             return "";
         } else if (value instanceof RawType) {
@@ -573,9 +573,9 @@ public class ReportUtils {
     }
 
     private static boolean isMetadata(ItemPathType itemPath) {
-    	return isMetadata(itemPath.getItemPath());
+        return isMetadata(itemPath.getItemPath());
     }
-    
+
     private static boolean isMetadata(ItemPath itemPath) {
         boolean retMeta = false;
         for (Object ips : itemPath.getSegments()) {
@@ -644,7 +644,7 @@ public class ReportUtils {
         sb.append("\n");
         return sb.toString();
     }
-    
+
     public static String prettyPrintForReport(ItemDelta itemDelta) {
         StringBuilder sb = new StringBuilder();
         boolean displayNA = false;
@@ -665,7 +665,7 @@ public class ReportUtils {
             sb.append(", ");
             displayNA = true;
         } else if (itemDelta.isReplace() || itemDelta.isAdd()) {
-        	sb.append("Old: {}, ");
+            sb.append("Old: {}, ");
         }
 
         if (itemDelta.isReplace()) {
@@ -711,9 +711,9 @@ public class ReportUtils {
     }
 
     private static String printChangeType(String objectName, ObjectDeltaType delta, String opName, String resourceName) {
-    	return printChangeType(objectName, delta.getObjectType().getLocalPart(), delta.getOid(), opName, resourceName);
+        return printChangeType(objectName, delta.getObjectType().getLocalPart(), delta.getOid(), opName, resourceName);
     }
-    
+
     private static String printChangeType(String objectName,String objectType, String objectOid, String opName, String resourceName) {
         StringBuilder sb = new StringBuilder();
         sb.append(opName);
@@ -734,8 +734,8 @@ public class ReportUtils {
         sb.append("\n");
         return sb.toString();
     }
-    
-    
+
+
 
     public static String printDelta(List<ObjectDeltaType> delta) {
         StringBuilder sb = new StringBuilder();
@@ -783,13 +783,13 @@ public class ReportUtils {
 
         return sb.toString();
     }
-    
+
     public static String printDelta(ObjectDeltaOperation deltaOp) {
-    	ObjectDelta delta = deltaOp.getObjectDelta();
-    	String objectName = deltaOp.getObjectName() == null ? null : deltaOp.getObjectName().toString();
-    	String resourceName = deltaOp.getResourceName() == null ? null : deltaOp.getResourceName().toString();
-    	StringBuilder sb = new StringBuilder();
-		
+        ObjectDelta delta = deltaOp.getObjectDelta();
+        String objectName = deltaOp.getObjectName() == null ? null : deltaOp.getObjectName().toString();
+        String resourceName = deltaOp.getResourceName() == null ? null : deltaOp.getResourceName().toString();
+        StringBuilder sb = new StringBuilder();
+
         switch (delta.getChangeType()) {
             case MODIFY:
                 Collection<ItemDelta> modificationDeltas = delta.getModifications();
@@ -910,141 +910,141 @@ public class ReportUtils {
         }
         return getPropertyString(SchemaConstants.OBJECT_TYPE_KEY_PREFIX + typeName.getLocalPart(), typeName.getLocalPart());
     }
-    
+
     public static String getEventProperty(List<AuditEventRecordPropertyType> properties, String key) {
-		return getEventProperty(properties, key, "empty");
-	}
-	
-	public static String getEventProperty(List<AuditEventRecordPropertyType> properties, String key, String defaultValue) {
-		if(properties != null) {
-			return properties.stream()
-				.filter(property -> key.equals(property.getName()))
-				.findFirst()
-				.map(AuditEventRecordPropertyType::getValue)
-				.map(it -> printProperty(it, defaultValue))
-				.orElse(defaultValue);
-		} else {
-			return defaultValue;
-		}
-	}
+        return getEventProperty(properties, key, "empty");
+    }
 
-	public static String getEventReferenceOrig(List<AuditEventRecordReferenceType> references, String key) {
-		return getEventReferenceOrig(references, key, "empty");
-	}
-	public static String getEventReferenceOrig(List<AuditEventRecordReferenceType> references, String key, String defaultValue) {
-		if(references != null) {
-			return references.stream()
-				.filter(ref -> key.equals(ref.getName()))
-				.findFirst()
-				.map(AuditEventRecordReferenceType::getValue)
-				.map(it -> printReference(it, defaultValue))
-				.orElse(defaultValue);
-		} else {
-			return defaultValue;
-		}
-	}
-	
-	/**
-	 * Returns delta items modification types.
-	 * @param delta
-	 * @return
-	 */
-	public static String getDeltaNature(List<ObjectDeltaOperationType> delta) {
-		if(delta == null) {
-			return "";
-		} else {
-			String result = String.join(
-					"/", 
-					delta.stream()
-					.map(ObjectDeltaOperationType::getObjectDelta)
-					.filter(java.util.Objects::nonNull)
-					.map(ObjectDeltaType::getItemDelta)
-					.flatMap(Collection::stream)
-					.map(ItemDeltaType::getModificationType)
-					.map(ModificationTypeType::name)
-					.map(String::toLowerCase)
-					.map(WordUtils::capitalize)
-					.collect(Collectors.toList()));
-			return result;
-		}
-	}
-        
+    public static String getEventProperty(List<AuditEventRecordPropertyType> properties, String key, String defaultValue) {
+        if(properties != null) {
+            return properties.stream()
+                .filter(property -> key.equals(property.getName()))
+                .findFirst()
+                .map(AuditEventRecordPropertyType::getValue)
+                .map(it -> printProperty(it, defaultValue))
+                .orElse(defaultValue);
+        } else {
+            return defaultValue;
+        }
+    }
+
+    public static String getEventReferenceOrig(List<AuditEventRecordReferenceType> references, String key) {
+        return getEventReferenceOrig(references, key, "empty");
+    }
+    public static String getEventReferenceOrig(List<AuditEventRecordReferenceType> references, String key, String defaultValue) {
+        if(references != null) {
+            return references.stream()
+                .filter(ref -> key.equals(ref.getName()))
+                .findFirst()
+                .map(AuditEventRecordReferenceType::getValue)
+                .map(it -> printReference(it, defaultValue))
+                .orElse(defaultValue);
+        } else {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * Returns delta items modification types.
+     * @param delta
+     * @return
+     */
+    public static String getDeltaNature(List<ObjectDeltaOperationType> delta) {
+        if(delta == null) {
+            return "";
+        } else {
+            String result = String.join(
+                    "/",
+                    delta.stream()
+                    .map(ObjectDeltaOperationType::getObjectDelta)
+                    .filter(java.util.Objects::nonNull)
+                    .map(ObjectDeltaType::getItemDelta)
+                    .flatMap(Collection::stream)
+                    .map(ItemDeltaType::getModificationType)
+                    .map(ModificationTypeType::name)
+                    .map(String::toLowerCase)
+                    .map(WordUtils::capitalize)
+                    .collect(Collectors.toList()));
+            return result;
+        }
+    }
+
         public static String getObjectDeltaNature(List<ObjectDeltaOperationType> delta) {
-		if(delta == null) {
-			return "";
-		} else {
-			String result = String.join(
-					"/", 
-					delta.stream()
-					.map(ObjectDeltaOperationType::getObjectDelta)
-					.filter(java.util.Objects::nonNull)
-					.map(ObjectDeltaType::getChangeType)
-					.map(Enum::toString)
-					.collect(Collectors.toList()));
-			return result;
-		}
-	}
-        
-	public static String getDeltaForWFReport(List<ObjectDeltaOperationType> delta) {
-		if(delta == null) {
-			return "";
-		} else {
-			String result = String.join(
-					", ", 
-					delta.stream()
-					.map(ObjectDeltaOperationType::getObjectDelta)
-					.filter(java.util.Objects::nonNull)
-					.map(ObjectDeltaType::getItemDelta)
-					.flatMap(Collection::stream)
-					.map(ItemDeltaType::getPath)
-					.map(ItemPathType::toString)
-					.collect(Collectors.toList()));
-			return result;
-		}
-	}
-	
-	public static String printReference(List<AuditEventRecordReferenceValueType> reference, String defaultValue) {
-		return reference != null ?
-						reference.stream()
-						.map(AuditEventRecordReferenceValueType::getTargetName)
-						.map(PolyStringType::getOrig)
-						.collect(Collectors.joining(",")) 
-						: defaultValue;
-	}
-	
-	public static String printProperty(List<String> property, String defaultValue) {
-		return property != null ? 
-					String.join(",", property)
-					: defaultValue;
-	}
+        if(delta == null) {
+            return "";
+        } else {
+            String result = String.join(
+                    "/",
+                    delta.stream()
+                    .map(ObjectDeltaOperationType::getObjectDelta)
+                    .filter(java.util.Objects::nonNull)
+                    .map(ObjectDeltaType::getChangeType)
+                    .map(Enum::toString)
+                    .collect(Collectors.toList()));
+            return result;
+        }
+    }
 
-	public static Object dumpParams(Map<String, ? extends JRValueParameter> parametersMap, int indent) {
-		StringBuilder sb = new StringBuilder();
-		for (Entry<String, ? extends JRValueParameter> entry : parametersMap.entrySet()) {
-			DebugUtil.debugDumpWithLabelToStringLn(sb, entry.getKey(), entry.getValue().getValue(), indent);
-		}
-		return sb.toString();
-	}
+    public static String getDeltaForWFReport(List<ObjectDeltaOperationType> delta) {
+        if(delta == null) {
+            return "";
+        } else {
+            String result = String.join(
+                    ", ",
+                    delta.stream()
+                    .map(ObjectDeltaOperationType::getObjectDelta)
+                    .filter(java.util.Objects::nonNull)
+                    .map(ObjectDeltaType::getItemDelta)
+                    .flatMap(Collection::stream)
+                    .map(ItemDeltaType::getPath)
+                    .map(ItemPathType::toString)
+                    .collect(Collectors.toList()));
+            return result;
+        }
+    }
 
-	public static byte[] decodeIfNeeded(byte[] input) {
-		if (input == null || input.length == 0) {
-			return input;
-		}
-		if (input[0] == '<') {
-			return input;
-		}
-		return Base64.decodeBase64(input);
-	}
-	
-	public static Map<String, Object> jasperParamsToAuditParams(Map<String, ? extends Object> jasperParams) {
-		Map<String, Object> auditParams = new HashMap<>();
+    public static String printReference(List<AuditEventRecordReferenceValueType> reference, String defaultValue) {
+        return reference != null ?
+                        reference.stream()
+                        .map(AuditEventRecordReferenceValueType::getTargetName)
+                        .map(PolyStringType::getOrig)
+                        .collect(Collectors.joining(","))
+                        : defaultValue;
+    }
+
+    public static String printProperty(List<String> property, String defaultValue) {
+        return property != null ?
+                    String.join(",", property)
+                    : defaultValue;
+    }
+
+    public static Object dumpParams(Map<String, ? extends JRValueParameter> parametersMap, int indent) {
+        StringBuilder sb = new StringBuilder();
+        for (Entry<String, ? extends JRValueParameter> entry : parametersMap.entrySet()) {
+            DebugUtil.debugDumpWithLabelToStringLn(sb, entry.getKey(), entry.getValue().getValue(), indent);
+        }
+        return sb.toString();
+    }
+
+    public static byte[] decodeIfNeeded(byte[] input) {
+        if (input == null || input.length == 0) {
+            return input;
+        }
+        if (input[0] == '<') {
+            return input;
+        }
+        return Base64.decodeBase64(input);
+    }
+
+    public static Map<String, Object> jasperParamsToAuditParams(Map<String, ? extends Object> jasperParams) {
+        Map<String, Object> auditParams = new HashMap<>();
         for (Entry<String, ? extends Object> jasperParam : jasperParams.entrySet()) {
-        	Object value;
-        	if(jasperParam.getValue() instanceof TypedValue) {
-        		value = ((TypedValue)jasperParam.getValue()).getValue();
-        	} else {
-        		value = jasperParam.getValue();
-        	}
+            Object value;
+            if(jasperParam.getValue() instanceof TypedValue) {
+                value = ((TypedValue)jasperParam.getValue()).getValue();
+            } else {
+                value = jasperParam.getValue();
+            }
             if (value instanceof AuditEventTypeType) {
                 auditParams.put(jasperParam.getKey(), AuditEventType.toAuditEventType((AuditEventTypeType) value));
             } else if (value instanceof AuditEventStageType) {
@@ -1054,5 +1054,5 @@ public class ReportUtils {
             }
         }
         return auditParams;
-	}
+    }
 }

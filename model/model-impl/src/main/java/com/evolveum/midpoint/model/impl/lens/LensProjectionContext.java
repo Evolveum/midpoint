@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
@@ -64,42 +64,42 @@ import com.evolveum.midpoint.util.DebugUtil;
  */
 public class LensProjectionContext extends LensElementContext<ShadowType> implements ModelProjectionContext {
 
-	private static final Trace LOGGER = TraceManager.getTrace(LensProjectionContext.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LensProjectionContext.class);
 
-	private ObjectDelta<ShadowType> syncDelta;
+    private ObjectDelta<ShadowType> syncDelta;
 
-	/**
-	 * Is this projection the source of the synchronization? (The syncDelta attribute could be used for this but in
-	 * reality it is not always present.) We need this information e.g. when it's not possible to record a clockwork
-	 * exception to focus (e.g. as in MID-5801). The alternate way is to record it into shadow representing the synchronization
-	 * source, e.g. the object being imported, reconciled, or live-synced.
-	 */
-	private boolean synchronizationSource;
+    /**
+     * Is this projection the source of the synchronization? (The syncDelta attribute could be used for this but in
+     * reality it is not always present.) We need this information e.g. when it's not possible to record a clockwork
+     * exception to focus (e.g. as in MID-5801). The alternate way is to record it into shadow representing the synchronization
+     * source, e.g. the object being imported, reconciled, or live-synced.
+     */
+    private boolean synchronizationSource;
 
-	private ObjectDelta<ShadowType> secondaryDelta;
+    private ObjectDelta<ShadowType> secondaryDelta;
 
-	/**
-	 * If set to true: absolute state of this projection was detected by the synchronization.
-	 * This is mostly for debugging and visibility. It is not used by projection logic.
-	 */
-	private boolean syncAbsoluteTrigger = false;
+    /**
+     * If set to true: absolute state of this projection was detected by the synchronization.
+     * This is mostly for debugging and visibility. It is not used by projection logic.
+     */
+    private boolean syncAbsoluteTrigger = false;
 
-	/**
-	 * The wave in which this resource should be processed. Initial value of -1 means "undetermined".
-	 */
-	private int wave = -1;
+    /**
+     * The wave in which this resource should be processed. Initial value of -1 means "undetermined".
+     */
+    private int wave = -1;
 
-	/**
-	 * Indicates that the wave computation is still in progress.
-	 */
-	private transient boolean waveIncomplete = false;
+    /**
+     * Indicates that the wave computation is still in progress.
+     */
+    private transient boolean waveIncomplete = false;
 
     /**
      * Definition of account type.
      */
     private ResourceShadowDiscriminator resourceShadowDiscriminator;
 
-	private boolean fullShadow = false;
+    private boolean fullShadow = false;
 
     /**
      * True if the account is assigned to the user by a valid assignment. It may be false for accounts that are either
@@ -127,11 +127,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * isExists will in fact be true.
      */
     private boolean isExists;
-    
+
     /**
      * True if shadow exists in the repo. It is set to false after projector discovers that a shadow is gone.
-     * This is a corner case, but it may happen: if shadow is unintentionally deleted, if the shadow is 
-     * cleaned up by another thread and so on. 
+     * This is a corner case, but it may happen: if shadow is unintentionally deleted, if the shadow is
+     * cleaned up by another thread and so on.
      */
     private transient boolean shadowExistsInRepo = true;
 
@@ -171,31 +171,31 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      *
      * Intermediary computation result. It is stored to allow re-computing of account constructions during
      * iterative computations.
-	 *
-	 * Source: AssignmentProcessor
-	 * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
+     *
+     * Source: AssignmentProcessor
+     * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
      */
     private transient PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> constructionDeltaSetTriple;
 
-	/**
-	 * Triples for outbound mappings; similar to the above.
-	 * Source: OutboundProcessor
-	 * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
-	 */
-	private transient Construction outboundConstruction;
+    /**
+     * Triples for outbound mappings; similar to the above.
+     * Source: OutboundProcessor
+     * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
+     */
+    private transient Construction outboundConstruction;
 
-	/**
-	 * Postprocessed triples from the above two properties.
-	 * Source: ConsolidationProcessor
-	 * Target: ReconciliationProcessor
-	 */
-	private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes;
+    /**
+     * Postprocessed triples from the above two properties.
+     * Source: ConsolidationProcessor
+     * Target: ReconciliationProcessor
+     */
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses;
 
-	private transient Collection<ResourceObjectTypeDependencyType> dependencies = null;
+    private transient Collection<ResourceObjectTypeDependencyType> dependencies = null;
 
-	// Cached copy, to avoid constructing it over and over again
+    // Cached copy, to avoid constructing it over and over again
     private transient PrismObjectDefinition<ShadowType> shadowDefinition = null;
 
     private transient RefinedObjectClassDefinition structuralObjectClassDefinition;
@@ -209,123 +209,123 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      */
     transient private ResourceType resource;
 
-	/**
-	 * EXPERIMENTAL. A flag that this projection context has to be put into 'history archive'.
-	 * Necessary to evaluate old state of hasLinkedAccount.
-	 *
-	 * TODO implement as non-transient.
-	 */
-	transient private boolean toBeArchived;
+    /**
+     * EXPERIMENTAL. A flag that this projection context has to be put into 'history archive'.
+     * Necessary to evaluate old state of hasLinkedAccount.
+     *
+     * TODO implement as non-transient.
+     */
+    transient private boolean toBeArchived;
 
-	transient private String humanReadableName;
-	
-	private Map<String, PrismObject<ShadowType>> entitlementMap = new HashMap<>();
+    transient private String humanReadableName;
 
-	transient private String humanReadableString;
+    private Map<String, PrismObject<ShadowType>> entitlementMap = new HashMap<>();
 
-	LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
-    	super(ShadowType.class, lensContext);
+    transient private String humanReadableString;
+
+    LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
+        super(ShadowType.class, lensContext);
         this.resourceShadowDiscriminator = resourceAccountType;
         this.isAssigned = false;
         this.isAssignedOld = false;
     }
 
-	public ObjectDelta<ShadowType> getSyncDelta() {
-		return syncDelta;
-	}
+    public ObjectDelta<ShadowType> getSyncDelta() {
+        return syncDelta;
+    }
 
-	public void setSyncDelta(ObjectDelta<ShadowType> syncDelta) {
-		this.syncDelta = syncDelta;
-	}
+    public void setSyncDelta(ObjectDelta<ShadowType> syncDelta) {
+        this.syncDelta = syncDelta;
+    }
 
-	@Override
-	public ObjectDelta<ShadowType> getSecondaryDelta() {
-		return secondaryDelta;
-	}
-	
-	@Override
-	public Collection<ObjectDelta<ShadowType>> getAllDeltas() {
-		List<ObjectDelta<ShadowType>> deltas = new ArrayList<>(2);
-		ObjectDelta<ShadowType> primaryDelta = getPrimaryDelta();
-		if (primaryDelta != null) {
-			deltas.add(primaryDelta);
-		}
-		if (secondaryDelta != null) {
-			deltas.add(secondaryDelta);
-		}
-		return deltas;
-	}
-	
-	@Override
-	public ObjectDeltaObject<ShadowType> getObjectDeltaObject() throws SchemaException {
-		return new ObjectDeltaObject<>(getObjectCurrent(), getDelta(), getObjectNew(), getObjectDefinition());
-	}
+    @Override
+    public ObjectDelta<ShadowType> getSecondaryDelta() {
+        return secondaryDelta;
+    }
 
-	public boolean hasSecondaryDelta() {
-		return secondaryDelta != null && !secondaryDelta.isEmpty();
-	}
+    @Override
+    public Collection<ObjectDelta<ShadowType>> getAllDeltas() {
+        List<ObjectDelta<ShadowType>> deltas = new ArrayList<>(2);
+        ObjectDelta<ShadowType> primaryDelta = getPrimaryDelta();
+        if (primaryDelta != null) {
+            deltas.add(primaryDelta);
+        }
+        if (secondaryDelta != null) {
+            deltas.add(secondaryDelta);
+        }
+        return deltas;
+    }
 
-	@Override
-	public void setSecondaryDelta(ObjectDelta<ShadowType> secondaryDelta) {
-		this.secondaryDelta = secondaryDelta;
-	}
+    @Override
+    public ObjectDeltaObject<ShadowType> getObjectDeltaObject() throws SchemaException {
+        return new ObjectDeltaObject<>(getObjectCurrent(), getDelta(), getObjectNew(), getObjectDefinition());
+    }
 
-	public void addSecondaryDelta(ObjectDelta<ShadowType> delta) throws SchemaException {
-		if (secondaryDelta == null) {
-			secondaryDelta = delta;
-		} else {
-			secondaryDelta.merge(delta);
-		}
-	}
+    public boolean hasSecondaryDelta() {
+        return secondaryDelta != null && !secondaryDelta.isEmpty();
+    }
 
-	@Override
-	public void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
-		if (secondaryDelta == null) {
-			secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
-			secondaryDelta.setOid(getOid());
-		}
-		LensUtil.setDeltaOldValue(this, itemDelta);
-		secondaryDelta.swallow(itemDelta);
-	}
+    @Override
+    public void setSecondaryDelta(ObjectDelta<ShadowType> secondaryDelta) {
+        this.secondaryDelta = secondaryDelta;
+    }
 
-	@Override
-	public void deleteSecondaryDeltas() {
-		secondaryDelta = null;
-	}
+    public void addSecondaryDelta(ObjectDelta<ShadowType> delta) throws SchemaException {
+        if (secondaryDelta == null) {
+            secondaryDelta = delta;
+        } else {
+            secondaryDelta.merge(delta);
+        }
+    }
 
-	@Override
-	public void setOid(String oid) {
-		super.setOid(oid);
-		if (secondaryDelta != null) {
-			secondaryDelta.setOid(oid);
-		}
-	}
+    @Override
+    public void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
+        if (secondaryDelta == null) {
+            secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
+            secondaryDelta.setOid(getOid());
+        }
+        LensUtil.setDeltaOldValue(this, itemDelta);
+        secondaryDelta.swallow(itemDelta);
+    }
 
-	public boolean isSyncAbsoluteTrigger() {
-		return syncAbsoluteTrigger;
-	}
+    @Override
+    public void deleteSecondaryDeltas() {
+        secondaryDelta = null;
+    }
 
-	public void setSyncAbsoluteTrigger(boolean syncAbsoluteTrigger) {
-		this.syncAbsoluteTrigger = syncAbsoluteTrigger;
-	}
+    @Override
+    public void setOid(String oid) {
+        super.setOid(oid);
+        if (secondaryDelta != null) {
+            secondaryDelta.setOid(oid);
+        }
+    }
 
-	public int getWave() {
-		return wave;
-	}
+    public boolean isSyncAbsoluteTrigger() {
+        return syncAbsoluteTrigger;
+    }
+
+    public void setSyncAbsoluteTrigger(boolean syncAbsoluteTrigger) {
+        this.syncAbsoluteTrigger = syncAbsoluteTrigger;
+    }
+
+    public int getWave() {
+        return wave;
+    }
 
     public void setWave(int wave) {
-		this.wave = wave;
-	}
+        this.wave = wave;
+    }
 
     public boolean isWaveIncomplete() {
-		return waveIncomplete;
-	}
+        return waveIncomplete;
+    }
 
-	public void setWaveIncomplete(boolean waveIncomplete) {
-		this.waveIncomplete = waveIncomplete;
-	}
+    public void setWaveIncomplete(boolean waveIncomplete) {
+        this.waveIncomplete = waveIncomplete;
+    }
 
-	public boolean isDoReconciliation() {
+    public boolean isDoReconciliation() {
         return doReconciliation;
     }
 
@@ -337,132 +337,132 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public ResourceShadowDiscriminator getResourceShadowDiscriminator() {
         return resourceShadowDiscriminator;
     }
-    
+
     public void markTombstone() {
-    	if (resourceShadowDiscriminator != null) {
-    		resourceShadowDiscriminator.setTombstone(true);
-    	}
-    	setExists(false);
-		setFullShadow(false);
-    	humanReadableName = null;
+        if (resourceShadowDiscriminator != null) {
+            resourceShadowDiscriminator.setTombstone(true);
+        }
+        setExists(false);
+        setFullShadow(false);
+        humanReadableName = null;
     }
 
     public void setResourceShadowDiscriminator(ResourceShadowDiscriminator resourceShadowDiscriminator) {
-		this.resourceShadowDiscriminator = resourceShadowDiscriminator;
-	}
+        this.resourceShadowDiscriminator = resourceShadowDiscriminator;
+    }
 
     public boolean compareResourceShadowDiscriminator(ResourceShadowDiscriminator rsd, boolean compareOrder) {
-    	Validate.notNull(rsd.getResourceOid());
-    	if (resourceShadowDiscriminator == null) {
-    		// This may be valid case e.g. in case of broken contexts or if a context is just loading
-    		return false;
-    	}
-    	if (!rsd.getResourceOid().equals(resourceShadowDiscriminator.getResourceOid())) {
-    		return false;
-    	}
-    	if (!rsd.getKind().equals(resourceShadowDiscriminator.getKind())) {
-    		return false;
-    	}
-    	if (rsd.isTombstone() != resourceShadowDiscriminator.isTombstone()) {
-    		return false;
-    	}
-    	if (rsd.getIntent() == null) {
-			try {
-				if (!getStructuralObjectClassDefinition().isDefaultInAKind()) {
-					return false;
-				}
-			} catch (SchemaException e) {
-				throw new SystemException("Internal error: "+e.getMessage(), e);
-			}
-		} else if (!rsd.getIntent().equals(resourceShadowDiscriminator.getIntent())) {
-			return false;
-		}
-    	if (!Objects.equals(rsd.getTag(), resourceShadowDiscriminator.getTag())) {
-    		return false;
-    	}
+        Validate.notNull(rsd.getResourceOid());
+        if (resourceShadowDiscriminator == null) {
+            // This may be valid case e.g. in case of broken contexts or if a context is just loading
+            return false;
+        }
+        if (!rsd.getResourceOid().equals(resourceShadowDiscriminator.getResourceOid())) {
+            return false;
+        }
+        if (!rsd.getKind().equals(resourceShadowDiscriminator.getKind())) {
+            return false;
+        }
+        if (rsd.isTombstone() != resourceShadowDiscriminator.isTombstone()) {
+            return false;
+        }
+        if (rsd.getIntent() == null) {
+            try {
+                if (!getStructuralObjectClassDefinition().isDefaultInAKind()) {
+                    return false;
+                }
+            } catch (SchemaException e) {
+                throw new SystemException("Internal error: "+e.getMessage(), e);
+            }
+        } else if (!rsd.getIntent().equals(resourceShadowDiscriminator.getIntent())) {
+            return false;
+        }
+        if (!Objects.equals(rsd.getTag(), resourceShadowDiscriminator.getTag())) {
+            return false;
+        }
 
-    	if (compareOrder && rsd.getOrder() != resourceShadowDiscriminator.getOrder()) {
-    		return false;
-    	}
+        if (compareOrder && rsd.getOrder() != resourceShadowDiscriminator.getOrder()) {
+            return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	public boolean isTombstone() {
-		if (resourceShadowDiscriminator == null) {
-			return false;
-		}
-		return resourceShadowDiscriminator.isTombstone();
-	}
+    public boolean isTombstone() {
+        if (resourceShadowDiscriminator == null) {
+            return false;
+        }
+        return resourceShadowDiscriminator.isTombstone();
+    }
 
-	public void addAccountSyncDelta(ObjectDelta<ShadowType> delta) throws SchemaException {
+    public void addAccountSyncDelta(ObjectDelta<ShadowType> delta) throws SchemaException {
         if (syncDelta == null) {
-        	syncDelta = delta;
+            syncDelta = delta;
         } else {
-        	syncDelta.merge(delta);
+            syncDelta.merge(delta);
         }
     }
 
     public boolean isAdd() {
-		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
-			return true;
-		} else if (synchronizationPolicyDecision != null){
-			return false;
-		}
-		return super.isAdd();
-	}
+        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
+            return true;
+        } else if (synchronizationPolicyDecision != null){
+            return false;
+        }
+        return super.isAdd();
+    }
 
     public boolean isModify() {
-		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.KEEP) {
-			return true;
-		} else if (synchronizationPolicyDecision != null) {
-			return false;
-		}
-		return super.isModify();
-	}
+        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.KEEP) {
+            return true;
+        } else if (synchronizationPolicyDecision != null) {
+            return false;
+        }
+        return super.isModify();
+    }
 
-	public boolean isDelete() {
-		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE) {
-			return true;
-		} else if (synchronizationPolicyDecision != null) {
-			return false;
-		}
-		if (syncDelta != null && syncDelta.isDelete()) {
-			return true;
-		}
-		return super.isDelete();
-	}
+    public boolean isDelete() {
+        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE) {
+            return true;
+        } else if (synchronizationPolicyDecision != null) {
+            return false;
+        }
+        if (syncDelta != null && syncDelta.isDelete()) {
+            return true;
+        }
+        return super.isDelete();
+    }
 
-	public ResourceType getResource() {
+    public ResourceType getResource() {
         return resource;
     }
 
     public void setResource(ResourceType resource) {
         this.resource = resource;
     }
-    
+
     public Map<String, PrismObject<ShadowType>> getEntitlementMap() {
-		return entitlementMap;
-	}
-    
+        return entitlementMap;
+    }
+
     public void setEntitlementMap(Map<String, PrismObject<ShadowType>> entitlementMap) {
-		this.entitlementMap = entitlementMap;
-	}
+        this.entitlementMap = entitlementMap;
+    }
 
     @Override
-	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
-		if (shadowDefinition == null) {
-			try {
-				shadowDefinition = ShadowUtil.applyObjectClass(super.getObjectDefinition(), getCompositeObjectClassDefinition());
-			} catch (SchemaException e) {
-				// This should not happen
-				throw new SystemException(e.getMessage(), e);
-			}
-		}
-		return shadowDefinition;
-	}
+    public PrismObjectDefinition<ShadowType> getObjectDefinition() {
+        if (shadowDefinition == null) {
+            try {
+                shadowDefinition = ShadowUtil.applyObjectClass(super.getObjectDefinition(), getCompositeObjectClassDefinition());
+            } catch (SchemaException e) {
+                // This should not happen
+                throw new SystemException(e.getMessage(), e);
+            }
+        }
+        return shadowDefinition;
+    }
 
-	public boolean isAssigned() {
+    public boolean isAssigned() {
         return isAssigned;
     }
 
@@ -479,46 +479,46 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public boolean isActive() {
-		return isActive;
-	}
+        return isActive;
+    }
 
-	public void setActive(boolean isActive) {
-		this.isActive = isActive;
-	}
+    public void setActive(boolean isActive) {
+        this.isActive = isActive;
+    }
 
-	public Boolean isLegal() {
-		return isLegal;
-	}
+    public Boolean isLegal() {
+        return isLegal;
+    }
 
-	public void setLegal(Boolean isLegal) {
-		this.isLegal = isLegal;
-	}
+    public void setLegal(Boolean isLegal) {
+        this.isLegal = isLegal;
+    }
 
-	public Boolean isLegalOld() {
-		return isLegalOld;
-	}
+    public Boolean isLegalOld() {
+        return isLegalOld;
+    }
 
-	public void setLegalOld(Boolean isLegalOld) {
-		this.isLegalOld = isLegalOld;
-	}
+    public void setLegalOld(Boolean isLegalOld) {
+        this.isLegalOld = isLegalOld;
+    }
 
-	public boolean isExists() {
-		return isExists;
-	}
+    public boolean isExists() {
+        return isExists;
+    }
 
-	public void setExists(boolean exists) {
-		this.isExists = exists;
-	}
-	
-	public boolean isShadowExistsInRepo() {
-		return shadowExistsInRepo;
-	}
+    public void setExists(boolean exists) {
+        this.isExists = exists;
+    }
 
-	public void setShadowExistsInRepo(boolean shadowExistsInRepo) {
-		this.shadowExistsInRepo = shadowExistsInRepo;
-	}
+    public boolean isShadowExistsInRepo() {
+        return shadowExistsInRepo;
+    }
 
-	public SynchronizationPolicyDecision getSynchronizationPolicyDecision() {
+    public void setShadowExistsInRepo(boolean shadowExistsInRepo) {
+        this.shadowExistsInRepo = shadowExistsInRepo;
+    }
+
+    public SynchronizationPolicyDecision getSynchronizationPolicyDecision() {
         return synchronizationPolicyDecision;
     }
 
@@ -526,291 +526,291 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.synchronizationPolicyDecision = policyDecision;
     }
 
-	public SynchronizationSituationType getSynchronizationSituationDetected() {
-		return synchronizationSituationDetected;
-	}
+    public SynchronizationSituationType getSynchronizationSituationDetected() {
+        return synchronizationSituationDetected;
+    }
 
-	public void setSynchronizationSituationDetected(
-			SynchronizationSituationType synchronizationSituationDetected) {
-		this.synchronizationSituationDetected = synchronizationSituationDetected;
-	}
+    public void setSynchronizationSituationDetected(
+            SynchronizationSituationType synchronizationSituationDetected) {
+        this.synchronizationSituationDetected = synchronizationSituationDetected;
+    }
 
-	public SynchronizationSituationType getSynchronizationSituationResolved() {
-		return synchronizationSituationResolved;
-	}
+    public SynchronizationSituationType getSynchronizationSituationResolved() {
+        return synchronizationSituationResolved;
+    }
 
-	public void setSynchronizationSituationResolved(
-			SynchronizationSituationType synchronizationSituationResolved) {
-		this.synchronizationSituationResolved = synchronizationSituationResolved;
-	}
+    public void setSynchronizationSituationResolved(
+            SynchronizationSituationType synchronizationSituationResolved) {
+        this.synchronizationSituationResolved = synchronizationSituationResolved;
+    }
 
-	public boolean isFullShadow() {
-		return fullShadow;
-	}
+    public boolean isFullShadow() {
+        return fullShadow;
+    }
 
-	/**
-	 * Returns true if full shadow is available, either loaded or in a create delta.
-	 */
-	public boolean hasFullShadow() {
-		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
-			return true;
-		}
-		return isFullShadow();
-	}
+    /**
+     * Returns true if full shadow is available, either loaded or in a create delta.
+     */
+    public boolean hasFullShadow() {
+        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
+            return true;
+        }
+        return isFullShadow();
+    }
 
-	public void setFullShadow(boolean fullShadow) {
-		this.fullShadow = fullShadow;
-	}
+    public void setFullShadow(boolean fullShadow) {
+        this.fullShadow = fullShadow;
+    }
 
-	public ShadowKindType getKind() {
-		ResourceShadowDiscriminator discr = getResourceShadowDiscriminator();
-		if (discr != null) {
-			return discr.getKind();
-		}
-		if (getObjectOld()!=null) {
-			return getObjectOld().asObjectable().getKind();
-		}
-		if (getObjectCurrent()!=null) {
-			return getObjectCurrent().asObjectable().getKind();
-		}
-		if (getObjectNew()!=null) {
-			return getObjectNew().asObjectable().getKind();
-		}
-		return ShadowKindType.ACCOUNT;
-	}
+    public ShadowKindType getKind() {
+        ResourceShadowDiscriminator discr = getResourceShadowDiscriminator();
+        if (discr != null) {
+            return discr.getKind();
+        }
+        if (getObjectOld()!=null) {
+            return getObjectOld().asObjectable().getKind();
+        }
+        if (getObjectCurrent()!=null) {
+            return getObjectCurrent().asObjectable().getKind();
+        }
+        if (getObjectNew()!=null) {
+            return getObjectNew().asObjectable().getKind();
+        }
+        return ShadowKindType.ACCOUNT;
+    }
 
-	public PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> getConstructionDeltaSetTriple() {
-		return constructionDeltaSetTriple;
-	}
+    public PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> getConstructionDeltaSetTriple() {
+        return constructionDeltaSetTriple;
+    }
 
-	public void setConstructionDeltaSetTriple(
-			PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> constructionDeltaSetTriple) {
-		this.constructionDeltaSetTriple = constructionDeltaSetTriple;
-	}
+    public void setConstructionDeltaSetTriple(
+            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> constructionDeltaSetTriple) {
+        this.constructionDeltaSetTriple = constructionDeltaSetTriple;
+    }
 
-	public Construction getOutboundConstruction() {
-		return outboundConstruction;
-	}
+    public Construction getOutboundConstruction() {
+        return outboundConstruction;
+    }
 
-	public void setOutboundConstruction(Construction outboundConstruction) {
-		this.outboundConstruction = outboundConstruction;
-	}
+    public void setOutboundConstruction(Construction outboundConstruction) {
+        this.outboundConstruction = outboundConstruction;
+    }
 
     public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> getSqueezedAttributes() {
-		return squeezedAttributes;
-	}
+        return squeezedAttributes;
+    }
 
-	public void setSqueezedAttributes(Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes) {
-		this.squeezedAttributes = squeezedAttributes;
-	}
+    public void setSqueezedAttributes(Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes) {
+        this.squeezedAttributes = squeezedAttributes;
+    }
 
-	public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> getSqueezedAssociations() {
-		return squeezedAssociations;
-	}
+    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> getSqueezedAssociations() {
+        return squeezedAssociations;
+    }
 
-	public void setSqueezedAssociations(
-			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations) {
-		this.squeezedAssociations = squeezedAssociations;
-	}
+    public void setSqueezedAssociations(
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations) {
+        this.squeezedAssociations = squeezedAssociations;
+    }
 
-	public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> getSqueezedAuxiliaryObjectClasses() {
-		return squeezedAuxiliaryObjectClasses;
-	}
+    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> getSqueezedAuxiliaryObjectClasses() {
+        return squeezedAuxiliaryObjectClasses;
+    }
 
-	public void setSqueezedAuxiliaryObjectClasses(
-			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses) {
-		this.squeezedAuxiliaryObjectClasses = squeezedAuxiliaryObjectClasses;
-	}
+    public void setSqueezedAuxiliaryObjectClasses(
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses) {
+        this.squeezedAuxiliaryObjectClasses = squeezedAuxiliaryObjectClasses;
+    }
 
-	public ResourceObjectTypeDefinitionType getResourceObjectTypeDefinitionType() {
-		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
-			return null;
-		}
-		ResourceShadowDiscriminator discr = getResourceShadowDiscriminator();
-		if (discr == null) {
-			return null;			// maybe when an account is deleted
-		}
-		if (resource == null) {
-			return null;
-		}
-		ResourceObjectTypeDefinitionType def = ResourceTypeUtil.getResourceObjectTypeDefinitionType(resource, discr.getKind(), discr.getIntent());
+    public ResourceObjectTypeDefinitionType getResourceObjectTypeDefinitionType() {
+        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
+            return null;
+        }
+        ResourceShadowDiscriminator discr = getResourceShadowDiscriminator();
+        if (discr == null) {
+            return null;            // maybe when an account is deleted
+        }
+        if (resource == null) {
+            return null;
+        }
+        ResourceObjectTypeDefinitionType def = ResourceTypeUtil.getResourceObjectTypeDefinitionType(resource, discr.getKind(), discr.getIntent());
         return def;
     }
 
-	private ResourceSchema getResourceSchema() throws SchemaException {
-		return RefinedResourceSchemaImpl.getResourceSchema(resource, getNotNullPrismContext());
-	}
+    private ResourceSchema getResourceSchema() throws SchemaException {
+        return RefinedResourceSchemaImpl.getResourceSchema(resource, getNotNullPrismContext());
+    }
 
     public RefinedResourceSchema getRefinedResourceSchema() throws SchemaException {
-    	if (resource == null) {
-    		return null;
-    	}
-    	return RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, getNotNullPrismContext());
+        if (resource == null) {
+            return null;
+        }
+        return RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, getNotNullPrismContext());
     }
 
     public RefinedObjectClassDefinition getStructuralObjectClassDefinition() throws SchemaException {
-    	if (structuralObjectClassDefinition == null) {
-			RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
-			if (refinedSchema == null) {
-				return null;
-			}
-			structuralObjectClassDefinition = refinedSchema.getRefinedDefinition(getResourceShadowDiscriminator().getKind(), getResourceShadowDiscriminator().getIntent());
-    	}
-    	return structuralObjectClassDefinition;
-	}
+        if (structuralObjectClassDefinition == null) {
+            RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
+            if (refinedSchema == null) {
+                return null;
+            }
+            structuralObjectClassDefinition = refinedSchema.getRefinedDefinition(getResourceShadowDiscriminator().getKind(), getResourceShadowDiscriminator().getIntent());
+        }
+        return structuralObjectClassDefinition;
+    }
 
     public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() throws SchemaException {
-    	if (auxiliaryObjectClassDefinitions == null) {
-    		refreshAuxiliaryObjectClassDefinitions();
-    	}
-    	return auxiliaryObjectClassDefinitions;
-	}
+        if (auxiliaryObjectClassDefinitions == null) {
+            refreshAuxiliaryObjectClassDefinitions();
+        }
+        return auxiliaryObjectClassDefinitions;
+    }
 
     public void refreshAuxiliaryObjectClassDefinitions() throws SchemaException {
-    	RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
-		if (refinedSchema == null) {
-			return;
-		}
-		List<QName> auxiliaryObjectClassQNames = new ArrayList<>();
-		addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectOld());
-		addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectNew());
-		auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
-		for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
-			RefinedObjectClassDefinition auxiliaryObjectClassDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassQName);
-			if (auxiliaryObjectClassDef == null) {
-				throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
-			}
-			auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
-		}
-		compositeObjectClassDefinition = null;
+        RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
+        if (refinedSchema == null) {
+            return;
+        }
+        List<QName> auxiliaryObjectClassQNames = new ArrayList<>();
+        addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectOld());
+        addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectNew());
+        auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
+        for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
+            RefinedObjectClassDefinition auxiliaryObjectClassDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassQName);
+            if (auxiliaryObjectClassDef == null) {
+                throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
+            }
+            auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
+        }
+        compositeObjectClassDefinition = null;
     }
 
     public CompositeRefinedObjectClassDefinition getCompositeObjectClassDefinition() throws SchemaException {
-    	if (compositeObjectClassDefinition == null) {
-    		RefinedObjectClassDefinition structuralObjectClassDefinition = getStructuralObjectClassDefinition();
-    		if (structuralObjectClassDefinition != null) {
-    			compositeObjectClassDefinition = new CompositeRefinedObjectClassDefinitionImpl(
-    					structuralObjectClassDefinition, getAuxiliaryObjectClassDefinitions());
-    		}
-    	}
-    	return compositeObjectClassDefinition;
+        if (compositeObjectClassDefinition == null) {
+            RefinedObjectClassDefinition structuralObjectClassDefinition = getStructuralObjectClassDefinition();
+            if (structuralObjectClassDefinition != null) {
+                compositeObjectClassDefinition = new CompositeRefinedObjectClassDefinitionImpl(
+                        structuralObjectClassDefinition, getAuxiliaryObjectClassDefinitions());
+            }
+        }
+        return compositeObjectClassDefinition;
     }
 
-	private void addAuxiliaryObjectClassNames(List<QName> auxiliaryObjectClassQNames,
-			PrismObject<ShadowType> shadow) {
-		if (shadow == null) {
-			return;
-		}
-		for (QName aux: shadow.asObjectable().getAuxiliaryObjectClass()) {
-			if (!auxiliaryObjectClassQNames.contains(aux)) {
-				auxiliaryObjectClassQNames.add(aux);
-			}
-		}
-	}
+    private void addAuxiliaryObjectClassNames(List<QName> auxiliaryObjectClassQNames,
+            PrismObject<ShadowType> shadow) {
+        if (shadow == null) {
+            return;
+        }
+        for (QName aux: shadow.asObjectable().getAuxiliaryObjectClass()) {
+            if (!auxiliaryObjectClassQNames.contains(aux)) {
+                auxiliaryObjectClassQNames.add(aux);
+            }
+        }
+    }
 
-	public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attrName) throws SchemaException {
-		RefinedAttributeDefinition<T> attrDef = getStructuralObjectClassDefinition().findAttributeDefinition(attrName);
-		if (attrDef != null) {
-			return attrDef;
-		}
-		for (RefinedObjectClassDefinition auxOcDef: getAuxiliaryObjectClassDefinitions()) {
-			attrDef = auxOcDef.findAttributeDefinition(attrName);
-			if (attrDef != null) {
-				return attrDef;
-			}
-		}
-		return null;
-	}
+    public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attrName) throws SchemaException {
+        RefinedAttributeDefinition<T> attrDef = getStructuralObjectClassDefinition().findAttributeDefinition(attrName);
+        if (attrDef != null) {
+            return attrDef;
+        }
+        for (RefinedObjectClassDefinition auxOcDef: getAuxiliaryObjectClassDefinitions()) {
+            attrDef = auxOcDef.findAttributeDefinition(attrName);
+            if (attrDef != null) {
+                return attrDef;
+            }
+        }
+        return null;
+    }
 
-	public Collection<ResourceObjectTypeDependencyType> getDependencies() {
-		if (dependencies == null) {
-			ResourceObjectTypeDefinitionType resourceAccountTypeDefinitionType = getResourceObjectTypeDefinitionType();
-			if (resourceAccountTypeDefinitionType == null) {
-				// No dependencies. But we cannot set null as that means "unknown". So let's set empty collection instead.
-				dependencies = new ArrayList<>();
-			} else {
-				dependencies = resourceAccountTypeDefinitionType.getDependency();
-			}
-		}
-		return dependencies;
-	}
-	
-	public SecurityPolicyType getProjectionSecurityPolicy() {
-		return projectionSecurityPolicy;
-	}
+    public Collection<ResourceObjectTypeDependencyType> getDependencies() {
+        if (dependencies == null) {
+            ResourceObjectTypeDefinitionType resourceAccountTypeDefinitionType = getResourceObjectTypeDefinitionType();
+            if (resourceAccountTypeDefinitionType == null) {
+                // No dependencies. But we cannot set null as that means "unknown". So let's set empty collection instead.
+                dependencies = new ArrayList<>();
+            } else {
+                dependencies = resourceAccountTypeDefinitionType.getDependency();
+            }
+        }
+        return dependencies;
+    }
 
-	public void setProjectionSecurityPolicy(SecurityPolicyType projectionSecurityPolicy) {
-		this.projectionSecurityPolicy = projectionSecurityPolicy;
-	}
+    public SecurityPolicyType getProjectionSecurityPolicy() {
+        return projectionSecurityPolicy;
+    }
 
-	public void setCanProject(boolean canProject) {
-		this.canProject = canProject;
-	}
+    public void setProjectionSecurityPolicy(SecurityPolicyType projectionSecurityPolicy) {
+        this.projectionSecurityPolicy = projectionSecurityPolicy;
+    }
 
-	public boolean isCanProject() {
-		return canProject;
-	}
+    public void setCanProject(boolean canProject) {
+        this.canProject = canProject;
+    }
 
-	public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() throws SchemaException {
-		// TODO: per-resource assignment enforcement
-		ResourceType resource = getResource();
-		ProjectionPolicyType objectClassProjectionPolicy = determineObjectClassProjectionPolicy();
-		
-		if (objectClassProjectionPolicy != null && objectClassProjectionPolicy.getAssignmentPolicyEnforcement() != null) {
-			return MiscSchemaUtil.getAssignmentPolicyEnforcementType(objectClassProjectionPolicy);
-		}
-		
-		ProjectionPolicyType globalAccountSynchronizationSettings = null;
-		if (resource != null){
-			globalAccountSynchronizationSettings = resource.getProjection();
-		}
+    public boolean isCanProject() {
+        return canProject;
+    }
 
-		if (globalAccountSynchronizationSettings == null) {
-			globalAccountSynchronizationSettings = getLensContext().getAccountSynchronizationSettings();
-		}
-		AssignmentPolicyEnforcementType globalAssignmentPolicyEnforcement = MiscSchemaUtil.getAssignmentPolicyEnforcementType(globalAccountSynchronizationSettings);
-		return globalAssignmentPolicyEnforcement;
-	}
-	
-	public boolean isLegalize() throws SchemaException {
-		ResourceType resource = getResource();
-		
-		ProjectionPolicyType objectClassProjectionPolicy = determineObjectClassProjectionPolicy();
-		if (objectClassProjectionPolicy != null) {
-			return BooleanUtils.isTrue(objectClassProjectionPolicy.isLegalize());
-		}
-		ProjectionPolicyType globalAccountSynchronizationSettings = null;
-		if (resource != null){
-			globalAccountSynchronizationSettings = resource.getProjection();
-		}
+    public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() throws SchemaException {
+        // TODO: per-resource assignment enforcement
+        ResourceType resource = getResource();
+        ProjectionPolicyType objectClassProjectionPolicy = determineObjectClassProjectionPolicy();
 
-		if (globalAccountSynchronizationSettings == null) {
-			globalAccountSynchronizationSettings = getLensContext().getAccountSynchronizationSettings();
-		}
+        if (objectClassProjectionPolicy != null && objectClassProjectionPolicy.getAssignmentPolicyEnforcement() != null) {
+            return MiscSchemaUtil.getAssignmentPolicyEnforcementType(objectClassProjectionPolicy);
+        }
 
-		if (globalAccountSynchronizationSettings == null){
-			return false;
-		}
+        ProjectionPolicyType globalAccountSynchronizationSettings = null;
+        if (resource != null){
+            globalAccountSynchronizationSettings = resource.getProjection();
+        }
 
-		return BooleanUtils.isTrue(globalAccountSynchronizationSettings.isLegalize());
-	}
-		
-	private ProjectionPolicyType determineObjectClassProjectionPolicy() throws SchemaException {
-		RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
-		if (refinedSchema == null) {
-			return null;
-		}
-		
-		RefinedObjectClassDefinition objectClassDef = refinedSchema.getRefinedDefinition(resourceShadowDiscriminator.getKind(),
-				resourceShadowDiscriminator.getIntent());
+        if (globalAccountSynchronizationSettings == null) {
+            globalAccountSynchronizationSettings = getLensContext().getAccountSynchronizationSettings();
+        }
+        AssignmentPolicyEnforcementType globalAssignmentPolicyEnforcement = MiscSchemaUtil.getAssignmentPolicyEnforcementType(globalAccountSynchronizationSettings);
+        return globalAssignmentPolicyEnforcement;
+    }
 
-		if (objectClassDef == null) {
-			return null;
-		}
-		return objectClassDef.getProjection();
-	}
+    public boolean isLegalize() throws SchemaException {
+        ResourceType resource = getResource();
 
-	/**
+        ProjectionPolicyType objectClassProjectionPolicy = determineObjectClassProjectionPolicy();
+        if (objectClassProjectionPolicy != null) {
+            return BooleanUtils.isTrue(objectClassProjectionPolicy.isLegalize());
+        }
+        ProjectionPolicyType globalAccountSynchronizationSettings = null;
+        if (resource != null){
+            globalAccountSynchronizationSettings = resource.getProjection();
+        }
+
+        if (globalAccountSynchronizationSettings == null) {
+            globalAccountSynchronizationSettings = getLensContext().getAccountSynchronizationSettings();
+        }
+
+        if (globalAccountSynchronizationSettings == null){
+            return false;
+        }
+
+        return BooleanUtils.isTrue(globalAccountSynchronizationSettings.isLegalize());
+    }
+
+    private ProjectionPolicyType determineObjectClassProjectionPolicy() throws SchemaException {
+        RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
+        if (refinedSchema == null) {
+            return null;
+        }
+
+        RefinedObjectClassDefinition objectClassDef = refinedSchema.getRefinedDefinition(resourceShadowDiscriminator.getKind(),
+                resourceShadowDiscriminator.getIntent());
+
+        if (objectClassDef == null) {
+            return null;
+        }
+        return objectClassDef.getProjection();
+    }
+
+    /**
      * Recomputes the new state of account (accountNew). It is computed by applying deltas to the old state (accountOld).
      * Assuming that oldAccount is already set (or is null if it does not exist)
      */
@@ -819,7 +819,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
         PrismObject<ShadowType> base = getObjectCurrent();
         if (base == null) {
-        	base = getObjectOld();
+            base = getObjectOld();
         }
         ObjectDelta<ShadowType> syncDelta = getSyncDelta();
         if (base == null && syncDelta != null
@@ -840,427 +840,427 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
 
         if (base == null && accDelta.isModify()) {
-        	RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
-        	if (rOCD != null) {
-        		base = rOCD.createBlankShadow();
-        	}
+            RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
+            if (rOCD != null) {
+                base = rOCD.createBlankShadow();
+            }
         }
 
         setObjectNew(accDelta.computeChangedObject(base));
     }
 
-	public void clearIntermediateResults() {
-		//constructionDeltaSetTriple = null;
-		outboundConstruction = null;
-		squeezedAttributes = null;
-	}
+    public void clearIntermediateResults() {
+        //constructionDeltaSetTriple = null;
+        outboundConstruction = null;
+        squeezedAttributes = null;
+    }
 
-	/**
-	 * Distribute the resource that's in the context into all the prism objects (old, new) and deltas.
-	 * The resourceRef will not just contain the OID but also full resource object. This may optimize handling
-	 * of the objects in upper layers (e.g. GUI).
-	 */
-	public void distributeResource() {
-		ResourceType resourceType = getResource();
-		if (resourceType == null) {
-			return;
-		}
-		PrismObject<ResourceType> resource = resourceType.asPrismObject();
-		distributeResourceObject(getObjectOld(), resource);
-		distributeResourceObject(getObjectCurrent(), resource);
-		distributeResourceObject(getObjectNew(), resource);
-		distributeResourceDelta(getPrimaryDelta(), resource);
-		distributeResourceDelta(getSecondaryDelta(), resource);
-	}
+    /**
+     * Distribute the resource that's in the context into all the prism objects (old, new) and deltas.
+     * The resourceRef will not just contain the OID but also full resource object. This may optimize handling
+     * of the objects in upper layers (e.g. GUI).
+     */
+    public void distributeResource() {
+        ResourceType resourceType = getResource();
+        if (resourceType == null) {
+            return;
+        }
+        PrismObject<ResourceType> resource = resourceType.asPrismObject();
+        distributeResourceObject(getObjectOld(), resource);
+        distributeResourceObject(getObjectCurrent(), resource);
+        distributeResourceObject(getObjectNew(), resource);
+        distributeResourceDelta(getPrimaryDelta(), resource);
+        distributeResourceDelta(getSecondaryDelta(), resource);
+    }
 
-	private void distributeResourceObject(PrismObject<ShadowType> object, PrismObject<ResourceType> resource) {
-		if (object == null) {
-			return;
-		}
-		PrismReference resourceRef = object.findReference(ShadowType.F_RESOURCE_REF);
-		if (resourceRef != null) {
-			distributeResourceValues(resourceRef.getValues(), resource);
-		}
-	}
+    private void distributeResourceObject(PrismObject<ShadowType> object, PrismObject<ResourceType> resource) {
+        if (object == null) {
+            return;
+        }
+        PrismReference resourceRef = object.findReference(ShadowType.F_RESOURCE_REF);
+        if (resourceRef != null) {
+            distributeResourceValues(resourceRef.getValues(), resource);
+        }
+    }
 
-	private void distributeResourceValue(PrismReferenceValue resourceRefVal, PrismObject<ResourceType> resource) {
-		if (resourceRefVal != null) {
-			boolean immutable = resourceRefVal.isImmutable();
-			if (immutable) {
-				resourceRefVal.setImmutable(false);
-			}
-			resourceRefVal.setObject(resource);
-			resourceRefVal.setImmutable(immutable);
-		}
-	}
+    private void distributeResourceValue(PrismReferenceValue resourceRefVal, PrismObject<ResourceType> resource) {
+        if (resourceRefVal != null) {
+            boolean immutable = resourceRefVal.isImmutable();
+            if (immutable) {
+                resourceRefVal.setImmutable(false);
+            }
+            resourceRefVal.setObject(resource);
+            resourceRefVal.setImmutable(immutable);
+        }
+    }
 
-	private void distributeResourceDelta(ObjectDelta<ShadowType> delta, PrismObject<ResourceType> resource) {
-		if (delta == null) {
-			return;
-		}
-		if (delta.isAdd()) {
-			distributeResourceObject(delta.getObjectToAdd(), resource);
-		} else if (delta.isModify()) {
-			ReferenceDelta referenceDelta = delta.findReferenceModification(ShadowType.F_RESOURCE_REF);
-			if (referenceDelta != null) {
-				distributeResourceValues(referenceDelta.getValuesToAdd(), resource);
-				distributeResourceValues(referenceDelta.getValuesToDelete(), resource);
-				distributeResourceValues(referenceDelta.getValuesToReplace(), resource);
-			}
-		} // Nothing to do for DELETE delta
-	}
+    private void distributeResourceDelta(ObjectDelta<ShadowType> delta, PrismObject<ResourceType> resource) {
+        if (delta == null) {
+            return;
+        }
+        if (delta.isAdd()) {
+            distributeResourceObject(delta.getObjectToAdd(), resource);
+        } else if (delta.isModify()) {
+            ReferenceDelta referenceDelta = delta.findReferenceModification(ShadowType.F_RESOURCE_REF);
+            if (referenceDelta != null) {
+                distributeResourceValues(referenceDelta.getValuesToAdd(), resource);
+                distributeResourceValues(referenceDelta.getValuesToDelete(), resource);
+                distributeResourceValues(referenceDelta.getValuesToReplace(), resource);
+            }
+        } // Nothing to do for DELETE delta
+    }
 
-	private void distributeResourceValues(Collection<PrismReferenceValue> values, PrismObject<ResourceType> resource) {
-		if (values == null) {
-			return;
-		}
-		for(PrismReferenceValue pval: values) {
-			distributeResourceValue(pval, resource);
-		}
-	}
+    private void distributeResourceValues(Collection<PrismReferenceValue> values, PrismObject<ResourceType> resource) {
+        if (values == null) {
+            return;
+        }
+        for(PrismReferenceValue pval: values) {
+            distributeResourceValue(pval, resource);
+        }
+    }
 
-	/**
-	 * Returns delta suitable for execution. The primary and secondary deltas may not make complete sense all by themselves.
-	 * E.g. they may both be MODIFY deltas even in case that the account should be created. The deltas begin to make sense
-	 * only if combined with sync decision. This method provides the deltas all combined and ready for execution.
-	 */
-	@Override
-	public ObjectDelta<ShadowType> getExecutableDelta() throws SchemaException {
-		SynchronizationPolicyDecision policyDecision = getSynchronizationPolicyDecision();
-		ObjectDelta<ShadowType> origDelta = getFixedDelta();
-		if (policyDecision == SynchronizationPolicyDecision.ADD) {
-			// let's try to retrieve original (non-fixed) delta. Maybe it's ADD delta so we spare fixing it.
-			origDelta = getDelta();
+    /**
+     * Returns delta suitable for execution. The primary and secondary deltas may not make complete sense all by themselves.
+     * E.g. they may both be MODIFY deltas even in case that the account should be created. The deltas begin to make sense
+     * only if combined with sync decision. This method provides the deltas all combined and ready for execution.
+     */
+    @Override
+    public ObjectDelta<ShadowType> getExecutableDelta() throws SchemaException {
+        SynchronizationPolicyDecision policyDecision = getSynchronizationPolicyDecision();
+        ObjectDelta<ShadowType> origDelta = getFixedDelta();
+        if (policyDecision == SynchronizationPolicyDecision.ADD) {
+            // let's try to retrieve original (non-fixed) delta. Maybe it's ADD delta so we spare fixing it.
+            origDelta = getDelta();
             if (origDelta == null || origDelta.isModify()) {
-            	// We need to convert modify delta to ADD
-            	ObjectDelta<ShadowType> addDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(),
+                // We need to convert modify delta to ADD
+                ObjectDelta<ShadowType> addDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(),
                     ChangeType.ADD);
                 RefinedObjectClassDefinition rObjectClassDef = getCompositeObjectClassDefinition();
 
                 if (rObjectClassDef == null) {
                     throw new IllegalStateException("Definition for account type " + getResourceShadowDiscriminator()
-                    		+ " not found in the context, but it should be there");
+                            + " not found in the context, but it should be there");
                 }
                 PrismObject<ShadowType> newAccount = rObjectClassDef.createBlankShadow();
                 addDelta.setObjectToAdd(newAccount);
 
                 if (origDelta != null) {
-                	addDelta.merge(origDelta);
+                    addDelta.merge(origDelta);
                 }
                 return addDelta;
             }
         } else if (policyDecision == SynchronizationPolicyDecision.KEEP) {
             // Any delta is OK
         } else if (policyDecision == SynchronizationPolicyDecision.DELETE) {
-        	ObjectDelta<ShadowType> deleteDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(),
+            ObjectDelta<ShadowType> deleteDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(),
                 ChangeType.DELETE);
             String oid = getOid();
             if (oid == null) {
-            	throw new IllegalStateException(
-            			"Internal error: account context OID is null during attempt to create delete secondary delta; context="
-            					+this);
+                throw new IllegalStateException(
+                        "Internal error: account context OID is null during attempt to create delete secondary delta; context="
+                                +this);
             }
             deleteDelta.setOid(oid);
             return deleteDelta;
         } else {
             // This is either UNLINK or null, both are in fact the same as KEEP
-        	// Any delta is OK
+            // Any delta is OK
         }
-		if (origDelta != null && origDelta.isImmutable()) {
-			// E.g. locked primary delta.
-			// We need modifiable delta for execution, e.g. to set metadata, oid and so on.
-			return origDelta.clone();
-		} else {
-			return origDelta;
-		}
-	}
-
-	public void checkConsistence() {
-		checkConsistence(null, true, false);
-	}
-
-	@Override
-	public void checkConsistence(String contextDesc) {
-		super.checkConsistence(contextDesc);
-		if (secondaryDelta != null) {
-			boolean requireOid = isRequireSecondaryDeltaOid();
-			// Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
-			checkConsistence(secondaryDelta, requireOid, getElementDesc() + " secondary delta in " + this + (contextDesc == null ? "" : " in " + contextDesc));
-		}
-	}
-
-	public void checkConsistence(String contextDesc, boolean fresh, boolean force) {
-		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.IGNORE) {
-			// No not check these. they may be quite wild.
-			return;
-		}
-		super.checkConsistence(contextDesc);
-		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
-			return;
-		}
-    	if (fresh && !force && resourceShadowDiscriminator != null && !resourceShadowDiscriminator.isTombstone()) {
-    		if (resource == null) {
-	    		throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
-	    	}
-	    	if (resourceShadowDiscriminator == null) {
-	    		throw new IllegalStateException("Null resource account type in "+this + (contextDesc == null ? "" : " in " +contextDesc));
-	    	}
-    	}
-    	if (syncDelta != null) {
-    		try {
-    			syncDelta.checkConsistence(true, true, true, ConsistencyCheckScope.THOROUGH);
-    		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" sync delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
-			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+"; in "+getElementDesc()+" sync delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
-			}
-    	}
+        if (origDelta != null && origDelta.isImmutable()) {
+            // E.g. locked primary delta.
+            // We need modifiable delta for execution, e.g. to set metadata, oid and so on.
+            return origDelta.clone();
+        } else {
+            return origDelta;
+        }
     }
 
-	@Override
-	protected void checkConsistence(PrismObject<ShadowType> object, String elementDesc, String contextDesc) {
-		super.checkConsistence(object, elementDesc, contextDesc);
-		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(object);
-    	if (attributesContainer != null) {
-    		ResourceType resource = getResource();
-    		if (resource != null) {
-	    		String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-	    		for(ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
-	    			QName attrName = attribute.getElementName();
-	    			if (SchemaConstants.NS_ICF_SCHEMA.equals(attrName.getNamespaceURI())) {
-	    				continue;
-	    			}
-	    			if (resourceNamespace.equals(attrName.getNamespaceURI())) {
-	    				continue;
-	    			}
-	    			String desc = elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc);
-	    			throw new IllegalStateException("Invalid namespace for attribute "+attrName+" in "+desc);
-	    		}
-    		}
-    	}
-	}
+    public void checkConsistence() {
+        checkConsistence(null, true, false);
+    }
 
-	protected boolean isRequireSecondaryDeltaOid() {
-		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD ||
-				synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN ||
-				synchronizationPolicyDecision == SynchronizationPolicyDecision.IGNORE) {
-			return false;
-		}
-		if (getResourceShadowDiscriminator() != null && getResourceShadowDiscriminator().getOrder() > 0) {
-			// These may not have the OID yet
-			return false;
-		}
-		return super.isRequireSecondaryDeltaOid();
-	}
+    @Override
+    public void checkConsistence(String contextDesc) {
+        super.checkConsistence(contextDesc);
+        if (secondaryDelta != null) {
+            boolean requireOid = isRequireSecondaryDeltaOid();
+            // Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
+            checkConsistence(secondaryDelta, requireOid, getElementDesc() + " secondary delta in " + this + (contextDesc == null ? "" : " in " + contextDesc));
+        }
+    }
 
-	@Override
-	public void cleanup() {
-		secondaryDelta = null;
-		resetSynchronizationPolicyDecision();
-//		isLegal = null;
-//		isLegalOld = null;
-		isAssigned = false;
+    public void checkConsistence(String contextDesc, boolean fresh, boolean force) {
+        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.IGNORE) {
+            // No not check these. they may be quite wild.
+            return;
+        }
+        super.checkConsistence(contextDesc);
+        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
+            return;
+        }
+        if (fresh && !force && resourceShadowDiscriminator != null && !resourceShadowDiscriminator.isTombstone()) {
+            if (resource == null) {
+                throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+            }
+            if (resourceShadowDiscriminator == null) {
+                throw new IllegalStateException("Null resource account type in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+            }
+        }
+        if (syncDelta != null) {
+            try {
+                syncDelta.checkConsistence(true, true, true, ConsistencyCheckScope.THOROUGH);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" sync delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
+            } catch (IllegalStateException e) {
+                throw new IllegalStateException(e.getMessage()+"; in "+getElementDesc()+" sync delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
+            }
+        }
+    }
+
+    @Override
+    protected void checkConsistence(PrismObject<ShadowType> object, String elementDesc, String contextDesc) {
+        super.checkConsistence(object, elementDesc, contextDesc);
+        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(object);
+        if (attributesContainer != null) {
+            ResourceType resource = getResource();
+            if (resource != null) {
+                String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
+                for(ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
+                    QName attrName = attribute.getElementName();
+                    if (SchemaConstants.NS_ICF_SCHEMA.equals(attrName.getNamespaceURI())) {
+                        continue;
+                    }
+                    if (resourceNamespace.equals(attrName.getNamespaceURI())) {
+                        continue;
+                    }
+                    String desc = elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc);
+                    throw new IllegalStateException("Invalid namespace for attribute "+attrName+" in "+desc);
+                }
+            }
+        }
+    }
+
+    protected boolean isRequireSecondaryDeltaOid() {
+        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD ||
+                synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN ||
+                synchronizationPolicyDecision == SynchronizationPolicyDecision.IGNORE) {
+            return false;
+        }
+        if (getResourceShadowDiscriminator() != null && getResourceShadowDiscriminator().getOrder() > 0) {
+            // These may not have the OID yet
+            return false;
+        }
+        return super.isRequireSecondaryDeltaOid();
+    }
+
+    @Override
+    public void cleanup() {
+        secondaryDelta = null;
+        resetSynchronizationPolicyDecision();
+//        isLegal = null;
+//        isLegalOld = null;
+        isAssigned = false;
         isAssignedOld = false;  // ??? [med]
-		isActive = false;
-	}
+        isActive = false;
+    }
 
-	@Override
-	public void normalize() {
-		super.normalize();
-		if (secondaryDelta != null) {
-			secondaryDelta.normalize();
-		}
-		if (syncDelta != null) {
-			syncDelta.normalize();
-		}
-	}
+    @Override
+    public void normalize() {
+        super.normalize();
+        if (secondaryDelta != null) {
+            secondaryDelta.normalize();
+        }
+        if (syncDelta != null) {
+            syncDelta.normalize();
+        }
+    }
 
-//	@Override
-//	public void reset() {
-//		super.reset();
-//		wave = -1;
-//		fullShadow = false;
-//		isAssigned = false;
+//    @Override
+//    public void reset() {
+//        super.reset();
+//        wave = -1;
+//        fullShadow = false;
+//        isAssigned = false;
 //        isAssignedOld = false;
-//		isActive = false;
-//		resetSynchronizationPolicyDecision();
-//		constructionDeltaSetTriple = null;
-//		outboundConstruction = null;
-//		dependencies = null;
-//		squeezedAttributes = null;
-//		accountPasswordPolicy = null;
-//	}
+//        isActive = false;
+//        resetSynchronizationPolicyDecision();
+//        constructionDeltaSetTriple = null;
+//        outboundConstruction = null;
+//        dependencies = null;
+//        squeezedAttributes = null;
+//        accountPasswordPolicy = null;
+//    }
 
-	protected void resetSynchronizationPolicyDecision() {
-		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE || synchronizationPolicyDecision == SynchronizationPolicyDecision.UNLINK) {
-			toBeArchived = true;
-		} else if (synchronizationPolicyDecision != null) {
-			toBeArchived = false;
-		}
-		synchronizationPolicyDecision = null;
-	}
+    protected void resetSynchronizationPolicyDecision() {
+        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE || synchronizationPolicyDecision == SynchronizationPolicyDecision.UNLINK) {
+            toBeArchived = true;
+        } else if (synchronizationPolicyDecision != null) {
+            toBeArchived = false;
+        }
+        synchronizationPolicyDecision = null;
+    }
 
-	@Override
-	public void adopt(PrismContext prismContext) throws SchemaException {
-		super.adopt(prismContext);
-		if (syncDelta != null) {
-			prismContext.adopt(syncDelta);
-		}
-		if (secondaryDelta != null) {
-			prismContext.adopt(secondaryDelta);
-		}
-	}
+    @Override
+    public void adopt(PrismContext prismContext) throws SchemaException {
+        super.adopt(prismContext);
+        if (syncDelta != null) {
+            prismContext.adopt(syncDelta);
+        }
+        if (secondaryDelta != null) {
+            prismContext.adopt(secondaryDelta);
+        }
+    }
 
-	@Override
-	public LensProjectionContext clone(LensContext<? extends ObjectType> lensContext) {
-		LensProjectionContext clone = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
-		copyValues(clone, lensContext);
-		return clone;
-	}
+    @Override
+    public LensProjectionContext clone(LensContext<? extends ObjectType> lensContext) {
+        LensProjectionContext clone = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
+        copyValues(clone, lensContext);
+        return clone;
+    }
 
-	protected void copyValues(LensProjectionContext clone, LensContext<? extends ObjectType> lensContext) {
-		super.copyValues(clone, lensContext);
-		// do NOT clone transient values such as accountConstructionDeltaSetTriple
-		// these are not meant to be cloned and they are also not directly clonnable
-		clone.dependencies = this.dependencies;
-		clone.doReconciliation = this.doReconciliation;
-		clone.fullShadow = this.fullShadow;
-		clone.isAssigned = this.isAssigned;
+    protected void copyValues(LensProjectionContext clone, LensContext<? extends ObjectType> lensContext) {
+        super.copyValues(clone, lensContext);
+        // do NOT clone transient values such as accountConstructionDeltaSetTriple
+        // these are not meant to be cloned and they are also not directly clonnable
+        clone.dependencies = this.dependencies;
+        clone.doReconciliation = this.doReconciliation;
+        clone.fullShadow = this.fullShadow;
+        clone.isAssigned = this.isAssigned;
         clone.isAssignedOld = this.isAssignedOld;
-		clone.outboundConstruction = this.outboundConstruction;
-		clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
-		clone.resource = this.resource;
-		clone.resourceShadowDiscriminator = this.resourceShadowDiscriminator;
-		clone.squeezedAttributes = cloneSqueezedAttributes();
-		if (this.syncDelta != null) {
-			clone.syncDelta = this.syncDelta.clone();
-		}
-		clone.secondaryDelta = cloneDelta(this.secondaryDelta);
-		clone.wave = this.wave;
-		clone.synchronizationSource = this.synchronizationSource;
-	}
+        clone.outboundConstruction = this.outboundConstruction;
+        clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
+        clone.resource = this.resource;
+        clone.resourceShadowDiscriminator = this.resourceShadowDiscriminator;
+        clone.squeezedAttributes = cloneSqueezedAttributes();
+        if (this.syncDelta != null) {
+            clone.syncDelta = this.syncDelta.clone();
+        }
+        clone.secondaryDelta = cloneDelta(this.secondaryDelta);
+        clone.wave = this.wave;
+        clone.synchronizationSource = this.synchronizationSource;
+    }
 
-	private Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> cloneSqueezedAttributes() {
-		if (squeezedAttributes == null) {
-			return null;
-		}
-		Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> clonedMap
-		= new HashMap<>();
-		Cloner<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> cloner = new Cloner<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>() {
-			@Override
-			public ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>> clone(ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>> original) {
-				return original.clone();
-			}
-		};
-		for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> entry: squeezedAttributes.entrySet()) {
-			clonedMap.put(entry.getKey(), entry.getValue().clone(cloner));
-		}
-		return clonedMap;
-	}
+    private Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> cloneSqueezedAttributes() {
+        if (squeezedAttributes == null) {
+            return null;
+        }
+        Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> clonedMap
+        = new HashMap<>();
+        Cloner<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> cloner = new Cloner<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>() {
+            @Override
+            public ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>> clone(ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>> original) {
+                return original.clone();
+            }
+        };
+        for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> entry: squeezedAttributes.entrySet()) {
+            clonedMap.put(entry.getKey(), entry.getValue().clone(cloner));
+        }
+        return clonedMap;
+    }
 
-	/**
-	 * Returns true if the projection has any value for specified attribute.
-	 */
-	public boolean hasValueForAttribute(QName attributeName) {
-		ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName);
-		if (getObjectNew() != null) {
-			PrismProperty<?> attrNew = getObjectNew().findProperty(attrPath);
-			if (attrNew != null && !attrNew.isEmpty()) {
-				return true;
-			}
-		}
-		return false;
-	}
+    /**
+     * Returns true if the projection has any value for specified attribute.
+     */
+    public boolean hasValueForAttribute(QName attributeName) {
+        ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName);
+        if (getObjectNew() != null) {
+            PrismProperty<?> attrNew = getObjectNew().findProperty(attrPath);
+            if (attrNew != null && !attrNew.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	private boolean hasValueForAttribute(QName attributeName, Collection<PrismPropertyValue<Construction>> acPpvSet) {
-		if (acPpvSet == null) {
-			return false;
-		}
-		for (PrismPropertyValue<Construction> acPpv: acPpvSet) {
-			Construction ac = acPpv.getValue();
-			if (ac.hasValueForAttribute(attributeName)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-    @Override
-	public void checkEncrypted() {
-		super.checkEncrypted();
-		if (syncDelta != null) {
-			CryptoUtil.checkEncrypted(syncDelta);
-		}
-		if (secondaryDelta != null) {
-			CryptoUtil.checkEncrypted(secondaryDelta);
-		}
-	}
+    private boolean hasValueForAttribute(QName attributeName, Collection<PrismPropertyValue<Construction>> acPpvSet) {
+        if (acPpvSet == null) {
+            return false;
+        }
+        for (PrismPropertyValue<Construction> acPpv: acPpvSet) {
+            Construction ac = acPpv.getValue();
+            if (ac.hasValueForAttribute(attributeName)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
-	public String getHumanReadableName() {
-		if (humanReadableName == null) {
-			StringBuilder sb = new StringBuilder();
-			sb.append("account(");
-			String humanReadableAccountIdentifier = getHumanReadableIdentifier();
-			if (StringUtils.isEmpty(humanReadableAccountIdentifier)) {
-				sb.append("no ID");
-			} else {
-				sb.append("ID ");
-				sb.append(humanReadableAccountIdentifier);
-			}
-			ResourceShadowDiscriminator discr = getResourceShadowDiscriminator();
-			if (discr != null) {
-				sb.append(", type '");
-				sb.append(discr.getIntent());
-				sb.append("', ");
-				if (discr.getOrder() != 0) {
-					sb.append("order ").append(discr.getOrder()).append(", ");
-				}
-			} else {
-				sb.append(" (no discriminator) ");
-			}
-			sb.append(getResource());
-			sb.append(")");
-			humanReadableName = sb.toString();
-		}
-		return humanReadableName;
-	}
+    public void checkEncrypted() {
+        super.checkEncrypted();
+        if (syncDelta != null) {
+            CryptoUtil.checkEncrypted(syncDelta);
+        }
+        if (secondaryDelta != null) {
+            CryptoUtil.checkEncrypted(secondaryDelta);
+        }
+    }
 
-	private String getHumanReadableIdentifier() {
-		PrismObject<ShadowType> object = getObjectNew();
-		if (object == null) {
-			object = getObjectOld();
-		}
-		if (object == null) {
-			object = getObjectCurrent();
-		}
-		if (object == null) {
-			return null;
-		}
-		if (object.canRepresent(ShadowType.class)) {
-			PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
-			Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
-			if (identifiers == null) {
-				return null;
-			}
-			StringBuilder sb = new StringBuilder();
-			Iterator<ResourceAttribute<?>> iterator = identifiers.iterator();
-			while (iterator.hasNext()) {
-				ResourceAttribute<?> id = iterator.next();
-				sb.append(id.toHumanReadableString());
-				if (iterator.hasNext()) {
-					sb.append(",");
-				}
-			}
-			return sb.toString();
-		} else {
-			return object.toString();
-		}
-	}
+    @Override
+    public String getHumanReadableName() {
+        if (humanReadableName == null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("account(");
+            String humanReadableAccountIdentifier = getHumanReadableIdentifier();
+            if (StringUtils.isEmpty(humanReadableAccountIdentifier)) {
+                sb.append("no ID");
+            } else {
+                sb.append("ID ");
+                sb.append(humanReadableAccountIdentifier);
+            }
+            ResourceShadowDiscriminator discr = getResourceShadowDiscriminator();
+            if (discr != null) {
+                sb.append(", type '");
+                sb.append(discr.getIntent());
+                sb.append("', ");
+                if (discr.getOrder() != 0) {
+                    sb.append("order ").append(discr.getOrder()).append(", ");
+                }
+            } else {
+                sb.append(" (no discriminator) ");
+            }
+            sb.append(getResource());
+            sb.append(")");
+            humanReadableName = sb.toString();
+        }
+        return humanReadableName;
+    }
+
+    private String getHumanReadableIdentifier() {
+        PrismObject<ShadowType> object = getObjectNew();
+        if (object == null) {
+            object = getObjectOld();
+        }
+        if (object == null) {
+            object = getObjectCurrent();
+        }
+        if (object == null) {
+            return null;
+        }
+        if (object.canRepresent(ShadowType.class)) {
+            PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
+            Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+            if (identifiers == null) {
+                return null;
+            }
+            StringBuilder sb = new StringBuilder();
+            Iterator<ResourceAttribute<?>> iterator = identifiers.iterator();
+            while (iterator.hasNext()) {
+                ResourceAttribute<?> id = iterator.next();
+                sb.append(id.toHumanReadableString());
+                if (iterator.hasNext()) {
+                    sb.append(",");
+                }
+            }
+            return sb.toString();
+        } else {
+            return object.toString();
+        }
+    }
 
     @Override
     public String debugDump(int indent) {
-    	return debugDump(indent, true);
+        return debugDump(indent, true);
     }
 
     public String debugDump(int indent, boolean showTriples) {
@@ -1271,40 +1271,40 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         sb.append(" ");
         sb.append(getResourceShadowDiscriminator());
         if (resource != null) {
-        	sb.append(" : ");
-        	sb.append(resource.getName().getOrig());
+            sb.append(" : ");
+            sb.append(resource.getName().getOrig());
         }
         sb.append("\n");
         SchemaDebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("OID: ").append(getOid());
         sb.append(", wave ").append(wave);
         if (fullShadow) {
-        	sb.append(", full");
+            sb.append(", full");
         } else {
-        	sb.append(", shadow");
+            sb.append(", shadow");
         }
         sb.append(", exists=").append(isExists);
         if (!shadowExistsInRepo) {
-        	sb.append(" (shadow not in repo)");
+            sb.append(" (shadow not in repo)");
         }
         sb.append(", assigned=").append(isAssignedOld).append("->").append(isAssigned);
         sb.append(", active=").append(isActive);
         sb.append(", legal=").append(isLegalOld).append("->").append(isLegal);
         sb.append(", recon=").append(doReconciliation);
-	    sb.append(", canProject=").append(canProject);
+        sb.append(", canProject=").append(canProject);
         sb.append(", syncIntent=").append(getSynchronizationIntent());
         sb.append(", decision=").append(synchronizationPolicyDecision);
         if (!isFresh()) {
-        	sb.append(", NOT FRESH");
+            sb.append(", NOT FRESH");
         }
         if (resourceShadowDiscriminator != null && resourceShadowDiscriminator.isTombstone()) {
-        	sb.append(", TOMBSTONE");
+            sb.append(", TOMBSTONE");
         }
         if (syncAbsoluteTrigger) {
-        	sb.append(", SYNC TRIGGER");
+            sb.append(", SYNC TRIGGER");
         }
         if (getIteration() != 0) {
-        	sb.append(", iteration=").append(getIteration()).append(" (").append(getIterationToken()).append(")");
+            sb.append(", iteration=").append(getIteration()).append(" (").append(getIterationToken()).append(")");
         }
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), getObjectOld(), indent + 1);
@@ -1329,57 +1329,57 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
         if (showTriples) {
 
-        	sb.append("\n");
-        	DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("constructionDeltaSetTriple"), constructionDeltaSetTriple, indent + 1);
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("constructionDeltaSetTriple"), constructionDeltaSetTriple, indent + 1);
 
-	        sb.append("\n");
-	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("outbound account construction"), outboundConstruction, indent + 1);
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("outbound account construction"), outboundConstruction, indent + 1);
 
-	        sb.append("\n");
-	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed attributes"), squeezedAttributes, indent + 1);
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed attributes"), squeezedAttributes, indent + 1);
 
-	        sb.append("\n");
-	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed associations"), squeezedAssociations, indent + 1);
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed associations"), squeezedAssociations, indent + 1);
 
-	        sb.append("\n");
-	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed auxiliary object classes"), squeezedAuxiliaryObjectClasses, indent + 1);
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed auxiliary object classes"), squeezedAuxiliaryObjectClasses, indent + 1);
 
-	        // This is just a debug thing
-//	        sb.append("\n");
-//	        DebugUtil.indentDebugDump(sb, indent);
-//	        sb.append("ACCOUNT dependencies\n");
-//	        sb.append(DebugUtil.debugDump(dependencies, indent + 1));
+            // This is just a debug thing
+//            sb.append("\n");
+//            DebugUtil.indentDebugDump(sb, indent);
+//            sb.append("ACCOUNT dependencies\n");
+//            sb.append(DebugUtil.debugDump(dependencies, indent + 1));
         }
 
         return sb.toString();
     }
 
     @Override
-	protected String getElementDefaultDesc() {
-		return "projection";
-	}
+    protected String getElementDefaultDesc() {
+        return "projection";
+    }
 
-	@Override
-	public String toString() {
-		return "LensProjectionContext(" + (getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName()) + ":" + getOid() +
-				( resource == null ? "" : " on " + resource ) + ")";
-	}
+    @Override
+    public String toString() {
+        return "LensProjectionContext(" + (getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName()) + ":" + getOid() +
+                ( resource == null ? "" : " on " + resource ) + ")";
+    }
 
-	/**
-	 * Return a human readable name of the projection object suitable for logs.
-	 */
-	public String toHumanReadableString() {
-		if (humanReadableString == null) {
-			if (resourceShadowDiscriminator == null) {
-				humanReadableString = "(null" + resource + ")";
-			} else if (resource != null) {
-				humanReadableString = "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resource + ")";
-			} else {
-				humanReadableString = "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resourceShadowDiscriminator.getResourceOid() + ")";
-			}
-		}
-		return humanReadableString;
-	}
+    /**
+     * Return a human readable name of the projection object suitable for logs.
+     */
+    public String toHumanReadableString() {
+        if (humanReadableString == null) {
+            if (resourceShadowDiscriminator == null) {
+                humanReadableString = "(null" + resource + ")";
+            } else if (resource != null) {
+                humanReadableString = "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resource + ")";
+            } else {
+                humanReadableString = "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resourceShadowDiscriminator.getResourceOid() + ")";
+            }
+        }
+        return humanReadableString;
+    }
 
     public String getHumanReadableKind() {
         if (resourceShadowDiscriminator == null) {
@@ -1388,48 +1388,48 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return getKindValue(resourceShadowDiscriminator.getKind());
     }
 
-	private String getKindValue(ShadowKindType kind) {
-		if (kind == null) {
-			return "null";
-		}
-		return kind.value();
-	}
+    private String getKindValue(ShadowKindType kind) {
+        if (kind == null) {
+            return "null";
+        }
+        return kind.value();
+    }
 
-	@Override
-	protected String getElementDesc() {
-		if (resourceShadowDiscriminator == null) {
+    @Override
+    protected String getElementDesc() {
+        if (resourceShadowDiscriminator == null) {
             return "shadow";
         }
         return getKindValue(resourceShadowDiscriminator.getKind());
-	}
+    }
 
-	void addToPrismContainer(PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer, LensContext.ExportType exportType) throws SchemaException {
+    void addToPrismContainer(PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer, LensContext.ExportType exportType) throws SchemaException {
         LensProjectionContextType lensProjectionContextType = lensProjectionContextTypeContainer.createNewValue().asContainerable();
         super.storeIntoLensElementContextType(lensProjectionContextType, exportType);
-		lensProjectionContextType.setWave(wave);
-		lensProjectionContextType.setResourceShadowDiscriminator(resourceShadowDiscriminator != null ?
-				resourceShadowDiscriminator.toResourceShadowDiscriminatorType() : null);
-		lensProjectionContextType.setFullShadow(fullShadow);
-		lensProjectionContextType.setIsExists(isExists);
-		lensProjectionContextType.setSynchronizationPolicyDecision(synchronizationPolicyDecision != null ? synchronizationPolicyDecision.toSynchronizationPolicyDecisionType() : null);
-		lensProjectionContextType.setDoReconciliation(doReconciliation);
-		lensProjectionContextType.setSynchronizationSituationDetected(synchronizationSituationDetected);
-		lensProjectionContextType.setSynchronizationSituationResolved(synchronizationSituationResolved);
+        lensProjectionContextType.setWave(wave);
+        lensProjectionContextType.setResourceShadowDiscriminator(resourceShadowDiscriminator != null ?
+                resourceShadowDiscriminator.toResourceShadowDiscriminatorType() : null);
+        lensProjectionContextType.setFullShadow(fullShadow);
+        lensProjectionContextType.setIsExists(isExists);
+        lensProjectionContextType.setSynchronizationPolicyDecision(synchronizationPolicyDecision != null ? synchronizationPolicyDecision.toSynchronizationPolicyDecisionType() : null);
+        lensProjectionContextType.setDoReconciliation(doReconciliation);
+        lensProjectionContextType.setSynchronizationSituationDetected(synchronizationSituationDetected);
+        lensProjectionContextType.setSynchronizationSituationResolved(synchronizationSituationResolved);
         if (exportType != LensContext.ExportType.MINIMAL) {
-	        lensProjectionContextType.setSyncDelta(syncDelta != null ? DeltaConvertor.toObjectDeltaType(syncDelta) : null);
-	        lensProjectionContextType
-			        .setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta) : null);
-	        lensProjectionContextType.setIsAssigned(isAssigned);
-	        lensProjectionContextType.setIsAssignedOld(isAssignedOld);
-	        lensProjectionContextType.setIsActive(isActive);
-	        lensProjectionContextType.setIsLegal(isLegal);
-	        lensProjectionContextType.setIsLegalOld(isLegalOld);
-	        if (exportType != LensContext.ExportType.REDUCED && projectionSecurityPolicy != null) {
-	        	ObjectReferenceType secRef = new ObjectReferenceType();
-	        	secRef.asReferenceValue().setObject(projectionSecurityPolicy.asPrismObject());
-				lensProjectionContextType.setProjectionSecurityPolicyRef(secRef);
-	        }
-	        lensProjectionContextType.setSyncAbsoluteTrigger(syncAbsoluteTrigger);
+            lensProjectionContextType.setSyncDelta(syncDelta != null ? DeltaConvertor.toObjectDeltaType(syncDelta) : null);
+            lensProjectionContextType
+                    .setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta) : null);
+            lensProjectionContextType.setIsAssigned(isAssigned);
+            lensProjectionContextType.setIsAssignedOld(isAssignedOld);
+            lensProjectionContextType.setIsActive(isActive);
+            lensProjectionContextType.setIsLegal(isLegal);
+            lensProjectionContextType.setIsLegalOld(isLegalOld);
+            if (exportType != LensContext.ExportType.REDUCED && projectionSecurityPolicy != null) {
+                ObjectReferenceType secRef = new ObjectReferenceType();
+                secRef.asReferenceValue().setObject(projectionSecurityPolicy.asPrismObject());
+                lensProjectionContextType.setProjectionSecurityPolicyRef(secRef);
+            }
+            lensProjectionContextType.setSyncAbsoluteTrigger(syncAbsoluteTrigger);
         }
     }
 
@@ -1440,23 +1440,23 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             throw new SystemException("Object type class is undefined in LensProjectionContextType");
         }
         ResourceShadowDiscriminator resourceShadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(
-        		projectionContextType.getResourceShadowDiscriminator(), false);
+                projectionContextType.getResourceShadowDiscriminator(), false);
 
         LensProjectionContext projectionContext = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
 
         projectionContext.retrieveFromLensElementContextType(projectionContextType, task, result);
         if (projectionContextType.getSyncDelta() != null) {
-			projectionContext.syncDelta = DeltaConvertor.createObjectDelta(projectionContextType.getSyncDelta(), lensContext.getPrismContext());
+            projectionContext.syncDelta = DeltaConvertor.createObjectDelta(projectionContextType.getSyncDelta(), lensContext.getPrismContext());
         } else {
-			projectionContext.syncDelta = null;
-		}
-		ObjectDeltaType secondaryDeltaType = projectionContextType.getSecondaryDelta();
-		projectionContext.secondaryDelta = secondaryDeltaType != null ?
-				DeltaConvertor.createObjectDelta(secondaryDeltaType, lensContext.getPrismContext()) : null;
-		ObjectType object = projectionContextType.getObjectNew() != null ? projectionContextType.getObjectNew() : projectionContextType.getObjectOld();
-		projectionContext.fixProvisioningTypeInDelta(projectionContext.secondaryDelta, object, task, result);
+            projectionContext.syncDelta = null;
+        }
+        ObjectDeltaType secondaryDeltaType = projectionContextType.getSecondaryDelta();
+        projectionContext.secondaryDelta = secondaryDeltaType != null ?
+                DeltaConvertor.createObjectDelta(secondaryDeltaType, lensContext.getPrismContext()) : null;
+        ObjectType object = projectionContextType.getObjectNew() != null ? projectionContextType.getObjectNew() : projectionContextType.getObjectOld();
+        projectionContext.fixProvisioningTypeInDelta(projectionContext.secondaryDelta, object, task, result);
 
-		projectionContext.wave = projectionContextType.getWave() != null ? projectionContextType.getWave() : 0;
+        projectionContext.wave = projectionContextType.getWave() != null ? projectionContextType.getWave() : 0;
         projectionContext.fullShadow = projectionContextType.isFullShadow() != null ? projectionContextType.isFullShadow() : false;
         projectionContext.isAssigned = projectionContextType.isIsAssigned() != null ? projectionContextType.isIsAssigned() : false;
         projectionContext.isAssignedOld = projectionContextType.isIsAssignedOld() != null ? projectionContextType.isIsAssignedOld() : false;
@@ -1470,7 +1470,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         projectionContext.synchronizationSituationResolved = projectionContextType.getSynchronizationSituationResolved();
         ObjectReferenceType projectionSecurityPolicyRef = projectionContextType.getProjectionSecurityPolicyRef();
         if (projectionSecurityPolicyRef != null) {
-        	projectionContext.projectionSecurityPolicy = (SecurityPolicyType) projectionSecurityPolicyRef.getObjectable();
+            projectionContext.projectionSecurityPolicy = (SecurityPolicyType) projectionSecurityPolicyRef.getObjectable();
         }
         projectionContext.syncAbsoluteTrigger = projectionContextType.isSyncAbsoluteTrigger();
 
@@ -1479,96 +1479,96 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     // determines whether full shadow is present, based on operation result got from provisioning
     public void determineFullShadowFlag(PrismObject<ShadowType> loadedShadow) {
-    	ShadowType shadowType = loadedShadow.asObjectable();
-    	if (ShadowUtil.isDead(shadowType) || !ShadowUtil.isExists(shadowType)) {
-    		setFullShadow(false);
-    		return;
-    	}
-    	OperationResultType fetchResult = shadowType.getFetchResult();
+        ShadowType shadowType = loadedShadow.asObjectable();
+        if (ShadowUtil.isDead(shadowType) || !ShadowUtil.isExists(shadowType)) {
+            setFullShadow(false);
+            return;
+        }
+        OperationResultType fetchResult = shadowType.getFetchResult();
         if (fetchResult != null
                 && (fetchResult.getStatus() == OperationResultStatusType.PARTIAL_ERROR
                     || fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR)) {  // todo what about other kinds of status? [e.g. in-progress]
-           	setFullShadow(false);
+               setFullShadow(false);
         } else {
             setFullShadow(true);
         }
     }
 
-	public boolean isToBeArchived() {
-		return toBeArchived;
-	}
+    public boolean isToBeArchived() {
+        return toBeArchived;
+    }
 
-	public void setToBeArchived(boolean toBeArchived) {
-		this.toBeArchived = toBeArchived;
-	}
+    public void setToBeArchived(boolean toBeArchived) {
+        this.toBeArchived = toBeArchived;
+    }
 
-	public String getResourceOid() {
-		if (resource != null) {
-			return resource.getOid();
-		} else if (resourceShadowDiscriminator != null) {
-			return resourceShadowDiscriminator.getResourceOid();
-		} else {
-			return null;
-		}
-	}
+    public String getResourceOid() {
+        if (resource != null) {
+            return resource.getOid();
+        } else if (resourceShadowDiscriminator != null) {
+            return resourceShadowDiscriminator.getResourceOid();
+        } else {
+            return null;
+        }
+    }
 
-	public ResourceObjectVolatilityType getVolatility() throws SchemaException {
-		RefinedObjectClassDefinition structuralObjectClassDefinition = getStructuralObjectClassDefinition();
-		if (structuralObjectClassDefinition == null) {
-			return null;
-		}
-		return structuralObjectClassDefinition.getVolatility();
-	}
+    public ResourceObjectVolatilityType getVolatility() throws SchemaException {
+        RefinedObjectClassDefinition structuralObjectClassDefinition = getStructuralObjectClassDefinition();
+        if (structuralObjectClassDefinition == null) {
+            return null;
+        }
+        return structuralObjectClassDefinition.getVolatility();
+    }
 
-	public boolean hasPendingOperations() {
-		PrismObject<ShadowType> current = getObjectCurrent();
-		if (current == null) {
-			return false;
-		}
-		return !current.asObjectable().getPendingOperation().isEmpty();
-	}
+    public boolean hasPendingOperations() {
+        PrismObject<ShadowType> current = getObjectCurrent();
+        if (current == null) {
+            return false;
+        }
+        return !current.asObjectable().getPendingOperation().isEmpty();
+    }
 
-	@Override
-	public void forEachDelta(Consumer<ObjectDelta<ShadowType>> consumer) {
-		super.forEachDelta(consumer);
-		if (secondaryDelta != null) {
-			consumer.accept(secondaryDelta);
-		}
-	}
+    @Override
+    public void forEachDelta(Consumer<ObjectDelta<ShadowType>> consumer) {
+        super.forEachDelta(consumer);
+        if (secondaryDelta != null) {
+            consumer.accept(secondaryDelta);
+        }
+    }
 
-	public PolyString resolveNameIfKnown(Class<? extends ObjectType> objectClass, String oid) {
-		if (ResourceType.class.equals(objectClass)) {
-			if (resource != null && oid.equals(resource.getOid())) {
-				return PolyString.toPolyString(resource.getName());
-			}
-		} else if (ShadowType.class.equals(objectClass)) {
-			PrismObject<ShadowType> object = getObjectAny();
-			if (object != null && oid.equals(object.getOid())) {
-				if (object.getName() != null) {
-					return object.getName();
-				} else {
-					try {
-						return ShadowUtil.determineShadowName(object);
-					} catch (SchemaException e) {
-						LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine shadow name for {}", e, object);
-						return null;
-					}
-				}
-			}
-		}
-		return null;
-	}
+    public PolyString resolveNameIfKnown(Class<? extends ObjectType> objectClass, String oid) {
+        if (ResourceType.class.equals(objectClass)) {
+            if (resource != null && oid.equals(resource.getOid())) {
+                return PolyString.toPolyString(resource.getName());
+            }
+        } else if (ShadowType.class.equals(objectClass)) {
+            PrismObject<ShadowType> object = getObjectAny();
+            if (object != null && oid.equals(object.getOid())) {
+                if (object.getName() != null) {
+                    return object.getName();
+                } else {
+                    try {
+                        return ShadowUtil.determineShadowName(object);
+                    } catch (SchemaException e) {
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine shadow name for {}", e, object);
+                        return null;
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
-	public String getResourceName() {
-		ResourceType resource = getResource();
-		return resource != null ? PolyString.getOrig(resource.getName()) : getResourceOid();
-	}
+    public String getResourceName() {
+        ResourceType resource = getResource();
+        return resource != null ? PolyString.getOrig(resource.getName()) : getResourceOid();
+    }
 
-	public boolean isSynchronizationSource() {
-		return synchronizationSource;
-	}
+    public boolean isSynchronizationSource() {
+        return synchronizationSource;
+    }
 
-	public void setSynchronizationSource(boolean synchronizationSource) {
-		this.synchronizationSource = synchronizationSource;
-	}
+    public void setSynchronizationSource(boolean synchronizationSource) {
+        this.synchronizationSource = synchronizationSource;
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -70,408 +70,408 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  */
 public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implements Popupable{
 
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 1L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ObjectPolicyPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectPolicyPanel.class);
 
-	private static final String DOT_CLASS = ObjectPolicyPanel.class.getName() + ".";
+    private static final String DOT_CLASS = ObjectPolicyPanel.class.getName() + ".";
 
-	private static final String OPERATION_LOAD_ALL_OBJECT_TEMPLATES = DOT_CLASS + "loadObjectTemplates";
+    private static final String OPERATION_LOAD_ALL_OBJECT_TEMPLATES = DOT_CLASS + "loadObjectTemplates";
 
-	private static final String ID_FORM = "mainForm";
-	private static final String ID_TYPE = "type";
-	private static final String ID_SUBTYPE = "subtype";
-	private static final String ID_OBJECT_TEMPLATE = "objectTemplate";
-	private static final String ID_BUTTON_SAVE = "saveButton";
-	private static final String ID_BUTTON_CANCEL = "cancelButton";
-	private static final String ID_OID_BOUND = "oidBound";
-	private static final String ID_PROPERTY = "property";
-	private static final String ID_PROPERTY_PATH = "propertyPath";
-	private static final String ID_REPEATER = "repeater";
-	private static final String ID_TEXT_WRAPPER = "textWrapper";
-	private static final String ID_BUTTON_GROUP = "buttonGroup";
-	private static final String ID_BUTTON_REMOVE = "remove";
-	private static final String ID_BUTTON_ADD = "add";
-	private static final String ID_FEEDBACK = "feedback";
-	private static final String ID_CONFLICT_RESOLUTION_CONTAINER = "conflictResolutionContainer";
+    private static final String ID_FORM = "mainForm";
+    private static final String ID_TYPE = "type";
+    private static final String ID_SUBTYPE = "subtype";
+    private static final String ID_OBJECT_TEMPLATE = "objectTemplate";
+    private static final String ID_BUTTON_SAVE = "saveButton";
+    private static final String ID_BUTTON_CANCEL = "cancelButton";
+    private static final String ID_OID_BOUND = "oidBound";
+    private static final String ID_PROPERTY = "property";
+    private static final String ID_PROPERTY_PATH = "propertyPath";
+    private static final String ID_REPEATER = "repeater";
+    private static final String ID_TEXT_WRAPPER = "textWrapper";
+    private static final String ID_BUTTON_GROUP = "buttonGroup";
+    private static final String ID_BUTTON_REMOVE = "remove";
+    private static final String ID_BUTTON_ADD = "add";
+    private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_CONFLICT_RESOLUTION_CONTAINER = "conflictResolutionContainer";
 
-	private static final String ID_LABEL_SIZE = "col-md-4";
-	private static final String ID_INPUT_SIZE = "col-md-8";
+    private static final String ID_LABEL_SIZE = "col-md-4";
+    private static final String ID_INPUT_SIZE = "col-md-8";
 
-	private static final String CLASS_MULTI_VALUE = "multivalue-form";
-	private static final String OFFSET_CLASS = "col-md-offset-4";
+    private static final String CLASS_MULTI_VALUE = "multivalue-form";
+    private static final String OFFSET_CLASS = "col-md-offset-4";
 
-	private IModel<ObjectPolicyDialogDto> model;
+    private IModel<ObjectPolicyDialogDto> model;
 
-	public ObjectPolicyPanel(String id, final ObjectPolicyConfigurationType config) {
-		super(id);
+    public ObjectPolicyPanel(String id, final ObjectPolicyConfigurationType config) {
+        super(id);
 
-		model = new LoadableModel<ObjectPolicyDialogDto>(false) {
-			private static final long serialVersionUID = 1L;
+        model = new LoadableModel<ObjectPolicyDialogDto>(false) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected ObjectPolicyDialogDto load() {
-				return loadModel(config);
-			}
-		};
+            @Override
+            protected ObjectPolicyDialogDto load() {
+                return loadModel(config);
+            }
+        };
 
-		initLayout(config);
+        initLayout(config);
 
-		setOutputMarkupId(true);
-	}
+        setOutputMarkupId(true);
+    }
 
-	private ObjectPolicyDialogDto loadModel(ObjectPolicyConfigurationType config) {
-		ObjectPolicyDialogDto dto = new ObjectPolicyDialogDto(config, getPageBase());
-		return dto;
-	}
+    private ObjectPolicyDialogDto loadModel(ObjectPolicyConfigurationType config) {
+        ObjectPolicyDialogDto dto = new ObjectPolicyDialogDto(config, getPageBase());
+        return dto;
+    }
 
-	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-		return PageBase.createStringResourceStatic(this, resourceKey, objects);
-	}
+    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
+        return PageBase.createStringResourceStatic(this, resourceKey, objects);
+    }
 
-	public void initLayout(ObjectPolicyConfigurationType config) {
-		Form<?> form = new Form<>(ID_FORM);
-		form.setOutputMarkupId(true);
-		add(form);
+    public void initLayout(ObjectPolicyConfigurationType config) {
+        Form<?> form = new Form<>(ID_FORM);
+        form.setOutputMarkupId(true);
+        add(form);
 
-		DropDownFormGroup<QName> type = new DropDownFormGroup<>(ID_TYPE,
+        DropDownFormGroup<QName> type = new DropDownFormGroup<>(ID_TYPE,
             new PropertyModel<>(model, ObjectPolicyDialogDto.F_TYPE), createTypeChoiceList(),
-				new QNameObjectTypeChoiceRenderer(), createStringResource("ObjectPolicyDialog.type"), ID_LABEL_SIZE,
-				ID_INPUT_SIZE, false);
-		form.add(type);
-		type.getInput().setNullValid(config.getConflictResolution() != null);
-		type.getInput().setRequired(config.getConflictResolution() == null);           // traditional template entries still require object type
-		TextField<String> fieldSubtype = new TextField<>(ID_SUBTYPE, new PropertyModel<String>(model, ObjectPolicyDialogDto.F_SUBTYPE));
-		form.add(fieldSubtype);
-		form.add(fieldSubtype);
+                new QNameObjectTypeChoiceRenderer(), createStringResource("ObjectPolicyDialog.type"), ID_LABEL_SIZE,
+                ID_INPUT_SIZE, false);
+        form.add(type);
+        type.getInput().setNullValid(config.getConflictResolution() != null);
+        type.getInput().setRequired(config.getConflictResolution() == null);           // traditional template entries still require object type
+        TextField<String> fieldSubtype = new TextField<>(ID_SUBTYPE, new PropertyModel<String>(model, ObjectPolicyDialogDto.F_SUBTYPE));
+        form.add(fieldSubtype);
+        form.add(fieldSubtype);
 
-		DropDownFormGroup<ObjectTemplateConfigTypeReferenceDto> template = new DropDownFormGroup<>(ID_OBJECT_TEMPLATE,
+        DropDownFormGroup<ObjectTemplateConfigTypeReferenceDto> template = new DropDownFormGroup<>(ID_OBJECT_TEMPLATE,
             new PropertyModel<>(model, ObjectPolicyDialogDto.F_TEMPLATE_REF),
-				createObjectTemplateList(), new ChoiceableChoiceRenderer<>(),
-				createStringResource("ObjectPolicyDialog.template"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-		form.add(template);
-		template.getInput().setNullValid(config.getConflictResolution() != null);
-		template.getInput().setRequired(config.getConflictResolution() == null);
+                createObjectTemplateList(), new ChoiceableChoiceRenderer<>(),
+                createStringResource("ObjectPolicyDialog.template"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        form.add(template);
+        template.getInput().setNullValid(config.getConflictResolution() != null);
+        template.getInput().setRequired(config.getConflictResolution() == null);
 
-		WebMarkupContainer conflictResolutionContainer = new WebMarkupContainer(ID_CONFLICT_RESOLUTION_CONTAINER);
-		conflictResolutionContainer.setVisible(config.getConflictResolution() != null);
-		form.add(conflictResolutionContainer);
+        WebMarkupContainer conflictResolutionContainer = new WebMarkupContainer(ID_CONFLICT_RESOLUTION_CONTAINER);
+        conflictResolutionContainer.setVisible(config.getConflictResolution() != null);
+        form.add(conflictResolutionContainer);
 
-		ListView<PropertyConstraintType> repeater = new ListView<PropertyConstraintType>(ID_REPEATER,
+        ListView<PropertyConstraintType> repeater = new ListView<PropertyConstraintType>(ID_REPEATER,
             new PropertyModel<>(model, ObjectPolicyDialogDto.F_PROPERTY_LIST)) {
 
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void populateItem(final ListItem<PropertyConstraintType> item) {
-				WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
-				textWrapper.setOutputMarkupId(true);
-				textWrapper.add(AttributeAppender.prepend("class", new IModel<String>() {
+            @Override
+            protected void populateItem(final ListItem<PropertyConstraintType> item) {
+                WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
+                textWrapper.setOutputMarkupId(true);
+                textWrapper.add(AttributeAppender.prepend("class", new IModel<String>() {
 
-					private static final long serialVersionUID = 1L;
-					@Override
-					public String getObject() {
-						if (item.getIndex() > 0) {
-							return OFFSET_CLASS + " " + CLASS_MULTI_VALUE;
-						}
+                    private static final long serialVersionUID = 1L;
+                    @Override
+                    public String getObject() {
+                        if (item.getIndex() > 0) {
+                            return OFFSET_CLASS + " " + CLASS_MULTI_VALUE;
+                        }
 
-						return null;
-					}
-				}));
-				item.add(textWrapper);
-				
-				
-				ItemPathType itemPathType = (item.getModelObject() != null ) ? item.getModelObject().getPath() : null;
-				String pathToShow = itemPathType != null ? itemPathType.getItemPath().toString() : null;
-					
-				TextField<String> property = new TextField<>(ID_PROPERTY, Model.of(pathToShow));
-			
-				property.add(new AjaxFormComponentUpdatingBehavior("blur") {
-					private static final long serialVersionUID = 1L;
-					@Override
-					protected void onUpdate(AjaxRequestTarget target) {
-						Component component = this.getComponent();
-						String newValue = (String) component.getDefaultModelObject();
-						ItemPathType itemPathType = null;
-						if (StringUtils.isNotBlank(newValue)) {
-						  itemPathType = getPrismContext().itemPathParser().asItemPathType(newValue);
-						} 
-						item.getModelObject().setPath(itemPathType);
-					}
-				});
-				property.add(AttributeAppender.replace("placeholder",
-						createStringResource("ObjectPolicyDialog.property.placeholder")));
-				textWrapper.add(property);
-				
-				
+                        return null;
+                    }
+                }));
+                item.add(textWrapper);
 
-				CheckBox oidBound = new CheckBox(ID_OID_BOUND,
+
+                ItemPathType itemPathType = (item.getModelObject() != null ) ? item.getModelObject().getPath() : null;
+                String pathToShow = itemPathType != null ? itemPathType.getItemPath().toString() : null;
+
+                TextField<String> property = new TextField<>(ID_PROPERTY, Model.of(pathToShow));
+
+                property.add(new AjaxFormComponentUpdatingBehavior("blur") {
+                    private static final long serialVersionUID = 1L;
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        Component component = this.getComponent();
+                        String newValue = (String) component.getDefaultModelObject();
+                        ItemPathType itemPathType = null;
+                        if (StringUtils.isNotBlank(newValue)) {
+                          itemPathType = getPrismContext().itemPathParser().asItemPathType(newValue);
+                        }
+                        item.getModelObject().setPath(itemPathType);
+                    }
+                });
+                property.add(AttributeAppender.replace("placeholder",
+                        createStringResource("ObjectPolicyDialog.property.placeholder")));
+                textWrapper.add(property);
+
+
+
+                CheckBox oidBound = new CheckBox(ID_OID_BOUND,
                     new PropertyModel<>(item.getModel(), PropertyConstraintType.F_OID_BOUND.getLocalPart()));
-				
-				oidBound.add(AttributeModifier.replace("title",
-						createStringResource("ObjectPolicyDialog.label.oidBound.help")));
-								textWrapper.add(oidBound);
-				oidBound.add(new PropertyConstraintValidator(item.getModelObject()));
-				oidBound.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-				FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(oidBound));
-				textWrapper.add(feedback);
 
-				WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
-				buttonGroup.add(AttributeAppender.append("class", new IModel<String>() {
+                oidBound.add(AttributeModifier.replace("title",
+                        createStringResource("ObjectPolicyDialog.label.oidBound.help")));
+                                textWrapper.add(oidBound);
+                oidBound.add(new PropertyConstraintValidator(item.getModelObject()));
+                oidBound.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+                FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(oidBound));
+                textWrapper.add(feedback);
 
-					private static final long serialVersionUID = 1L;
-					@Override
-					public String getObject() {
-						if (item.getIndex() > 0) {
-							return CLASS_MULTI_VALUE;
-						}
+                WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
+                buttonGroup.add(AttributeAppender.append("class", new IModel<String>() {
 
-						return null;
-					}
-				}));
-				item.add(buttonGroup);
-				initButtons(buttonGroup, item);
-			}
+                    private static final long serialVersionUID = 1L;
+                    @Override
+                    public String getObject() {
+                        if (item.getIndex() > 0) {
+                            return CLASS_MULTI_VALUE;
+                        }
 
-		};
-		form.add(repeater);
+                        return null;
+                    }
+                }));
+                item.add(buttonGroup);
+                initButtons(buttonGroup, item);
+            }
 
-		AjaxSubmitButton cancel = new AjaxSubmitButton(ID_BUTTON_CANCEL,
-				createStringResource("ObjectPolicyDialog.button.cancel")) {
+        };
+        form.add(repeater);
 
-			private static final long serialVersionUID = 1L;
-			@Override
-			protected void onSubmit(AjaxRequestTarget target) {
-				cancelPerformed(target);
-			}
+        AjaxSubmitButton cancel = new AjaxSubmitButton(ID_BUTTON_CANCEL,
+                createStringResource("ObjectPolicyDialog.button.cancel")) {
 
-			@Override
-			protected void onError(AjaxRequestTarget target) {
-				cancelPerformed(target);
-			}
-		};
-		form.add(cancel);
+            private static final long serialVersionUID = 1L;
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                cancelPerformed(target);
+            }
 
-		AjaxSubmitButton save = new AjaxSubmitButton(ID_BUTTON_SAVE,
-				createStringResource("ObjectPolicyDialog.button.save")) {
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                cancelPerformed(target);
+            }
+        };
+        form.add(cancel);
 
-			private static final long serialVersionUID = 1L;
-			@Override
-			protected void onSubmit(AjaxRequestTarget target) {
-				savePerformed(target);
-			}
+        AjaxSubmitButton save = new AjaxSubmitButton(ID_BUTTON_SAVE,
+                createStringResource("ObjectPolicyDialog.button.save")) {
 
-			@Override
-			protected void onError(AjaxRequestTarget target) {
-				target.add(getPageBase().getFeedbackPanel());
-				target.add(form);
-			}
-		};
-		form.add(save);
-	}
+            private static final long serialVersionUID = 1L;
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                savePerformed(target);
+            }
 
-	private void initButtons(WebMarkupContainer buttonGroup, final ListItem<PropertyConstraintType> item) {
-		AjaxLink<Void> add = new AjaxLink<Void>(ID_BUTTON_ADD) {
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(getPageBase().getFeedbackPanel());
+                target.add(form);
+            }
+        };
+        form.add(save);
+    }
 
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				addPerformed(target);
-			}
-		};
-		
-		add.add(new VisibleEnableBehaviour() {
+    private void initButtons(WebMarkupContainer buttonGroup, final ListItem<PropertyConstraintType> item) {
+        AjaxLink<Void> add = new AjaxLink<Void>(ID_BUTTON_ADD) {
 
-			private static final long serialVersionUID = 1L;
-			@Override
-			public boolean isVisible() {
-				return isAddButtonVisible(item);
-			}
-		});
-		buttonGroup.add(add);
+            private static final long serialVersionUID = 1L;
 
-		AjaxLink<Void> remove = new AjaxLink<Void>(ID_BUTTON_REMOVE) {
-		
-			private static final long serialVersionUID = 1L;
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addPerformed(target);
+            }
+        };
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				removePerformed(target, item);
-			}
-		};
-		remove.add(new VisibleEnableBehaviour() {
+        add.add(new VisibleEnableBehaviour() {
 
-			private static final long serialVersionUID = 1L;
-			@Override
-			public boolean isVisible() {
-				return isRemoveButtonVisible();
-			}
-		});
-		buttonGroup.add(remove);
-	}
+            private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isVisible() {
+                return isAddButtonVisible(item);
+            }
+        });
+        buttonGroup.add(add);
 
-	private void addPerformed(AjaxRequestTarget target) {
-		List<PropertyConstraintType> list = model.getObject().getPropertyConstraintsList();
-		list.add(new PropertyConstraintType());
-	}
+        AjaxLink<Void> remove = new AjaxLink<Void>(ID_BUTTON_REMOVE) {
 
-	private void removePerformed(AjaxRequestTarget target, ListItem<PropertyConstraintType> item) {
-		List<PropertyConstraintType> list = model.getObject().getPropertyConstraintsList();
-		Iterator<PropertyConstraintType> iterator = list.iterator();
+            private static final long serialVersionUID = 1L;
 
-		while (iterator.hasNext()) {
-			PropertyConstraintType object = iterator.next();
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                removePerformed(target, item);
+            }
+        };
+        remove.add(new VisibleEnableBehaviour() {
 
-			if (object.equals(item.getModelObject())) {
-				iterator.remove();
-				break;
-			}
-		}
+            private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isVisible() {
+                return isRemoveButtonVisible();
+            }
+        });
+        buttonGroup.add(remove);
+    }
 
-		if (list.size() == 0) {
-			list.add(new PropertyConstraintType());
-		}
-	}
+    private void addPerformed(AjaxRequestTarget target) {
+        List<PropertyConstraintType> list = model.getObject().getPropertyConstraintsList();
+        list.add(new PropertyConstraintType());
+    }
 
-	protected boolean isAddButtonVisible(ListItem<PropertyConstraintType> item) {
-		int size = model.getObject().getPropertyConstraintsList().size();
-		if (size <= 1) {
-			return true;
-		}
-		if (item.getIndex() == size - 1) {
-			return true;
-		}
+    private void removePerformed(AjaxRequestTarget target, ListItem<PropertyConstraintType> item) {
+        List<PropertyConstraintType> list = model.getObject().getPropertyConstraintsList();
+        Iterator<PropertyConstraintType> iterator = list.iterator();
 
-		return false;
-	}
+        while (iterator.hasNext()) {
+            PropertyConstraintType object = iterator.next();
 
-	protected boolean isRemoveButtonVisible() {
-		int size = model.getObject().getPropertyConstraintsList().size();
-		if (size > 0) {
-			return true;
-		}
+            if (object.equals(item.getModelObject())) {
+                iterator.remove();
+                break;
+            }
+        }
 
-		return false;
-	}
+        if (list.size() == 0) {
+            list.add(new PropertyConstraintType());
+        }
+    }
 
-	protected IModel<List<ObjectTemplateConfigTypeReferenceDto>> createObjectTemplateList() {
-		return new IModel<List<ObjectTemplateConfigTypeReferenceDto>>() {
+    protected boolean isAddButtonVisible(ListItem<PropertyConstraintType> item) {
+        int size = model.getObject().getPropertyConstraintsList().size();
+        if (size <= 1) {
+            return true;
+        }
+        if (item.getIndex() == size - 1) {
+            return true;
+        }
 
-			private static final long serialVersionUID = 1L;
-			@Override
-			public List<ObjectTemplateConfigTypeReferenceDto> getObject() {
-				List<PrismObject<ObjectTemplateType>> templateList = null;
-				List<ObjectTemplateConfigTypeReferenceDto> list = new ArrayList<>();
-				OperationResult result = new OperationResult(OPERATION_LOAD_ALL_OBJECT_TEMPLATES);
-				Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ALL_OBJECT_TEMPLATES);
+        return false;
+    }
 
-				try {
-					templateList = getPageBase().getModelService().searchObjects(ObjectTemplateType.class,
-							null, null, task, result);
-					result.recomputeStatus();
-				} catch (Exception e) {
-					result.recordFatalError(getString("ObjectPolicyPanel.message.createObjectTemplateList.fatalError"), e);
-					LoggingUtils.logUnexpectedException(LOGGER, "Could not get list of object templates", e);
-					// TODO - show this error in GUI
-				}
+    protected boolean isRemoveButtonVisible() {
+        int size = model.getObject().getPropertyConstraintsList().size();
+        if (size > 0) {
+            return true;
+        }
 
-				if (templateList != null) {
-					ObjectTemplateType template;
-					for (PrismObject<ObjectTemplateType> obj : templateList) {
-						template = obj.asObjectable();
-						list.add(new ObjectTemplateConfigTypeReferenceDto(template.getOid(),
-								WebComponentUtil.getName(template)));
-					}
-				}
-				return list;
-			}
-		};
-	}
+        return false;
+    }
 
-	// TODO - to what types can be ObjectTemplate bound?
-	private IModel<List<QName>> createTypeChoiceList() {
-		return new IModel<List<QName>>() {
+    protected IModel<List<ObjectTemplateConfigTypeReferenceDto>> createObjectTemplateList() {
+        return new IModel<List<ObjectTemplateConfigTypeReferenceDto>>() {
 
-			private static final long serialVersionUID = 1L;
-			@Override
-			public List<QName> getObject() {
-				return WebComponentUtil.createFocusTypeList();
-			}
-		};
-	}
-	
-	private static class PropertyConstraintValidator implements IValidator<Boolean> {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public List<ObjectTemplateConfigTypeReferenceDto> getObject() {
+                List<PrismObject<ObjectTemplateType>> templateList = null;
+                List<ObjectTemplateConfigTypeReferenceDto> list = new ArrayList<>();
+                OperationResult result = new OperationResult(OPERATION_LOAD_ALL_OBJECT_TEMPLATES);
+                Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ALL_OBJECT_TEMPLATES);
+
+                try {
+                    templateList = getPageBase().getModelService().searchObjects(ObjectTemplateType.class,
+                            null, null, task, result);
+                    result.recomputeStatus();
+                } catch (Exception e) {
+                    result.recordFatalError(getString("ObjectPolicyPanel.message.createObjectTemplateList.fatalError"), e);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Could not get list of object templates", e);
+                    // TODO - show this error in GUI
+                }
+
+                if (templateList != null) {
+                    ObjectTemplateType template;
+                    for (PrismObject<ObjectTemplateType> obj : templateList) {
+                        template = obj.asObjectable();
+                        list.add(new ObjectTemplateConfigTypeReferenceDto(template.getOid(),
+                                WebComponentUtil.getName(template)));
+                    }
+                }
+                return list;
+            }
+        };
+    }
+
+    // TODO - to what types can be ObjectTemplate bound?
+    private IModel<List<QName>> createTypeChoiceList() {
+        return new IModel<List<QName>>() {
+
+            private static final long serialVersionUID = 1L;
+            @Override
+            public List<QName> getObject() {
+                return WebComponentUtil.createFocusTypeList();
+            }
+        };
+    }
+
+    private static class PropertyConstraintValidator implements IValidator<Boolean> {
 
         private static final long serialVersionUID = 1L;
-		
+
         private PropertyConstraintType propertyConstraintType;
-        
+
         private PropertyConstraintValidator(PropertyConstraintType propertyConstraint) {
             this.propertyConstraintType = propertyConstraint;
-            
+
         }
 
         @Override
         public void validate(IValidatable<Boolean> validatable) {
-        	
-        	if (propertyConstraintType == null) {
-        		return;
-        	}
-        	 
+
+            if (propertyConstraintType == null) {
+                return;
+            }
+
             if (BooleanUtils.isTrue(validatable.getValue()) && (propertyConstraintType == null || propertyConstraintType.getPath() == null)) {
-            	ValidationError err = new ValidationError();
-    			err.addKey("propertyConstraintValidator.error");
-    			validatable.error(err);
+                ValidationError err = new ValidationError();
+                err.addKey("propertyConstraintValidator.error");
+                validatable.error(err);
             }
 
         }
     }
 
 
-	private void cancelPerformed(AjaxRequestTarget target) {
-		getPageBase().hideMainPopup(target);
-	}
+    private void cancelPerformed(AjaxRequestTarget target) {
+        getPageBase().hideMainPopup(target);
+    }
 
-	protected void savePerformed(AjaxRequestTarget target) {
-		target.add(getPageBase().getFeedbackPanel());
-		getPageBase().hideMainPopup(target);
-	}
+    protected void savePerformed(AjaxRequestTarget target) {
+        target.add(getPageBase().getFeedbackPanel());
+        getPageBase().hideMainPopup(target);
+    }
 
-	public IModel<ObjectPolicyDialogDto> getModel() {
-		return model;
-	}
+    public IModel<ObjectPolicyDialogDto> getModel() {
+        return model;
+    }
 
-	@Override
-	public int getWidth() {
-		return 625;
-	}
+    @Override
+    public int getWidth() {
+        return 625;
+    }
 
-	@Override
-	public int getHeight() {
-		return 400;
-	}
+    @Override
+    public int getHeight() {
+        return 400;
+    }
 
-	@Override
-	public String getWidthUnit(){
-		return "px";
-	}
+    @Override
+    public String getWidthUnit(){
+        return "px";
+    }
 
-	@Override
-	public String getHeightUnit(){
-		return "px";
-	}
-	
-	@Override
-	public StringResourceModel getTitle() {
-		return createStringResource("ObjectPolicyDialog.label");
-	}
+    @Override
+    public String getHeightUnit(){
+        return "px";
+    }
 
-	@Override
-	public Component getComponent() {
-		return this;
-	}
+    @Override
+    public StringResourceModel getTitle() {
+        return createStringResource("ObjectPolicyDialog.label");
+    }
+
+    @Override
+    public Component getComponent() {
+        return this;
+    }
 }

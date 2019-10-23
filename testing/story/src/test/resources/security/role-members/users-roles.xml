@@ -2,132 +2,132 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
- 
+
 <objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-         
-	<role oid="c057bbd0-cafb-11e8-9525-cbcb025548f7">
-	    <name>End User</name>
-	    <authorization>
-	    	<name>autz-enduser-ui</name>
-	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#all</action>
-	    </authorization>
-	    <authorization>
-	      <name>autz-enduser-self-read</name>
-	      <description>
-	    		Allow to read all the properties of "self" object. I.e. every logged-in user can read
-	    		object that represent his own identity.
-	    	</description>
-	      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-	      <object>
-	         <special>self</special>
-	      </object>
-	    </authorization>    
-	    <authorization>
-	    	<name>autz-enduser-get-user</name>
-	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
-	    	<object>
-	    		<type>UserType</type>
-	    	</object>
-	    	<item>name</item>
-	    	<item>description</item>
-	    	<!-- No assignments read here -->
-	    	<item>fullName</item>
-	    	<!-- no roleMembershipRef here -->
-	    </authorization>
-	    <authorization>
-	    	<name>autz-enduser-search-user</name>
-	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>
-	    	<object>
-	    		<type>UserType</type>
-	    		<filter>
-		            <q:equal>
-		                <q:path>activation/effectiveStatus</q:path>
-		                <q:value>enabled</q:value>
-		            </q:equal>
-		    	</filter>
-	    	</object>
-	    	<item>name</item>
-	    	<!-- No assignments read here -->
-	    	<item>fullName</item>
-	    	<item>givenName</item>
-	    	<item>familyName</item>
-	    	<!-- no roleMembershipRef here -->
-	    </authorization>
-	    <authorization>
-	    	<name>autz-enduser-read-role</name>
-	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-	    	<object>
-	    		<type>RoleType</type>
-	    	</object>
-	    	<item>name</item>
-	    	<!-- No assignments read here -->
-	    	<!-- No inducements read here -->
-	    	<item>displayName</item>
-	    	<!-- no roleMembershipRef here -->
-	    </authorization>
-	</role>
-	
-	<role oid="78a76270-cafd-11e8-ba0c-4f7b8e8b4e57">
-	    <name>Governor</name>
-	    <inducement>
-	    	<targetRef oid="c057bbd0-cafb-11e8-9525-cbcb025548f7" type="RoleType"/> <!-- End user -->
-	    </inducement>
-	    <authorization>
-	    	<name>autz-governor-role-governance</name>
-	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-	    	<enforcementStrategy>maySkipOnSearch</enforcementStrategy>
-	    	<object>
-	    		<type>UserType</type>
-	    		<roleRelation>
-					<subjectRelation>org:owner</subjectRelation>
-					<subjectRelation>org:approver</subjectRelation>
-					<objectRelation>org:default</objectRelation>
-				</roleRelation>
-	    	</object>
-	    	<item>roleMembershipRef</item>
-	    </authorization>
-	</role>
-	
-	<role oid="31d5bdce-cafd-11e8-b41d-b373e6c564cb">
-	    <name>Pirate</name>
-	</role>
-	
-	<user oid="df294d8e-cafc-11e8-bb75-6b3aee37f782">
-		<name>guybrush</name>
-		<assignment>
-			<targetRef oid="c057bbd0-cafb-11e8-9525-cbcb025548f7" type="RoleType"/> <!-- End user -->
-		</assignment>
-		<givenName>Guybrush</givenName>
-		<familyName>Threepwood</familyName>
-		<fullName>Guybrush Threepwood</fullName>
-	</user>
-	
-	<user oid="e7b4bc54-cafc-11e8-a0e8-cf8010206061">
-		<name>elaine</name>
-		<assignment>
-			<targetRef oid="31d5bdce-cafd-11e8-b41d-b373e6c564cb" type="RoleType" relation="org:owner"/> <!-- Pirate -->
-		</assignment>
-		<assignment>
-			<targetRef oid="78a76270-cafd-11e8-ba0c-4f7b8e8b4e57" type="RoleType"/> <!-- Governor -->
-		</assignment>
-		<givenName>Elaine</givenName>
-		<familyName>Marley</familyName>
-		<fullName>Elaine Marley</fullName>
-	</user>
-	
-	<user oid="f034084e-cafc-11e8-a31f-f7b3274f7480">
-		<name>mancomb</name>
-		<assignment>
-			<targetRef oid="31d5bdce-cafd-11e8-b41d-b373e6c564cb" type="RoleType"/> <!-- Pirate -->
-		</assignment>
-		<givenName>Mancomb</givenName>
-		<familyName>Seepgood</familyName>
-		<fullName>Mancomb Seepgood</fullName>
-	</user>
+
+    <role oid="c057bbd0-cafb-11e8-9525-cbcb025548f7">
+        <name>End User</name>
+        <authorization>
+            <name>autz-enduser-ui</name>
+            <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#all</action>
+        </authorization>
+        <authorization>
+          <name>autz-enduser-self-read</name>
+          <description>
+                Allow to read all the properties of "self" object. I.e. every logged-in user can read
+                object that represent his own identity.
+            </description>
+          <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+          <object>
+             <special>self</special>
+          </object>
+        </authorization>
+        <authorization>
+            <name>autz-enduser-get-user</name>
+            <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+            <object>
+                <type>UserType</type>
+            </object>
+            <item>name</item>
+            <item>description</item>
+            <!-- No assignments read here -->
+            <item>fullName</item>
+            <!-- no roleMembershipRef here -->
+        </authorization>
+        <authorization>
+            <name>autz-enduser-search-user</name>
+            <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>
+            <object>
+                <type>UserType</type>
+                <filter>
+                    <q:equal>
+                        <q:path>activation/effectiveStatus</q:path>
+                        <q:value>enabled</q:value>
+                    </q:equal>
+                </filter>
+            </object>
+            <item>name</item>
+            <!-- No assignments read here -->
+            <item>fullName</item>
+            <item>givenName</item>
+            <item>familyName</item>
+            <!-- no roleMembershipRef here -->
+        </authorization>
+        <authorization>
+            <name>autz-enduser-read-role</name>
+            <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+            <object>
+                <type>RoleType</type>
+            </object>
+            <item>name</item>
+            <!-- No assignments read here -->
+            <!-- No inducements read here -->
+            <item>displayName</item>
+            <!-- no roleMembershipRef here -->
+        </authorization>
+    </role>
+
+    <role oid="78a76270-cafd-11e8-ba0c-4f7b8e8b4e57">
+        <name>Governor</name>
+        <inducement>
+            <targetRef oid="c057bbd0-cafb-11e8-9525-cbcb025548f7" type="RoleType"/> <!-- End user -->
+        </inducement>
+        <authorization>
+            <name>autz-governor-role-governance</name>
+            <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+            <enforcementStrategy>maySkipOnSearch</enforcementStrategy>
+            <object>
+                <type>UserType</type>
+                <roleRelation>
+                    <subjectRelation>org:owner</subjectRelation>
+                    <subjectRelation>org:approver</subjectRelation>
+                    <objectRelation>org:default</objectRelation>
+                </roleRelation>
+            </object>
+            <item>roleMembershipRef</item>
+        </authorization>
+    </role>
+
+    <role oid="31d5bdce-cafd-11e8-b41d-b373e6c564cb">
+        <name>Pirate</name>
+    </role>
+
+    <user oid="df294d8e-cafc-11e8-bb75-6b3aee37f782">
+        <name>guybrush</name>
+        <assignment>
+            <targetRef oid="c057bbd0-cafb-11e8-9525-cbcb025548f7" type="RoleType"/> <!-- End user -->
+        </assignment>
+        <givenName>Guybrush</givenName>
+        <familyName>Threepwood</familyName>
+        <fullName>Guybrush Threepwood</fullName>
+    </user>
+
+    <user oid="e7b4bc54-cafc-11e8-a0e8-cf8010206061">
+        <name>elaine</name>
+        <assignment>
+            <targetRef oid="31d5bdce-cafd-11e8-b41d-b373e6c564cb" type="RoleType" relation="org:owner"/> <!-- Pirate -->
+        </assignment>
+        <assignment>
+            <targetRef oid="78a76270-cafd-11e8-ba0c-4f7b8e8b4e57" type="RoleType"/> <!-- Governor -->
+        </assignment>
+        <givenName>Elaine</givenName>
+        <familyName>Marley</familyName>
+        <fullName>Elaine Marley</fullName>
+    </user>
+
+    <user oid="f034084e-cafc-11e8-a31f-f7b3274f7480">
+        <name>mancomb</name>
+        <assignment>
+            <targetRef oid="31d5bdce-cafd-11e8-b41d-b373e6c564cb" type="RoleType"/> <!-- Pirate -->
+        </assignment>
+        <givenName>Mancomb</givenName>
+        <familyName>Seepgood</familyName>
+        <fullName>Mancomb Seepgood</fullName>
+    </user>
 
 </objects>

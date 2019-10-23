@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -121,11 +121,13 @@ public class MethodUsageStatistics {
     public synchronized void update(ProfilingDataLog logEvent){
         long currentEst = logEvent.getEstimatedTime();
 
-        if(this.min > currentEst)
+        if(this.min > currentEst) {
             this.min = currentEst;
+        }
 
-        if(this.max < currentEst)
+        if(this.max < currentEst) {
             this.max = currentEst;
+        }
 
         calculateMeanIterative(currentEst);
         usageCount++;
@@ -154,8 +156,9 @@ public class MethodUsageStatistics {
         }
 
 
-        for(ProfilingDataLog l: this.slowestMethodList)
+        for(ProfilingDataLog l: this.slowestMethodList) {
             l.appendToLogger(afterTest);
+        }
     }
 
     private static String formatExecutionTime(long est){

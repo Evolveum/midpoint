@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.resources.content;
@@ -59,239 +59,239 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/resources/account", encoder = OnePageParameterEncoder.class, action = {
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
-				label = "PageAdminResources.auth.resourcesAll.label",
-				description = "PageAdminResources.auth.resourcesAll.description"),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ACCOUNT_URL,
-				label = "PageAccount.auth.resourcesAccount.label",
-				description = "PageAccount.auth.resourcesAccount.description")})
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
+                label = "PageAdminResources.auth.resourcesAll.label",
+                description = "PageAdminResources.auth.resourcesAll.description"),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ACCOUNT_URL,
+                label = "PageAccount.auth.resourcesAccount.label",
+                description = "PageAccount.auth.resourcesAccount.description")})
 public class PageAccount extends PageAdmin {
 
-	private static final long serialVersionUID = 1L;
-	
-	private static final Trace LOGGER = TraceManager.getTrace(PageAccount.class);
-	private static final String DOT_CLASS = PageAccount.class.getName() + ".";
-	private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
-	private static final String OPERATION_SAVE_ACCOUNT = DOT_CLASS + "saveAccount";
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_MAIN_FORM = "mainForm";
-	private static final String ID_SUMMARY = "summary";
-	private static final String ID_TAB_PANEL = "tabPanel";
-	private static final String ID_PROTECTED_MESSAGE = "protectedMessage";
-	private static final String ID_SAVE = "save";
-	private static final String ID_BACK = "back";
+    private static final Trace LOGGER = TraceManager.getTrace(PageAccount.class);
+    private static final String DOT_CLASS = PageAccount.class.getName() + ".";
+    private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
+    private static final String OPERATION_SAVE_ACCOUNT = DOT_CLASS + "saveAccount";
 
-	public static final String PARAMETER_SELECTED_TAB = "tab";
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_SUMMARY = "summary";
+    private static final String ID_TAB_PANEL = "tabPanel";
+    private static final String ID_PROTECTED_MESSAGE = "protectedMessage";
+    private static final String ID_SAVE = "save";
+    private static final String ID_BACK = "back";
 
-	private LoadableModel<ShadowWrapper> accountModel;
+    public static final String PARAMETER_SELECTED_TAB = "tab";
 
-	public PageAccount(final PageParameters parameters) {
-		accountModel = new LoadableModel<ShadowWrapper>(false) {
+    private LoadableModel<ShadowWrapper> accountModel;
 
-			private static final long serialVersionUID = 1L;
+    public PageAccount(final PageParameters parameters) {
+        accountModel = new LoadableModel<ShadowWrapper>(false) {
 
-			@Override
-			protected ShadowWrapper load() {
-				return loadAccount(parameters);
-			}
-		};
-	}
+            private static final long serialVersionUID = 1L;
 
-	@Override
-	protected void onInitialize(){
-		super.onInitialize();
-		initLayout();
-	}
+            @Override
+            protected ShadowWrapper load() {
+                return loadAccount(parameters);
+            }
+        };
+    }
 
-	private ShadowWrapper loadAccount(PageParameters parameters) {
-		Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
-		OperationResult result = task.getResult();
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
+        initLayout();
+    }
 
-		Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-				.item(ShadowType.F_RESOURCE_REF).resolve()
+    private ShadowWrapper loadAccount(PageParameters parameters) {
+        Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
+        OperationResult result = task.getResult();
+
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                .item(ShadowType.F_RESOURCE_REF).resolve()
                 .build();
-		StringValue oid = parameters != null ? parameters.get(OnePageParameterEncoder.PARAMETER) : null;
-		PrismObject<ShadowType> account = WebModelServiceUtils.loadObject(ShadowType.class, oid.toString(), options,
-				PageAccount.this, task, result);
+        StringValue oid = parameters != null ? parameters.get(OnePageParameterEncoder.PARAMETER) : null;
+        PrismObject<ShadowType> account = WebModelServiceUtils.loadObject(ShadowType.class, oid.toString(), options,
+                PageAccount.this, task, result);
 
-		if (account == null) {
-			getSession().error(getString("pageAccount.message.cantEditAccount"));
-			showResult(result);
-			throw new RestartResponseException(PageResources.class);
-		}
+        if (account == null) {
+            getSession().error(getString("pageAccount.message.cantEditAccount"));
+            showResult(result);
+            throw new RestartResponseException(PageResources.class);
+        }
 
-		PrismObjectWrapperFactory<ShadowType> owf = getRegistry().getObjectWrapperFactory(account.getDefinition());
-		WrapperContext context = new WrapperContext(task, result);
-		context.setShowEmpty(false);
-		ShadowWrapper wrapper = null;
-		try {
-			wrapper = (ShadowWrapper) owf.createObjectWrapper(account, ItemStatus.NOT_CHANGED, context);
-			//TODO: fetch result???
-		} catch (SchemaException e) {
-			LOGGER.error("Cannot create wrapper for shadow {}", account);
-			result.recordFatalError(getString("PageAccount.message.loadAccount.fatalError"));
-			throw new RestartResponseException(PageResources.class);
-		}
-		
-		return wrapper;
-	}
+        PrismObjectWrapperFactory<ShadowType> owf = getRegistry().getObjectWrapperFactory(account.getDefinition());
+        WrapperContext context = new WrapperContext(task, result);
+        context.setShowEmpty(false);
+        ShadowWrapper wrapper = null;
+        try {
+            wrapper = (ShadowWrapper) owf.createObjectWrapper(account, ItemStatus.NOT_CHANGED, context);
+            //TODO: fetch result???
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot create wrapper for shadow {}", account);
+            result.recordFatalError(getString("PageAccount.message.loadAccount.fatalError"));
+            throw new RestartResponseException(PageResources.class);
+        }
 
-	private void initLayout() {
-		add(new ShadowSummaryPanel(ID_SUMMARY, Model.of(accountModel.getObject().getObject().asObjectable()), this));
+        return wrapper;
+    }
 
-
-		WebMarkupContainer protectedMessage = new WebMarkupContainer(ID_PROTECTED_MESSAGE);
-		protectedMessage.add(new VisibleEnableBehaviour() {
-			
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isVisible() {
-				ShadowWrapper wrapper = accountModel.getObject();
-				return wrapper.isProtected();
-			}
-		});
-		add(protectedMessage);
-
-		com.evolveum.midpoint.web.component.form.Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
-		mainForm.setMultiPart(true);
-		add(mainForm);
-
-		mainForm.add(createTabsPanel(mainForm));
-
-		initButtons(mainForm);
-	}
+    private void initLayout() {
+        add(new ShadowSummaryPanel(ID_SUMMARY, Model.of(accountModel.getObject().getObject().asObjectable()), this));
 
 
-	private AjaxTabbedPanel<ITab> createTabsPanel(com.evolveum.midpoint.web.component.form.Form<PrismObjectWrapper<ShadowType>> form) {
-		List<ITab> tabs = new ArrayList<>();
+        WebMarkupContainer protectedMessage = new WebMarkupContainer(ID_PROTECTED_MESSAGE);
+        protectedMessage.add(new VisibleEnableBehaviour() {
 
-		tabs.add(new PanelTab(createStringResource("PageAccount.tab.details")) {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				return new ShadowDetailsTabPanel(panelId, form, (LoadableModel) accountModel);
-			}
-		});
+            @Override
+            public boolean isVisible() {
+                ShadowWrapper wrapper = accountModel.getObject();
+                return wrapper.isProtected();
+            }
+        });
+        add(protectedMessage);
 
-		AjaxTabbedPanel<ITab> tabPanel = new AjaxTabbedPanel<ITab>(ID_TAB_PANEL, tabs) {
+        com.evolveum.midpoint.web.component.form.Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        mainForm.setMultiPart(true);
+        add(mainForm);
 
-			private static final long serialVersionUID = 1L;
+        mainForm.add(createTabsPanel(mainForm));
 
-			@Override
-			protected void onTabChange(int index) {
-				updateBreadcrumbParameters(PARAMETER_SELECTED_TAB, index);
-			}
-		};
-		tabPanel.setOutputMarkupId(true);
-		return tabPanel;
-	}
+        initButtons(mainForm);
+    }
 
 
-	private void initButtons(Form mainForm) {
-		AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE, createStringResource("pageAccount.button.save")) {
+    private AjaxTabbedPanel<ITab> createTabsPanel(com.evolveum.midpoint.web.component.form.Form<PrismObjectWrapper<ShadowType>> form) {
+        List<ITab> tabs = new ArrayList<>();
 
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			protected void onSubmit(AjaxRequestTarget target) {
-				savePerformed(target);
-			}
+        tabs.add(new PanelTab(createStringResource("PageAccount.tab.details")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void onError(AjaxRequestTarget target) {
-				target.add(getFeedbackPanel());
-			}
-		};
-		save.add(new VisibleEnableBehaviour() {
-			
-			private static final long serialVersionUID = 1L;
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new ShadowDetailsTabPanel(panelId, form, (LoadableModel) accountModel);
+            }
+        });
 
-			@Override
-			public boolean isVisible() {
-				ShadowWrapper wrapper = accountModel.getObject();
-				return !wrapper.isProtected();
-			}
-		});
-		mainForm.add(save);
+        AjaxTabbedPanel<ITab> tabPanel = new AjaxTabbedPanel<ITab>(ID_TAB_PANEL, tabs) {
 
-		AjaxButton back = new AjaxButton(ID_BACK, createStringResource("pageAccount.button.back")) {
+            private static final long serialVersionUID = 1L;
 
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				cancelPerformed(target);
-			}
-		};
-		mainForm.add(back);
-	}
+            @Override
+            protected void onTabChange(int index) {
+                updateBreadcrumbParameters(PARAMETER_SELECTED_TAB, index);
+            }
+        };
+        tabPanel.setOutputMarkupId(true);
+        return tabPanel;
+    }
 
-	@Override
-	protected IModel<String> createPageTitleModel() {
-		return new LoadableModel<String>(false) {
 
-			private static final long serialVersionUID = 1L;
-			@Override
-			protected String load() {
-				PrismObject<ShadowType> account = accountModel.getObject().getObject();
-				String accName = WebComponentUtil.getName(account);
+    private void initButtons(Form mainForm) {
+        AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE, createStringResource("pageAccount.button.save")) {
 
-				ResourceType resource = (ResourceType) account.asObjectable().getResourceRef().asReferenceValue().getObject().asObjectable();
-				String name = WebComponentUtil.getName(resource);
+            private static final long serialVersionUID = 1L;
 
-				//TODO: refactor
-				return createStringResourceStatic(PageAccount.this, "PageAccount.title", accName, name).getString();
-			}
-		};
-	}
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                savePerformed(target);
+            }
 
-	private void savePerformed(AjaxRequestTarget target) {
-		LOGGER.debug("Saving account changes.");
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        save.add(new VisibleEnableBehaviour() {
 
-		OperationResult result = new OperationResult(OPERATION_SAVE_ACCOUNT);
-		try {
-			WebComponentUtil.revive(accountModel, getPrismContext());
-			PrismObjectWrapper<ShadowType> wrapper = accountModel.getObject();
-			ObjectDelta<ShadowType> delta = wrapper.getObjectDelta();
-			if (delta == null) {
-				return;
-			}
-			if (delta.getPrismContext() == null) {
-				getPrismContext().adopt(delta);
-			}
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Account delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
-			}
+            private static final long serialVersionUID = 1L;
 
-			if (delta.isEmpty()) {
-				return;
-			}
-			WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
+            @Override
+            public boolean isVisible() {
+                ShadowWrapper wrapper = accountModel.getObject();
+                return !wrapper.isProtected();
+            }
+        });
+        mainForm.add(save);
 
-			Task task = createSimpleTask(OPERATION_SAVE_ACCOUNT);
-			Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-			deltas.add(delta);
+        AjaxButton back = new AjaxButton(ID_BACK, createStringResource("pageAccount.button.back")) {
 
-			getModelService().executeChanges(deltas, null, task, result);
-			result.recomputeStatus();
-		} catch (Exception ex) {
-			result.recordFatalError(getString("PageAccount.message.savePerformed.fatalError"), ex);
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save account", ex);
-		}
+            private static final long serialVersionUID = 1L;
 
-		if (!result.isSuccess()) {
-			showResult(result);
-			target.add(getFeedbackPanel());
-		} else {
-			showResult(result);
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                cancelPerformed(target);
+            }
+        };
+        mainForm.add(back);
+    }
 
-			redirectBack();
-		}
-	}
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return new LoadableModel<String>(false) {
 
-	private void cancelPerformed(AjaxRequestTarget target) {
-		redirectBack();
-	}
+            private static final long serialVersionUID = 1L;
+            @Override
+            protected String load() {
+                PrismObject<ShadowType> account = accountModel.getObject().getObject();
+                String accName = WebComponentUtil.getName(account);
+
+                ResourceType resource = (ResourceType) account.asObjectable().getResourceRef().asReferenceValue().getObject().asObjectable();
+                String name = WebComponentUtil.getName(resource);
+
+                //TODO: refactor
+                return createStringResourceStatic(PageAccount.this, "PageAccount.title", accName, name).getString();
+            }
+        };
+    }
+
+    private void savePerformed(AjaxRequestTarget target) {
+        LOGGER.debug("Saving account changes.");
+
+        OperationResult result = new OperationResult(OPERATION_SAVE_ACCOUNT);
+        try {
+            WebComponentUtil.revive(accountModel, getPrismContext());
+            PrismObjectWrapper<ShadowType> wrapper = accountModel.getObject();
+            ObjectDelta<ShadowType> delta = wrapper.getObjectDelta();
+            if (delta == null) {
+                return;
+            }
+            if (delta.getPrismContext() == null) {
+                getPrismContext().adopt(delta);
+            }
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Account delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
+            }
+
+            if (delta.isEmpty()) {
+                return;
+            }
+            WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
+
+            Task task = createSimpleTask(OPERATION_SAVE_ACCOUNT);
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+            deltas.add(delta);
+
+            getModelService().executeChanges(deltas, null, task, result);
+            result.recomputeStatus();
+        } catch (Exception ex) {
+            result.recordFatalError(getString("PageAccount.message.savePerformed.fatalError"), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save account", ex);
+        }
+
+        if (!result.isSuccess()) {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        } else {
+            showResult(result);
+
+            redirectBack();
+        }
+    }
+
+    private void cancelPerformed(AjaxRequestTarget target) {
+        redirectBack();
+    }
 }

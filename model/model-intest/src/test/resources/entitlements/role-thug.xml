@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="10000000-0000-0000-0000-000000001607"
@@ -15,7 +15,7 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Thug</name>
     <description>
-    	Almost same as Brute role, but the expressions in inducements are different.
+        Almost same as Brute role, but the expressions in inducements are different.
         Also, there is single inducement with two associations.
     </description>
     <assignment>
@@ -42,14 +42,14 @@
                 <outbound>
                     <expression>
                         <associationTargetSearch>
-							<filter>
-								<q:equal>
-									<q:path>attributes/icfs:name</q:path>
-									<q:value>thug</q:value>
-								</q:equal>
-							</filter>
-							<searchStrategy>onResourceIfNeeded</searchStrategy>
-						</associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>attributes/icfs:name</q:path>
+                                    <q:value>thug</q:value>
+                                </q:equal>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                        </associationTargetSearch>
                     </expression>
                 </outbound>
             </association>
@@ -58,14 +58,14 @@
                 <outbound>
                     <expression>
                         <associationTargetSearch>
-							<filter>
-								<q:equal>
-									<q:path>attributes/icfs:name</q:path>
-									<q:value>thug-wannabe</q:value>
-								</q:equal>
-							</filter>
-							<searchStrategy>onResourceIfNeeded</searchStrategy>
-						</associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>attributes/icfs:name</q:path>
+                                    <q:value>thug-wannabe</q:value>
+                                </q:equal>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                        </associationTargetSearch>
                     </expression>
                 </outbound>
             </association>

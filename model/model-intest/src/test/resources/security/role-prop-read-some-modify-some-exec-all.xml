@@ -1,41 +1,41 @@
 <!--
   ~ Copyright (c) 2014-2015 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="00000000-0000-0000-0000-00000000ad08"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Prop Read Some Modify Some Exec All</name>    
+    <name>Prop Read Some Modify Some Exec All</name>
     <authorization>
-    	<name>a1</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<phase>request</phase>
-    	<item>c:name</item>
-    	<item>c:fullName</item>
-    	<item>c:activation/c:administrativeStatus</item>
-    	<item>c:assignment</item>
-    	<item>c:familyName</item>
+        <name>a1</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <phase>request</phase>
+        <item>c:name</item>
+        <item>c:fullName</item>
+        <item>c:activation/c:administrativeStatus</item>
+        <item>c:assignment</item>
+        <item>c:familyName</item>
     </authorization>
     <authorization>
-    	<name>a2</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<phase>execution</phase>
+        <name>a2</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <phase>execution</phase>
     </authorization>
     <authorization>
-    	<name>a3</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<phase>request</phase>
-    	<item>c:fullName</item>
-    	<item>c:additionalName</item>
-    	<item>c:description</item>
-    	<item>c:costCenter</item>
+        <name>a3</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>request</phase>
+        <item>c:fullName</item>
+        <item>c:additionalName</item>
+        <item>c:description</item>
+        <item>c:costCenter</item>
     </authorization>
     <authorization>
-    	<name>a4</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<phase>execution</phase>
+        <name>a4</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
     </authorization>
 </role>

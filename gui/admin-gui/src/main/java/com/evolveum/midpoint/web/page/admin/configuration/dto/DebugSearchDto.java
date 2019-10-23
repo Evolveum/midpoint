@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,7 +20,7 @@ import java.io.Serializable;
  * @author lazyman
  */
 public class DebugSearchDto implements Serializable, DebugDumpable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     public static final String F_TYPE = "type";
     public static final String F_RESOURCE = "resource";
@@ -78,19 +78,19 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
     }
 
     @Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("DebugSearchDto\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "type", type==null?null:type.toString(), indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "resource", resource==null?null:resource.toString(), indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "objectClass", objectClass==null? null : objectClass.toString(), indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "search", search, indent+1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("DebugSearchDto\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "type", type==null?null:type.toString(), indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resource", resource==null?null:resource.toString(), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "objectClass", objectClass==null? null : objectClass.toString(), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "search", search, indent+1);
+        return sb.toString();
+    }
 }

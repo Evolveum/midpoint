@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -77,7 +77,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String CLASS_DOT = TaskDto.class.getName() + ".";
     public static final String OPERATION_NEW = CLASS_DOT + "new";
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(TaskDto.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(TaskDto.class);
     public static final String F_MODEL_OPERATION_STATUS = "modelOperationStatus";
     public static final String F_SUBTASKS = "subtasks";
     public static final String F_NAME = "name";
@@ -87,72 +87,72 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String F_CATEGORY = "category";
     public static final String F_PARENT_TASK_NAME = "parentTaskName";
     public static final String F_PARENT_TASK_OID = "parentTaskOid";
-	public static final String F_OWNER_NAME = "ownerName";
-	public static final String F_OWNER_OID = "ownerOid";
+    public static final String F_OWNER_NAME = "ownerName";
+    public static final String F_OWNER_OID = "ownerOid";
     public static final String F_IDENTIFIER = "identifier";
     public static final String F_HANDLER_URI_LIST = "handlerUriList";
     public static final String F_TASK_OPERATION_RESULT = "taskOperationResult";
     public static final String F_PROGRESS_DESCRIPTION = "progressDescription";
     public static final String F_WORKER_THREADS = "workerThreads";
     public static final String F_OP_RESULT = "opResult";
-	public static final String F_RECURRING = "recurring";
-	public static final String F_BOUND = "bound";
-	public static final String F_INTERVAL = "interval";
-	public static final String F_CRON_SPECIFICATION = "cronSpecification";
-	public static final String F_NOT_START_BEFORE = "notStartBefore";
-	public static final String F_NOT_START_AFTER = "notStartAfter";
-	public static final String F_MISFIRE_ACTION = "misfireActionType";
-	public static final String F_EXECUTION_GROUP = "executionGroup";
-	public static final String F_GROUP_TASK_LIMIT = "groupTaskLimit";
-	public static final String F_OBJECT_REF_NAME = "objectRefName";
-	public static final String F_OBJECT_TYPE = "objectType";
-	public static final String F_OBJECT_QUERY = "objectQuery";
-	public static final String F_OBJECT_DELTA = "objectDelta";
-	public static final String F_SCRIPT = "script";
-	public static final String F_EXECUTE_IN_RAW_MODE = "executeInRawMode";
-	public static final String F_PROCESS_INSTANCE_ID = "processInstanceId";
-	public static final String F_HANDLER_DTO = "handlerDto";
-	public static final String F_IN_STAGE_BEFORE_LAST_ONE = "isInStageBeforeLastOne";
-	public static final long RUNS_CONTINUALLY = -1L;
-	public static final long ALREADY_PASSED = -2L;
-	public static final long NOW = 0L;
-	public static final String F_TRIGGERS = "triggers";
+    public static final String F_RECURRING = "recurring";
+    public static final String F_BOUND = "bound";
+    public static final String F_INTERVAL = "interval";
+    public static final String F_CRON_SPECIFICATION = "cronSpecification";
+    public static final String F_NOT_START_BEFORE = "notStartBefore";
+    public static final String F_NOT_START_AFTER = "notStartAfter";
+    public static final String F_MISFIRE_ACTION = "misfireActionType";
+    public static final String F_EXECUTION_GROUP = "executionGroup";
+    public static final String F_GROUP_TASK_LIMIT = "groupTaskLimit";
+    public static final String F_OBJECT_REF_NAME = "objectRefName";
+    public static final String F_OBJECT_TYPE = "objectType";
+    public static final String F_OBJECT_QUERY = "objectQuery";
+    public static final String F_OBJECT_DELTA = "objectDelta";
+    public static final String F_SCRIPT = "script";
+    public static final String F_EXECUTE_IN_RAW_MODE = "executeInRawMode";
+    public static final String F_PROCESS_INSTANCE_ID = "processInstanceId";
+    public static final String F_HANDLER_DTO = "handlerDto";
+    public static final String F_IN_STAGE_BEFORE_LAST_ONE = "isInStageBeforeLastOne";
+    public static final long RUNS_CONTINUALLY = -1L;
+    public static final long ALREADY_PASSED = -2L;
+    public static final long NOW = 0L;
+    public static final String F_TRIGGERS = "triggers";
 
-	@NotNull private final TaskType taskType;
+    @NotNull private final TaskType taskType;
 
-	private TaskEditableState currentEditableState = new TaskEditableState();
-	private TaskEditableState originalEditableState;
+    private TaskEditableState currentEditableState = new TaskEditableState();
+    private TaskEditableState originalEditableState;
 
-	// simple computed properties (optimization)
-	private List<String> handlerUriList;
-	private List<OperationResult> opResult;
-	private OperationResult taskOperationResult;
-	private ModelOperationStatusDto modelOperationStatusDto;
+    // simple computed properties (optimization)
+    private List<String> handlerUriList;
+    private List<OperationResult> opResult;
+    private OperationResult taskOperationResult;
+    private ModelOperationStatusDto modelOperationStatusDto;
 
-	// related objects
-	private TaskType parentTaskType;
-	private ObjectTypes objectRefType;
-	private String objectRefName;
-	private ObjectReferenceType objectRef;
+    // related objects
+    private TaskType parentTaskType;
+    private ObjectTypes objectRefType;
+    private String objectRefName;
+    private ObjectReferenceType objectRef;
 
-	private List<TaskDto> subtasks = new ArrayList<>();          // only persistent subtasks are here
-	private List<TaskDto> transientSubtasks = new ArrayList<>();        // transient ones are here
+    private List<TaskDto> subtasks = new ArrayList<>();          // only persistent subtasks are here
+    private List<TaskDto> transientSubtasks = new ArrayList<>();        // transient ones are here
 
-	private boolean subtasksLoaded;
+    private boolean subtasksLoaded;
 
-	// other
-	private List<InlineMenuItem> menuItems;
-	private HandlerDto handlerDto;
-	private List<EvaluatedTriggerGroupDto> triggers;            // initialized on demand
+    // other
+    private List<InlineMenuItem> menuItems;
+    private HandlerDto handlerDto;
+    private List<EvaluatedTriggerGroupDto> triggers;            // initialized on demand
 
-	private PageBase pageBase;
-	//region Construction
+    private PageBase pageBase;
+    //region Construction
 
-	// parentTaskBean can be filled-in for optimization purposes (MID-4238); but take care to provide it in a suitable form
-	// (e.g. with subtasks, if they are needed) - a conservative approach to this is implemented in fillInChildren
+    // parentTaskBean can be filled-in for optimization purposes (MID-4238); but take care to provide it in a suitable form
+    // (e.g. with subtasks, if they are needed) - a conservative approach to this is implemented in fillInChildren
     public TaskDto(@NotNull TaskType taskType, TaskType parentTaskBean, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService,
-			TaskManager taskManager, WorkflowManager workflowManager, TaskDtoProviderOptions options, boolean subtasksLoaded,
-			Task opTask, OperationResult parentResult, PageBase pageBase) throws SchemaException {
+            TaskManager taskManager, WorkflowManager workflowManager, TaskDtoProviderOptions options, boolean subtasksLoaded,
+            Task opTask, OperationResult parentResult, PageBase pageBase) throws SchemaException {
         Validate.notNull(modelService);
         Validate.notNull(taskService);
         Validate.notNull(modelInteractionService);
@@ -162,14 +162,14 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
         this.pageBase = pageBase;
         this.taskType = taskType;
-		this.currentEditableState.name = taskType.getName() != null ? taskType.getName().getOrig() : null;
-		this.currentEditableState.description = taskType.getDescription();
+        this.currentEditableState.name = taskType.getName() != null ? taskType.getName().getOrig() : null;
+        this.currentEditableState.description = taskType.getDescription();
 
-		this.currentEditableState.executionGroup = taskType.getExecutionConstraints() != null ? taskType.getExecutionConstraints().getGroup() : null;
-		this.currentEditableState.groupTaskLimit = taskType.getExecutionConstraints() != null ? taskType.getExecutionConstraints().getGroupTaskLimit() : null;
-		fillInScheduleAttributes(taskType);
+        this.currentEditableState.executionGroup = taskType.getExecutionConstraints() != null ? taskType.getExecutionConstraints().getGroup() : null;
+        this.currentEditableState.groupTaskLimit = taskType.getExecutionConstraints() != null ? taskType.getExecutionConstraints().getGroupTaskLimit() : null;
+        fillInScheduleAttributes(taskType);
 
-		this.subtasksLoaded = subtasksLoaded;
+        this.subtasksLoaded = subtasksLoaded;
 
         OperationResult thisOpResult = parentResult.createMinorSubresult(OPERATION_NEW);
         fillInHandlerUriList(taskType);
@@ -177,49 +177,49 @@ public class TaskDto extends Selectable implements InlineMenuable {
         fillInParentTaskAttributes(taskType, parentTaskBean, taskService, options, pageBase, opTask, thisOpResult);
         fillInOperationResultAttributes(taskType);
         if (options.isRetrieveModelContext()) {
-        	try {
-		        fillInModelContext(taskType, modelInteractionService, opTask, thisOpResult);
-	        } catch (CommonException | RuntimeException e) {
-		        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve model context for task {}", e, taskType);
-		        // TODO make sure that op result contains the error (in common cases it is there)
-	        }
+            try {
+                fillInModelContext(taskType, modelInteractionService, opTask, thisOpResult);
+            } catch (CommonException | RuntimeException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve model context for task {}", e, taskType);
+                // TODO make sure that op result contains the error (in common cases it is there)
+            }
         }
         thisOpResult.computeStatusIfUnknown();
 
         fillFromExtension();
 
         try {
-	        fillInChildren(taskType, modelService, taskService, modelInteractionService, taskManager, workflowManager, options,
-			        opTask, parentResult, pageBase);
+            fillInChildren(taskType, modelService, taskService, modelInteractionService, taskManager, workflowManager, options,
+                    opTask, parentResult, pageBase);
         } catch (CommonException | RuntimeException e) {
-	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve children task information for task {}", e, taskType);
-	        // TODO make sure that op result contains the error (in common cases it is there)
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve children task information for task {}", e, taskType);
+            // TODO make sure that op result contains the error (in common cases it is there)
         }
 
-		if (options.isCreateHandlerDto()) {
-			handlerDto = HandlerDtoFactory.instance().createDtoForTask(this, pageBase, opTask, thisOpResult);
-		} else {
-			handlerDto = new HandlerDto(this);		// just to avoid NPEs
-		}
-		currentEditableState.handlerSpecificState = handlerDto.getEditableState();
+        if (options.isCreateHandlerDto()) {
+            handlerDto = HandlerDtoFactory.instance().createDtoForTask(this, pageBase, opTask, thisOpResult);
+        } else {
+            handlerDto = new HandlerDto(this);        // just to avoid NPEs
+        }
+        currentEditableState.handlerSpecificState = handlerDto.getEditableState();
 
-		originalEditableState = currentEditableState.clone();
+        originalEditableState = currentEditableState.clone();
     }
 
-	private void fillInChildren(@NotNull TaskType taskType, ModelService modelService, TaskService taskService,
-			ModelInteractionService modelInteractionService, TaskManager taskManager, WorkflowManager workflowManager,
-			TaskDtoProviderOptions options, Task opTask, OperationResult parentResult, PageBase pageBase)
-			throws SchemaException {
-		TaskType thisTaskWithChildren = null;
-		for (TaskType child : TaskTypeUtil.getResolvedSubtasks(taskType)) {
-			TaskDto childTaskDto = new TaskDto(child, thisTaskWithChildren, modelService, taskService, modelInteractionService,
-					taskManager, workflowManager, options, false, opTask, parentResult, pageBase);
-			addChildTaskDto(childTaskDto);
-			thisTaskWithChildren = childTaskDto.parentTaskType;     // to avoid repeated reads
-		}
-	}
+    private void fillInChildren(@NotNull TaskType taskType, ModelService modelService, TaskService taskService,
+            ModelInteractionService modelInteractionService, TaskManager taskManager, WorkflowManager workflowManager,
+            TaskDtoProviderOptions options, Task opTask, OperationResult parentResult, PageBase pageBase)
+            throws SchemaException {
+        TaskType thisTaskWithChildren = null;
+        for (TaskType child : TaskTypeUtil.getResolvedSubtasks(taskType)) {
+            TaskDto childTaskDto = new TaskDto(child, thisTaskWithChildren, modelService, taskService, modelInteractionService,
+                    taskManager, workflowManager, options, false, opTask, parentResult, pageBase);
+            addChildTaskDto(childTaskDto);
+            thisTaskWithChildren = childTaskDto.parentTaskType;     // to avoid repeated reads
+        }
+    }
 
-	@Override
+    @Override
     public List<InlineMenuItem> getMenuItems() {
         if (menuItems == null) {
             menuItems = new ArrayList<>();
@@ -254,69 +254,69 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     private void fillInScheduleAttributes(TaskType taskType) {
-		this.currentEditableState.recurring = taskType.getRecurrence() == TaskRecurrenceType.RECURRING;
-		this.currentEditableState.bound = taskType.getBinding() == TaskBindingType.TIGHT;
-		this.currentEditableState.threadStopActionType = taskType.getThreadStopAction();
-		if (taskType.getSchedule() != null) {
-			currentEditableState.interval = taskType.getSchedule().getInterval();
-			currentEditableState.cronSpecification = taskType.getSchedule().getCronLikePattern();
+        this.currentEditableState.recurring = taskType.getRecurrence() == TaskRecurrenceType.RECURRING;
+        this.currentEditableState.bound = taskType.getBinding() == TaskBindingType.TIGHT;
+        this.currentEditableState.threadStopActionType = taskType.getThreadStopAction();
+        if (taskType.getSchedule() != null) {
+            currentEditableState.interval = taskType.getSchedule().getInterval();
+            currentEditableState.cronSpecification = taskType.getSchedule().getCronLikePattern();
             if (taskType.getSchedule().getMisfireAction() == null){
-				currentEditableState.misfireActionType = MisfireActionType.EXECUTE_IMMEDIATELY;
+                currentEditableState.misfireActionType = MisfireActionType.EXECUTE_IMMEDIATELY;
             } else {
-				currentEditableState.misfireActionType = taskType.getSchedule().getMisfireAction();
+                currentEditableState.misfireActionType = taskType.getSchedule().getMisfireAction();
             }
-			currentEditableState.notStartBefore = MiscUtil.asDate(taskType.getSchedule().getEarliestStartTime());
-			currentEditableState.notStartAfter = MiscUtil.asDate(taskType.getSchedule().getLatestStartTime());
+            currentEditableState.notStartBefore = MiscUtil.asDate(taskType.getSchedule().getEarliestStartTime());
+            currentEditableState.notStartAfter = MiscUtil.asDate(taskType.getSchedule().getLatestStartTime());
         }
     }
 
     private void fillInObjectRefAttributes(TaskType taskType, TaskDtoProviderOptions options, PageBase pageBase, Task opTask, OperationResult thisOpResult) {
         if (taskType.getObjectRef() != null) {
-			if (taskType.getObjectRef().getType() != null) {
-				this.objectRefType = ObjectTypes.getObjectTypeFromTypeQName(taskType.getObjectRef().getType());
-			}
-			if (options.isResolveObjectRef()) {
-				this.objectRefName = getTaskObjectName(taskType, pageBase, opTask, thisOpResult);
-			}
-			this.objectRef = taskType.getObjectRef();
-		}
+            if (taskType.getObjectRef().getType() != null) {
+                this.objectRefType = ObjectTypes.getObjectTypeFromTypeQName(taskType.getObjectRef().getType());
+            }
+            if (options.isResolveObjectRef()) {
+                this.objectRefName = getTaskObjectName(taskType, pageBase, opTask, thisOpResult);
+            }
+            this.objectRef = taskType.getObjectRef();
+        }
     }
 
     public String getTaskObjectName(TaskType taskType, PageBase pageBase, Task opTask, OperationResult thisOpResult) {
         OperationResult currentResult;
         ObjectReferenceType objectRef;
-	    if (false /*taskType.getApprovalContext() != null*/) {
-	    	// For workflow-related tasks the task object might not be created yet (MID-4512). The simplest way
-		    // of avoiding displaying the error is to use a separate operation result.
-		    currentResult = new OperationResult(TaskDto.class.getName() + ".getTaskObjectName");
-		    objectRef = null; // was: taskType.getApprovalContext().getObjectRefOrClone();  // here should be the name present (important for objects that are to be created)
-	    } else {
-	    	currentResult = thisOpResult;
-	    	objectRef = null;
-	    }
-	    if (objectRef == null) {            // either not a workflow task, or wfc.objectRef does not exist
-	    	objectRef = taskType.getObjectRef();
-	    }
-	    return WebModelServiceUtils.resolveReferenceName(objectRef, pageBase, opTask, currentResult);
+        if (false /*taskType.getApprovalContext() != null*/) {
+            // For workflow-related tasks the task object might not be created yet (MID-4512). The simplest way
+            // of avoiding displaying the error is to use a separate operation result.
+            currentResult = new OperationResult(TaskDto.class.getName() + ".getTaskObjectName");
+            objectRef = null; // was: taskType.getApprovalContext().getObjectRefOrClone();  // here should be the name present (important for objects that are to be created)
+        } else {
+            currentResult = thisOpResult;
+            objectRef = null;
+        }
+        if (objectRef == null) {            // either not a workflow task, or wfc.objectRef does not exist
+            objectRef = taskType.getObjectRef();
+        }
+        return WebModelServiceUtils.resolveReferenceName(objectRef, pageBase, opTask, currentResult);
     }
 
     private void fillInParentTaskAttributes(TaskType taskType,
-		    TaskType parentTaskBean, TaskService taskService,
-		    TaskDtoProviderOptions options, PageBase pageBase, Task operationTask,
-		    OperationResult thisOpResult) {
+            TaskType parentTaskBean, TaskService taskService,
+            TaskDtoProviderOptions options, PageBase pageBase, Task operationTask,
+            OperationResult thisOpResult) {
         if (options.isGetTaskParent() && taskType.getParent() != null) {
             try {
-            	// we assume parentTaskBean was fetched using correct options (see fillInChildren)
-	            if (parentTaskBean != null) {
-		            //System.out.println("Using cached task (id = " + taskType.getParent() + "); for " + taskType);
-		            parentTaskType = parentTaskBean;
-	            } else {
-		            Collection<SelectorOptions<GetOperationOptions>> getOptions = pageBase.getOperationOptionsBuilder()
-				            .item(TaskType.F_SUBTASK)
-				            .retrieve(options.isRetrieveSiblings() ? RetrieveOption.INCLUDE : RetrieveOption.EXCLUDE)
-				            .build();
-		            parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), getOptions, operationTask, thisOpResult).asObjectable();
-	            }
+                // we assume parentTaskBean was fetched using correct options (see fillInChildren)
+                if (parentTaskBean != null) {
+                    //System.out.println("Using cached task (id = " + taskType.getParent() + "); for " + taskType);
+                    parentTaskType = parentTaskBean;
+                } else {
+                    Collection<SelectorOptions<GetOperationOptions>> getOptions = pageBase.getOperationOptionsBuilder()
+                            .item(TaskType.F_SUBTASK)
+                            .retrieve(options.isRetrieveSiblings() ? RetrieveOption.INCLUDE : RetrieveOption.EXCLUDE)
+                            .build();
+                    parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), getOptions, operationTask, thisOpResult).asObjectable();
+                }
             } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | CommunicationException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve parent task for task {}", e, taskType.getOid());
             }
@@ -334,187 +334,187 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
     private void fillInModelContext(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws ObjectNotFoundException {
         ModelContext ctx = ModelContextUtil.unwrapModelContext(taskType.getModelOperationContext(), modelInteractionService, opTask, result);
-		if (ctx != null) {
-			modelOperationStatusDto = new ModelOperationStatusDto(ctx, modelInteractionService, opTask, result);
-		}
+        if (ctx != null) {
+            modelOperationStatusDto = new ModelOperationStatusDto(ctx, modelInteractionService, opTask, result);
+        }
     }
 
-	private void fillInWorkflowAttributes(TaskType taskType, ModelInteractionService modelInteractionService, WorkflowManager workflowManager,
-			PrismContext prismContext, Task opTask,
-			OperationResult thisOpResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+    private void fillInWorkflowAttributes(TaskType taskType, ModelInteractionService modelInteractionService, WorkflowManager workflowManager,
+            PrismContext prismContext, Task opTask,
+            OperationResult thisOpResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
-	}
+    }
 
 
-	public static TaskChangesDto createChangesToBeApproved(ObjectTreeDeltas<?> deltas, ModelInteractionService modelInteractionService,
-			PrismContext prismContext, ObjectReferenceType objectRef, Task opTask, OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
-		return createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "box-solid box-primary", deltas,
-				modelInteractionService, prismContext, objectRef, opTask, thisOpResult);
-	}
+    public static TaskChangesDto createChangesToBeApproved(ObjectTreeDeltas<?> deltas, ModelInteractionService modelInteractionService,
+            PrismContext prismContext, ObjectReferenceType objectRef, Task opTask, OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
+        return createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "box-solid box-primary", deltas,
+                modelInteractionService, prismContext, objectRef, opTask, thisOpResult);
+    }
 
-	private static TaskChangesDto createTaskChangesDto(String titleKey, String boxClassOverride, ObjectTreeDeltas deltas, ModelInteractionService modelInteractionService,
-			PrismContext prismContext, ObjectReferenceType objectRef, Task opTask, OperationResult result) throws SchemaException, ExpressionEvaluationException {
-		ObjectTreeDeltasType deltasType = ObjectTreeDeltas.toObjectTreeDeltasType(deltas);
-		Scene scene = SceneUtil.visualizeObjectTreeDeltas(deltasType, titleKey, prismContext, modelInteractionService, objectRef, opTask, result);
-		SceneDto sceneDto = new SceneDto(scene);
-		sceneDto.setBoxClassOverride(boxClassOverride);
-		return new TaskChangesDto(sceneDto);
-	}
+    private static TaskChangesDto createTaskChangesDto(String titleKey, String boxClassOverride, ObjectTreeDeltas deltas, ModelInteractionService modelInteractionService,
+            PrismContext prismContext, ObjectReferenceType objectRef, Task opTask, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+        ObjectTreeDeltasType deltasType = ObjectTreeDeltas.toObjectTreeDeltasType(deltas);
+        Scene scene = SceneUtil.visualizeObjectTreeDeltas(deltasType, titleKey, prismContext, modelInteractionService, objectRef, opTask, result);
+        SceneDto sceneDto = new SceneDto(scene);
+        sceneDto.setBoxClassOverride(boxClassOverride);
+        return new TaskChangesDto(sceneDto);
+    }
 
     private List<SceneDto> objectTreeDeltasToDeltaDtoList(ObjectTreeDeltasType deltas, PrismContext prismContext, ModelInteractionService modelInteractionService,
-						ObjectReferenceType objectRef, Task opTask, OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
+                        ObjectReferenceType objectRef, Task opTask, OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
         List<SceneDto> retval = new ArrayList<>();
-		if (deltas == null) {
-			return retval;
-		}
-		Scene wrapperScene = SceneUtil.visualizeObjectTreeDeltas(deltas, "", prismContext, modelInteractionService, objectRef, opTask, thisOpResult);
-		for (Scene scene : wrapperScene.getPartialScenes()) {
-			retval.add(new SceneDto(scene));
-		}
+        if (deltas == null) {
+            return retval;
+        }
+        Scene wrapperScene = SceneUtil.visualizeObjectTreeDeltas(deltas, "", prismContext, modelInteractionService, objectRef, opTask, thisOpResult);
+        for (Scene scene : wrapperScene.getPartialScenes()) {
+            retval.add(new SceneDto(scene));
+        }
         return retval;
     }
 
     //endregion
 
-	//region Getters and setters for read-write properties
+    //region Getters and setters for read-write properties
 
-	public String getName() {
-		return currentEditableState.name;
-	}
+    public String getName() {
+        return currentEditableState.name;
+    }
 
-	public void setName(String name) {
-		this.currentEditableState.name = name;
-	}
+    public void setName(String name) {
+        this.currentEditableState.name = name;
+    }
 
-	public String getDescription() {
-		return currentEditableState.description;
-	}
+    public String getDescription() {
+        return currentEditableState.description;
+    }
 
-	public void setDescription(String description) {
-		this.currentEditableState.description = description;
-	}
+    public void setDescription(String description) {
+        this.currentEditableState.description = description;
+    }
 
-	public boolean isRecurring() {
-		return currentEditableState.recurring;
-	}
+    public boolean isRecurring() {
+        return currentEditableState.recurring;
+    }
 
-	public void setRecurring(boolean recurring) {
-		this.currentEditableState.recurring = recurring;
-	}
+    public void setRecurring(boolean recurring) {
+        this.currentEditableState.recurring = recurring;
+    }
 
-	public boolean isBound() {
-		return currentEditableState.bound;
-	}
+    public boolean isBound() {
+        return currentEditableState.bound;
+    }
 
-	public void setBound(boolean bound) {
-		this.currentEditableState.bound = bound;
-	}
+    public void setBound(boolean bound) {
+        this.currentEditableState.bound = bound;
+    }
 
-	public Integer getInterval() {
-		return currentEditableState.interval;
-	}
+    public Integer getInterval() {
+        return currentEditableState.interval;
+    }
 
-	public void setInterval(Integer interval) {
-		this.currentEditableState.interval = interval;
-	}
+    public void setInterval(Integer interval) {
+        this.currentEditableState.interval = interval;
+    }
 
-	public String getCronSpecification() {
-		return currentEditableState.cronSpecification;
-	}
+    public String getCronSpecification() {
+        return currentEditableState.cronSpecification;
+    }
 
-	public void setCronSpecification(String cronSpecification) {
-		this.currentEditableState.cronSpecification = cronSpecification;
-	}
+    public void setCronSpecification(String cronSpecification) {
+        this.currentEditableState.cronSpecification = cronSpecification;
+    }
 
-	public Date getNotStartBefore() {
-		return currentEditableState.notStartBefore;
-	}
+    public Date getNotStartBefore() {
+        return currentEditableState.notStartBefore;
+    }
 
-	public void setNotStartBefore(Date notStartBefore) {
-		this.currentEditableState.notStartBefore = notStartBefore;
-	}
+    public void setNotStartBefore(Date notStartBefore) {
+        this.currentEditableState.notStartBefore = notStartBefore;
+    }
 
-	public Date getNotStartAfter() {
-		return currentEditableState.notStartAfter;
-	}
+    public Date getNotStartAfter() {
+        return currentEditableState.notStartAfter;
+    }
 
-	public void setNotStartAfter(Date notStartAfter) {
-		this.currentEditableState.notStartAfter = notStartAfter;
-	}
+    public void setNotStartAfter(Date notStartAfter) {
+        this.currentEditableState.notStartAfter = notStartAfter;
+    }
 
-	public MisfireActionType getMisfireActionType() {
-		return currentEditableState.misfireActionType;
-	}
+    public MisfireActionType getMisfireActionType() {
+        return currentEditableState.misfireActionType;
+    }
 
-	public void setMisfireActionType(MisfireActionType misfireActionType) {
-		this.currentEditableState.misfireActionType = misfireActionType;
-	}
+    public void setMisfireActionType(MisfireActionType misfireActionType) {
+        this.currentEditableState.misfireActionType = misfireActionType;
+    }
 
-	public String getExecutionGroup() {
-    	return currentEditableState.executionGroup;
-	}
+    public String getExecutionGroup() {
+        return currentEditableState.executionGroup;
+    }
 
-	public void setExecutionGroup(String value) {
-    	this.currentEditableState.executionGroup = value;
-	}
+    public void setExecutionGroup(String value) {
+        this.currentEditableState.executionGroup = value;
+    }
 
-	public Integer getGroupTaskLimit() {
-    	return currentEditableState.groupTaskLimit;
-	}
+    public Integer getGroupTaskLimit() {
+        return currentEditableState.groupTaskLimit;
+    }
 
-	public void setGroupTaskLimit(Integer value) {
-    	this.currentEditableState.groupTaskLimit = value;
-	}
+    public void setGroupTaskLimit(Integer value) {
+        this.currentEditableState.groupTaskLimit = value;
+    }
 
-	public ThreadStopActionType getThreadStopActionType() {
-		return currentEditableState.threadStopActionType;
-	}
+    public ThreadStopActionType getThreadStopActionType() {
+        return currentEditableState.threadStopActionType;
+    }
 
-	public void setThreadStopActionType(ThreadStopActionType threadStopActionType) {
-		this.currentEditableState.threadStopActionType = threadStopActionType;
-	}
+    public void setThreadStopActionType(ThreadStopActionType threadStopActionType) {
+        this.currentEditableState.threadStopActionType = threadStopActionType;
+    }
 
-	public String getObjectRefName() {
-		return objectRefName;
-	}
+    public String getObjectRefName() {
+        return objectRefName;
+    }
 
-	public ObjectTypes getObjectRefType() {
-		return objectRefType;
-	}
+    public ObjectTypes getObjectRefType() {
+        return objectRefType;
+    }
 
-	public ObjectReferenceType getObjectRef() {
-		return objectRef;
-	}
+    public ObjectReferenceType getObjectRef() {
+        return objectRef;
+    }
 
-	// should contain the name
-	public void setObjectRef(@Nullable ObjectReferenceType objectRef) {
-		this.objectRef = objectRef;
-		if (objectRef != null) {
-			this.objectRefName = PolyString.getOrig(objectRef.getTargetName());
-			this.objectRefType = ObjectTypes.getObjectTypeFromTypeQName(objectRef.getType());
-		} else {
-			this.objectRefName = null;
-			this.objectRefType = null;
-		}
-	}
+    // should contain the name
+    public void setObjectRef(@Nullable ObjectReferenceType objectRef) {
+        this.objectRef = objectRef;
+        if (objectRef != null) {
+            this.objectRefName = PolyString.getOrig(objectRef.getTargetName());
+            this.objectRefType = ObjectTypes.getObjectTypeFromTypeQName(objectRef.getType());
+        } else {
+            this.objectRefName = null;
+            this.objectRefType = null;
+        }
+    }
 
-	public Integer getWorkerThreads() { return currentEditableState.workerThreads; }
+    public Integer getWorkerThreads() { return currentEditableState.workerThreads; }
 
-	public void setWorkerThreads(Integer workerThreads) {
-		this.currentEditableState.workerThreads = workerThreads;
-	}
+    public void setWorkerThreads(Integer workerThreads) {
+        this.currentEditableState.workerThreads = workerThreads;
+    }
 
-	//endregion
+    //endregion
 
     //region Getters for read-only properties
-	public TaskKindType getTaskKind() {
-		if (taskType.getWorkManagement() == null) {
-			return null;
-		}
-		
-		return taskType.getWorkManagement().getTaskKind();
-	}
-	
+    public TaskKindType getTaskKind() {
+        if (taskType.getWorkManagement() == null) {
+            return null;
+        }
+
+        return taskType.getWorkManagement().getTaskKind();
+    }
+
     public String getCategory() {
         return taskType.getCategory();
     }
@@ -523,7 +523,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return handlerUriList;
     }
 
-	public Long getCurrentRuntime() {
+    public Long getCurrentRuntime() {
         if (isRunNotFinished()) {
             if (isAliveClusterwide()) {
                 return System.currentTimeMillis() - getLastRunStartTimestampLong();
@@ -549,112 +549,110 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     public String getProgressDescription(PageBase pageBase, boolean alwaysCompute) {
-	    Long stalledSince = getStalledSince();
-	    if (stalledSince != null) {
-		    return pageBase.getString("pageTasks.stalledSince", new Date(stalledSince).toLocaleString(), getRealProgressDescription(alwaysCompute));
-	    } else {
-		    return getRealProgressDescription(alwaysCompute);
-	    }
+        Long stalledSince = getStalledSince();
+        if (stalledSince != null) {
+            return pageBase.getString("pageTasks.stalledSince", new Date(stalledSince).toLocaleString(), getRealProgressDescription(alwaysCompute));
+        } else {
+            return getRealProgressDescription(alwaysCompute);
+        }
     }
 
-	public boolean isPartitionedMaster() {
-		return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.PARTITIONED_MASTER;
-	}
+    public boolean isPartitionedMaster() {
+        return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.PARTITIONED_MASTER;
+    }
 
-	public boolean isCoordinator() {
-		return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.COORDINATOR;
-	}
+    public boolean isCoordinator() {
+        return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.COORDINATOR;
+    }
 
-	public boolean isCoordinatedWorker() {
-		return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.WORKER;
-	}
+    public boolean isCoordinatedWorker() {
+        return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.WORKER;
+    }
 
-	public boolean hasBuckets() {
-		if (taskType.getWorkState() == null) {
-			return false;
-		}
-		if (taskType.getWorkState().getNumberOfBuckets() != null && taskType.getWorkState().getNumberOfBuckets() > 1) {
-			return true;
-		}
-		List<WorkBucketType> buckets = taskType.getWorkState().getBucket();
-		if (buckets.size() > 1) {
-			return true;
-		} else if (buckets.size() == 1 && buckets.get(0).getContent() != null) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+    public boolean hasBuckets() {
+        if (taskType.getWorkState() == null) {
+            return false;
+        }
+        if (taskType.getWorkState().getNumberOfBuckets() != null && taskType.getWorkState().getNumberOfBuckets() > 1) {
+            return true;
+        }
+        List<WorkBucketType> buckets = taskType.getWorkState().getBucket();
+        if (buckets.size() > 1) {
+            return true;
+        } else {
+            return buckets.size() == 1 && buckets.get(0).getContent() != null;
+        }
+    }
 
-	public boolean isWorkStateHolder() {
-		return (isCoordinator() || hasBuckets()) && !isCoordinatedWorker();
-	}
+    public boolean isWorkStateHolder() {
+        return (isCoordinator() || hasBuckets()) && !isCoordinatedWorker();
+    }
 
-	private String getRealProgressDescription(boolean alwaysCompute) {
-		if (isPartitionedMaster()) {
-			return getPartitionedTaskProgressDescription(alwaysCompute);
-		} else if (isWorkStateHolder()) {
-			return getBucketedTaskProgressDescription();
-		} else {
-			return getPlainTaskProgressDescription();
-		}
-	}
+    private String getRealProgressDescription(boolean alwaysCompute) {
+        if (isPartitionedMaster()) {
+            return getPartitionedTaskProgressDescription(alwaysCompute);
+        } else if (isWorkStateHolder()) {
+            return getBucketedTaskProgressDescription();
+        } else {
+            return getPlainTaskProgressDescription();
+        }
+    }
 
-	private String getPartitionedTaskProgressDescription(boolean alwaysCompute) {
-    	if (alwaysCompute) {
-		    ensureSubtasksLoaded(pageBase);
-	    }
-		if (!subtasksLoaded) {
-			return "?";
-		}
-		int completePartitions = 0;
-		int allPartitions = subtasks.size();
-		int firstIncompleteSequentialNumber = 0;
-		TaskDto firstIncomplete = null;
-		for (TaskDto subtask : subtasks) {
-			if (subtask.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
-				completePartitions++;
-			} else if (subtask.getPartitionSequentialNumber() != null) {
-				if (firstIncomplete == null ||
-						subtask.getPartitionSequentialNumber() < firstIncompleteSequentialNumber) {
-					firstIncompleteSequentialNumber = subtask.getPartitionSequentialNumber();
-					firstIncomplete = subtask;
-				}
-			}
-		}
-		String coarseProgress = completePartitions + "/" + allPartitions;
-		if (firstIncomplete == null) {
-			return coarseProgress;
-		} else {
-			return coarseProgress + " + " + firstIncomplete.getRealProgressDescription(alwaysCompute);
-		}
-	}
+    private String getPartitionedTaskProgressDescription(boolean alwaysCompute) {
+        if (alwaysCompute) {
+            ensureSubtasksLoaded(pageBase);
+        }
+        if (!subtasksLoaded) {
+            return "?";
+        }
+        int completePartitions = 0;
+        int allPartitions = subtasks.size();
+        int firstIncompleteSequentialNumber = 0;
+        TaskDto firstIncomplete = null;
+        for (TaskDto subtask : subtasks) {
+            if (subtask.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
+                completePartitions++;
+            } else if (subtask.getPartitionSequentialNumber() != null) {
+                if (firstIncomplete == null ||
+                        subtask.getPartitionSequentialNumber() < firstIncompleteSequentialNumber) {
+                    firstIncompleteSequentialNumber = subtask.getPartitionSequentialNumber();
+                    firstIncomplete = subtask;
+                }
+            }
+        }
+        String coarseProgress = completePartitions + "/" + allPartitions;
+        if (firstIncomplete == null) {
+            return coarseProgress;
+        } else {
+            return coarseProgress + " + " + firstIncomplete.getRealProgressDescription(alwaysCompute);
+        }
+    }
 
-	private Integer getPartitionSequentialNumber() {
-    	return taskType.getWorkManagement() != null ? taskType.getWorkManagement().getPartitionSequentialNumber() : null;
-	}
+    private Integer getPartitionSequentialNumber() {
+        return taskType.getWorkManagement() != null ? taskType.getWorkManagement().getPartitionSequentialNumber() : null;
+    }
 
-	private String getBucketedTaskProgressDescription() {
-    	int completeBuckets = getCompleteBuckets();
-		Integer expectedBuckets = getExpectedBuckets();
-		if (expectedBuckets == null) {
-			return String.valueOf(completeBuckets);
-		} else {
-			return (completeBuckets*100/expectedBuckets) + "%";
-		}
-	}
+    private String getBucketedTaskProgressDescription() {
+        int completeBuckets = getCompleteBuckets();
+        Integer expectedBuckets = getExpectedBuckets();
+        if (expectedBuckets == null) {
+            return String.valueOf(completeBuckets);
+        } else {
+            return (completeBuckets*100/expectedBuckets) + "%";
+        }
+    }
 
-	private Integer getExpectedBuckets() {
-		return taskType.getWorkState() != null ? taskType.getWorkState().getNumberOfBuckets() : null;
-	}
+    private Integer getExpectedBuckets() {
+        return taskType.getWorkState() != null ? taskType.getWorkState().getNumberOfBuckets() : null;
+    }
 
-	private Integer getCompleteBuckets() {
-    	return TaskWorkStateTypeUtil.getCompleteBucketsNumber(taskType);
-	}
+    private Integer getCompleteBuckets() {
+        return TaskWorkStateTypeUtil.getCompleteBucketsNumber(taskType);
+    }
 
-	private String getPlainTaskProgressDescription() {
-		Long currentProgress = taskType.getProgress();
-	    if (currentProgress == null && taskType.getExpectedTotal() == null) {
+    private String getPlainTaskProgressDescription() {
+        Long currentProgress = taskType.getProgress();
+        if (currentProgress == null && taskType.getExpectedTotal() == null) {
             return "";      // the task handler probably does not report progress at all
         } else {
             StringBuilder sb = new StringBuilder();
@@ -671,16 +669,16 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     public List<OperationResult> getResult() {
-		return opResult;
-	}
+        return opResult;
+    }
 
     public Long getLastRunStartTimestampLong() {
-		return xgc2long(taskType.getLastRunStartTimestamp());
-	}
+        return xgc2long(taskType.getLastRunStartTimestamp());
+    }
 
-	public Long getLastRunFinishTimestampLong() {
-		return xgc2long(taskType.getLastRunFinishTimestamp());
-	}
+    public Long getLastRunFinishTimestampLong() {
+        return xgc2long(taskType.getLastRunFinishTimestamp());
+    }
 
     public String getOid() {
         return taskType.getOid();
@@ -694,13 +692,13 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return xgc2long(taskType.getNextRunStartTimestamp());
     }
 
-	public Long getNextRetryTimeLong() {
-		return xgc2long(taskType.getNextRetryTimestamp());
-	}
+    public Long getNextRetryTimeLong() {
+        return xgc2long(taskType.getNextRetryTimestamp());
+    }
 
-	public Long getRetryAfter() {
-    	Long retryAt = getNextRetryTimeLong();
-    	return retryAt != null ? retryAt - System.currentTimeMillis() : null;
+    public Long getRetryAfter() {
+        Long retryAt = getNextRetryTimeLong();
+        return retryAt != null ? retryAt - System.currentTimeMillis() : null;
     }
 
     public Long getScheduledToStartAgain() {
@@ -714,7 +712,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
             }
         }
 
-		Long nextRunStartTimeLong = getNextRunStartTimeLong();
+        Long nextRunStartTimeLong = getNextRunStartTimeLong();
         if (nextRunStartTimeLong == null || nextRunStartTimeLong == 0) {
             return null;
         }
@@ -730,18 +728,18 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
     public OperationResultStatus getStatus() {
         if (taskOperationResult != null) {
-        	return taskOperationResult.getStatus();
+            return taskOperationResult.getStatus();
         } else if (taskType.getResultStatus() != null) {
-        	return OperationResultStatus.parseStatusType(taskType.getResultStatus());
+            return OperationResultStatus.parseStatusType(taskType.getResultStatus());
         } else {
-        	return null;
+            return null;
         }
     }
 
     private boolean isRunNotFinished() {
-		final Long lastRunStartTimestampLong = getLastRunStartTimestampLong();
-		final Long lastRunFinishTimestampLong = getLastRunFinishTimestampLong();
-		return lastRunStartTimestampLong != null &&
+        final Long lastRunStartTimestampLong = getLastRunStartTimestampLong();
+        final Long lastRunFinishTimestampLong = getLastRunFinishTimestampLong();
+        return lastRunStartTimestampLong != null &&
                 (lastRunFinishTimestampLong == null || lastRunStartTimestampLong > lastRunFinishTimestampLong);
     }
 
@@ -749,13 +747,13 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return getExecutingAt() != null;
     }
 
-	public TaskExecutionStatus getRawExecutionStatus() {
-		return TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
-	}
+    public TaskExecutionStatus getRawExecutionStatus() {
+        return TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
+    }
 
-	public List<OperationResult> getOpResult() {
-		return opResult;
-	}
+    public List<OperationResult> getOpResult() {
+        return opResult;
+    }
 
     public Long getCompletionTimestamp() {
         return xgc2long(taskType.getCompletionTimestamp());
@@ -765,7 +763,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return modelOperationStatusDto;
     }
 
-	public void addChildTaskDto(TaskDto taskDto) {
+    public void addChildTaskDto(TaskDto taskDto) {
         if (taskDto.getOid() != null) {
             subtasks.add(taskDto);
         } else {
@@ -793,104 +791,104 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return taskOperationResult;
     }
 
-	public Item getExtensionItem(QName itemName) {
-		return taskType.asPrismObject().findItem(ItemPath.create(TaskType.F_EXTENSION, itemName));
-	}
+    public Item getExtensionItem(QName itemName) {
+        return taskType.asPrismObject().findItem(ItemPath.create(TaskType.F_EXTENSION, itemName));
+    }
 
-	public PrismProperty getExtensionProperty(QName itemName) {
-		return taskType.asPrismObject().findProperty(ItemPath.create(TaskType.F_EXTENSION, itemName));
-	}
+    public PrismProperty getExtensionProperty(QName itemName) {
+        return taskType.asPrismObject().findProperty(ItemPath.create(TaskType.F_EXTENSION, itemName));
+    }
 
-	public <T> T getExtensionPropertyRealValue(QName propertyName, Class<T> clazz) {
-		PrismProperty<T> property = taskType.asPrismObject().findProperty(ItemPath.create(TaskType.F_EXTENSION, propertyName));
-		return property != null ? property.getRealValue() : null;
-	}
+    public <T> T getExtensionPropertyRealValue(QName propertyName, Class<T> clazz) {
+        PrismProperty<T> property = taskType.asPrismObject().findProperty(ItemPath.create(TaskType.F_EXTENSION, propertyName));
+        return property != null ? property.getRealValue() : null;
+    }
 
-	public Long getStalledSince() {
-		return xgc2long(taskType.getStalledSince());
-	}
+    public Long getStalledSince() {
+        return xgc2long(taskType.getStalledSince());
+    }
 
-	@NotNull
-	public TaskType getTaskType() {
-		return taskType;
-	}
+    @NotNull
+    public TaskType getTaskType() {
+        return taskType;
+    }
 
-	public ApprovalContextType getApprovalContext() {
-		return null;//taskType.getApprovalContext();
-	}
+    public ApprovalContextType getApprovalContext() {
+        return null;//taskType.getApprovalContext();
+    }
 
-	public List<WorkItemDto> getWorkItems() {
-		List<WorkItemDto> rv = new ArrayList<>();
-		// TODO from CaseType
-//		if (taskType.getApprovalContext() != null) {
-//			for (CaseWorkItemType workItemType : taskType.getApprovalContext().getWorkItem()) {
-//				rv.add(new WorkItemDto(workItemType, pageBase));
-//			}
-//		}
-		return rv;
-	}
+    public List<WorkItemDto> getWorkItems() {
+        List<WorkItemDto> rv = new ArrayList<>();
+        // TODO from CaseType
+//        if (taskType.getApprovalContext() != null) {
+//            for (CaseWorkItemType workItemType : taskType.getApprovalContext().getWorkItem()) {
+//                rv.add(new WorkItemDto(workItemType, pageBase));
+//            }
+//        }
+        return rv;
+    }
 
-	public String getObjectType() {
-		QName type = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, QName.class);
-		return type != null ? type.getLocalPart() : null;
-	}
+    public String getObjectType() {
+        QName type = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, QName.class);
+        return type != null ? type.getLocalPart() : null;
+    }
 
-	public String getObjectQuery() {
-		QueryType queryType = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.class);
-		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
-		try {
-			return prismContext.xmlSerializer().serializeAnyData(queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-		} catch (SchemaException e) {
-			throw new SystemException("Couldn't serialize query: " + e.getMessage(), e);
-		}
-	}
+    public String getObjectQuery() {
+        QueryType queryType = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.class);
+        PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+        try {
+            return prismContext.xmlSerializer().serializeAnyData(queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't serialize query: " + e.getMessage(), e);
+        }
+    }
 
-	public String getObjectDelta() {
-		ObjectDeltaType objectDeltaType = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, ObjectDeltaType.class);
-		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
-		try {
-			return prismContext.xmlSerializer().serializeAnyData(objectDeltaType, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
-		} catch (SchemaException e) {
-			throw new SystemException("Couldn't serialize delta: " + e.getMessage(), e);
-		}
-	}
+    public String getObjectDelta() {
+        ObjectDeltaType objectDeltaType = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, ObjectDeltaType.class);
+        PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+        try {
+            return prismContext.xmlSerializer().serializeAnyData(objectDeltaType, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't serialize delta: " + e.getMessage(), e);
+        }
+    }
 
-	public Boolean isExecuteInRawMode() {
-		return getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OPTION_RAW, Boolean.class);
-	}
+    public Boolean isExecuteInRawMode() {
+        return getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OPTION_RAW, Boolean.class);
+    }
 
-	public String getRequestedBy() {
-		//WfContextType wfc = getApprovalContext();
-		return null; // TODO was wfc != null ? WebComponentUtil.getName(wfc.getRequesterRef()) : null;
-	}
+    public String getRequestedBy() {
+        //WfContextType wfc = getApprovalContext();
+        return null; // TODO was wfc != null ? WebComponentUtil.getName(wfc.getRequesterRef()) : null;
+    }
 
-	public Date getRequestedOn() {
-    	// TODO from Case!
-		return null;
-//		WfContextType wfc = getApprovalContext();
-//		return wfc != null ? XmlTypeConverter.toDate(wfc.getStartTimestamp()) : null;
-	}
+    public Date getRequestedOn() {
+        // TODO from Case!
+        return null;
+//        WfContextType wfc = getApprovalContext();
+//        return wfc != null ? XmlTypeConverter.toDate(wfc.getStartTimestamp()) : null;
+    }
 
-	public Boolean getWorkflowOutcome() {
-    	// todo from Case!
-//		WfContextType wfc = getApprovalContext();
-//		return wfc != null ? ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome()) : null;
-		return null;
-	}
+    public Boolean getWorkflowOutcome() {
+        // todo from Case!
+//        WfContextType wfc = getApprovalContext();
+//        return wfc != null ? ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome()) : null;
+        return null;
+    }
 
-	public String getOwnerOid() {
-		return taskType.getOwnerRef() != null ? taskType.getOwnerRef().getOid() : null;
-	}
+    public String getOwnerOid() {
+        return taskType.getOwnerRef() != null ? taskType.getOwnerRef().getOid() : null;
+    }
 
-	public String getOwnerName() {
-		return WebComponentUtil.getName(taskType.getOwnerRef());
-	}
+    public String getOwnerName() {
+        return WebComponentUtil.getName(taskType.getOwnerRef());
+    }
 
-	public HandlerDto getHandlerDto() {
-		return handlerDto;
-	}
+    public HandlerDto getHandlerDto() {
+        return handlerDto;
+    }
 
-	//endregion
+    //endregion
 
     public static List<String> getOids(List<TaskDto> taskDtoList) {
         List<String> retval = new ArrayList<>();
@@ -900,310 +898,310 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return retval;
     }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (o == null || getClass() != o.getClass())
-			return false;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
-		TaskDto taskDto = (TaskDto) o;
+        TaskDto taskDto = (TaskDto) o;
 
-		if (taskType != null ? !taskType.equals(taskDto.taskType) : taskDto.taskType != null)
-			return false;
-		if (currentEditableState != null ? !currentEditableState.equals(taskDto.currentEditableState) : taskDto.currentEditableState != null)
-			return false;
-		if (originalEditableState != null ? !originalEditableState.equals(taskDto.originalEditableState) : taskDto.originalEditableState != null)
-			return false;
-		if (handlerUriList != null ? !handlerUriList.equals(taskDto.handlerUriList) : taskDto.handlerUriList != null)
-			return false;
-		if (opResult != null ? !opResult.equals(taskDto.opResult) : taskDto.opResult != null)
-			return false;
-		if (taskOperationResult != null ? !taskOperationResult.equals(taskDto.taskOperationResult) : taskDto.taskOperationResult != null)
-			return false;
-		if (modelOperationStatusDto != null ?
-				!modelOperationStatusDto.equals(taskDto.modelOperationStatusDto) :
-				taskDto.modelOperationStatusDto != null)
-			return false;
-		if (parentTaskType != null ? !parentTaskType.equals(taskDto.parentTaskType) : taskDto.parentTaskType != null)
-			return false;
-		if (objectRefType != taskDto.objectRefType)
-			return false;
-		if (objectRefName != null ? !objectRefName.equals(taskDto.objectRefName) : taskDto.objectRefName != null)
-			return false;
-		if (objectRef != null ? !objectRef.equals(taskDto.objectRef) : taskDto.objectRef != null)
-			return false;
-		if (subtasks != null ? !subtasks.equals(taskDto.subtasks) : taskDto.subtasks != null)
-			return false;
-		if (transientSubtasks != null ? !transientSubtasks.equals(taskDto.transientSubtasks) : taskDto.transientSubtasks != null)
-			return false;
-		if (menuItems != null ? !menuItems.equals(taskDto.menuItems) : taskDto.menuItems != null)
-			return false;
-		return handlerDto != null ? handlerDto.equals(taskDto.handlerDto) : taskDto.handlerDto == null;
+        if (taskType != null ? !taskType.equals(taskDto.taskType) : taskDto.taskType != null)
+            return false;
+        if (currentEditableState != null ? !currentEditableState.equals(taskDto.currentEditableState) : taskDto.currentEditableState != null)
+            return false;
+        if (originalEditableState != null ? !originalEditableState.equals(taskDto.originalEditableState) : taskDto.originalEditableState != null)
+            return false;
+        if (handlerUriList != null ? !handlerUriList.equals(taskDto.handlerUriList) : taskDto.handlerUriList != null)
+            return false;
+        if (opResult != null ? !opResult.equals(taskDto.opResult) : taskDto.opResult != null)
+            return false;
+        if (taskOperationResult != null ? !taskOperationResult.equals(taskDto.taskOperationResult) : taskDto.taskOperationResult != null)
+            return false;
+        if (modelOperationStatusDto != null ?
+                !modelOperationStatusDto.equals(taskDto.modelOperationStatusDto) :
+                taskDto.modelOperationStatusDto != null)
+            return false;
+        if (parentTaskType != null ? !parentTaskType.equals(taskDto.parentTaskType) : taskDto.parentTaskType != null)
+            return false;
+        if (objectRefType != taskDto.objectRefType)
+            return false;
+        if (objectRefName != null ? !objectRefName.equals(taskDto.objectRefName) : taskDto.objectRefName != null)
+            return false;
+        if (objectRef != null ? !objectRef.equals(taskDto.objectRef) : taskDto.objectRef != null)
+            return false;
+        if (subtasks != null ? !subtasks.equals(taskDto.subtasks) : taskDto.subtasks != null)
+            return false;
+        if (transientSubtasks != null ? !transientSubtasks.equals(taskDto.transientSubtasks) : taskDto.transientSubtasks != null)
+            return false;
+        if (menuItems != null ? !menuItems.equals(taskDto.menuItems) : taskDto.menuItems != null)
+            return false;
+        return handlerDto != null ? handlerDto.equals(taskDto.handlerDto) : taskDto.handlerDto == null;
 
-	}
+    }
 
-	@Override
-	public int hashCode() {
-		int result = taskType != null ? taskType.hashCode() : 0;
-		result = 31 * result + (currentEditableState != null ? currentEditableState.hashCode() : 0);
-		result = 31 * result + (originalEditableState != null ? originalEditableState.hashCode() : 0);
-		result = 31 * result + (handlerUriList != null ? handlerUriList.hashCode() : 0);
-		result = 31 * result + (opResult != null ? opResult.hashCode() : 0);
-		result = 31 * result + (taskOperationResult != null ? taskOperationResult.hashCode() : 0);
-		result = 31 * result + (modelOperationStatusDto != null ? modelOperationStatusDto.hashCode() : 0);
-		result = 31 * result + (parentTaskType != null ? parentTaskType.hashCode() : 0);
-		result = 31 * result + (objectRefType != null ? objectRefType.hashCode() : 0);
-		result = 31 * result + (objectRefName != null ? objectRefName.hashCode() : 0);
-		result = 31 * result + (objectRef != null ? objectRef.hashCode() : 0);
-		result = 31 * result + (subtasks != null ? subtasks.hashCode() : 0);
-		result = 31 * result + (transientSubtasks != null ? transientSubtasks.hashCode() : 0);
-		result = 31 * result + (menuItems != null ? menuItems.hashCode() : 0);
-		result = 31 * result + (handlerDto != null ? handlerDto.hashCode() : 0);
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        int result = taskType != null ? taskType.hashCode() : 0;
+        result = 31 * result + (currentEditableState != null ? currentEditableState.hashCode() : 0);
+        result = 31 * result + (originalEditableState != null ? originalEditableState.hashCode() : 0);
+        result = 31 * result + (handlerUriList != null ? handlerUriList.hashCode() : 0);
+        result = 31 * result + (opResult != null ? opResult.hashCode() : 0);
+        result = 31 * result + (taskOperationResult != null ? taskOperationResult.hashCode() : 0);
+        result = 31 * result + (modelOperationStatusDto != null ? modelOperationStatusDto.hashCode() : 0);
+        result = 31 * result + (parentTaskType != null ? parentTaskType.hashCode() : 0);
+        result = 31 * result + (objectRefType != null ? objectRefType.hashCode() : 0);
+        result = 31 * result + (objectRefName != null ? objectRefName.hashCode() : 0);
+        result = 31 * result + (objectRef != null ? objectRef.hashCode() : 0);
+        result = 31 * result + (subtasks != null ? subtasks.hashCode() : 0);
+        result = 31 * result + (transientSubtasks != null ? transientSubtasks.hashCode() : 0);
+        result = 31 * result + (menuItems != null ? menuItems.hashCode() : 0);
+        result = 31 * result + (handlerDto != null ? handlerDto.hashCode() : 0);
+        return result;
+    }
 
-	@Override
+    @Override
     public String toString() {
         return "TaskDto{" +
                 "taskType=" + taskType +
                 '}';
     }
 
-	public boolean isRunnableOrRunning() {
-		TaskDtoExecutionStatus exec = getExecution();
-		return exec == TaskDtoExecutionStatus.RUNNABLE || exec == TaskDtoExecutionStatus.RUNNING;
-	}
+    public boolean isRunnableOrRunning() {
+        TaskDtoExecutionStatus exec = getExecution();
+        return exec == TaskDtoExecutionStatus.RUNNABLE || exec == TaskDtoExecutionStatus.RUNNING;
+    }
 
-	public boolean isRunnable() {
-		return getExecution() == TaskDtoExecutionStatus.RUNNABLE;
-	}
+    public boolean isRunnable() {
+        return getExecution() == TaskDtoExecutionStatus.RUNNABLE;
+    }
 
-	public boolean isRunning() {
-		return getExecution() == TaskDtoExecutionStatus.RUNNING;
-	}
+    public boolean isRunning() {
+        return getExecution() == TaskDtoExecutionStatus.RUNNING;
+    }
 
-	public boolean isClosed() {
-		return getExecution() == TaskDtoExecutionStatus.CLOSED;
-	}
+    public boolean isClosed() {
+        return getExecution() == TaskDtoExecutionStatus.CLOSED;
+    }
 
-	public boolean isWaiting() {
-		return getExecution() == TaskDtoExecutionStatus.WAITING;
-	}
+    public boolean isWaiting() {
+        return getExecution() == TaskDtoExecutionStatus.WAITING;
+    }
 
-	public boolean isSuspended() {
-		return getExecution() == TaskDtoExecutionStatus.SUSPENDED;
-	}
+    public boolean isSuspended() {
+        return getExecution() == TaskDtoExecutionStatus.SUSPENDED;
+    }
 
-	public boolean isReconciliation() {
-		return TaskCategory.RECONCILIATION.equals(getCategory());
-	}
+    public boolean isReconciliation() {
+        return TaskCategory.RECONCILIATION.equals(getCategory());
+    }
 
-	public boolean isImportAccounts() {
-		return TaskCategory.IMPORTING_ACCOUNTS.equals(getCategory());
-	}
+    public boolean isImportAccounts() {
+        return TaskCategory.IMPORTING_ACCOUNTS.equals(getCategory());
+    }
 
-	public boolean isRecomputation() {
-		return TaskCategory.RECOMPUTATION.equals(getCategory());
-	}
+    public boolean isRecomputation() {
+        return TaskCategory.RECOMPUTATION.equals(getCategory());
+    }
 
-	public boolean isExecuteChanges() {
-		return TaskCategory.EXECUTE_CHANGES.equals(getCategory());
-	}
+    public boolean isExecuteChanges() {
+        return TaskCategory.EXECUTE_CHANGES.equals(getCategory());
+    }
 
-	public boolean isWorkflow() {
-		return TaskCategory.WORKFLOW.equals(getCategory());
-	}
+    public boolean isWorkflow() {
+        return TaskCategory.WORKFLOW.equals(getCategory());
+    }
 
-	public boolean isLiveSync() {
-		return TaskCategory.LIVE_SYNCHRONIZATION.equals(getCategory());
-	}
+    public boolean isLiveSync() {
+        return TaskCategory.LIVE_SYNCHRONIZATION.equals(getCategory());
+    }
 
-	public boolean isShadowIntegrityCheck() {
-		return getHandlerUriList().contains(ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI);
-	}
+    public boolean isShadowIntegrityCheck() {
+        return getHandlerUriList().contains(ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI);
+    }
 
-	public boolean isFocusValidityScanner() {
-		return getHandlerUriList().contains(ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI)
-				|| getHandlerUriList().contains(ModelPublicConstants.DEPRECATED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI);
-	}
+    public boolean isFocusValidityScanner() {
+        return getHandlerUriList().contains(ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI)
+                || getHandlerUriList().contains(ModelPublicConstants.DEPRECATED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI);
+    }
 
-	public boolean isJdbcPing() {
-		return getHandlerUriList().contains(TaskConstants.JDBC_PING_HANDLER_URI);
-	}
+    public boolean isJdbcPing() {
+        return getHandlerUriList().contains(TaskConstants.JDBC_PING_HANDLER_URI);
+    }
 
-	public boolean isTriggerScanner() {
-		return getHandlerUriList().contains(ModelPublicConstants.TRIGGER_SCANNER_TASK_HANDLER_URI);
-	}
+    public boolean isTriggerScanner() {
+        return getHandlerUriList().contains(ModelPublicConstants.TRIGGER_SCANNER_TASK_HANDLER_URI);
+    }
 
-	public boolean isDelete() {
-		return getHandlerUriList().contains(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
-	}
+    public boolean isDelete() {
+        return getHandlerUriList().contains(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
+    }
 
-	public boolean isBulkAction() {
-		return TaskCategory.BULK_ACTIONS.equals(getCategory());
-	}
+    public boolean isBulkAction() {
+        return TaskCategory.BULK_ACTIONS.equals(getCategory());
+    }
 
-	public boolean isReportCreate() {
-		return TaskCategory.REPORT.equals(getCategory());
-	}
+    public boolean isReportCreate() {
+        return TaskCategory.REPORT.equals(getCategory());
+    }
 
-	public boolean configuresWorkerThreads() {
-		return isReconciliation() || isImportAccounts() || isRecomputation() || isExecuteChanges() || isShadowIntegrityCheck() || isFocusValidityScanner() || isTriggerScanner();
-	}
+    public boolean configuresWorkerThreads() {
+        return isReconciliation() || isImportAccounts() || isRecomputation() || isExecuteChanges() || isShadowIntegrityCheck() || isFocusValidityScanner() || isTriggerScanner();
+    }
 
-	public boolean configuresWorkToDo() {
-		return isLiveSync() || isReconciliation() || isImportAccounts() || isRecomputation() || isExecuteChanges() || isBulkAction() || isDelete() || isShadowIntegrityCheck();
-	}
+    public boolean configuresWorkToDo() {
+        return isLiveSync() || isReconciliation() || isImportAccounts() || isRecomputation() || isExecuteChanges() || isBulkAction() || isDelete() || isShadowIntegrityCheck();
+    }
 
-	public boolean configuresResourceCoordinates() {
-		return isLiveSync() || isReconciliation() || isImportAccounts();
-	}
+    public boolean configuresResourceCoordinates() {
+        return isLiveSync() || isReconciliation() || isImportAccounts();
+    }
 
-	public boolean configuresObjectType() {
-		return isRecomputation() || isExecuteChanges() || isDelete();
-	}
+    public boolean configuresObjectType() {
+        return isRecomputation() || isExecuteChanges() || isDelete();
+    }
 
-	public boolean configuresObjectQuery() {
-		return isRecomputation() || isExecuteChanges() || isDelete() || isShadowIntegrityCheck();
-	}
+    public boolean configuresObjectQuery() {
+        return isRecomputation() || isExecuteChanges() || isDelete() || isShadowIntegrityCheck();
+    }
 
-	public boolean configuresObjectDelta() {
-		return isExecuteChanges();
-	}
+    public boolean configuresObjectDelta() {
+        return isExecuteChanges();
+    }
 
-	public boolean configuresScript() {
-		return isBulkAction();
-	}
+    public boolean configuresScript() {
+        return isBulkAction();
+    }
 
-	public boolean configuresDryRun() {
-		return isLiveSync() || isReconciliation() || isImportAccounts() || isShadowIntegrityCheck();
-	}
+    public boolean configuresDryRun() {
+        return isLiveSync() || isReconciliation() || isImportAccounts() || isShadowIntegrityCheck();
+    }
 
-	public boolean configuresExecuteInRawMode() {
-		return isExecuteChanges();
-	}
+    public boolean configuresExecuteInRawMode() {
+        return isExecuteChanges();
+    }
 
-	// quite a hack (TODO think about this)
-	public boolean isDryRun() {
-		if (handlerDto instanceof ResourceRelatedHandlerDto) {
-			return ((ResourceRelatedHandlerDto) handlerDto).isDryRun();
-		} else {
-			return false;
-		}
-	}
+    // quite a hack (TODO think about this)
+    public boolean isDryRun() {
+        if (handlerDto instanceof ResourceRelatedHandlerDto) {
+            return ((ResourceRelatedHandlerDto) handlerDto).isDryRun();
+        } else {
+            return false;
+        }
+    }
 
-	public boolean isCleanup() {
-		return ModelPublicConstants.CLEANUP_TASK_HANDLER_URI.equals(taskType.getHandlerUri());
-	}
+    public boolean isCleanup() {
+        return ModelPublicConstants.CLEANUP_TASK_HANDLER_URI.equals(taskType.getHandlerUri());
+    }
 
-	public boolean isNoOp() {		// temporary implementation
-		return TaskCategory.DEMO.equals(getCategory());
-	}
+    public boolean isNoOp() {        // temporary implementation
+        return TaskCategory.DEMO.equals(getCategory());
+    }
 
-	public TaskEditableState getCurrentEditableState() {
-		return currentEditableState;
-	}
+    public TaskEditableState getCurrentEditableState() {
+        return currentEditableState;
+    }
 
-	public TaskEditableState getOriginalEditableState() {
-		return originalEditableState;
-	}
+    public TaskEditableState getOriginalEditableState() {
+        return originalEditableState;
+    }
 
-	public boolean isInStageBeforeLastOne() {
-		//return WfContextUtil.isInStageBeforeLastOne(getApprovalContext());
-		// TODO determine from Case
-		return false;
-	}
+    public boolean isInStageBeforeLastOne() {
+        //return WfContextUtil.isInStageBeforeLastOne(getApprovalContext());
+        // TODO determine from Case
+        return false;
+    }
 
-	public String getAllowedNodes(List<NodeType> nodes) {
-		Map<String, Integer> restrictions = TaskManagerUtil.getNodeRestrictions(getExecutionGroup(), nodes);
-		String n = restrictions.entrySet().stream()
-				.filter(e -> e.getValue() == null || e.getValue() > 0)
-				.map(e -> e.getKey() + (e.getValue() != null ? " (" + e.getValue() + ")" : ""))
-				.collect(Collectors.joining(", "));
-		return n.isEmpty() ? "-" : n;
-	}
+    public String getAllowedNodes(List<NodeType> nodes) {
+        Map<String, Integer> restrictions = TaskManagerUtil.getNodeRestrictions(getExecutionGroup(), nodes);
+        String n = restrictions.entrySet().stream()
+                .filter(e -> e.getValue() == null || e.getValue() > 0)
+                .map(e -> e.getKey() + (e.getValue() != null ? " (" + e.getValue() + ")" : ""))
+                .collect(Collectors.joining(", "));
+        return n.isEmpty() ? "-" : n;
+    }
 
-	public List<EvaluatedTriggerGroupDto> getTriggers() {
-		if (triggers == null) {
-			triggers = WebComponentUtil.computeTriggers(getApprovalContext(), 0); //todo how to get stageNumber for TaskType?
-		}
-		return triggers;
-	}
+    public List<EvaluatedTriggerGroupDto> getTriggers() {
+        if (triggers == null) {
+            triggers = WebComponentUtil.computeTriggers(getApprovalContext(), 0); //todo how to get stageNumber for TaskType?
+        }
+        return triggers;
+    }
 
-	public void ensureSubtasksLoaded(PageBase pageBase) {
-    	ensureSubtasksLoaded(pageBase, false);
-	}
+    public void ensureSubtasksLoaded(PageBase pageBase) {
+        ensureSubtasksLoaded(pageBase, false);
+    }
 
-	public void ensureSubtasksLoaded(PageBase pageBase, boolean recursive) {
-		if (!subtasksLoaded && taskType.getOid() != null) {
-			if (!subtasks.isEmpty() || !transientSubtasks.isEmpty()) {
-				// Subtasks are loaded but we haven't noticed yet. TODO fix this ugly hacking
-				subtasksLoaded = true;
-			} else {
-				Collection<SelectorOptions<GetOperationOptions>> getOptions = pageBase.getOperationOptionsBuilder()
-						.item(TaskType.F_SUBTASK).retrieve()
-						.build();
-				Task opTask = pageBase.createAnonymousTask("ensureSubtasksLoaded");
-				try {
-					TaskType task = pageBase.getModelService()
-							.getObject(TaskType.class, getOid(), getOptions, opTask, opTask.getResult()).asObjectable();
-					fillInChildren(task, pageBase.getModelService(), pageBase.getTaskService(),
-							pageBase.getModelInteractionService(),
-							pageBase.getTaskManager(), pageBase.getWorkflowManager(), TaskDtoProviderOptions.minimalOptions(),
-							opTask,
-							opTask.getResult(), pageBase);
-					subtasksLoaded = true;
-				} catch (ObjectNotFoundException t) {   // often happens when refreshing Task List page
-					LOGGER.debug("Couldn't load subtasks for task {}", taskType, t);
-					subtasksLoaded = false;
-				} catch (Throwable t) {
-					pageBase.error("Couldn't load subtasks: " + t.getMessage());            // TODO
-					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load subtasks for task {}", t, taskType);
-					subtasksLoaded = false;
-				}
-			}
-		}
-		if (recursive) {
-			for (TaskDto subtask : subtasks) {
-				subtask.ensureSubtasksLoaded(pageBase, true);
-			}
-		}
-	}
+    public void ensureSubtasksLoaded(PageBase pageBase, boolean recursive) {
+        if (!subtasksLoaded && taskType.getOid() != null) {
+            if (!subtasks.isEmpty() || !transientSubtasks.isEmpty()) {
+                // Subtasks are loaded but we haven't noticed yet. TODO fix this ugly hacking
+                subtasksLoaded = true;
+            } else {
+                Collection<SelectorOptions<GetOperationOptions>> getOptions = pageBase.getOperationOptionsBuilder()
+                        .item(TaskType.F_SUBTASK).retrieve()
+                        .build();
+                Task opTask = pageBase.createAnonymousTask("ensureSubtasksLoaded");
+                try {
+                    TaskType task = pageBase.getModelService()
+                            .getObject(TaskType.class, getOid(), getOptions, opTask, opTask.getResult()).asObjectable();
+                    fillInChildren(task, pageBase.getModelService(), pageBase.getTaskService(),
+                            pageBase.getModelInteractionService(),
+                            pageBase.getTaskManager(), pageBase.getWorkflowManager(), TaskDtoProviderOptions.minimalOptions(),
+                            opTask,
+                            opTask.getResult(), pageBase);
+                    subtasksLoaded = true;
+                } catch (ObjectNotFoundException t) {   // often happens when refreshing Task List page
+                    LOGGER.debug("Couldn't load subtasks for task {}", taskType, t);
+                    subtasksLoaded = false;
+                } catch (Throwable t) {
+                    pageBase.error("Couldn't load subtasks: " + t.getMessage());            // TODO
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load subtasks for task {}", t, taskType);
+                    subtasksLoaded = false;
+                }
+            }
+        }
+        if (recursive) {
+            for (TaskDto subtask : subtasks) {
+                subtask.ensureSubtasksLoaded(pageBase, true);
+            }
+        }
+    }
 
-	public List<TaskDto> getWholeTree(boolean persistentOnly) {
-    	List<TaskDto> rv = new ArrayList<>();
-    	if (!persistentOnly || taskType.getOid() != null) {
-    		rv.add(this);
-		    for (TaskDto subtask : subtasks) {
-			    rv.addAll(subtask.getWholeTree(persistentOnly));
-		    }
-		    if (!persistentOnly) {
-			    rv.addAll(transientSubtasks);
-		    }
-	    }
-    	return rv;
-	}
+    public List<TaskDto> getWholeTree(boolean persistentOnly) {
+        List<TaskDto> rv = new ArrayList<>();
+        if (!persistentOnly || taskType.getOid() != null) {
+            rv.add(this);
+            for (TaskDto subtask : subtasks) {
+                rv.addAll(subtask.getWholeTree(persistentOnly));
+            }
+            if (!persistentOnly) {
+                rv.addAll(transientSubtasks);
+            }
+        }
+        return rv;
+    }
 
-	// currently returns only selected information
-	public OperationStatsType getAggregatedOperationStats() {
-		ensureSubtasksLoaded(pageBase, true);
+    // currently returns only selected information
+    public OperationStatsType getAggregatedOperationStats() {
+        ensureSubtasksLoaded(pageBase, true);
 
-		IterativeTaskInformationType iterativeTaskInformation = new IterativeTaskInformationType();
-		SynchronizationInformationType synchronizationInformation = new SynchronizationInformationType();
-		ActionsExecutedInformationType actionsExecutedInformation = new ActionsExecutedInformationType();
-		List<TaskDto> allTasks = getWholeTree(true);
-		for (TaskDto taskDto : allTasks) {
-			OperationStatsType operationStats = taskDto.getTaskType().getOperationStats();
-			if (operationStats != null) {
-				IterativeTaskInformation.addTo(iterativeTaskInformation, operationStats.getIterativeTaskInformation(), true);
-				SynchronizationInformation.addTo(synchronizationInformation, operationStats.getSynchronizationInformation());
-				ActionsExecutedInformation.addTo(actionsExecutedInformation, operationStats.getActionsExecutedInformation());
-			}
-		}
-		return new OperationStatsType()
-				.iterativeTaskInformation(iterativeTaskInformation)
-				.synchronizationInformation(synchronizationInformation)
-				.actionsExecutedInformation(actionsExecutedInformation);
-	}
+        IterativeTaskInformationType iterativeTaskInformation = new IterativeTaskInformationType();
+        SynchronizationInformationType synchronizationInformation = new SynchronizationInformationType();
+        ActionsExecutedInformationType actionsExecutedInformation = new ActionsExecutedInformationType();
+        List<TaskDto> allTasks = getWholeTree(true);
+        for (TaskDto taskDto : allTasks) {
+            OperationStatsType operationStats = taskDto.getTaskType().getOperationStats();
+            if (operationStats != null) {
+                IterativeTaskInformation.addTo(iterativeTaskInformation, operationStats.getIterativeTaskInformation(), true);
+                SynchronizationInformation.addTo(synchronizationInformation, operationStats.getSynchronizationInformation());
+                ActionsExecutedInformation.addTo(actionsExecutedInformation, operationStats.getActionsExecutedInformation());
+            }
+        }
+        return new OperationStatsType()
+                .iterativeTaskInformation(iterativeTaskInformation)
+                .synchronizationInformation(synchronizationInformation)
+                .actionsExecutedInformation(actionsExecutedInformation);
+    }
 }

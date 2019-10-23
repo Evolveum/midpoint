@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.mapping;
@@ -22,38 +22,38 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
  */
 public class MappingFactory {
 
-//	ObjectFactory objectFactory = new ObjectFactory();
+//    ObjectFactory objectFactory = new ObjectFactory();
 
-	private ExpressionFactory expressionFactory;
-	private ObjectResolver objectResolver;
-	private Protector protector;						// not used for now
-	private PrismContext prismContext;
+    private ExpressionFactory expressionFactory;
+    private ObjectResolver objectResolver;
+    private Protector protector;                        // not used for now
+    private PrismContext prismContext;
     private SecurityContextManager securityContextManager;
-	private boolean profiling = false;
+    private boolean profiling = false;
 
-	public ExpressionFactory getExpressionFactory() {
-		return expressionFactory;
-	}
+    public ExpressionFactory getExpressionFactory() {
+        return expressionFactory;
+    }
 
-	public void setExpressionFactory(ExpressionFactory expressionFactory) {
-		this.expressionFactory = expressionFactory;
-	}
+    public void setExpressionFactory(ExpressionFactory expressionFactory) {
+        this.expressionFactory = expressionFactory;
+    }
 
-	public void setProtector(Protector protector) {
-		this.protector = protector;
-	}
+    public void setProtector(Protector protector) {
+        this.protector = protector;
+    }
 
-	public ObjectResolver getObjectResolver() {
-		return objectResolver;
-	}
+    public ObjectResolver getObjectResolver() {
+        return objectResolver;
+    }
 
-	public void setObjectResolver(ObjectResolver objectResolver) {
-		this.objectResolver = objectResolver;
-	}
+    public void setObjectResolver(ObjectResolver objectResolver) {
+        this.objectResolver = objectResolver;
+    }
 
-	public void setPrismContext(PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
+    public void setPrismContext(PrismContext prismContext) {
+        this.prismContext = prismContext;
+    }
 
     public SecurityContextManager getSecurityEnforcer() {
         return securityContextManager;
@@ -64,25 +64,25 @@ public class MappingFactory {
     }
 
     public boolean isProfiling() {
-		return profiling;
-	}
+        return profiling;
+    }
 
-	public void setProfiling(boolean profiling) {
-		this.profiling = profiling;
-	}
+    public void setProfiling(boolean profiling) {
+        this.profiling = profiling;
+    }
 
-	public <V extends PrismValue, D extends ItemDefinition> MappingImpl.Builder<V, D> createMappingBuilder() {
-		return new MappingImpl.Builder<V, D>()
-				.prismContext(prismContext)
-				.expressionFactory(expressionFactory)
-				.securityContextManager(securityContextManager)
-				.variables(new ExpressionVariables())
-				.profiling(profiling);
-	}
+    public <V extends PrismValue, D extends ItemDefinition> MappingImpl.Builder<V, D> createMappingBuilder() {
+        return new MappingImpl.Builder<V, D>()
+                .prismContext(prismContext)
+                .expressionFactory(expressionFactory)
+                .securityContextManager(securityContextManager)
+                .variables(new ExpressionVariables())
+                .profiling(profiling);
+    }
 
-	public <V extends PrismValue, D extends ItemDefinition> MappingImpl.Builder<V, D> createMappingBuilder(MappingType mappingType, String shortDesc) {
-		return this.<V,D>createMappingBuilder().mappingType(mappingType)
-				.contextDescription(shortDesc);
-	}
+    public <V extends PrismValue, D extends ItemDefinition> MappingImpl.Builder<V, D> createMappingBuilder(MappingType mappingType, String shortDesc) {
+        return this.<V,D>createMappingBuilder().mappingType(mappingType)
+                .contextDescription(shortDesc);
+    }
 
 }

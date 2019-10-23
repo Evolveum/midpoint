@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.audit.impl;
@@ -37,21 +37,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class LoggerAuditServiceImpl implements AuditService {
 
-	private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-	private static Logger AUDIT_LOGGER = org.slf4j.LoggerFactory.getLogger(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
+    private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    private static final Logger AUDIT_LOGGER = org.slf4j.LoggerFactory.getLogger(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-	private static final Trace LOGGER = TraceManager.getTrace(LoggerAuditServiceImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LoggerAuditServiceImpl.class);
 
-	@Autowired
-	private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    @Autowired
+    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.audit.AuditService#audit(com.evolveum.midpoint.common.audit.AuditEventRecord)
-	 */
-	@Override
-	public void audit(AuditEventRecord record, Task task) {
-		recordRecord(record);
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.common.audit.AuditService#audit(com.evolveum.midpoint.common.audit.AuditEventRecord)
+     */
+    @Override
+    public void audit(AuditEventRecord record, Task task) {
+        recordRecord(record);
+    }
 
     @Override
     public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
@@ -59,130 +59,130 @@ public class LoggerAuditServiceImpl implements AuditService {
     }
 
     private void recordRecord(AuditEventRecord record) {
-		// FIXME: hardcoded auditing to a system log
-		if (AUDIT_LOGGER.isInfoEnabled()) {
-			AUDIT_LOGGER.info("{}",toSummary(record));
-		}
-		if (AUDIT_LOGGER.isDebugEnabled()) {
-			AUDIT_LOGGER.debug("{}",toDetails(record));
-		}
-	}
+        // FIXME: hardcoded auditing to a system log
+        if (AUDIT_LOGGER.isInfoEnabled()) {
+            AUDIT_LOGGER.info("{}",toSummary(record));
+        }
+        if (AUDIT_LOGGER.isDebugEnabled()) {
+            AUDIT_LOGGER.debug("{}",toDetails(record));
+        }
+    }
 
-	private String toSummary(AuditEventRecord record) {
-		return formatTimestamp(record.getTimestamp()) +
-				" eid=" + record.getEventIdentifier() +
-				", et=" + record.getEventType() +
-				", es=" + record.getEventStage() +
-				", sid=" + record.getSessionIdentifier() +
-				", rid=" + record.getRequestIdentifier() +
-				", tid=" + record.getTaskIdentifier() +
-				", toid=" + record.getTaskOID() +
-				", hid=" + record.getHostIdentifier() +
-				", nid=" + record.getNodeIdentifier() +
-				", raddr=" + record.getRemoteHostAddress() +
-				", I=" + formatObject(record.getInitiator()) +
-				", T=" + formatReference(record.getTarget()) +
-				", TO=" + formatObject(record.getTargetOwner()) +
-				", D=" + formatDeltaSummary(record.getDeltas()) +
-				", ch=" + record.getChannel() +
+    private String toSummary(AuditEventRecord record) {
+        return formatTimestamp(record.getTimestamp()) +
+                " eid=" + record.getEventIdentifier() +
+                ", et=" + record.getEventType() +
+                ", es=" + record.getEventStage() +
+                ", sid=" + record.getSessionIdentifier() +
+                ", rid=" + record.getRequestIdentifier() +
+                ", tid=" + record.getTaskIdentifier() +
+                ", toid=" + record.getTaskOID() +
+                ", hid=" + record.getHostIdentifier() +
+                ", nid=" + record.getNodeIdentifier() +
+                ", raddr=" + record.getRemoteHostAddress() +
+                ", I=" + formatObject(record.getInitiator()) +
+                ", T=" + formatReference(record.getTarget()) +
+                ", TO=" + formatObject(record.getTargetOwner()) +
+                ", D=" + formatDeltaSummary(record.getDeltas()) +
+                ", ch=" + record.getChannel() +
                 ", o=" + record.getOutcome() +
                 ", p=" + record.getParameter() +
                 ", m=" + record.getMessage();
-	}
+    }
 
 
-	private String toDetails(AuditEventRecord record) {
-		StringBuilder sb = new StringBuilder("Details of event ");
-		sb.append(record.getEventIdentifier()).append(" stage ").append(record.getEventStage()).append("\n");
+    private String toDetails(AuditEventRecord record) {
+        StringBuilder sb = new StringBuilder("Details of event ");
+        sb.append(record.getEventIdentifier()).append(" stage ").append(record.getEventStage()).append("\n");
 
-		sb.append("Deltas:");
-		for (ObjectDeltaOperation<?> delta: record.getDeltas()) {
-			sb.append("\n");
-			if (delta == null) {
-				sb.append("null");
-			} else {
-				sb.append(delta.debugDump(1));
-			}
-		}
+        sb.append("Deltas:");
+        for (ObjectDeltaOperation<?> delta: record.getDeltas()) {
+            sb.append("\n");
+            if (delta == null) {
+                sb.append("null");
+            } else {
+                sb.append(delta.debugDump(1));
+            }
+        }
 
-		// TODO: target?
-		return sb.toString();
-	}
+        // TODO: target?
+        return sb.toString();
+    }
 
 
-	private static String formatTimestamp(Long timestamp) {
-		if (timestamp == null) {
-			return "null";
-		}
-		return TIMESTAMP_FORMAT.format(new java.util.Date(timestamp));
-	}
+    private static String formatTimestamp(Long timestamp) {
+        if (timestamp == null) {
+            return "null";
+        }
+        return TIMESTAMP_FORMAT.format(new java.util.Date(timestamp));
+    }
 
-	private static String formatObject(PrismObject<? extends ObjectType> object) {
-		if (object == null) {
-			return "null";
-		}
-		return object.asObjectable().toDebugType()+":"+object.getOid()+"("+object.getElementName()+")";
-	}
+    private static String formatObject(PrismObject<? extends ObjectType> object) {
+        if (object == null) {
+            return "null";
+        }
+        return object.asObjectable().toDebugType()+":"+object.getOid()+"("+object.getElementName()+")";
+    }
 
-	private String formatReference(PrismReferenceValue refVal) {
-    	if (refVal == null) {
-    		return "null";
-    	}
-		if (refVal.getObject() != null) {
-			return formatObject(refVal.getObject());
-		}
-		return refVal.toString();
-	}
+    private String formatReference(PrismReferenceValue refVal) {
+        if (refVal == null) {
+            return "null";
+        }
+        if (refVal.getObject() != null) {
+            return formatObject(refVal.getObject());
+        }
+        return refVal.toString();
+    }
 
-	private String formatDeltaSummary(Collection<ObjectDeltaOperation<? extends ObjectType>> collection) {
-		if (collection == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("[");
+    private String formatDeltaSummary(Collection<ObjectDeltaOperation<? extends ObjectType>> collection) {
+        if (collection == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("[");
 
-		Iterator<ObjectDeltaOperation<? extends ObjectType>> iterator = collection.iterator();
-		while (iterator.hasNext()) {
-			ObjectDeltaOperation<?> delta = iterator.next();
-			sb.append(delta.getObjectDelta().getOid()).append(":").append(delta.getObjectDelta().getChangeType());
-			if (iterator.hasNext()) {
-				sb.append(",");
-			}
-		}
-		sb.append("]");
-		return sb.toString();
-	}
+        Iterator<ObjectDeltaOperation<? extends ObjectType>> iterator = collection.iterator();
+        while (iterator.hasNext()) {
+            ObjectDeltaOperation<?> delta = iterator.next();
+            sb.append(delta.getObjectDelta().getOid()).append(":").append(delta.getObjectDelta().getChangeType());
+            if (iterator.hasNext()) {
+                sb.append(",");
+            }
+        }
+        sb.append("]");
+        return sb.toString();
+    }
 
-	@Override
-	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
-		throw new UnsupportedOperationException("Object retrieval not supported");
-	}
+    @Override
+    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult result) {
+        throw new UnsupportedOperationException("Object retrieval not supported");
+    }
 
     @Override
     public long countObjects(String query, Map<String, Object> params){
-    	throw new UnsupportedOperationException("Object retrieval not supported");
+        throw new UnsupportedOperationException("Object retrieval not supported");
     }
 
-	@Override
-	public boolean supportsRetrieval() {
-		return false;
-	}
+    @Override
+    public boolean supportsRetrieval() {
+        return false;
+    }
 
-	// This method is never used. It is here only for maven dependency plugin to properly detect common component usage.
-	@SuppressWarnings("unused")
-	private void fakeMethod() {
-		LoggingConfigurationManager.dummy();
-	}
+    // This method is never used. It is here only for maven dependency plugin to properly detect common component usage.
+    @SuppressWarnings("unused")
+    private void fakeMethod() {
+        LoggingConfigurationManager.dummy();
+    }
 
-	@Override
-	public void listRecordsIterative(String query, Map<String, Object> params,
-			AuditResultHandler auditResultHandler) {
-		throw new UnsupportedOperationException("Object retrieval not supported");
+    @Override
+    public void listRecordsIterative(String query, Map<String, Object> params,
+            AuditResultHandler auditResultHandler, OperationResult result) {
+        throw new UnsupportedOperationException("Object retrieval not supported");
 
-	}
+    }
 
-	@Override
-	public void reindexEntry(AuditEventRecord record) {
-		throw new UnsupportedOperationException("Reindex entry not supported");
+    @Override
+    public void reindexEntry(AuditEventRecord record) {
+        throw new UnsupportedOperationException("Reindex entry not supported");
 
-	}
+    }
 }

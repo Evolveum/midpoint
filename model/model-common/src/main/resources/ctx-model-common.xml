@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <beans
@@ -16,9 +16,9 @@
     <context:annotation-config/>
     <context:component-scan base-package="com.evolveum.midpoint.model.common"/>
     <context:spring-configured/>
-    
+
     <!-- The beans from model-common are not wired here. They are wired in model-impl as we want to
          place the right dependencies there. E.g. we want to inject modelResolver at proper places
          in those beans. And it is only model-impl when all the implementations are available. -->
-    
+
 </beans>

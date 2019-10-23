@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -31,44 +31,44 @@ import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
  */
 @Component
 public class UploadDownloadPanelFactory<T> extends AbstractGuiComponentFactory<T> implements Serializable {
-	
-	private static final long serialVersionUID = 1L;
 
-	@Autowired private transient GuiComponentRegistry registry;
-	
-	@PostConstruct
-	public void register() {
-		registry.addToRegistry(this);
-	}
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	public <IW extends ItemWrapper> boolean match(IW wrapper) {
-		return DOMUtil.XSD_BASE64BINARY.equals(wrapper.getTypeName());
-	}
+    @Autowired private transient GuiComponentRegistry registry;
 
-	@Override
-	protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
-		return new UploadDownloadPanel(panelCtx.getComponentId(), false) { //getModel().getObject().isReadonly()
+    @PostConstruct
+    public void register() {
+        registry.addToRegistry(this);
+    }
 
-			private static final long serialVersionUID = 1L;
+    @Override
+    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+        return DOMUtil.XSD_BASE64BINARY.equals(wrapper.getTypeName());
+    }
 
-			@Override
-			public InputStream getStream() {
-				T object = panelCtx.getRealValueModel().getObject();
-				return object != null ? new ByteArrayInputStream((byte[]) object) : new ByteArrayInputStream(new byte[0]);
-			}
+    @Override
+    protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
+        return new UploadDownloadPanel(panelCtx.getComponentId(), false) { //getModel().getObject().isReadonly()
 
-			@Override
-			public void updateValue(byte[] file) {
-				panelCtx.getRealValueModel().setObject((T) file);
-			}
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public void uploadFileFailed(AjaxRequestTarget target) {
-				super.uploadFileFailed(target);
-				target.add(((PageBase) getPage()).getFeedbackPanel());
-			}
-		};
-	}
+            @Override
+            public InputStream getStream() {
+                T object = panelCtx.getRealValueModel().getObject();
+                return object != null ? new ByteArrayInputStream((byte[]) object) : new ByteArrayInputStream(new byte[0]);
+            }
+
+            @Override
+            public void updateValue(byte[] file) {
+                panelCtx.getRealValueModel().setObject((T) file);
+            }
+
+            @Override
+            public void uploadFileFailed(AjaxRequestTarget target) {
+                super.uploadFileFailed(target);
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+    }
 
 }

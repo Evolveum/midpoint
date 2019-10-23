@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -18,41 +18,41 @@ import org.apache.wicket.util.time.Duration;
 
 public abstract class AbstractAjaxDownloadBehavior extends AbstractAjaxBehavior {
 
-	private static final long serialVersionUID = 1L;
-	private boolean addAntiCache;
-	private String contentType = "text";
-	private String fileName = null;
+    private static final long serialVersionUID = 1L;
+    private boolean addAntiCache;
+    private String contentType = "text";
+    private String fileName = null;
 
-	public AbstractAjaxDownloadBehavior() {
-		this(true);
-	}
+    public AbstractAjaxDownloadBehavior() {
+        this(true);
+    }
 
-	public AbstractAjaxDownloadBehavior(boolean addAntiCache) {
-		super();
-		this.addAntiCache = addAntiCache;
-	}
+    public AbstractAjaxDownloadBehavior(boolean addAntiCache) {
+        super();
+        this.addAntiCache = addAntiCache;
+    }
 
-	/**
-	 * Call this method to initiate the download.
-	 */
-	public void initiate(AjaxRequestTarget target) {
-		String url = getCallbackUrl().toString();
+    /**
+     * Call this method to initiate the download.
+     */
+    public void initiate(AjaxRequestTarget target) {
+        String url = getCallbackUrl().toString();
 
-		if (addAntiCache) {
-			url = url + (url.contains("?") ? "&" : "?");
-			url = url + "antiCache=" + System.currentTimeMillis();
-		}
+        if (addAntiCache) {
+            url = url + (url.contains("?") ? "&" : "?");
+            url = url + "antiCache=" + System.currentTimeMillis();
+        }
 
-		// the timeout is needed to let Wicket release the channel
-		target.appendJavaScript("setTimeout(\"window.location.href='" + url + "'\", 100);");
-	}
+        // the timeout is needed to let Wicket release the channel
+        target.appendJavaScript("setTimeout(\"window.location.href='" + url + "'\", 100);");
+    }
 
-	public void onRequest() {
+    public void onRequest() {
 
-		IResourceStream resourceStream = getResourceStream();
-		if (resourceStream == null) {
-			return;		// We hope the error was already processed and will be shown.
-		}
+        IResourceStream resourceStream = getResourceStream();
+        if (resourceStream == null) {
+            return;        // We hope the error was already processed and will be shown.
+        }
 
         ResourceStreamRequestHandler reqHandler = new ResourceStreamRequestHandler(resourceStream) {
             @Override
@@ -64,12 +64,12 @@ public abstract class AbstractAjaxDownloadBehavior extends AbstractAjaxBehavior 
         if (StringUtils.isNotEmpty(getFileName())){
             reqHandler.setFileName(getFileName());
         }
-		getComponent().getRequestCycle().scheduleRequestHandlerAfterCurrent(reqHandler);
-	}
+        getComponent().getRequestCycle().scheduleRequestHandlerAfterCurrent(reqHandler);
+    }
 
-	public void setContentType(String contentType) {
-		this.contentType = contentType;
-	}
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
 
     public String getFileName() {
         return fileName;

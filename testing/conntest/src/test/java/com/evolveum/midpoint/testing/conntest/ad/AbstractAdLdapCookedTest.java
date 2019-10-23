@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.conntest.ad;
@@ -26,9 +26,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public abstract class AbstractAdLdapCookedTest extends AbstractAdLdapTest {
 
-	@Test
+    @Test
     public void test050Capabilities() throws Exception {
-		final String TEST_NAME = "test050Capabilities";
+        final String TEST_NAME = "test050Capabilities";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         Collection<Object> nativeCapabilitiesCollection = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
@@ -38,14 +38,14 @@ public abstract class AbstractAdLdapCookedTest extends AbstractAdLdapTest {
         assertTrue("No native activation status capability", ResourceTypeUtil.hasResourceNativeActivationStatusCapability(resourceType));
 //        assertTrue("No native lockout capability", ResourceTypeUtil.hasResourceNativeActivationLockoutCapability(resourceType));
         assertTrue("No native credentias capability", ResourceTypeUtil.isCredentialsCapabilityEnabled(resourceType, null));
-	}
+    }
 
-	protected void assertAccountDisabled(PrismObject<ShadowType> shadow) {
-		assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
-	}
+    protected void assertAccountDisabled(PrismObject<ShadowType> shadow) {
+        assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
+    }
 
-	protected void assertAccountEnabled(PrismObject<ShadowType> shadow) {
-		assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
-	}
+    protected void assertAccountEnabled(PrismObject<ShadowType> shadow) {
+        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -135,8 +135,8 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
         //attempt to fix value type for polystring (if it was string in filter we create polystring from it)
         if (PolyString.class.equals(expectedType) && (value instanceof String)) {
             LOGGER.debug("Trying to query PolyString value but filter contains String '{}'.", filter);
-			String orig = (String) value;
-			value = new PolyString(orig, context.getPrismContext().getDefaultPolyStringNormalizer().normalize(orig));
+            String orig = (String) value;
+            value = new PolyString(orig, context.getPrismContext().getDefaultPolyStringNormalizer().normalize(orig));
         }
         //attempt to fix value type for polystring (if it was polystringtype in filter we create polystring from it)
         if (PolyString.class.equals(expectedType) && (value instanceof PolyStringType)) {

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.lex.json;
@@ -26,50 +26,50 @@ import org.w3c.dom.Element;
 
 public class JsonValueParser<T> implements ValueParser<T> {
 
-	@NotNull private final JsonParser parser;
-	private JsonNode node;
+    @NotNull private final JsonParser parser;
+    private JsonNode node;
 
-	public JsonValueParser(@NotNull JsonParser parser, JsonNode node) {
-		this.parser = parser;
-		this.node = node;
-	}
+    public JsonValueParser(@NotNull JsonParser parser, JsonNode node) {
+        this.parser = parser;
+        this.node = node;
+    }
 
-	@NotNull
-	public JsonParser getParser() {
-		return parser;
-	}
+    @NotNull
+    public JsonParser getParser() {
+        return parser;
+    }
 
-	@Override
-	public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
-		ObjectMapper mapper = (ObjectMapper) parser.getCodec();
-		Class clazz = XsdTypeMapper.toJavaType(typeName);
+    @Override
+    public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
+        ObjectMapper mapper = (ObjectMapper) parser.getCodec();
+        Class clazz = XsdTypeMapper.toJavaType(typeName);
 
-		ObjectReader r = mapper.readerFor(clazz);
-	    try {
-			return r.readValue(node);
-			// TODO implement COMPAT mode
-		} catch (IOException e) {
-			throw new SchemaException("Cannot parse value: " + e.getMessage(), e);
-		}
-	}
+        ObjectReader r = mapper.readerFor(clazz);
+        try {
+            return r.readValue(node);
+            // TODO implement COMPAT mode
+        } catch (IOException e) {
+            throw new SchemaException("Cannot parse value: " + e.getMessage(), e);
+        }
+    }
 
-	@Override
-	public boolean isEmpty() {
-		return node == null || StringUtils.isBlank(node.asText());			// to be consistent with PrimitiveXNode.isEmpty for parsed values
-	}
+    @Override
+    public boolean isEmpty() {
+        return node == null || StringUtils.isBlank(node.asText());            // to be consistent with PrimitiveXNode.isEmpty for parsed values
+    }
 
-	@Override
-	public String getStringValue() {
-		if (node == null) {
-			return null;
-		}
-		return node.asText();
-	}
+    @Override
+    public String getStringValue() {
+        if (node == null) {
+            return null;
+        }
+        return node.asText();
+    }
 
-	@Override
-	public String toString() {
-		return "JsonValueParser(JSON value: "+node+")";
-	}
+    @Override
+    public String toString() {
+        return "JsonValueParser(JSON value: "+node+")";
+    }
 
     @Override
     public Map<String, String> getPotentiallyRelevantNamespaces() {
@@ -77,8 +77,8 @@ public class JsonValueParser<T> implements ValueParser<T> {
     }
 
     Element asDomElement() throws IOException {
-		ObjectMapper mapper = (ObjectMapper) parser.getCodec();
-		ObjectReader r = mapper.readerFor(Document.class);
-		return ((Document) r.readValue(node)).getDocumentElement();
-	}
+        ObjectMapper mapper = (ObjectMapper) parser.getCodec();
+        ObjectReader r = mapper.readerFor(Document.class);
+        return ((Document) r.readValue(node)).getDocumentElement();
+    }
 }

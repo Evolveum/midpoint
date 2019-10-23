@@ -1,20 +1,20 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <shadow xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-	<name>identity-A</name>
-	<resourceRef oid="8fdb9db5-429a-4bcc-94f4-043dbd7f2eb2"/>
-	<objectClass>ri:account1</objectClass>
-	<kind>account</kind>
-	<intent>intent1</intent>
-	<attributes>
-		<icfs:name>identity-A</icfs:name>
-		<icfs:uid>uid-1</icfs:uid>
-	</attributes>
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>identity-A</name>
+    <resourceRef oid="8fdb9db5-429a-4bcc-94f4-043dbd7f2eb2"/>
+    <objectClass>ri:account1</objectClass>
+    <kind>account</kind>
+    <intent>intent1</intent>
+    <attributes>
+        <icfs:name>identity-A</icfs:name>
+        <icfs:uid>uid-1</icfs:uid>
+    </attributes>
 </shadow>

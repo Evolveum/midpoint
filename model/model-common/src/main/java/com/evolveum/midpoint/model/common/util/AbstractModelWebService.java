@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2014-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.util;
@@ -34,13 +34,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public abstract class AbstractModelWebService {
 
-	@Autowired protected ModelService modelService;
-	@Autowired protected TaskManager taskManager;
-	@Autowired protected AuditService auditService;
-	@Autowired protected PrismContext prismContext;
-	@Autowired protected SecurityContextManager securityContextManager;
+    @Autowired protected ModelService modelService;
+    @Autowired protected TaskManager taskManager;
+    @Autowired protected AuditService auditService;
+    @Autowired protected PrismContext prismContext;
+    @Autowired protected SecurityContextManager securityContextManager;
 
-	protected void setTaskOwner(Task task) {
+    protected void setTaskOwner(Task task) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             throw new SystemException("Failed to get authentication object");
@@ -52,30 +52,30 @@ public abstract class AbstractModelWebService {
         task.setOwner(userType.asPrismObject());
     }
 
-	protected Task createTaskInstance(String operationName) {
-		// TODO: better task initialization
-		Task task = taskManager.createTaskInstance(operationName);
-		setTaskOwner(task);
-		task.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-		return task;
-	}
+    protected Task createTaskInstance(String operationName) {
+        // TODO: better task initialization
+        Task task = taskManager.createTaskInstance(operationName);
+        setTaskOwner(task);
+        task.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        return task;
+    }
 
-	protected void auditLogin(Task task) {
+    protected void auditLogin(Task task) {
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
         record.setInitiatorAndLoginParameter(task.getOwner());
         record.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
         auditService.audit(record, task);
-	}
+    }
 
-	protected void auditLogout(Task task) {
-		AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
-		record.setInitiatorAndLoginParameter(task.getOwner());
+    protected void auditLogout(Task task) {
+        AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
+        record.setInitiatorAndLoginParameter(task.getOwner());
         record.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
         auditService.audit(record, task);
-	}
+    }
 
 }

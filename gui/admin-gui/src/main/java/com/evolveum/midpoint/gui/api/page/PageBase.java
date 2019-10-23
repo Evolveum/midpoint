@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -262,7 +262,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean(name = "modelInteractionService")
     private ModelInteractionService modelInteractionService;
-    
+
     @SpringBean(name = "dashboardService")
     private DashboardService dashboardService;
 
@@ -301,7 +301,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
-    
+
     @SpringBean(name = "clock")
     private Clock clock;
 
@@ -322,9 +322,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean
     private MidpointFunctions midpointFunctions;
-    
+
     @SpringBean private GuiComponentRegistry registry;
-    
+
     @SpringBean private CounterManager counterManager;
 
     @SpringBean private ClusterExecutionHelper clusterExecutionHelper;
@@ -394,7 +394,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                             .isNull()
                             .build();
                     return getModelService().countContainers(CaseWorkItemType.class, query, null, task, task.getResult());
-                } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+                } catch (Exception e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
                     return null;
                 }
@@ -410,8 +410,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     Task task = createSimpleTask(OPERATION_LOAD_CERT_WORK_ITEM_COUNT);
                     OperationResult result = task.getResult();
                     return acs.countOpenWorkItems(getPrismContext().queryFactory().createQuery(), true, null, task, result);
-                } catch (SchemaException | SecurityViolationException | ObjectNotFoundException
-                        | ConfigurationException | CommunicationException | ExpressionEvaluationException e) {
+                } catch (Exception e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);
                     return null;
                 }
@@ -493,10 +492,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public MidpointFunctions getMidpointFunctions() {
         return midpointFunctions;
     }
-    
+
    public CounterManager getCounterManager() {
-		return counterManager;
-	}
+        return counterManager;
+    }
 
     @Contract(pure = true)
     public PrismContext getPrismContext() {
@@ -599,7 +598,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
     }
-    
+
     @Override
     public DashboardService getDashboardService() {
         return dashboardService;
@@ -608,23 +607,23 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public ModelDiagnosticService getModelDiagnosticService() {
         return modelDiagnosticService;
     }
-    
+
     public GuiComponentRegistry getRegistry() {
-		return registry;
-	}
+        return registry;
+    }
 
     public CacheDispatcher getCacheDispatcher() {
         return cacheDispatcher;
     }
-    
+
     @NotNull
     @Override
     public CompiledUserProfile getCompiledUserProfile() {
-    	// TODO: may need to always go to ModelInteractionService to make sure the setting is up to date
-    	if (compiledUserProfile == null) {
+        // TODO: may need to always go to ModelInteractionService to make sure the setting is up to date
+        if (compiledUserProfile == null) {
             Task task = createSimpleTask(PageBase.DOT_CLASS + "getCompiledUserProfile");
             try {
-            	compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, task.getResult());
+                compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, task.getResult());
             } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve compiled user profile", e);
                 if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
@@ -696,32 +695,32 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public MidPointUserProfilePrincipal getPrincipal() {
         return SecurityUtils.getPrincipalUser();
     }
-    
+
     public UserType getPrincipalUser() {
         MidPointPrincipal principal = getPrincipal();
         if (principal == null) {
-        	return null;
+            return null;
         }
         return principal.getUser();
     }
-    
+
     public boolean hasSubjectRoleRelation(String oid, List<QName> subjectRelations) {
-    	UserType userType = getPrincipalUser();
-    	if (userType == null) {
-    		return false;
-    	}
-    	
-    	if (oid == null) {
-    		return false;
-    	}
-    	
-    	for (ObjectReferenceType roleMembershipRef : userType.getRoleMembershipRef()) {
-    		if (oid.equals(roleMembershipRef.getOid()) && 
-    				getPrismContext().relationMatches(subjectRelations, roleMembershipRef.getRelation())) {
-    			return true;
-    		}
-    	}
-    	return false;
+        UserType userType = getPrincipalUser();
+        if (userType == null) {
+            return false;
+        }
+
+        if (oid == null) {
+            return false;
+        }
+
+        for (ObjectReferenceType roleMembershipRef : userType.getRoleMembershipRef()) {
+            if (oid.equals(roleMembershipRef.getOid()) &&
+                    getPrismContext().relationMatches(subjectRelations, roleMembershipRef.getRelation())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static StringResourceModel createStringResourceStatic(Component component, Enum<?> e) {
@@ -745,7 +744,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public Task createSimpleTask(String operation) {
         return createSimpleTask(operation, null);
     }
-    
+
     public Task createSimpleTask(String operation, String channel) {
         MidPointPrincipal user = SecurityUtils.getPrincipalUser();
         if (user == null) {
@@ -1158,7 +1157,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 }
 
 //                TODO fix for MID-4897
-//                if (checkSkinUsage && StringUtils.isEmpty(info.getSkin())) {  
+//                if (checkSkinUsage && StringUtils.isEmpty(info.getSkin())) {
 //                    return null;
 //                }
 
@@ -1288,28 +1287,28 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
-    
+
     public StringResourceModel createStringResource(String resourceKey, IModel model, Object... objects) {
         return new StringResourceModel(resourceKey, model).setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
-    
+
     public StringResourceModel createStringResource(PolyString polystringKey, Object... objects) {
-    	String resourceKey = null;
-    	if (polystringKey != null) {
-    		// TODO later: try polystringKey.getKey()
-    		resourceKey = polystringKey.getOrig();
-    	}
+        String resourceKey = null;
+        if (polystringKey != null) {
+            // TODO later: try polystringKey.getKey()
+            resourceKey = polystringKey.getOrig();
+        }
         return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
-    
+
     public StringResourceModel createStringResource(PolyStringType polystringKey, Object... objects) {
-    	String resourceKey = null;
-    	if (polystringKey != null) {
-    		// TODO later: try polystringKey.getKey()
-    		resourceKey = polystringKey.getOrig();
-    	}
+        String resourceKey = null;
+        if (polystringKey != null) {
+            // TODO later: try polystringKey.getKey()
+            resourceKey = polystringKey.getOrig();
+        }
         return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
@@ -1325,13 +1324,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return new StringResourceModel(resourceKey, component).setModel(new Model<String>())
                 .setDefaultValue(resourceKey).setParameters(objects);
     }
-    
+
     public StringResourceModel createStringResourceDefault(String defaultKey, PolyStringType polystringKey, Object... objects) {
-    	if (polystringKey == null) {
-    		return createStringResource(defaultKey);
-    	} else {
-    		return createStringResource(polystringKey, objects);
-    	}
+        if (polystringKey == null) {
+            return createStringResource(defaultKey);
+        } else {
+            return createStringResource(polystringKey, objects);
+        }
     }
 
     public OpResult showResult(OperationResult result, String errorMessageKey) {
@@ -1365,7 +1364,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         return createStringResource(sb.toString());
     }
-    
+
     public OpResult showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
@@ -1700,7 +1699,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 AuthorizationConstants.AUTZ_UI_SERVICES_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createServicesItems());
         }
-        
+
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
                 AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_ARCHETYPES_VIEW_URL)) {
@@ -2046,34 +2045,34 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createHomeItems() {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_DASHBOARD_ICON,
-				createStringResource("PageAdmin.menu.dashboard"), null);
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_DASHBOARD_ICON,
+                createStringResource("PageAdmin.menu.dashboard"), null);
 
-		addMenuItem(item, "PageAdmin.menu.dashboard.info", PageDashboardInfo.class);
-		
-		OperationResult result = new OperationResult("Search Dashboard");
-		List<PrismObject<DashboardType>> dashboards = WebModelServiceUtils.searchObjects(DashboardType.class, null, result, this);
-		if(dashboards != null) {
-			dashboards.forEach(prismObject -> {
-				Validate.notNull(prismObject, "PrismObject<Dashboard> is null");
-				DashboardType dashboard = prismObject.getRealValue();
-				Validate.notNull(dashboard, "Dashboard object is null");
-				
-				StringResourceModel label = null;
-				if(dashboard.getDisplay() != null && dashboard.getDisplay().getLabel() != null) {
-					label = createStringResource(dashboard.getDisplay().getLabel().getOrig());
-				} else {
-					label = createStringResource(dashboard.getName());
-				}
-				PageParameters pageParameters = new PageParameters();
-				pageParameters.add(OnePageParameterEncoder.PARAMETER, dashboard.getOid());
-				MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null);
-	        	item.getItems().add(menu);
-			});
-		}
+        addMenuItem(item, "PageAdmin.menu.dashboard.info", PageDashboardInfo.class);
 
-		return item;
-	}
+        OperationResult result = new OperationResult("Search Dashboard");
+        List<PrismObject<DashboardType>> dashboards = WebModelServiceUtils.searchObjects(DashboardType.class, null, result, this);
+        if(dashboards != null) {
+            dashboards.forEach(prismObject -> {
+                Validate.notNull(prismObject, "PrismObject<Dashboard> is null");
+                DashboardType dashboard = prismObject.getRealValue();
+                Validate.notNull(dashboard, "Dashboard object is null");
+
+                StringResourceModel label = null;
+                if(dashboard.getDisplay() != null && dashboard.getDisplay().getLabel() != null) {
+                    label = createStringResource(dashboard.getDisplay().getLabel().getOrig());
+                } else {
+                    label = createStringResource(dashboard.getName());
+                }
+                PageParameters pageParameters = new PageParameters();
+                pageParameters.add(OnePageParameterEncoder.PARAMETER, dashboard.getOid());
+                MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null);
+                item.getItems().add(menu);
+            });
+        }
+
+        return item;
+    }
 
     private MainMenuItem createUsersItems() {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED,
@@ -2251,7 +2250,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         return item;
     }
-    
+
     private MainMenuItem createArchetypesItems() {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON,
                 createStringResource("PageAdmin.menu.top.archetypes"), null);
@@ -2288,16 +2287,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private void addCollectionsMenuItems(List<MenuItem> menu, QName type, Class<? extends PageAdminObjectList> redirectToPage) {
         List<CompiledObjectCollectionView> objectViews = getCompiledUserProfile().findAllApplicableObjectCollectionViews(type);
-        if (objectViews == null) {
-            return;
-        }
         List<MenuItem> collectionMenuItems = new ArrayList<>(objectViews.size());
         objectViews.forEach(objectView -> {
-        	CollectionRefSpecificationType collectionRefSpec = objectView.getCollection();
-        	if (collectionRefSpec == null) {
-        		return;
-        	}
-        	
+            CollectionRefSpecificationType collectionRefSpec = objectView.getCollection();
+            if (collectionRefSpec == null) {
+                return;
+            }
+
             ObjectReferenceType collectionRef = collectionRefSpec.getCollectionRef();
             if (collectionRef == null) {
                 return;
@@ -2320,7 +2316,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             pageParameters.add(PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewIdentifier());
 
             MenuItem userViewMenu = new MenuItem(
-            		createStringResourceDefault("MenuItem.noName", WebComponentUtil.getCollectionLabel(viewDisplayType, collectionRefSpec, objectType)),
+                    createStringResourceDefault("MenuItem.noName", WebComponentUtil.getCollectionLabel(viewDisplayType, collectionRefSpec, objectType)),
                     WebComponentUtil.getIconCssClass(viewDisplayType), redirectToPage, pageParameters, null) {
                 private static final long serialVersionUID = 1L;
 
@@ -2339,10 +2335,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             userViewMenu.setDisplayOrder(objectView.getDisplayOrder());
             collectionMenuItems.add(userViewMenu);
         });
-        
+
         // We need to sort after we get all the collections. Only then we have correct collection labels.
         // We do not want to determine the labels twice.
-        
+
         // TODO: can this be combined in a single sort?
         collectionMenuItems.sort(Comparator.comparing(o -> o.getNameModel().getObject()));
         collectionMenuItems.sort(Comparator.comparingInt(o -> ObjectUtils.defaultIfNull(o.getDisplayOrder(), Integer.MAX_VALUE)));
@@ -2446,12 +2442,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public void navigateToNext(Class<? extends WebPage> pageType, PageParameters params) {
-    	WebPage page = createWebPage(pageType, params);
+        WebPage page = createWebPage(pageType, params);
         navigateToNext(page);
     }
-    
+
     public WebPage createWebPage(Class<? extends WebPage> pageType, PageParameters params) {
-    	IPageFactory pFactory = Session.get().getPageFactory();
+        IPageFactory pFactory = Session.get().getPageFactory();
         WebPage page;
         if (params == null) {
             page = pFactory.newPage(pageType);
@@ -2656,7 +2652,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public Locale getLocale() {
         return getSession().getLocale();
     }
-    
+
     //REGISTRY
 
     @Override
@@ -2667,63 +2663,63 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public <ID extends ItemDefinition> ItemWrapperFactory<?, ?, ?> findWrapperFactory(ID def) {
         return registry.findWrapperFactory(def);
     }
-    
+
     public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
-    	
-    	ItemWrapperFactory<IW, VW, PV> factory = (ItemWrapperFactory<IW, VW, PV>) registry.findWrapperFactory(parentWrapper);
-    	
-    	return factory.createValueWrapper(parentWrapper, newValue, status, context);
-    	
+
+        ItemWrapperFactory<IW, VW, PV> factory = (ItemWrapperFactory<IW, VW, PV>) registry.findWrapperFactory(parentWrapper);
+
+        return factory.createValueWrapper(parentWrapper, newValue, status, context);
+
     }
-    
+
     public <ID extends ItemDefinition, IW extends ItemWrapper> IW createItemWrapper(ID def, PrismContainerValueWrapper<?> parent, WrapperContext ctx) throws SchemaException {
-    	
-    	ItemWrapperFactory<IW, ?,?> factory = (ItemWrapperFactory<IW, ?,?>) registry.findWrapperFactory(def);
-    	
-    	ctx.setCreateIfEmpty(true);
-    	return factory.createWrapper(parent, def, ctx);
-    	
+
+        ItemWrapperFactory<IW, ?,?> factory = (ItemWrapperFactory<IW, ?,?>) registry.findWrapperFactory(def);
+
+        ctx.setCreateIfEmpty(true);
+        return factory.createWrapper(parent, def, ctx);
+
     }
-    
+
     public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException {
-    	
-    	ItemWrapperFactory<IW, ?,?> factory = (ItemWrapperFactory<IW, ?,?>) registry.findWrapperFactory(item.getDefinition());
-    	
-    	ctx.setCreateIfEmpty(true);
-    	return factory.createWrapper(item, status, ctx);
-    	
+
+        ItemWrapperFactory<IW, ?,?> factory = (ItemWrapperFactory<IW, ?,?>) registry.findWrapperFactory(item.getDefinition());
+
+        ctx.setCreateIfEmpty(true);
+        return factory.createWrapper(item, status, ctx);
+
     }
-    
+
     private Class<?> getWrapperPanel(QName typeName) {
-    	return registry.getPanelClass(typeName);
+        return registry.getPanelClass(typeName);
     }
-    
+
 
     public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemPanelSettings itemPanelSettings) throws SchemaException{
-    	Class<?> panelClass = getWrapperPanel(typeName);
-    	if (panelClass == null) {
-    		ErrorPanel errorPanel = new ErrorPanel(panelId, () -> "Cannot create panel for " + typeName);
-    		errorPanel.add(new VisibleBehaviour(() -> getApplication().usesDevelopmentConfig()));
-    		return errorPanel;
-    	}
-    	
-    	Constructor<?> constructor;
-		try {
-			constructor = panelClass.getConstructor(String.class, IModel.class, ItemPanelSettings.class);
-			Panel panel = (Panel) constructor.newInstance(panelId, wrapperModel, itemPanelSettings);
-			return panel;
-		} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			throw new SystemException("Cannot instantiate " + panelClass, e);
-		}
+        Class<?> panelClass = getWrapperPanel(typeName);
+        if (panelClass == null) {
+            ErrorPanel errorPanel = new ErrorPanel(panelId, () -> "Cannot create panel for " + typeName);
+            errorPanel.add(new VisibleBehaviour(() -> getApplication().usesDevelopmentConfig()));
+            return errorPanel;
+        }
+
+        Constructor<?> constructor;
+        try {
+            constructor = panelClass.getConstructor(String.class, IModel.class, ItemPanelSettings.class);
+            Panel panel = (Panel) constructor.newInstance(panelId, wrapperModel, itemPanelSettings);
+            return panel;
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            throw new SystemException("Cannot instantiate " + panelClass, e);
+        }
     }
-    
+
     public <CVW extends PrismContainerValueWrapper<C>, C extends Containerable> Panel initContainerValuePanel(String id, IModel<CVW> model, ItemVisibilityHandler visibilityHandler) {
-    	//TODO find from registry first
-    	return new PrismContainerValuePanel<>(id, model, visibilityHandler);
+        //TODO find from registry first
+        return new PrismContainerValuePanel<>(id, model, visibilityHandler);
     }
 
     public Clock getClock() {
-		return clock;
-	}
+        return clock;
+    }
 
 }

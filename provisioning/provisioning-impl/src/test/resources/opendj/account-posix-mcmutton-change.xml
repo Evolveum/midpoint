@@ -2,26 +2,26 @@
 <!--
   ~ Copyright (c) 2015 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <objectModification
-	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
-	<oid>3a1902a4-14d8-11e5-b0b5-001e8c717e5b</oid>
-	<itemDelta>
-		<t:modificationType>replace</t:modificationType>
-		<t:path>attributes/roomNumber</t:path>
-		<t:value>Barber Shop</t:value>
-	</itemDelta>
-	<itemDelta>
-		<t:modificationType>replace</t:modificationType>
-		<t:path>attributes/homeDirectory</t:path>
-		<t:value>/home/caribbean</t:value>
-	</itemDelta>
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
+    <oid>3a1902a4-14d8-11e5-b0b5-001e8c717e5b</oid>
+    <itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>attributes/roomNumber</t:path>
+        <t:value>Barber Shop</t:value>
+    </itemDelta>
+    <itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>attributes/homeDirectory</t:path>
+        <t:value>/home/caribbean</t:value>
+    </itemDelta>
 </objectModification>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -63,11 +63,11 @@ public class RepositoryObjectDataProvider
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
         try {
             ObjectPaging paging = createPaging(first, count);
-			ObjectQuery query = getQuery();
-			if (query == null) {
-				query = getPrismContext().queryFactory().createQuery();
-			}
-			query.setPaging(paging);
+            ObjectQuery query = getQuery();
+            if (query == null) {
+                query = getPrismContext().queryFactory().createQuery();
+            }
+            query.setPaging(paging);
 
             Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
             List<PrismObject<? extends ObjectType>> list = getModel().searchObjects((Class) type, query, options,
@@ -76,7 +76,7 @@ public class RepositoryObjectDataProvider
                 getAvailableData().add(createItem(object, result));
             }
         } catch (Exception ex) {
-        	result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
+            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }
@@ -168,7 +168,7 @@ public class RepositoryObjectDataProvider
             count = getModel().countObjects(type, getQuery(), getOptions(),
                     getPage().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
         } catch (Exception ex) {
-        	result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
+            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }

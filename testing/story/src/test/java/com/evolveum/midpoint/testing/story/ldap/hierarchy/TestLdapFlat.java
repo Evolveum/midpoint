@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2016-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -42,41 +42,41 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapFlat extends AbstractLdapHierarchyTest {
 
-	public static final File TEST_DIR = new File(LDAP_HIERARCHY_TEST_DIR, "flat");
+    public static final File TEST_DIR = new File(LDAP_HIERARCHY_TEST_DIR, "flat");
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-	}
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+    }
 
-	@Override
-	protected File getTestDir() {
-		return TEST_DIR;
-	}
+    @Override
+    protected File getTestDir() {
+        return TEST_DIR;
+    }
 
-	@Override
-	protected PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
-		PrismObject<UserType> user = super.getAndAssertUser(username, directOrgGroupname, indirectGroupNames);
-		Entry accountEntry = openDJController.searchSingle("uid="+username);
+    @Override
+    protected PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+        PrismObject<UserType> user = super.getAndAssertUser(username, directOrgGroupname, indirectGroupNames);
+        Entry accountEntry = openDJController.searchSingle("uid="+username);
 
-		Entry groupEntry = openDJController.searchSingle("cn="+directOrgGroupname);
-		assertNotNull("No group LDAP entry for "+directOrgGroupname, groupEntry);
-		openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
+        Entry groupEntry = openDJController.searchSingle("cn="+directOrgGroupname);
+        assertNotNull("No group LDAP entry for "+directOrgGroupname, groupEntry);
+        openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
 
-		if (indirectGroupNames != null) {
-			for (String expectedGroupName: indirectGroupNames) {
-				groupEntry = openDJController.searchSingle("cn="+expectedGroupName);
-				assertNotNull("No group LDAP entry for "+expectedGroupName, groupEntry);
-				openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
-			}
-		}
+        if (indirectGroupNames != null) {
+            for (String expectedGroupName: indirectGroupNames) {
+                groupEntry = openDJController.searchSingle("cn="+expectedGroupName);
+                assertNotNull("No group LDAP entry for "+expectedGroupName, groupEntry);
+                openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
+            }
+        }
 
-		return user;
-	}
+        return user;
+    }
 
-	@Override
-	protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		reconcileAllUsers();
-	}
+    @Override
+    protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        reconcileAllUsers();
+    }
 
 }

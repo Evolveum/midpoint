@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -54,29 +54,29 @@ public class AssignExecutor extends AssignmentOperationsExecutor {
 //        ActionParameterValueType roleParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_ROLE, false, false, NAME);
 //        Collection<String> relations = expressionHelper.getArgumentValues(expression.getParameter(), PARAM_RELATION, false, false, NAME, input, context, String.class, globalResult);
 //
-//	    Collection<ObjectReferenceType> resources;
+//        Collection<ObjectReferenceType> resources;
 //        try {
-//	        if (resourceParameterValue != null) {
-//		        PipelineData data = expressionHelper
-//				        .evaluateParameter(resourceParameterValue, null, input, context, globalResult);
-//		        resources = data.getDataAsReferences(ResourceType.COMPLEX_TYPE, ResourceType.class, context, globalResult);
-//	        } else {
-//		        resources = null;
-//	        }
+//            if (resourceParameterValue != null) {
+//                PipelineData data = expressionHelper
+//                        .evaluateParameter(resourceParameterValue, null, input, context, globalResult);
+//                resources = data.getDataAsReferences(ResourceType.COMPLEX_TYPE, ResourceType.class, context, globalResult);
+//            } else {
+//                resources = null;
+//            }
 //        } catch (CommonException e) {
-//        	throw new ScriptExecutionException("Couldn't evaluate '" + PARAM_RESOURCE + "' parameter of a scripting expression: " + e.getMessage(), e);
+//            throw new ScriptExecutionException("Couldn't evaluate '" + PARAM_RESOURCE + "' parameter of a scripting expression: " + e.getMessage(), e);
 //        }
 //
 //        Collection<ObjectReferenceType> roles;
 //        try {
-//	        if (roleParameterValue != null) {
-//		        PipelineData data = expressionHelper.evaluateParameter(roleParameterValue, null, input, context, globalResult);
-//		        roles = data.getDataAsReferences(RoleType.COMPLEX_TYPE, AbstractRoleType.class, context, globalResult);        // if somebody wants to assign Org, he has to use full reference value (including object type)
-//	        } else {
-//		        roles = null;
-//	        }
+//            if (roleParameterValue != null) {
+//                PipelineData data = expressionHelper.evaluateParameter(roleParameterValue, null, input, context, globalResult);
+//                roles = data.getDataAsReferences(RoleType.COMPLEX_TYPE, AbstractRoleType.class, context, globalResult);        // if somebody wants to assign Org, he has to use full reference value (including object type)
+//            } else {
+//                roles = null;
+//            }
 //        } catch (CommonException e) {
-//	        throw new ScriptExecutionException("Couldn't evaluate '" + PARAM_ROLE + "' parameter of a scripting expression: " + e.getMessage(), e);
+//            throw new ScriptExecutionException("Couldn't evaluate '" + PARAM_ROLE + "' parameter of a scripting expression: " + e.getMessage(), e);
 //        }
 //
 //        if (resources == null && roles == null) {
@@ -84,9 +84,9 @@ public class AssignExecutor extends AssignmentOperationsExecutor {
 //        }
 //
 //        if (CollectionUtils.isEmpty(resources) && CollectionUtils.isEmpty(roles)) {
-//        	LOGGER.warn("No resources and no roles to assign in a scripting expression");
-//        	context.println("Warning: no resources and no roles to assign");        // TODO some better handling?
-//	        return input;
+//            LOGGER.warn("No resources and no roles to assign in a scripting expression");
+//            context.println("Warning: no resources and no roles to assign");        // TODO some better handling?
+//            return input;
 //        }
 //
 //        for (PipelineItem item : input.getData()) {
@@ -104,38 +104,38 @@ public class AssignExecutor extends AssignmentOperationsExecutor {
 //                    operationsHelper.recordEnd(context, objectType, started, null);
 //                } catch (Throwable ex) {
 //                    operationsHelper.recordEnd(context, objectType, started, ex);
-//					exception = processActionException(ex, NAME, value, context);
+//                    exception = processActionException(ex, NAME, value, context);
 //                }
 //                context.println((exception != null ? "Attempted to modify " : "Modified ") + prismObject.toString() + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception));
 //            } else {
-//				//noinspection ThrowableNotThrown
-//				processActionException(new ScriptExecutionException("Item is not a PrismObject of FocusType"), NAME, value, context);
+//                //noinspection ThrowableNotThrown
+//                processActionException(new ScriptExecutionException("Item is not a PrismObject of FocusType"), NAME, value, context);
 //            }
 //            operationsHelper.trimAndCloneResult(result, globalResult, context);
 //        }
 //        return input;           // TODO updated objects?
 //    }
-    
+
     @Override
     protected String getName() {
-    	return AssignmentOperationsExecutor.ASSIGN_NAME;
+        return AssignmentOperationsExecutor.ASSIGN_NAME;
     }
 
     @Override
     protected ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType objectType, Collection<ObjectReferenceType> resources, Collection<ObjectReferenceType> roles, Collection<String> relations) throws ScriptExecutionException {
 
-    	String relation = "";
-    	
-    	if (relations == null || relations.isEmpty()) {
-    		QName defaultRelation = prismContext.getDefaultRelation() != null ?
-				    prismContext.getDefaultRelation() : RelationTypes.MEMBER.getRelation();
-				    relation = QNameUtil.qNameToUri(defaultRelation);
-	    } else if(relations.size() > 1){
-	    	throw new IllegalArgumentException("Couldn't use relation as multivalue parameter");
-	    } else {
-	    	relation = relations.iterator().next();
-	    }
-    	
+        String relation = "";
+
+        if (relations == null || relations.isEmpty()) {
+            QName defaultRelation = prismContext.getDefaultRelation() != null ?
+                    prismContext.getDefaultRelation() : RelationTypes.MEMBER.getRelation();
+                    relation = QNameUtil.qNameToUri(defaultRelation);
+        } else if(relations.size() > 1){
+            throw new IllegalArgumentException("Couldn't use relation as multivalue parameter");
+        } else {
+            relation = relations.iterator().next();
+        }
+
         List<AssignmentType> assignments = new ArrayList<>();
 
         if (roles != null) {
@@ -143,14 +143,14 @@ public class AssignExecutor extends AssignmentOperationsExecutor {
                 AssignmentType assignmentType = new AssignmentType();
                 RelationTypes foundRelation = null;
                 for (RelationTypes relationType : RelationTypes.values()) {
-				    if (prismContext.relationMatches(QNameUtil.uriToQName(relation, true),
-				    		relationType.getRelation())) {
-				    	foundRelation = relationType;
-					    break;
-				    }
-			    }
+                    if (prismContext.relationMatches(QNameUtil.uriToQName(relation, true),
+                            relationType.getRelation())) {
+                        foundRelation = relationType;
+                        break;
+                    }
+                }
                 if(foundRelation == null) {
-                	throw new IllegalArgumentException("Relation " + relation + " not found");
+                    throw new IllegalArgumentException("Relation " + relation + " not found");
                 }
                 roleRef.setRelation(foundRelation.getRelation());
                 assignmentType.setTargetRef(roleRef);
@@ -169,7 +169,7 @@ public class AssignExecutor extends AssignmentOperationsExecutor {
         }
 
         ObjectDelta<? extends ObjectType> delta = prismContext.deltaFactory().object()
-		        .createEmptyModifyDelta(objectType.getClass(), objectType.getOid());
+                .createEmptyModifyDelta(objectType.getClass(), objectType.getOid());
         try {
             delta.addModificationAddContainer(FocusType.F_ASSIGNMENT, assignments.toArray(new AssignmentType[0]));
         } catch (SchemaException e) {

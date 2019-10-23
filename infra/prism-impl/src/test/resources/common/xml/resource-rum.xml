@@ -2,31 +2,31 @@
 <!--
   ~ Copyright (c) 2014 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <resource oid="c0c010c0-d34d-b33f-f00d-222222220001"
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
-		xmlns:ds="http://www.w3.org/2000/09/xmldsig#"  
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
+        xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
         xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-		xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-		xmlns:adhoc="http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd"
-		xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:adhoc="http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
     <name>Rum Delivery System</name>
     <description>Where's the rum?</description>
-	<schema>
-		<xsd:schema>
-			<xsd:complexType name="BarrelType">
-				<xsd:sequence>
-					<xsd:element name="diameter" type="xsd:int"/>
-					<xsd:element name="depth" type="xsd:int"/>
-					<xsd:element name="name" type="xsd:string" minOccurs="0"/>
-				</xsd:sequence>
-			</xsd:complexType>
-		</xsd:schema>
-	</schema>
+    <schema>
+        <xsd:schema>
+            <xsd:complexType name="BarrelType">
+                <xsd:sequence>
+                    <xsd:element name="diameter" type="xsd:int"/>
+                    <xsd:element name="depth" type="xsd:int"/>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+        </xsd:schema>
+    </schema>
 </resource>

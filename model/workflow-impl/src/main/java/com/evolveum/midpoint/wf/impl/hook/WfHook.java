@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -88,9 +88,9 @@ public class WfHook implements ChangeHook {
     @Override
     public <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task,
             @NotNull OperationResult parentResult) {
-	    // Generally this cannot be minor as we need the "task switched to background" flag.
-	    // But if the hook does nothing (returns FOREGROUND flag), we mark the result
-	    // as minor afterwards.
+        // Generally this cannot be minor as we need the "task switched to background" flag.
+        // But if the hook does nothing (returns FOREGROUND flag), we mark the result
+        // as minor afterwards.
         OperationResult result = parentResult.createSubresult(OP_INVOKE);
         result.addParam("task", task.toString());
         result.addArbitraryObjectAsContext("model state", context.getState());
@@ -122,7 +122,7 @@ public class WfHook implements ChangeHook {
             HookOperationMode retval = processModelInvocation(context, wfConfigurationType, task, result);
             result.computeStatus();
             if (retval == HookOperationMode.FOREGROUND) {
-	            result.setMinor();
+                result.setMinor();
             }
             return retval;
         } catch (RuntimeException e) {
@@ -153,11 +153,11 @@ public class WfHook implements ChangeHook {
     private void logOperationInformation(ModelContext<?> context) {
         if (LOGGER.isTraceEnabled()) {
             LensContext<?> lensContext = (LensContext<?>) context;
-			try {
-				medic.traceContext(LOGGER, "WORKFLOW (" + context.getState() + ")", "workflow processing", true, lensContext, false);
-			} catch (SchemaException e) {
-				throw new IllegalStateException("SchemaException when tracing model context: " + e.getMessage(), e);
-			}
+            try {
+                medic.traceContext(LOGGER, "WORKFLOW (" + context.getState() + ")", "workflow processing", true, lensContext, false);
+            } catch (SchemaException e) {
+                throw new IllegalStateException("SchemaException when tracing model context: " + e.getMessage(), e);
+            }
         }
     }
 

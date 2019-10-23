@@ -2,17 +2,17 @@
 <!--
   ~ Copyright (c) 2015 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <objectModification
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-	<itemDelta>
-		<t:modificationType>replace</t:modificationType>
-		<t:path>activation/administrativeStatus</t:path>
-		<t:value>disabled</t:value>
-	</itemDelta>
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>activation/administrativeStatus</t:path>
+        <t:value>disabled</t:value>
+    </itemDelta>
 </objectModification>

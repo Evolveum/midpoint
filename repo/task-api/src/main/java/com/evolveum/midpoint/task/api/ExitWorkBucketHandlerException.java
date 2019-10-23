@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,14 +21,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ExitWorkBucketHandlerException extends Exception {
 
-	@NotNull private final TaskWorkBucketProcessingResult runResult;
+    @NotNull private final TaskWorkBucketProcessingResult runResult;
 
-	public ExitWorkBucketHandlerException(@NotNull TaskWorkBucketProcessingResult runResult) {
-		this.runResult = runResult;
-	}
+    public ExitWorkBucketHandlerException(@NotNull TaskWorkBucketProcessingResult runResult) {
+        this.runResult = runResult;
+    }
 
-	@NotNull
-	public TaskWorkBucketProcessingResult getRunResult() {
-		return runResult;
-	}
+    @NotNull
+    public TaskWorkBucketProcessingResult getRunResult() {
+        return runResult;
+    }
 }

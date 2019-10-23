@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -65,25 +65,25 @@ public class TextAreaFormGroup extends BasePanel<String> {
         }
         labelContainer.add(l);
 
-		Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
+        Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
         tooltipLabel.add(new AttributeAppender("data-original-title", new IModel<String>() {
 
             @Override
             public String getObject() {
                 return getString(tooltipKey);
-		}
+        }
         }));
-		tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
-		tooltipLabel.add(new VisibleEnableBehaviour() {
+        tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
+        tooltipLabel.add(new VisibleEnableBehaviour() {
 
-			@Override
-			public boolean isVisible() {
-				return tooltipKey != null;
-			}
-		});
-		tooltipLabel.setOutputMarkupId(true);
-		tooltipLabel.setOutputMarkupPlaceholderTag(true);
-		labelContainer.add(tooltipLabel);
+            @Override
+            public boolean isVisible() {
+                return tooltipKey != null;
+            }
+        });
+        tooltipLabel.setOutputMarkupId(true);
+        tooltipLabel.setOutputMarkupPlaceholderTag(true);
+        labelContainer.add(tooltipLabel);
 
         WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
         if (StringUtils.isNotEmpty(textSize)) {

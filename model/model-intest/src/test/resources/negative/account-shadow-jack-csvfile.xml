@@ -2,21 +2,21 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <shadow oid="ef2bc95b-76e0-1111-d3ad-3d4f12120001"
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-	<name>jack</name>
-	<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3bbbb"/>
-	<objectClass>ri:AccountObjectClass</objectClass>
-	<intent>default</intent>
-	<attributes>
-		<ri:username>jack</ri:username>
-	</attributes>
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>jack</name>
+    <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3bbbb"/>
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <intent>default</intent>
+    <attributes>
+        <ri:username>jack</ri:username>
+    </attributes>
 </shadow>

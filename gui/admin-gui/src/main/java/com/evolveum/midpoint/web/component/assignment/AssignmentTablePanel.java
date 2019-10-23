@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.assignment;
@@ -57,297 +57,305 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
  * @author shood
  */
 public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignmentListPanel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTablePanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AssignmentTablePanel.class);
 
-	private static final String DOT_CLASS = AssignmentTablePanel.class.getName() + ".";
+    private static final String DOT_CLASS = AssignmentTablePanel.class.getName() + ".";
 
-	private static final String ID_ASSIGNMENTS = "assignments";
-	private static final String ID_CHECK_ALL = "assignmentsCheckAll";
-	private static final String ID_HEADER = "assignmentsHeader";
-	private static final String ID_MENU = "assignmentsMenu";
-	private static final String ID_LIST = "assignmentList";
-	protected static final String ID_ROW = "assignmentEditor";
-
-	
-	public AssignmentTablePanel(String id, IModel<List<AssignmentEditorDto>> assignmentModel) {
-		super(id, assignmentModel);
-	}
-
-	public List<AssignmentType> getAssignmentTypeList() {
-		return null;
-	}
-
-	public String getExcludeOid() {
-		return null;
-	}
-	
-	public IModel<String> getLabel() {
-		return new Model<>("label");
-	}
+    private static final String ID_ASSIGNMENTS = "assignments";
+    private static final String ID_CHECK_ALL = "assignmentsCheckAll";
+    private static final String ID_HEADER = "assignmentsHeader";
+    private static final String ID_MENU = "assignmentsMenu";
+    private static final String ID_LIST = "assignmentList";
+    protected static final String ID_ROW = "assignmentEditor";
 
 
+    public AssignmentTablePanel(String id, IModel<List<AssignmentEditorDto>> assignmentModel) {
+        super(id, assignmentModel);
+    }
 
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
-	
-		final WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
-		assignments.setOutputMarkupId(true);
-		add(assignments);
+    public List<AssignmentType> getAssignmentTypeList() {
+        return null;
+    }
 
-		Label label = new Label(ID_HEADER, getLabel());
-		assignments.add(label);
+    public String getExcludeOid() {
+        return null;
+    }
 
-//		InlineMenu assignmentMenu = new InlineMenu(ID_MENU, new Model((Serializable) createAssignmentMenu()));
-		DropdownButtonDto model = new DropdownButtonDto(null, null, null, createAssignmentMenu());
+    public IModel<String> getLabel() {
+        return new Model<>("label");
+    }
+
+
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        final WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
+        assignments.setOutputMarkupId(true);
+        add(assignments);
+
+        Label label = new Label(ID_HEADER, getLabel());
+        assignments.add(label);
+
+//        InlineMenu assignmentMenu = new InlineMenu(ID_MENU, new Model((Serializable) createAssignmentMenu()));
+        DropdownButtonDto model = new DropdownButtonDto(null, null, null, createAssignmentMenu());
         DropdownButtonPanel assignmentMenu = new DropdownButtonPanel(ID_MENU, model) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected String getSpecialButtonClass() {
                 return "btn-xs btn-default";
             }
         };
-		assignmentMenu.setVisible(getAssignmentMenuVisibility());
+        assignmentMenu.setVisible(getAssignmentMenuVisibility());
         assignments.add(assignmentMenu);
 
-		ListView<AssignmentEditorDto> list = new ListView<AssignmentEditorDto>(ID_LIST, getModel()) {
-			private static final long serialVersionUID = 1L;
+        ListView<AssignmentEditorDto> list = new ListView<AssignmentEditorDto>(ID_LIST, getModel()) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void populateItem(ListItem<AssignmentEditorDto> item) {
-				AssignmentTablePanel.this.populateAssignmentDetailsPanel(item);
-			}
-		};
-		list.setOutputMarkupId(true);
-		assignments.add(list);
+            @Override
+            protected void populateItem(ListItem<AssignmentEditorDto> item) {
+                AssignmentTablePanel.this.populateAssignmentDetailsPanel(item);
+            }
+        };
+        list.setOutputMarkupId(true);
+        assignments.add(list);
 
-		AjaxCheckBox checkAll = new AjaxCheckBox(ID_CHECK_ALL, new Model()) {
+        AjaxCheckBox checkAll = new AjaxCheckBox(ID_CHECK_ALL, new Model()) {
 
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				List<AssignmentEditorDto> assignmentsList = getAssignmentModel().getObject();
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                List<AssignmentEditorDto> assignmentsList = getAssignmentModel().getObject();
 
-				for (AssignmentEditorDto dto : assignmentsList) {
-					dto.setSelected(this.getModelObject());
-				}
+                for (AssignmentEditorDto dto : assignmentsList) {
+                    dto.setSelected(this.getModelObject());
+                }
 
-				target.add(assignments);
-			}
-		};
-		checkAll.add(new VisibleEnableBehaviour(){
-			@Override
-			public boolean isVisible(){
-				int count = 0;
-				for (AssignmentEditorDto dto : getModelObject()){
-					if (dto.isSimpleView()){
-						count++;
-					}
-				}
-				if (count == getModelObject().size()){
-					return false;
-				} else {
-					return true;
-				}
-			}
-		});
-		assignments.add(checkAll);
+                target.add(assignments);
+            }
+        };
+        checkAll.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                int count = 0;
+                for (AssignmentEditorDto dto : getModelObject()){
+                    if (dto.isSimpleView()){
+                        count++;
+                    }
+                }
+                return count != getModelObject().size();
+            }
+        });
+        assignments.add(checkAll);
 
-	}
+    }
 
-	protected void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item){
-		AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel()){
-			@Override
-			protected boolean ignoreMandatoryAttributes(){
-				return AssignmentTablePanel.this.ignoreMandatoryAttributes();
-			}
-		};
-		item.add(editor);
+    protected void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item){
+        AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel()){
+            private static final long serialVersionUID = 1L;
 
-		editor.add(getClassModifier(item));
-	}
+            @Override
+            protected boolean ignoreMandatoryAttributes(){
+                return AssignmentTablePanel.this.ignoreMandatoryAttributes();
+            }
 
-	protected AttributeModifier getClassModifier(ListItem<AssignmentEditorDto> item){
-		return AttributeModifier.append("class", new IModel<String>() {
-			private static final long serialVersionUID = 1L;
+            @Override
+            protected boolean isRelationEditable(){
+                return AssignmentTablePanel.this.isRelationEditable();
+            }
 
-			@Override
-			public String getObject() {
-				AssignmentEditorDto dto = item.getModel().getObject();
-				ObjectReferenceType targetRef = dto.getTargetRef();
-				if (targetRef != null && targetRef.getType() != null) {
-					return WebComponentUtil.getBoxThinCssClasses(targetRef.getType());
-				} else {
-					return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES;
-				}
-			}
-		});
-	}
+        };
+        item.add(editor);
 
-	protected List<InlineMenuItem> createAssignmentMenu() {
-		List<InlineMenuItem> items = new ArrayList<>();
+        editor.add(getClassModifier(item));
+    }
 
-		InlineMenuItem item;
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI)) {
-			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assign")) {
-				private static final long serialVersionUID = 1L;
+    protected AttributeModifier getClassModifier(ListItem<AssignmentEditorDto> item){
+        return AttributeModifier.append("class", new IModel<String>() {
+            private static final long serialVersionUID = 1L;
 
-				@Override
-				public InlineMenuItemAction initAction() {
-					return new InlineMenuItemAction() {
-						private static final long serialVersionUID = 1L;
+            @Override
+            public String getObject() {
+                AssignmentEditorDto dto = item.getModel().getObject();
+                ObjectReferenceType targetRef = dto.getTargetRef();
+                if (targetRef != null && targetRef.getType() != null) {
+                    return WebComponentUtil.getBoxThinCssClasses(targetRef.getType());
+                } else {
+                    return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES;
+                }
+            }
+        });
+    }
 
-						@Override
-						public void onClick(AjaxRequestTarget target) {
-							TypedAssignablePanel panel = new TypedAssignablePanel(
-									getPageBase().getMainPopupBodyId(), RoleType.class) {
-								private static final long serialVersionUID = 1L;
+    protected List<InlineMenuItem> createAssignmentMenu() {
+        List<InlineMenuItem> items = new ArrayList<>();
 
-								@Override
-								protected void addPerformed(AjaxRequestTarget target, List selected, QName relation, ShadowKindType kind, String intent) {
-									super.addPerformed(target, selected, relation, kind, intent);
-									addSelectedAssignablePerformed(target, selected, relation,
-											getPageBase().getMainPopup().getId());
-									reloadMainFormButtons(target);
-								}
+        InlineMenuItem item;
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI)) {
+            item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assign")) {
+                private static final long serialVersionUID = 1L;
 
-							};
-							panel.setOutputMarkupId(true);
-							getPageBase().showMainPopup(panel, target);
-						}
-					};
-				}
-			};
-			items.add(item);
+                @Override
+                public InlineMenuItemAction initAction() {
+                    return new InlineMenuItemAction() {
+                        private static final long serialVersionUID = 1L;
 
-			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignOrg")) {
-				private static final long serialVersionUID = 1L;
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            TypedAssignablePanel panel = new TypedAssignablePanel(
+                                    getPageBase().getMainPopupBodyId(), RoleType.class) {
+                                private static final long serialVersionUID = 1L;
 
-				@Override
-				public InlineMenuItemAction initAction() {
-					return new InlineMenuItemAction() {
-						private static final long serialVersionUID = 1L;
+                                @Override
+                                protected void addPerformed(AjaxRequestTarget target, List selected, QName relation, ShadowKindType kind, String intent) {
+                                    super.addPerformed(target, selected, relation, kind, intent);
+                                    addSelectedAssignablePerformed(target, selected, relation,
+                                            getPageBase().getMainPopup().getId());
+                                    reloadMainFormButtons(target);
+                                }
 
-						@Override
-						public void onClick(AjaxRequestTarget target) {
-							int count = WebModelServiceUtils.countObjects(OrgType.class, null, getPageBase());
-							if (count > 0) {
-								OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
-										getPageBase().getMainPopupBodyId(), true) {
-									private static final long serialVersionUID = 1L;
+                            };
+                            panel.setOutputMarkupId(true);
+                            getPageBase().showMainPopup(panel, target);
+                        }
+                    };
+                }
+            };
+            items.add(item);
 
-									@Override
-									protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs,
-																			  AjaxRequestTarget target) {
-										// TODO Auto-generated method stub
-										addSelectedAssignablePerformed(target, (List) selectedOrgs, WebComponentUtil.getDefaultRelationOrFail(),
-												getPageBase().getMainPopup().getId());
-										reloadMainFormButtons(target);
-									}
-								};
-								orgTreePanel.setOutputMarkupId(true);
-								getPageBase().showMainPopup(orgTreePanel, target);
-							} else {
-								warn(createStringResource("AssignmentTablePanel.menu.assignOrg.noorgs").getString());
-								target.add(getPageBase().getFeedbackPanel());
-							}
+            item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignOrg")) {
+                private static final long serialVersionUID = 1L;
 
-						}
-					};
-				}
-			};
-			items.add(item);
-		}
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI)) {
-			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign")){
-				private static final long serialVersionUID = 1L;
+                @Override
+                public InlineMenuItemAction initAction() {
+                    return new InlineMenuItemAction() {
+                        private static final long serialVersionUID = 1L;
 
-				@Override
-				public InlineMenuItemAction initAction() {
-					return new InlineMenuItemAction() {
-						private static final long serialVersionUID = 1L;
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            int count = WebModelServiceUtils.countObjects(OrgType.class, null, getPageBase());
+                            if (count > 0) {
+                                OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
+                                        getPageBase().getMainPopupBodyId(), true) {
+                                    private static final long serialVersionUID = 1L;
 
-						@Override
-						public void onClick(AjaxRequestTarget target) {
-							AssignmentTablePanel.this.deleteAssignmentPerformed(target, null);
-						}
-					};
-				}
-			};
-			items.add(item);
-		}
-		if (isShowAllAssignmentsVisible()) {
-			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.showAllAssignments")){
-				private static final long serialVersionUID = 1L;
+                                    @Override
+                                    protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs,
+                                                                              AjaxRequestTarget target) {
+                                        // TODO Auto-generated method stub
+                                        addSelectedAssignablePerformed(target, (List) selectedOrgs, WebComponentUtil.getDefaultRelationOrFail(),
+                                                getPageBase().getMainPopup().getId());
+                                        reloadMainFormButtons(target);
+                                    }
+                                };
+                                orgTreePanel.setOutputMarkupId(true);
+                                getPageBase().showMainPopup(orgTreePanel, target);
+                            } else {
+                                warn(createStringResource("AssignmentTablePanel.menu.assignOrg.noorgs").getString());
+                                target.add(getPageBase().getFeedbackPanel());
+                            }
 
-				@Override
-				public InlineMenuItemAction initAction() {
-					return new InlineMenuItemAction() {
-						private static final long serialVersionUID = 1L;
+                        }
+                    };
+                }
+            };
+            items.add(item);
+        }
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI)) {
+            item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign")){
+                private static final long serialVersionUID = 1L;
 
-						@Override
-						public void onClick(AjaxRequestTarget target) {
-							showAllAssignments(target);
-						}
-					};
-				}
-			};
-			items.add(item);
-		}
-		return items;
-	}
+                @Override
+                public InlineMenuItemAction initAction() {
+                    return new InlineMenuItemAction() {
+                        private static final long serialVersionUID = 1L;
 
-	protected void showAllAssignments(AjaxRequestTarget target) {
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            AssignmentTablePanel.this.deleteAssignmentPerformed(target, null);
+                        }
+                    };
+                }
+            };
+            items.add(item);
+        }
+        if (isShowAllAssignmentsVisible()) {
+            item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.showAllAssignments")){
+                private static final long serialVersionUID = 1L;
 
-	}
+                @Override
+                public InlineMenuItemAction initAction() {
+                    return new InlineMenuItemAction() {
+                        private static final long serialVersionUID = 1L;
 
-	protected void reloadMainAssignmentsComponent(AjaxRequestTarget target){
-		target.add(get(ID_ASSIGNMENTS));
-	}
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            showAllAssignments(target);
+                        }
+                    };
+                }
+            };
+            items.add(item);
+        }
+        return items;
+    }
 
-	protected boolean isShowAllAssignmentsVisible(){
-		return false;
-	}
+    protected boolean isRelationEditable(){
+        return true;
+    }
 
-	protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
-			QName relation, String popupId) {
-		ModalWindow window = (ModalWindow) get(popupId);
-		if (window != null) {
-			window.close(target);
-		}
-		getPageBase().hideMainPopup(target);
-		if (newAssignments.isEmpty()) {
-			warn(getNoAssignmentsSelectedMessage());
-			target.add(getPageBase().getFeedbackPanel());
-			return;
-		}
+    protected void showAllAssignments(AjaxRequestTarget target) {
 
-		List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
-		for (ObjectType object : newAssignments) {
-			assignments.add(createAssignmentFromSelectedObjects(object, relation));
-		}
-		reloadAssignmentsPanel(target);
-	}
+    }
 
-	protected void reloadAssignmentsPanel(AjaxRequestTarget target){
-		target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
-	}
+    protected void reloadMainAssignmentsComponent(AjaxRequestTarget target){
+        target.add(get(ID_ASSIGNMENTS));
+    }
 
-	/**
-	 * Override to provide handle operation for partial error during provider
-	 * iterator operation.
-	 */
-	protected void handlePartialError(OperationResult result) {
-	}
+    protected boolean isShowAllAssignmentsVisible(){
+        return false;
+    }
+
+    protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
+            QName relation, String popupId) {
+        ModalWindow window = (ModalWindow) get(popupId);
+        if (window != null) {
+            window.close(target);
+        }
+        getPageBase().hideMainPopup(target);
+        if (newAssignments.isEmpty()) {
+            warn(getNoAssignmentsSelectedMessage());
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
+        for (ObjectType object : newAssignments) {
+            assignments.add(createAssignmentFromSelectedObjects(object, relation));
+        }
+        reloadAssignmentsPanel(target);
+    }
+
+    protected void reloadAssignmentsPanel(AjaxRequestTarget target){
+        target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
+    }
+
+    /**
+     * Override to provide handle operation for partial error during provider
+     * iterator operation.
+     */
+    protected void handlePartialError(OperationResult result) {
+    }
 
     protected boolean getAssignmentMenuVisibility(){
         return true;
     }
 
     protected boolean ignoreMandatoryAttributes(){
-		return false;
-	}
+        return false;
+    }
 
 }
