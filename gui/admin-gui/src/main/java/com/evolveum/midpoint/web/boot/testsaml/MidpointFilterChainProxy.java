@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.web.boot.testsaml;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.boot.WebSecurityConfig;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,7 +27,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class MidpointFilterChainProxy extends GenericFilterBean {
     // ~ Static fields/initializers
     // =====================================================================================
 
-    private static final Log logger = LogFactory.getLog(MidpointFilterChainProxy.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(MidpointFilterChainProxy.class);
 
     // ~ Instance fields
     // ================================================================================================
@@ -163,8 +164,8 @@ public class MidpointFilterChainProxy extends GenericFilterBean {
         List<Filter> filters = getFilters(fwRequest);
 
         if (filters == null || filters.size() == 0) {
-            if (logger.isDebugEnabled()) {
-                logger.debug(UrlUtils.buildRequestUrl(fwRequest)
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(UrlUtils.buildRequestUrl(fwRequest)
                         + (filters == null ? " has no matching filters"
                         : " has an empty filter list"));
             }
@@ -276,8 +277,8 @@ public class MidpointFilterChainProxy extends GenericFilterBean {
         public void doFilter(ServletRequest request, ServletResponse response)
                 throws IOException, ServletException {
             if (currentPosition == size) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug(UrlUtils.buildRequestUrl(firewalledRequest)
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(UrlUtils.buildRequestUrl(firewalledRequest)
                             + " reached end of additional filter chain; proceeding with original chain");
                 }
 
@@ -291,8 +292,8 @@ public class MidpointFilterChainProxy extends GenericFilterBean {
 
                 Filter nextFilter = additionalFilters.get(currentPosition - 1);
 
-                if (logger.isDebugEnabled()) {
-                    logger.debug(UrlUtils.buildRequestUrl(firewalledRequest)
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(UrlUtils.buildRequestUrl(firewalledRequest)
                             + " at position " + currentPosition + " of " + size
                             + " in additional filter chain; firing Filter: '"
                             + nextFilter.getClass().getSimpleName() + "'");

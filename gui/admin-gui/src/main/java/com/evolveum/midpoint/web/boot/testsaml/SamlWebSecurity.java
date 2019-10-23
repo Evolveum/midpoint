@@ -32,8 +32,8 @@ import org.springframework.security.saml.provider.service.config.SamlServiceProv
 
 import static org.springframework.security.saml.provider.service.config.SamlServiceProviderSecurityDsl.serviceProvider;
 
-@EnableWebSecurity
-public class TestSAML2 {
+//@EnableWebSecurity
+public class SamlWebSecurity {
 
     @Configuration
     @Order(1000000000)
