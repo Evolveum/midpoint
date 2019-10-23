@@ -153,7 +153,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (warnIfNoCaseSelected(target)){
+                        if (getRowModel() == null && warnIfNoCaseSelected(target)){
                             return;
                         }
                         if (getRowModel() == null) {
@@ -197,7 +197,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (warnIfNoCaseSelected(target)){
+                        if (getRowModel() == null && warnIfNoCaseSelected(target)){
                             return;
                         }
                         if (getRowModel() == null) {
