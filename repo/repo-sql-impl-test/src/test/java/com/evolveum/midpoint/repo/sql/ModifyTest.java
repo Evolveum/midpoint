@@ -111,6 +111,15 @@ public class ModifyTest extends BaseSQLRepoTest {
         InternalsConfig.encryptionChecks = false;
     }
 
+    @Override
+    public void initSystem() throws Exception {
+        super.initSystem();
+
+        // This is an experimental feature, so it needs to be explicitly enabled. This will be eliminated later,
+        // when we make it enabled by default.
+        sqlRepositoryService.getConfiguration().setEnableIndexOnlyItems(true);
+    }
+
     protected RepoModifyOptions getModifyOptions() {
         return null;
     }
@@ -1094,7 +1103,6 @@ public class ModifyTest extends BaseSQLRepoTest {
         SearchFilterType filterExpected = collection.getFilter();
         ObjectFilter filterFromRepoParsed = prismContext.getQueryConverter().createObjectFilter(UserType.class, filterFromRepo);
         ObjectFilter filterExpectedParsed = prismContext.getQueryConverter().createObjectFilter(UserType.class, filterExpected);
-        //noinspection ConstantConditions
         assertTrue("Filters differ", filterExpectedParsed.equals(filterFromRepoParsed, false));
     }
 
