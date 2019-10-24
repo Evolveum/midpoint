@@ -17,9 +17,7 @@ import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
@@ -49,8 +47,8 @@ public class ModifyTestReindex extends ModifyTest {
     }
 
     @Test
-    public void testReindex() throws Exception {
-        final String TEST_NAME = "testReindex";
+    public void testReindexExtensionItem() throws Exception {
+        final String TEST_NAME = "testReindexExtensionItem";
         TestUtil.displayTestTitle(TEST_NAME);
         OperationResult result = new OperationResult(TEST_NAME);
 
@@ -75,6 +73,142 @@ public class ModifyTestReindex extends ModifyTest {
                 .build();
         int count = repositoryService.countObjects(UserType.class, query, null, result);
         assertEquals("Wrong # of objects found", 1, count);
+    }
+
+    @Test(enabled = false)   // MID-5112
+    public void testReindexIndexOnlyItem() throws Exception {
+        final String TEST_NAME = "testReindexIndexOnlyItem";
+        TestUtil.displayTestTitle(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
+                .name(TEST_NAME)
+                .asPrismObject();
+        ItemPath INDEX_ONLY_PATH = ItemPath.create(UserType.F_EXTENSION, "indexOnly");
+        PrismPropertyDefinition<String> indexOnlyDef = user.getDefinition().findPropertyDefinition(INDEX_ONLY_PATH);
+        PrismProperty<String> indexOnlyProperty = indexOnlyDef.instantiate();
+        indexOnlyProperty.setRealValue("hi");
+        user.addExtensionItem(indexOnlyProperty);
+
+        String oid = repositoryService.addObject(user, null, result);
+
+        UserType userBefore = repositoryService
+                .getObject(UserType.class, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result)
+                .asObjectable();
+        display("user before", userBefore.asPrismObject());
+
+        repositoryService.modifyObject(UserType.class, oid, emptySet(), getModifyOptions(), result);
+
+        UserType userAfter = repositoryService
+                .getObject(UserType.class, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result)
+                .asObjectable();
+        display("user after", userAfter.asPrismObject());
+
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(INDEX_ONLY_PATH).eq("hi")
+                .build();
+        int count = repositoryService.countObjects(UserType.class, query, null, result);
+        assertEquals("Wrong # of objects found", 1, count);
+    }
+
+    @Test   // MID-5112
+    public void testReindexPhoto() throws Exception {
+        final String TEST_NAME = "testReindex";
+        TestUtil.displayTestTitle(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        byte[] PHOTO = new byte[] { 1, 2, 3, 4 };
+
+        PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
+                .name(TEST_NAME)
+                .jpegPhoto(PHOTO)
+                .asPrismObject();
+
+        String oid = repositoryService.addObject(user, null, result);
+
+        repositoryService.modifyObject(UserType.class, oid, emptySet(), getModifyOptions(), result);
+
+        UserType userAfter = repositoryService
+                .getObject(UserType.class, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result)
+                .asObjectable();
+
+        assertEquals("Missing or wrong photo", PHOTO, userAfter.getJpegPhoto());
+    }
+
+    @Test(enabled = false)   // MID-5112
+    public void testReindexTaskResult() throws Exception {
+        final String TEST_NAME = "testReindexTaskResult";
+        TestUtil.displayTestTitle(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        OperationResultType taskOperationResult = new OperationResultType().message("Hello there");
+
+        PrismObject<TaskType> task = prismContext.createObjectable(TaskType.class)
+                .name(TEST_NAME)
+                .result(taskOperationResult)
+                .asPrismObject();
+
+        String oid = repositoryService.addObject(task, null, result);
+
+        repositoryService.modifyObject(TaskType.class, oid, emptySet(), getModifyOptions(), result);
+
+        TaskType taskAfter = repositoryService
+                .getObject(TaskType.class, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result)
+                .asObjectable();
+
+        assertEquals("Missing or wrong result", taskOperationResult, taskAfter.getResult());
+    }
+
+    @Test   // MID-5112
+    public void testReindexLookupTableRow() throws Exception {
+        final String TEST_NAME = "testReindexLookupTableRow";
+        TestUtil.displayTestTitle(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        LookupTableRowType row = new LookupTableRowType(prismContext)
+                .key("key")
+                .label("label");
+        PrismObject<LookupTableType> table = prismContext.createObjectable(LookupTableType.class)
+                .name(TEST_NAME)
+                .row(row)
+                .asPrismObject();
+
+        String oid = repositoryService.addObject(table, null, result);
+
+        repositoryService.modifyObject(LookupTableType.class, oid, emptySet(), getModifyOptions(), result);
+
+        LookupTableType tableAfter = repositoryService
+                .getObject(LookupTableType.class, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result)
+                .asObjectable();
+
+        assertEquals("Missing row", 1, tableAfter.getRow().size());
+        assertEquals("Wrong row", row, tableAfter.getRow().get(0));
+    }
+
+    @Test   // MID-5112
+    public void testReindexCertificationCampaignCase() throws Exception {
+        final String TEST_NAME = "testReindexCertificationCampaignCase";
+        TestUtil.displayTestTitle(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        AccessCertificationCaseType aCase = new AccessCertificationCaseType(prismContext)
+                .stageNumber(1);
+        PrismObject<AccessCertificationCampaignType> campaign = prismContext.createObjectable(AccessCertificationCampaignType.class)
+                .name(TEST_NAME)
+                .stageNumber(1)
+                ._case(aCase)
+                .asPrismObject();
+
+        String oid = repositoryService.addObject(campaign, null, result);
+
+        repositoryService.modifyObject(AccessCertificationCampaignType.class, oid, emptySet(), getModifyOptions(), result);
+
+        AccessCertificationCampaignType campaignAfter = repositoryService
+                .getObject(AccessCertificationCampaignType.class, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result)
+                .asObjectable();
+
+        assertEquals("Missing case", 1, campaignAfter.getCase().size());
+        assertEquals("Wrong case", aCase, campaignAfter.getCase().get(0));
     }
 
     /**

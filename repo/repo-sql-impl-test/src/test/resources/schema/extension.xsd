@@ -184,6 +184,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="indexOnly" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexOnly>true</a:indexOnly> <!-- MID-5558; implies indexed=true -->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="protected" type="t:ProtectedStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
