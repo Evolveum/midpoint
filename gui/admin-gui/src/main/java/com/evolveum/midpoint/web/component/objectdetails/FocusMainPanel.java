@@ -88,15 +88,16 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		getMainForm().setMultiPart(true);
 
 		taskDtoProvider = new TaskDtoProvider(parentPage, TaskDtoProviderOptions.minimalOptions());
-		taskDtoProvider.setQuery(createTaskQuery(null, parentPage));
+		taskDtoProvider.setQuery(createTaskQuery(getObjectWrapper() != null ? getObjectWrapper().getOid() : null, parentPage));
 	}
 
 	@Override
 	protected void onInitialize() {
 		super.onInitialize();
 		StringValue oidValue = getPage().getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-
-		taskDtoProvider.setQuery(createTaskQuery(oidValue != null ? oidValue.toString() : null, (PageBase)getPage()));
+		String oidValueStr = oidValue != null && oidValue.toString() != null && !oidValue.toString().equals("null") ?
+				oidValue.toString() : getObjectWrapper().getOid();
+		taskDtoProvider.setQuery(createTaskQuery(oidValueStr, (PageBase)getPage()));
 	}
 
 	private ObjectQuery createTaskQuery(String oid, PageBase page) {
