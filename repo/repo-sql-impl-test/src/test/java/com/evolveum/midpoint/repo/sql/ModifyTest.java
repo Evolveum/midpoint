@@ -27,6 +27,7 @@ import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -116,6 +117,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     private static final QName QNAME_LOOT = new QName("http://example.com/p", "loot");
     private static final QName QNAME_WEAPON = new QName("http://example.com/p", "weapon");
+    private static final QName QNAME_SHIP_NAME = new QName("http://example.com/p", "shipName");
+    private static final QName QNAME_FUNERAL_DATE = new QName("http://example.com/p", "funeralDate");
 
 	@BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -1155,4 +1158,62 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertEquals("Wrong # of users found", 1, users.size());
     }
 
+    @Test      // MID-5826
+    public void test400ReplaceExtensionItem() throws Exception {
+        final String TEST_NAME = "test400ReplaceExtensionItem";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
+                .name("test400")
+                .oid("oid-400")
+                .asPrismObject();
+        repositoryService.addObject(user, null, result);
+
+        assertExtensionDateValue(user.getOid(), 0);
+        assertExtensionStringValue(user.getOid(), 0);
+
+        XMLGregorianCalendar dateTime = XmlTypeConverter.createXMLGregorianCalendar("2022-04-05T16:14:58");
+
+        List<ItemDelta<?, ?>> itemDeltasSet = DeltaBuilder.deltaFor(UserType.class, prismContext)
+                .item(UserType.F_EXTENSION, QNAME_LOOT).replace(1)          // not indexed
+                .item(UserType.F_EXTENSION, QNAME_SHIP_NAME).replace("Black Pearl")
+                .item(UserType.F_EXTENSION, QNAME_WEAPON).replace("sword")
+                .item(UserType.F_EXTENSION, QNAME_FUNERAL_DATE).replace(dateTime)
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, user.getOid(), itemDeltasSet, getModifyOptions(), result);
+
+        assertExtensionDateValue(user.getOid(), 1);
+        assertExtensionStringValue(user.getOid(), 2);
+
+        List<ItemDelta<?, ?>> itemDeltasUnset = DeltaBuilder.deltaFor(UserType.class, prismContext)
+                .item(UserType.F_EXTENSION, QNAME_LOOT).replace()          // not indexed
+                .item(UserType.F_EXTENSION, QNAME_FUNERAL_DATE).replace()
+                .item(UserType.F_EXTENSION, QNAME_SHIP_NAME).replace()
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, user.getOid(), itemDeltasUnset, getModifyOptions(), result);
+
+        assertExtensionDateValue(user.getOid(), 0);
+        assertExtensionStringValue(user.getOid(), 1);
+    }
+
+    private void assertExtensionDateValue(String objectOid, int expected) {
+        Session session = open();
+        //noinspection unchecked
+        List<Timestamp> values = session.createQuery("select d.value from ROExtDate d where d.ownerOid = '" + objectOid + "'").list();
+        System.out.println("Date values: " + values);
+        assertEquals("Wrong # of extension values found", expected, values.size());
+        close(session);
+    }
+
+    private void assertExtensionStringValue(String objectOid, int expected) {
+        Session session = open();
+        //noinspection unchecked
+        List<Timestamp> values = session.createQuery("select s.value from ROExtString s where s.ownerOid = '" + objectOid + "'").list();
+        System.out.println("String values: " + values);
+        assertEquals("Wrong # of extension values found", expected, values.size());
+        close(session);
+    }
 }

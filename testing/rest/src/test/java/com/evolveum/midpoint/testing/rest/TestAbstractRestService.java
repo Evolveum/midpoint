@@ -368,7 +368,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 		Response response = client.get();
 
 		displayThen(TEST_NAME);
-		assertStatus(response, 403);
+		assertStatus(response, 401);
 
 		display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(1);
@@ -678,7 +678,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 		Response response = client.get();
 
 		displayThen(TEST_NAME);
-		assertStatus(response, 403);
+		assertStatus(response, 401);
 		assertNoEmptyResponse(response);
 
 		display("Audit", getDummyAuditService());
@@ -796,7 +796,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 		Response response = client.get();
 
 		displayThen(TEST_NAME);
-		assertStatus(response, 403);
+		assertStatus(response, 401);
 		assertNoEmptyResponse(response);
 
 		display("Audit", getDummyAuditService());

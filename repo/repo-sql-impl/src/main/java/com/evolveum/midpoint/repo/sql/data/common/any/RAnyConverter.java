@@ -291,6 +291,14 @@ public class RAnyConverter {
                 + " expected return type " + returnType + ", actual type " + (object == null ? null : object.getClass()));
     }
 
+    public static Class<? extends ROExtValue> getObjectExtValueType(QName typeName) {
+        return getValueType(typeName).oExtType;
+    }
+
+    public static Class<? extends RAExtValue> getAssignmentExtValueType(QName typeName) {
+        return getValueType(typeName).aExtType;
+    }
+
     private static ValueType getValueType(QName qname) {
         if (qname == null) {
             return ValueType.STRING;

@@ -36,10 +36,12 @@ import com.evolveum.midpoint.repo.sql.helpers.mapper.Mapper;
 import com.evolveum.midpoint.repo.sql.helpers.modify.*;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -53,6 +55,7 @@ import org.springframework.stereotype.Component;
 
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
+import javax.xml.namespace.QName;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -224,7 +227,7 @@ public class ObjectDeltaUpdater {
         RFocus focus = (RFocus) bean;
         Set<RFocusPhoto> photos = focus.getJpegPhoto();
 
-        if (delta.isDelete()) {
+        if (isDelete(delta)) {
             photos.clear();
             return;
         }
@@ -256,6 +259,21 @@ public class ObjectDeltaUpdater {
         RFocusPhoto oldPhoto = photos.iterator().next();
         oldPhoto.setPhoto(photo.getPhoto());
     }
+
+    private boolean isDelete(ItemDelta delta) {
+        if (delta.isDelete()) {
+            return true;
+        }
+
+        if (delta.isReplace()) {
+            if (delta.getAnyValue() == null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     private boolean isMetadata(ItemDelta delta) {
         ItemPath named = delta.getPath().namedSegmentsOnly();
@@ -542,44 +560,87 @@ public class ObjectDeltaUpdater {
                                                 RAssignmentExtensionType assignmentExtensionType,
                                                 PrismIdentifierGenerator idGenerator) {
         // handle replace
-        if (delta.getValuesToReplace() != null && !delta.getValuesToReplace().isEmpty()) {
-            processAnyExtensionDeltaValues(delta.getValuesToReplace(), object, objectOwnerType, assignmentExtension, assignmentExtensionType,
-                    (existing, fromDelta) -> {
-                        ItemDefinition def = delta.getDefinition();
-                        Collection<RAnyValue> filtered = filterRAnyValues(existing, def, objectOwnerType, assignmentExtensionType);
-
-                        if (fromDelta.isEmpty()) {
-                            // if there are not new values, we just remove existing ones
-                            existing.removeAll(filtered);
-                            return;
-                        }
-
-                        Collection<RAnyValue> toDelete = new ArrayList<>();
-                        Collection<PrismEntityPair<?>> toAdd = new ArrayList<>();
-
-                        Set<Object> justValuesToReplace = new HashSet<>();
-                        for (PrismEntityPair<RAnyValue> pair : fromDelta) {
-                            justValuesToReplace.add(pair.getRepository().getValue());
-                        }
-
-                        for (RAnyValue value : filtered) {
-                            if (justValuesToReplace.contains(value.getValue())) {
-                                // do not replace with the same one - don't touch
-                                justValuesToReplace.remove(value.getValue());
-                            } else {
-                                toDelete.add(value);
+        if (delta.getValuesToReplace() != null) {
+            if (delta.getValuesToReplace().isEmpty()) {
+                // Here we remove all existing values. This is a hack to resolve MID-5826. Serious implementation
+                // is in midPoint 4.0. However, it's not back-portable here.
+                ItemDefinition def = delta.getDefinition();
+                if (def == null) {
+                    throw new IllegalStateException("No item definition in delta: " + delta);
+                }
+                QName typeName = def.getTypeName();
+                if (object != null) {
+                    Class<? extends ROExtValue> valueClass = RAnyConverter.getObjectExtValueType(typeName);
+                    processObjectExtensionValues(object, valueClass, existingValues -> {
+                        for (Iterator<ROExtValue> iterator = existingValues.iterator(); iterator.hasNext(); ) {
+                            ROExtValue existingValue = iterator.next();
+                            if (existingValue.getOwnerType() == objectOwnerType) {
+                                RExtItem item = extItemDictionary.getItemById(existingValue.getItemId());
+                                if (item != null) {
+                                    QName valueName = RUtil.stringToQName(item.getName());
+                                    if (QNameUtil.match(valueName, delta.getElementName())) {
+                                        iterator.remove();
+                                    }
+                                }
                             }
                         }
-
-                        for (PrismEntityPair<RAnyValue> pair : fromDelta) {
-                            if (justValuesToReplace.contains(pair.getRepository().getValue())) {
-                                toAdd.add(pair);
-                            }
-                        }
-
-                        existing.removeAll(toDelete);
-                        markNewOnesTransientAndAddToExisting(existing, toAdd, idGenerator);
                     });
+                } else {
+                    Class<? extends RAExtValue> valueClass = RAnyConverter.getAssignmentExtValueType(typeName);
+                    processAssignmentExtensionValues(assignmentExtension, valueClass, existingValues -> {
+                        for (Iterator<? extends RAExtValue> iterator = existingValues.iterator(); iterator.hasNext(); ) {
+                            RAExtValue existingValue = iterator.next();
+                            RExtItem item = extItemDictionary.getItemById(existingValue.getItemId());
+                            if (item != null) {
+                                QName valueName = RUtil.stringToQName(item.getName());
+                                if (QNameUtil.match(valueName, delta.getElementName())) {
+                                    iterator.remove();
+                                }
+                            }
+                        }
+                    });
+                }
+            } else {
+                processAnyExtensionDeltaValues(delta.getValuesToReplace(), object, objectOwnerType, assignmentExtension,
+                        assignmentExtensionType,
+                        (existing, fromDelta) -> {
+                            ItemDefinition def = delta.getDefinition();
+                            Collection<RAnyValue> filtered = filterRAnyValues(existing, def, objectOwnerType,
+                                    assignmentExtensionType);
+
+                            if (fromDelta.isEmpty()) {
+                                // if there are not new values, we just remove existing ones
+                                existing.removeAll(filtered);
+                                return;
+                            }
+
+                            Collection<RAnyValue> toDelete = new ArrayList<>();
+                            Collection<PrismEntityPair<?>> toAdd = new ArrayList<>();
+
+                            Set<Object> justValuesToReplace = new HashSet<>();
+                            for (PrismEntityPair<RAnyValue> pair : fromDelta) {
+                                justValuesToReplace.add(pair.getRepository().getValue());
+                            }
+
+                            for (RAnyValue value : filtered) {
+                                if (justValuesToReplace.contains(value.getValue())) {
+                                    // do not replace with the same one - don't touch
+                                    justValuesToReplace.remove(value.getValue());
+                                } else {
+                                    toDelete.add(value);
+                                }
+                            }
+
+                            for (PrismEntityPair<RAnyValue> pair : fromDelta) {
+                                if (justValuesToReplace.contains(pair.getRepository().getValue())) {
+                                    toAdd.add(pair);
+                                }
+                            }
+
+                            existing.removeAll(toDelete);
+                            markNewOnesTransientAndAddToExisting(existing, toAdd, idGenerator);
+                        });
+            }
             return;
         }
 
