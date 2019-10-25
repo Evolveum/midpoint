@@ -12,12 +12,15 @@ spring:
   thymeleaf:
     cache: false
   security:
+    authentication:
+      active: saml
     saml2:
       network:
         read-timeout: 10000
         connect-timeout: 5000
       service-provider:
         entity-id: sp_shibboleth
+        prefix: saml/
         sign-metadata: true
         sign-requests: true
         want-assertions-signed: true

@@ -1,47 +1,64 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
 package com.evolveum.midpoint.web.boot.testsaml;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.boot.WebSecurityConfig;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import com.evolveum.midpoint.web.security.*;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
+import org.springframework.security.cas.web.CasAuthenticationFilter;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.authentication.preauth.RequestAttributeAuthenticationFilter;
+import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.firewall.FirewalledRequest;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.web.accept.ContentNegotiationStrategy;
-import org.springframework.web.filter.GenericFilterBean;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class MidpointFilterChainProxy extends GenericFilterBean {
-    // ~ Static fields/initializers
-    // =====================================================================================
+public class MidpointFilterChainProxy extends FilterChainProxy {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(MidpointFilterChainProxy.class);
-
-    // ~ Instance fields
-    // ================================================================================================
 
     private final static String FILTER_APPLIED = MidpointFilterChainProxy.class.getName().concat(
             ".APPLIED");
 
+    private List<SecurityFilterChain> filterChainsIgnoredPath;
     private List<SecurityFilterChain> filterChains;
 
     private MidpointFilterChainProxy.FilterChainValidator filterChainValidator = new MidpointFilterChainProxy.NullFilterChainValidator();
@@ -54,18 +71,59 @@ public class MidpointFilterChainProxy extends GenericFilterBean {
     @Autowired
     ApplicationContext context;
 
-    // ~ Methods
-    // ========================================================================================================
+    @Autowired
+    private MidPointGuiAuthorizationEvaluator accessDecisionManager;
+
+    @Autowired
+    private MidPointAuthenticationSuccessHandler authenticationSuccessHandler;
+
+    @Autowired
+    private MidPointAccessDeniedHandler accessDeniedHandler;
+
+    @Autowired
+    private AuthenticationEntryPoint authenticationEntryPoint;
+
+    @Autowired
+    private AuditedLogoutHandler auditedLogoutHandler;
+
+    @Autowired
+    private SessionRegistry sessionRegistry;
+
+    @Autowired
+    private AuthenticationProvider midPointAuthenticationProvider;
+
+    @Autowired
+    private Environment environment;
+
+    @Autowired(required = false)
+    private RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
+
+    @Autowired(required = false)
+    private RequestAttributeAuthenticationFilter requestAttributeAuthenticationFilter;
+
+    @Autowired(required = false)
+    private CasAuthenticationFilter casFilter;
+
+    @Autowired(required = false)
+    private LogoutFilter requestSingleLogoutFilter;
+
+    @Autowired
+    private SamlConfiguration samlConfiguration;
+
+    @Autowired
+    private SamlProviderServerBeanConfiguration samlProviderServerBeanConfiguration;
+
+    @Value("${security.enable-csrf:true}")
+    private boolean csrfEnabled;
+
+    @Value("${security.authentication.active:saml}")
+    private String authenticationProfile;
 
     public MidpointFilterChainProxy() {
     }
 
-//    public MidpointFilterChainProxy(SecurityFilterChain chain) {
-//        this(Arrays.asList(chain));
-//    }
-
     public MidpointFilterChainProxy(List<SecurityFilterChain> filterChains) {
-        this.filterChains = filterChains;
+        this.filterChainsIgnoredPath = filterChains;
     }
 
     @Override
@@ -73,69 +131,208 @@ public class MidpointFilterChainProxy extends GenericFilterBean {
         filterChainValidator.validate(this);
     }
 
-    boolean createFilter = false;
+    private SecurityFilterChain getSamlFilter() throws Exception {
+        SamlWebSecurity webSec = objectObjectPostProcessor.postProcess(new SamlWebSecurity(samlProviderServerBeanConfiguration, samlConfiguration));
+        webSec.setObjectPostProcessor(objectObjectPostProcessor);
+        webSec.setApplicationContext(context);
+        try {
+            webSec.setTrustResolver(context.getBean(AuthenticationTrustResolver.class));
+        } catch( NoSuchBeanDefinitionException e ) {
+        }
+        try {
+            webSec.setContentNegotationStrategy(context.getBean(ContentNegotiationStrategy.class));
+        } catch( NoSuchBeanDefinitionException e ) {
+        }
+        try {
+            webSec.setAuthenticationConfiguration(context.getBean(AuthenticationConfiguration.class));
+        } catch( NoSuchBeanDefinitionException e ) {
+        }
+        HttpSecurity http = webSec.getNewHttp();
+        return http.build();
+    }
+
+    private SecurityFilterChain getSamlBasicFilter() throws Exception {
+        DefaultWebSecurityConfig webSec = objectObjectPostProcessor.postProcess(new DefaultWebSecurityConfig());
+        webSec.setObjectPostProcessor(objectObjectPostProcessor);
+        webSec.setApplicationContext(context);
+        try {
+            webSec.setTrustResolver(context.getBean(AuthenticationTrustResolver.class));
+        } catch( NoSuchBeanDefinitionException e ) {
+        }
+        try {
+            webSec.setContentNegotationStrategy(context.getBean(ContentNegotiationStrategy.class));
+        } catch( NoSuchBeanDefinitionException e ) {
+        }
+        try {
+            webSec.setAuthenticationConfiguration(context.getBean(AuthenticationConfiguration.class));
+        } catch( NoSuchBeanDefinitionException e ) {
+        }
+        HttpSecurity http = webSec.getNewHttp();
+
+        http.antMatcher("/**")
+                .authorizeRequests()
+                .antMatchers("/**").authenticated()
+                .and()
+                .formLogin().loginPage("/saml");
+
+        return http.build();
+    }
+
+    private String readFile() throws IOException {
+        String path = "/home/lskublik/test";
+        byte[] encoded = Files.readAllBytes(Paths.get(path));
+        return new String(encoded, StandardCharsets.US_ASCII);
+    }
+
+    private SecurityFilterChain getInternalPasswordFilter() throws Exception {
+        DefaultWebSecurityConfig webSec = initDefaultPasswordWebSecurityConfig();
+        HttpSecurity http = webSec.getNewHttp();
+        http.antMatcher("/internal/**")
+                .authorizeRequests()
+                .accessDecisionManager(accessDecisionManager)
+                .anyRequest().fullyAuthenticated();
+        http.formLogin()
+                .loginPage("/internal/login")
+                .loginProcessingUrl("/internal/spring_security_login")
+                .successHandler(objectObjectPostProcessor.postProcess(new MidPointInternalAuthenticationSuccessHandler())).permitAll();
+        http.exceptionHandling()
+                .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/internal/login"));
+        configureDefaultPasswordFilter(http);
+        SecurityFilterChain filter = http.build();
+        return filter;
+    }
+
+    private DefaultWebSecurityConfig initDefaultPasswordWebSecurityConfig(){
+        DefaultWebSecurityConfig webSec = objectObjectPostProcessor.postProcess(new DefaultWebSecurityConfig());
+        webSec.setObjectPostProcessor(objectObjectPostProcessor);
+        webSec.setApplicationContext(context);
+        webSec.addAuthenticationProvider(midPointAuthenticationProvider);
+        try {
+            webSec.setTrustResolver(context.getBean(AuthenticationTrustResolver.class));
+        } catch( NoSuchBeanDefinitionException e ) {
+        }
+        try {
+            webSec.setContentNegotationStrategy(context.getBean(ContentNegotiationStrategy.class));
+        } catch( NoSuchBeanDefinitionException e ) {
+        }
+        try {
+            webSec.setAuthenticationConfiguration(context.getBean(AuthenticationConfiguration.class));
+        } catch( NoSuchBeanDefinitionException e ) {
+        }
+        return webSec;
+    }
+
+    private SecurityFilterChain getBasicPasswordFilter() throws Exception {
+        DefaultWebSecurityConfig webSec = initDefaultPasswordWebSecurityConfig();
+        HttpSecurity http = webSec.getNewHttp();
+        http.authorizeRequests()
+                .accessDecisionManager(accessDecisionManager)
+                .antMatchers("/j_spring_security_check",
+                        "/spring_security_login",
+                        "/login",
+                        "/forgotpassword",
+                        "/registration",
+                        "/confirm/registration",
+                        "/confirm/reset",
+                        "/error",
+                        "/error/*",
+                        "/bootstrap").permitAll()
+                .anyRequest().fullyAuthenticated();
+        http.formLogin()
+                .loginPage("/login")
+                .loginProcessingUrl("/spring_security_login")
+                .successHandler(authenticationSuccessHandler).permitAll();
+        http.exceptionHandling()
+                .authenticationEntryPoint(authenticationEntryPoint);
+        configureDefaultPasswordFilter(http);
+        SecurityFilterChain filter = http.build();
+        return filter;
+    }
+
+    private void configureDefaultPasswordFilter(HttpSecurity http) throws Exception {
+        http.exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler);
+        http.logout().clearAuthentication(true)
+                .logoutUrl("/logout")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .logoutSuccessHandler(auditedLogoutHandler);
+        http.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
+                .maximumSessions(-1)
+                .sessionRegistry(sessionRegistry)
+                .maxSessionsPreventsLogin(true);
+
+        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("cas"))) {
+            http.addFilterAt(casFilter, CasAuthenticationFilter.class);
+            http.addFilterBefore(requestSingleLogoutFilter, LogoutFilter.class);
+        }
+
+        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("sso"))) {
+            http.addFilterBefore(requestHeaderAuthenticationFilter, LogoutFilter.class);
+        }
+
+        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("ssoenv"))) {
+            http.addFilterBefore(requestAttributeAuthenticationFilter, LogoutFilter.class);
+        }
+
+        if (!csrfEnabled) {
+            http.csrf().disable();
+        }
+        http.headers().disable();
+        http.headers().frameOptions().sameOrigin();
+    }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
                          FilterChain chain) throws IOException, ServletException {
 
-        if (!createFilter) {
-            createFilter = true;
-            List<SecurityFilterChain> filters = new ArrayList<SecurityFilterChain>();
-            filters.addAll(filterChains);
-
-            WebSecurityConfig webSecInternal = objectObjectPostProcessor.postProcess(new WebSecurityConfig());
-            webSecInternal.setObjectPostProcessor(objectObjectPostProcessor);
-            webSecInternal.setApplicationContext(context);
-            try {
-                webSecInternal.setTrustResolver(context.getBean(AuthenticationTrustResolver.class));
-            } catch( NoSuchBeanDefinitionException e ) {
-            }
-            try {
-                webSecInternal.setContentNegotationStrategy(context.getBean(ContentNegotiationStrategy.class));
-            } catch( NoSuchBeanDefinitionException e ) {
-            }
-            try {
-                webSecInternal.setAuthenticationConfiguration(context.getBean(AuthenticationConfiguration.class));
-            } catch( NoSuchBeanDefinitionException e ) {
-            }
-            SecurityFilterChain internalFilter = null;
-            try {
-                HttpSecurity internalHttp = webSecInternal.getNewHttp();
-
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            WebSecurityConfig webSec = objectObjectPostProcessor.postProcess(new WebSecurityConfig());
-            webSec.setObjectPostProcessor(objectObjectPostProcessor);
-            webSec.setApplicationContext(context);
-            try {
-                webSec.setTrustResolver(context.getBean(AuthenticationTrustResolver.class));
-            } catch( NoSuchBeanDefinitionException e ) {
-            }
-            try {
-                webSec.setContentNegotationStrategy(context.getBean(ContentNegotiationStrategy.class));
-            } catch( NoSuchBeanDefinitionException e ) {
-            }
-            try {
-                webSec.setAuthenticationConfiguration(context.getBean(AuthenticationConfiguration.class));
-            } catch( NoSuchBeanDefinitionException e ) {
-            }
-            SecurityFilterChain newFilter = null;
-            try {
-                newFilter = webSec.getNewHttp().build();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            SecurityFilterChain filter2 = filters.get(15);
-            filters.remove(15);
-            filters.add(newFilter);
-            filters.add(filter2);
-            this.filterChains = filters;
+        if (filterChains != null){
+            filterChains.clear();
         }
+
+        List<SecurityFilterChain> filters = new ArrayList<SecurityFilterChain>();
+        filters.addAll(filterChainsIgnoredPath);
+
+        if (readFile().equals("saml\n")) {
+            try {
+                SecurityFilterChain filter = getInternalPasswordFilter();
+                filters.add(filter);
+            } catch (Exception e) {
+                LOGGER.error("Couldn't build internal password filter", e);
+            }
+
+            try {
+                SecurityFilterChain filter = getSamlFilter();
+                filters.add(filter);
+            } catch (Exception e) {
+                LOGGER.error("Couldn't build saml basic filter", e);
+            }
+
+            try {
+                SecurityFilterChain filter = getSamlBasicFilter();
+                filters.add(filter);
+            } catch (Exception e) {
+                LOGGER.error("Couldn't build saml filter", e);
+            }
+        } else {
+
+            try {
+                SecurityFilterChain filter = getSamlFilter();
+                filters.add(filter);
+            } catch (Exception e) {
+                LOGGER.error("Couldn't build saml basic filter", e);
+            }
+
+            try {
+                SecurityFilterChain filter = getBasicPasswordFilter();
+                filters.add(filter);
+            } catch (Exception e) {
+                LOGGER.error("Couldn't build basic password filter", e);
+            }
+        }
+
+        this.filterChains = filters;
 
         boolean clearContext = request.getAttribute(FILTER_APPLIED) == null;
         if (clearContext) {
@@ -183,12 +380,6 @@ public class MidpointFilterChainProxy extends GenericFilterBean {
         vfc.doFilter(fwRequest, fwResponse);
     }
 
-    /**
-     * Returns the first filter chain matching the supplied URL.
-     *
-     * @param request the request to match
-     * @return an ordered array of Filters defining the filter chain
-     */
     private List<Filter> getFilters(HttpServletRequest request) {
         for (SecurityFilterChain chain : filterChains) {
             if (chain.matches(request)) {
@@ -199,43 +390,19 @@ public class MidpointFilterChainProxy extends GenericFilterBean {
         return null;
     }
 
-    /**
-     * Convenience method, mainly for testing.
-     *
-     * @param url the URL
-     * @return matching filter list
-     */
     public List<Filter> getFilters(String url) {
         return getFilters(firewall.getFirewalledRequest((new FilterInvocation(url, "GET")
                 .getRequest())));
     }
 
-    /**
-     * @return the list of {@code SecurityFilterChain}s which will be matched against and
-     * applied to incoming requests.
-     */
     public List<SecurityFilterChain> getFilterChains() {
         return Collections.unmodifiableList(filterChains);
     }
 
-    /**
-     * Used (internally) to specify a validation strategy for the filters in each
-     * configured chain.
-     *
-     * @param filterChainValidator the validator instance which will be invoked on during
-     * initialization to check the {@code FilterChainProxy} instance.
-     */
     public void setFilterChainValidator(MidpointFilterChainProxy.FilterChainValidator filterChainValidator) {
         this.filterChainValidator = filterChainValidator;
     }
 
-    /**
-     * Sets the "firewall" implementation which will be used to validate and wrap (or
-     * potentially reject) the incoming requests. The default implementation should be
-     * satisfactory for most requirements.
-     *
-     * @param firewall
-     */
     public void setFirewall(HttpFirewall firewall) {
         this.firewall = firewall;
     }
@@ -251,13 +418,6 @@ public class MidpointFilterChainProxy extends GenericFilterBean {
         return sb.toString();
     }
 
-    // ~ Inner Classes
-    // ==================================================================================================
-
-    /**
-     * Internal {@code FilterChain} implementation that is used to pass a request through
-     * the additional internal list of filters which match the request.
-     */
     private static class VirtualFilterChain implements FilterChain {
         private final FilterChain originalChain;
         private final List<Filter> additionalFilters;

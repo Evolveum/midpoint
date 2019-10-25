@@ -54,14 +54,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //    @Autowired
 //    private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private MidPointAuthenticationSuccessHandler authenticationSuccessHandler;
+//    @Autowired
+//    private MidPointAuthenticationSuccessHandler authenticationSuccessHandler;
 
     @Autowired
     private AuditedLogoutHandler auditedLogoutHandler;
 
-    @Autowired
-    private MidPointGuiAuthorizationEvaluator accessDecisionManager;
+//    @Autowired
+//    private MidPointGuiAuthorizationEvaluator accessDecisionManager;
 
     @Autowired private SessionRegistry sessionRegistry;
 
@@ -87,11 +87,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         super.setObjectPostProcessor(objectPostProcessor);
     }
 
-    @Profile("!cas")
-    @Bean
-    public AuthenticationEntryPoint authenticationEntryPoint() {
-        return new WicketLoginUrlAuthenticationEntryPoint("/login");
-    }
+
 
 //    @Bean
 //    public MidPointGuiAuthorizationEvaluator accessDecisionManager(SecurityEnforcer securityEnforcer,
@@ -129,19 +125,39 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .accessDecisionManager(accessDecisionManager)
-                .antMatchers("/j_spring_security_check",
-                        "/spring_security_login",
-                        "/login",
-                        "/forgotpassword",
-                        "/registration",
-                        "/confirm/registration",
-                        "/confirm/reset",
-                        "/error",
-                        "/error/*",
-                        "/bootstrap").permitAll()
-                .anyRequest().fullyAuthenticated();
+//        http.authorizeRequests()
+//                .accessDecisionManager(accessDecisionManager)
+//                .antMatchers("/j_spring_security_check",
+//                        "/spring_security_login",
+//                        "/login",
+//                        "/forgotpassword",
+//                        "/registration",
+//                        "/confirm/registration",
+//                        "/confirm/reset",
+//                        "/error",
+//                        "/error/*",
+//                        "/bootstrap").permitAll()
+//                .anyRequest().fullyAuthenticated();
+
+//        http.antMatcher("/internal/**")
+//                .authorizeRequests()
+//                .accessDecisionManager(accessDecisionManager)
+//                .antMatchers("/j_spring_security_check",
+//                        "/spring_security_login",
+//                        "/login",
+//                        "/forgotpassword",
+//                        "/registration",
+//                        "/confirm/registration",
+//                        "/confirm/reset",
+//                        "/error",
+//                        "/error/*",
+//                        "/bootstrap",
+//                        "/internal/**").permitAll()
+//                .anyRequest().fullyAuthenticated();
+//        http.formLogin()
+//                .loginPage("/internal/login")
+//                .loginProcessingUrl("/spring_security_login")
+//                .successHandler(authenticationSuccessHandler).permitAll();
 
         http.logout().clearAuthentication(true)
                 .logoutUrl("/logout")
@@ -155,14 +171,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionRegistry(sessionRegistry)
                 .maxSessionsPreventsLogin(true);
 
-        http.formLogin()
-                .loginPage("/login")
-                .loginProcessingUrl("/spring_security_login")
-                .successHandler(authenticationSuccessHandler).permitAll();
+//        http.formLogin()
+//                .loginPage("/login")
+//                .loginProcessingUrl("/spring_security_login")
+//                .successHandler(authenticationSuccessHandler).permitAll();
 
-        http.exceptionHandling()
-                .authenticationEntryPoint(authenticationEntryPoint())
-                .accessDeniedHandler(accessDeniedHandler());
+//        http.exceptionHandling()
+//                .authenticationEntryPoint(authenticationEntryPoint())
+//                .accessDeniedHandler(accessDeniedHandler());
 
         if (!csrfEnabled) {
             http.csrf().disable();
@@ -190,11 +206,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {
         return super.authenticationManager();
-    }
-
-    @Bean
-    public MidPointAccessDeniedHandler accessDeniedHandler() {
-        return new MidPointAccessDeniedHandler();
     }
 
     @ConditionalOnMissingBean(name = "midPointAuthenticationProvider")
