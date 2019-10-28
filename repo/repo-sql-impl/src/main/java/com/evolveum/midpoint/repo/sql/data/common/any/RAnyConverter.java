@@ -123,24 +123,22 @@ public class RAnyConverter {
     }
 
     @NotNull
-    private RAnyValue extractAndCreateValue(ItemDefinition def, PrismPropertyValue propertyValue, boolean assignment)
+    private RAnyValue extractAndCreateValue(PrismPropertyValue propertyValue, boolean assignment, ValueType type)
             throws SchemaException {
 
-        ValueType type = getValueType(def.getTypeName());
         Object extractedValue = extractValue(propertyValue, type.getValueType());
         return assignment ? type.createNewAExtValue(extractedValue) : type.createNewOExtValue(extractedValue);
     }
 
     @NotNull
-    public RAnyValue<?> convertToRValue(PrismValue value, boolean isAssignment) throws SchemaException {
+    public RAnyValue<?> convertToRValue(PrismValue value, boolean isAssignment, Integer itemId) throws SchemaException {
         RAnyValue<?> rValue;
 
         ItemDefinition definition = value.getParent().getDefinition();
 
         if (value instanceof PrismPropertyValue) {
             PrismPropertyValue propertyValue = (PrismPropertyValue) value;
-
-            rValue = extractAndCreateValue(definition, propertyValue, isAssignment);
+            rValue = extractAndCreateValue(propertyValue, isAssignment, getValueType(definition.getTypeName()));
         } else if (value instanceof PrismReferenceValue) {
             if (isAssignment) {
                 PrismReferenceValue referenceValue = (PrismReferenceValue) value;
@@ -154,13 +152,13 @@ public class RAnyConverter {
             throw new AssertionError("Wrong value type: " + value);
         }
 
-        rValue.setItemId(extItemDictionary.createOrFindItemDefinition(definition).getId());
+        rValue.setItemId(itemId);
 
         return rValue;
     }
 
     //todo assignment parameter really messed up this method, proper interfaces must be introduced later [lazyman]
-    public Set<RAnyValue<?>> convertToRValue(Item item, boolean assignment,
+    public Set<RAnyValue<?>> convertToRValue(Item<?,?> item, boolean assignment,
             RObjectExtensionType ownerType) throws SchemaException, DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
         Validate.notNull(item.getDefinition(), "Item '" + item.getElementName() + "' without definition can't be saved.");
@@ -171,15 +169,13 @@ public class RAnyConverter {
             return rValues;
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Converting any values of item {}; definition: {}", item, definition);
-        }
+        LOGGER.trace("Converting any values of item {}; definition: {}", item, definition);
+
+        Integer itemId = extItemDictionary.createOrFindItemDefinition(definition).getId();
 
         try {
-            RAnyValue rValue;
-            List<PrismValue> values = item.getValues();
-            for (PrismValue value : values) {
-                rValue = convertToRValue(value, assignment);
+            for (PrismValue value : item.getValues()) {
+                RAnyValue rValue = convertToRValue(value, assignment, itemId);
                 rValues.add(rValue);
             }
         } catch (Exception ex) {
