@@ -57,15 +57,15 @@ public class ShadowDeltaComputer {
 
     @NotNull
     ObjectDelta<ShadowType> computeShadowDelta(@NotNull ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> repoShadowOld, PrismObject<ShadowType> resourceShadowNew,
+            @NotNull PrismObject<ShadowType> repoShadowOld, PrismObject<ShadowType> currentResourceObject,
             ObjectDelta<ShadowType> resourceObjectDelta, ShadowState shadowState)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
 
         ObjectDelta<ShadowType> computedShadowDelta = repoShadowOld.createModifyDelta();
 
-        RefinedObjectClassDefinition ocDef = ctx.computeCompositeObjectClassDefinition(resourceShadowNew);
-        PrismContainer<Containerable> currentResourceAttributes = resourceShadowNew.findContainer(ShadowType.F_ATTRIBUTES);
+        RefinedObjectClassDefinition ocDef = ctx.computeCompositeObjectClassDefinition(currentResourceObject);
+        PrismContainer<Containerable> currentResourceAttributes = currentResourceObject.findContainer(ShadowType.F_ATTRIBUTES);
         PrismContainer<Containerable> oldRepoAttributes = repoShadowOld.findContainer(ShadowType.F_ATTRIBUTES);
         ShadowType oldRepoShadowType = repoShadowOld.asObjectable();
 
@@ -75,17 +75,17 @@ public class ShadowDeltaComputer {
         processAttributes(computedShadowDelta, incompleteCacheableItems, oldRepoAttributes, currentResourceAttributes,
                 resourceObjectDelta, ocDef, cachingStrategy);
 
-        PolyString currentShadowName = ShadowUtil.determineShadowName(resourceShadowNew);
+        PolyString currentShadowName = ShadowUtil.determineShadowName(currentResourceObject);
         PolyString oldRepoShadowName = repoShadowOld.getName();
-        if (!currentShadowName.equalsOriginalValue(oldRepoShadowName)) {
+        if (currentShadowName != null && !currentShadowName.equalsOriginalValue(oldRepoShadowName)) {
             PropertyDelta<?> shadowNameDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_NAME,
-                    repoShadowOld.getDefinition(),currentShadowName);
+                    repoShadowOld.getDefinition(), currentShadowName);
             computedShadowDelta.addModification(shadowNameDelta);
         }
 
         PropertyDelta<QName> auxOcDelta = ItemUtil.diff(
                 repoShadowOld.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
-                resourceShadowNew.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
+                currentResourceObject.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
         if (auxOcDelta != null) {
             computedShadowDelta.addModification(auxOcDelta);
         }
@@ -105,10 +105,10 @@ public class ShadowDeltaComputer {
 
         } else if (cachingStrategy == CachingStategyType.PASSIVE) {
 
-            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, resourceShadowNew, repoShadowOld);
-            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_FROM, resourceShadowNew, repoShadowOld);
-            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_TO, resourceShadowNew, repoShadowOld);
-            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, resourceShadowNew, repoShadowOld);
+            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, currentResourceObject, repoShadowOld);
+            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_FROM, currentResourceObject, repoShadowOld);
+            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_TO, currentResourceObject, repoShadowOld);
+            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, currentResourceObject, repoShadowOld);
 
             if (incompleteCacheableItems.isEmpty()) {
                 CachingMetadataType cachingMetadata = new CachingMetadataType();
