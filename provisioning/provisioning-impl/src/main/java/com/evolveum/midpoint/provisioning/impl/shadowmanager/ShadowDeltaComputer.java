@@ -210,19 +210,20 @@ public class ShadowDeltaComputer {
         PrismProperty<Object> oldRepoAttributeProperty = oldRepoAttributes.findProperty(attrDef.getItemName());
         if (oldRepoAttributeProperty == null) {
             PropertyDelta<Object> attrAddDelta = currentResourceAttrProperty.createDelta();
-            List<PrismPropertyValue<Object>> currentValues = currentResourceAttrProperty.getValues();
-            // This is a brutal hack: For extension attributes the ADD operation is slow when using large # of
-            // values to add. So let's do REPLACE instead (this is OK if there are no existing values).
-            // TODO Move this logic to repository. Here it is only for PoC purposes.
-            if (currentValues.size() >= 100) {
-                Object[] currentValuesNormalized = new Object[currentValues.size()];
-                for (int i = 0; i < currentValues.size(); i++) {
-                    currentValuesNormalized[i] = matchingRule.normalize(currentValues.get(i).getValue());
-                }
-                attrAddDelta.setRealValuesToReplace(currentValuesNormalized);
+            List<PrismPropertyValue<Object>> valuesOnResource = currentResourceAttrProperty.getValues();
+            if (attrDef.isIndexOnly()) {
+                // We don't know what is in the repository. We simply want to replace everything with the current values.
+                setNormalizedValuesToReplace(attrAddDelta, valuesOnResource, matchingRule);
             } else {
-                for (PrismPropertyValue<?> pval : currentValues) {
-                    attrAddDelta.addRealValuesToAdd(matchingRule.normalize(pval.getValue()));
+                // This is a brutal hack: For extension attributes the ADD operation is slow when using large # of
+                // values to add. So let's do REPLACE instead (this is OK if there are no existing values).
+                // TODO Move this logic to repository. Here it is only for PoC purposes.
+                if (valuesOnResource.size() >= 100) {
+                    setNormalizedValuesToReplace(attrAddDelta, valuesOnResource, matchingRule);
+                } else {
+                    for (PrismPropertyValue<?> pval : valuesOnResource) {
+                        attrAddDelta.addRealValuesToAdd(matchingRule.normalize(pval.getValue()));
+                    }
                 }
             }
             if (attrAddDelta.getDefinition().getTypeName() == null) {
@@ -268,6 +269,15 @@ public class ShadowDeltaComputer {
                 }
             }
         }
+    }
+
+    private void setNormalizedValuesToReplace(PropertyDelta<Object> attrAddDelta, List<PrismPropertyValue<Object>> currentValues,
+            MatchingRule<Object> matchingRule) throws SchemaException {
+        Object[] currentValuesNormalized = new Object[currentValues.size()];
+        for (int i = 0; i < currentValues.size(); i++) {
+            currentValuesNormalized[i] = matchingRule.normalize(currentValues.get(i).getValue());
+        }
+        attrAddDelta.setRealValuesToReplace(currentValuesNormalized);
     }
 
     private <T> void compareUpdateProperty(ObjectDelta<ShadowType> shadowDelta,
