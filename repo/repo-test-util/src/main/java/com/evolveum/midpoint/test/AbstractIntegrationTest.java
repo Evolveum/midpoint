@@ -2018,6 +2018,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
                 .fileNamePattern(DEFAULT_TRACING_FILENAME_PATTERN);
     }
 
+    protected TracingProfileType createPerformanceTracingProfile() {
+        return new TracingProfileType()
+                .beginTracingTypeProfile()
+                    .level(TracingLevelType.MINIMAL)
+                .<TracingProfileType>end()
+                .fileNamePattern(DEFAULT_TRACING_FILENAME_PATTERN);
+    }
+
     protected Task createTracedTask(String operationName) {
         Task task = createTask(operationName);
         task.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
