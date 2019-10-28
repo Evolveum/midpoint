@@ -399,6 +399,12 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
         return realContainer.addAll(newValues, strategy);
     }
 
+    @Override
+    public boolean addAll(Collection<PrismContainerValue<C>> newValues, boolean checkUniqueness, EquivalenceStrategy strategy)
+            throws SchemaException {
+        return realContainer.addAll(newValues, checkUniqueness, strategy);
+    }
+
     public String debugDump(int indent) {
         return realContainer.debugDump(indent);
     }
