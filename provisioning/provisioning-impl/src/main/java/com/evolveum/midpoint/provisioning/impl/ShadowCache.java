@@ -2075,15 +2075,6 @@ public class ShadowCache {
                 } catch (RuntimeException | Error e) {
                     objResult.recordFatalError(e);
                     throw e;
-                } finally {
-                    objResult.computeStatus();
-                    objResult.recordSuccessIfUnknown();
-                    // FIXME: hack. Hardcoded ugly summarization of successes. something like
-                    //  AbstractSummarizingResultHandler [lazyman]
-                    if (objResult.isSuccess()) {
-                        objResult.getSubresults().clear();
-                    }
-                    parentResult.summarize();
                 }
 
                 return doContinue;

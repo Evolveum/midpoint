@@ -2862,6 +2862,18 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 
     protected void setGlobalTracingOverride(@NotNull TracingProfileType profile) {
+        List<TracingRootType> roots = Arrays.asList(
+                TracingRootType.CLOCKWORK_RUN,
+                TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING,
+                TracingRootType.ASYNCHRONOUS_MESSAGE_PROCESSING,
+                TracingRootType.LIVE_SYNC_CHANGE_PROCESSING,
+                TracingRootType.WORKFLOW_OPERATION
+                // RETRIEVED_RESOURCE_OBJECT_PROCESSING is invoked too frequently to be universally enabled
+        );
+        taskManager.setGlobalTracingOverride(roots, profile);
+    }
+
+    protected void setGlobalTracingOverrideAll(@NotNull TracingProfileType profile) {
         taskManager.setGlobalTracingOverride(Arrays.asList(TracingRootType.values()), profile);
     }
 

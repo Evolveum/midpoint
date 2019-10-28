@@ -112,8 +112,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
             if (!Boolean.FALSE.equals(tracingProfile.isCreateTraceFile())) {
                 boolean zip = !Boolean.FALSE.equals(tracingProfile.isCompressOutput());
-                Map<String, String> templateParameters = createTemplateParameters(task,
-                        result);      // todo evaluate lazily if needed
+                Map<String, String> templateParameters = createTemplateParameters(task, result);      // todo evaluate lazily if needed
                 File file = createFileName(zip, tracingProfile, templateParameters);
                 try {
                     long start = System.currentTimeMillis();
@@ -479,6 +478,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
                 merge(rv, getResolvedProfile(ref, tracingConfiguration, resolutionPath));
             }
             merge(rv, tracingProfile);
+            rv.getRef().clear();
             return rv;
         }
     }
