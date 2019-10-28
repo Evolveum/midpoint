@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -28,6 +30,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.util.Collections;
 
@@ -152,8 +155,23 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
-                CaseWorkItemActionsPanel.this.getPageBase().hideMainPopup(target);
-                forwardConfirmedPerformed(target, user);
+                PageBase pageBase = CaseWorkItemActionsPanel.this.getPageBase();
+                pageBase.hideMainPopup(target);
+                ConfirmationPanel confirmationPanel = new ConfirmationPanel(pageBase.getMainPopupBodyId(),
+                        createStringResource("CaseWorkItemActionsPanel.forwardConfirmationMessage", user.getName().getOrig())){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void yesPerformed(AjaxRequestTarget target) {
+                        forwardConfirmedPerformed(target, user);
+                    }
+
+                    @Override
+                    public StringResourceModel getTitle() {
+                        return new StringResourceModel("CaseWorkItemActionsPanel.forwardConfirmationTitle");
+                    }
+                };
+                pageBase.showMainPopup(confirmationPanel, target);
             }
 
         };
