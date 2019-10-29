@@ -14632,7 +14632,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType">
+            <xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to the template.
