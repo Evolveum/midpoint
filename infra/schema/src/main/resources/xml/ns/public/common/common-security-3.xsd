@@ -86,12 +86,379 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="modules" type="tns:AuthenticationModulesType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="mailAuthentication" type="tns:MailAuthenticationPolicyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.1</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="smsAuthentication" type="tns:SmsAuthenticationPolicyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.1</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <!-- TODO: radovan -->
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModulesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of authentication modules that midPoint is aware about.
+                Each element has a configuration of a particular authentication element instance.
+                Each modules specified in the container must have unique name.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="loginForm" type="tns:AuthenticationModuleLoginFormType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="httpBasic" type="tns:AuthenticationModuleHttpBasicType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="httpHeader" type="tns:AuthenticationModuleHttpHeaderType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="saml2" type="tns:AuthenticationModuleSaml2Type" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="oidc" type="tns:AuthenticationModuleOidcType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="mailNonce" type="tns:AuthenticationModuleMailNonceType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="smsNonce" type="tns:AuthenticationModuleSmsNonceType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="securityQuestionsForm" type="tns:AuthenticationModuleSecurityQuestionsFormType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="httpSecQ" type="tns:AuthenticationModuleHttpSecQType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AbstractAuthenticationModuleType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common supertype for all authentication module definitions.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" >
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique name of the authentication module. This name is fact a short identifier.
+                        It is supposed to give some idea about nature of the module to system administrator.
+                        But it is not supposed to be used as a user-friendly label for the module.
+                        Module name must be unique.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free form description of the module (administator comment).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AbstractPasswordAuthenticationModuleType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common definition for all authentication modules that use password.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="credentialName" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of credential definition that should be used when validating password.
+                                This must point to a valid credential definition
+                                in the "credential" section of a security policy.
+                                If not specified then default password definition is used.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="acceptEmptyPassword" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If set to true than an empty (all blank) password will be accepted as valid password.
+                                Password is still compared with user's password. Therefore for the password to be accepted
+                                an empty password must still be set as a credential for a user.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleLoginFormType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of "login form" module. The module is used for interactive log-in of a user by using
+                HTML forms.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPasswordAuthenticationModuleType">
+                <xsd:sequence>
+                    <!-- Nothing to add now. Maybe later. -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleHttpBasicType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of HTTP BASIC authentication module (RFC 7617).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPasswordAuthenticationModuleType">
+                <xsd:sequence>
+                    <!-- Nothing to add now. Maybe later. -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleHttpHeaderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Pseudo-authentication for pre-authenticated users. Based on HTTP header values.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="usernameHeader" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of HTTP header that contains username.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!-- later: oidHeader -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleSaml2Type">
+        <xsd:annotation>
+            <xsd:documentation>
+                SAML2 authentication module.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="network" type="tns:AuthenticationModuleSaml2NetworkType" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="serviceProvider" type="tns:AuthenticationModuleSaml2ServiceProviderType" minOccurs="0" maxOccurs="1"/>
+                    <!-- TODO: other elements -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleSaml2NetworkType">
+        <xsd:annotation>
+            <xsd:documentation>
+                SAML2 authentication module, network configuration.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="readTimeout" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <!-- TODO: other elements -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleSaml2ServiceProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                SAML2 authentication module, service provider configuration.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="entityId" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <!-- TODO: other elements -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleOidcType">
+        <xsd:annotation>
+            <xsd:documentation>
+                OpenId Connect authentication module.
+                PLACEHOLDER. NOT SUPPORTED YET.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+                <xsd:sequence>
+                    <!-- later: real elements -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleMailNonceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Mail nonce authentication module.
+                Module that sends randomly generated nonce in URL in mail message.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPasswordAuthenticationModuleType">
+                <xsd:sequence>
+                    <!-- Later: emailAddressItem path -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleSmsNonceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                SMS (mobile text message) nonce authentication module.
+                Module that sends randomly generated nonce in mobile text message (SMS).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPasswordAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="mobileTelephoneNumberItemPath" type="t:ItemPathType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Path of a user property that will be the source of a mobile telephone number.
+                                This number will be the target of SMS message.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AbstractSecurityQuestionsAuthenticationModuleType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common definition for all authentication modules that use security questions.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="credentialName" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of credential definition that should be used when validating password.
+                                This must point to a valid credential definition
+                                in the "credential" section of a security policy.
+                                If not specified then default password definition is used.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!-- TODO: Security questions validation policy: how many questions to present, how many need to be answered successfuly, randomize order, etc. -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleSecurityQuestionsFormType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of "security questions form" module. The module is used for interactive log-in of a user by
+                answering a set of security questions.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSecurityQuestionsAuthenticationModuleType">
+                <xsd:sequence>
+                    <!-- Nothing to add now. Maybe later. -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleHttpSecQType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of HTTP SecQ module. The module is used for quasi-interative log-in of a user by
+                answering a set of security questions. The HTTP SecQ mechanism is similar to HTTP BASIC mechanism,
+                but it is using security questions instead of password.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSecurityQuestionsAuthenticationModuleType">
+                <xsd:sequence>
+                    <!-- Nothing to add now. Maybe later. -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="CredentialsPolicyType">
