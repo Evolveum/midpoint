@@ -832,7 +832,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 4);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
 
@@ -995,7 +995,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 4);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
 
@@ -1151,7 +1151,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 4);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
 
@@ -1242,7 +1242,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 4);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 1);
 
