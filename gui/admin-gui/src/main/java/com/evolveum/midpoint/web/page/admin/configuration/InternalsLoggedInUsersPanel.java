@@ -20,7 +20,7 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -66,7 +66,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
             }
 
             @Override
-            protected List<IColumn<SelectableBean<F>, String>> createColumns() {
+            protected List<IColumn<SelectableBeanImpl<F>, String>> createColumns() {
                 return InternalsLoggedInUsersPanel.this.initColumns();
             }
 
@@ -76,7 +76,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
             }
 
             @Override
-            protected BaseSortableDataProvider<SelectableBean<F>> initProvider() {
+            protected BaseSortableDataProvider<SelectableBeanImpl<F>> initProvider() {
                 LoadableModel<List<UserSessionManagementType>> principals = new LoadableModel<List<UserSessionManagementType>>(true) {
 
                     @Override
@@ -85,11 +85,11 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
                     }
                 };
 
-                return new ListDataProvider2<SelectableBean<F>, UserSessionManagementType>(InternalsLoggedInUsersPanel.this, principals) {
+                return new ListDataProvider2<SelectableBeanImpl<F>, UserSessionManagementType>(InternalsLoggedInUsersPanel.this, principals) {
 
                     @Override
-                    protected SelectableBean<F> createObjectWrapper(UserSessionManagementType principal) {
-                        SelectableBean<F> user = new SelectableBean<F>((F) principal.getUser());
+                    protected SelectableBeanImpl<F> createObjectWrapper(UserSessionManagementType principal) {
+                        SelectableBeanImpl<F> user = new SelectableBeanImpl<F>((F) principal.getUser());
                         user.setActiveSessions(principal.getActiveSessions());
                         user.setNodes(principal.getNode());
                         return user;
@@ -155,8 +155,8 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
         return new ArrayList<>(usersMap.values());
     }
 
-    private List<IColumn<SelectableBean<F>, String>> initColumns() {
-        List<IColumn<SelectableBean<F>, String>> columns = new ArrayList<>();
+    private List<IColumn<SelectableBeanImpl<F>, String>> initColumns() {
+        List<IColumn<SelectableBeanImpl<F>, String>> columns = new ArrayList<>();
         columns.add(new PropertyColumn<>(createStringResource("ActivationType.effectiveStatus"), "value.activation.effectiveStatus"));
         columns.add(new PropertyColumn<>(createStringResource("InternalsLoggedInUsers.activeSessions"), "activeSessions"));
         columns.add(new PropertyColumn<>(createStringResource("InternalsLoggedInUsers.nodes"), "nodes"));
@@ -175,14 +175,14 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<F>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<F>>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         if (getRowModel() == null){
                             expireSessionsFor(target, null);
                         } else {
-                            SelectableBean<F> rowDto = getRowModel().getObject();
+                            SelectableBeanImpl<F> rowDto = getRowModel().getObject();
                             expireSessionsFor(target, rowDto.getValue());
                         }
                     }

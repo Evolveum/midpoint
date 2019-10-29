@@ -12,7 +12,7 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.BaseDeprecatedPanel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -41,11 +41,11 @@ public class ResourceListPanel extends BaseDeprecatedPanel {
     private List<IColumn> initColumns() {
         List<IColumn> columns = new ArrayList<>();
 
-        IColumn column = new LinkColumn<SelectableBean<ResourceType>>(createStringResource("ObjectType.name"), "name",
+        IColumn column = new LinkColumn<SelectableBeanImpl<ResourceType>>(createStringResource("ObjectType.name"), "name",
                 "value.name") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel) {
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBeanImpl<ResourceType>> rowModel) {
                 ResourceType resource = rowModel.getObject().getValue();
                 resourceSelectedPerformed(target, resource);
             }

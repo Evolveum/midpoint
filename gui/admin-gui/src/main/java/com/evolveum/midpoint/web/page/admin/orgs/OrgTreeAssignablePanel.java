@@ -17,7 +17,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.session.OrgStructurePanelStorage;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
-import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,7 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -190,7 +189,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
         return allTabsSelectedOrgs;
     }
 
-    protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
+    protected void onItemSelect(SelectableBeanImpl<OrgType> selected, AjaxRequestTarget target) {
 
     }
 

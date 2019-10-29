@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -119,12 +120,12 @@ public class ColumnUtils {
         }
     }
 
-    public static <O extends ObjectType> IColumn<SelectableBean<O>, String> createIconColumn(PageBase pageBase){
+    public static <O extends ObjectType> IColumn<SelectableBeanImpl<O>, String> createIconColumn(PageBase pageBase){
 
-        return new IconColumn<SelectableBean<O>>(createIconColumnHeaderModel()) {
+        return new IconColumn<SelectableBeanImpl<O>>(createIconColumnHeaderModel()) {
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<SelectableBean<O>> rowModel){
+            protected DisplayType getIconDisplayType(IModel<SelectableBeanImpl<O>> rowModel){
                 if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
                     return new DisplayType();
                 }
@@ -140,7 +141,7 @@ public class ColumnUtils {
 
     }
 
-    public static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBean<T>> rowModel) {
+    public static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBeanImpl<T>> rowModel) {
         if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
             return "";
         }
@@ -184,7 +185,7 @@ public class ColumnUtils {
         return "";
     }
 
-    private static <T extends ObjectType> IModel<String> getIconColumnDataModel(IModel<SelectableBean<T>> rowModel){
+    private static <T extends ObjectType> IModel<String> getIconColumnDataModel(IModel<SelectableBeanImpl<T>> rowModel){
         Class<T> type = (Class<T>) rowModel.getObject().getValue().getClass();
         if (ShadowType.class.equals(type)) {
                 T shadow = rowModel.getObject().getValue();
@@ -198,7 +199,7 @@ public class ColumnUtils {
         return Model.of();
     }
 
-    public static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBean<T>> rowModel){
+    public static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBeanImpl<T>> rowModel){
         if (rowModel == null || rowModel.getObject() == null){
             return null;
         }
@@ -256,16 +257,16 @@ public class ColumnUtils {
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("UserType.givenName", UserType.F_GIVEN_NAME.getLocalPart(),
-                        SelectableBean.F_VALUE + ".givenName.orig", false),
+                        SelectableBeanImpl.F_VALUE + ".givenName.orig", false),
                 new ColumnTypeDto<String>("UserType.familyName", UserType.F_FAMILY_NAME.getLocalPart(),
-                        SelectableBean.F_VALUE + ".familyName.orig", false),
+                        SelectableBeanImpl.F_VALUE + ".familyName.orig", false),
                 new ColumnTypeDto<String>("UserType.fullName", UserType.F_FULL_NAME.getLocalPart(),
-                        SelectableBean.F_VALUE + ".fullName.orig", false),
+                        SelectableBeanImpl.F_VALUE + ".fullName.orig", false),
                 new ColumnTypeDto<String>("UserType.emailAddress", UserType.F_EMAIL_ADDRESS.getLocalPart(),
-                        SelectableBean.F_VALUE + ".emailAddress", false)
+                        SelectableBeanImpl.F_VALUE + ".emailAddress", false)
 
         );
-        columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
+        columns.addAll(ColumnUtils.createColumns(columnsDefs));
 
         return columns;
 
@@ -340,8 +341,8 @@ public class ColumnUtils {
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("TaskType.executionStatus", TaskType.F_EXECUTION_STATUS.getLocalPart(),
-                        SelectableBean.F_VALUE + ".executionStatus", false));
-        columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
+                        SelectableBeanImpl.F_VALUE + ".executionStatus", false));
+        columns.addAll(ColumnUtils.createColumns(columnsDefs));
 
         return columns;
 
@@ -390,12 +391,12 @@ public class ColumnUtils {
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("AbstractRoleType.displayName",
                         sortByDisplayName,
-                        SelectableBean.F_VALUE + ".displayName", false),
+                        SelectableBeanImpl.F_VALUE + ".displayName", false),
                 new ColumnTypeDto<String>("AbstractRoleType.description",
                         null,
-                        SelectableBean.F_VALUE + ".description", false),
+                        SelectableBeanImpl.F_VALUE + ".description", false),
                 new ColumnTypeDto<String>("AbstractRoleType.identifier", sortByIdentifer,
-                        SelectableBean.F_VALUE + ".identifier", false)
+                        SelectableBeanImpl.F_VALUE + ".identifier", false)
 
         );
         List<IColumn<SelectableBean<T>, String>> columns = createColumns(columnsDefs);
@@ -432,11 +433,11 @@ public class ColumnUtils {
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("AbstractRoleType.description", null,
-                        SelectableBean.F_VALUE + ".description", false)
+                        SelectableBeanImpl.F_VALUE + ".description", false)
 
         );
 
-        columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
+        columns.addAll(ColumnUtils.createColumns(columnsDefs));
 
         return columns;
 
@@ -708,15 +709,15 @@ public class ColumnUtils {
             columns.add(column);
         }
 
-        column = new AbstractColumn<SelectableBean<CaseType>, String>(
+        column = new AbstractColumn<SelectableBeanImpl<CaseType>, String>(
                 createStringResource("pageCases.table.openTimestamp"),
                 MetadataType.F_CREATE_TIMESTAMP.getLocalPart()) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
-                                     String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
+            public void populateItem(Item<ICellPopulator<SelectableBeanImpl<CaseType>>> cellItem,
+                                     String componentId, final IModel<SelectableBeanImpl<CaseType>> rowModel) {
                 CaseType object = rowModel.getObject().getValue();
                 MetadataType metadata = object != null ? object.getMetadata() : null;
                 XMLGregorianCalendar createdCal = metadata != null ? metadata.getCreateTimestamp() : null;
@@ -744,10 +745,10 @@ public class ColumnUtils {
         columns.add(column);
 
         if (!isDashboard) {
-            column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.closeTimestamp"), CaseType.F_CLOSE_TIMESTAMP.getLocalPart(), "value.closeTimestamp") {
+            column = new PropertyColumn<SelectableBeanImpl<CaseType>, String>(createStringResource("pageCases.table.closeTimestamp"), CaseType.F_CLOSE_TIMESTAMP.getLocalPart(), "value.closeTimestamp") {
                 @Override
-                public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
-                                         String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
+                public void populateItem(Item<ICellPopulator<SelectableBeanImpl<CaseType>>> cellItem,
+                                         String componentId, final IModel<SelectableBeanImpl<CaseType>> rowModel) {
                     CaseType object = rowModel.getObject().getValue();
                     XMLGregorianCalendar closedCal = object != null ? object.getCloseTimestamp() : null;
                     final Date closed;
@@ -774,7 +775,7 @@ public class ColumnUtils {
             columns.add(column);
         }
 
-        column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state"){
+        column = new PropertyColumn<SelectableBeanImpl<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state"){
             @Override
             public String getCssClass() {
                 return isDashboard ? "col-md-1 col-sm-2" : super.getCssClass();

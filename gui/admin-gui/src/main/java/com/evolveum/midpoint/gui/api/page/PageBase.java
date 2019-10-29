@@ -110,10 +110,7 @@ import com.evolveum.midpoint.web.page.admin.reports.*;
 import com.evolveum.midpoint.web.page.admin.resources.*;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
+import com.evolveum.midpoint.web.page.admin.server.*;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.*;
@@ -1900,6 +1897,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 createStringResource("PageAdmin.menu.top.serverTasks"), null);
 
         addMenuItem(item, "PageAdmin.menu.top.serverTasks.list", PageTasks.class);
+
+        addMenuItem(item, "ListNew", PageTasksNew.class);
+
         //should we support archetype view for TaskType?
 //        addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE);
         MenuItem newTaskMenu = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageTaskAdd.class, null,

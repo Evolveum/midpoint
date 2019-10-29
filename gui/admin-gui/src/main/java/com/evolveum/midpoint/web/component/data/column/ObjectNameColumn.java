@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -19,7 +20,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.error.PageOperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -45,7 +46,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 
     @Override
     public void populateItem(final Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId,
-            final IModel<SelectableBean<O>> rowModel) {
+                             final IModel<SelectableBean<O>> rowModel) {
 
         IModel<String> labelModel = new IModel<String>() {
             private static final long serialVersionUID = 1L;

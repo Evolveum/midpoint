@@ -8,10 +8,10 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Supplier;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -79,7 +79,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
             return new LinkColumn<SelectableBean<O>>(
                     columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
                     StringUtils.isEmpty(itemPath) ? ObjectType.F_NAME.getLocalPart() : itemPath,
-                    SelectableBean.F_VALUE + "." +
+                    SelectableBeanImpl.F_VALUE + "." +
                             (StringUtils.isEmpty(itemPath) ? "name" : itemPath)) {
                 private static final long serialVersionUID = 1L;
 
@@ -96,7 +96,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
             return new PropertyColumn(
                     columnNameModel == null ? createStringResource("userBrowserDialog.name") : columnNameModel,
                     StringUtils.isEmpty(itemPath) ? ObjectType.F_NAME.getLocalPart() : itemPath,
-                    SelectableBean.F_VALUE + "." +
+                    SelectableBeanImpl.F_VALUE + "." +
                             (StringUtils.isEmpty(itemPath) ? "name" : itemPath));
         }
     }

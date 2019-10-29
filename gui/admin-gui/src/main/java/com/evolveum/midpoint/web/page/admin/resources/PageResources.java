@@ -11,18 +11,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -33,13 +28,11 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -54,13 +47,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.session.ResourcesStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 /**
@@ -171,12 +161,12 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ResourceType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ResourceType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+                        SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
                         testResourcePerformed(target, rowDto.getValue());
                     }
                 };
@@ -198,12 +188,12 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ResourceType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ResourceType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+                        SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
                         editAsXmlPerformed(rowDto.getValue());
                     }
                 };
@@ -225,12 +215,12 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ResourceType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ResourceType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+                        SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
                         editResourcePerformed(rowDto.getValue());
                     }
                 };
@@ -247,12 +237,12 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ResourceType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ResourceType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+                        SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
                         refreshSchemaPerformed(rowDto.getValue(), target);
                     }
                 };
@@ -269,7 +259,7 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ResourceType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ResourceType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -277,7 +267,7 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
                         if (getRowModel() == null) {
                             deleteResourcePerformed(target, null);
                         } else {
-                            SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+                            SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
                             deleteResourcePerformed(target, rowDto.getValue());
                         }
                     }
@@ -295,12 +285,12 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ResourceType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ResourceType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+                        SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
                         deleteResourceSyncTokenPerformed(target, rowDto.getValue());
                     }
 
@@ -321,9 +311,9 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
         List<IColumn<SelectableBean<ResourceType>, String>> columns = new ArrayList<>();
 
         columns.add(new PropertyColumn(createStringResource("pageResources.connectorType"),
-                SelectableBean.F_VALUE + ".connectorRef.objectable.connectorType"));
+                SelectableBeanImpl.F_VALUE + ".connectorRef.objectable.connectorType"));
         columns.add(new PropertyColumn(createStringResource("pageResources.version"),
-                SelectableBean.F_VALUE + ".connectorRef.objectable.connectorVersion"));
+                SelectableBeanImpl.F_VALUE + ".connectorRef.objectable.connectorVersion"));
 
         return columns;
     }

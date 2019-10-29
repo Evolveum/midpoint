@@ -9,11 +9,8 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
@@ -31,6 +28,7 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -38,21 +36,13 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -149,7 +139,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<CaseType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<CaseType>>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -167,7 +157,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
 
             @Override
             public IModel<Boolean> getEnabled() {
-                IModel<SelectableBean<CaseType>> rowModel = ((ColumnMenuAction<SelectableBean<CaseType>>)getAction()).getRowModel();
+                IModel<SelectableBeanImpl<CaseType>> rowModel = ((ColumnMenuAction<SelectableBeanImpl<CaseType>>)getAction()).getRowModel();
                 if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null){
                     return Model.of(!CaseTypeUtil.isClosed(rowModel.getObject().getValue()));
                 } else {
@@ -193,7 +183,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<CaseType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<CaseType>>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -216,7 +206,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
 
             @Override
             public IModel<Boolean> getEnabled() {
-                IModel<SelectableBean<CaseType>> rowModel = ((ColumnMenuAction<SelectableBean<CaseType>>)getAction()).getRowModel();
+                IModel<SelectableBeanImpl<CaseType>> rowModel = ((ColumnMenuAction<SelectableBeanImpl<CaseType>>)getAction()).getRowModel();
                 if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null){
                     return Model.of(!CaseTypeUtil.isClosed(rowModel.getObject().getValue()));
                 } else {
@@ -236,7 +226,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
         return menu;
     }
 
-    private <O extends ObjectType> String getObjectRef(IModel<SelectableBean<CaseType>> caseModel) {
+    private <O extends ObjectType> String getObjectRef(IModel<SelectableBeanImpl<CaseType>> caseModel) {
         CaseType caseModelObject = caseModel.getObject().getValue();
         if (caseModelObject == null || caseModelObject.getObjectRef() == null) {
             return "";

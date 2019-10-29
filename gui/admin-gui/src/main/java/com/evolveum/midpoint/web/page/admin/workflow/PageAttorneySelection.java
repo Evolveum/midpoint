@@ -24,7 +24,7 @@ import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItems;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -159,19 +159,19 @@ public class PageAttorneySelection extends PageBase {
 
         IColumn<SelectableBean<UserType>, String> column = new PropertyColumn(
                 createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
-                SelectableBean.F_VALUE + ".givenName");
+                SelectableBeanImpl.F_VALUE + ".givenName");
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("UserType.familyName"),
-                UserType.F_FAMILY_NAME.getLocalPart(), SelectableBean.F_VALUE + ".familyName");
+                UserType.F_FAMILY_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".familyName");
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("UserType.fullName"),
-                UserType.F_FULL_NAME.getLocalPart(), SelectableBean.F_VALUE + ".fullName");
+                UserType.F_FULL_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".fullName");
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("UserType.emailAddress"), null,
-                SelectableBean.F_VALUE + ".emailAddress");
+                SelectableBeanImpl.F_VALUE + ".emailAddress");
         columns.add(column);
 
         return columns;

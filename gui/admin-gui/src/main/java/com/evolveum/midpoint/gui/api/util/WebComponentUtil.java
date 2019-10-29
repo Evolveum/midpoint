@@ -78,7 +78,7 @@ import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
@@ -2472,7 +2472,7 @@ public final class WebComponentUtil {
         if (action.getRowModel() == null) {
             selectedRoles.addAll(abstractRoleTable.getSelectedObjects());
         } else {
-            selectedRoles.add(((SelectableBean<AR>) action.getRowModel().getObject()).getValue());
+            selectedRoles.add(((SelectableBeanImpl<AR>) action.getRowModel().getObject()).getValue());
         }
         OperationResult result = new OperationResult("Search Members");
         boolean atLeastOneWithMembers = false;
@@ -2497,7 +2497,7 @@ public final class WebComponentUtil {
                     actionName, abstractRoleTable.getSelectedObjectsCount());
         } else {
             return pageBase.createStringResource(propertyKeyPrefix + ".message.confirmationMessageForSingleObject" + members,
-                    actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
+                    actionName, ((ObjectType)((SelectableBeanImpl)action.getRowModel().getObject()).getValue()).getName());
         }
     }
 

@@ -51,7 +51,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -133,7 +133,7 @@ public class ResourceDetailsTabPanel extends Panel {
                         ShadowType.F_INTENT.getLocalPart()),
                 new ColumnTypeDto<String>("ResourceType.isSync", "sync", null));
 
-        List<IColumn<SelectableBean<ResourceType>, String>> tableColumns = ColumnUtils.createColumns(columns);
+        List<IColumn<SelectableBeanImpl<ResourceType>, String>> tableColumns = ColumnUtils.createColumns(columns);
 
         PropertyColumn tasksColumn = new PropertyColumn(
                 PageBase.createStringResourceStatic(this, "ResourceType.tasks"), "definedTasks") {

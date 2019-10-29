@@ -36,7 +36,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 
@@ -45,7 +45,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
  *
  * @author lazyman
  */
-public class AssignmentEditorDto extends SelectableBean implements Comparable<AssignmentEditorDto>, Serializable {
+public class AssignmentEditorDto extends SelectableBeanImpl implements Comparable<AssignmentEditorDto>, Serializable {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentEditorDto.class);
