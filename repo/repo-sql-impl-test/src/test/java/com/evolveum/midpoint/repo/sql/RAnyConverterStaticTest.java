@@ -194,7 +194,9 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         try {
             values = converter.convertToRValue(item, false, RObjectExtensionType.EXTENSION);
             AssertJUnit.fail("Should have throw serialization related exception after creating ext item");
-        } catch (DtoTranslationException ex) {
+        } catch (RestartOperationRequestedException ex) {   // this is a new way
+            System.out.println("Got expected exception: " + ex);
+        } catch (DtoTranslationException ex) {              // this was an old way
             AssertJUnit.assertEquals("Wrong exception class", RestartOperationRequestedException.class, ex.getCause().getClass());
         }
 

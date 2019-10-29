@@ -43,7 +43,7 @@ public class ProvisioningContext extends StateReporter {
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningContext.class);
 
     @NotNull private final ResourceManager resourceManager;
-    private OperationResult parentResult;
+    private OperationResult parentResult;       // Use only when absolutely necessary!
     private Collection<SelectorOptions<GetOperationOptions>> getOperationOptions;
 
     private PrismObject<ShadowType> originalShadow;

@@ -1246,6 +1246,8 @@ public class ResourceObjectConverter {
 
         ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
 
+        AtomicInteger objectCounter = new AtomicInteger(0);
+
         SearchResultMetadata metadata;
         try {
 
@@ -1253,37 +1255,59 @@ public class ResourceObjectConverter {
                     (shadow) -> {
                         // in order to utilize the cache right from the beginning...
                         RepositoryCache.enter(cacheConfigurationManager);
-
-                        OperationResult objResult = parentResult.createMinorSubresult(OperationConstants.OPERATION_SEARCH_RESULT);
-
                         try {
+
+                            int objectNumber = objectCounter.getAndIncrement();
+
+                            Task task = ctx.getTask();
+                            boolean requestedTracingHere;
+                            requestedTracingHere = task instanceof RunningTask &&
+                                    ((RunningTask) task).requestTracingIfNeeded(
+                                            (RunningTask) task, objectNumber,
+                                            TracingRootType.RETRIEVED_RESOURCE_OBJECT_PROCESSING);
                             try {
-                                shadow = postProcessResourceObjectRead(ctx, shadow, fetchAssociations, objResult);
-                            } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException e) {
-                                if (objResult.isUnknown()) {
-                                    objResult.recordFatalError(e);
-                                }
-                                throw new TunnelException(e);
-                            } catch (Throwable t) {
-                                if (objResult.isUnknown()) {
+                                OperationResultBuilder resultBuilder = parentResult
+                                        .subresult(OperationConstants.OPERATION_SEARCH_RESULT)
+                                        .setMinor()
+                                        .addParam("number", objectNumber);
+                                // TODO primary identifier (but it's not computed yet)
+
+                                // Here we request tracing if configured to do so. Note that this is only a partial solution: for multithreaded
+                                // operations we currently do not trace the "worker" part of the processing.
+                                boolean tracingRequested = setTracingInOperationResultIfRequested(resultBuilder,
+                                        TracingRootType.RETRIEVED_RESOURCE_OBJECT_PROCESSING, task, parentResult);
+
+                                OperationResult objResult = resultBuilder.build();
+                                try {
+                                    shadow = postProcessResourceObjectRead(ctx, shadow, fetchAssociations, objResult);
+                                    Validate.notNull(shadow, "null shadow");
+                                    return resultHandler.handle(shadow, objResult);
+                                } catch (Throwable t) {
                                     objResult.recordFatalError(t);
+                                    throw t;
+                                } finally {
+                                    objResult.computeStatusIfUnknown();
+                                    if (tracingRequested) {
+                                        tracer.storeTrace(task, objResult, parentResult);
+                                    }
+                                    // FIXME: hack. Hardcoded ugly summarization of successes. something like
+                                    //  AbstractSummarizingResultHandler [lazyman]
+                                    if (objResult.isSuccess() && !tracingRequested && !objResult.isTraced()) {
+                                        objResult.getSubresults().clear();
+                                    }
+                                    // TODO Reconsider this. It is quite dubious to touch parentResult from the inside.
+                                    parentResult.summarize();
                                 }
-                                throw t;
-                            }
-                            Validate.notNull(shadow, "null shadow");
-                            boolean doContinue;
-                            try {
-                                doContinue = resultHandler.handle(shadow, objResult);
-                                objResult.computeStatus();
-                            } catch (Throwable t) {
-                                if (objResult.isUnknown()) {
-                                    objResult.recordFatalError(t);
+                            } finally {
+                                RepositoryCache.exit();
+                                if (requestedTracingHere && task instanceof RunningTask) {
+                                    ((RunningTask) task).stopTracing();
                                 }
-                                throw t;
                             }
-                            return doContinue;
-                        } finally {
-                            RepositoryCache.exit();
+                        } catch (RuntimeException e) {
+                            throw e;
+                        } catch (Throwable t) {
+                            throw new TunnelException(t);
                         }
                     },
                     attributesToReturn, objectClassDef.getPagedSearches(ctx.getResource()), searchHierarchyConstraints,
@@ -1329,6 +1353,23 @@ public class ResourceObjectConverter {
         LOGGER.trace("Searching resource objects done: {}", parentResult.getStatus());
 
         return metadata;
+    }
+
+    private boolean setTracingInOperationResultIfRequested(OperationResultBuilder resultBuilder, TracingRootType tracingRoot,
+            Task task, OperationResult parentResult) throws SchemaException {
+        boolean tracingRequested;
+        if (task != null && task.getTracingRequestedFor().contains(tracingRoot)) {
+            tracingRequested = true;
+            try {
+                resultBuilder.tracingProfile(tracer.compileProfile(task.getTracingProfile(), parentResult));
+            } catch (SchemaException | RuntimeException e) {
+                parentResult.recordFatalError(e);
+                throw e;
+            }
+        } else {
+            tracingRequested = false;
+        }
+        return tracingRequested;
     }
 
     @SuppressWarnings("rawtypes")
@@ -1791,15 +1832,11 @@ public class ResourceObjectConverter {
                     // Here we request tracing if configured to do so. Note that this is only a partial solution: for multithreaded
                     // livesync we currently do not trace the "worker" part of the processing.
                     boolean tracingRequested;
-                    if (task.getTracingRequestedFor().contains(TracingRootType.LIVE_SYNC_CHANGE_PROCESSING)) {
-                        tracingRequested = true;
-                        try {
-                            resultBuilder.tracingProfile(tracer.compileProfile(task.getTracingProfile(), parentResult));
-                        } catch (SchemaException | RuntimeException e) {
-                            return changeHandler.handleError(change.getToken(), change, e, parentResult);
-                        }
-                    } else {
-                        tracingRequested = false;
+                    try {
+                        tracingRequested = setTracingInOperationResultIfRequested(resultBuilder,
+                                TracingRootType.LIVE_SYNC_CHANGE_PROCESSING, task, parentResult);
+                    } catch (Throwable t) {
+                        return changeHandler.handleError(change.getToken(), change, t, parentResult);
                     }
                     OperationResult result = resultBuilder.build();
 
