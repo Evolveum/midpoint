@@ -38,7 +38,7 @@
     <xsd:complexType name="SecurityPolicyType">
         <xsd:annotation>
             <xsd:documentation>
-                System that contains definitions of overall security policy.
+                Object that contains definitions of overall security policy.
                 It contains configuration of authentication mechanisms, credentials management
                 (such as password resets) and so on.
                 Please note that this NOT contain authorization and auditing. Authorization is
@@ -77,9 +77,15 @@
     <xsd:complexType name="AuthenticationsPolicyType">
         <xsd:annotation>
             <xsd:documentation>
-                Definition of the use of authentication mechanisms. This is in fact practically
-                applicable only in default security policy (the policy that is referenced from
-                system configuration).
+                <p>
+                    Definition of the use of authentication mechanisms. This part specifies how midPoint
+                    uses the credentials to authenticate users. This is also the place where SSO system
+                    integrations are specified.
+                </p>
+                <p>
+                    This is in fact practically applicable only in default security policy
+                    (the policy that is referenced from system configuration).
+                </p>
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -93,6 +99,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="sequence" type="tns:AuthenticationSequenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- later: audit: login/logout auditing settings (if needed) -->
             <xsd:element name="mailAuthentication" type="tns:MailAuthenticationPolicyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -109,7 +123,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- TODO: radovan -->
         </xsd:sequence>
     </xsd:complexType>
 
@@ -159,10 +172,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="description" type="xsd:string" minOccurs="1">
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Free form description of the module (administator comment).
+                        Free form description of the module (administrator comment).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -461,13 +474,253 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="AuthenticationSequenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Authentication sequence. It is a sequence of authentication modules. The modules could be invoked
+                in order, or they may be invoked in parallel if the specific implementation allows such approach.
+                The purpose of the sequence is to guide user through a complete authentication process.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique name of the authentication sequence. This name is fact a short identifier.
+                        It is supposed to give some idea about purpose of the sequence to system administrator.
+                        But it is not supposed to be used as a user-friendly label.
+                        Sequence name must be unique.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free form description of the sequence (administrator comment).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="channel" type="tns:AuthenticationSequenceChannelType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of channel for authentication sequence.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="requireAssignmentTarget" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Required assignment target. This authentication sequence is applicable only to users that
+                        have active assignment with this target (and relation). If the sequence is attempted on a user
+                        that does not have this assignment then the authentication will fail.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- later: prohibitAssignmentTarget -->
+            <!-- later: authenticationContextAttribute -->
+            <xsd:element name="module" type="tns:AuthenticationSequenceModuleType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of authentication module in the sequence.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationSequenceChannelType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Channel specification for authentication sequence. It specifies whether this sequence is usable for
+                a specific channel (user/GUI, REST, etc.)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="channelId" type="xsd:string" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name (URI) of the channel.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free form description (administrator comment).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="default" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies whether this sequence is the default sequence for a specified channel.
+                        The default sequence will be chosen in case that specific sequence was not requested, e.g. by using URL suffix.
+                        If this element is not present and only a single sequence is defined for a channel,
+                        then such sequence is considered to be the default. If more than one sequence is specified then
+                        none of them is considered to be default. In that case this element must be used explicitly.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="urlSuffix" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        URL suffix that can be used to select this authentication sequence specifically.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- later: URL parameter to select this sequence? -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationSequenceModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Specification of authentication module in the sequence.
+                </p>
+                <p>
+                    The authentication modules are evaluated in sequence (or in parallel if possible).
+                    At least one authentication module must succeed for authentication to be successful.
+                    If there are required or requisite modules in the sequence then all of them must succeed
+                    for the sequence to be successful.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the authentication module name. Value of this element must match name of
+                        existing authentication module.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free form description (administrator comment).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="order" type="xsd:int" minOccurs="0" default="100">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Ordering number for the module. The modules are sorted according to those numbers.
+                        Modules that have the same value of "order" can be evaluated in parallel in case that
+                        actual use of authentication mechanism allows that.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="necessity" type="tns:AuthenticationSequenceModuleNecessityType" minOccurs="0" default="sufficient">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Necessity, i.e. the level of requirement, whether the module is mandatory or optional.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- later: requireAuthenticationAttribute, transformAuthenticationAttribute -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="AuthenticationSequenceModuleNecessityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Necessity, i.e. the level of requirement, whether the module is mandatory or optional.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.1</a:since>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="sufficient">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The module is sufficient for authentication to succeed. It is NOT required to succeed.
+                        If this module succeeds, the evaluation stops. The result is a success. Other modules are NOT evaluated.
+                        (Except for the case when "required" module that was evaluated before has failed.)
+                        If this module fails, the evaluation continues. Other modules are evaluated.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUFFICIENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- We support only "sufficient" modules in 4.1. Full support for "necessity" is planned for later.
+            <xsd:enumeration value="required">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The module is required. The module must succeed for the entire sequence to be successful.
+                        If this module succeeds, the evaluation continues. Other modules are evaluated.
+                        If this module fails, the evaluation continues. Other modules are evaluated.
+                        Final result of authentication sequence is a failure.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REQUIRED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="requisite">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The module is required. The module must succeed for the entire sequence to be successful.
+                        If this module succeeds, the evaluation continues. Other modules are evaluated.
+                        If this module fails, the evaluation stops with an error. Other modules are NOT evaluated.
+                        Final result of authentication sequence is a failure.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REQUISITE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="optional">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The module is optional. It is NOT required to succeed.
+                        Optional module does not really influence the result of the authentication.
+                        But it may be used to add some authentication attributes, it may be used to cross-authenticate
+                        is SSO realms and so on.
+                        If this module succeeds, the evaluation continues.
+                        If this module fails, the evaluation continues.
+                        The result of the sequence is a failure only if this is the only module in the sequence and it fails.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUFFICIENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            -->
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="CredentialsPolicyType">
         <xsd:annotation>
             <xsd:documentation>
-                Credentials management policy. It specifies the management details for each supported
-                credentials type. It defines parameters such as credential lifetime. It may define even
-                a very complex schemes for some credential types. E.g. it may define a complete security
-                questions.
+                <p>
+                    Credentials management policy. It specifies the management details for each supported
+                    credentials type. It defines parameters such as credential lifetime. It may define even
+                    a very complex schemes for some credential types. E.g. it may define a complete security
+                    questions.
+                </p>
+                <p>
+                    This section is a definition of user credentials that midPoint can MANAGE.
+                    Which mostly means writing/changing the credentials. This section is not directly concerned
+                    with authentication or credential reset - at least not directly.
+                    But there may be dependencies. E.g. password reset may use password policy to generate/validate new password.
+                    Also, resource-side passwords need to be defined here to be used by authentication modules.
+                </p>
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -482,10 +735,9 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="password" type="tns:PasswordCredentialsPolicyType" minOccurs="0">
-            </xsd:element>
-            <xsd:element name="securityQuestions" type="tns:SecurityQuestionsCredentialsPolicyType" minOccurs="0">
-            </xsd:element>
+            <xsd:element name="password" type="tns:PasswordCredentialsPolicyType" minOccurs="0"/>
+            <!-- later: resourcePassword ("pass-through" authentication using connector). -->
+            <xsd:element name="securityQuestions" type="tns:SecurityQuestionsCredentialsPolicyType" minOccurs="0"/>
             <xsd:element name="nonce" type="tns:NonceCredentialsPolicyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -502,10 +754,7 @@
     <xsd:complexType name="RegistrationsPolicyType">
         <xsd:annotation>
             <xsd:documentation>
-                Credentials management policy. It specifies the management details for each supported
-                credentials type. It defines parameters such as credential lifetime. It may define even
-                a very complex schemes for some credential types. E.g. it may define a complete security
-                questions.
+                TODO
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -555,7 +804,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- Later: authentication -->
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free form description of the credential reset method (administrator comment).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- Later: authenticationSequenceName -->
             <xsd:element name="newCredentialSource" type="tns:CredentialSourceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -798,10 +1057,7 @@
     <xsd:complexType name="AbstractRegistrationPolicyType">
         <xsd:annotation>
             <xsd:documentation>
-                Credentials management policy. It specifies the management details for each supported
-                credentials type. It defines parameters such as credential lifetime. It may define even
-                a very complex schemes for some credential types. E.g. it may define a complete security
-                questions.
+                TODO
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -871,6 +1127,38 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Unique name of the credential. This name is fact a short identifier.
+                            It is supposed to give some idea about purpose of the credential to system administrator.
+                            It is also used for referencing the credential when needed (e.g. from authentication modules, credential reset specs, etc.)
+                            The name may be stored in the user object together with the credential.
+                            But it is not supposed to be used as a user-friendly label for credential.
+                            Credential name must be unique.
+                        </p>
+                        <p>
+                            Credential name is optional, mostly due to historical/compatibility reasons.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free form description of the credential (administrator comment).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- later: display (DisplayType) -->
+            <!-- later: default: boolean -->
             <xsd:element name="storageMethod" type="c:CredentialsStorageMethodType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -884,6 +1172,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="resetMethod" type="c:CredentialsResetMethodType" minOccurs="0" maxOccurs="1">
+                <!-- TODO: deprecated? -->
             </xsd:element>
             <xsd:element name="propagationUserControl" type="c:CredentialsPropagationUserControlType" minOccurs="0" maxOccurs="1" default="userChoice">
                 <xsd:annotation>
@@ -1336,7 +1625,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- TODO: sabri
+            <!--
                 settings that apply to a specific security question should go here, like this:
                 <xsd:element name="something" type="xsd:string" minOccurs="0"/>
                 What comes to my mind here is a key to localization file. That definitely should be here.
@@ -1361,13 +1650,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:CredentialPolicyType">
                 <xsd:sequence>
-                    <xsd:element name="name" type="xsd:string" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
+                    <!-- Nothing special yet. Maybe in the future. -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
