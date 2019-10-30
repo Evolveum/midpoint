@@ -149,16 +149,16 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
         } catch (ClassNotFoundException e) {
             throw new SystemException("Panel class '"+panelClassName+"' as specified in admin GUI configuration was not found", e);
         }
-        if (AbstractObjectTabPanel.class.isAssignableFrom(panelClass)) {
+        if (AbstractFocusTabPanel.class.isAssignableFrom(panelClass)) {
             Constructor<?> constructor;
             try {
-                constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, LoadableModel.class, PageBase.class);
+                constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, LoadableModel.class);
             } catch (NoSuchMethodException | SecurityException e) {
                 throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,LoadableModel,LoadableModel,PageBase) in "+panelClass+": "+e.getMessage(), e);
             }
-            AbstractObjectTabPanel<F> tabPanel;
+            AbstractFocusTabPanel<F> tabPanel;
             try {
-                tabPanel = (AbstractObjectTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), parentPage);
+                tabPanel = (AbstractFocusTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), projectionModel);
             } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 throw new SystemException("Error instantiating "+panelClass+": "+e.getMessage(), e);
             }
@@ -166,13 +166,13 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
         } else if (AbstractObjectTabPanel.class.isAssignableFrom(panelClass)) {
             Constructor<?> constructor;
             try {
-                constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, PageBase.class);
+                constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class);
             } catch (NoSuchMethodException | SecurityException e) {
                 throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,PageBase) in "+panelClass+": "+e.getMessage(), e);
             }
             AbstractObjectTabPanel<F> tabPanel;
             try {
-                tabPanel = (AbstractObjectTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), parentPage);
+                tabPanel = (AbstractObjectTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel());
             } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 throw new SystemException("Error instantiating "+panelClass+": "+e.getMessage(), e);
             }
