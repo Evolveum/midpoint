@@ -187,12 +187,12 @@ spring:
                       <ArtifactResolutionService Binding="urn:oasis:names:tc:SAML:1.0:bindings:SOAP-binding" Location="https://idptestbed:8443/idp/profile/SAML1/SOAP/ArtifactResolution" index="1"/>
                       <ArtifactResolutionService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="https://idptestbed:8443/idp/profile/SAML2/SOAP/ArtifactResolution" index="2"/>
 
-                      <!--
+
                       <SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://idptestbed/idp/profile/SAML2/Redirect/SLO"/>
                       <SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://idptestbed/idp/profile/SAML2/POST/SLO"/>
                       <SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign" Location="https://idptestbed/idp/profile/SAML2/POST-SimpleSign/SLO"/>
                       <SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="https://idptestbed:8443/idp/profile/SAML2/SOAP/SLO"/>
-                      -->
+
 
 
                       <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</NameIDFormat>
