@@ -262,7 +262,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         ctx.setAttribute(ATTR_TASK, task);
         ctx.setAttribute(ATTR_RESULT, result);
 
-        MidpointTestMethodContext.setup(task, result);
+        MidpointTestMethodContext.setup(testMethod.getName(), task, result);
     }
 
     protected TracingProfileType getTestMethodTracingProfile() {
@@ -313,6 +313,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         return (Task) attrs.getAttribute(ATTR_TASK);
     }
 
+    protected String getTestNameShort() {
+        MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
+        if (ctx != null) {
+            return ctx.getMethodName();
+        } else {
+            return createAdHocTestContext().getMethodName();
+        }
+    }
+
     protected Task getTask() {
         MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
         if (ctx != null) {
@@ -357,7 +366,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         LOGGER.warn("No test context for current thread: creating new");
         System.out.println("No test context for current thread: creating new");
         Task task = taskManager.createTaskInstance(this.getClass().getName() + ".unknownMethod");
-        return MidpointTestMethodContext.setup(task, task.getResult());
+        return MidpointTestMethodContext.setup("unknownMethod", task, task.getResult());
     }
 
     abstract public void initSystem(Task initTask, OperationResult initResult) throws Exception;
@@ -1769,12 +1778,20 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         TestUtil.displayTestTitle(this, testName);
     }
 
+    protected void displayWhen() {
+        displayWhen(getTestNameShort());
+    }
+
     protected void displayWhen(String testName) {
         TestUtil.displayWhen(testName);
     }
 
     protected void displayWhen(String testName, String stage) {
         TestUtil.displayWhen(testName + " ("+stage+")");
+    }
+
+    protected void displayThen() {
+        displayThen(getTestNameShort());
     }
 
     protected void displayThen(String testName) {
@@ -2014,6 +2031,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
                 .collectLogEntries(true)
                 .beginTracingTypeProfile()
                     .level(TracingLevelType.NORMAL)
+                .<TracingProfileType>end()
+                .fileNamePattern(DEFAULT_TRACING_FILENAME_PATTERN);
+    }
+
+    protected TracingProfileType createPerformanceTracingProfile() {
+        return new TracingProfileType()
+                .beginTracingTypeProfile()
+                    .level(TracingLevelType.MINIMAL)
                 .<TracingProfileType>end()
                 .fileNamePattern(DEFAULT_TRACING_FILENAME_PATTERN);
     }
@@ -2862,6 +2887,18 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 
     protected void setGlobalTracingOverride(@NotNull TracingProfileType profile) {
+        List<TracingRootType> roots = Arrays.asList(
+                TracingRootType.CLOCKWORK_RUN,
+                TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING,
+                TracingRootType.ASYNCHRONOUS_MESSAGE_PROCESSING,
+                TracingRootType.LIVE_SYNC_CHANGE_PROCESSING,
+                TracingRootType.WORKFLOW_OPERATION
+                // RETRIEVED_RESOURCE_OBJECT_PROCESSING is invoked too frequently to be universally enabled
+        );
+        taskManager.setGlobalTracingOverride(roots, profile);
+    }
+
+    protected void setGlobalTracingOverrideAll(@NotNull TracingProfileType profile) {
         taskManager.setGlobalTracingOverride(Arrays.asList(TracingRootType.values()), profile);
     }
 

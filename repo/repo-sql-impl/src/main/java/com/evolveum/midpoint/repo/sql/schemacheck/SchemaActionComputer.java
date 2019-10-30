@@ -55,9 +55,9 @@ class SchemaActionComputer {
     @Autowired private LocalizationService localizationService;
     @Autowired private BaseHelper baseHelper;
 
-    @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
     private static final Set<Pair<String, String>> AUTOMATICALLY_UPGRADEABLE = new HashSet<>(
-            Arrays.asList(new ImmutablePair<>("3.8", "3.9"))
+            Arrays.asList(new ImmutablePair<>("3.8", "3.9"),
+                    new ImmutablePair<>("3.9", "4.0"))
     );
 
     enum State {
@@ -275,7 +275,8 @@ class SchemaActionComputer {
     @NotNull
     private String getRequiredDatabaseSchemaVersion() {
         // TODO adapt if major mp version != database schema version
-        return getMajorMidPointVersion();
+        //return getMajorMidPointVersion();
+        return "4.0";           // Temporary measure, until better mechanism is devised (MID-5884)
     }
 
     @NotNull
