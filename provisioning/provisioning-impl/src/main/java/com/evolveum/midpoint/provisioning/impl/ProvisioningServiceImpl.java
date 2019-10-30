@@ -950,9 +950,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         Validate.notNull(parentResult, "Operation result must not be null.");
         Validate.notNull(handler, "Handler must not be null.");
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Start of (iterative) search objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
-        }
+        LOGGER.trace("Start of (iterative) search objects. Query:\n{}", DebugUtil.debugDumpLazily(query, 1));
 
         OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".searchObjectsIterative");
         result.setSummarizeSuccesses(true);

@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ItemFactory;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -76,12 +77,14 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     protected static final File USER_TEMPLATE_USELESS_FILE = new File(TEST_DIR, "user-template-useless.xml");
     protected static final String USER_TEMPLATE_USELESS_OID = "29b2936a-d1f6-4942-8e44-9ba44fc27423";
 
+    protected static final TestResource USER_TEMPLATE_MID_5892 = new TestResource(TEST_DIR, "user-template-mid-5892.xml", "064993c0-34b4-4440-9331-e909fc923504");
 
     private static final String ACCOUNT_STAN_USERNAME = "stan";
     private static final String ACCOUNT_STAN_FULLNAME = "Stan the Salesman";
 
     private static final String SUBTYPE_MAROONED = "marooned";
     private static final String SUBTYPE_USELESS = "useless";
+    private static final String SUBTYPE_MID_5892 = "mid-5892";
 
     private static final int NUMBER_OF_IMPORTED_ROLES = 5;
 
@@ -110,9 +113,17 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         repoAddObjectFromFile(USER_TEMPLATE_MAROONED_FILE, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_USELESS_FILE, initResult);
+        repoAdd(USER_TEMPLATE_MID_5892, initResult);
+        
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, initResult);
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MAROONED, USER_TEMPLATE_MAROONED_OID, initResult);
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_USELESS, USER_TEMPLATE_USELESS_OID, initResult);
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MID_5892, USER_TEMPLATE_MID_5892.oid, initResult);
+    }
+
+    @Override
+    protected boolean isAutoTaskManagementEnabled() {
+        return true;
     }
 
     protected int getNumberOfRoles() {
@@ -121,14 +132,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         PrismObject<SystemConfigurationType> systemConfiguration = modelService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
                 null, task, result);
 
@@ -140,10 +148,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertNotNull("no system config", systemConfiguration);
         List<ObjectPolicyConfigurationType> defaultObjectPolicyConfiguration = systemConfiguration.asObjectable().getDefaultObjectPolicyConfiguration();
         assertNotNull("No object policy", defaultObjectPolicyConfiguration);
-        assertEquals("Wrong object policy size", 5, defaultObjectPolicyConfiguration.size());       // last two are conflict resolution rules
+        assertEquals("Wrong object policy size", 6, defaultObjectPolicyConfiguration.size());       // last two are conflict resolution rules
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, null, USER_TEMPLATE_COMPLEX_OID);
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, SUBTYPE_MAROONED, USER_TEMPLATE_MAROONED_OID);
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, SUBTYPE_USELESS, USER_TEMPLATE_USELESS_OID);
+        assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, SUBTYPE_MID_5892, USER_TEMPLATE_MID_5892.oid);
 
         assertRoles(getNumberOfRoles());
     }
@@ -162,12 +171,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test100ModifyUserGivenName() throws Exception {
-        final String TEST_NAME = "test100ModifyUserGivenName";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -207,12 +213,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test101ModifyUserEmployeeTypePirate() throws Exception {
-        final String TEST_NAME = "test101ModifyUserEmployeeTypePirate";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -222,11 +225,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         deltas.add(userDelta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -258,12 +261,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test102ModifyUserEmployeeTypeBuccaneer() throws Exception {
-        final String TEST_NAME = "test102ModifyUserEmployeeTypeBuccaneer";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -299,12 +299,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test103ModifyUserEmployeeTypeBartender() throws Exception {
-        final String TEST_NAME = "test103ModifyUserEmployeeTypeBartender";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -342,12 +339,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test104ModifyUserCostCenter() throws Exception {
-        final String TEST_NAME = "test104ModifyUserCostCenter";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -381,12 +375,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test105ModifyUserTelephoneNumber() throws Exception {
-        final String TEST_NAME = "test105ModifyUserTelephoneNumber";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -422,12 +413,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test106ModifyUserRemoveTelephoneNumber() throws Exception {
-        final String TEST_NAME = "test106ModifyUserRemoveTelephoneNumber";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -463,12 +451,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test107ModifyUserSetTelephoneNumber() throws Exception {
-        final String TEST_NAME = "test107ModifyUserSetTelephoneNumber";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, task, result, "1 222 3456789");
@@ -503,12 +488,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test120ReconcileUser() throws Exception {
-        final String TEST_NAME = "test121ModifyUserReplaceLocality";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         reconcileUser(USER_JACK_OID, task, result);
@@ -546,12 +528,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test121ModifyUserReplaceLocality() throws Exception {
-        final String TEST_NAME = "test121ModifyUserReplaceLocality";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Tortuga"));
@@ -585,12 +564,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test140AssignDummy() throws Exception {
-        final String TEST_NAME = "test140AssignDummy";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
@@ -620,12 +596,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test149UnAssignDummy() throws Exception {
-        final String TEST_NAME = "test149UnAssignDummy";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
@@ -654,12 +627,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test150ModifyJackOrganizationalUnitRum() throws Exception {
-        final String TEST_NAME = "test150ModifyJackOrganizationalUnitRum";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0004"));
@@ -691,12 +661,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test151ModifyJackOrganizationalUnitOffense() throws Exception {
-        final String TEST_NAME = "test151ModifyJackOrganizationalUnitOffense";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0003"));
@@ -728,12 +695,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test152ModifyJackOrganizationalUnitAddRum() throws Exception {
-        final String TEST_NAME = "test152ModifyJackOrganizationalUnitAddRum";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0004"));
@@ -768,12 +732,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test153ModifyJackOrganizationalUnitDeleteOffense() throws Exception {
-        final String TEST_NAME = "test153ModifyJackOrganizationalUnitDeleteOffense";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0003"));
@@ -807,12 +768,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test155ModifyJackOrganizationalUnitFD001() throws Exception {
-        final String TEST_NAME = "test155ModifyJackOrganizationalUnitFD001";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("FD001"));
@@ -849,12 +807,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test156ReconcileJack() throws Exception {
-        final String TEST_NAME = "test156ReconcileJack";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         reconcileUser(USER_JACK_OID, task, result);
@@ -890,12 +845,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test157ModifyJackOrganizationalUnitFD0023() throws Exception {
-        final String TEST_NAME = "test157ModifyJackOrganizationalUnitFD0023";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
@@ -933,12 +885,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test159ModifyJackDeleteOrganizationalUnitFD002() throws Exception {
-        final String TEST_NAME = "test159ModifyJackDeleteOrganizationalUnitFD002";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
@@ -977,11 +926,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test160ModifyUserGivenNameAgain() throws Exception {
-        TestUtil.displayTestTitle(this, "test160ModifyUserGivenNameAgain");
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test160ModifyUserGivenNameAgain");
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         dummyAuditService.clear();
 
@@ -1012,6 +959,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         PropertyDelta badLuckDelta = objectDeltaOperation.getObjectDelta().findPropertyDelta(
                 ItemPath.create(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
         assertNotNull("badLuck delta was not found", badLuckDelta);
+        //noinspection unchecked
         List<PrismValue> oldValues = (List<PrismValue>) badLuckDelta.getEstimatedOldValues();
         assertNotNull("badLuck delta has null estimatedOldValues field", oldValues);
         ItemFactory factory = prismContext.itemFactory();
@@ -1021,12 +969,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test162ModifyUserGivenNameAgainPhantomChange() throws Exception {
-        final String TEST_NAME = "test162ModifyUserGivenNameAgainPhantomChange";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         display("User before", userBefore);
@@ -1039,11 +984,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         deltas.add(userDelta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         assertSuccess(result);
 
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -1062,12 +1007,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test165ModifyUserGivenNameAgainAgain() throws Exception {
-        final String TEST_NAME = "test165ModifyUserGivenNameAgainAgain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         display("User before", userBefore);
@@ -1112,23 +1054,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test170ModifyUserGuybrushEmployeeTypeThief() throws Exception {
-        final String TEST_NAME = "test170ModifyUserGuybrushEmployeeTypeThief";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, "THIEF");
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
@@ -1143,24 +1082,21 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test172ModifyUserGuybrushHonorificPrefix() throws Exception {
-        final String TEST_NAME = "test172ModifyUserGuybrushHonorificPrefix";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result,
                 PrismTestUtil.createPolyString("Thf."));
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
@@ -1176,23 +1112,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test174ModifyUserGuybrushHonorificPrefixNone() throws Exception {
-        final String TEST_NAME = "test174ModifyUserGuybrushHonorificPrefixNone";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignedRole(userBefore, ROLE_THIEF_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
@@ -1208,12 +1141,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test180ModifyUserGuybrushEmployeeTypeMarooned() throws Exception {
-        final String TEST_NAME = "test180ModifyUserGuybrushEmployeeTypeMarooned";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1221,11 +1151,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, SUBTYPE_MAROONED);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
@@ -1241,23 +1171,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test184ModifyUserGuybrushEmployeeTypeNone() throws Exception {
-        final String TEST_NAME = "test184ModifyUserGuybrushEmployeeTypeNone";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         assertSuccess(result);
 
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_COST_CENTER, task, result, "S321");
@@ -1276,23 +1203,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test185ModifyUserGuybrushSubtypeMarooned() throws Exception {
-        final String TEST_NAME = "test185ModifyUserGuybrushSubtypeMarooned";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, SUBTYPE_MAROONED);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
@@ -1305,23 +1229,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test189ModifyUserGuybrushSubtypeNone() throws Exception {
-        final String TEST_NAME = "test189ModifyUserGuybrushSubtypeNone";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         assertSuccess(result);
 
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_COST_CENTER, task, result, "S321");
@@ -1342,12 +1263,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test190ModifyUserGuybrushOrganizationWhateveric() throws Exception {
-        final String TEST_NAME = "test190ModifyUserGuybrushOrganizationWhateveric";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
@@ -1355,11 +1273,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 1);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result, createPolyString("Whateveric"));
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
@@ -1376,23 +1294,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test191ModifyUserGuybrushOrganizationAutomatic() throws Exception {
-        final String TEST_NAME = "test191ModifyUserGuybrushOrganizationAutomatic";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result, createPolyString("AUTO-matic"));
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1415,19 +1330,16 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test192ModifyUserGuybrushOrganizationAddMixed() throws Exception {
-        final String TEST_NAME = "test192ModifyUserGuybrushOrganizationAddMixed";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 2);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString("DEMO-cratic"),
                 createPolyString("AUTO-cratic"),
@@ -1436,7 +1348,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
             );
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1466,26 +1378,23 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test193ModifyUserGuybrushOrganizationAddOutOfDomain() throws Exception {
-        final String TEST_NAME = "test193ModifyUserGuybrushOrganizationAddOutOfDomain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 4);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString("meritocratic"),
                 createPolyString("piratocratic")
             );
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1517,19 +1426,16 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test194ModifyUserGuybrushOrganizationDeleteMixed() throws Exception {
-        final String TEST_NAME = "test194ModifyUserGuybrushOrganizationDeleteMixed";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 4);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString("AUTO-matic"),
                 createPolyString("plutocratic"),
@@ -1538,7 +1444,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
             );
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1564,26 +1470,23 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test195ModifyUserGuybrushOrganizationDeleteOutOfDomain() throws Exception {
-        final String TEST_NAME = "test195ModifyUserGuybrushOrganizationDeleteOutOfDomain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 2);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString("piratocratic"),
                 createPolyString("DEMO-cratic")
             );
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1608,23 +1511,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test196GuybrushAssignCaptain() throws Exception {
-        final String TEST_NAME = "test196GuybrushAssignCaptain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 2);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         assignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1650,19 +1550,16 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test197ModifyGuybrushEmployeeTypePirate() throws Exception {
-        final String TEST_NAME = "test197ModifyGuybrushEmployeeTypePirate";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserReplace(USER_GUYBRUSH_OID,  UserType.F_SUBTYPE, task, result, "PIRATE");
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1689,26 +1586,23 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test198AModifyUserGuybrushOrganizationAddInDomain() throws Exception {
-        final String TEST_NAME = "test198AModifyUserGuybrushOrganizationAddInDomain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 4);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString("AUTO-graphic"),
                 createPolyString("AUTO-matic")
             );
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1739,26 +1633,23 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test198BModifyUserGuybrushOrganizationDeleteMixed() throws Exception {
-        final String TEST_NAME = "test198BModifyUserGuybrushOrganizationDeleteMixed";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 6);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
                 createPolyString("AUTO-cratic"),
                 createPolyString("Whateveric")
             );
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1785,23 +1676,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test199AGuyBrushModifyEmployeeTypeWannabe() throws Exception {
-        final String TEST_NAME = "test199AGuyBrushModifyEmployeeTypeWannabe";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 5);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserReplace(USER_GUYBRUSH_OID,  UserType.F_SUBTYPE, task, result, "wannabe");
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1827,23 +1715,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test199BGuyBrushUnassignCaptain() throws Exception {
-        final String TEST_NAME = "test199BGuyBrushUnassignCaptain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 4);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         unassignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1868,22 +1753,19 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test199CModifyUserGuybrushOrganizationCleanup() throws Exception {
-        final String TEST_NAME = "test199CModifyUserGuybrushOrganizationCleanup";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1899,12 +1781,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test200AddUserRapp() throws Exception {
-        final String TEST_NAME = "test200AddUserRapp";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_RAPP_FILE);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -1936,13 +1815,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test201AddUserLargo() throws Exception {
-        TestUtil.displayTestTitle(this, "test201AddUserLargo");
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test201AddUserLargo");
+        Task task = getTask();
+        OperationResult result = getResult();
         // This simulates IMPORT to trigger the channel-limited mapping
         task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_IMPORT));
-        OperationResult result = task.getResult();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_LARGO_FILE);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -1983,11 +1860,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test202AddUserMonkey() throws Exception {
-        TestUtil.displayTestTitle(this, "test202AddUserMonkey");
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test202AddUserMonkey");
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_THREE_HEADED_MONKEY_FILE);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -2023,12 +1898,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test204AddUserHerman() throws Exception {
-        final String TEST_NAME = "test204AddUserHerman";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_HERMAN_FILE);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -2059,12 +1931,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test220AssignRoleSailorToUserRapp() throws Exception {
-        final String TEST_NAME = "test220AssignRoleSailorToUserRapp";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         assignRole(USER_RAPP_OID, ROLE_SAILOR_OID, task, result);
@@ -2094,12 +1963,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test229UnassignRoleSailorFromUserRapp() throws Exception {
-        final String TEST_NAME = "test220AssignRoleSailorToUserRapp";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         unassignRole(USER_RAPP_OID, ROLE_SAILOR_OID, task, result);
@@ -2131,12 +1997,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test230AssignRoleCaptainToUserRapp() throws Exception {
-        final String TEST_NAME = "test230AssignRoleCaptainToUserRapp";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         assignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
@@ -2166,12 +2029,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test232ModifyUserRappCostCenter() throws Exception {
-        final String TEST_NAME = "test232ModifyUserRappCostCenter";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         modifyUserReplace(USER_RAPP_OID, UserType.F_COST_CENTER, task, result, "CC-RAPP");
@@ -2202,12 +2062,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test239UnassignRoleCaptainFromUserRapp() throws Exception {
-        final String TEST_NAME = "test239UnassignRoleCaptainFromUserRapp";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         unassignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
@@ -2234,12 +2091,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test240ModifyUserRappLocalityScabb() throws Exception {
-        final String TEST_NAME = "test240ModifyUserRappLocalityScabb";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         display("User before", userBefore);
@@ -2282,12 +2136,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test242AssignRoleRastamanToUserRapp() throws Exception {
-        final String TEST_NAME = "test242AssignRoleRastamanToUserRapp";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         assignRole(USER_RAPP_OID, ROLE_RASTAMAN_OID, task, result);
@@ -2323,12 +2174,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test244ModifyUserRappLocalityCoffin() throws Exception {
-        final String TEST_NAME = "test244ModifyUserRappLocalityCoffin";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         display("User before", userBefore);
@@ -2364,12 +2212,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test245ModifyUserRappLocalityUnderReconcile() throws Exception {
-        final String TEST_NAME = "test245ModifyUserRappLocalityUnderReconcile";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         display("User before", userBefore);
@@ -2412,12 +2257,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test246ModifyUserRappTimezoneMonkey() throws Exception {
-        final String TEST_NAME = "test246ModifyUserRappTimezoneMonkey";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         display("User before", userBefore);
@@ -2455,12 +2297,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test247ModifyUserRappLocaleMI() throws Exception {
-        final String TEST_NAME = "test247ModifyUserRappLocaleMI";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         display("User before", userBefore);
@@ -2495,12 +2334,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test249UnassignRoleRastamanFromUserRapp() throws Exception {
-        final String TEST_NAME = "test249UnassignRoleRastamanFromUserRapp";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         unassignRole(USER_RAPP_OID, ROLE_RASTAMAN_OID, task, result);
@@ -2535,12 +2371,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test300ImportStanFromEmeraldResource() throws Exception {
-        final String TEST_NAME = "test300ImportStanFromEmeraldResource";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         DummyAccount dummyAccountBefore = new DummyAccount(ACCOUNT_STAN_USERNAME);
@@ -2554,11 +2387,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modelService.importFromResource(shadowBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         display(result);
         TestUtil.assertSuccess(result);
@@ -2580,12 +2413,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test302ModifyStanAccountAndReimport() throws Exception {
-        final String TEST_NAME = "test302ModifyStanAccountAndReimport";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         DummyAccount dummyAccountBefore = dummyResourceEmerald.getAccountByUsername(ACCOUNT_STAN_USERNAME);
@@ -2596,11 +2426,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modelService.importFromResource(shadowBefore.getOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         result.computeStatus();
         display(result);
         TestUtil.assertSuccess(result);
@@ -2622,12 +2452,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test800NullTimeFrom() throws Exception {
-        final String TEST_NAME = "test800Kaboom";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
@@ -2651,12 +2478,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test802FuneralTimestamp() throws Exception {
-        final String TEST_NAME = "test802FuneralTimestamp";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         funeralTimestamp = clock.currentTimeXMLGregorianCalendar();
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result, funeralTimestamp);
@@ -2825,12 +2649,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test820TalesUnBoom() throws Exception {
-        final String TEST_NAME = "test820TalesUnBoom";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_TALES), task, result /* no value */);
 
@@ -2877,12 +2698,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test830PreLootBoom() throws Exception {
-        final String TEST_NAME = "test830PreLootBoom";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_DESCRIPTION, task, result, "Rum is gone");
 
@@ -2976,12 +2794,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test835LootBoom() throws Exception {
-        final String TEST_NAME = "test835LootBoom";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString("Lootjack"));
@@ -3013,12 +2828,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test840ResetFuneralTimestamp() throws Exception {
-        final String TEST_NAME = "test840ResetFuneralTimestamp";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result /* no value */);
 
@@ -3044,12 +2856,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test843UnLoot() throws Exception {
-        final String TEST_NAME = "test843UnLoot";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString("Justjack"));
@@ -3082,12 +2891,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test845ReLoot() throws Exception {
-        final String TEST_NAME = "test845ReLoot";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString("Lootjack"));
@@ -3120,12 +2926,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test850AddCannibalLemonhead() throws Exception {
-        final String TEST_NAME = "test850AddCannibalLemonhead";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_LEMONHEAD_USERNAME, null, false), task, result);
@@ -3151,12 +2954,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test852AddCanibalRedSkull() throws Exception {
-        final String TEST_NAME = "test852AddCanibalRedSkull";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_REDSKULL_USERNAME, "", false), task, result);
@@ -3176,7 +2976,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .single()
                     // Trigger from time bomb. There is no condition and the reference time is set.
                     .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                    .assertTimestampFuture(funeralTimestamp, "P1M", 1*24*60*60*1000L);
+                    .assertTimestampFuture(funeralTimestamp, "P1M", 24*60*60*1000L);
     }
 
     /**
@@ -3186,12 +2986,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test854AddCanibalShaprtooth() throws Exception {
-        final String TEST_NAME = "test854AddCanibalShaprtooth";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_SHARPTOOTH_USERNAME, "-P1M1D", false), task, result);
@@ -3212,7 +3009,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .single()
                     // Trigger from tales bomb. We have Kaboomed, the time constraint has activated
                     .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                    .assertTimestampFuture(funeralTimestamp, "P3M", 1*24*60*60*1000L);
+                    .assertTimestampFuture(funeralTimestamp, "P3M", 24*60*60*1000L);
     }
 
     /**
@@ -3222,12 +3019,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test856AddCanibalOrangeskin() throws Exception {
-        final String TEST_NAME = "test856AddCanibalOrangeskin";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_ORANGESKIN_USERNAME, "-P3M1D", false), task, result);
@@ -3256,12 +3050,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test858AddCanibalCherrybrain() throws Exception {
-        final String TEST_NAME = "test858AddCanibalCherrybrain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_CHERRYBRAIN_USERNAME, "-P1Y1D", false), task, result);
@@ -3292,12 +3083,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test859AddCanibalPineapplenose() throws Exception {
-        final String TEST_NAME = "test858AddCanibalCherrybrain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         String userOid = addObject(
@@ -3329,12 +3117,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test860AddCannibalRottenLemonhead() throws Exception {
-        final String TEST_NAME = "test860AddCannibalRottenLemonhead";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_LEMONHEAD_USERNAME, null, true), task, result);
@@ -3360,12 +3145,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test862AddCanibalRottenRedSkull() throws Exception {
-        final String TEST_NAME = "test862AddCanibalRottenRedSkull";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_REDSKULL_USERNAME, "", true), task, result);
@@ -3395,12 +3177,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test864AddCanibalRottenShaprtooth() throws Exception {
-        final String TEST_NAME = "test864AddCanibalRottenShaprtooth";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_SHARPTOOTH_USERNAME, "-P1M1D", true), task, result);
@@ -3441,12 +3220,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test866AddCanibalRottenOrangeskin() throws Exception {
-        final String TEST_NAME = "test866AddCanibalRottenOrangeskin";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_ORANGESKIN_USERNAME, "-P3M1D", true), task, result);
@@ -3478,12 +3254,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test868AddCanibalRottenCherrybrain() throws Exception {
-        final String TEST_NAME = "test868AddCanibalRottenCherrybrain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         String userOid = addObject(createCannibal(CANNIBAL_CHERRYBRAIN_USERNAME, "-P1Y1D", true), task, result);
@@ -3512,12 +3285,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test869AddCanibalRottenPineapplenose() throws Exception {
-        final String TEST_NAME = "test869AddCanibalRottenPineapplenose";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         String userOid = addObject(
@@ -3550,12 +3320,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test870AddCanibalRottenPotatoleg() throws Exception {
-        final String TEST_NAME = "test870AddCanibalRottenPotatoleg";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         String userOid = addObject(
@@ -3605,12 +3372,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test900DeleteUser() throws Exception {
-        final String TEST_NAME = "test900DeleteUser";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -3638,14 +3402,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test950CreateUserJackWithoutTemplate() throws Exception {
-        final String TEST_NAME = "test950CreateUserJackWithoutTemplate";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         setDefaultUserTemplate(null);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         // WHEN
@@ -3673,12 +3434,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test952ModifyJackOrganizationalUnitFD004() throws Exception {
-        final String TEST_NAME = "test952ModifyJackOrganizationalUnitFD004";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("FD004"));
@@ -3705,14 +3463,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test960ReconcileUserJackWithTemplate() throws Exception {
-        final String TEST_NAME = "test960ModifyUserJackWithTemplate";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         setDefaultUserTemplate(USER_TEMPLATE_COMPLEX_OID);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         // WHEN
@@ -3737,23 +3492,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test970ModifyUserGuybrushEmployeeTypeUseless() throws Exception {
-        final String TEST_NAME = "test970ModifyUserGuybrushEmployeeTypeUseless";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
         assertAssignedNoRole(userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, SUBTYPE_USELESS);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
@@ -3763,4 +3515,44 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong originMappingName", "assignment-for-useless-role", uselessAssignment.getMetadata().getOriginMappingName());
     }
 
+    /**
+     * MID-5892
+     */
+    @Test
+    public void test980DeleteUserGivenName() throws Exception {
+        // GIVEN
+        Task task = getTask();
+        OperationResult result = getResult();
+
+        UserType user = new UserType(prismContext)
+                .name("test980DeleteUserGivenName")
+                .givenName("jim")
+                .subtype(SUBTYPE_MID_5892)
+                .beginAssignment()
+                    .targetRef(SystemObjectsType.ROLE_SUPERUSER.value(), RoleType.COMPLEX_TYPE)
+                .end();
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        // WHEN
+        displayWhen();
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).delete(new PolyString("jim"))
+                .asObjectDeltaCast(user.getOid());
+        executeChanges(delta, null, task, result);
+
+        // THEN
+        displayThen();
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, user.getOid(), null, task, result);
+        display("User after", userAfter);
+
+        AssignmentType assignment = assertAssignedRole(userAfter, SystemObjectsType.ROLE_SUPERUSER.value());
+    }
+
+//    @Override
+//    protected TracingProfileType getTestMethodTracingProfile() {
+//        return createModelLoggingTracingProfile()
+//                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
+//    }
 }

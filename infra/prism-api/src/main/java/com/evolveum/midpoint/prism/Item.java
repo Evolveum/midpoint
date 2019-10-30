@@ -272,11 +272,19 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     /**
      * Adds given values, with the same semantics as repeated add(..) calls.
-     * For equality testing uses give strategy.
+     * For equality testing uses given strategy.
      *
      * @return true if this item changed as a result of the call (i.e. if at least one value was really added)
      */
     boolean addAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException;
+
+    /**
+     * Adds given values, with the same semantics as repeated add(..) calls.
+     * For equality testing uses given strategy.
+     *
+     * @return true if this item changed as a result of the call (i.e. if at least one value was really added)
+     */
+    boolean addAll(Collection<V> newValues, boolean checkUniqueness, EquivalenceStrategy strategy) throws SchemaException;
 
     /**
      * Removes given value from the item.

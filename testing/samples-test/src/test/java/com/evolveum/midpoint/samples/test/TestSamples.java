@@ -39,12 +39,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  *
  */
-public class TestSamples {
+public class TestSamples extends AbstractSampleTest {
 
-    public static final String SAMPLES_DIRECTORY_NAME = "..";
-    public static final String[] IGNORE_PATTERNS = new String[]{ "\\.svn", "pom.xml", "old",
-        "experimental", "json", "misc", "rest", "samples-test", "model-.*", "bulk-actions", "bulk",
-        "testng.*\\.xml", "target"};
+    public static final String[] IGNORE_PATTERNS = new String[] {
+        "experimental", "json", "misc", "rest", "samples-test", "model-.*", "bulk-actions", "bulk", "legacy",
+    };
     public static final String[] CHECK_PATTERNS = new String[]{ ".*.xml" };
     public static final String OBJECT_RESULT_OPERATION_NAME = TestSamples.class.getName()+".validateObject";
     private static final String RESULT_OPERATION_NAME = TestSamples.class.getName()+".validateFile";
@@ -55,12 +54,11 @@ public class TestSamples {
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 
-    @Test(enabled = false)
+    @Test(enabled=false) // MID-5475
     public void testSamples() throws FileNotFoundException {
-        testSamplesDirectory(new File(SAMPLES_DIRECTORY_NAME));
+        testSamplesDirectory(SAMPLES_DIRECTORY);
     }
 
-    @Test(enabled = false)
     private void testSamplesDirectory(File directory) throws FileNotFoundException {
         String[] fileNames = directory.list();
         for (int i = 0; i < fileNames.length; i++) {

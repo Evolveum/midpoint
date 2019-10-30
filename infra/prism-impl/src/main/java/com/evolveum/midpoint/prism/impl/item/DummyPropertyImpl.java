@@ -297,6 +297,12 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
         return realProperty.addAll(newValues, strategy);
     }
 
+    @Override
+    public boolean addAll(Collection<PrismPropertyValue<T>> newValues, boolean checkUniqueness, EquivalenceStrategy strategy)
+            throws SchemaException {
+        return realProperty.addAll(newValues, checkUniqueness, strategy);
+    }
+
     public boolean remove(PrismPropertyValue<T> value) {
         return realProperty.remove(value);
     }
