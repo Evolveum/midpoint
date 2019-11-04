@@ -23,6 +23,7 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 
+import com.evolveum.midpoint.prism.PrismParserNoIO;
 import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.staxmate.dom.DOMConverter;
@@ -75,6 +76,7 @@ public class LegacyValidator {
     private long progress = 0;
     private long errors = 0;
     private long stopAfterErrors = 0;
+    private boolean compatMode = false;
 
     public LegacyValidator(PrismContext prismContext) {
         this.prismContext = prismContext;
@@ -156,6 +158,14 @@ public class LegacyValidator {
 
     public long getErrors() {
         return errors;
+    }
+
+    public boolean isCompatMode() {
+        return compatMode;
+    }
+
+    public void setCompatMode(boolean compatMode) {
+        this.compatMode = compatMode;
     }
 
     public void validate(String lexicalRepresentation, OperationResult validationResult, String objectResultOperationName) {
@@ -373,7 +383,11 @@ public class LegacyValidator {
                 return EventResult.skipObject();
             }
 
-            PrismObject<? extends Objectable> object = prismContext.parserFor(objectElement).parse();
+            PrismParserNoIO parser = prismContext.parserFor(objectElement);
+            if (compatMode) {
+                parser = parser.compat();
+            }
+            PrismObject<? extends Objectable> object = parser.parse();
 
             try {
                 object.checkConsistence();

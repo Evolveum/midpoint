@@ -135,8 +135,12 @@ public class ObjectImporter {
                     return stopAfterErrors == 0 || errors.get() < stopAfterErrors;
                 }
             };
+            PrismParser parser = prismContext.parserFor(input).language(language);
+            if (options != null && options.isCompatMode() != null && options.isCompatMode()) {
+                parser = parser.compat();
+            }
             try {
-                prismContext.parserFor(input).language(language).parseObjectsIteratively(handler);
+                parser.parseObjectsIteratively(handler);
             } catch (SchemaException|IOException e) {
                 parentResult.recordFatalError("Couldn't parse objects to be imported: " + e.getMessage(), e);
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse objects to be imported", e);
@@ -173,6 +177,9 @@ public class ObjectImporter {
                 }
             }
             validator.setStopAfterErrors(stopAfterErrors);
+            if (options != null && options.isCompatMode() != null && options.isCompatMode()) {
+                validator.setCompatMode(true);
+            }
             validator.validate(input, parentResult, OperationConstants.IMPORT_OBJECT);
         }
     }

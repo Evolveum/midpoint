@@ -131,6 +131,8 @@ public abstract class AbstractPrismValueParserTest<T extends PrismValue> extends
 
         System.out.println("================== Starting test for '" + desc + "' (serializer: " + serId + ") ==================");
 
+        try {
+
         T value = parser.apply(prismContext.parserFor(getFile()));
         assertResolvableRawValues(value);        // should be right here, before any getValue is called (TODO reconsider)
 
@@ -156,6 +158,10 @@ public abstract class AbstractPrismValueParserTest<T extends PrismValue> extends
             assertTrue("Deltas not empty", deltas.isEmpty());
 
             assertTrue("Values not equal", value.equals(reparsed, EquivalenceStrategy.NOT_LITERAL));
+        }
+
+        } catch (SchemaException e) {
+            throw new SchemaException("Error processing file "+getFile().getPath()+": " + e.getMessage(), e);
         }
     }
 

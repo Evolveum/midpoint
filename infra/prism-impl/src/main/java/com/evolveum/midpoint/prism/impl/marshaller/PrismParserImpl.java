@@ -12,6 +12,8 @@ import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,6 +27,8 @@ import java.util.List;
  * @author mederly
  */
 abstract class PrismParserImpl implements PrismParser {
+
+    private static final Trace LOGGER = TraceManager.getTrace(PrismParserImpl.class);
 
     @NotNull private final ParserSource source;
     private final String language;
