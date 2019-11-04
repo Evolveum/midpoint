@@ -17,14 +17,26 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <select wicket:id="select" class="selectpicker select-picker-sm pull-right" data-width="auto">
-        <!--<option data-icon="flag-gb">&nbsp;English</option>-->
-        <!--<option data-icon="flag-sk">&nbsp;Slovensky</option>-->
+    <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+        <img wicket:id="localeIcon" />
+    </a>
+    <ul class="dropdown-menu pull-right" >
+        <li wicket:id="locales">
+            <img wicket:id="localeItemIcon" class="pull-left" style="margin-top: 5px !important;"></img>
+            <a wicket:id="localeLink" style="display: inline !important; padding: 3px 10px !important;">&nbsp;</a>
+        </li>
+    </ul>
 
-        <wicket:container wicket:id="options">
-            <option wicket:id="option">Option Label</option>
-        </wicket:container>
-    </select>
+
+
+    <!--<select wicket:id="select" class="selectpicker select-picker-sm pull-right" data-width="auto">-->
+        <!--&lt;!&ndash;<option data-icon="flag-gb">&nbsp;English</option>&ndash;&gt;-->
+        <!--&lt;!&ndash;<option data-icon="flag-sk">&nbsp;Slovensky</option>&ndash;&gt;-->
+
+        <!--<wicket:container wicket:id="options">-->
+            <!--<option wicket:id="option">Option Label</option>-->
+        <!--</wicket:container>-->
+    <!--</select>-->
 
     <!--<ul wicket:id="locale" class="locales">-->
         <!--<li wicket:id="locales" class="locale">-->
