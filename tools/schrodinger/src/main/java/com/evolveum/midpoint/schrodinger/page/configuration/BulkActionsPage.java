@@ -20,10 +20,11 @@ import static com.codeborne.selenide.Selenide.$;
 public class BulkActionsPage extends BasicPage {
 
     public BulkActionsPage insertOneLineTextIntoEditor(String text){
-        $(By.className("ace_content"))
-                .$(By.className("ace_text-layer"))
-                .$(By.className("ace_line"))
-                .setValue(text);
+        $(Schrodinger.byElementAttributeValue("textarea", "class", "ace_text-input"))
+                .waitUntil(Condition.exist, MidPoint.TIMEOUT_DEFAULT_2_S)
+
+//        $(Schrodinger.byElementAttributeValue("textarea", "class", "ace_text-input"))
+                .sendKeys(text);
         return this;
     }
 
