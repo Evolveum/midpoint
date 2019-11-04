@@ -273,7 +273,7 @@ public class PrismUnmarshaller {
             ItemDefinition itemDef = locateItemDefinition(itemName, complexTypeDefinition, entry.getValue());
             if (itemDef == null) {
                 SchemaMigration migration = determineSchemaMigration(complexTypeDefinition, itemName, pc);
-                if (migration != null && !pc.isStrict()) {
+                if (migration != null && pc.isCompat()) {
                     if (migration.getOperation() == SchemaMigrationOperation.REMOVED) {
                         LOGGER.warn("Item {} was removed from the schema, skipping", itemName);
                         continue;

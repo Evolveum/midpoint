@@ -1525,7 +1525,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             throw e;
         }
         try {
-            importObjectsFromStream(fis, options, task, parentResult);
+            importObjectsFromStream(fis, PrismContext.LANG_XML, options, task, parentResult);
         } catch (RuntimeException e) {
             result.recordFatalError(e);
             throw e;
@@ -1537,11 +1537,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             }
         }
         result.computeStatus();
-    }
-
-    @Override
-    public void importObjectsFromStream(InputStream input, ImportOptionsType options, Task task, OperationResult parentResult) {
-        importObjectsFromStream(input, PrismContext.LANG_XML, options, task, parentResult);
     }
 
     @Override
