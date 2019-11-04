@@ -1270,8 +1270,13 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
             throw new SchemaException("Cannot apply delta "+this+" to "+item+" because the deltas is applicable only to "+getItemClass().getSimpleName());
         }
         if (valuesToReplace != null) {
+            // FIXME This is a temporary solution (ugly hack). We do this to avoid O(n^2) comparisons when replacing
+            //  a lot of values, like 100K members for a group. But the serious solution is to employ hashing in ItemImpl,
+            //  and resolve this efficiency issue (1) for all cases - i.e. ADD+DELETE+REPLACE, (2) preserving uniqueness checking.
+            //  See MID-5889.
+            item.clear();
             //noinspection unchecked
-            item.replaceAll(PrismValueCollectionsUtil.cloneCollection(valuesToReplace), strategy);
+            item.addAll(PrismValueCollectionsUtil.cloneCollection(valuesToReplace), false, strategy);
         } else {
             if (valuesToDelete != null) {
                 //noinspection unchecked

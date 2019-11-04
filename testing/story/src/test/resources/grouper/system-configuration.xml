@@ -13,20 +13,36 @@
     <logging>
         <rootLoggerAppender>File Appender</rootLoggerAppender>
         <rootLoggerLevel>INFO</rootLoggerLevel>
-        <classLogger>
-            <level>TRACE</level>
-            <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
-          </classLogger>
-        <c:classLogger>
-            <c:level>TRACE</c:level>
-            <c:package>com.evolveum.midpoint.notifications</c:package>
-        </c:classLogger>
+<!--        <classLogger>-->
+<!--            <level>TRACE</level>-->
+<!--            <package>com.evolveum.midpoint.repo</package>-->
+<!--        </classLogger>-->
+<!--        <classLogger>-->
+<!--            <level>TRACE</level>-->
+<!--            <package>com.evolveum.midpoint.provisioning</package>-->
+<!--        </classLogger>-->
         <appender xsi:type="c:FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
             <fileName>target/test.log</fileName>
             <append>true</append>
         </appender>
     </logging>
+    <internals>
+        <tracing>
+            <profile>
+                <name>functional</name>
+                <displayName>Functional tracing</displayName>
+                <visible>true</visible>
+                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
+                <createRepoObject>true</createRepoObject>
+                <compressOutput>true</compressOutput>
+                <collectLogEntries>true</collectLogEntries>
+                <tracingTypeProfile>
+                    <level>normal</level>
+                </tracingTypeProfile>
+            </profile>
+        </tracing>
+    </internals>
     <defaultObjectPolicyConfiguration>
         <type>UserType</type>
         <objectTemplateRef oid="8098b124-c20c-4965-8adf-e528abedf7a4"/>
@@ -40,29 +56,6 @@
             </state>
         </lifecycleStateModel>
     </defaultObjectPolicyConfiguration>
-    <notificationConfiguration>
-        <handler>
-            <simpleWorkflowNotifier>
-                <category>workItemLifecycleEvent</category>
-                <transport>dummy:workItemLifecycle</transport>
-            </simpleWorkflowNotifier>
-            <simpleWorkflowNotifier>
-                <category>workItemAllocationEvent</category>
-                <transport>dummy:workItemAllocation</transport>
-            </simpleWorkflowNotifier>
-            <simpleWorkflowNotifier>
-                <category>workItemCustomEvent</category>
-                <transport>dummy:workItemCustom</transport>
-            </simpleWorkflowNotifier>
-            <simpleWorkflowNotifier>
-                <category>workflowProcessEvent</category>
-                <transport>dummy:process</transport>
-            </simpleWorkflowNotifier>
-        </handler>
-        <mail>
-            <redirectToFile>target/mail-notifications.log</redirectToFile>
-        </mail>
-    </notificationConfiguration>
     <workflowConfiguration>
         <useLegacyApproversSpecification>never</useLegacyApproversSpecification>
         <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>

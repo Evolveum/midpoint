@@ -50,6 +50,7 @@
                 <module>longtest</module>
                 <module>story</module>
                 <module>rest</module>
+                <module>samples-test</module>
             </modules>
         </profile>
         <profile>

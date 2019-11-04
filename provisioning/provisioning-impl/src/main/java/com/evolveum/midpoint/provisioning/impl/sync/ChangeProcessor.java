@@ -279,10 +279,10 @@ public class ChangeProcessor {
         assert change.getCurrentResourceObject() != null || change.isDelete();
         if (change.getCurrentResourceObject() != null) {
             // TODO do we need to complete the shadow now? Why? MID-5834
-            PrismObject<ShadowType> currentShadow = shadowCache.completeShadow(ctx, change.getCurrentResourceObject(), oldShadow, false, parentResult);
-            change.setCurrentResourceObject(currentShadow);
+            PrismObject<ShadowType> currentResourceObjectShadowized = shadowCache.completeShadow(ctx, change.getCurrentResourceObject(), oldShadow, false, parentResult);
+            change.setCurrentResourceObject(currentResourceObjectShadowized);
             // TODO: shadowState MID-5834
-            shadowManager.updateShadow(ctx, currentShadow, change.getObjectDelta(), oldShadow, null, parentResult);
+            shadowManager.updateShadow(ctx, currentResourceObjectShadowized, change.getObjectDelta(), oldShadow, null, parentResult);
         }
 
         if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {

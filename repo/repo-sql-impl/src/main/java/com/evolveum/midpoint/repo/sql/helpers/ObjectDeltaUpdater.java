@@ -448,7 +448,7 @@ public class ObjectDeltaUpdater {
     }
 
     private void processExtensionDeltaValueSet(Collection<? extends PrismValue> prismValuesFromDelta,
-            RAnyConverter.ValueType valueType, RObject<?> object,
+            Integer itemId, RAnyConverter.ValueType valueType, RObject<?> object,
             RObjectExtensionType objectOwnerType, RAssignmentExtension assignmentExtension,
             RAssignmentExtensionType assignmentExtensionType,
             BiConsumer<Collection<? extends RAnyValue<?>>, Collection<PrismEntityPair<RAnyValue<?>>>> deltaValuesProcessor) {
@@ -462,7 +462,7 @@ public class ObjectDeltaUpdater {
         try {
             Collection<PrismEntityPair<RAnyValue<?>>> rValuesFromDelta = new ArrayList<>();
             for (PrismValue prismValueFromDelta : prismValuesFromDelta) {
-                RAnyValue<?> rValueFromDelta = converter.convertToRValue(prismValueFromDelta, object == null);
+                RAnyValue<?> rValueFromDelta = converter.convertToRValue(prismValueFromDelta, object == null, itemId);
                 rValuesFromDelta.add(new PrismEntityPair<>(prismValueFromDelta, rValueFromDelta));
             }
 
@@ -527,17 +527,19 @@ public class ObjectDeltaUpdater {
             return;
         }
 
+        Integer itemId = extItemDictionary.createOrFindItemDefinition(definition).getId();
+
         if (delta.getValuesToReplace() != null) {
-            processExtensionDeltaValueSet(delta.getValuesToReplace(), valueType, object, objectExtensionType,
+            processExtensionDeltaValueSet(delta.getValuesToReplace(), itemId, valueType, object, objectExtensionType,
                     assignmentExtension, assignmentExtensionType,
                     (dbCollection, pairsFromDelta) -> replaceExtensionValues(objectExtensionType, assignmentExtensionType,
                             definition, dbCollection, pairsFromDelta, ctx));
         } else {
-            processExtensionDeltaValueSet(delta.getValuesToDelete(), valueType, object, objectExtensionType, assignmentExtension,
+            processExtensionDeltaValueSet(delta.getValuesToDelete(), itemId, valueType, object, objectExtensionType, assignmentExtension,
                     assignmentExtensionType,
                     (dbCollection, pairsFromDelta) -> deleteExtensionValues(dbCollection, pairsFromDelta, ctx));
 
-            processExtensionDeltaValueSet(delta.getValuesToAdd(), valueType, object, objectExtensionType, assignmentExtension,
+            processExtensionDeltaValueSet(delta.getValuesToAdd(), itemId, valueType, object, objectExtensionType, assignmentExtension,
                     assignmentExtensionType,
                     (dbCollection, pairsFromDelta) -> addExtensionValues(dbCollection, pairsFromDelta, ctx));
         }

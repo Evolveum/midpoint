@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
+import com.evolveum.midpoint.util.DOMUtil;
 import org.testng.annotations.BeforeSuite;
 import org.testng.Assert;
 
@@ -18,8 +19,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
 
 import org.testng.annotations.Test;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
@@ -39,12 +43,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  *
  */
-public class TestSamples {
+public class TestSamples extends AbstractSampleTest {
 
-    public static final String SAMPLES_DIRECTORY_NAME = "..";
-    public static final String[] IGNORE_PATTERNS = new String[]{ "\\.svn", "pom.xml", "old",
-        "experimental", "json", "misc", "rest", "samples-test", "model-.*", "bulk-actions", "bulk",
-        "testng.*\\.xml", "target"};
+    public static final String[] IGNORE_PATTERNS = new String[] {
+        "META-INF", "experimental", "json", "misc", "rest", "samples-test", "model-.*", "bulk-actions", "bulk", "legacy", "audit"
+    };
     public static final String[] CHECK_PATTERNS = new String[]{ ".*.xml" };
     public static final String OBJECT_RESULT_OPERATION_NAME = TestSamples.class.getName()+".validateObject";
     private static final String RESULT_OPERATION_NAME = TestSamples.class.getName()+".validateFile";
@@ -55,23 +58,21 @@ public class TestSamples {
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 
-    @Test(enabled = false)
-    public void testSamples() throws FileNotFoundException {
-        testSamplesDirectory(new File(SAMPLES_DIRECTORY_NAME));
+    @Test
+    public void testSamples() throws Exception {
+        testSamplesDirectory(SAMPLES_DIRECTORY);
     }
 
-    @Test(enabled = false)
-    private void testSamplesDirectory(File directory) throws FileNotFoundException {
-        String[] fileNames = directory.list();
-        for (int i = 0; i < fileNames.length; i++) {
-            String fileName = fileNames[i];
+    private void testSamplesDirectory(File directory) throws Exception {
+        for (String fileName : Objects.requireNonNull(directory.list())) {
             if (matches(fileName,IGNORE_PATTERNS)) {
                 // Ignore. Don't even dive inside
                 continue;
             }
             File file = new File(directory, fileName);
             if (file.isFile() && matches(fileName,CHECK_PATTERNS)) {
-                validate(file);
+                parse(file);
+//                validate(file);
             }
             if (file.isDirectory()) {
                 // Descend inside
@@ -88,6 +89,45 @@ public class TestSamples {
         }
         return false;
     }
+
+    private void parse(File file) throws IOException, SchemaException {
+        System.out.println("===> DOM Parsing file "+file.getPath());
+        Document dom = DOMUtil.parseFile(file);
+        Element firstChildElement = DOMUtil.getFirstChildElement(dom);
+        if (firstChildElement.getLocalName().equals("objects")) {
+            parseObjectsElements(file, firstChildElement);
+        } else {
+            parseObjectFile(file);
+        }
+    }
+
+    private void parseObjectsElements(File file, Element topElement) throws SchemaException {
+        List<Element> objectElements = DOMUtil.listChildElements(topElement);
+        for (int i = 0; i <  objectElements.size(); i++ ) {
+            try {
+                PrismObject<Objectable> object = prismContext
+                        .parserFor(objectElements.get(i))
+                        .strict()
+                        .parse();
+            } catch (SchemaException e) {
+                throw new SchemaException("Error parsing "+file.getPath()+", element "+objectElements.get(i).getLocalName()+" (#"+(i+1)+"): "+e.getMessage(), e);
+            }
+        }
+    }
+
+    private void parseObjectFile(File file) throws IOException, SchemaException {
+        System.out.println("===> Parsing file "+file.getPath());
+        try {
+            System.out.println("===> Parsing file " + file.getPath());
+            PrismObject<Objectable> object = prismContext
+                    .parserFor(file)
+                    .strict()
+                    .parse();
+        } catch (Exception e) {
+            throw new SchemaException("Error parsing "+file.getPath()+": "+e.getMessage(), e);
+        }
+    }
+
 
     private void validate(File file) throws FileNotFoundException {
         System.out.println("===> Validating file "+file.getPath());

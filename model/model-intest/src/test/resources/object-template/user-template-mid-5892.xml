@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate oid="064993c0-34b4-4440-9331-e909fc923504"
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>User Template 5892</name>
+
+    <mapping>        <!-- MID-5892 -->
+        <trace>false</trace>
+        <source>
+            <path>name</path>
+        </source>
+        <source>
+            <path>givenName</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <includeNullInputs>true</includeNullInputs>         <!-- this is necessary for the test to pass! (quite counter-intuitive)... see AbstractSearchExpressionEvaluator.isIncludeNullInputs() method -->
+                <targetType>RoleType</targetType>
+                <oid>00000000-0000-0000-0000-000000000004</oid>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+    </mapping>
+
+</objectTemplate>

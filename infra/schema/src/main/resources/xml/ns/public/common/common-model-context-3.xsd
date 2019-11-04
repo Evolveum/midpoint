@@ -2099,6 +2099,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="retrievedResourceObjectProcessing">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Processing of object retrieved from a resource (e.g. when doing import or reconciliation).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RETRIEVED_RESOURCE_OBJECT_PROCESSING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="workflowOperation">
                 <xsd:annotation>
                     <xsd:documentation>
