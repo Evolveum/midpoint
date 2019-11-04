@@ -5,6 +5,8 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!-- Contains elements that are deprecated and planned for removal, but still valid. -->
+
 <role oid="0d70504c-d094-11e8-b0cc-675c492577e7"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
@@ -14,23 +16,7 @@
 
     <roleType>lab</roleType> <!-- deprecated, but not plannedRemoval -->
 
-    <approverExpression> <!-- plannedRemoval=4.0 -->
-        <script>
-            <code>midpoint.oid2ort(user.getOid())</code>
-        </script>
-    </approverExpression>
-
-    <policyConstraints> <!-- plannedRemoval=4.0 -->
-        <minAssignees>
-            <enforcement>report</enforcement>
-            <multiplicity>2</multiplicity>
-        </minAssignees>
-        <minAssignees>
-            <multiplicity>1</multiplicity>
-        </minAssignees>
-        <maxAssignees>
-            <multiplicity>unbounded</multiplicity>
-        </maxAssignees>
-    </policyConstraints>
+    <!-- TODO: add some elements with planned removal
+         We have no plannedRemoval elements in 4.0, need to re-do this test later. -->
 
 </role>
