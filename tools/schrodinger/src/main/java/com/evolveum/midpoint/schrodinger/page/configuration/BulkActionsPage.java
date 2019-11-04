@@ -6,10 +6,35 @@
  */
 package com.evolveum.midpoint.schrodinger.page.configuration;
 
+import com.codeborne.selenide.Condition;
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import org.openqa.selenium.By;
+
+import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class BulkActionsPage extends BasicPage {
+
+    public BulkActionsPage insertOneLineTextIntoEditor(String text){
+        $(By.className("ace_content"))
+                .$(By.className("ace_text-layer"))
+                .$(By.className("ace_line"))
+                .setValue(text);
+        return this;
+    }
+
+    public BulkActionsPage startButtonClick(){
+        $(Schrodinger.byDataId("a", "start"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
+        return this;
+    }
+
+    public boolean isAceEditorVisible(){
+        return $(By.className("aceEditor")).exists();
+    }
 }
