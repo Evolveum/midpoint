@@ -91,18 +91,7 @@ public class CleanupTest extends AbstractTestNGSpringContextTests {
         List<PrismObject<TaskType>> tasks = repositoryService.searchObjects(TaskType.class, null, null, result);
         AssertJUnit.assertNotNull(tasks);
         display("tasks", tasks);
-        AssertJUnit.assertEquals(1, tasks.size());
-
-        PrismObject<TaskType> task = tasks.get(0);
-        XMLGregorianCalendar timestamp = task.getPropertyRealValue(TaskType.F_COMPLETION_TIMESTAMP,
-                XMLGregorianCalendar.class);
-        Date finished = XMLGregorianCalendarType.asDate(timestamp);
-
-        Date mark = new Date(NOW);
-        Duration duration = policy.getMaxAge();
-        duration.addTo(mark);
-
-        AssertJUnit.assertTrue("finished: " + finished + ", mark: " + mark, finished.after(mark));
+        AssertJUnit.assertEquals(5, tasks.size());
     }
 
     private Calendar create_2013_05_07_12_00_00_Calendar() {
