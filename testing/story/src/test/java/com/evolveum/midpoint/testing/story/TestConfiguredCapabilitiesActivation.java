@@ -8,9 +8,6 @@ package com.evolveum.midpoint.testing.story;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,9 +25,10 @@ import org.testng.annotations.Test;
 import java.io.File;
 
 /**
- * Test for resources with configured capabilities (MID-5400)
+ * Test for resources with configured capabilities (MID-5400, MID-5883)
  *
  * @author Gustav Palos
+ * @author Radovan Semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -38,49 +36,53 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "configured-capabilities-activation");
 
-    protected static final File RESOURCE_DUMMY_ACTIVATION_FILE = new File(TEST_DIR, "resource-dummy-activation.xml");
-    protected static final String RESOURCE_DUMMY_ACTIVATION_OID = "4bac305c-ed1f-4919-9670-e11863156811";
-    protected static final String RESOURCE_DUMMY_ACTIVATION_NAME = "activation";
+    /**
+     * Native activation capability: no
+     * Simulated activation configured capability: yes
+     */
+    protected static final File RESOURCE_DUMMY_ACTIVATION_SIMULATED_FILE = new File(TEST_DIR, "resource-dummy-activation-simulated.xml");
+    protected static final String RESOURCE_DUMMY_ACTIVATION_SIMULATED_OID = "4bac305c-ed1f-4919-9670-e11863156811";
+    protected static final String RESOURCE_DUMMY_ACTIVATION_SIMULATED_NAME = "activation-simulated";
 
+    /**
+     * Native activation capability: yes
+     * Simulated activation configured capability: yes
+     */
+    private static final File RESOURCE_DUMMY_ACTIVATION_NATIVE_SIMULATED_FILE = new File(TEST_DIR, "resource-dummy-activation-native-simulated.xml");
+    private static final String RESOURCE_DUMMY_ACTIVATION_NATIVE_SIMULATED_OID = "4bac305c-ed1f-4919-aaaa-e11863156811";
+    private static final String RESOURCE_DUMMY_ACTIVATION_NATIVE_SIMULATED_NAME = "activation-native-simulated";
+
+    /**
+     * Native activation capability: yes
+     * Simulated activation configured capability: no
+     */
     private static final File RESOURCE_DUMMY_ACTIVATION_NATIVE_FILE = new File(TEST_DIR, "resource-dummy-activation-native.xml");
-    private static final String RESOURCE_DUMMY_ACTIVATION_NATIVE_OID = "4bac305c-ed1f-4919-aaaa-e11863156811";
+    private static final String RESOURCE_DUMMY_ACTIVATION_NATIVE_OID = "3df33d1c-ff1c-11e9-a546-93b539ed664a";
     private static final String RESOURCE_DUMMY_ACTIVATION_NATIVE_NAME = "activation-native";
 
-    protected static final File SHADOW_FILE = new File(TEST_DIR, "shadow-sample.xml");
-    protected static final String SHADOW_OID = "6925f5a7-2acb-409b-b2e1-94a6534a9745";
+    protected static final File SHADOW_SAMPLE_ACTIVATION_SIMULATED_FILE = new File(TEST_DIR, "shadow-sample-activation-simulated.xml");
+    protected static final String SHADOW_SAMPLE_ACTIVATION_SIMULATED_OID = "6925f5a7-2acb-409b-b2e1-94a6534a9745";
 
     private static final File ROLE_PIRATE_FILE = new File(TEST_DIR, "role-pirate.xml");
     private static final String ROLE_PIRATE_OID = "34713dae-8d56-4717-b184-86d02c9a2361";
-
-    private DummyResourceContoller dummyActivationNativeController;
-    private DummyResource dummyActivationNativeResource;
-    private ResourceType resourceActivationNativeType;
-    private PrismObject<ResourceType> resourceActivationNative;
-
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        initDummyResourcePirate(RESOURCE_DUMMY_ACTIVATION_NAME, RESOURCE_DUMMY_ACTIVATION_FILE, RESOURCE_DUMMY_ACTIVATION_OID, initTask, initResult);
-        addObject(SHADOW_FILE);
+        initDummyResourcePirate(RESOURCE_DUMMY_ACTIVATION_SIMULATED_NAME, RESOURCE_DUMMY_ACTIVATION_SIMULATED_FILE, RESOURCE_DUMMY_ACTIVATION_SIMULATED_OID, initTask, initResult);
+        addObject(SHADOW_SAMPLE_ACTIVATION_SIMULATED_FILE);
 
-//        dummyActivationNativeController = DummyResourceContoller.create(RESOURCE_DUMMY_ACTIVATION_NATIVE_NAME, resourceActivationNative);
-//        dummyActivationNativeController.extendSchemaPirate();
-//        dummyActivationNativeResource = dummyActivationNativeController.getDummyResource();
-//        resourceActivationNative = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_ACTIVATION_NATIVE_FILE, RESOURCE_DUMMY_ACTIVATION_NATIVE_OID, initTask, initResult);
-//        resourceActivationNativeType = resourceActivationNative.asObjectable();
-//        dummyActivationNativeController.setResource(resourceActivationNative);
+        initDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_SIMULATED_NAME, RESOURCE_DUMMY_ACTIVATION_NATIVE_SIMULATED_FILE, RESOURCE_DUMMY_ACTIVATION_NATIVE_SIMULATED_OID, initTask, initResult);
 
-        dummyActivationNativeController = initDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_NAME, RESOURCE_DUMMY_ACTIVATION_NATIVE_FILE, RESOURCE_DUMMY_ACTIVATION_NATIVE_OID, initTask, initResult);
-        dummyActivationNativeResource = dummyActivationNativeController.getDummyResource();
+        initDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_NAME, RESOURCE_DUMMY_ACTIVATION_NATIVE_FILE, RESOURCE_DUMMY_ACTIVATION_NATIVE_OID, initTask, initResult);
 
         importObjectFromFile(ROLE_PIRATE_FILE, initResult);
     }
 
     @Test
-    public void test000ImportAccount() throws Exception {
-        final String TEST_NAME = "test000ImportAccount";
+    public void test100ImportAccount() throws Exception {
+        final String TEST_NAME = "test100ImportAccount";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -89,7 +91,7 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
         // WHEN
         displayWhen(TEST_NAME);
 
-        modelService.importFromResource(SHADOW_OID, task, result);
+        modelService.importFromResource(SHADOW_SAMPLE_ACTIVATION_SIMULATED_OID, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -104,8 +106,8 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
     }
 
     @Test
-    public void test010assignJack() throws Exception {
-        String TEST_NAME = "test010assignJack";
+    public void test110AssignJackPirate() throws Exception {
+        String TEST_NAME = "test110AssignJackPirate";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -125,18 +127,48 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
 
         //THEN
         displayThen(TEST_NAME);
-        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
-        UserAsserter.forUser(userJackAfter).links().assertLinks(1);
+        UserAsserter<Void> userAfterAsserter = assertUserAfter(USER_JACK_OID);
+        userAfterAsserter
+            .activation()
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                .end()
+            .links()
+                .assertLinks(2);
 
-        DummyAccount jackAccount = dummyActivationNativeResource.getAccountByUsername(USER_JACK_USERNAME);
-        display("Jack Dummy Account: ", jackAccount.debugDump());
-        String enableDisableValue = jackAccount.getAttributeValue("privileges");
-        AssertJUnit.assertEquals("Unexpected activation status value: " + enableDisableValue, "false", enableDisableValue);
+        String shadowActivationNativeSimulatedOid = userAfterAsserter
+                .links()
+                .by()
+                    .resourceOid(RESOURCE_DUMMY_ACTIVATION_NATIVE_SIMULATED_OID)
+                .find()
+                    .getOid();
+        assertModelShadow(shadowActivationNativeSimulatedOid)
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+
+        String shadowActivationNativeOid = userAfterAsserter
+            .links()
+                .by()
+                    .resourceOid(RESOURCE_DUMMY_ACTIVATION_NATIVE_OID)
+                .find()
+                    .getOid();
+        assertModelShadow(shadowActivationNativeOid)
+            // MID-5883
+            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+
+        DummyAccount jackNativeSimulatedAccount = getDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_SIMULATED_NAME).getAccountByUsername(USER_JACK_USERNAME);
+        display("Jack Dummy native-simulated account", jackNativeSimulatedAccount);
+        String privilegesNativeSimulatedValue = jackNativeSimulatedAccount.getAttributeValue("privileges");
+        AssertJUnit.assertEquals("Unexpected 'native-simulated' privileges attribute value: " + privilegesNativeSimulatedValue, "false", privilegesNativeSimulatedValue);
+
+        DummyAccount jackNativeAccount = getDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_NAME).getAccountByUsername(USER_JACK_USERNAME);
+        display("Jack Dummy native account", jackNativeAccount);
+        AssertJUnit.assertTrue("Unexpected 'native' activation status value: " + jackNativeAccount.isEnabled(), jackNativeAccount.isEnabled());
+        String privilegesNativeValue = jackNativeAccount.getAttributeValue("privileges");
+        AssertJUnit.assertNull("Unexpected 'native' privileges attribute: " + privilegesNativeValue, privilegesNativeValue);
     }
 
     @Test
-    public void test011modifyActivationJack() throws Exception {
-        String TEST_NAME = "test011modifyActivationJack";
+    public void test112ModifyActivationJack() throws Exception {
+        String TEST_NAME = "test112ModifyActivationJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -150,14 +182,44 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
 
         //THEN
         displayThen(TEST_NAME);
-        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
-        UserAsserter.forUser(userJackAfter).activation().assertAdministrativeStatus(ActivationStatusType.DISABLED);
 
-        DummyAccount jackAccount = dummyActivationNativeResource.getAccountByUsername(USER_JACK_USERNAME);
-        display("Jack Dummy Account: ", jackAccount.debugDump());
+        UserAsserter<Void> userAfterAsserter = assertUserAfter(USER_JACK_OID);
+        userAfterAsserter
+            .activation()
+                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
+                .end()
+            .links()
+                .assertLinks(2);
 
-        String enableDisableValue = jackAccount.getAttributeValue("privileges");
-        AssertJUnit.assertEquals("Unexpected activation status value: " + enableDisableValue, "true", enableDisableValue);
+        String shadowActivationNativeSimulatedOid = userAfterAsserter
+                .links()
+                .by()
+                    .resourceOid(RESOURCE_DUMMY_ACTIVATION_NATIVE_SIMULATED_OID)
+                .find()
+                    .getOid();
+        assertModelShadow(shadowActivationNativeSimulatedOid)
+                .assertAdministrativeStatus(ActivationStatusType.DISABLED);
+
+        String shadowActivationNativeOid = userAfterAsserter
+            .links()
+                .by()
+                    .resourceOid(RESOURCE_DUMMY_ACTIVATION_NATIVE_OID)
+                .find()
+                    .getOid();
+        assertModelShadow(shadowActivationNativeOid)
+            // MID-5883
+            .assertAdministrativeStatus(ActivationStatusType.DISABLED);
+
+        DummyAccount jackNativeSimulatedAccount = getDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_SIMULATED_NAME).getAccountByUsername(USER_JACK_USERNAME);
+        display("Jack Dummy native-simulated account", jackNativeSimulatedAccount);
+        String privilegesNativeSimulatedValue = jackNativeSimulatedAccount.getAttributeValue("privileges");
+        AssertJUnit.assertEquals("Unexpected 'native-simulated' privileges attribute value: " + privilegesNativeSimulatedValue, "true", privilegesNativeSimulatedValue);
+
+        DummyAccount jackNativeAccount = getDummyResource(RESOURCE_DUMMY_ACTIVATION_NATIVE_NAME).getAccountByUsername(USER_JACK_USERNAME);
+        display("Jack Dummy native account", jackNativeAccount);
+        AssertJUnit.assertFalse("Unexpected 'native' activation status value: " + jackNativeAccount.isEnabled(), jackNativeAccount.isEnabled());
+        String privilegesNativeValue = jackNativeAccount.getAttributeValue("privileges");
+        AssertJUnit.assertNull("Unexpected 'native' privileges attribute: " + privilegesNativeValue, privilegesNativeValue);
     }
 
 }
