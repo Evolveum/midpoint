@@ -490,7 +490,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         JavaSerializer javaSerializer = new JavaSerializer( getApplicationKey() ) {
             @Override
             protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException {
-                LOGGER.info("XXXXXXX YX Y");
                 IObjectChecker checker1 = new MidPointObjectChecker();
                 IObjectChecker checker2 = new NotDetachedModelChecker();
                 IObjectChecker checker3 = new ObjectSerializationChecker();

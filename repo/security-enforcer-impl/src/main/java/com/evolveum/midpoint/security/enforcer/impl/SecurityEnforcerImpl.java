@@ -1682,7 +1682,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                         if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
                             // allow
                             securityFilterAllow = gizmo.or(securityFilterAllow, autzObjSecurityF);
-                            traceFilter("securityFilterAllow XXX", autz, securityFilterAllow, gizmo);
+                            traceFilter("securityFilterAllow", autz, securityFilterAllow, gizmo);
                             if (!gizmo.isNone(autzObjSecurityF)) {
                                 queryItemsSpec.collectItems(autz);
                             }
