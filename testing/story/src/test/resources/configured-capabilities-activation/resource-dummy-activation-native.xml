@@ -51,6 +51,7 @@
             <icfi:uidMode>uuid</icfi:uidMode>
 
             <icfi:supportActivation>true</icfi:supportActivation>
+            <icfi:supportValidity>true</icfi:supportValidity>
 
         </icfc:configurationProperties>
 
@@ -115,6 +116,15 @@
                     <cap:ignoreAttribute>true</cap:ignoreAttribute>
                     <!-- NOTE: no cap:attribute, cap:enableValue or cap:disableValue here -->
                 </cap:status>
+                <cap:validFrom>
+                    <cap:enabled>false</cap:enabled>
+                </cap:validFrom>
+                <cap:validTo>
+                    <cap:enabled>false</cap:enabled>
+                </cap:validTo>
+                <cap:lockoutStatus>
+                    <cap:enabled>false</cap:enabled>
+                </cap:lockoutStatus>
             </cap:activation>
         </configured>
     </capabilities>
