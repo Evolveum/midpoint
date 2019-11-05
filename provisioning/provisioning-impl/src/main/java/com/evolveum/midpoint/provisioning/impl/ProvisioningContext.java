@@ -26,6 +26,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.StateReporter;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -352,4 +354,35 @@ public class ProvisioningContext extends StateReporter {
 		return "ProvisioningContext("+getDesc()+")";
 	}
 
+    public String toHumanReadableDescription() {
+        StringBuilder sb = new StringBuilder();
+        if (shadowCoordinates != null) {
+            if (shadowCoordinates.getKind() == null) {
+                sb.append(PrettyPrinter.prettyPrint(shadowCoordinates.getObjectClass()));
+            } else {
+                sb.append(shadowCoordinates.getKind() == null ? "null" : shadowCoordinates.getKind().value());
+                sb.append(" (").append(shadowCoordinates.getIntent());
+                sb.append(")");
+            }
+        }
+        sb.append(" @");
+        if (resource != null) {
+            sb.append(resource);
+        } else if (shadowCoordinates != null) {
+            sb.append(shadowCoordinates.getResourceOid());
+        }
+        if (shadowCoordinates != null && shadowCoordinates.isTombstone()) {
+            sb.append(" TOMBSTONE");
+        }
+        return sb.toString();
+    }
+
+    public Object toHumanReadableDescriptionLazy() {
+        return new Object() {
+            @Override
+            public String toString() {
+                return toHumanReadableDescription();
+            }
+        };
+    }
 }
