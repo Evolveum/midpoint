@@ -798,7 +798,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         container.add(rightMenu);
 
         LocalePanel locale = new LocalePanel(ID_LOCALE);
-        locale.add(createUserStatusBehaviour(false));
+//        locale.add(createUserStatusBehaviour(false));
         container.add(locale);
     }
 
