@@ -44,6 +44,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_RESOURCE_PAGE_REPOSITORY_CONTENT = "Repository";
     public static final String KEY_ASSIGNMENTS_TAB = "assignmentsTab";
     public static final String KEY_INDUCEMENTS_TAB = "inducementsTab";
+    public static final String KEY_TRIGGERS_TAB = "triggersTab";
     public static final String KEY_INDUCED_ENTITLEMENTS_TAB = "inducedEntitlementsTab";
     public static final String KEY_OBJECT_POLICIES_TAB = "objectPoliciesTab";
     public static final String KEY_GLOBAL_POLICY_RULES_TAB = "globalPolicyRulesTab";
@@ -188,6 +189,10 @@ public class SessionStorage implements Serializable, DebugDumpable {
 
     public ObjectTabStorage getInducementsTabStorage() {
         return getObjectTabStorage(KEY_INDUCEMENTS_TAB);
+    }
+
+    public ObjectTabStorage getTriggersTabStorage() {
+        return getObjectTabStorage(KEY_TRIGGERS_TAB);
     }
 
     public ObjectTabStorage getInducedEntitlementsTabStorage() {

@@ -818,42 +818,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         }
     }
 
-//    private ReferenceDelta prepareUserOrgsDeltaForModify(PrismReferenceDefinition refDef)
-//            throws SchemaException {
-//        ReferenceDelta refDelta = getPrismContext().deltaFactory().reference().create(refDef);
-//
-//        List<FocusSubwrapperDto<OrgType>> orgs = getParentOrgs();
-//        for (FocusSubwrapperDto<OrgType> orgDto : orgs) {
-//            if (orgDto.isLoadedOK()) {
-//                ObjectWrapperOld<OrgType> orgWrapper = orgDto.getObjectOld();
-//                orgWrapper.revive(getPrismContext());
-//                ObjectDelta<OrgType> delta = orgWrapper.getObjectDelta();
-//                PrismReferenceValue refValue = getPrismContext().itemFactory().createReferenceValue(null, OriginType.USER_ACTION, null);
-//
-//                switch (orgDto.getStatus()) {
-//                    case ADD:
-//                        refValue.setOid(delta.getOid());
-//                        refValue.setTargetType(OrgType.COMPLEX_TYPE);
-//                        refDelta.addValueToAdd(refValue);
-//                        break;
-//                    case DELETE:
-//                        break;
-//                    case MODIFY:
-//                        break;
-//                    case UNLINK:
-//                        refValue.setOid(delta.getOid());
-//                        refValue.setTargetType(OrgType.COMPLEX_TYPE);
-//                        refDelta.addValueToDelete(refValue);
-//                        break;
-//                    default:
-//                        warn(getString("pageAdminFocus.message.illegalAccountState", orgDto.getStatus()));
-//                }
-//            }
-//        }
-//
-//        return refDelta;
-//    }
-
     public List<AssignmentInfoDto> showAllAssignmentsPerformed(AjaxRequestTarget ajaxRequestTarget) {
         LOGGER.debug("Recompute user assignments");
         Task task = createSimpleTask(OPERATION_RECOMPUTE_ASSIGNMENTS);
