@@ -15,7 +15,7 @@
     License for the specific language governing permissions and ~ limitations
     under the License. -->
 
-<resource oid="3df33d1c-ff1c-11e9-a546-93b539ed664a"
+<resource oid="4bac305c-ed1f-4919-9670-e11863156811"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -26,7 +26,7 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-    <name>Dummy Activation Native</name>
+    <name>Dummy Activation Simulated</name>
     <connectorRef type="c:ConnectorType">
         <filter>
             <q:and>
@@ -46,11 +46,11 @@
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
-            <icfi:instanceId>activation-native</icfi:instanceId>
+            <icfi:instanceId>activation-simulated</icfi:instanceId>
             <icfi:caseIgnoreId>true</icfi:caseIgnoreId>
             <icfi:uidMode>uuid</icfi:uidMode>
 
-            <icfi:supportActivation>true</icfi:supportActivation>
+            <icfi:supportActivation>false</icfi:supportActivation>
 
         </icfc:configurationProperties>
 
@@ -64,7 +64,6 @@
     <schemaHandling>
 
         <objectType>
-            <kind>account</kind>
             <intent>default</intent>
             <displayName>Default Account</displayName>
             <default>true</default>
@@ -101,23 +100,34 @@
                 </administrativeStatus>
             </activation>
 
+            <configuredCapabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:CapabilityCollectionType">
+                <cap:activation>
+                    <cap:status>
+                        <!-- MID-5400 -->
+                        <cap:attribute>ri:privileges</cap:attribute>
+                        <cap:enableValue>false</cap:enableValue>
+                        <cap:enableValue></cap:enableValue>
+                        <cap:disableValue>true</cap:disableValue>
+                    </cap:status>
+                </cap:activation>
+            </configuredCapabilities>
 
         </objectType>
     </schemaHandling>
+    <!-- working -->
+    <!--
     <capabilities
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
         <configured>
             <cap:activation>
                 <cap:status>
-                    <!-- MID-5883 -->
-                    <cap:enabled>true</cap:enabled>
-                    <cap:returnedByDefault>true</cap:returnedByDefault>
-                    <cap:ignoreAttribute>true</cap:ignoreAttribute>
-                    <!-- NOTE: no cap:attribute, cap:enableValue or cap:disableValue here -->
+                    <cap:attribute>ri:disabled</cap:attribute>
+                    <cap:enableValue>false</cap:enableValue>
+                    <cap:disableValue>true</cap:disableValue>
                 </cap:status>
             </cap:activation>
         </configured>
-    </capabilities>
+    </capabilities> -->
     <synchronization>
         <objectSynchronization>
             <enabled>true</enabled>

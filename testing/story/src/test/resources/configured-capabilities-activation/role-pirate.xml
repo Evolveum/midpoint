@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -14,10 +14,16 @@
 
     <inducement>
         <construction>
-            <resourceRef oid="4bac305c-ed1f-4919-aaaa-e11863156811" type="ResourceType"/>
+            <resourceRef oid="4bac305c-ed1f-4919-aaaa-e11863156811" type="ResourceType"/> <!-- activation-native-simulated -->
             <kind>account</kind>
             <intent>default</intent>
         </construction>
-
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="3df33d1c-ff1c-11e9-a546-93b539ed664a" type="ResourceType"/> <!-- activation-native -->
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
     </inducement>
 </role>
