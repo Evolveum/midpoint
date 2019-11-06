@@ -23,5 +23,4 @@
     <inducement id="3">
         <targetRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:OrgType"/>
     </inducement>
-    <approverRef oid="f65963e3-9d47-4b18-aaf3-bfc98bdfa000" type="c:UserType"/>
 </role>
