@@ -45,9 +45,9 @@ public class MidpointYAMLGenerator extends YAMLGenerator {
     }
 
     @Override
-    protected ScalarEvent _scalarEvent(String value, Character style) {
+    protected ScalarEvent _scalarEvent(String value, DumperOptions.ScalarStyle style) {
         if (value.indexOf('\n') != -1) {
-            style = Character.valueOf('|');
+            style = DumperOptions.ScalarStyle.createStyle('|');
         }
 
         ImplicitTuple implicit;
