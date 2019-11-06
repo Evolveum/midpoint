@@ -74,7 +74,7 @@
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ConnectorManager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ShadowCache" level="TRACE" />
-    <logger name="com.evolveum.midpoint.provisioning.impl.ResourceObjectConverter" level="TRACE" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.fgesdads
     <logger name="com.evolveum.midpoint.expression" level="DEBUG" />
     <logger name="com.evolveum.midpoint.security" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.common.expression" level="DEBUG" />
