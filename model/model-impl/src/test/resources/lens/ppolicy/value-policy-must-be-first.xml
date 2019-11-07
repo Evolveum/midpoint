@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
     <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -11,13 +11,6 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>Numeric PIN Policy</name>
     <description>A policy useful for generating PIN.</description>
-    <lifetime>
-        <expiration>999</expiration>
-        <warnBeforeExpiration>9</warnBeforeExpiration>
-        <lockAfterExpiration>0</lockAfterExpiration>
-        <minPasswordAge>0</minPasswordAge>
-        <passwordHistoryLength>0</passwordHistoryLength>
-    </lifetime>
     <stringPolicy>
         <description>String validation policy</description>
         <limitations>
