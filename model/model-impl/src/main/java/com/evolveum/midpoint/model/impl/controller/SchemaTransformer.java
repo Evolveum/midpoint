@@ -285,9 +285,11 @@ public class SchemaTransformer {
 	private <O extends ObjectType> void applySchemasAndSecurityProjections(LensContext<O> context,
 			AuthorizationPhaseType phase, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
 		for (LensProjectionContext projCtx : context.getProjectionContexts()) {
+            if (projCtx != null && projCtx.getObjectAny() != null) {
 			applySchemasAndSecurityElementContext(context, projCtx, phase, task, result);
 		}
 	}
+    }
 		
 	private <F extends ObjectType, O extends ObjectType> ObjectSecurityConstraints applySchemasAndSecurityElementContext(LensContext<F> context, LensElementContext<O> elementContext,
 			AuthorizationPhaseType phase, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
