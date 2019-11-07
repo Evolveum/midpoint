@@ -25,7 +25,7 @@ public class MessageWrapper {
 
     @NotNull private final AsyncUpdateMessageType message;
 
-    private static final TypeReference<?> MAP_TYPE = new MapTypeReference();
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new MapTypeReference();
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static class MapTypeReference extends TypeReference<Map<String, Object>> {
