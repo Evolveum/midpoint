@@ -50,7 +50,6 @@ public class LockoutStatusPanelFactory implements GuiComponentFactory<PrismPrope
     @Override
     public Panel createPanel(PrismPropertyPanelContext<LockoutStatusType> panelCtx) {
         LockoutStatusPanel panel = new LockoutStatusPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
-        panelCtx.getFeedbackPanel().setFilter(new ComponentFeedbackMessageFilter(panel));
         return panel;
     }
 

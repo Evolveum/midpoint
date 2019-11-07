@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.sample;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.objectdetails.AbstractFocusTabPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 
@@ -43,7 +44,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author Radovan Semancik
  *
  */
-public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
+public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusTabPanel<F> {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = SampleFormFocusTabPanel.class.getName() + ".";
@@ -61,7 +62,7 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractObject
     public SampleFormFocusTabPanel(String id, Form<PrismObjectWrapper<F>> mainForm,
                                    LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
                                    LoadableModel<List<ShadowWrapper>> projectionModel) {
-        super(id, mainForm, focusWrapperModel);
+        super(id, mainForm, focusWrapperModel, projectionModel);
 
     }
 
