@@ -26,6 +26,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
@@ -44,6 +46,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.repeater.Item;
@@ -119,7 +122,16 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
                 return workItemDetails != null ? workItemDetails.getCustomForm() : null;
             }
 
-
+            @Override
+            protected void afterActionFinished(AjaxRequestTarget target){
+                Breadcrumb previousBreadcrumb = getPageBase().getPreviousBreadcrumb();
+                if (previousBreadcrumb instanceof BreadcrumbPageInstance &&
+                        ((BreadcrumbPageInstance)previousBreadcrumb).getPage() instanceof PageCaseWorkItem){
+                    getPageBase().redirectBack(3);
+                } else {
+                    getPageBase().redirectBack();
+                }
+            }
         };
         actionsPanel.setOutputMarkupId(true);
         actionsPanel.add(new VisibleBehaviour(() -> {

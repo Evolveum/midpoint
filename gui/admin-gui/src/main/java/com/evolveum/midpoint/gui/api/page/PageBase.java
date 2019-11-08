@@ -2580,6 +2580,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return getBreadcrumbs().get(getBreadcrumbs().size() - 1);
     }
 
+    public Breadcrumb getPreviousBreadcrumb() {
+        if (getBreadcrumbs().isEmpty() || getBreadcrumbs().size() < 2) {
+            return null;
+        }
+
+        return getBreadcrumbs().get(getBreadcrumbs().size() - 2);
+    }
+
     public void clearBreadcrumbs() {
         getBreadcrumbs().clear();
     }
