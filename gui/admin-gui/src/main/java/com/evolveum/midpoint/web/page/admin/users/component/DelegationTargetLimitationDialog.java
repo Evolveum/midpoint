@@ -45,4 +45,9 @@ public class DelegationTargetLimitationDialog extends AssignmentsInfoDialog {
     protected boolean showRelationColumn() {
         return false;
     }
+
+    @Override
+    protected boolean showCancelButton(){
+        return true;
+    }
 }

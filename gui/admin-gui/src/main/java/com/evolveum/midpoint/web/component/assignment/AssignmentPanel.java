@@ -119,7 +119,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     private final static String ID_ACTIVATION_PANEL = "activationPanel";
     protected static final String ID_SPECIFIC_CONTAINER = "specificContainers";
     private static final String ID_NEW_ITEM_BUTTON = "newItemButton";
-    private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
     private static final String ID_BUTTON_TOOLBAR_FRAGMENT = "buttonToolbarFragment";
 
 
@@ -285,33 +284,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         MultifunctionalButton newObjectIcon = getMultivalueContainerListPanel().getNewItemButton(ID_NEW_ITEM_BUTTON);
         searchContainer.add(newObjectIcon);
 
-        AjaxIconButton showAllAssignmentsButton = new AjaxIconButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON, new Model<>("fa fa-address-card"),
-                createStringResource("AssignmentTablePanel.menu.showAllAssignments")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                showAllAssignments(ajaxRequestTarget);
-            }
-        };
-        searchContainer.addOrReplace(showAllAssignmentsButton);
-        showAllAssignmentsButton.setOutputMarkupId(true);
-        showAllAssignmentsButton.add(new VisibleBehaviour(() -> !isInducement()));
         return searchContainer;
-    }
-
-    protected void showAllAssignments(AjaxRequestTarget target) {
-        PageBase pageBase = getPageBase();
-        List<AssignmentInfoDto> previewAssignmentsList;
-        if (pageBase instanceof PageAdminFocus) {
-            previewAssignmentsList = ((PageAdminFocus<?>) pageBase).showAllAssignmentsPerformed(target);
-        } else {
-            previewAssignmentsList = Collections.emptyList();
-        }
-        AllAssignmentsPreviewDialog assignmentsDialog = new AllAssignmentsPreviewDialog(pageBase.getMainPopupBodyId(), previewAssignmentsList,
-                pageBase);
-        pageBase.showMainPopup(assignmentsDialog, target);
     }
 
     protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef){
