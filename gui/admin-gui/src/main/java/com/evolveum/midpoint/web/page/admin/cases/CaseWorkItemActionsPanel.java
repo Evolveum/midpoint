@@ -80,7 +80,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
                 OperationResult completionResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
                 WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(), getWorkItemOutput(true),
                         getCustomForm(), getPowerDonor(), true, completionResult, getPageBase());
-                CaseWorkItemActionsPanel.this.getPageBase().redirectBack();
+                afterActionFinished(ajaxRequestTarget);
 
             }
         };
@@ -96,7 +96,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
                 OperationResult completionResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
                 WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(), getWorkItemOutput(false),
                         getCustomForm(), getPowerDonor(), false, completionResult, getPageBase());
-                CaseWorkItemActionsPanel.this.getPageBase().redirectBack();
+                afterActionFinished(ajaxRequestTarget);
             }
         };
         workItemRejectButton.setOutputMarkupId(true);
@@ -195,12 +195,16 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't forward work item", ex);
         }
         getPageBase().processResult(target, result, false);
-        getPageBase().redirectBack();
+        afterActionFinished(target);
     }
 
     private void claimWorkItemPerformed(AjaxRequestTarget target){
         WebComponentUtil.claimWorkItemActionPerformed(getModelObject(), OPERATION_CLAIM_ITEMS, target, getPageBase());
 
+    }
+
+    protected void afterActionFinished(AjaxRequestTarget target){
+        getPageBase().redirectBack();
     }
 
     protected Component getCustomForm() {
