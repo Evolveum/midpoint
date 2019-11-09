@@ -35,9 +35,4 @@
     <authorization>
         <action>http://midpoint.evolveum.com/xml/ns/test/authorization#punish</action>
     </authorization>
-    <exclusion>
-        <description>A judge cannot be a pirate at the same time. At least not openly.</description>
-        <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
-        <policy>enforce</policy>
-    </exclusion>
 </role>

@@ -11,12 +11,6 @@
     <description>Complex Password policy requires at least one lowercase letter, at least one uppercase letter, at least one digit
 and at least on special character in the password. The password must start
 with a lowercase letter and must be at least 6 characters long.</description>
-    <lifetime>
-        <expiration>999</expiration>
-        <warnBeforeExpiration>9</warnBeforeExpiration>
-        <lockAfterExpiration>0</lockAfterExpiration>
-        <minPasswordAge>0</minPasswordAge>
-    </lifetime>
     <stringPolicy>
         <description>String validation policy</description>
         <limitations>
