@@ -85,8 +85,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
     private static final String ACCOUNT_BETTY_FULLNAME = "Betty Rubble";
     private static final String ACCOUNT_ELIZABETH2_FULLNAME = "Her Majesty Queen Elizabeth II";
 
-    protected static final File ACCOUNT_SHADOW_MURRAY_LEGACY_FILE = new File(TEST_DIR, "account-shadow-murray-legacy.xml");
-    protected static final String ACCOUNT_SHADOW_MURRAY_LEGACY_OID = "34132742-2085-11e9-a956-17770b09881b";
+    protected static final File ACCOUNT_SHADOW_MURRAY_PENDING_FILE = new File(TEST_DIR, "account-shadow-murray-pending-operation.xml");
+    protected static final String ACCOUNT_SHADOW_MURRAY_PENDING_OID = "34132742-2085-11e9-a956-17770b09881b";
     private static final String ACCOUNT_MURRAY_USERNAME = "murray";
     private static final String ACCOUNT_MURRAY_FULL_NAME = "Murray";
 
@@ -2126,12 +2126,12 @@ public class TestDummyConsistency extends AbstractDummyTest {
     // TODO: test no discovery options
 
     /**
-     * Legacy consistency items.
-     * MID-5076
+     * Pending operation (was: legacy consistency items, MID-5076).
+     * TODO consider removing this test.
      */
     @Test
-    public void test900GetAccountMurrayLegacy() throws Exception {
-        final String TEST_NAME = "test900GetAccountMurrayLegacy";
+    public void test900GetAccountMurrayPending() throws Exception {
+        final String TEST_NAME = "test900GetAccountMurrayPending";
         displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2140,11 +2140,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         dummyResource.resetBreakMode();
 
         dummyResourceCtl.addAccount(ACCOUNT_MURRAY_USERNAME, ACCOUNT_MURRAY_FULL_NAME);
-        repoAddObjectFromFile(ACCOUNT_SHADOW_MURRAY_LEGACY_FILE, result);
+        repoAddObjectFromFile(ACCOUNT_SHADOW_MURRAY_PENDING_FILE, result);
 
         // WHEN
         displayWhen(TEST_NAME);
-        PrismObject<ShadowType> accountMurray = provisioningService.getObject(ShadowType.class, ACCOUNT_SHADOW_MURRAY_LEGACY_OID, null, task, result);
+        PrismObject<ShadowType> accountMurray = provisioningService.getObject(ShadowType.class, ACCOUNT_SHADOW_MURRAY_PENDING_OID, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
