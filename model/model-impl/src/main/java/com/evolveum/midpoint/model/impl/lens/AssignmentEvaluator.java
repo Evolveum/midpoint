@@ -1292,14 +1292,12 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         return inducementFocusClass.isAssignableFrom(lensContext.getFocusClass());
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isAllowedByLimitations(AssignmentPathSegment segment, AssignmentType nextAssignment, EvaluationContext ctx) {
         AssignmentType currentAssignment = segment.getAssignment(ctx.evaluateOld);
         AssignmentSelectorType targetLimitation = currentAssignment.getLimitTargetContent();
         if (isDeputyDelegation(nextAssignment)) {       // delegation of delegation
-            if (targetLimitation == null) {
-                return false;
-            }
-            return BooleanUtils.isTrue(targetLimitation.isAllowTransitive());
+            return targetLimitation != null && BooleanUtils.isTrue(targetLimitation.isAllowTransitive());
         } else {
             // As for the case of targetRef==null: we want to pass target-less assignments (focus mappings, policy rules etc)
             // from the delegator to delegatee. To block them we should use order constraints (but also for assignments?).
@@ -1337,6 +1335,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
     private void checkSchema(AssignmentPathSegmentImpl segment, EvaluationContext ctx) throws SchemaException {
         AssignmentType assignmentType = getAssignmentType(segment, ctx);
+        //noinspection unchecked
         PrismContainerValue<AssignmentType> assignmentContainerValue = assignmentType.asPrismContainerValue();
         PrismContainerable<AssignmentType> assignmentContainer = assignmentContainerValue.getParent();
         if (assignmentContainer == null) {
@@ -1376,7 +1375,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         }
     }
 
-    public PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateCondition(MappingType condition,
+    private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateCondition(MappingType condition,
             ObjectType source, AssignmentPathVariables assignmentPathVariables, String contextDescription, EvaluationContext ctx,
             OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -1585,7 +1584,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         private final String targetOid;
         private boolean result;
 
-        MemberOfInvocation(String targetOid, boolean result) {
+        private MemberOfInvocation(String targetOid, boolean result) {
             this.targetOid = targetOid;
             this.result = result;
         }
