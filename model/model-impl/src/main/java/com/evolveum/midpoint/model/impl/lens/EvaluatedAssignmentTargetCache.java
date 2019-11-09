@@ -81,7 +81,8 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
             return false;
         }
         if (idempotence == IdempotenceType.CONSERVATIVE && !segment.isMatchingOrder()) {
-//            LOGGER.trace("Conservative idempotent and order is not matching: {}", target);
+            // this is quite important (and perhaps not too frequent) message, so let's keep it here
+            LOGGER.trace("Conservative idempotent and order is not matching: {}", target);
             return false;
         }
         if (idempotence == IdempotenceType.AGGRESSIVE) {
@@ -92,7 +93,8 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
             // be remembered as evaluation and it will not be re-evaluated
             // in non-meta context.
             if (!segment.getEvaluationOrder().isOrderOne()) {
-//                LOGGER.trace("Aggressive idempotent and non-one order: {}: {}", segment.getEvaluationOrder(), target);
+                // this is quite important (and perhaps not too frequent) message, so let's keep it here
+                LOGGER.trace("Aggressive idempotent and non-one order: {}: {}", segment.getEvaluationOrder(), target);
                 return true;
             }
             return processedKeys.get(mode).contains(new Key(segment));

@@ -133,7 +133,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         prepareNotifications();
         dummyAuditService.clear();
 
-        Task opTask = createTask(AbstractWfTestPolicy.class.getName() + "." + testName);
+        Task opTask = getOrCreateTestTask(testName);
 
         boolean USE_FULL_TRACING = false;
         //noinspection ConstantConditions
