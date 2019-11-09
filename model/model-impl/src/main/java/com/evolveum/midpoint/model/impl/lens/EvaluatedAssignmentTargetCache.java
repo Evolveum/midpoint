@@ -6,11 +6,6 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.prism.delta.DeltaTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
@@ -22,6 +17,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IdempotenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import javax.xml.namespace.QName;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author semancik
  *
@@ -32,36 +31,53 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
 
     // Triple. Target processed for addition is not necessarily reusable for deletion
     // This is indexed by OID and relation only
-    private DeltaTriple<Set<Key>> processedKeys;
+    private DeltaTriple<Map<Key, AssignmentTargetEvaluationInformation>> processedKeys;
 
     // Triple. Target processed for addition is not necessarily reusable for deletion
     // This is indexed by OID, relation and order
-    private DeltaTriple<Set<OrderKey>> processedOrderKeys;
+    private DeltaTriple<Map<OrderKey, AssignmentTargetEvaluationInformation>> processedOrderKeys;
 
 
-    public EvaluatedAssignmentTargetCache() {
-        processedOrderKeys = new DeltaTriple<>(() -> new HashSet<>());
-        processedKeys = new DeltaTriple<>(() -> new HashSet<>());
+    EvaluatedAssignmentTargetCache() {
+        processedOrderKeys = new DeltaTriple<>(HashMap::new);
+        processedKeys = new DeltaTriple<>(HashMap::new);
     }
 
     public void reset() {
-        processedOrderKeys.foreach(set -> set.clear());
-        processedKeys.foreach(set -> set.clear());
+        processedOrderKeys.foreach(Map::clear);
+        processedKeys.foreach(Map::clear);
     }
 
-    public void recordProcessing(AssignmentPathSegmentImpl segment, PlusMinusZero mode) {
+    void resetForNextAssignment() {
+        processedOrderKeys.foreach(map -> removeAssignmentScoped(map, "conservative assignment target evaluation cache"));
+        processedKeys.foreach(map -> removeAssignmentScoped(map, "aggressive assignment target evaluation cache"));
+    }
+
+    private void removeAssignmentScoped(Map<? extends Key, AssignmentTargetEvaluationInformation> map, String desc) {
+        int before = map.size();
+        map.entrySet().removeIf(e -> e.getValue().isAssignmentScoped());
+        int after = map.size();
+        if (after < before) {
+            LOGGER.trace("Removed {} entries from {}", before - after, desc);
+        }
+    }
+
+    AssignmentTargetEvaluationInformation recordProcessing(AssignmentPathSegmentImpl segment, PlusMinusZero mode) {
         ObjectType targetType = segment.getTarget();
         if (!(targetType instanceof AbstractRoleType)) {
-            return;
+            return null;
         }
         if (!isCacheable((AbstractRoleType)targetType)) {
-            return;
+            return null;
         }
-        processedOrderKeys.get(mode).add(new OrderKey(segment));
+        AssignmentTargetEvaluationInformation targetEvaluationInformation = new AssignmentTargetEvaluationInformation();
 
+        processedOrderKeys.get(mode).put(new OrderKey(segment), targetEvaluationInformation);
         if (targetType.getOid() != null) {
-            processedKeys.get(mode).add(new Key(segment));
+            processedKeys.get(mode).put(new Key(segment), targetEvaluationInformation);
         }
+
+        return targetEvaluationInformation;
     }
 
     private boolean isCacheable(AbstractRoleType targetType) {
@@ -97,9 +113,9 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
                 LOGGER.trace("Aggressive idempotent and non-one order: {}: {}", segment.getEvaluationOrder(), target);
                 return true;
             }
-            return processedKeys.get(mode).contains(new Key(segment));
+            return processedKeys.get(mode).containsKey(new Key(segment));
         } else {
-            return processedOrderKeys.get(mode).contains(new OrderKey(segment));
+            return processedOrderKeys.get(mode).containsKey(new OrderKey(segment));
         }
     }
 

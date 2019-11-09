@@ -1000,7 +1000,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         assertNotAssignedRole(jack, roleRole27Oid);
     }
 
-    @Test(enabled = false)      // MID-5827
+    @Test      // MID-5827
     public void test900AssignIdempotentRole() throws Exception {
         login(userAdministrator);
         Task task = getTask();

@@ -12433,9 +12433,9 @@
                             <xsd:documentation>
                                 <p>
                                     <p>
-                                        This value indicates, whether the evaluation of this role gives the
+                                        This value indicates whether the evaluation of this role gives the
                                         same results regardless of its position in the assignment/inducement
-                                        hierarchy. I.e. evaluation of this roles does not depend on the assignment
+                                        hierarchy. I.e. evaluation of this role does not depend on the assignment
                                         parameters of focus or any of the preceding roles. This flag is used
                                         to enable aggressive caching of role evaluation, so idempotent roles
                                         are only evaluated once regardless of their position in the hierarchy
@@ -12465,15 +12465,15 @@
                                         focus then their outcome does not depend on their position in
                                         assignment/inducement hierarchy and these roles can be made idempotent.
                                     </p>
-                                </p>
-                            </xsd:documentation>
-                             <xsd:appinfo>
-                                <a:displayName>AbstractRoleType.idempotent</a:displayName>
-                                <a:since>3.6</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="riskLevel" type="xsd:string" minOccurs="0">
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>AbstractRoleType.idempotent</a:displayName>
+								<a:since>3.6</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="riskLevel" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>

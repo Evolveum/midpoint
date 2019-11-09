@@ -440,6 +440,11 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return Stream.concat(thisTargetPolicyRules.stream(), otherTargetsPolicyRules.stream()).collect(Collectors.toList());
     }
 
+    @Override
+    public int getAllTargetsPolicyRulesCount() {
+        return thisTargetPolicyRules.size() + otherTargetsPolicyRules.size();
+    }
+
     @NotNull
     private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints, AssignmentPath assignmentPath,
             AssignmentHolderType directOwner, PrismContext prismContext) {
