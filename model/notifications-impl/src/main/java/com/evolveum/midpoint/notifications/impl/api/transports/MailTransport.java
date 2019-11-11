@@ -300,6 +300,10 @@ public class MailTransport implements Transport {
                             fileName +=    MimeTypeUtil.getDefaultExt(attachment.getContentType());
                         }
                         attachmentBody.setFileName(fileName);
+                        if(!StringUtils.isBlank(attachment.getContentId())) {
+                            attachmentBody.setHeader("Content-ID", attachment.getContentId());
+                        }
+
                         multipart.addBodyPart(attachmentBody);
                     } else {
                         LOGGER.warn("NotificationMessageAttachmentType doesn't contain content.");
