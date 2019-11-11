@@ -1521,6 +1521,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="contentId" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Value of the Content-ID header of MIME body part for this attachment.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 </xsd:schema>
