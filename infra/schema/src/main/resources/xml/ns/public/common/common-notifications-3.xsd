@@ -1526,6 +1526,9 @@
                     <xsd:documentation>
                         Value of the Content-ID header of MIME body part for this attachment.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

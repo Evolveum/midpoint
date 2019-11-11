@@ -10,6 +10,7 @@
     -->
     <property name="severity" value="error"/>
 
+    <!-- Also need to add suffixes to parent pom.xml in checkstyle plugin configuration -->
     <property name="fileExtensions" value="java, properties, xml, xsd, wsdl, json, yml, yaml"/>
 
     <!-- Excludes all 'module-info.java' files              -->
