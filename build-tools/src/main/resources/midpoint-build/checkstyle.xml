@@ -10,7 +10,7 @@
     -->
     <property name="severity" value="error"/>
 
-    <property name="fileExtensions" value="java, properties, xml"/>
+    <property name="fileExtensions" value="java, properties, xml, xsd, wsdl, json, yml, yaml"/>
 
     <!-- Excludes all 'module-info.java' files              -->
     <!-- See https://checkstyle.org/config_filefilters.html -->
