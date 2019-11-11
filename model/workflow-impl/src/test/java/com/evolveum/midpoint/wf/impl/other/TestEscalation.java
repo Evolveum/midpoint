@@ -19,7 +19,6 @@ import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
@@ -88,12 +87,10 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
     @Test
     public void test100CreateE1ApprovalCase() throws Exception {
-        final String TEST_NAME = "test100CreateE1ApprovalCase";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         assignRole(userJackOid, ROLE_E1_OID, task, result);                // should start approval process
         assertNotAssignedRole(userJackOid, ROLE_E1_OID, task, result);
@@ -118,12 +115,10 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
     @Test
     public void test110NotifyAfter5Days() throws Exception {
-        final String TEST_NAME = "test110NotifyAfter5Days";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         clock.overrideDuration("P5DT1H");            // at P5D there's a notify action
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
@@ -142,12 +137,10 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
     @Test
     public void test120EscalateAfter12Days() throws Exception {
-        final String TEST_NAME = "test120EscalateAfter12Days";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         clock.resetOverride();
         clock.overrideDuration("P12DT1H");        // at -P2D (i.e. P12D) there is a delegate action
@@ -166,12 +159,10 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
     @Test
     public void test130CompleteAfter14Days() throws Exception {
-        final String TEST_NAME = "test130CompleteAfter14Days";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         clock.resetOverride();
         clock.overrideDuration("P14DT1H");        // at 0 (i.e. P14D) there is a delegate action
@@ -190,12 +181,10 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
     @Test
     public void test200CreateE2ApprovalCase() throws Exception {
-        final String TEST_NAME = "test200CreateE2ApprovalCase";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         clock.resetOverride();
         resetTriggerTask(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, result);
@@ -221,12 +210,10 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
     @Test
     public void test210EscalateAfter3Days() throws Exception {
-        final String TEST_NAME = "test210EscalateAfter3Days";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();
@@ -256,12 +243,10 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
     @Test
     public void test220Reject() throws Exception {
-        final String TEST_NAME = "test220Reject";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();

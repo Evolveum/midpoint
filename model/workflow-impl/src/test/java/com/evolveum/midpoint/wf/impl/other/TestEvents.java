@@ -56,12 +56,10 @@ public class TestEvents extends AbstractWfTestPolicy {
 
     @Test
     public void test100CreateTask() throws Exception {
-        final String TEST_NAME = "test100CreateTask";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         assignRole(userJackOid, roleNoApproversOid, task, result);                // should start approval process
         assertNotAssignedRole(userJackOid, roleNoApproversOid, task, result);
