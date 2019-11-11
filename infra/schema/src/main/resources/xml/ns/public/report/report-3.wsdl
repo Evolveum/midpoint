@@ -2,12 +2,12 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <definitions  name="report"
-	targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report/report-3"
+    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report/report-3"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/report/report-3"
     xmlns="http://schemas.xmlsoap.org/wsdl/"
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
@@ -18,31 +18,31 @@
     xmlns:aud="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"
     xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-3"
     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" >
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" >
  <documentation>
- 	Web service interface for jasper report data source provider
+     Web service interface for jasper report data source provider
  </documentation>
- 
- 
+
+
    <types>
         <!-- Element form name is QUALIFIED to prevent some problems with marshalling/unmarshalling. This deviates from RPC/Literal convention, but we
              do not have to obey this convention -->
         <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report/report-3" elementFormDefault="qualified">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+                        schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
-            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"/>
+                        schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"
-            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"/>
+                        schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
-            			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
+                        schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            			schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-         
-     
+                        schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+
+
         <xsd:complexType name="ProcessReportType">
           <xsd:sequence>
-          	<xsd:element name="reportOid" type="xsd:string" minOccurs="0">
+              <xsd:element name="reportOid" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         OID of an report to process
@@ -55,7 +55,7 @@
           </xsd:sequence>
         </xsd:complexType>
       <xsd:element name="processReport" type="tns:ProcessReportType" />
-      
+
         <xsd:complexType name="ProcessReportResponseType">
           <xsd:sequence>
           <xsd:element name="objectList" type="apit:ObjectListType">
@@ -68,8 +68,8 @@
           </xsd:sequence>
         </xsd:complexType>
       <xsd:element name="processReportResponse" type="tns:ProcessReportResponseType"/>
-      
-            
+
+
             <xsd:complexType name="EvaluateScriptType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -116,11 +116,11 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                   
+
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="evaluateScriptResponse" type="tns:EvaluateScriptResponseType"/>
-      
+
       <xsd:complexType name="EvaluateAuditScriptType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -167,20 +167,20 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                   
+
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="evaluateAuditScriptResponse" type="tns:EvaluateAuditScriptResponseType"/>
-            
-             
+
+
             <xsd:complexType name="RemoteReportParametersType">
                 <xsd:annotation>
                     <xsd:documentation>
                         A response from searchObjects operation.
                     </xsd:documentation>
-	                <xsd:appinfo>
-	                	<a:container/>
-	            	</xsd:appinfo>
+                    <xsd:appinfo>
+                        <a:container/>
+                    </xsd:appinfo>
                 </xsd:annotation>
                 <xsd:sequence>
                     <xsd:element name="remoteParameter" type="tns:RemoteReportParameterType" minOccurs="0" maxOccurs="unbounded">
@@ -193,15 +193,15 @@
                  </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="remoteReportParameters" type="tns:RemoteReportParametersType"/>
-            
+
             <xsd:complexType name="RemoteReportParameterType">
                 <xsd:annotation>
                     <xsd:documentation>
                         A response from searchObjects operation.
                     </xsd:documentation>
                     <xsd:appinfo>
-	                	<a:container/>
-	                </xsd:appinfo>
+                        <a:container/>
+                    </xsd:appinfo>
                 </xsd:annotation>
                 <xsd:sequence>
                     <xsd:element name="parameterName" type="xsd:string">
@@ -211,7 +211,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    
+
                      <xsd:element name="parameterValue" type="c:ReportParameterType">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -219,7 +219,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                        
+
                     <xsd:element name="parameterType" type="xsd:QName">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -227,44 +227,44 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                           
+
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:element name="remoteReportParameter" type="tns:RemoteReportParameterType"/>
-        
-            
-      
-       
+
+
+
+
     </xsd:schema>
   </types>
-  
+
   <message name="processReport">
     <part element="tns:processReport" name="parameters"/>
   </message>
   <message name="processReportResponse">
     <part element="tns:processReportResponse" name="parameters"/>
   </message>
-  
+
   <message name="evaluateScript">
     <part element="tns:evaluateScript" name="parameters"/>
   </message>
   <message name="evaluateScriptResponse">
     <part element="tns:evaluateScriptResponse" name="parameters"/>
   </message>
-  
+
   <message name="evaluateAuditScript">
     <part element="tns:evaluateAuditScript" name="parameters"/>
   </message>
   <message name="evaluateAuditScriptResponse">
     <part element="tns:evaluateAuditScriptResponse" name="parameters"/>
   </message>
-  
+
   <portType name="reportPortType">
     <operation name="processReport">
       <input message="tns:processReport"/>
       <output message="tns:processReportResponse"/>
     </operation>
-     
+
     <operation name="evaluateScript">
       <input message="tns:evaluateScript"/>
       <output message="tns:evaluateScriptResponse"/>
@@ -273,10 +273,10 @@
       <input message="tns:evaluateAuditScript"/>
       <output message="tns:evaluateAuditScriptResponse"/>
     </operation>
-     
+
   </portType>
-  
-  
+
+
   <binding name="reportBinding" type="tns:reportPortType">
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
     <operation name="processReport">
@@ -288,7 +288,7 @@
         <soap:body use="literal"/>
       </output>
     </operation>
-    
+
     <operation name="evaluateScript">
       <soap:operation name="evaluateScript"/>
       <input>
@@ -307,7 +307,7 @@
         <soap:body use="literal"/>
       </output>
     </operation>
-    
+
   </binding>
   <service name="reportWebService">
         <port name="reportPort"
