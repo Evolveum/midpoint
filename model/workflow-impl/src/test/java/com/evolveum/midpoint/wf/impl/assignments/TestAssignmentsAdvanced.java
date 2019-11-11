@@ -147,11 +147,6 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     }
 
     @Override
-    protected boolean isAutoTaskManagementEnabled() {
-        return true;
-    }
-
-    @Override
     protected TracingProfileType getTestMethodTracingProfile() {
         return null;
 //        return createModelAndWorkflowLoggingTracingProfile()

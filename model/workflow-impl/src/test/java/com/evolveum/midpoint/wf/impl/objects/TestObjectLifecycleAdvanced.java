@@ -85,15 +85,13 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
 
     @Test
     public void test010CreateRoleEmployee() throws Exception {
-        final String TEST_NAME = "test010CreateRoleEmployee";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<RoleType> employee = prismContext.parseObject(ROLE_EMPLOYEE_FILE);
-        executeTest(TEST_NAME, new TestDetails() {
+        executeTest(null, new TestDetails() {
                     @Override
                     protected LensContext createModelContext(OperationResult result) throws Exception {
                         LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -169,12 +167,10 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
 
     @Test
     public void test020ActivateIncompleteRole() throws Exception {
-        final String TEST_NAME = "test020ActivateIncompleteRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         @SuppressWarnings({ "raw"})
         ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
@@ -205,12 +201,10 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
      */
     @Test
     public void test030ActivateIncompleteRoleAgain() throws Exception {
-        final String TEST_NAME = "test030ActivateIncompleteRoleAgain";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         @SuppressWarnings({ "raw"})
         ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
@@ -239,12 +233,10 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
 
     @Test
     public void test040AddApprover() throws Exception {
-        final String TEST_NAME = "test040AddApprover";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         assignRole(userEmployeeOwnerOid, roleEmployeeOid, SchemaConstants.ORG_APPROVER, task, result);
         result.computeStatus();
@@ -254,12 +246,10 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
 
     @Test
     public void test045ActivateCompleteRole() throws Exception {
-        final String TEST_NAME = "test045ActivateCompleteRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         @SuppressWarnings({ "raw"})
         ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
@@ -267,7 +257,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
                 .item(RoleType.F_DESCRIPTION).replace("hi")
                 .asObjectDelta(roleEmployeeOid);
 
-        executeTest(TEST_NAME, new TestDetails() {
+        executeTest(null, new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -323,45 +313,4 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
             }
         }, 1);
     }
-
-
-//    @Test
-//    public void test100ModifyRolePirateDescription() throws Exception {
-//        final String TEST_NAME = "test100ModifyRolePirateDescription";
-//        TestUtil.displayTestTitle(this, TEST_NAME);
-//        login(userAdministrator);
-//
-//        ObjectDelta<RoleType> descriptionDelta = (ObjectDelta<RoleType>) DeltaBuilder.deltaFor(RoleType.class, prismContext)
-//                .item(RoleType.F_DESCRIPTION).replace("Bloody pirate")
-//                .asObjectDelta(roleEmployeeOid);
-//        ObjectDelta<RoleType> delta0 = ObjectDelta.createModifyDelta(roleEmployeeOid, Collections.emptyList(), RoleType.class, prismContext);
-//        //noinspection UnnecessaryLocalVariable
-//        ObjectDelta<RoleType> delta1 = descriptionDelta;
-//        ExpectedTask expectedTask = new ExpectedTask(null, "Modification of pirate");
-//        ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
-//        modifyObject(TEST_NAME, descriptionDelta, delta0, delta1, false, true, userEmployeeOwnerOid,
-//                Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem),
-//                () -> {},
-//                () -> assertNull("Description is modified", getRoleSimple(roleEmployeeOid).getDescription()),
-//                () -> assertEquals("Description was NOT modified", "Bloody pirate", getRoleSimple(roleEmployeeOid).getDescription()));
-//    }
-//
-//    @Test
-//    public void test200DeleteRolePirate() throws Exception {
-//        final String TEST_NAME = "test200DeleteRolePirate";
-//        TestUtil.displayTestTitle(this, TEST_NAME);
-//        login(userAdministrator);
-//
-//        ExpectedTask expectedTask = new ExpectedTask(null, "Deletion of pirate");
-//        ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
-//        deleteObject(TEST_NAME, RoleType.class, roleEmployeeOid, false, true, userEmployeeOwnerOid,
-//                Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem));
-//    }
-//
-//    @Test
-//    public void zzzMarkAsNotInitialized() {
-//        display("Setting class as not initialized");
-//        unsetSystemInitialized();
-//    }
-
 }

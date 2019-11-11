@@ -39,6 +39,7 @@ import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -86,6 +87,11 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         super.initSystem(initTask, initResult);
     }
 
+    @Override
+    protected boolean isAutoTaskManagementEnabled() {
+        return true;
+    }
+
     protected File getSystemConfigurationFile() {
         return SYSTEM_CONFIGURATION_FILE;
     }
@@ -126,12 +132,14 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         }
     }
 
-    protected <F extends FocusType> OperationResult executeTest(String testName, TestDetails testDetails, int expectedSubTaskCount)
+    protected <F extends FocusType> OperationResult executeTest(String testNameExplicit, TestDetails testDetails, int expectedSubTaskCount)
             throws Exception {
 
         // GIVEN
         prepareNotifications();
         dummyAuditService.clear();
+
+        String testName = testNameExplicit != null ? testNameExplicit : getTestNameShort();
 
         Task opTask = getOrCreateTestTask(testName);
 
@@ -413,9 +421,9 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         }
     }
 
-    protected <F extends FocusType> OperationResult executeTest2(String testName, TestDetails2<F> testDetails2, int expectedSubTaskCount,
+    protected <F extends FocusType> OperationResult executeTest2(String testNameExplicit, TestDetails2<F> testDetails2, int expectedSubTaskCount,
             boolean immediate) throws Exception {
-        return executeTest(testName, new TestDetails() {
+        return executeTest(testNameExplicit, new TestDetails() {
             @Override
             protected LensContext<F> createModelContext(OperationResult result) throws Exception {
                 PrismObject<F> focus = testDetails2.getFocus(result);
