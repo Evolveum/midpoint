@@ -57,20 +57,21 @@ public class ObjectListArchetypeTests extends TestBase {
         prismForm
                 .expandContainerPropertiesPanel(OBJECT_COLLECTION_VIEWS_HEADER)
                 .addNewContainerValue(OBJECT_COLLECTION_VIEW_HEADER, NEW_GUI_OBJECT_LIST_VIEW_HEADER)
+                .collapseAllChildrenContainers(OBJECT_COLLECTION_VIEW_HEADER)
                 .expandContainerPropertiesPanel(NEW_OBJECT_LIST_VIEW_CONTAINER_NEW_VALUE_KEY)
                 .expandContainerPropertiesPanel(COLLECTION_HEADER);
 
         //set UserType
         SelenideElement newGuiObjectListViewPropertiesPanel = prismForm.getPrismPropertiesPanel(NEW_OBJECT_LIST_VIEW_CONTAINER_NEW_VALUE_KEY);
-        //todo fix! it takes Type input from the first collection container!
         newGuiObjectListViewPropertiesPanel
-                .$(Schrodinger.byDataResourceKey("Type"))
-                .$(By.tagName("select"))
-                .selectOptionContainingText("User");
+                .find(Schrodinger.byDataResourceKey("Type"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .find(By.tagName("select"))
+                .sendKeys("User");
 
         //set archetypeRef
         newGuiObjectListViewPropertiesPanel
-                .$(Schrodinger.byElementValue("span", COLLECTION_REF_ATTRIBUTE_NAME))
+                .find(Schrodinger.byElementValue("span", COLLECTION_REF_ATTRIBUTE_NAME))
                 .parent()
                 .parent()
                 .parent()
