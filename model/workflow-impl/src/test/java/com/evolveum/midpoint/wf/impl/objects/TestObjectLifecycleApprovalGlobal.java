@@ -18,7 +18,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.ApprovalInstruction;
@@ -73,12 +72,10 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
     @Test
     public void test500CreateRoleJudge() throws Exception {
-        final String TEST_NAME = "test500CreateRoleJudge";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         RoleType judge = new RoleType(prismContext)
                 .name("judge")
@@ -86,7 +83,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
         ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta(judge.asPrismObject());
 
-        executeTest(TEST_NAME, new TestDetails() {
+        executeTest(null, new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -169,12 +166,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
     @Test
     public void test510AddInducementsToJudge() throws Exception {
-        final String TEST_NAME = "test510AddInducementsToJudge";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
-
-        //Task task = createTask(TEST_NAME);
-        //OperationResult result = task.getResult();
 
         ObjectDelta<RoleType> judgeDelta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_INDUCEMENT)
@@ -184,7 +176,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
                         .replace("hi")
                 .asObjectDeltaCast(roleJudgeOid);
 
-        executeTest(TEST_NAME, new TestDetails() {
+        executeTest(null, new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -269,19 +261,14 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
     // MID-4372
     @Test
     public void test520DeleteRoleJudge() throws Exception {
-        final String TEST_NAME = "test500CreateRoleJudge";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
-
-        //Task task = createTask(TEST_NAME);
-        //OperationResult result = task.getResult();
 
         deleteObject(UserType.class, USER_JUDGE_OWNER_OID);
 
         ObjectDelta<RoleType> deleteDelta = prismContext.deltaFactory().object().createDeleteDelta(RoleType.class, roleJudgeOid
         );
 
-        executeTest(TEST_NAME, new TestDetails() {
+        executeTest(null, new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -335,12 +322,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
     @Test
     public void test600CreateRoleCaptain() throws Exception {
-        final String TEST_NAME = "test600CreateRoleCaptain";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
-
-        //Task task = createTask(TEST_NAME);
-        //OperationResult result = task.getResult();
 
         RoleType captain = new RoleType(prismContext)
                 .name("captain")
@@ -350,7 +332,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
                 .inducement(createAssignmentTo("oid2", ObjectTypes.ROLE, prismContext));
         ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta(captain.asPrismObject());
 
-        executeTest(TEST_NAME, new TestDetails() {
+        executeTest(null, new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -441,12 +423,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
     @Test
     public void test610DeleteInducementsFromCaptain() throws Exception {
-        final String TEST_NAME = "test610DeleteInducementsFromCaptain";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
-
-        //Task task = createTask(TEST_NAME);
-        //OperationResult result = task.getResult();
 
         PrismObject<RoleType> captainBefore = getRole(roleCaptainOid);
 
@@ -455,7 +432,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
                         .delete(cloneCollectionMembers(captainBefore.findContainer(RoleType.F_INDUCEMENT).getValues()))
                 .asObjectDeltaCast(roleCaptainOid);
 
-        executeTest(TEST_NAME, new TestDetails() {
+        executeTest(null, new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -531,12 +508,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
     @Test
     public void test700CreateRoleThief() throws Exception {
-        final String TEST_NAME = "test700CreateRoleThief";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
-
-        //Task task = createTask(TEST_NAME);
-        //OperationResult result = task.getResult();
 
         RoleType thief = new RoleType(prismContext)
                 .name("thief")
@@ -547,7 +519,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
         ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta(thief.asPrismObject());
 
-        executeTest(TEST_NAME, new TestDetails() {
+        executeTest(null, new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -637,12 +609,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
     @Test
     public void test710DeleteInducementsFromThief() throws Exception {
-        final String TEST_NAME = "test710DeleteInducementsFromThief";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
-
-        //Task task = createTask(TEST_NAME);
-        //OperationResult result = task.getResult();
 
         PrismObject<RoleType> thiefBefore = getRole(roleThiefOid);
 
@@ -651,7 +618,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
                 .delete(cloneCollectionMembers(thiefBefore.findContainer(RoleType.F_INDUCEMENT).getValues()))
                 .asObjectDeltaCast(roleThiefOid);
 
-        executeTest(TEST_NAME, new TestDetails() {
+        executeTest(null, new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);

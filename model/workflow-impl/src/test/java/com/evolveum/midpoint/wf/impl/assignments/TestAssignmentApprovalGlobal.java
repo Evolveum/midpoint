@@ -62,12 +62,10 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
      * MID-3836
      */
     public void test300ApprovalAndEnforce() throws Exception {
-        final String TEST_NAME = "test300ApprovalAndEnforce";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
-        Task task = createTask(TEST_NAME);
+        Task task = getTask();
         task.setOwner(userAdministrator);
-        OperationResult result = task.getResult();
+        OperationResult result = getResult();
 
         try {
             assignRole(userJackOid, roleRole15Oid, task, result);

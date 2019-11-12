@@ -147,6 +147,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     protected static final String ATTR_TASK = "task";
     protected static final String ATTR_RESULT = "result";
 
+    private static final String UNKNOWN_METHOD = "unknownMethod";
+
     // Values used to check if something is unchanged or changed properly
 
     protected LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
@@ -318,25 +320,48 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         if (ctx != null) {
             return ctx.getMethodName();
         } else {
-            return createAdHocTestContext().getMethodName();
+            return createAdHocTestContext(UNKNOWN_METHOD).getMethodName();
         }
     }
 
+    /**
+     * Retrieves the task from thread-local test method context; creating the ad-hoc context if it does not exist.
+     *
+     * We expect this method to be called on startup of auto-task-managed test methods, therefore "getTask" is more suitable
+     * name that "getOrCreateTestTask".
+     */
     protected Task getTask() {
+        return getOrCreateTestTask(UNKNOWN_METHOD);
+    }
+
+    /**
+     * Retrieves the task from thread-local test method context; creating the appropriately named ad-hoc context
+     * if it does not exist.
+     *
+     * We expect this method to be called from places where we really don't know if the context exists or not. Hence its name.
+     */
+    protected Task getOrCreateTestTask(String methodName) {
         MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
         if (ctx != null) {
             return ctx.getTask();
         } else {
-            return createAdHocTestContext().getTask();
+            return createAdHocTestContext(methodName).getTask();
         }
     }
 
-    protected Task getOrCreateTask(String methodName) {
+    /**
+     * Retrieves the task from thread-local test method context; creating the task (but NOT the context) if it does not exist.
+     *
+     * The difference to getTask/getOrCreateTestTask is that we use taskManager.createTaskInstance instead of test-specific
+     * createTask method. So the task created is a simple, plain one -- without all the be bells and whistles provided
+     * by createTask method.
+     */
+    protected Task getOrCreateSimpleTask(String operationName) {
         MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
         if (ctx != null) {
             return ctx.getTask();
         } else {
-            return taskManager.createTaskInstance(this.getClass().getName() + "." + methodName);
+            return taskManager.createTaskInstance(this.getClass().getName() + "." + operationName);
         }
     }
 
@@ -357,16 +382,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         if (ctx != null) {
             return ctx.getResult();
         } else {
-            return createAdHocTestContext().getResult();
+            return createAdHocTestContext(UNKNOWN_METHOD).getResult();
         }
     }
 
     @NotNull
-    private MidpointTestMethodContext createAdHocTestContext() {
+    private MidpointTestMethodContext createAdHocTestContext(String methodName) {
         LOGGER.warn("No test context for current thread: creating new");
         System.out.println("No test context for current thread: creating new");
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + ".unknownMethod");
-        return MidpointTestMethodContext.setup("unknownMethod", task, task.getResult());
+        Task task = createTask(methodName);
+        return MidpointTestMethodContext.setup(methodName, task, task.getResult());
     }
 
     abstract public void initSystem(Task initTask, OperationResult initResult) throws Exception;

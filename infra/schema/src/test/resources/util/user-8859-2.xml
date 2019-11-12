@@ -8,14 +8,14 @@
 <!-- Simple user definition, but encoded in ISO-8858-2 -->
  
 <user oid="deadbeef-c001-f00d-1111-222233330001"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-	<name>novacik</name>
-	<fullName>
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>novacik</name>
+    <fullName>
         <t:orig>Joæko Nov·Ëik</t:orig>
         <t:norm>jozko novacik</t:norm>
-	</fullName>
-	<givenName>Joæko</givenName>
-	<familyName>Nov·Ëik</familyName>
-	<honorificPrefix>Cpt.</honorificPrefix>
+    </fullName>
+    <givenName>Joæko</givenName>
+    <familyName>Nov·Ëik</familyName>
+    <honorificPrefix>Cpt.</honorificPrefix>
 </user>

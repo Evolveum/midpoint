@@ -12,13 +12,6 @@
 
     <name>Testing Bad Password Policy</name>
     <description>This policy is intentionally insane. The limits conflict with overall length limits. This should fail.</description>
-    <lifetime>
-        <expiration>999</expiration>
-        <warnBeforeExpiration>9</warnBeforeExpiration>
-        <lockAfterExpiration>0</lockAfterExpiration>
-        <minPasswordAge>0</minPasswordAge>
-        <passwordHistoryLength>0</passwordHistoryLength>
-    </lifetime>
     <stringPolicy>
         <description>Testing string policy</description>
         <limitations>

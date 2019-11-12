@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.test;
 
+import static com.evolveum.midpoint.prism.PrismObject.asObjectableList;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
@@ -919,7 +920,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void unassignAllRoles(String userOid, boolean useRawPlusRecompute) throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException {
-        Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName()+".unassignAllRoles");
+        Task task = getOrCreateSimpleTask("unassignAllRoles");
         OperationResult result = task.getResult();
         PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, null, task, result);
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -1642,7 +1643,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> PrismObject<O> findObjectByName(Class<O> type, String name) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = getOrCreateTask("findObjectByName");
+        Task task = getOrCreateSimpleTask("findObjectByName");
         OperationResult result = task.getResult();
         List<PrismObject<O>> objects = modelService.searchObjects(type, createNameQuery(name), null, task, result);
         if (objects.isEmpty()) {
@@ -3141,6 +3142,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .map(t -> t.getOperationStats())
                 .reduce(StatisticsUtil::sum)
                 .orElse(null);
+    }
+
+    protected List<CaseType> getSubcases(String parentCaseOid, Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult result) throws SchemaException {
+        return asObjectableList(
+                repositoryService.searchObjects(CaseType.class,
+                        prismContext.queryFor(CaseType.class).item(CaseType.F_PARENT_REF).ref(parentCaseOid).build(),
+                        options, result));
+    }
+
+    protected void deleteCaseTree(String rootCaseOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        List<CaseType> subcases = getSubcases(rootCaseOid, null, result);
+        for (CaseType subcase : subcases) {
+            deleteCaseTree(subcase.getOid(), result);
+        }
+        repositoryService.deleteObject(CaseType.class, rootCaseOid, result);
     }
 
     private class TaskFinishChecker implements Checker {

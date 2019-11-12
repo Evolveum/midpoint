@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2014 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -16,45 +16,45 @@
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
     xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-3"
-	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
 
     <documentation>
 
         <p>Interface of the IDM Model subsystem.</p>
 
-	    <p>IDM Model Web interface provides unified access to the identity objects stored in the repository and on resources. It
-	    abstracts away the details about where and how are the data stored, it hides all the low-level system components.</p>
+        <p>IDM Model Web interface provides unified access to the identity objects stored in the repository and on resources. It
+        abstracts away the details about where and how are the data stored, it hides all the low-level system components.</p>
 
-	    <p>Implementations of this interface are expected to enforce a consistency of access control decisions and model, e.g. to enforce
-	    Role-Based Access Control (RBAC). RBAC is only one of many possibly models and this interface may have many implementations.</p>
+        <p>Implementations of this interface are expected to enforce a consistency of access control decisions and model, e.g. to enforce
+        Role-Based Access Control (RBAC). RBAC is only one of many possibly models and this interface may have many implementations.</p>
 
-	    <p>Implementations of this interface may automatically derive properties and attributes for objects. E.g. RBAC models may
-	    automatically derive resource accounts attributes based on user role membership.</p>
+        <p>Implementations of this interface may automatically derive properties and attributes for objects. E.g. RBAC models may
+        automatically derive resource accounts attributes based on user role membership.</p>
 
-	    <p>This a web service version of the IDM Model Interface represented in WSDL. As such it has some inherent limitations but it is
-	    usable for remote access to the Model services.</p>
-	    
-	    <p>Version: 3.1</p>
+        <p>This a web service version of the IDM Model Interface represented in WSDL. As such it has some inherent limitations but it is
+        usable for remote access to the Model services.</p>
+
+        <p>Version: 3.1</p>
 
     </documentation>
 
-	<import namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3"
-			location="http://midpoint.evolveum.com/xml/ns/public/common/fault-3"/>
-			
+    <import namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3"
+            location="http://midpoint.evolveum.com/xml/ns/public/common/fault-3"/>
+
     <types>
         <!-- Element form name is QUALIFIED to prevent some problems with marshalling/unmarshalling. This deviates from RPC/Literal convention, but we
              do not have to obey this convention -->
         <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3" elementFormDefault="qualified">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+                        schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
-            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"/>
+                        schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
-            			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
+                        schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
+                        schemaLocation="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
-            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"/>
+                        schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"/>
 
             <xsd:complexType name="GetObjectType">
                 <xsd:annotation>
@@ -346,7 +346,7 @@
             <!-- TODO importObjectsFromFile -->
             <!-- TODO importObjectsFromStream -->
             <!-- TODO discoverConnectors -->
-            
+
             <xsd:complexType name="NotifyChangeType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -460,7 +460,7 @@
 
             <!-- TODO task-related operations (suspend, resume, schedule, ...) -->
             <!-- TODO wf-related operations -->
-       
+
         </xsd:schema>
     </types>
 
@@ -509,7 +509,7 @@
     <message name="importFromResourceResponse">
         <part name="parameters" element="tns:importFromResourceResponse" />
     </message>
-    
+
     <message name="notifyChange">
         <part name="parameters" element="tns:notifyChange" />
     </message>
