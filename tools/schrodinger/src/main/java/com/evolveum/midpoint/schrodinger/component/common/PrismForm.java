@@ -19,6 +19,7 @@ import org.openqa.selenium.By;
 import javax.xml.namespace.QName;
 
 import java.io.File;
+import java.util.List;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -333,5 +334,38 @@ public class PrismForm<T> extends Component<T> {
                 .find(By.className("prism-properties"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 
+    }
+
+    public PrismForm<T> collapseAllChildrenContainers(String parentContainerHeraderKey){
+        SelenideElement parentContainerPanel = null;
+        if  ($(Schrodinger.byElementAttributeValue("a", "data-s-resource-key", parentContainerHeraderKey))
+                .is(Condition.exist)) {
+            parentContainerPanel = $(Schrodinger.byElementAttributeValue("a", "data-s-resource-key", parentContainerHeraderKey))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        } else {
+            parentContainerPanel = $(By.linkText(parentContainerHeraderKey))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        }
+        if (parentContainerPanel == null){
+            return this;
+        }
+        parentContainerPanel = parentContainerPanel
+                .parent()
+                .parent()
+                .parent()
+                .parent()
+                .$(By.className("container-wrapper"))
+                .shouldBe(Condition.visible);
+
+        while (parentContainerPanel.findAll(By.className(CARET_DOWN_ICON_STYLE)) != null &&
+                        parentContainerPanel.findAll(By.className(CARET_DOWN_ICON_STYLE)).size() > 0){
+            SelenideElement childContainerHeaderIcon = parentContainerPanel.find(By.className(CARET_DOWN_ICON_STYLE));
+            childContainerHeaderIcon
+                    .shouldBe(Condition.visible)
+                    .click();
+            childContainerHeaderIcon
+                    .is(Condition.not(Condition.exist));
+        }
+        return this;
     }
 }

@@ -6,10 +6,15 @@
  */
 package com.evolveum.midpoint.schrodinger.page.cases;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Kate Honchar.
@@ -22,6 +27,8 @@ public class CasesListTable extends AssignmentHolderObjectListTable<CasesPage, C
 
     @Override
     public CasePage getObjectDetailsPage(){
+        $(Schrodinger.byDataId("mainPanel"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         return new CasePage();
     }
 }

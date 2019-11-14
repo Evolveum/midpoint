@@ -10,6 +10,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.openqa.selenium.By;
@@ -34,14 +35,15 @@ public class LoginPage {
     public LoginPage changeLanguage(String countryCode) {
         Validate.notNull(countryCode, "Country code must not be null");
 
-        SelenideElement languageDiv = $(By.cssSelector(".btn-group.bootstrap-select.select-picker-sm.pull-right"));
-
-        languageDiv.$(By.cssSelector(".btn.dropdown-toggle.btn-default")).click();
-
-        SelenideElement ulList = languageDiv.$(By.cssSelector(".dropdown-menu.inner"));
-
-        String cc = countryCode.trim().toLowerCase();
-        ulList.$(By.cssSelector(".glyphicon.flag-" + cc)).click();
+        $(Schrodinger.byDataId("localeIcon"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
+        String flagIconCss = "flag-" + countryCode.trim().toLowerCase();
+        $(By.className(flagIconCss))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .parent()
+                .$(By.tagName("a"))
+                .click();
 
         return this;
     }
