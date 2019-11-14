@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -20,6 +21,8 @@ import org.testng.annotations.Test;
  * Created by honchar.
  */
 public class CaseTests extends TestBase {
+
+    public static final String ASSIGNING_ROLE_CASE_NAME = "Assigning role \"Role with admin approver\" to user \"caseCreationTestUser\"";
 
     @Test //covers mid-5813
     public void test100openCasesAndCheckMenuEnabled() {
@@ -70,7 +73,7 @@ public class CaseTests extends TestBase {
      }
 
      @Test
-     public void isCaseCreated(){
+     public void test110isCaseCreated(){
          importObject(ConstantsUtil.ROLE_WITH_ADMIN_APPROVER_XML,true);
 
          UserPage user = basicPage.newUser();
@@ -118,6 +121,39 @@ public class CaseTests extends TestBase {
                  .containsLinkTextPartially(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME);
 
      }
+
+    @Test (dependsOnMethods = {"test110isCaseCreated"})
+    public void test120approveCaseAction() {
+        AllRequestsPage allRequestsPage = basicPage.listAllRequests();
+        allRequestsPage
+                .table()
+                .search()
+                .byName()
+                .inputValue(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME)
+                .updateSearch()
+                .and()
+                .clickByPartialName(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME)
+                .selectTabChildren()
+                .table()
+                .clickByPartialName(ASSIGNING_ROLE_CASE_NAME)
+                .selectTabWorkitems()
+                .table()
+                .clickByName(ASSIGNING_ROLE_CASE_NAME)
+                .approveButtonClick();
+
+        allRequestsPage = basicPage.listAllRequests();
+        Assert.assertTrue(allRequestsPage
+                        .table()
+                        .search()
+                        .byName()
+                        .inputValue(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME)
+                        .updateSearch()
+                        .and()
+                        .clickByPartialName(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME)
+                        .selectTabChildren()
+                        .table()
+                        .currentTableContains("div", "closed"));
+    }
 
     private boolean isCaseMenuItemActive(String menuIdentifier, boolean checkByLabelText){
         SelenideElement casesMenuItemElement;

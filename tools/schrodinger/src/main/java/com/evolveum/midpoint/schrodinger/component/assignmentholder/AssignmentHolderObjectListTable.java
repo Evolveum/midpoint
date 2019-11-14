@@ -12,9 +12,6 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
-import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
-import com.evolveum.midpoint.schrodinger.component.user.UsersPageTable;
-import com.evolveum.midpoint.schrodinger.component.user.UsersTableDropDown;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
@@ -42,6 +39,16 @@ public abstract class AssignmentHolderObjectListTable<P extends AssignmentHolder
     public PD clickByName(String name) {
 
         getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+
+        return getObjectDetailsPage();
+    }
+
+    public PD clickByPartialName(String name) {
+
+        getParentElement()
+                .$(Schrodinger.byDataId("tableContainer"))
+                .$(By.partialLinkText(name))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return getObjectDetailsPage();
