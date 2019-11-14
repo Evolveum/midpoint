@@ -7,7 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async;
 
-import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateSource;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateSource;
+import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.sources.Amqp091AsyncUpdateSource;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;

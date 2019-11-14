@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -188,22 +189,25 @@ public interface ProvisioningService {
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException;
 
     /**
-     * Starts listening for asynchronous updates for a given resource.
-     * Returns "listening activity handle" that will be used to stop the listening activity.
+     * Processes asynchronous updates for a given resource.
+     *
+     * The control is not returned to the caller until processing is finished. The end of processing is usually triggered from
+     * the outside: by stopping the owning task. (So the implementor of this method should keep an eye on task.canRun() state.)
+     * Processing can be also finished when the resource encounters a fatal error. This behaviour should be configurable in the
+     * future.
+     *
+     * If the task is not of RunningTask type, the only way how to stop processing is to interrupt the thread or to close the
+     * asynchronous updates data source.
+     *
+     * Execution of updates is done in the context of the task worker threads (i.e. lightweight asynchronous
+     * subtask), if there are any. If there are none, execution is done in the thread that receives the message.
      *
      * Note that although it is possible to specify other parameters in addition to resource OID (e.g. objectClass), these
      * settings are not supported now.
      */
-    String startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
+    void processAsynchronousUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException;
-
-    /**
-     * Stops the given listening activity.
-     */
-    void stopListeningForAsyncUpdates(String listeningActivityHandle, Task task, OperationResult parentResult);
-
-    AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(String listeningActivityHandle, Task task, OperationResult parentResult);
 
     /**
      * Search for objects. Searches through all object types. Returns a list of

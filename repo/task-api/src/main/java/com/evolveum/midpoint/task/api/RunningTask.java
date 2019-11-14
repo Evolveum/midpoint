@@ -81,6 +81,8 @@ public interface RunningTask extends Task {
      */
     void refreshLowLevelStatistics();
 
+    // CALL ONLY FROM THE THREAD EXECUTING THE TASK!
+    // stores operation statistics if the time has come
     void storeOperationStats();
 
     // CALL ONLY FROM THE THREAD EXECUTING THE TASK!
@@ -93,6 +95,8 @@ public interface RunningTask extends Task {
 
     long getOperationStatsUpdateInterval();
 
+    // CALL ONLY FROM THE THREAD EXECUTING THE TASK!
+    // stores operation statistics if the time has come
     void incrementProgressAndStoreStatsIfNeeded();
 
     void deleteLightweightAsynchronousSubtasks();

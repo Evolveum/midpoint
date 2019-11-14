@@ -69,13 +69,12 @@ public class ChangeProcessor {
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private SchemaHelper schemaHelper;
 
-    public void execute(ProcessChangeRequest request, Task task, TaskPartitionDefinitionType partition,
-            OperationResult parentResult) {
+    public void execute(ProcessChangeRequest request, Task task, TaskPartitionDefinitionType partition) {
 
         ProvisioningContext globalCtx = request.getGlobalContext();
         Change change = request.getChange();
 
-        OperationResult result = parentResult.createMinorSubresult(OP_PROCESS_SYNCHRONIZATION);
+        OperationResult result = request.getParentResult().createMinorSubresult(OP_PROCESS_SYNCHRONIZATION);
 
         try {
 
@@ -175,7 +174,9 @@ public class ChangeProcessor {
             request.setSuccess(false);
             request.onError(e, result);
         } finally {
+            request.setDone(true);
             result.computeStatusIfUnknown();
+            request.onCompletion(task, result);
         }
     }
 

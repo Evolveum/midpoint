@@ -37,7 +37,7 @@ public class ChangeProcessingCoordinator {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChangeProcessingCoordinator.class);
 
-    private static final int WORKER_THREAD_WAIT_FOR_REQUEST = 500;
+    private static final long WORKER_THREAD_WAIT_FOR_REQUEST = 500L;
     private static final long REQUEST_QUEUE_OFFER_TIMEOUT = 1000L;
 
     @NotNull private final Supplier<Boolean> canRunSupplier;
@@ -75,7 +75,7 @@ public class ChangeProcessingCoordinator {
         }
     }
 
-    public void submit(ProcessChangeRequest request, OperationResult result) throws InterruptedException {
+    public void submit(ProcessChangeRequest request) throws InterruptedException {
         if (multithreaded) {
             while (!waitingRequestsQueue.offer(request, REQUEST_QUEUE_OFFER_TIMEOUT, TimeUnit.MILLISECONDS)) {
                 if (!canRunSupplier.get()) {
@@ -83,7 +83,7 @@ public class ChangeProcessingCoordinator {
                 }
             }
         } else {
-            changeProcessor.execute(request, coordinatorTask, taskPartition, result);
+            changeProcessor.execute(request, coordinatorTask, taskPartition);
         }
     }
 
@@ -155,9 +155,16 @@ public class ChangeProcessingCoordinator {
                         continue;
                     }
                     try {
-                        changeProcessor.execute(request, workerTask, taskPartition, workerSpecificResult);
+                        workerSpecificResult.addSubresult(request.getParentResult());
+                        changeProcessor.execute(request, workerTask, taskPartition);
                     } finally {
+                        request.setDone(true);          // probably set already -- but better twice than not at all
                         affinityController.unbind(workerTask.getTaskIdentifier(), request);
+                        // TODO rethink this
+                        if (!request.getParentResult().isTraced()) {
+                            workerSpecificResult.summarize(true);
+                            workerSpecificResult.cleanupResultDeeply();
+                        }
                     }
                 } else {
                     if (allItemsSubmitted) {

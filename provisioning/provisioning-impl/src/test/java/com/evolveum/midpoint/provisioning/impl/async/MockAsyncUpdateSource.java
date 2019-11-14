@@ -7,15 +7,17 @@
 
 package com.evolveum.midpoint.provisioning.impl.async;
 
-import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateMessageListener;
-import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateSource;
-import com.evolveum.midpoint.provisioning.ucf.api.ListeningActivity;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateMessageListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.PassiveAsyncUpdateSource;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.AsyncUpdateConnectorInstance;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AnyDataAsyncUpdateMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UcfChangeType;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -24,26 +26,13 @@ import java.util.Queue;
  * See also MockAsyncUpdateSource in model-intest.
  */
 @SuppressWarnings("unused")
-public class MockAsyncUpdateSource implements AsyncUpdateSource {
+public class MockAsyncUpdateSource implements PassiveAsyncUpdateSource {
 
     private static final Trace LOGGER = TraceManager.getTrace(MockAsyncUpdateSource.class);
 
     private final Queue<AsyncUpdateMessageType> messages = new LinkedList<>();
 
-    public static final MockAsyncUpdateSource INSTANCE = new MockAsyncUpdateSource();
-
-    private static class DummyListeningActivityImpl implements ListeningActivity {
-        @Override
-        public void stop() {
-            // no-op
-        }
-
-        @Override
-        public AsyncUpdateListeningActivityInformationType getInformation() {
-            return new AsyncUpdateListeningActivityInformationType()
-                    .status(AsyncUpdateListeningActivityStatusType.ALIVE);
-        }
-    }
+    static final MockAsyncUpdateSource INSTANCE = new MockAsyncUpdateSource();
 
     public static MockAsyncUpdateSource create(AsyncUpdateSourceType configuration, AsyncUpdateConnectorInstance connectorInstance) {
         LOGGER.info("create() method called");
@@ -51,12 +40,14 @@ public class MockAsyncUpdateSource implements AsyncUpdateSource {
     }
 
     @Override
-    public ListeningActivity startListening(AsyncUpdateMessageListener listener) throws SchemaException {
-        LOGGER.info("startListening() method called");
-        for (AsyncUpdateMessageType message : messages) {
+    public boolean getNextUpdate(AsyncUpdateMessageListener listener) throws SchemaException {
+        AsyncUpdateMessageType message = messages.poll();
+        if (message != null) {
             listener.onMessage(message);
+            return true;
+        } else {
+            return false;
         }
-        return new DummyListeningActivityImpl();
     }
 
     @Override
@@ -64,7 +55,12 @@ public class MockAsyncUpdateSource implements AsyncUpdateSource {
         LOGGER.info("test() method called");
     }
 
-    public void prepareMessage(UcfChangeType changeDescription) {
+    @Override
+    public boolean isOpen() {
+        return !messages.isEmpty();
+    }
+
+    void prepareMessage(UcfChangeType changeDescription) {
         AnyDataAsyncUpdateMessageType message = new AnyDataAsyncUpdateMessageType();
         message.setData(changeDescription);
         messages.offer(message);

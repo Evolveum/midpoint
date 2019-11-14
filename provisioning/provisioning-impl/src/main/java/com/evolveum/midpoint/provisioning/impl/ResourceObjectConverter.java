@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.provisioning.ucf.api.async.ChangeListener;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.*;
@@ -1985,11 +1986,11 @@ public class ResourceObjectConverter {
         }
     }
 
-    public String startListeningForAsyncUpdates(@NotNull ProvisioningContext ctx,
+    public void listenForAsynchronousUpdates(@NotNull ProvisioningContext ctx,
             @NotNull ChangeListener outerListener, @NotNull OperationResult parentResult) throws SchemaException,
             CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 
-        LOGGER.trace("START start listening for async updates, objectClass: {}", ctx.getObjectClassDefinition());
+        LOGGER.trace("Listening for async updates, objectClass: {}", ctx.getObjectClassDefinition());
         ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
 
         ChangeListener innerListener = (change, listenerTask, listenerResult) -> {
@@ -2019,19 +2020,16 @@ public class ResourceObjectConverter {
                             change.getCurrentResourceObject(), true, listenerResult);
                     change.setCurrentResourceObject(processedCurrentShadow);
                 } else {
-                    // we will fetch current shadow later
+                    // we will fetch current resource object later
                 }
                 return outerListener.onChange(change, listenerTask, listenerResult);
             } catch (Throwable t) {
                 throw new SystemException("Couldn't process async update: " + t.getMessage(), t);
             }
         };
-        ListeningActivity listeningActivity = connector.startListeningForChanges(innerListener, parentResult);
-        String handle = listeningRegistry.registerListeningActivity(listeningActivity);
-        computeResultStatus(parentResult);
+        connector.listenForChanges(innerListener, ctx::canRun, parentResult);
 
-        LOGGER.trace("END start listening for async updates; listening handle = {}", handle);
-        return handle;
+        LOGGER.trace("Finished listening for async updates");
     }
 
     private void setResourceOidIfMissing(Change change, String resourceOid) {
@@ -2046,18 +2044,6 @@ public class ResourceObjectConverter {
         if (object != null && object.asObjectable().getResourceRef() == null && resourceOid != null) {
             object.asObjectable().setResourceRef(ObjectTypeUtil.createObjectRef(resourceOid, ObjectTypes.RESOURCE));
         }
-    }
-
-    public void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, @NotNull OperationResult parentResult) {
-        LOGGER.trace("START stop listening for async updates, handle: {}", listeningActivityHandle);
-        listeningRegistry.removeListeningActivity(listeningActivityHandle).stop();
-        computeResultStatus(parentResult);
-        LOGGER.trace("END stop listening for async updates");
-    }
-
-    public AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, @NotNull OperationResult parentResult) {
-        ListeningActivity listeningActivity = listeningRegistry.getListeningActivity(listeningActivityHandle);
-        return listeningActivity != null ? listeningActivity.getInformation() : null;
     }
 
     /**

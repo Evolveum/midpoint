@@ -7,10 +7,13 @@
 
 package com.evolveum.midpoint.provisioning.impl.async;
 
+import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.sources.Amqp091AsyncUpdateSource;
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import org.apache.qpid.server.SystemLauncher;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -44,9 +47,19 @@ public class EmbeddedBroker {
         factory.setHost("localhost");
         try (Connection connection = factory.newConnection();
                 Channel channel = connection.createChannel()) {
-            channel.basicPublish("", queueName, null, message.getBytes(StandardCharsets.UTF_8));
+            channel.basicPublish("", queueName, createProperties(), message.getBytes(StandardCharsets.UTF_8));
             System.out.println("Sent '" + message + "'");
         }
+    }
+
+    @NotNull
+    private AMQP.BasicProperties createProperties() {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(Amqp091AsyncUpdateSource.HEADER_LAST_MESSAGE, true);
+        return new AMQP.BasicProperties()
+                .builder()
+                .headers(headers)
+                .build();
     }
 
     public void createQueue(String queueName) throws IOException, TimeoutException {

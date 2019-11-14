@@ -236,8 +236,8 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
             throw new ObjectNotFoundException("Cannot create instance of connector "+connectorClass+": "+e.getMessage(), e);
         }
         if (connectorInstance instanceof AbstractManagedConnectorInstance) {
-            setupAbstractConnectorInstance((AbstractManagedConnectorInstance)connectorInstance, connectorType, namespace,
-                    desc, struct);
+            setupAbstractConnectorInstance((AbstractManagedConnectorInstance)connectorInstance, instanceName, connectorType,
+                    namespace, desc, struct);
         }
         if (connectorInstance instanceof RepositoryAware) {
             ((RepositoryAware)connectorInstance).setRepositoryService(repositoryService);
@@ -263,8 +263,10 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         return connectorInstance;
     }
 
-    private void setupAbstractConnectorInstance(AbstractManagedConnectorInstance connectorInstance, ConnectorType connectorObject, String namespace,
+    private void setupAbstractConnectorInstance(AbstractManagedConnectorInstance connectorInstance, String instanceName,
+            ConnectorType connectorObject, String namespace,
             String desc, ConnectorStruct struct) {
+        connectorInstance.setInstanceName(instanceName);
         connectorInstance.setConnectorObject(connectorObject);
         connectorInstance.setResourceSchemaNamespace(namespace);
         connectorInstance.setPrismContext(prismContext);

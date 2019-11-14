@@ -18,7 +18,7 @@ import java.util.Objects;
  *
  */
 @SuppressWarnings({ "WeakerAccess", "unused" })
-public class AsyncUpdateConnectorConfiguration {
+public class ConnectorConfiguration {
 
     private AsyncUpdateSourcesType sources;
     private ExpressionType transformExpression;
@@ -78,7 +78,7 @@ public class AsyncUpdateConnectorConfiguration {
         return allSources;
     }
 
-    boolean hasSourcesChanged(AsyncUpdateConnectorConfiguration other) {
+    boolean hasSourcesChanged(ConnectorConfiguration other) {
         // we can consider weaker comparison here in the future
         return other == null || !Objects.equals(other.sources, sources);
     }

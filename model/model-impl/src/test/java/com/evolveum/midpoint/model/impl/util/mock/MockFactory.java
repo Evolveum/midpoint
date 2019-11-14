@@ -55,18 +55,8 @@ public class MockFactory {
             }
 
             @Override
-            public String startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-                return null;
-            }
-
-            @Override
-            public void stopListeningForAsyncUpdates(String listeningActivityHandle, Task task, OperationResult parentResult) {
-
-            }
-
-            @Override
-            public AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(String listeningActivityHandle, Task task, OperationResult parentResult) {
-                return null;
+            public void processAsynchronousUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task,
+                    OperationResult parentResult) {
             }
 
             @NotNull

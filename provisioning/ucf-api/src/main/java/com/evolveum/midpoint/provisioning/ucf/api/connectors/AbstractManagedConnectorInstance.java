@@ -44,6 +44,8 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
     private Collection<Object> capabilities = null;
     private boolean configured = false;
 
+    private String instanceName; // resource name
+
     public ConnectorType getConnectorObject() {
         return connectorObject;
     }
@@ -206,5 +208,13 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
     public void dispose() {
         OperationResult result = new OperationResult(ConnectorInstance.OPERATION_DISPOSE);
         disconnect(result);
+    }
+
+    public String getInstanceName() {
+        return instanceName;
+    }
+
+    public void setInstanceName(String instanceName) {
+        this.instanceName = instanceName;
     }
 }

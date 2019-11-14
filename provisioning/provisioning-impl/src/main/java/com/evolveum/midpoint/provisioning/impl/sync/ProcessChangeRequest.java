@@ -10,6 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.sync;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -22,13 +23,21 @@ public class ProcessChangeRequest {
     @NotNull private final Change change;
     private final ProvisioningContext globalContext;
     private final boolean simulate;
+    @NotNull private final OperationResult parentResult;
     private boolean success;
 
-    public ProcessChangeRequest(@NotNull Change change, ProvisioningContext globalContext, boolean simulate) {
+    /**
+     * True if the request was processed (successfully or not).
+     */
+    private volatile boolean done;
+
+    public ProcessChangeRequest(@NotNull Change change, ProvisioningContext globalContext, boolean simulate,
+            @NotNull OperationResult parentResult) {
         Validate.notNull(change, "change");
         this.change = change;
         this.globalContext = globalContext;
         this.simulate = simulate;
+        this.parentResult = parentResult;
     }
 
     @NotNull
@@ -36,7 +45,7 @@ public class ProcessChangeRequest {
         return change;
     }
 
-    public ProvisioningContext getGlobalContext() {
+    ProvisioningContext getGlobalContext() {
         return globalContext;
     }
 
@@ -64,14 +73,32 @@ public class ProcessChangeRequest {
         throw new SystemException(t.getMessage(), t);
     }
 
-    public Object getPrimaryIdentifierRealValue() {
+    Object getPrimaryIdentifierRealValue() {
         return change.getPrimaryIdentifierRealValue();
+    }
+
+    public boolean isDone() {
+        return done;
+    }
+
+    public void setDone(boolean done) {
+        this.done = true;
+    }
+
+    // called on completion; after onSuccess/onError is called
+    public void onCompletion(Task workerTask, OperationResult result) {
+    }
+
+    @NotNull
+    public OperationResult getParentResult() {
+        return parentResult;
     }
 
     @Override
     public String toString() {
         return "ProcessChangeRequest{" +
                 "change=" + change +
+                ", done=" + done +
                 ", success=" + success +
                 '}';
     }

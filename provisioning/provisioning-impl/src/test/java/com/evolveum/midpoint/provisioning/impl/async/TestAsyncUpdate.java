@@ -84,7 +84,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     @SuppressWarnings("unused")
     private static final Trace LOGGER = TraceManager.getTrace(TestAsyncUpdate.class);
 
-    private static final long TIMEOUT = 5000L;
     private static final String ATTR_TEST = "test";
     private static final String ATTR_MEMBER_OF = "memberOf";
 
@@ -241,10 +240,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         addDummyAccount("banderson");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        dumpAsyncUpdateListeningActivity(handle, task, result);
-        syncServiceMock.waitForNotifyChange(TIMEOUT);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         display("The change", lastChange);
@@ -262,15 +258,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         checkRepoAccountShadow(accountRepo);
     }
 
-    private void dumpAsyncUpdateListeningActivity(String handle, Task task, OperationResult result) throws SchemaException {
-        AsyncUpdateListeningActivityInformationType activity = provisioningService.getAsyncUpdatesListeningActivityInformation(handle, task, result);
-        if (activity != null) {
-            display("listening activity", prismContext.xmlSerializer().root(new QName("activity")).serializeRealValue(activity));
-        } else {
-            display("no listening activity found");
-        }
-    }
-
     @Test
     public void test110ListeningForValueAdd() throws Exception {
         Task task = getTask();
@@ -283,10 +270,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         setDummyAccountTestAttribute("banderson", "value1", "value2", "value3");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        dumpAsyncUpdateListeningActivity(handle, task, result);
-        syncServiceMock.waitForNotifyChange(TIMEOUT);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         display("The change", lastChange);
@@ -324,10 +308,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         setDummyAccountTestAttribute("banderson", "value1", "value2", "value3", "value4");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        dumpAsyncUpdateListeningActivity(handle, task, result);
-        syncServiceMock.waitForNotifyChange(TIMEOUT);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         display("The change", lastChange);
@@ -365,10 +346,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         setDummyAccountTestAttribute("banderson", "value1", "value3", "value4");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        dumpAsyncUpdateListeningActivity(handle, task, result);
-        syncServiceMock.waitForNotifyChange(TIMEOUT);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         display("The change", lastChange);
@@ -406,10 +384,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         setDummyAccountTestAttribute("banderson", "value100");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        dumpAsyncUpdateListeningActivity(handle, task, result);
-        syncServiceMock.waitForNotifyChange(TIMEOUT);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         display("The change", lastChange);
@@ -447,10 +422,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         setDummyAccountTestAttribute("banderson", "value4");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        dumpAsyncUpdateListeningActivity(handle, task, result);
-        syncServiceMock.waitForNotifyChange(TIMEOUT);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         display("The change", lastChange);
@@ -482,10 +454,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         setDummyAccountTestAttribute("banderson", "value125");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        dumpAsyncUpdateListeningActivity(handle, task, result);
-        syncServiceMock.waitForNotifyChange(TIMEOUT);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         display("The change", lastChange);
@@ -512,10 +481,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         syncServiceMock.reset();
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        dumpAsyncUpdateListeningActivity(handle, task, result);
-        syncServiceMock.waitForNotifyChange(TIMEOUT);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         display("The change", lastChange);
