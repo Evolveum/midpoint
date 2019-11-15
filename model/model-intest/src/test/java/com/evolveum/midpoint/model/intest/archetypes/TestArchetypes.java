@@ -12,6 +12,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 
+import com.evolveum.midpoint.util.exception.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,13 +33,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -82,6 +76,12 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     public static final File USER_WANNABE_FILE = new File(TEST_DIR, "user-wannabe.xml");
     protected static final String USER_WANNABE_OID = "28038d88-d3eb-11e9-87fb-cff5e050b6f9";
+
+    public static final File USER_SELF_MADE_MAN_FILE = new File(TEST_DIR, "user-self-made-man.xml");
+    protected static final String USER_SELF_MADE_MAN_OID = "065c4592-0787-11ea-af06-f7eae18b6b4a";
+
+    public static final File USER_FRAUDSTER_FILE = new File(TEST_DIR, "user-fraudster.xml");
+    protected static final String USER_FRAUDSTER_OID = "99b36382-078e-11ea-b9a9-b393552ec165";
 
     public static final File ROLE_EMPLOYEE_BASE_FILE = new File(TEST_DIR, "role-employee-base.xml");
     protected static final String ROLE_EMPLOYEE_BASE_OID = "e869d6c4-f6ef-11e8-b51f-df3e51bba129";
@@ -771,15 +771,84 @@ public class TestArchetypes extends AbstractArchetypesTest {
         assertUserAfter(USER_WANNABE_OID)
                 .assertLifecycleState(SchemaConstants.LIFECYCLE_DRAFT)
                 .assignments()
-                .assertAssignments(1)
-                .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
-                .end()
+                    .assertAssignments(1)
+                    .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
+                    .end()
                 .assertArchetypeRef(ARCHETYPE_CONTRACTOR_OID)
                 .roleMembershipRefs()
-                .assertRoleMemberhipRefs(1)
-                .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
-                .end()
+                    .assertRoleMemberhipRefs(1)
+                    .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
+                    .end()
                 .assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);
+    }
+
+    /**
+     * Add "Self Made Man" user with an archetypeRef. We usually do not allow archetypeRef. But in this case the ref
+     * matches the assignment. We want to allow this. If we do not allow this, then we cannot re-import a "made" user.
+     * MID-5909
+     */
+    @Test
+    public void test160AddSelfMadeMan() throws Exception {
+        final String TEST_NAME = "test160AddSelfMadeMan";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        addObject(USER_SELF_MADE_MAN_FILE, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertUserAfter(USER_SELF_MADE_MAN_OID)
+                .assignments()
+                    .assertAssignments(1)
+                    .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
+                    .end()
+                .assertArchetypeRef(ARCHETYPE_CONTRACTOR_OID)
+                .roleMembershipRefs()
+                    .assertRoleMemberhipRefs(1)
+                    .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
+                    .end();
+    }
+
+    /**
+     * Add "fraudster" user with an archetypeRef. In this case the archetypeRef does not match the assignment.
+     * This operation shoudl be denied.
+     * MID-5909
+     */
+    @Test
+    public void test162AddFraudster() throws Exception {
+        final String TEST_NAME = "test162AddFraudster";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // precondition
+        assertNoObject(UserType.class, USER_FRAUDSTER_OID);
+
+        try {
+            // WHEN
+            displayWhen(TEST_NAME);
+
+            addObject(USER_FRAUDSTER_FILE, task, result);
+
+            assertNotReached();
+        } catch (PolicyViolationException e) {
+            // Expected
+            display("Expected exception", e);
+        }
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertFailure(result);
+
+        assertNoObject(UserType.class, USER_FRAUDSTER_OID);
     }
 
     @Test
