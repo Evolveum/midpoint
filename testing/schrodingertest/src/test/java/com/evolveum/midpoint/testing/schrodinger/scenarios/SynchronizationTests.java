@@ -8,6 +8,7 @@ package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.user.UserProjectionsTab;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
@@ -161,8 +162,7 @@ public class SynchronizationTests extends TestBase {
         Selenide.sleep(MidPoint.TIMEOUT_EXTRA_LONG_1_M);
 
         usersPage = basicPage.listUsers();
-        Assert.assertTrue(
-              usersPage
+        UserProjectionsTab projectionsTab = usersPage
                 .table()
                     .search()
                         .byName()
@@ -170,10 +170,13 @@ public class SynchronizationTests extends TestBase {
                     .updateSearch()
                 .and()
                 .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
-                      .selectTabProjections()
+                      .selectTabProjections();
+        Selenide.screenshot("SynchronizationTests_projectionTab");
+        boolean accountExists = projectionsTab
                         .table()
-                        .containsText(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-        );
+                        .containsText(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
+
+        Assert.assertTrue(accountExists);
 
     }
 
