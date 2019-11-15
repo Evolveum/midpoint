@@ -17,12 +17,19 @@ import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.io.File;
+
 /**
  * Created by honchar.
  */
 public class CaseTests extends TestBase {
 
     public static final String ASSIGNING_ROLE_CASE_NAME = "Assigning role \"Role with admin approver\" to user \"caseCreationTestUser\"";
+    public static final File ROLE_WITH_ADMIN_APPROVER_XML = new File("./src/test/resources/role-with-admin-approver.xml");
+    //object attribute values
+    public static final String CASE_CREATION_TEST_USER_NAME = "caseCreationTestUser";
+    public static final String CASE_CREATION_TEST_ROLE_NAME = "Role with admin approver";
+    public static final String CASE_CREATION_TEST_CASE_NAME = "Approving and executing change of user \"caseCreationTestUser\"";
 
     @Test //covers mid-5813
     public void test100openCasesAndCheckMenuEnabled() {
@@ -74,12 +81,12 @@ public class CaseTests extends TestBase {
 
      @Test
      public void test110isCaseCreated(){
-         importObject(ConstantsUtil.ROLE_WITH_ADMIN_APPROVER_XML,true);
+         importObject(ROLE_WITH_ADMIN_APPROVER_XML,true);
 
          UserPage user = basicPage.newUser();
          user.selectTabBasic()
                     .form()
-                        .addAttributeValue("name", ConstantsUtil.CASE_CREATION_TEST_USER_NAME)
+                        .addAttributeValue("name", CASE_CREATION_TEST_USER_NAME)
                         .and()
                     .and()
                  .clickSave();
@@ -89,20 +96,20 @@ public class CaseTests extends TestBase {
                  .table()
                     .search()
                     .byName()
-                    .inputValue(ConstantsUtil.CASE_CREATION_TEST_USER_NAME)
+                    .inputValue(CASE_CREATION_TEST_USER_NAME)
                     .updateSearch()
                  .and()
-                    .clickByName(ConstantsUtil.CASE_CREATION_TEST_USER_NAME)
+                    .clickByName(CASE_CREATION_TEST_USER_NAME)
                     .selectTabAssignments()
                         .clickAddAssignemnt()
                             .selectType(ConstantsUtil.ASSIGNMENT_TYPE_SELECTOR_ROLE)
                             .table()
                             .search()
                             .byName()
-                            .inputValue(ConstantsUtil.CASE_CREATION_TEST_ROLE_NAME)
+                            .inputValue(CASE_CREATION_TEST_ROLE_NAME)
                             .updateSearch()
                         .and()
-                        .selectCheckboxByName(ConstantsUtil.CASE_CREATION_TEST_ROLE_NAME)
+                        .selectCheckboxByName(CASE_CREATION_TEST_ROLE_NAME)
                     .and()
                     .clickAdd()
                  .and()
@@ -115,10 +122,10 @@ public class CaseTests extends TestBase {
                  .table()
                     .search()
                     .byName()
-                    .inputValue(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME)
+                    .inputValue(CASE_CREATION_TEST_CASE_NAME)
                     .updateSearch()
                  .and()
-                 .containsLinkTextPartially(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME);
+                 .containsLinkTextPartially(CASE_CREATION_TEST_CASE_NAME);
 
      }
 
@@ -129,10 +136,10 @@ public class CaseTests extends TestBase {
                 .table()
                 .search()
                 .byName()
-                .inputValue(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME)
+                .inputValue(CASE_CREATION_TEST_CASE_NAME)
                 .updateSearch()
                 .and()
-                .clickByPartialName(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME)
+                .clickByPartialName(CASE_CREATION_TEST_CASE_NAME)
                 .selectTabChildren()
                 .table()
                 .clickByPartialName(ASSIGNING_ROLE_CASE_NAME)
@@ -146,10 +153,10 @@ public class CaseTests extends TestBase {
                         .table()
                         .search()
                         .byName()
-                        .inputValue(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME)
+                        .inputValue(CASE_CREATION_TEST_CASE_NAME)
                         .updateSearch()
                         .and()
-                        .clickByPartialName(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME)
+                        .clickByPartialName(CASE_CREATION_TEST_CASE_NAME)
                         .selectTabChildren()
                         .table()
                         .currentTableContains("div", "closed"));
