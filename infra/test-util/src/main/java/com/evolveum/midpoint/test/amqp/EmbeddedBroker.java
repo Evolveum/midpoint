@@ -1,13 +1,12 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.provisioning.impl.async;
+package com.evolveum.midpoint.test.amqp;
 
-import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.sources.Amqp091AsyncUpdateSource;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -23,13 +22,19 @@ import java.util.concurrent.TimeoutException;
 
 public class EmbeddedBroker {
 
+    private static final String DEFAULT_CONFIG_RESOURCE_PATH = "amqp/default-qpid-config.json";
+
     private final SystemLauncher broker = new SystemLauncher();
 
-    void start() throws Exception {
+    public void start() throws Exception {
+        start(DEFAULT_CONFIG_RESOURCE_PATH);
+    }
+
+    public void start(String configResourcePath) throws Exception {
         System.out.println("Starting the broker");
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("type", "Memory");
-        attributes.put("initialConfigurationLocation", findResourcePath("async/qpid-config.json"));
+        attributes.put("initialConfigurationLocation", findResourcePath(configResourcePath));
         broker.startup(attributes);
     }
 
@@ -37,25 +42,23 @@ public class EmbeddedBroker {
         return EmbeddedBroker.class.getClassLoader().getResource(fileName).toExternalForm();
     }
 
-    void stop() {
+    public void stop() {
         System.out.println("Stopping the broker");
         broker.shutdown();
     }
 
-    void send(String queueName, String message) throws IOException, TimeoutException {
+    public void send(String queueName, String message, Map<String, Object> headers) throws IOException, TimeoutException {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         try (Connection connection = factory.newConnection();
                 Channel channel = connection.createChannel()) {
-            channel.basicPublish("", queueName, createProperties(), message.getBytes(StandardCharsets.UTF_8));
+            channel.basicPublish("", queueName, createProperties(headers), message.getBytes(StandardCharsets.UTF_8));
             System.out.println("Sent '" + message + "'");
         }
     }
 
     @NotNull
-    private AMQP.BasicProperties createProperties() {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Amqp091AsyncUpdateSource.HEADER_LAST_MESSAGE, true);
+    private AMQP.BasicProperties createProperties(Map<String, Object> headers) {
         return new AMQP.BasicProperties()
                 .builder()
                 .headers(headers)
