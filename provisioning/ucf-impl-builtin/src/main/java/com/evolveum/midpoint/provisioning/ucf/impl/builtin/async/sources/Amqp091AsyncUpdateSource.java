@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async;
+package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.sources;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateMessageListener;
-import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateSource;
+import com.evolveum.midpoint.provisioning.ucf.api.async.ActiveAsyncUpdateSource;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateMessageListener;
 import com.evolveum.midpoint.provisioning.ucf.api.ListeningActivity;
+import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.AsyncUpdateConnectorInstance;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -38,7 +39,9 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  *
  *  An experimental implementation.
  */
-public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
+public class Amqp091AsyncUpdateSource implements ActiveAsyncUpdateSource {
+
+    public static final String HEADER_LAST_MESSAGE = "X-LastMessage";
 
     private static final Trace LOGGER = TraceManager.getTrace(Amqp091AsyncUpdateSource.class);
     private static final int DEFAULT_PREFETCH = 10;
@@ -86,6 +89,11 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
             return rv;
         }
 
+        @Override
+        public boolean isAlive() {
+            return state != State.CLOSED;
+        }
+
         private ListeningActivityImpl(AsyncUpdateMessageListener listener) {
             try {
                 state = State.PREPARING;
@@ -108,6 +116,14 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
                             activeChannel.basicAck(message.getEnvelope().getDeliveryTag(), false);
                         } else {
                             rejectMessage(message);
+                        }
+                        AMQP.BasicProperties properties = message.getProperties();
+                        if (properties.getHeaders() != null) {
+                            boolean last = Boolean.TRUE.equals(properties.getHeaders().get(HEADER_LAST_MESSAGE));
+                            if (last) {
+                                LOGGER.info("Last message received, stopping the listening activity");
+                                stopInternal(true);
+                            }
                         }
                     } catch (RuntimeException | SchemaException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Got exception while processing message", e);

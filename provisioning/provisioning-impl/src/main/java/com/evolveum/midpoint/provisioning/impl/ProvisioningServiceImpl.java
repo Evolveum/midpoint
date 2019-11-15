@@ -39,7 +39,6 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -66,7 +65,6 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -376,7 +374,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public String startListeningForAsyncUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
+    public void processAsynchronousUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
@@ -387,53 +385,17 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         result.addParam(OperationResult.PARAM_OID, resourceOid);
         result.addParam(OperationResult.PARAM_TASK, task.toString());
 
-        String listeningActivityHandle;
         try {
-            LOGGER.trace("Starting listening for async updates for {}", shadowCoordinates);
-            listeningActivityHandle = asyncUpdater.startListeningForAsyncUpdates(shadowCoordinates, task, result);
+            LOGGER.trace("Starting processing async updates for {}", shadowCoordinates);
+            asyncUpdater.processAsynchronousUpdates(shadowCoordinates, task, result);
+            result.recordSuccess();
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
-            result.summarize(true);
             throw e;
-        }
-        result.addReturn("listeningActivityHandle", listeningActivityHandle);
-        result.recordSuccess();
-        result.cleanupResult();
-        return listeningActivityHandle;
-    }
-
-    @Override
-    public void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".stopListeningForAsyncUpdates");
-        result.addParam("listeningActivityHandle", listeningActivityHandle);
-
-        try {
-            LOGGER.trace("Stopping listening for async updates for {}", listeningActivityHandle);
-            asyncUpdater.stopListeningForAsyncUpdates(listeningActivityHandle, task, result);
-        } catch (RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+        } finally {
+            // todo ok?
             result.summarize(true);
-            throw e;
-        }
-        result.recordSuccess();
-        result.cleanupResult();
-    }
-
-    @Override
-    public AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".getAsyncUpdatesListeningActivityInformation");
-        result.addParam("listeningActivityHandle", listeningActivityHandle);
-
-        try {
-            AsyncUpdateListeningActivityInformationType rv = asyncUpdater
-                    .getAsyncUpdatesListeningActivityInformation(listeningActivityHandle, task, result);
-            result.recordSuccess();
             result.cleanupResult();
-            return rv;
-        } catch (RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
-            result.summarize(true);
-            throw e;
         }
     }
 
