@@ -1097,14 +1097,6 @@ public class AssignmentProcessor {
             return;
         }
 
-        ObjectDelta<F> focusPrimaryDelta = focusContext.getPrimaryDelta();
-        if (focusPrimaryDelta != null) {
-            ReferenceDelta archetypeRefDelta = focusPrimaryDelta.findReferenceModification(AssignmentHolderType.F_ARCHETYPE_REF);
-            if (archetypeRefDelta != null) {
-                throw new PolicyViolationException("Attempt to modify archetypeRef directly");
-            }
-        }
-
         Collection<PrismReferenceValue> shouldBeRoleRefs = new ArrayList<>();
         Collection<PrismReferenceValue> shouldBeDelegatedRefs = new ArrayList<>();
         Collection<PrismReferenceValue> shouldBeArchetypeRefs = new ArrayList<>();
