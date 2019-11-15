@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.messaging;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091MessageAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091MessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateMessageType;
@@ -24,6 +27,7 @@ import java.util.Map;
 public class MessageWrapper {
 
     @NotNull private final AsyncUpdateMessageType message;
+    @NotNull private final PrismContext prismContext;
 
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new MapTypeReference();
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -31,8 +35,9 @@ public class MessageWrapper {
     private static class MapTypeReference extends TypeReference<Map<String, Object>> {
     }
 
-    public MessageWrapper(@NotNull AsyncUpdateMessageType message) {
+    public MessageWrapper(@NotNull AsyncUpdateMessageType message, @NotNull PrismContext prismContext) {
         this.message = message;
+        this.prismContext = prismContext;
     }
 
     public Amqp091MessageAttributesType getAttributes() {
@@ -54,5 +59,10 @@ public class MessageWrapper {
     public Map<String, Object> getBodyAsMap() throws IOException {
         String json = getText();
         return MAPPER.readValue(json, MAP_TYPE);
+    }
+
+    public Item<?,?> getBodyAsPrismItem(String language) throws SchemaException {
+        String text = getText();
+        return prismContext.parserFor(text).language(language).parseItem();
     }
 }

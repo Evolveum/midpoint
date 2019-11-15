@@ -290,10 +290,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
                     request = requestQueue.poll(WORKER_THREAD_WAIT_FOR_REQUEST, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException e) {
                     LOGGER.trace("Interrupted when waiting for next request", e);
-                    workerTask.refreshLowLevelStatistics();
                     return;
+                } finally {
+                    workerTask.refreshLowLevelStatistics();
                 }
-                workerTask.refreshLowLevelStatistics();
                 if (request != null) {
                     processRequest(request, workerTask, workerSpecificResult);
                 } else {

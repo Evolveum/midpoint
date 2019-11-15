@@ -75,6 +75,10 @@ public class MockAsyncUpdateSource implements PassiveAsyncUpdateSource {
     }
 
     @Override
+    public void close() {
+    }
+
+    @Override
     public String toString() {
         return "MockAsyncUpdateSource{" +
                 "messages:" + messages.size() +

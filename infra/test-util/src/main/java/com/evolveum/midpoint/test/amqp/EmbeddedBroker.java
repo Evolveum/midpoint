@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.test.amqp;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -21,6 +23,8 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 public class EmbeddedBroker {
+
+    protected static final Trace LOGGER = TraceManager.getTrace(EmbeddedBroker.class);
 
     private static final String DEFAULT_CONFIG_RESOURCE_PATH = "amqp/default-qpid-config.json";
 
@@ -53,7 +57,7 @@ public class EmbeddedBroker {
         try (Connection connection = factory.newConnection();
                 Channel channel = connection.createChannel()) {
             channel.basicPublish("", queueName, createProperties(headers), message.getBytes(StandardCharsets.UTF_8));
-            System.out.println("Sent '" + message + "'");
+            LOGGER.trace("Sent '{}'", message);
         }
     }
 

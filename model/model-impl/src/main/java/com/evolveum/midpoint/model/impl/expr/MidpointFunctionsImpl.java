@@ -1851,12 +1851,17 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     // temporary
     public MessageWrapper wrap(AsyncUpdateMessageType message) {
-        return new MessageWrapper(message);
+        return new MessageWrapper(message, prismContext);
     }
 
     // temporary
     public Map<String, Object> getMessageBodyAsMap(AsyncUpdateMessageType message) throws IOException {
         return wrap(message).getBodyAsMap();
+    }
+
+    // temporary
+    public Item<?, ?> getMessageBodyAsPrismItem(AsyncUpdateMessageType message) throws SchemaException {
+        return wrap(message).getBodyAsPrismItem(PrismContext.LANG_XML);
     }
 
     @Override
