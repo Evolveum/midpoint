@@ -45,7 +45,7 @@ import com.evolveum.icf.dummy.resource.SchemaViolationException;
  * @see DummyResource
  */
 @ConnectorClass(displayNameKey = "UI_CONNECTOR_LEGACY_NAME", configurationClass = DummyConfiguration.class)
-public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implements PoolableConnector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
+public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector implements PoolableConnector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
         ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateAttributeValuesOp {
 
     // We want to see if the ICF framework logging works properly
@@ -679,6 +679,30 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
             LOG.ok("Adding runAs options to schema");
             builder.defineOperationOption(OperationOptionInfoBuilder.buildRunWithUser(), UpdateAttributeValuesOp.class);
             builder.defineOperationOption(OperationOptionInfoBuilder.buildRunWithPassword(), UpdateAttributeValuesOp.class);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Object runScriptOnConnector(ScriptContext request, OperationOptions options) {
+
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Object runScriptOnResource(ScriptContext request, OperationOptions options) {
+
+        try {
+            return resource.runScript(request.getScriptLanguage(), request.getScriptText(), request.getScriptArguments());
+        } catch (IllegalArgumentException e) {
+            throw new ConnectorException(e.getMessage(), e);
+        } catch (FileNotFoundException e) {
+            throw new ConnectorIOException(e.getMessage(), e);
         }
     }
 

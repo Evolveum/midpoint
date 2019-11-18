@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.intest;
+package com.evolveum.midpoint.model.intest.multi;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -14,6 +14,7 @@ import java.io.File;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;

@@ -6,33 +6,39 @@
  */
 package com.evolveum.icf.dummy.connector;
 
-import org.identityconnectors.framework.spi.operations.*;
+import com.evolveum.icf.dummy.resource.DummyResource;
+import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
-import org.identityconnectors.framework.common.objects.*;
-
-import java.io.FileNotFoundException;
-
-import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.framework.common.objects.filter.Filter;
+import org.identityconnectors.framework.common.objects.OperationOptions;
+import org.identityconnectors.framework.common.objects.ScriptContext;
 import org.identityconnectors.framework.spi.ConnectorClass;
 import org.identityconnectors.framework.spi.InstanceNameAware;
 import org.identityconnectors.framework.spi.PoolableConnector;
+import org.identityconnectors.framework.spi.operations.*;
 
-import com.evolveum.icf.dummy.resource.DummyResource;
+import java.io.FileNotFoundException;
 
 /**
- * Connector for the Dummy Resource, modern version (with delta update), scripting and everything else.
+ * Connector for the Dummy Resource, just for script running. It does not have any object-related operations.
+ * It still has "test" operation.
  *
  * @see DummyResource
  *
  */
 @ConnectorClass(displayNameKey = "UI_CONNECTOR_NAME", configurationClass = DummyConfiguration.class)
-public class DummyConnector extends AbstractModernObjectDummyConnector implements PoolableConnector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
-        ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateDeltaOp, InstanceNameAware {
+public class DummyConnectorScriptRunner extends AbstractBaseDummyConnector implements PoolableConnector,
+        ScriptOnConnectorOp, ScriptOnResourceOp, TestOp, InstanceNameAware {
 
     // We want to see if the ICF framework logging works properly
-    private static final Log LOG = Log.getLog(DummyConnector.class);
+    private static final Log LOG = Log.getLog(DummyConnectorScriptRunner.class);
+
+    private String instanceName;
+
+    @Override
+    public void setInstanceName(String instanceName) {
+        this.instanceName = instanceName;
+    }
 
     /**
      * {@inheritDoc}
