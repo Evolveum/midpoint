@@ -164,13 +164,15 @@ public class MappingTestEvaluator {
         userOdo.recompute();
         mappingBuilder.sourceContext(userOdo);
 
-        // Variable $user
+        // Variable $focus
+        mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, userOdo);
         mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 
-        // Variable $account
+        // Variable $projection
         PrismObject<ShadowType> account = getAccount();
         ObjectDeltaObject<ShadowType> accountOdo = new ObjectDeltaObject<>(account, null, null, account.getDefinition());
         accountOdo.recompute();
+        mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountOdo);
         mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountOdo);
 
         // Target context: user
