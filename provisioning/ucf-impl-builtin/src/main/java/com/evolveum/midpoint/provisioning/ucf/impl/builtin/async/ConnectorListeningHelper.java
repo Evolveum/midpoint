@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Helper for listening on both active and passive sources.
@@ -34,8 +35,8 @@ class ConnectorListeningHelper {
     @NotNull private final AsyncUpdateConnectorInstance connectorInstance;
 
     // do not forget to synchronize on these two lists
+    @NotNull private final List<AsyncUpdateSource> sources = new ArrayList<>();
     @NotNull private final List<ListeningActivity> activities = new ArrayList<>();
-    @NotNull private final List<PassiveAsyncUpdateSource> passiveSources = new ArrayList<>();
 
     @NotNull private final ChangeListener changeListener;
     private AsyncUpdateMessageListener messageListener;
@@ -62,10 +63,10 @@ class ConnectorListeningHelper {
                 // passive sources
                 boolean anyMessage = false;
                 boolean anySourceOpen = false;
-                for (PassiveAsyncUpdateSource passiveSource : getPassiveSourcesCopy()) {
-                    if (passiveSource.isOpen()) {
+                for (PassiveAsyncUpdateSource source : getPassiveSourcesCopy()) {
+                    if (source.isOpen()) {
                         anySourceOpen = true;
-                        if (passiveSource.getNextUpdate(messageListener)) {
+                        if (source.getNextUpdate(messageListener)) {
                             anyMessage = true;
                         }
                     }
@@ -118,12 +119,9 @@ class ConnectorListeningHelper {
         Collection<AsyncUpdateSource> sources = connectorInstance.getSourceManager().createSources(configuration.getAllSources());
         try {
             for (AsyncUpdateSource source : sources) {
+                addSource(source);
                 if (source instanceof ActiveAsyncUpdateSource) {
                     addActivity(((ActiveAsyncUpdateSource) source).startListening(messageListener));
-                } else if (source instanceof PassiveAsyncUpdateSource) {
-                    addPassiveSource((PassiveAsyncUpdateSource) source);
-                } else {
-                    throw new IllegalStateException("Unsupported source: " + source);
                 }
             }
         } catch (Throwable t) {
@@ -140,9 +138,9 @@ class ConnectorListeningHelper {
         }
     }
 
-    private void addPassiveSource(PassiveAsyncUpdateSource source) {
-        synchronized (passiveSources) {
-            passiveSources.add(source);
+    private void addSource(AsyncUpdateSource source) {
+        synchronized (sources) {
+            sources.add(source);
         }
     }
 
@@ -157,11 +155,18 @@ class ConnectorListeningHelper {
             stopped = true;
         }
 
+        // TODO should we get and clear both lists atomically (i.e. in single 'synchronized' section)?
         List<ListeningActivity> activitiesCopy;
+        List<AsyncUpdateSource> sourcesCopy;
         synchronized (activities) {
             activitiesCopy = new ArrayList<>(activities);
             activities.clear();
         }
+        synchronized (sources) {
+            sourcesCopy = new ArrayList<>(sources);
+            sources.clear();
+        }
+
         for (ListeningActivity activity : activitiesCopy) {
             try {
                 activity.stop();
@@ -169,8 +174,12 @@ class ConnectorListeningHelper {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop listening on {} in {}", e, activity, connectorInstance);
             }
         }
-        synchronized (passiveSources) {
-            passiveSources.clear();
+        for (AsyncUpdateSource source : sourcesCopy) {
+            try {
+                source.close();
+            } catch (RuntimeException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't close source {} in {}", e, source, connectorInstance);
+            }
         }
     }
 
@@ -186,8 +195,11 @@ class ConnectorListeningHelper {
 
     @NotNull
     private List<PassiveAsyncUpdateSource> getPassiveSourcesCopy() {
-        synchronized (passiveSources) {
-            return new ArrayList<>(passiveSources);
+        synchronized (sources) {
+            return sources.stream()
+                    .filter(s -> s instanceof PassiveAsyncUpdateSource)
+                    .map(s -> (PassiveAsyncUpdateSource) s)
+                    .collect(Collectors.toList());
         }
     }
 

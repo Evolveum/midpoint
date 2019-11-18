@@ -7,14 +7,18 @@
 
 package com.evolveum.midpoint.provisioning.impl.async;
 
+import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.sources.Amqp091AsyncUpdateSource;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.amqp.EmbeddedBroker;
 import org.apache.commons.io.IOUtils;
 import org.testng.annotations.AfterClass;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -46,6 +50,8 @@ public class TestAsyncUpdateCachingAmqp extends TestAsyncUpdateCaching {
     @Override
     void prepareMessage(File messageFile) throws IOException, TimeoutException {
         String message = String.join("\n", IOUtils.readLines(new FileReader(messageFile)));
-        embeddedBroker.send(QUEUE_NAME, message);
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(Amqp091AsyncUpdateSource.HEADER_LAST_MESSAGE, true);
+        embeddedBroker.send(QUEUE_NAME, message, headers);
     }
 }

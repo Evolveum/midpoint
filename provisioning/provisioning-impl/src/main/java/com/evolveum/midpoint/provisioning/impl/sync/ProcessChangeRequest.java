@@ -14,6 +14,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Wrapper for "process change" request and its execution.
@@ -85,8 +86,14 @@ public class ProcessChangeRequest {
         this.done = true;
     }
 
-    // called on completion; after onSuccess/onError is called
-    public void onCompletion(Task workerTask, OperationResult result) {
+    /**
+     * Called on completion; after onSuccess/onError is called.
+     *
+     * @param workerTask Task in which this request was executed.
+     * @param coordinatorTask Coordinator task. Might be null.
+     * @param result Operation result specific to the execution of this request (i.e. not the parentResult here!)
+     */
+    public void onCompletion(@NotNull Task workerTask, @Nullable Task coordinatorTask, @NotNull OperationResult result) {
     }
 
     @NotNull

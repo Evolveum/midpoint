@@ -1170,10 +1170,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 objectOid = currentShadow.getOid();
             }
             task.recordSynchronizationOperationStart(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid);
-            if (SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI.equals(channel)) {
-                // livesync processing is not controlled via model -> so we cannot do this in upper layers
-                task.recordIterativeOperationStart(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid);
-            }
+//            if (isLiveSyncOrAsyncUpdate(channel)) {
+//                // livesync/async-update processing is not controlled via model -> so we cannot do this in upper layers
+//                // Note that this is not quite correct: Using this method we capture only operations that reach the model
+//                // (not the ones that end up updating the shadows)
+//                task.recordIterativeOperationStart(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid);
+//            }
         }
 
         public void setProtected() {
@@ -1232,12 +1234,17 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         public void record(Task task) {
             task.recordSynchronizationOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE,
                     objectOid, started, exception, originalStateIncrement, newStateIncrement);
-            if (SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI.equals(channel)) {
-                // livesync processing is not controlled via model -> so we cannot do this in upper layers
-                task.recordIterativeOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE,
-                        objectOid, started, exception);
-            }
+//            if (isLiveSyncOrAsyncUpdate(channel)) {
+//                // livesync/async-update processing is not controlled via model -> so we cannot do this in upper layers
+//                task.recordIterativeOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE,
+//                        objectOid, started, exception);
+//            }
         }
+    }
+
+    private static boolean isLiveSyncOrAsyncUpdate(String channel) {
+        return SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI.equals(channel)
+                || SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI.equals(channel);
     }
 
 }

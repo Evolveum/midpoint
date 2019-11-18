@@ -504,7 +504,7 @@ public class ContextLoader {
             return null;
         }
         PrismObject<F> object = context.getFocusContext().getObjectAny();
-        String explicitArchetypeOid = determineExplicitArchetypeOid(context);
+        String explicitArchetypeOid = LensUtil.determineExplicitArchetypeOid(context.getFocusContext().getObjectAny());
         return archetypeManager.determineArchetypePolicy(object, explicitArchetypeOid, result);
     }
 
@@ -519,7 +519,7 @@ public class ContextLoader {
 
         PrismObject<F> object = context.getFocusContext().getObjectAny();
 
-        String explicitArchetypeOid = determineExplicitArchetypeOid(context);
+        String explicitArchetypeOid = LensUtil.determineExplicitArchetypeOid(context.getFocusContext().getObjectAny());
         PrismObject<ArchetypeType> archetype =  archetypeManager.determineArchetype(object, explicitArchetypeOid, result);
         ArchetypeType archetypeType = null;
         if (archetype != null) {
@@ -529,26 +529,6 @@ public class ContextLoader {
         context.getFocusContext().setArchetype(archetypeType);
 
         return archetypeType;
-    }
-
-    private <O extends ObjectType> String determineExplicitArchetypeOid(LensContext<O> context) {
-        PrismObject<O> object = context.getFocusContext().getObjectAny();
-        String explicitArchetypeOid = null;
-        // Used in cases where archetype assignment haven't had the change to be processed yet.
-        // E.g. in case that we are creating a new object with archetype assignment
-        if (object.canRepresent(AssignmentHolderType.class)) {
-            AssignmentHolderType assignmentHolderType = (AssignmentHolderType)object.asObjectable();
-            List<ObjectReferenceType> archetypeRefs = assignmentHolderType.getArchetypeRef();
-            if (archetypeRefs.isEmpty()) {
-                for (AssignmentType assignment : assignmentHolderType.getAssignment()) {
-                    ObjectReferenceType targetRef = assignment.getTargetRef();
-                    if (targetRef != null && QNameUtil.match(ArchetypeType.COMPLEX_TYPE, targetRef.getType())) {
-                        explicitArchetypeOid = targetRef.getOid();
-                    }
-                }
-            }
-        }
-        return explicitArchetypeOid;
     }
 
     public <F extends ObjectType> void updateArchetypePolicy(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {

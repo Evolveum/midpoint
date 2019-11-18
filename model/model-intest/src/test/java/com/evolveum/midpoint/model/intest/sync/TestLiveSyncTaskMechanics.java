@@ -199,7 +199,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 
         assertTrue("Task was not suspended", suspended);
         Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_RESOURCE_OID, result);
-        display("Task after", taskAfter);
+        displayTaskWithOperationStats("Task after", taskAfter);
         assertEquals("Wrong token value", (Integer) 0, taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN));
     }
 
@@ -230,7 +230,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 
         assertTrue("Task was not suspended", suspended);
         Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_RESOURCE_IMPRECISE_OID, result);
-        display("Task after", taskAfter);
+        displayTaskWithOperationStats("Task after", taskAfter);
         assertEquals("Wrong token value", (Integer) 0, taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN));
     }
 
@@ -270,7 +270,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 
         assertTrue("Task was not suspended", suspended);
         Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_MODEL_OID, result);
-        display("Task after", taskAfter);
+        displayTaskWithOperationStats("Task after", taskAfter);
         Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
         // If we are particularly unfortunate the token value could be zero in multithreaded scenario:
         // This could occur if the first sync delta is processed only after the second, third, etc.
@@ -326,7 +326,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 
         assertTrue("Task was not suspended", suspended);
         Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_MODEL_IMPRECISE_OID, result);
-        display("Task after", taskAfter);
+        displayTaskWithOperationStats("Task after", taskAfter);
 
         Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
         display("Token value", token);
@@ -368,7 +368,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         displayThen(TEST_NAME);
 
         Task taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_OID, result);
-        display("Task after", taskAfter);
+        displayTaskWithOperationStats("Task after", taskAfter);
         Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
         assertEquals("Wrong token value", (Integer) 10, token);
 
@@ -383,7 +383,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         displayThen(TEST_NAME);
 
         taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_OID, result);
-        display("Task after", taskAfter);
+        displayTaskWithOperationStats("Task after", taskAfter);
         token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
         assertEquals("Wrong token value", (Integer) 20, token);
 
@@ -398,7 +398,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         displayThen(TEST_NAME);
 
         taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_OID, result);
-        display("Task after", taskAfter);
+        displayTaskWithOperationStats("Task after", taskAfter);
         assertPartialError(taskAfter.getResult());          // error was "skippable" (retryLiveSyncErrors = false)
 
         token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
@@ -440,7 +440,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         displayThen(TEST_NAME);
 
         Task taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_IMPRECISE_OID, result);
-        display("Task after", taskAfter);
+        displayTaskWithOperationStats("Task after", taskAfter);
         assertFailure(taskAfter.getResult());
         assertEquals("Wrong task state", TaskExecutionStatus.CLOSED, taskAfter.getExecutionStatus());
     }
@@ -483,7 +483,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         displayThen(TEST_NAME);
 
         Task taskAfter = taskManager.getTaskWithResult(TASK_ERROR_OID, result);
-        display("Task after", taskAfter);
+        displayTaskWithOperationStats("Task after", taskAfter);
         assertPartialError(taskAfter.getResult());      // the task should continue (i.e. not suspend) - TODO reconsider this
         assertTaskClosed(taskAfter);
 
@@ -505,7 +505,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         displayThen(TEST_NAME);
 
         taskAfter = taskManager.getTaskWithResult(TASK_ERROR_OID, result);
-        display("Task after", taskAfter);
+        displayTaskWithOperationStats("Task after", taskAfter);
         token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
         assertEquals("Wrong token value", (Integer) ERROR_ON, token);
 
@@ -549,7 +549,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         displayThen(TEST_NAME);
 
         Task taskAfter = taskManager.getTaskWithResult(TASK_ERROR_IMPRECISE_OID, result);
-        display("Task after", taskAfter);
+        displayTaskWithOperationStats("Task after", taskAfter);
         assertPartialError(taskAfter.getResult());            // the task should continue (i.e. not suspend) - TODO reconsider this
         assertTaskClosed(taskAfter);
 
@@ -573,7 +573,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         displayThen(TEST_NAME);
 
         taskAfter = taskManager.getTaskWithResult(TASK_ERROR_IMPRECISE_OID, result);
-        display("Task after", taskAfter);
+        displayTaskWithOperationStats("Task after", taskAfter);
         token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
         assertEquals("Wrong token value", (Integer) 0, token);
 
@@ -611,7 +611,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         displayThen(TEST_NAME);
 
         Task taskAfter = taskManager.getTaskWithResult(TASK_DRY_RUN.oid, result);
-        display("Task after", taskAfter);
+        displayTaskWithOperationStats("Task after", taskAfter);
         assertSuccess(taskAfter.getResult());
         assertTaskClosed(taskAfter);
 
@@ -650,7 +650,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         displayThen(TEST_NAME);
 
         Task taskAfter = taskManager.getTaskWithResult(TASK_DRY_RUN_WITH_UPDATE.oid, result);
-        display("Task after", taskAfter);
+        displayTaskWithOperationStats("Task after", taskAfter);
         assertSuccess(taskAfter.getResult());
         assertTaskClosed(taskAfter);
 

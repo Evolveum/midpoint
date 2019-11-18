@@ -1752,7 +1752,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected <O extends ObjectType> void assertNoObject(Class<O> type, String oid, Task task, OperationResult result) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         try {
             PrismObject<O> object = modelService.getObject(type, oid, null, task, result);
-
+            display("Unexpected object", object);
             AssertJUnit.fail("Expected that "+object+" does not exist, but it does");
         } catch (ObjectNotFoundException e) {
             // This is expected
@@ -3158,6 +3158,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             deleteCaseTree(subcase.getOid(), result);
         }
         repositoryService.deleteObject(CaseType.class, rootCaseOid, result);
+    }
+
+    protected void displayTaskWithOperationStats(String message, PrismObject<TaskType> task) throws SchemaException {
+        display(message, task);
+        String stats = prismContext.xmlSerializer()
+                .serializeRealValue(task.asObjectable().getOperationStats(), TaskType.F_OPERATION_STATS);
+        display(message + ": Operational stats", stats);
+    }
+
+    protected void displayTaskWithOperationStats(String message, Task task) throws SchemaException {
+        display(message, task);
+        String stats = prismContext.xmlSerializer()
+                .serializeRealValue(task.getUpdatedOrClonedTaskObject().asObjectable().getOperationStats(), TaskType.F_OPERATION_STATS);
+        display(message + ": Operational stats", stats);
     }
 
     private class TaskFinishChecker implements Checker {

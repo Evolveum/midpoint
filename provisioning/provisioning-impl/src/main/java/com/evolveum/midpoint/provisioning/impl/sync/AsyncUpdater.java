@@ -20,8 +20,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
 
 /**
  * Implements Async Update functionality. (Currently not much, but this might change as we'll implement multi-threading.
@@ -67,12 +70,35 @@ public class AsyncUpdater {
                 }
 
                 @Override
-                public void onCompletion(Task workerTask, OperationResult result) {
+                public void onCompletion(@NotNull Task workerTask, Task coordinatorTask, @NotNull OperationResult result) {
                     if (workerTask instanceof RunningTask) {
                         ((RunningTask) workerTask).incrementProgressAndStoreStatsIfNeeded();
+
+                        if (coordinatorTask instanceof RunningTask) {
+                            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                            synchronized (coordinatorTask) {
+                                // TODO factor out progress computation to RunningTaskQuartzImpl
+                                Collection<? extends RunningTask> subtasks = ((RunningTask) coordinatorTask)
+                                        .getLightweightAsynchronousSubtasks();
+                                long totalProgress = 0;
+                                for (RunningTask subtask : subtasks) {
+                                    totalProgress += subtask.getProgress();
+                                }
+                                coordinatorTask.setProgress(totalProgress);
+
+                                // todo report current op result?
+                                // FIXME this probably should not be called from the worker task! Or can it be?
+                                ((RunningTask) coordinatorTask).storeOperationStatsIfNeeded();  // includes flushPendingModifications
+                            }
+                        }
                     }
                 }
             };
+
+            /*
+             * IMPORTANT! Do not manipulate with coordinator nor worker tasks in this method. This code is executed in
+             * a more or less random thread. Use overridden methods in the request object.
+             */
 
             try {
                 /*
@@ -83,17 +109,20 @@ public class AsyncUpdater {
                  * it's not a big problem: the whole execution will occur in the context of wrong thread. So the reporting
                  * will not be accurate. But there should be no other negative effects.
                  */
+                LOGGER.trace("Submitting request for processing: {}", request);
                 coordinator.submit(request);
 
                 /*
                  * Let's wait for the request completion.
                  */
+                LOGGER.trace("Waiting for the request to be done: {}", request);
                 //noinspection SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (request) {
                     while (!request.isDone()) {
                         request.wait(WAIT_FOR_REQUEST_COMPLETION);
                     }
                 }
+                LOGGER.trace("Request done: {}", request);
             } catch (InterruptedException e) {
                 LOGGER.warn("Execution was interrupted in {} (caller task: {})", listenerTask, callerTask);
                 return false;
@@ -101,5 +130,9 @@ public class AsyncUpdater {
             return request.isSuccess();
         };
         resourceObjectConverter.listenForAsynchronousUpdates(globalContext, listener, callerResult);
+
+        // We expect no more messages (either we got the last one, or the task is going down, or whatever).
+        // So we want the worker threads to stop.
+        coordinator.setAllItemsSubmitted();
     }
 }

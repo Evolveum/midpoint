@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -69,12 +70,23 @@ public class ChangeProcessor {
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private SchemaHelper schemaHelper;
 
-    public void execute(ProcessChangeRequest request, Task task, TaskPartitionDefinitionType partition) {
+    /**
+     * Executes the request.
+     *
+     * @param workerTask Task in context of which the worker task is executing.
+     * @param coordinatorTask Coordinator task. Might be null.
+     */
+    public void execute(ProcessChangeRequest request, Task workerTask, Task coordinatorTask, TaskPartitionDefinitionType partition) {
 
         ProvisioningContext globalCtx = request.getGlobalContext();
         Change change = request.getChange();
 
         OperationResult result = request.getParentResult().createMinorSubresult(OP_PROCESS_SYNCHRONIZATION);
+
+        long started = 0;
+        String objectName = null;
+        String objectDisplayName = null;
+        String objectOid = null;
 
         try {
 
@@ -89,7 +101,7 @@ public class ChangeProcessor {
             // that is used to execute the request. On the other hand, the task in globalCtx is the original
             // one that was used to start listening for changes. TODO This is to be cleaned up.
             // But for the time being let's forward with this hack.
-            if (SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI.equals(task.getChannel())) {
+            if (SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI.equals(workerTask.getChannel())) {
                 ctx.setChannelOverride(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
             }
 
@@ -103,7 +115,27 @@ public class ChangeProcessor {
                 shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentResourceObject());  // maybe redundant
             }
 
+            started = System.currentTimeMillis();
+
             preProcessChange(ctx, change, result);
+
+            if (change.getCurrentResourceObject() != null && change.getCurrentResourceObject().getName() != null) {
+                objectName = change.getCurrentResourceObject().getName().getOrig();
+                objectDisplayName = StatisticsUtil.getDisplayName(change.getCurrentResourceObject().asObjectable());
+                objectOid = change.getCurrentResourceObject().getOid();     // probably null
+            } else if (change.getOldRepoShadow() != null && change.getOldRepoShadow().getName() != null) {
+                objectName = change.getOldRepoShadow().getName().getOrig();
+                objectDisplayName = StatisticsUtil.getDisplayName(change.getOldRepoShadow().asObjectable());
+                objectOid = change.getOldRepoShadow().getOid();
+            } else {
+                objectName = String.valueOf(change.getPrimaryIdentifierRealValue());
+                objectDisplayName = null;
+                objectOid = null;
+            }
+
+            // We should record iterative operation start earlier (before preProcessChange). But at that time we do not have
+            // most of this information. TODO: is oldRepoShadow updated now?
+            workerTask.recordIterativeOperationStart(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid);
 
             // This is the case when we want to skip processing of change because the shadow was not found nor created.
             // The usual reason is that this is the delete delta and the object was already deleted on both resource and in repo.
@@ -152,7 +184,7 @@ public class ChangeProcessor {
             }
 
             try {
-                validateResult(notifyChangeResult, task, partition);
+                validateResult(notifyChangeResult, workerTask, partition);
             } catch (PreconditionViolationException e) {
                 throw new SystemException(e.getMessage(), e);
             }
@@ -166,6 +198,7 @@ public class ChangeProcessor {
             } else {
                 request.onError(result);
             }
+            workerTask.recordIterativeOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid, started, null);
 
         } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException |
                 ConfigurationException | ExpressionEvaluationException | SecurityViolationException | EncryptionException |
@@ -173,10 +206,16 @@ public class ChangeProcessor {
             result.recordFatalError(e);
             request.setSuccess(false);
             request.onError(e, result);
+            if (started > 0) {
+                workerTask.recordIterativeOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid, started, e);
+            }
         } finally {
             request.setDone(true);
             result.computeStatusIfUnknown();
-            request.onCompletion(task, result);
+            if (!result.isTraced()) {
+                result.cleanupResult();
+            }
+            request.onCompletion(workerTask, coordinatorTask, result);
         }
     }
 

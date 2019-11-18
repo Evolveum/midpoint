@@ -114,7 +114,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
         LOGGER.trace("Starting to synchronize change: {}", change);
         ProcessChangeRequest request = new ProcessChangeRequest(change, ctx, false, parentResult);
-        changeProcessor.execute(request, task, null);
+        changeProcessor.execute(request, task, null, null);
     }
 
     private void applyDefinitions(ResourceEventDescription eventDescription,

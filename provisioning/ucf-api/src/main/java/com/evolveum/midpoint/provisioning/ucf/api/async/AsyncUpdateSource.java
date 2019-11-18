@@ -27,7 +27,12 @@ public interface AsyncUpdateSource {
      */
     void test(OperationResult parentResult);
 
-    // TODO consider adding lifecycle methods like connect(), disconnect(), dispose() here
+    /**
+     * Closes this source and releases all resources it holds.
+     */
+    void close();
+
+    // TODO consider adding other lifecycle methods like connect(), disconnect() here
     //  However, they are not really needed now, as the existing sources are stateless.
 
 }
