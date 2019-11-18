@@ -23,12 +23,14 @@ import static com.codeborne.selenide.Selenide.$;
 public abstract class AssignmentHolderDetailsPage extends BasicPage {
 
     public BasicPage clickBack() {
-        $(Schrodinger.byDataResourceKey("pageAdminFocus.button.back")).click();
+        $(Schrodinger.byDataResourceKey("pageAdminFocus.button.back"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
         return new BasicPage();
     }
 
     public ProgressPage clickSave() {
-        $(Schrodinger.byDataId("save")).click();
+        $(Schrodinger.byDataId("save")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         return new ProgressPage();
     }
 

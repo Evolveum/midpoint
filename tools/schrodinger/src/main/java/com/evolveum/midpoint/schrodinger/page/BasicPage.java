@@ -353,7 +353,7 @@ public class BasicPage {
             return mainMenu;
         }
         SelenideElement menuItem = mainMenu.$(Schrodinger.byDataResourceKey(menuItemKey));
-        menuItem.shouldBe(Condition.visible);
+        menuItem.waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return menuItem;
     }
