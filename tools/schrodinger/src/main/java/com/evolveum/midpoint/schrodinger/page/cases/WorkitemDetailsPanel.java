@@ -29,4 +29,25 @@ public class WorkitemDetailsPanel<P extends BasicPage> extends Component<P> {
                 .click();
     }
 
+    public void rejectButtonClick(){
+        getParentElement()
+                .$(Schrodinger.byDataId("workItemRejectButton"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
+    }
+
+    public void forwardButtonClick(){
+        getParentElement()
+                .$(Schrodinger.byDataId("workItemForwardButton"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
+    }
+
+    public void claimButtonClick(){
+        getParentElement()
+                .$(Schrodinger.byDataId("workItemClaimButton"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
+    }
+
 }
