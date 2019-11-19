@@ -323,7 +323,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
             itemPath = path;
         }
 
-        if (ExpressionConstants.VAR_ACCOUNT.equals(varName)) {
+        if (ExpressionConstants.VAR_PROJECTION.equals(varName) || ExpressionConstants.VAR_SHADOW.equals(varName) || ExpressionConstants.VAR_ACCOUNT.equals(varName)) {
             return resolveResourceItem(model, currentItem, itemPath);
         } else if (ExpressionConstants.VAR_USER.equals(varName)) {
             return model.resolveRepositoryItem(UserType.class, itemPath);
@@ -380,7 +380,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
             itemPath = path;
         }
 
-        if (ExpressionConstants.VAR_ACCOUNT.equals(varName)) {
+        if (ExpressionConstants.VAR_PROJECTION.equals(varName) || ExpressionConstants.VAR_SHADOW.equals(varName) || ExpressionConstants.VAR_ACCOUNT.equals(varName)) {
             return resolveResourceItem(model, currentItem, itemPath);                // does make sense?
         } else if (ExpressionConstants.VAR_USER.equals(varName)) {
             return model.resolveRepositoryItem(UserType.class, itemPath);

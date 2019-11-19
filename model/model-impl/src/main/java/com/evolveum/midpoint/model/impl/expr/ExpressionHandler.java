@@ -145,6 +145,7 @@ public class ExpressionHandler {
 
         ExpressionVariables variables = new ExpressionVariables();
         if (user != null) {
+            variables.put(ExpressionConstants.VAR_FOCUS, user.asPrismObject(), user.asPrismObject().getDefinition());
             variables.put(ExpressionConstants.VAR_USER, user.asPrismObject(), user.asPrismObject().getDefinition());
         }
 
