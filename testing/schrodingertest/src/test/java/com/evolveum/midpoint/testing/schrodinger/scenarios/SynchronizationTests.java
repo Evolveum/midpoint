@@ -10,9 +10,12 @@ import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.user.UserProjectionsTab;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
+import com.evolveum.midpoint.schrodinger.page.task.EditTaskPage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
@@ -20,6 +23,8 @@ import com.evolveum.midpoint.testing.schrodinger.TestBase;
 import javax.naming.ConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 /**
  * Created by matus on 5/21/2018.
@@ -28,6 +33,7 @@ public class SynchronizationTests extends TestBase {
 
     private static File CSV_TARGET_FILE;
 
+    private static final Logger LOG = LoggerFactory.getLogger(SynchronizationTests.class);
 
     private static final File CSV_INITIAL_SOURCE_FILE = new File("./src/test/resources/midpoint-groups-authoritative-initial.csv");
     private static final File CSV_UPDATED_SOURCE_FILE = new File("./src/test/resources/midpoint-groups-authoritative-updated.csv");
@@ -159,6 +165,15 @@ public class SynchronizationTests extends TestBase {
                             .isSuccess();
 
         FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
+        LOG.info("Copied data to csv file, {}", Files.readString(CSV_TARGET_FILE.toPath(), StandardCharsets.US_ASCII));
+
+
+        ListTasksPage tasksPage = basicPage.listTasks();
+        EditTaskPage taskPage = tasksPage.table().clickByName("LiveSyncTest");
+        if (taskPage.isRunNowVisible()){
+            taskPage.clickRunNow();
+        }
         Selenide.sleep(MidPoint.TIMEOUT_EXTRA_LONG_1_M);
 
         usersPage = basicPage.listUsers();
