@@ -37,6 +37,8 @@ import static org.testng.AssertJUnit.*;
 /**
  * Test resources that have several connectors.
  *
+ * MID-5921
+ *
  * @author semancik
  *
  */
@@ -71,7 +73,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
         repoAddObjectFromFile(USER_GUYBRUSH_FILE, true, initResult);
     }
 
-    @Test
+    @Test(enabled = false) // MID-5921
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
@@ -91,7 +93,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
         assertEquals("Wrong OPALINE-SCRIPT useless string", CONF_USELESS_SCRIPT, getDummyResource(RESOURCE_DUMMY_OPALINE_SCRIPT_NAME).getUselessString());
     }
 
-    @Test
+    @Test(enabled = false) // MID-5921
     public void test100JackAssignDummyOpaline() throws Exception {
         final String TEST_NAME = "test100JackAssignDummyOpaline";
         displayTestTitle(TEST_NAME);
