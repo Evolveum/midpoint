@@ -79,7 +79,7 @@ import java.util.List;
 })
 @Profile("!test")
 @SpringBootConfiguration
-@ComponentScan(basePackages = {"com.evolveum.midpoint.gui","com.evolveum.midpoint.gui.api"}, basePackageClasses = {TextAreaPanelFactory.class, GuiComponentRegistryImpl.class})
+@ComponentScan(basePackages = {"com.evolveum.midpoint.web.boot.auth.module.factory","com.evolveum.midpoint.gui","com.evolveum.midpoint.gui.api"}, basePackageClasses = {TextAreaPanelFactory.class, GuiComponentRegistryImpl.class})
 @EnableScheduling
 public class MidPointSpringApplication extends AbstractSpringBootApplication {
 

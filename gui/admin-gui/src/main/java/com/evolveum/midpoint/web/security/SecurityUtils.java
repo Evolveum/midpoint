@@ -58,6 +58,9 @@ public class SecurityUtils {
         }
 
         Object principal = authentication.getPrincipal();
+        if (principal == null) {
+            return null;
+        }
         if (principal instanceof MidPointUserProfilePrincipal) {
             return (MidPointUserProfilePrincipal) principal;
         }

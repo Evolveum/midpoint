@@ -11,11 +11,14 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.boot.auth.module.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.web.boot.auth.module.authentication.LoginFormModuleAuthentication;
+import com.evolveum.midpoint.web.boot.auth.module.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -25,22 +28,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import static org.springframework.security.saml.util.StringUtils.stripSlashes;
+
 /**
  * @author mserbak
+ * @author lskublik
  */
-@PageDescriptor(url = "/login", permitAll = true)
+@PageDescriptor(urls = {
+        @Url(mountUrl = "/login", matchUrlForSecurity = "/login")
+}, permitAll = true)
 public class PageLogin extends PageBase {
     private static final long serialVersionUID = 1L;
 
@@ -49,12 +61,28 @@ public class PageLogin extends PageBase {
     private static final String ID_FORGET_PASSWORD = "forgetpassword";
     private static final String ID_SELF_REGISTRATION = "selfRegistration";
     private static final String ID_CSRF_FIELD = "csrfField";
+    private static final String ID_FORM = "form";
 
     private static final String DOT_CLASS = PageLogin.class.getName() + ".";
     protected static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = DOT_CLASS + "loadPasswordResetPolicy";
     private static final String OPERATION_LOAD_REGISTRATION_POLICY = DOT_CLASS + "loadRegistrationPolicy";
 
     public PageLogin() {
+
+        Form form = new Form<>(ID_FORM){
+            @Override
+            protected void onSubmit() {
+                super.onSubmit();
+            }
+        };
+        form.add(AttributeModifier.replace("action", new IModel<String>() {
+            @Override
+            public String getObject() {
+                return getUrlProcessingLogin();
+            }
+        }));
+        add(form);
+
         BookmarkablePageLink<String> link = new BookmarkablePageLink<>(ID_FORGET_PASSWORD, PageForgotPassword.class);
         link.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
@@ -86,7 +114,7 @@ public class PageLogin extends PageBase {
                 return false;
             }
         });
-        add(link);
+        form.add(link);
 
         AjaxLink<String> registration = new AjaxLink<String>(ID_SELF_REGISTRATION) {
             private static final long serialVersionUID = 1L;
@@ -125,10 +153,24 @@ public class PageLogin extends PageBase {
                 return linkIsVisible;
             }
         });
-        add(registration);
+        form.add(registration);
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
-        add(csrfField);
+        form.add(csrfField);
+    }
+
+    private String getUrlProcessingLogin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+            if (moduleAuthentication != null && moduleAuthentication instanceof LoginFormModuleAuthentication){
+                String prefix = ((LoginFormModuleAuthentication) moduleAuthentication).getPrefix();
+                return stripSlashes(prefix) + "/spring_security_login";
+            }
+        }
+
+        return "/midpoint/spring_security_login";
     }
 
     @Override
@@ -149,8 +191,11 @@ public class PageLogin extends PageBase {
             msg = "web.security.provider.unavailable";
         }
 
-        msg = getLocalizationService().translate(msg, null, getLocale(), msg);
-        error(msg);
+        String[] msgs = msg.split(";");
+        for (String message : msgs) {
+            message = getLocalizationService().translate(message, null, getLocale(), message);
+            error(message);
+        }
 
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
 

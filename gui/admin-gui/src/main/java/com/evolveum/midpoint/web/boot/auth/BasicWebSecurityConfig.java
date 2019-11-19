@@ -4,11 +4,12 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.boot.testsaml;
+package com.evolveum.midpoint.web.boot.auth;
 
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.web.boot.auth.filter.configurers.AuthFilterConfigurer;
 import com.evolveum.midpoint.web.security.*;
 import org.jasig.cas.client.session.SingleSignOutFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,20 +18,28 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.cas.web.CasAuthenticationFilter;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.authentication.preauth.RequestAttributeAuthenticationFilter;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author skublik
@@ -46,6 +55,9 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private AuthenticationProvider midPointAuthenticationProvider;
 
+    @Autowired
+    private SessionRegistry sessionRegistry;
+
     @Value("${auth.sso.header:SM_USER}")
     private String principalRequestHeader;
 
@@ -58,6 +70,18 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${auth.logout.url:/}")
     private String authLogoutUrl;
 
+    private ObjectPostProcessor<Object> objectObjectPostProcessor;
+
+    public BasicWebSecurityConfig(){
+        super(true);
+    }
+
+    @Override
+    public void setObjectPostProcessor(ObjectPostProcessor<Object> objectPostProcessor) {
+        this.objectObjectPostProcessor = objectPostProcessor;
+        super.setObjectPostProcessor(objectPostProcessor);
+    }
+
     @Bean
     public MidPointGuiAuthorizationEvaluator accessDecisionManager(SecurityEnforcer securityEnforcer,
                                                                    SecurityContextManager securityContextManager,
@@ -66,8 +90,8 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public MidPointAuthenticationSuccessHandler authenticationSuccessHandler() {
-        MidPointAuthenticationSuccessHandler handler = new MidPointAuthenticationSuccessHandler();
+    public OldMidPointAuthenticationSuccessHandler authenticationSuccessHandler() {
+        OldMidPointAuthenticationSuccessHandler handler = new OldMidPointAuthenticationSuccessHandler();
         handler.setUseReferer(true);
         handler.setDefaultTargetUrl("/login");
 
@@ -128,10 +152,31 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 //            web.debug(true);
     }
 
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.setSharedObject(AuthenticationTrustResolverImpl.class, new MidpointAuthenticationTrustResolverImpl());
+        http
+                .addFilter(new WebAsyncManagerIntegrationFilter())
+                .sessionManagement().and()
+                .securityContext();//.and()
+        http.apply(new AuthFilterConfigurer());
+
+//        http.csrf();
+
+        http.sessionManagement()
+//                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
+                .maximumSessions(-1)
+                .sessionRegistry(sessionRegistry)
+                .maxSessionsPreventsLogin(true);
+    }
+
     @Bean
     @Override
+    @DependsOn("midPointAuthenticationProvider")
     protected AuthenticationManager authenticationManager() throws Exception {
-        return super.authenticationManager();
+        List<AuthenticationProvider> providers = new ArrayList<AuthenticationProvider>();
+//        providers.add(midPointAuthenticationProvider());
+        return new MidpointProviderManager(providers);
     }
 
     @ConditionalOnMissingBean(name = "midPointAuthenticationProvider")
@@ -140,10 +185,10 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new MidPointAuthenticationProvider();
     }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(midPointAuthenticationProvider);
-    }
+//    @Override
+//    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//        auth.authenticationProvider(midPointAuthenticationProvider);
+//    }
 
 
     @Profile("sso")
