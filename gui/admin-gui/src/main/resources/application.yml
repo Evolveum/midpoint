@@ -72,5 +72,3 @@ management:
         - env
         - info
         - metrics
-
-logging.level.org.springframework.security.saml: DEBUG
