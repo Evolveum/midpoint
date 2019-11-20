@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.web.boot.auth.module.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.web.boot.auth.module.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.web.security.module.authentication.ModuleAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;

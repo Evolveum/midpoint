@@ -67,6 +67,7 @@ public abstract class TestBase {
 
         basicPage = login.login(midPoint.getUsername(),midPoint.getPassword());
 
+
     }
 
     @AfterClass
