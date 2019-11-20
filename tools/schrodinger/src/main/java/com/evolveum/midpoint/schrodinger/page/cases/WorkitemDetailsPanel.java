@@ -10,8 +10,15 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
+import com.evolveum.midpoint.schrodinger.component.modal.ForwardWorkitemModal;
+import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import org.openqa.selenium.By;
+
+import static com.codeborne.selenide.Selectors.byText;
+import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Kate Honchar
@@ -36,11 +43,22 @@ public class WorkitemDetailsPanel<P extends BasicPage> extends Component<P> {
                 .click();
     }
 
-    public void forwardButtonClick(){
+    public ForwardWorkitemModal forwardButtonClick(){
         getParentElement()
                 .$(Schrodinger.byDataId("workItemForwardButton"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .click();
+        SelenideElement modalWindow = $(By.className("wicket-modal"))
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+        ForwardWorkitemModal<P> forwardWorkitemModal = new ForwardWorkitemModal<P>(getParent(), modalWindow);
+        return forwardWorkitemModal;
+    }
+
+    public ConfirmationModal<P> forwardOperationUserSelectionPerformed(){
+        SelenideElement modalWindow = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm forwarding"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        ConfirmationModal<P> confirmationModal = new ConfirmationModal<P>(getParent(), modalWindow);
+        return confirmationModal;
     }
 
     public void claimButtonClick(){
@@ -50,4 +68,12 @@ public class WorkitemDetailsPanel<P extends BasicPage> extends Component<P> {
                 .click();
     }
 
+    public boolean matchApproverElementValue(String approver){
+        return getParentElement()
+                .$(Schrodinger.byDataId("approver"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .$(byText(approver))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .is(Condition.visible);
+    }
 }
