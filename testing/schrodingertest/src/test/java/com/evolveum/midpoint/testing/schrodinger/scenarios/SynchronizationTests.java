@@ -173,11 +173,14 @@ public class SynchronizationTests extends TestBase {
         EditTaskPage taskPage = tasksPage.table().clickByName("LiveSyncTest");
         if (taskPage.isRunNowVisible()){
             taskPage.clickRunNow();
+            LOG.info("Sync task is run manually");
         }
         Selenide.sleep(MidPoint.TIMEOUT_EXTRA_LONG_1_M);
 
-        usersPage = basicPage.listUsers();
-        UserProjectionsTab projectionsTab = usersPage
+        taskPage.loggedUser().logout().login(midPoint.getUsername(), midPoint.getPassword());
+
+        ListUsersPage usersListPage = basicPage.listUsers();
+        UserProjectionsTab projectionsTab = usersListPage
                 .table()
                     .search()
                         .byName()
