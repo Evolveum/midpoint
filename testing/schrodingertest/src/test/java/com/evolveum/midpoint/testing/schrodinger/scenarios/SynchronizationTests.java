@@ -23,8 +23,7 @@ import com.evolveum.midpoint.testing.schrodinger.TestBase;
 import javax.naming.ConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
+
 
 /**
  * Created by matus on 5/21/2018.
@@ -164,9 +163,10 @@ public class SynchronizationTests extends TestBase {
                             .feedback()
                             .isSuccess();
 
+        LOG.info("File length before data copying, {}", CSV_TARGET_FILE.length());
         FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
-        LOG.info("Copied data to csv file, {}", Files.readString(CSV_TARGET_FILE.toPath(), StandardCharsets.US_ASCII));
+        LOG.info("File length after data copying, {}", CSV_TARGET_FILE.length());
 
 
         ListTasksPage tasksPage = basicPage.listTasks();
