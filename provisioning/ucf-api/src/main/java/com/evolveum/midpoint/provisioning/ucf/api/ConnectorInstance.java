@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.provisioning.ucf.api.async.ChangeListener;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -25,9 +26,11 @@ import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 import javax.xml.namespace.QName;
 
@@ -331,7 +334,21 @@ public interface ConnectorInstance {
      */
     void dispose();
 
-    default ListeningActivity startListeningForChanges(ChangeListener changeListener, OperationResult parentResult) throws SchemaException {
+    /**
+     * Listens for asynchronous updates. The connector should (indefinitely) listen for updates coming from the resource.
+     * Caller thread can be used for listening to and processing of changes. Or, the connector is free to create its own
+     * threads to listen and/or to execute changeListener in. But the control should return back to the caller after the
+     * listening is over.
+     *
+     * In the future we could create a similar method that would simply start the listening process and return the control
+     * immediately -- if needed.
+     *
+     * @param changeListener Listener to invoke when a change arrives
+     * @param canRunSupplier Supplier of "canRun" information. If it returns false we should stop listening.
+     * @param parentResult Operation result to use for listening for changes.
+     */
+    default void listenForChanges(@NotNull ChangeListener changeListener, @NotNull Supplier<Boolean> canRunSupplier,
+            @NotNull OperationResult parentResult) throws SchemaException {
         throw new UnsupportedOperationException();
     }
 }

@@ -37,8 +37,10 @@ public class ChangeProcessingCoordinator {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChangeProcessingCoordinator.class);
 
-    private static final int WORKER_THREAD_WAIT_FOR_REQUEST = 500;
+    private static final long WORKER_THREAD_WAIT_FOR_REQUEST = 500L;
     private static final long REQUEST_QUEUE_OFFER_TIMEOUT = 1000L;
+
+    private static final String OP_HANDLE_ASYNCHRONOUSLY = ChangeProcessingCoordinator.class.getName() + ".handleAsynchronously";
 
     @NotNull private final Supplier<Boolean> canRunSupplier;
     @NotNull private final ChangeProcessor changeProcessor;
@@ -75,7 +77,7 @@ public class ChangeProcessingCoordinator {
         }
     }
 
-    public void submit(ProcessChangeRequest request, OperationResult result) throws InterruptedException {
+    public void submit(ProcessChangeRequest request) throws InterruptedException {
         if (multithreaded) {
             while (!waitingRequestsQueue.offer(request, REQUEST_QUEUE_OFFER_TIMEOUT, TimeUnit.MILLISECONDS)) {
                 if (!canRunSupplier.get()) {
@@ -83,7 +85,7 @@ public class ChangeProcessingCoordinator {
                 }
             }
         } else {
-            changeProcessor.execute(request, coordinatorTask, taskPartition, result);
+            changeProcessor.execute(request, coordinatorTask, null, taskPartition);
         }
     }
 
@@ -97,7 +99,7 @@ public class ChangeProcessingCoordinator {
         for (int i = 0; i < threadsCount; i++) {
             // we intentionally do not put worker specific result under main operation result until the handler is done
             // (because of concurrency issues - adding subresults vs e.g. putting main result into the task)
-            OperationResult workerSpecificResult = new OperationResult(ChangeProcessingCoordinator.class.getName() + ".handleAsynchronously");
+            OperationResult workerSpecificResult = new OperationResult(OP_HANDLE_ASYNCHRONOUSLY);
             workerSpecificResult.addContext("subtaskIndex", i+1);
             workerSpecificResults.add(workerSpecificResult);
 
@@ -155,9 +157,21 @@ public class ChangeProcessingCoordinator {
                         continue;
                     }
                     try {
-                        changeProcessor.execute(request, workerTask, taskPartition, workerSpecificResult);
+                        changeProcessor.execute(request, workerTask, coordinatorTask, taskPartition);
                     } finally {
+                        request.setDone(true);          // probably set already -- but better twice than not at all
                         affinityController.unbind(workerTask.getTaskIdentifier(), request);
+
+                        // Subresults of request parent result (actually, there should be just one) should be closed now.
+                        // So it is safe to include them under workerSpecificResult.
+                        for (OperationResult subresult : request.getParentResult().getSubresults()) {
+                            workerSpecificResult.addSubresult(subresult);
+                        }
+                        workerSpecificResult.computeStatus(true);
+                        // We do NOT try to summarize/cleanup the whole results hierarchy.
+                        // There could be some accesses to the request's subresult from the thread that originated it.
+                        workerSpecificResult.summarize(false);
+                        workerSpecificResult.cleanupResult();
                     }
                 } else {
                     if (allItemsSubmitted) {

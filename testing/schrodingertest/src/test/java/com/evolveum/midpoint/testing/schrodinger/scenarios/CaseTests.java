@@ -14,12 +14,30 @@ import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import java.io.File;
 
 /**
  * Created by honchar.
  */
 public class CaseTests extends TestBase {
+
+    public static final File ROLE_WITH_ADMIN_APPROVER_XML = new File("./src/test/resources/role-with-admin-approver.xml");
+    public static final String CASE_CREATION_TEST_USER_NAME = "caseCreationTestUser";
+    public static final String CASE_CREATION_TEST_ROLE_NAME = "Role with admin approver";
+    public static final String REQUEST_CASE_NAME = "Approving and executing change of user \"";
+    public static final String ASSIGNING_ROLE_CASE_NAME = "Assigning role \"Role with admin approver\" to user \"";
+
+    public static final String REJECT_WORKITEM_TEST_USER_NAME = "rejectWorkitemTestUser";
+    public static final String CLAIM_WORKITEM_TEST_USER_NAME = "claimWorkitemTestUser";
+    public static final String FORWARD_WORKITEM_TEST_USER_NAME = "forwardWorkitemTestUser";
+
+    @BeforeMethod
+    private void importRoleWithApprovement() {
+        importObject(ROLE_WITH_ADMIN_APPROVER_XML,true);
+    }
 
     @Test //covers mid-5813
     public void test100openCasesAndCheckMenuEnabled() {
@@ -70,54 +88,98 @@ public class CaseTests extends TestBase {
      }
 
      @Test
-     public void isCaseCreated(){
-         importObject(ConstantsUtil.ROLE_WITH_ADMIN_APPROVER_XML,true);
-
-         UserPage user = basicPage.newUser();
-         user.selectTabBasic()
-                    .form()
-                        .addAttributeValue("name", ConstantsUtil.CASE_CREATION_TEST_USER_NAME)
-                        .and()
-                    .and()
-                 .clickSave();
-
-         ListUsersPage users = basicPage.listUsers();
-         users
-                 .table()
-                    .search()
-                    .byName()
-                    .inputValue(ConstantsUtil.CASE_CREATION_TEST_USER_NAME)
-                    .updateSearch()
-                 .and()
-                    .clickByName(ConstantsUtil.CASE_CREATION_TEST_USER_NAME)
-                    .selectTabAssignments()
-                        .clickAddAssignemnt()
-                            .selectType(ConstantsUtil.ASSIGNMENT_TYPE_SELECTOR_ROLE)
-                            .table()
-                            .search()
-                            .byName()
-                            .inputValue(ConstantsUtil.CASE_CREATION_TEST_ROLE_NAME)
-                            .updateSearch()
-                        .and()
-                        .selectCheckboxByName(ConstantsUtil.CASE_CREATION_TEST_ROLE_NAME)
-                    .and()
-                    .clickAdd()
-                 .and()
-                 .clickSave()
-                 .feedback()
-                 .isInfo();
+     public void test110isCaseCreated(){
+         createUserAndAssignRoleWithApprovement(CASE_CREATION_TEST_USER_NAME);
 
          AllCasesPage allCasesPage = basicPage.listAllCases();
          allCasesPage
                  .table()
                     .search()
                     .byName()
-                    .inputValue(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME)
+                    .inputValue(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME)
                     .updateSearch()
                  .and()
-                 .containsLinkTextPartially(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME);
+                 .containsLinkTextPartially(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME);
 
      }
+
+    @Test (dependsOnMethods = {"test110isCaseCreated"})
+    public void test120approveCaseAction() {
+        AllRequestsPage allRequestsPage = basicPage.listAllRequests();
+        allRequestsPage
+                .table()
+                .search()
+                .byName()
+                .inputValue(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME)
+                .updateSearch()
+                .and()
+                .clickByPartialName(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME)
+                .selectTabChildren()
+                .table()
+                .clickByPartialName(ASSIGNING_ROLE_CASE_NAME + CASE_CREATION_TEST_USER_NAME)
+                .selectTabWorkitems()
+                .table()
+                .clickByName(ASSIGNING_ROLE_CASE_NAME + CASE_CREATION_TEST_USER_NAME)
+                .approveButtonClick();
+
+        allRequestsPage = basicPage.listAllRequests();
+        CasePage casePage = allRequestsPage
+                .table()
+                .search()
+                .byName()
+                .inputValue(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME)
+                .updateSearch()
+                .and()
+                .clickByPartialName(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME);
+        Assert.assertTrue(casePage
+                        .selectTabChildren()
+                        .table()
+                        .currentTableContains("div", "closed"));
+
+        Assert.assertTrue(casePage
+                        .selectTabOperationRequest()
+                        .changesAreApplied());
+    }
+
+    @Test (dependsOnMethods = {"test110isCaseCreated"})
+    public void test130rejectCaseAction() {
+        createUserAndAssignRoleWithApprovement(REJECT_WORKITEM_TEST_USER_NAME);
+
+        AllRequestsPage allRequestsPage = basicPage.listAllRequests();
+        allRequestsPage
+                .table()
+                .search()
+                .byName()
+                .inputValue(REQUEST_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME)
+                .updateSearch()
+                .and()
+                .clickByPartialName(REQUEST_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME)
+                .selectTabChildren()
+                .table()
+                .clickByPartialName(ASSIGNING_ROLE_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME)
+                .selectTabWorkitems()
+                .table()
+                .clickByName(ASSIGNING_ROLE_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME)
+                .rejectButtonClick();
+
+        allRequestsPage = basicPage.listAllRequests();
+        CasePage casePage = allRequestsPage
+                .table()
+                .search()
+                .byName()
+                .inputValue(REQUEST_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME)
+                .updateSearch()
+                .and()
+                .clickByPartialName(REQUEST_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME);
+
+        Assert.assertTrue(casePage
+                        .selectTabChildren()
+                        .table()
+                        .currentTableContains("div", "closed"));
+        Assert.assertTrue(casePage
+                .selectTabOperationRequest()
+                .changesAreRejected());
+    }
 
     private boolean isCaseMenuItemActive(String menuIdentifier, boolean checkByLabelText){
         SelenideElement casesMenuItemElement;
@@ -130,5 +192,41 @@ public class CaseTests extends TestBase {
         }
         SelenideElement casesMenuLi = casesMenuItemElement.parent().parent();
         return casesMenuLi.has(Condition.cssClass("active"));
+    }
+
+    private void createUserAndAssignRoleWithApprovement(String userName){
+        UserPage user = basicPage.newUser();
+        user.selectTabBasic()
+                .form()
+                .addAttributeValue("name", userName)
+                .and()
+                .and()
+                .clickSave();
+
+        ListUsersPage users = basicPage.listUsers();
+        users
+                .table()
+                .search()
+                .byName()
+                .inputValue(userName)
+                .updateSearch()
+                .and()
+                .clickByName(userName)
+                .selectTabAssignments()
+                .clickAddAssignemnt()
+                .selectType(ConstantsUtil.ASSIGNMENT_TYPE_SELECTOR_ROLE)
+                .table()
+                .search()
+                .byName()
+                .inputValue(CASE_CREATION_TEST_ROLE_NAME)
+                .updateSearch()
+                .and()
+                .selectCheckboxByName(CASE_CREATION_TEST_ROLE_NAME)
+                .and()
+                .clickAdd()
+                .and()
+                .clickSave()
+                .feedback()
+                .isInfo();
     }
 }

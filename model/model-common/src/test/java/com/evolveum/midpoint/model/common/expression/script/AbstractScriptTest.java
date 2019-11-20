@@ -246,6 +246,10 @@ public abstract class AbstractScriptTest {
                 ExpressionConstants.VAR_USER,
                     MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
                     // We want 'user' variable to contain user object, not the reference. We want the reference resolved.
+                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class),
+                ExpressionConstants.VAR_FOCUS,
+                    MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                    // We want 'user' variable to contain user object, not the reference. We want the reference resolved.
                     prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class));
     }
 

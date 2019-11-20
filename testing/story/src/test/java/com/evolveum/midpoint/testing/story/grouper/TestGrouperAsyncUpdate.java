@@ -7,33 +7,23 @@
 package com.evolveum.midpoint.testing.story.grouper;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.quartzimpl.tracing.TracerImpl;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.ShadowAttributesAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismPropertyAsserter;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.io.IOUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -114,8 +104,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -165,8 +154,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -219,8 +207,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -283,8 +270,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -347,8 +333,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -378,8 +363,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -441,8 +425,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -468,8 +451,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -531,8 +513,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 

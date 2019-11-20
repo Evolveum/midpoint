@@ -22,7 +22,7 @@
                     <order>30</order>
                 </compositionStrategy>
                 <approvalSchema>
-                    <level>
+                    <stage>
                         <name>SoD</name>
                         <approverRef type="OrgType">
                             <filter>
@@ -36,7 +36,7 @@
                         <evaluationStrategy>firstDecides</evaluationStrategy>
                         <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
                         <groupExpansion>onWorkItemCreation</groupExpansion>
-                    </level>
+                    </stage>
                 </approvalSchema>
             </approval>
         </policyActions>

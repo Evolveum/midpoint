@@ -32,8 +32,6 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
     private IModel<IW> itemWrapper;
     private ItemRealValueModel<T> realValueModel;
 
-    private FeedbackAlerts feedbackPanel;
-
     private Form<?> form;
 
     public ItemPanelContext(IModel<IW> itemWrapper) {
@@ -94,11 +92,6 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
         return realValueModel;
     }
 
-
-    public FeedbackAlerts getFeedbackPanel() {
-        return feedbackPanel;
-    }
-
     public <V extends PrismValue> void setRealValueModel(IModel<? extends PrismValueWrapper<T, V>> valueWrapper) {
         this.realValueModel = new ItemRealValueModel<T>(valueWrapper);
     }
@@ -112,11 +105,6 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
         this.parentComponent = parentComponent;
     }
 
-
-
-public void setFeedbackPanel(FeedbackAlerts feedbackPanel) {
-        this.feedbackPanel = feedbackPanel;
-    }
 
 /**
  * @return the form

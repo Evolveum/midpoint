@@ -39,4 +39,9 @@ public class AllAssignmentsPreviewDialog extends AssignmentsInfoDialog {
     protected boolean showRelationColumn() {
         return true;
     }
+
+    @Override
+    protected boolean showCancelButton(){
+        return false;
+    }
 }

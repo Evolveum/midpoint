@@ -66,16 +66,6 @@
                <targetName>resource1</targetName>
            </resourceRef>
        </construction>
-       <trigger>
-           <assignmentPath>
-               <segment>
-                   <sourceRef oid="123">
-                       <targetName>source123</targetName>
-                   </sourceRef>
-               </segment>
-           </assignmentPath>
-           <constraint></constraint>
-       </trigger>
     </assignment>
 
     <activation>

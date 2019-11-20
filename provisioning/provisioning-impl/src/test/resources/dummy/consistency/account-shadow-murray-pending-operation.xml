@@ -6,7 +6,9 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!-- MID-5076 -->
+<!-- This was a test for MID-5076. After removing legacy "objectChange" from the schema we had to remove it from
+     this test file as well. So it's questionable whether to keep the test at all. -->
+
 <shadow oid="34132742-2085-11e9-a956-17770b09881b"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -19,19 +21,19 @@
     <objectClass>ri:AccountObjectClass</objectClass>
     <kind>account</kind>
 
-    <!-- Legacy consistency items -->
-    <objectChange>
-        <t:changeType>modify</t:changeType>
-        <t:objectType>c:ShadowType</t:objectType>
-        <t:oid>34132742-2085-11e9-a956-17770b09881b</t:oid>
-        <t:itemDelta>
-            <t:modificationType>add</t:modificationType>
-            <t:path>c:attributes/ri:fullname</t:path>
-            <t:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">Evil Devil Murray</t:value>
-        </t:itemDelta>
-    </objectChange>
-    <attemptNumber>0</attemptNumber>
-    <failedOperationType>modify</failedOperationType>
+    <pendingOperation>
+        <delta>
+            <t:changeType>modify</t:changeType>
+            <t:objectType>c:ShadowType</t:objectType>
+            <t:oid>34132742-2085-11e9-a956-17770b09881b</t:oid>
+            <t:itemDelta>
+                <t:modificationType>add</t:modificationType>
+                <t:path>c:attributes/ri:fullname</t:path>
+                <t:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">Evil Devil Murray</t:value>
+            </t:itemDelta>
+        </delta>
+        <attemptNumber>0</attemptNumber>
+    </pendingOperation>
 
     <attributes>
         <icfs:name>murray</icfs:name>

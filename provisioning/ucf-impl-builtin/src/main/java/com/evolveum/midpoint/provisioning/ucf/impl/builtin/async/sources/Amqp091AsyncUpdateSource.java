@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async;
+package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.sources;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateMessageListener;
-import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateSource;
+import com.evolveum.midpoint.provisioning.ucf.api.async.ActiveAsyncUpdateSource;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateMessageListener;
 import com.evolveum.midpoint.provisioning.ucf.api.ListeningActivity;
+import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.AsyncUpdateConnectorInstance;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -20,14 +21,17 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.rabbitmq.client.*;
+import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -38,14 +42,18 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  *
  *  An experimental implementation.
  */
-public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
+public class Amqp091AsyncUpdateSource implements ActiveAsyncUpdateSource {
+
+    public static final String HEADER_LAST_MESSAGE = "X-LastMessage";
 
     private static final Trace LOGGER = TraceManager.getTrace(Amqp091AsyncUpdateSource.class);
     private static final int DEFAULT_PREFETCH = 10;
+    private static final int DEFAULT_NUMBER_OF_THREADS = 10;
 
     @NotNull private final Amqp091SourceType sourceConfiguration;
     @NotNull private final PrismContext prismContext;
     @NotNull private final AsyncUpdateConnectorInstance connectorInstance;
+    @NotNull private final ExecutorService connectionHandlingExecutor;
     @NotNull private final ConnectionFactory connectionFactory;
 
     private static final long CONNECTION_CLOSE_TIMEOUT = 5000L;
@@ -54,7 +62,8 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
         this.sourceConfiguration = sourceConfiguration;
         this.prismContext = connectorInstance.getPrismContext();
         this.connectorInstance = connectorInstance;
-        this.connectionFactory = createConnectionFactory();
+        this.connectionHandlingExecutor = createConnectionHandlingExecutor(sourceConfiguration);
+        this.connectionFactory = createConnectionFactory(connectionHandlingExecutor);
     }
 
     private enum State {
@@ -86,6 +95,11 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
             return rv;
         }
 
+        @Override
+        public boolean isAlive() {
+            return state != State.CLOSED;
+        }
+
         private ListeningActivityImpl(AsyncUpdateMessageListener listener) {
             try {
                 state = State.PREPARING;
@@ -107,7 +121,16 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
                         if (successful) {
                             activeChannel.basicAck(message.getEnvelope().getDeliveryTag(), false);
                         } else {
+                            LOGGER.debug("Message processing was not successful, rejecting message according to the current settings");
                             rejectMessage(message);
+                        }
+                        AMQP.BasicProperties properties = message.getProperties();
+                        if (properties.getHeaders() != null) {
+                            boolean last = Boolean.TRUE.equals(properties.getHeaders().get(HEADER_LAST_MESSAGE));
+                            if (last) {
+                                LOGGER.info("Last message received, stopping the listening activity");
+                                stopInternal(true);
+                            }
                         }
                     } catch (RuntimeException | SchemaException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Got exception while processing message", e);
@@ -201,7 +224,7 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
             AsyncUpdateErrorHandlingActionType action = getErrorHandlingAction();
             switch (action) {
                 case RETRY:
-                    throw new UnsupportedEncodingException();
+                    throw new UnsupportedOperationException("'Retry' error handling strategy is not implemented yet");
                 case SKIP_UPDATE:
                     activeChannel.basicReject(message.getEnvelope().getDeliveryTag(), false);
                     break;
@@ -254,9 +277,10 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
     }
 
     @NotNull
-    private ConnectionFactory createConnectionFactory() {
+    private ConnectionFactory createConnectionFactory(ExecutorService connectionHandlingExecutor) {
         try {
             ConnectionFactory connectionFactory = new ConnectionFactory();
+            connectionFactory.setSharedExecutor(connectionHandlingExecutor);
             connectionFactory.setUri(sourceConfiguration.getUri());
             connectionFactory.setUsername(sourceConfiguration.getUsername());
             if (sourceConfiguration.getPassword() != null) {
@@ -291,5 +315,29 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
     private AsyncUpdateErrorHandlingActionType getErrorHandlingAction() {
         // TODO make overridable per source
         return connectorInstance.getErrorHandlingAction();
+    }
+
+    private static AtomicInteger poolNumber = new AtomicInteger(0);
+
+    private static class MyThreadFactory implements ThreadFactory {
+        private int counter = 0;
+        public Thread newThread(@NotNull Runnable r) {
+            return new Thread(r, "AMQP-consumer-" + poolNumber.get() + "-" + (counter++));
+        }
+    }
+
+    private ExecutorService createConnectionHandlingExecutor(Amqp091SourceType sourceConfiguration) {
+        int size = ObjectUtils.defaultIfNull(sourceConfiguration.getConnectionHandlingThreads(), DEFAULT_NUMBER_OF_THREADS);
+        LOGGER.debug("Creating connection handling executor of size {}", size);
+        ExecutorService executorService = Executors.newFixedThreadPool(size, new MyThreadFactory());
+        poolNumber.incrementAndGet();
+        return executorService;
+    }
+
+    @Override
+    public void close() {
+        connectionHandlingExecutor.shutdownNow();
+        // We do not try to wait for the tasks to really shut down. What we want to achieve is to do what we can
+        // to avoid leaving garbage behind.
     }
 }

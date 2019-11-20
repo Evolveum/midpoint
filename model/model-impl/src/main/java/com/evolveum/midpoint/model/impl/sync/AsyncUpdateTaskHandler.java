@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.impl.sync;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.sync.SyncTaskHelper.TargetInfo;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -19,20 +18,12 @@ import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateListeningActivityInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateListeningActivityStatusType.ALIVE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateListeningActivityStatusType.DOWN;
 
 /**
  * Task handler for controlled processing of asynchronous updates.
@@ -44,10 +35,6 @@ public class AsyncUpdateTaskHandler implements TaskHandler {
 
     public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/async-update/handler-3";
 
-    private static final long LISTENER_CHECK_INTERVAL = 60000L;
-    private static final long TASK_CHECK_INTERVAL = 100L;
-
-    @Autowired private PrismContext prismContext;
     @Autowired private TaskManager taskManager;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private SyncTaskHelper helper;
@@ -67,7 +54,6 @@ public class AsyncUpdateTaskHandler implements TaskHandler {
                 .maintainActionsExecutedStatistics();
     }
 
-
     @Override
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
         OperationResult opResult = new OperationResult(OperationConstants.ASYNC_UPDATE);
@@ -85,73 +71,18 @@ public class AsyncUpdateTaskHandler implements TaskHandler {
             return runResult;
         }
 
-        String listeningActivityHandle = null;
         try {
             ModelImplUtils.clearRequestee(task);        // todo is this needed?
-            listeningActivityHandle = provisioningService.startListeningForAsyncUpdates(targetInfo.coords, task, opResult);
-            LOGGER.info("Started listening for async updates on {} with handle {}", targetInfo.resource, listeningActivityHandle);
-
-            long lastCheck = 0;
-
-            while (task.canRun()) {
-                if (System.currentTimeMillis() >= lastCheck + LISTENER_CHECK_INTERVAL) {
-                    lastCheck = System.currentTimeMillis();
-                    AsyncUpdateListeningActivityInformationType info = provisioningService
-                            .getAsyncUpdatesListeningActivityInformation(listeningActivityHandle, task, opResult);
-                    LOGGER.info("Listening activity {} state:\n{}", listeningActivityHandle,    // todo trace
-                            prismContext.xmlSerializer().root(new QName("info")).serializeRealValue(info));
-                    if (isAllDown(info)) {
-                        throw new SystemException("All listening activities are down, suspending the task: " + task);
-                    }
-                    String issues = getIssues(info);
-                    if (StringUtils.isNotEmpty(issues)) {
-                        LOGGER.warn("Some or all listening activities have issues: {}", issues);
-                    }
-                }
-                Thread.sleep(TASK_CHECK_INTERVAL);
-            }
+            provisioningService.processAsynchronousUpdates(targetInfo.coords, task, opResult);
         } catch (RuntimeException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
-                ExpressionEvaluationException | InterruptedException e) {
+                ExpressionEvaluationException e) {
             helper.processException(LOGGER, e, opResult, runResult, partition, CTX);
             return runResult;
-        } finally {
-            if (listeningActivityHandle != null) {
-                LOGGER.info("Stopping listening activity {}", listeningActivityHandle);
-                provisioningService.stopListeningForAsyncUpdates(listeningActivityHandle, task, opResult);
-            }
         }
 
         opResult.computeStatus();
-
-        // This "run" is finished. But the task goes on ...
         runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
         return runResult;
-    }
-
-    private String getIssues(AsyncUpdateListeningActivityInformationType info) {
-        return stream(info)
-                .filter(i -> i.getStatus() != null && i.getStatus() != ALIVE)
-                .map(i -> getName(i) + " (" + i.getStatus() + ")")
-                .collect(Collectors.joining(", "));
-    }
-
-    private String getName(AsyncUpdateListeningActivityInformationType info) {
-        return info.getName() != null ? info.getName() : "[unnamed]";
-    }
-
-    private boolean isAllDown(AsyncUpdateListeningActivityInformationType info) {
-        return stream(info)
-                .allMatch(i -> i.getStatus() == null || i.getStatus() == DOWN);
-    }
-
-    public Stream<AsyncUpdateListeningActivityInformationType> stream(AsyncUpdateListeningActivityInformationType root) {
-        if (root.getSubActivity().isEmpty()) {
-            return Stream.of(root);
-        } else {
-            return root.getSubActivity().stream()
-                    .map(childNode -> stream(childNode))
-                    .reduce(Stream.of(root), (s1, s2) -> Stream.concat(s1, s2)) ;
-        }
     }
 
     @Override

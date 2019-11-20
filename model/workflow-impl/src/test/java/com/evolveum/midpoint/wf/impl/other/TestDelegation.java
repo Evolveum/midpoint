@@ -74,12 +74,10 @@ public class TestDelegation extends AbstractWfTestPolicy {
 
     @Test
     public void test100CreateTask() throws Exception {
-        final String TEST_NAME = "test100CreateTask";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         assignRole(userJackOid, ROLE_PRINCE_OID, task, result);                // should start approval process
         assertNotAssignedRole(userJackOid, ROLE_PRINCE_OID, task, result);
@@ -96,12 +94,10 @@ public class TestDelegation extends AbstractWfTestPolicy {
 
     @Test
     public void test110DelegateToGirthUnauthorized() throws Exception {
-        final String TEST_NAME = "test110DelegateToGirthUnauthorized";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_KEEN_OID));
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         try {
             WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
@@ -119,12 +115,10 @@ public class TestDelegation extends AbstractWfTestPolicy {
 
     @Test
     public void test120DelegateToGirth() throws Exception {
-        final String TEST_NAME = "test120DelegateToGirth";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_LONGSHANKS_OID));
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
                 .delegate(ort(USER_GIRTH_OID))
@@ -153,12 +147,10 @@ public class TestDelegation extends AbstractWfTestPolicy {
 
     @Test
     public void test130DelegateToKeenByReplace() throws Exception {
-        final String TEST_NAME = "test130DelegateToKeenByReplace";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_LONGSHANKS_OID));
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
                 .delegate(ort(USER_KEEN_OID))
@@ -184,12 +176,10 @@ public class TestDelegation extends AbstractWfTestPolicy {
 
     @Test
     public void test140DelegateToNoneByReplace() throws Exception {
-        final String TEST_NAME = "test140DelegateToNoneByReplace";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_KEEN_OID));
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
                 .method(REPLACE_ASSIGNEES);

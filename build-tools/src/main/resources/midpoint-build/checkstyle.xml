@@ -10,7 +10,8 @@
     -->
     <property name="severity" value="error"/>
 
-    <property name="fileExtensions" value="java, properties, xml"/>
+    <!-- Also need to add suffixes to parent pom.xml in checkstyle plugin configuration -->
+    <property name="fileExtensions" value="java, properties, xml, xsd, wsdl, json, yml, yaml"/>
 
     <!-- Excludes all 'module-info.java' files              -->
     <!-- See https://checkstyle.org/config_filefilters.html -->
@@ -24,7 +25,10 @@
 
     <!-- Checks for whitespace. We indent by spaces, not tabs. -->
     <module name="FileTabCharacter"/>
-    <module name="NewlineAtEndOfFile"/>
+    <module name="NewlineAtEndOfFile">
+        <!-- Make this explicit due to some problems on Windows -->
+        <property name="lineSeparator" value="lf_cr_crlf" />
+    </module>
 
     <module name="TreeWalker">
 

@@ -19,8 +19,5 @@
     <intent>default</intent>
     <attributes>
         <icfs:name>sample</icfs:name>
-<!--         <icfs:uid>123</icfs:uid> -->
-        <!-- empty is enabled -->
-<!--         <ri:privileges>false</ri:privileges> -->
     </attributes>
 </shadow>

@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="34855a80-3899-4ecf-bdb3-9fc008c4ff70">
+    <name>with-idempotent-metarole</name>
+    <assignment>
+        <targetRef oid="00586339-50f0-4aa8-aa0a-d600810f6577" type="RoleType"/> <!-- metarole-administrator-approval-idempotent -->
+    </assignment>
+</role>

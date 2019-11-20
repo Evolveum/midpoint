@@ -1,0 +1,27 @@
+{
+  "role": {
+    "oid": "0d70504c-d094-11e8-b0cc-675c492577e7",
+    "name": "One",
+    "description": "First role",
+    "roleType": "lab",
+    "approverExpression": {
+      "script": {
+        "code": "midpoint.oid2ort(user.getOid())"
+      }
+    },
+    "policyConstraints": {
+      "minAssignees": [
+        {
+          "enforcement": "report",
+          "multiplicity": 2
+        },
+        {
+          "multiplicity": 1
+        }
+      ],
+      "maxAssignees": {
+        "multiplicity": "unbounded"
+      }
+    }
+  }
+}

@@ -94,6 +94,11 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends De
     @NotNull
     Collection<EvaluatedPolicyRule> getAllTargetsPolicyRules();
 
+    /**
+     * How many target policy rules are there. This is more efficient than getAllTargetsPolicyRules().size(), as the
+     * collection of all targets policy rules is computed on demand.
+     */
+    int getAllTargetsPolicyRulesCount();
 
     Collection<String> getPolicySituations();
 

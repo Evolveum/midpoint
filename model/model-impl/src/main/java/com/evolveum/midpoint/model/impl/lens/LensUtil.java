@@ -1117,4 +1117,31 @@ public class LensUtil {
     public static <AH extends AssignmentHolderType> ItemDelta getAprioriItemDelta(ObjectDelta<AH> focusDelta, ItemPath itemPath) {
         return focusDelta != null ? focusDelta.findItemDelta(itemPath) : null;
     }
+
+    public static <O extends ObjectType> String determineExplicitArchetypeOid(PrismObject<O> object) {
+        String explicitArchetypeOid = null;
+        // Used in cases where archetype assignment haven't had the change to be processed yet.
+        // E.g. in case that we are creating a new object with archetype assignment
+        if (object.canRepresent(AssignmentHolderType.class)) {
+            AssignmentHolderType assignmentHolderType = (AssignmentHolderType)object.asObjectable();
+            List<ObjectReferenceType> archetypeRefs = assignmentHolderType.getArchetypeRef();
+            if (archetypeRefs.isEmpty()) {
+                explicitArchetypeOid = determineExplicitArchetypeOidFromAssignments(object);
+            }
+        }
+        return explicitArchetypeOid;
+    }
+
+    public static <O extends ObjectType> String determineExplicitArchetypeOidFromAssignments(PrismObject<O> object) {
+        String explicitArchetypeOid = null;
+        if (object.canRepresent(AssignmentHolderType.class)) {
+            for (AssignmentType assignment : ((AssignmentHolderType)object.asObjectable()).getAssignment()) {
+                ObjectReferenceType targetRef = assignment.getTargetRef();
+                if (targetRef != null && QNameUtil.match(ArchetypeType.COMPLEX_TYPE, targetRef.getType())) {
+                    explicitArchetypeOid = targetRef.getOid();
+                }
+            }
+        }
+        return explicitArchetypeOid;
+    }
 }

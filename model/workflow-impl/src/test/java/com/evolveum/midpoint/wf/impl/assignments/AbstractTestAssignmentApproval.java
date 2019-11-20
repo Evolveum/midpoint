@@ -137,11 +137,9 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
      */
     @Test
     public void test010AddRole1Assignment() throws Exception {
-        final String TEST_NAME = "test010AddRole1Assignment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        OperationResult result = executeAssignRole1ToJack(TEST_NAME, false, false, null, null, true);
+        OperationResult result = executeAssignRole1ToJack(false, false, null, null, true);
 
         // MID-5814
         OperationResultAsserter.forResult(result)
@@ -154,12 +152,10 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
      */
     @Test
     public void test020DeleteRole1Assignment() throws Exception {
-        final String TEST_NAME = "test020DeleteRole1Assignment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, userJackOid, result);
@@ -182,14 +178,11 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
      */
     @Test
     public void test030AddRole1AssignmentAgain() throws Exception {
-        final String TEST_NAME = "test030AddRole1AssignmentAgain";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        importLead10(task, task.getResult());
+        importLead10(getTask(), getResult());
 
-        executeAssignRole1ToJack(TEST_NAME, false, false, null, null, false);
+        executeAssignRole1ToJack(false, false, null, null, false);
     }
 
     /**
@@ -197,12 +190,10 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
      */
     @Test
     public void test040AddRole1AssignmentImmediate() throws Exception {
-        final String TEST_NAME = "test040AddRole1AssignmentImmediate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRole1ToJack(TEST_NAME, true, false, null, null, false);
+        executeAssignRole1ToJack(true, false, null, null, false);
     }
 
     /**
@@ -213,12 +204,10 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
      */
     @Test
     public void test050AddRoles123AssignmentNNN() throws Exception {
-        final String TEST_NAME = "test050AddRoles123AssignmentNNN";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRoles123ToJack(TEST_NAME, false, false, false, false);
+        executeAssignRoles123ToJack(null, false, false, false, false);
     }
 
     /**
@@ -226,12 +215,10 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
      */
     @Test
      public void test052AddRoles123AssignmentNNNImmediate() throws Exception {
-        final String TEST_NAME = "test052AddRoles123AssignmentNNNImmediate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRoles123ToJack(TEST_NAME, true, false, false, false);
+        executeAssignRoles123ToJack(null, true, false, false, false);
     }
 
     /**
@@ -242,22 +229,18 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
      */
     @Test
     public void test060AddRoles123AssignmentYNN() throws Exception {
-        final String TEST_NAME = "test060AddRoles123AssignmentYNN";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRoles123ToJack(TEST_NAME, false, true, false, false);
+        executeAssignRoles123ToJack(null, false, true, false, false);
     }
 
     @Test
     public void test062AddRoles123AssignmentYNNImmediate() throws Exception {
-        final String TEST_NAME = "test062AddRoles123AssignmentYNNImmediate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRoles123ToJack(TEST_NAME, true, true, false, false);
+        executeAssignRoles123ToJack(null, true, true, false, false);
     }
 
     /**
@@ -268,33 +251,27 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
      */
     @Test
     public void test070AddRoles123AssignmentYYY() throws Exception {
-        final String TEST_NAME = "test070AddRoles123AssignmentYYY";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRoles123ToJack(TEST_NAME, false, true, true, true);
+        executeAssignRoles123ToJack(null, false, true, true, true);
     }
 
     @Test
     public void test072AddRoles123AssignmentYYYImmediate() throws Exception {
-        final String TEST_NAME = "test072AddRoles123AssignmentYYYImmediate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRoles123ToJack(TEST_NAME, true, true, true, true);
+        executeAssignRoles123ToJack(null, true, true, true, true);
     }
 
     @Test   // MID-4355
     public void test100AddCreateDelegation() throws Exception {
-        final String TEST_NAME = "test100AddCreateDelegation";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTask();
         task.setOwner(userAdministrator);
-        OperationResult result = task.getResult();
+        OperationResult result = getResult();
 
         // WHEN
         assignDeputy(userJackDeputyOid, userJackOid, a -> {
@@ -315,15 +292,13 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
      */
     @Test
     public void test130AddRole1aAssignmentWithDeputy() throws Exception {
-        final String TEST_NAME = "test130AddRole1aAssignmentWithDeputy";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        importLead1Deputies(task, task.getResult());
+        Task task = getTask();
+        importLead1Deputies(task, getResult());
 
         unassignAllRoles(userJackOid);
-        executeAssignRole1ToJack(TEST_NAME, false, true, null, null, false);
+        executeAssignRole1ToJack(false, true, null, null, false);
     }
 
     /**
@@ -331,26 +306,24 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
      */
     @Test
     public void test132AddRole1aAssignmentWithDeputyApprovedByDeputy1() throws Exception {
-        final String TEST_NAME = "test132AddRole1aAssignmentWithDeputyApprovedByDeputy1";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRole1ToJack(TEST_NAME, false, true, userLead1Deputy1Oid, null, false);
+        executeAssignRole1ToJack(false, true, userLead1Deputy1Oid, null, false);
     }
 
     @Test(enabled = false)
     public void test150AddRole1ApproverAssignment() throws Exception {
-        final String TEST_NAME = "test150AddRole1ApproverAssignment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRole1ToJack(TEST_NAME, false, true, null, SchemaConstants.ORG_APPROVER, false);
+        executeAssignRole1ToJack(false, true, null, SchemaConstants.ORG_APPROVER, false);
     }
 
-    private OperationResult executeAssignRole1ToJack(String TEST_NAME, boolean immediate, boolean deputy, String approverOid, QName relation,
-            boolean useTracing) throws Exception {
+    // in memory tracing is required to check for MID-5814
+    private OperationResult executeAssignRole1ToJack(boolean immediate, boolean deputy, String approverOid, QName relation,
+            boolean useInMemoryTracing) throws Exception {
+        String testName = getTestNameShort();
         PrismObject<UserType> jack = getUser(userJackOid);
         AssignmentType assignment = createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext);
         assignment.getTargetRef().setRelation(relation);
@@ -359,7 +332,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
                 .item(UserType.F_ASSIGNMENT).add(assignment)
                 .asObjectDelta(userJackOid);
         String realApproverOid = approverOid != null ? approverOid : userLead1Oid;
-        return executeTest2(TEST_NAME, new TestDetails2<UserType>() {
+        return executeTest2(testName, new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jack.clone();
@@ -432,7 +405,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 
             @Override
             public void setTracing(Task opTask) {
-                if (useTracing) {
+                if (useInMemoryTracing) {
                     opTask.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
                     opTask.addTracingRequest(TracingRootType.WORKFLOW_OPERATION);
                     opTask.setTracingProfile(
@@ -467,7 +440,8 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         assertEquals("Wrong active work items for " + approverOid, expectedCount, items.size());
     }
 
-    private void executeAssignRoles123ToJack(String TEST_NAME, boolean immediate, boolean approve1, boolean approve2, boolean approve3) throws Exception {
+    private void executeAssignRoles123ToJack(String testNameExplicit, boolean immediate, boolean approve1, boolean approve2, boolean approve3) throws Exception {
+        String testName = testNameExplicit != null ? testNameExplicit : getTestNameShort();
         PrismObject<UserType> jack = getUser(userJackOid);
         ObjectDelta<UserType> addRole1Delta = prismContext
                 .deltaFor(UserType.class)
@@ -487,13 +461,13 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
                 .asObjectDelta(userJackOid);
         ObjectDelta<UserType> changeDescriptionDelta = prismContext
                 .deltaFor(UserType.class)
-                .item(UserType.F_DESCRIPTION).replace(TEST_NAME)
+                .item(UserType.F_DESCRIPTION).replace(testName)
                 .asObjectDelta(userJackOid);
         ObjectDelta<UserType> primaryDelta = ObjectDeltaCollectionsUtil
                 .summarize(addRole1Delta, addRole2Delta, addRole3Delta, addRole4Delta, changeDescriptionDelta);
         ObjectDelta<UserType> delta0 = ObjectDeltaCollectionsUtil.summarize(addRole4Delta, changeDescriptionDelta);
         String originalDescription = getUser(userJackOid).asObjectable().getDescription();
-        executeTest2(TEST_NAME, new TestDetails2<UserType>() {
+        executeTest2(testName, new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jack.clone();
@@ -552,7 +526,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
                 switch (number) {
                     case 0:
                         if (yes) {
-                            assertUserProperty(userJackOid, UserType.F_DESCRIPTION, TEST_NAME);
+                            assertUserProperty(userJackOid, UserType.F_DESCRIPTION, testName);
                             assertAssignedRole(userJackOid, getRoleOid(4), opTask, result);
                         } else {
                             if (originalDescription != null) {

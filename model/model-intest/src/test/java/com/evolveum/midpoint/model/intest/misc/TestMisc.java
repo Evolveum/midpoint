@@ -20,6 +20,8 @@ import javax.xml.validation.Validator;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -167,6 +169,134 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         }
 
+    }
+
+    /**
+     * Polystring search, polystringNorm matching rule.
+     * This should go well, no error, no warning.
+     */
+    @Test
+    public void test210SearchUsersMatchingRulesPolystringNorm() throws Exception {
+        final String TEST_NAME = "test210SearchUsersMatchingRulesPolystringNorm";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = queryFor(UserType.class)
+                .item(UserType.F_NAME)
+                    .eq("JacK")
+                    .matchingNorm()
+                .build();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query,null , task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertEquals("Unexpected number of users", 1, users.size());
+        PrismObject<UserType> user = users.get(0);
+        assertUser(user, "found user")
+                .assertName(USER_JACK_USERNAME);
+    }
+
+    /**
+     * Polystring search, stringIgnoreCase matching rule.
+     * This does not fit. It is not supported. There is a failure.
+     * MID-5911
+     */
+    @Test
+    public void test212SearchUsersMatchingRulesPolystringIgnoreCase() throws Exception {
+        final String TEST_NAME = "test212SearchUsersMatchingRulesPolystringIgnoreCase";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = queryFor(UserType.class)
+                .item(UserType.F_NAME)
+                .eq("JacK")
+                .matchingCaseIgnore()
+                .build();
+
+        try {
+            // WHEN
+            displayWhen(TEST_NAME);
+            List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
+
+        } catch (SystemException e) {
+            // this is expected
+        }
+    }
+
+    /**
+     * String search, stringIgnoreCase matching rule.
+     * This should go well, no error, no warning.
+     * MID-5911
+     */
+    @Test
+    public void test214SearchUsersMatchingRulesStringIgnoreCase() throws Exception {
+        final String TEST_NAME = "test214SearchUsersMatchingRulesStringIgnoreCase";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = queryFor(UserType.class)
+                .item(UserType.F_EMPLOYEE_NUMBER)
+                .eq("EMP1234") // Real value is "emp123"
+                .matchingCaseIgnore()
+                .build();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query,null , task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertEquals("Unexpected number of users", 1, users.size());
+        PrismObject<UserType> user = users.get(0);
+        assertUser(user, "found user")
+                .assertName(USER_JACK_USERNAME);
+    }
+
+    /**
+     * String search, polystringNorm matching rule.
+     * This does not really fit. It fill not fail. But it will find nothing and there is a warning.
+     * MID-5911
+     */
+    @Test
+    public void test216SearchUsersMatchingRulesStringNorm() throws Exception {
+        final String TEST_NAME = "test216SearchUsersMatchingRulesStringNorm";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = queryFor(UserType.class)
+                .item(UserType.F_EMPLOYEE_NUMBER)
+                .eq("EMP1234") // Real value is "emp123"
+                .matchingNorm()
+                .build();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query,null , task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertEquals("Unexpected number of users", 0, users.size());
     }
 
     /**

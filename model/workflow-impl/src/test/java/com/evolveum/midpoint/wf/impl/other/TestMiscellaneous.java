@@ -73,7 +73,6 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     private static final File ROLE_ASSIGNING_CAPTAIN_FILE = new File(TEST_RESOURCE_DIR, "role-assigning-captain.xml");
     private static final String ROLE_ASSIGNING_CAPTAIN_OID = "4bdd7ccc-8c52-41ff-a975-0313ec788507";
 
-
     @Override
     protected PrismObject<UserType> getDefaultActor() {
         return userAdministrator;
@@ -101,12 +100,10 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
     @Test
     public void test100RequesterComment() throws Exception {
-        final String TEST_NAME = "test100RequesterComment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // GIVEN
 
@@ -168,12 +165,10 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
     @Test
     public void test105RequesterCommentImmediate() throws Exception {
-        final String TEST_NAME = "test105RequesterCommentImmediate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // GIVEN
 
@@ -237,12 +232,10 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
     @Test
     public void test110RequestPrunedRole() throws Exception {
-        final String TEST_NAME = "test110RequestPrunedRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // GIVEN
 
@@ -277,12 +270,10 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
     @Test
     public void test200GetRoleByTemplate() throws Exception {
-        final String TEST_NAME = "test200GetRoleByTemplate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // GIVEN
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_OID);
@@ -302,12 +293,10 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
     @Test
     public void test210GetRoleByTemplateAfterAssignments() throws Exception {
-        final String TEST_NAME = "test210GetRoleByTemplateAfterAssignments";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // GIVEN
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_AFTER_OID);
@@ -328,12 +317,10 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
     @Test
     public void test220GetRoleByFocusMappings() throws Exception {
-        final String TEST_NAME = "test220GetRoleByFocusMappings";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // GIVEN
         setDefaultUserTemplate(null);
@@ -352,12 +339,10 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
     @Test
     public void test250SkippingApprovals() throws Exception {
-        final String TEST_NAME = "test250SkippingApprovals";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // GIVEN
         setDefaultUserTemplate(null);

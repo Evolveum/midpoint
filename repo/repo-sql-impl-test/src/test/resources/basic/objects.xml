@@ -703,70 +703,6 @@
             <administrativeStatus>archived</administrativeStatus>
             <effectiveStatus>disabled</effectiveStatus>
         </activation>
-        <result xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                     xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-            <operation>com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType.importFromResource
-            </operation>
-            <status>in_progress</status>
-            <token>1000000000000000610</token>
-            <message>Task running in background</message>
-            <partialResults>
-                <operation>com.evolveum.midpoint.model.api.ModelService.importAccountsFromResource</operation>
-                <status>in_progress</status>
-                <params>
-                    <entry key="task">
-                        <unknownJavaObject>
-                            <class>com.evolveum.midpoint.task.impl.TaskImpl</class>
-                            <toString>Task(id:1327683120569-0-1, name:Import from resource Embedded Test OpenDJ,
-                                oid:193371b3-a260-41f5-890b-6c2021907ee9)
-                            </toString>
-                        </unknownJavaObject>
-                    </entry>
-<!--                     <entry key="resourceOid"> -->
-<!--                         <paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
-<!--                                  xmlns:xsd="http://www.w3.org/2001/XMLSchema" -->
-<!--                                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
-<!--                                  xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff -->
-<!--                         </paramValue> -->
-<!--                     </entry> -->
-<!--                     <entry key="objectClass"> -->
-<!--                         <paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
-<!--                                  xmlns:qn644="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
-<!--                                  xmlns:xsd="http://www.w3.org/2001/XMLSchema" -->
-<!--                                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
-<!--                                  xsi:type="xsd:QName">qn644:AccountObjectClass -->
-<!--                         </paramValue> -->
-<!--                     </entry> -->
-                </params>
-                <token>1000000000000000611</token>
-                <message>Task running in background</message>
-                <partialResults>
-                    <operation>com.evolveum.midpoint.model.api.ModelService.getObject</operation>
-                    <status>success</status>
-                    <params>
-<!--                         <entry key="resolve"> -->
-<!--                             <paramValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
-<!--                                    xsi:type="PropertyReferenceListType"/> -->
-<!--                         </entry> -->
-<!--                         <entry key="oid"> -->
-<!--                             <paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
-<!--                                      xmlns:xsd="http://www.w3.org/2001/XMLSchema" -->
-<!--                                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
-<!--                                      xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff -->
-<!--                             </paramValue> -->
-<!--                         </entry> -->
-                        <entry key="class">
-                            <unknownJavaObject>
-                                <class>java.lang.Class</class>
-                                <toString>class com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType
-                                </toString>
-                            </unknownJavaObject>
-                        </entry>
-                    </params>
-                    <token>1000000000000000612</token>
-                </partialResults>
-            </partialResults>
-        </result>
         <fullSynchronizationTimestamp>2002-05-30T09:10:11.000+02:00</fullSynchronizationTimestamp>
         <synchronizationSituation>linked</synchronizationSituation>
         <synchronizationSituationDescription>
@@ -976,14 +912,14 @@
                  <details>false</details>
              </auditing>
          </logging>
-         <objectTemplate id="1">
+         <defaultObjectPolicyConfiguration id="1">
              <type>c:UserType</type>
              <objectTemplateRef oid="1234" type="c:ObjectTemplateType"/>
-         </objectTemplate>
-         <objectTemplate id="2">
+         </defaultObjectPolicyConfiguration>
+         <defaultObjectPolicyConfiguration id="2">
              <type>c:ResourceType</type>
              <objectTemplateRef oid="5678" type="c:ObjectTemplateType"/>
-         </objectTemplate>
+         </defaultObjectPolicyConfiguration>
          <cleanupPolicy>
              <auditRecords>
                  <maxAge>P5Y2M10D</maxAge>
@@ -1061,26 +997,6 @@
             <action>http://example.com/uri3</action>
             <action>http://example.com/uri4</action>
         </authorization>
-        <exclusion id="2">
-            <description>A judge cannot be a pirate at the same time. At least not openly.</description>
-            <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
-            <policy>enforce</policy>
-        </exclusion>
-        <approverExpression>
-            <script>
-                <code>giveName + ' ' + familyName</code>
-            </script>
-        </approverExpression>
-        <approverExpression>
-            <script>
-                <code>giveName + '-' + familyName</code>
-            </script>
-        </approverExpression>
-        <automaticallyApproved>
-            <script>
-                <code>giveName + ' ' + familyName</code>
-            </script>
-        </automaticallyApproved>
     </role>
 
     <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -1238,13 +1154,6 @@
                 version="0">
         <name>Default Password Policy</name>
         <description>Default password policy</description>
-        <lifetime>
-            <expiration>999</expiration>
-            <warnBeforeExpiration>9</warnBeforeExpiration>
-            <lockAfterExpiration>0</lockAfterExpiration>
-            <minPasswordAge>0</minPasswordAge>
-            <passwordHistoryLength>0</passwordHistoryLength>
-        </lifetime>
         <stringPolicy>
             <description>Testing string policy</description>
             <limitations>
@@ -1282,7 +1191,7 @@
 <!--         </authentication> -->
         <credentials>
             <password>
-                <passwordPolicyRef oid="SECURITY-0000-0000-0000-000000000003" type="c:ValuePolicyType"/>
+                <valuePolicyRef oid="SECURITY-0000-0000-0000-000000000003" type="c:ValuePolicyType"/>
             </password>
             <securityQuestions>
                 <question id="1">
@@ -1657,26 +1566,6 @@
             <action>http://example.com/uri3</action>
             <action>http://example.com/uri4</action>
         </authorization>
-        <exclusion id="2">
-            <description>A judge cannot be a pirate at the same time. At least not openly.</description>
-            <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
-            <policy>enforce</policy>
-        </exclusion>
-        <approverExpression>
-            <script>
-                <code>giveName + ' ' + familyName</code>
-            </script>
-        </approverExpression>
-        <approverExpression>
-            <script>
-                <code>giveName + '-' + familyName</code>
-            </script>
-        </approverExpression>
-        <automaticallyApproved>
-            <script>
-                <code>giveName + ' ' + familyName</code>
-            </script>
-        </automaticallyApproved>
     </service>
 
     <case version="1" xsi:type="c:CaseType">
