@@ -929,6 +929,13 @@ public class DummyResource implements DebugDumpable {
         return sb.toString();
     }
 
+    public void recordEmptyDeltaForAccountByUsername(String accountUsername, DummyDeltaType deltaType) throws InterruptedException, FileNotFoundException, ConnectException, SchemaViolationException, ConflictException {
+        DummyAccount account = getAccountByUsername(accountUsername);
+        DummyDelta delta = new DummyDelta(nextSyncToken(), account.getClass(), account.getId(), account.getName(), deltaType);
+        // No delta details here, no addeded/removed attributes, nothing
+        deltas.add(delta);
+    }
+
     void breakIt(BreakMode breakMode, String operation) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
         if (breakMode == BreakMode.NONE) {
             return;

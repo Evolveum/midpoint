@@ -260,9 +260,9 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      * @throws CommunicationException
      */
     @Override
-    public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentRestul)
+    public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentResult)
             throws CommunicationException {
-        OperationResult result = parentRestul.createSubresult(ConnectorFactory.OPERATION_LIST_CONNECTOR);
+        OperationResult result = parentResult.createSubresult(ConnectorFactory.OPERATION_LIST_CONNECTORS);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorFactoryConnIdImpl.class);
         result.addParam("host", host);
 

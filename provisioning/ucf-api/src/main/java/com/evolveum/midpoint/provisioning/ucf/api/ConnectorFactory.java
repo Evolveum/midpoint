@@ -40,7 +40,7 @@ import java.util.Set;
  */
 public interface ConnectorFactory {
 
-    String OPERATION_LIST_CONNECTOR = ConnectorFactory.class.getName()+".listConnectors";
+    String OPERATION_LIST_CONNECTORS = ConnectorFactory.class.getName()+".listConnectors";
 
     PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType) throws ObjectNotFoundException;
 
@@ -56,12 +56,12 @@ public interface ConnectorFactory {
      * a different factory.
      * TODO: Better error handling
      *
-     * @param resource resource definition
      * @return configured and initialized connector instance
-     * @throws ObjectNotFoundException is the specified connector was not found
-     * @throws SchemaException
+     * @throws ObjectNotFoundException if the specified connector was not found
+     * @throws SchemaException if there's any schema issue
      */
-    public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String instanceName, String desc) throws ObjectNotFoundException, SchemaException;
+    ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String instanceName, String desc)
+            throws ObjectNotFoundException, SchemaException;
 
     /**
      * Returns a list of all known connectors.
@@ -77,12 +77,12 @@ public interface ConnectorFactory {
      * @param host definition of a connector host or null for local connector list
      * @return list of all known connectors.
      */
-    public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentRestul) throws CommunicationException;
+    Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentResult) throws CommunicationException;
 
     /**
      * Execute self-test for each connector framework that is capable of executing tests.
      */
-    public void selfTest(OperationResult parentTestResult);
+    void selfTest(OperationResult parentTestResult);
 
     boolean supportsFramework(String frameworkIdentifier);
 
