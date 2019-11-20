@@ -670,10 +670,7 @@ public class ResourceTypeUtil {
 
     public static boolean isValidateSchema(ResourceType resource) {
         ResourceConsistencyType consistency = resource.getConsistency();
-        if (consistency == null) {
-            return false;
-        }
-        return Boolean.TRUE.equals(consistency.isValidateSchema());
+        return consistency != null && Boolean.TRUE.equals(consistency.isValidateSchema());
     }
 
     // TODO: maybe later move to ResourceSchema?

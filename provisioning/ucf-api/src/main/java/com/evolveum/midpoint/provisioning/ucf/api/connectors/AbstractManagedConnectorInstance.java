@@ -45,6 +45,7 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
     private boolean configured = false;
 
     private String instanceName; // resource name
+    private String resourceOid; // FIXME temporary -- remove when no longer needed (MID-5931)
 
     public ConnectorType getConnectorObject() {
         return connectorObject;
@@ -103,9 +104,8 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
     }
 
     @Override
-    public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities,
-            boolean caseIgnoreAttributeNames, OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, ConfigurationException {
+    public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames,
+            OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
         result.addContext("connector", getConnectorObject().toString());
@@ -124,8 +124,7 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 
     @Override
     public void configure(PrismContainerValue<?> configuration, List<QName> generateObjectClasses, OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, SchemaException,
-            ConfigurationException {
+            throws SchemaException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
 
@@ -216,5 +215,13 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 
     public void setInstanceName(String instanceName) {
         this.instanceName = instanceName;
+    }
+
+    public String getResourceOid() {
+        return resourceOid;
+    }
+
+    public void setResourceOid(String resourceOid) {
+        this.resourceOid = resourceOid;
     }
 }

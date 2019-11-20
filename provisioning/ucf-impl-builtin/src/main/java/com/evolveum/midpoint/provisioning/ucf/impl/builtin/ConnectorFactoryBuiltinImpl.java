@@ -225,8 +225,8 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
     }
 
     @Override
-    public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace,
-            String instanceName, String desc) throws ObjectNotFoundException, SchemaException {
+    public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String instanceName,
+            String desc) throws ObjectNotFoundException {
         ConnectorStruct struct = getConnectorStruct(connectorType);
         Class<? extends ConnectorInstance> connectorClass = struct.connectorClass;
         ConnectorInstance connectorInstance;
@@ -257,8 +257,8 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         if (connectorInstance instanceof TracerAware) {
             ((TracerAware) connectorInstance).setTracer(tracer);
         }
-        if (connectorInstance instanceof TaskManagerAware) {
-            ((TaskManagerAware) connectorInstance).setTaskManager(taskManager);
+        if (connectorInstance instanceof RepositoryAware) {
+            ((RepositoryAware) connectorInstance).setRepositoryService(repositoryService);
         }
         return connectorInstance;
     }

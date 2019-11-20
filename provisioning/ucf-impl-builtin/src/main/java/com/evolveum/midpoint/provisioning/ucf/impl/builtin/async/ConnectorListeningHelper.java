@@ -114,8 +114,7 @@ class ConnectorListeningHelper {
     private void start(ConnectorConfiguration configuration) throws SchemaException {
         LOGGER.info("Starting listening in {}", connectorInstance);  // todo debug
 
-        this.messageListener = new TransformationalAsyncUpdateMessageListener(
-                changeListener, authentication, connectorInstance, connectorInstance.getTracer(), connectorInstance.getTaskManager());
+        this.messageListener = new TransformationalAsyncUpdateMessageListener(changeListener, authentication, connectorInstance);
         Collection<AsyncUpdateSource> sources = connectorInstance.getSourceManager().createSources(configuration.getAllSources());
         try {
             for (AsyncUpdateSource source : sources) {
