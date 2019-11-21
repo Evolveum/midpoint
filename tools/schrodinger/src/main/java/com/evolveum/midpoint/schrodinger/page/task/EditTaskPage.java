@@ -37,6 +37,10 @@ public class EditTaskPage extends BasicPage {
         return this;
     }
 
+    public EditTaskPage clickSuspend() {
+        $(Schrodinger.byDataResourceKey("a", "pageTaskEdit.button.suspend")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        return this;
+    }
 
     public boolean isRunNowVisible(){
         return   $(Schrodinger.byDataResourceKey("a", "pageTaskEdit.button.runNow")).is(Condition.visible);
