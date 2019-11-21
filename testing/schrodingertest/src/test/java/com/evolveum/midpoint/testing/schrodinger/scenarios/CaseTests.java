@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
@@ -201,6 +202,8 @@ public class CaseTests extends TestBase {
                 .and()
                 .clickSave();
 
+        Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
+
         AllRequestsPage allRequestsPage = basicPage.listAllRequests();
         WorkitemDetailsPanel<CasePage> workitemDetailsPanel = allRequestsPage
                 .table()
@@ -233,6 +236,8 @@ public class CaseTests extends TestBase {
                 .clickYes()
                 .feedback()
                 .isSuccess());
+
+        Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
 
         allRequestsPage = basicPage.listAllRequests();
         Assert.assertTrue(allRequestsPage
