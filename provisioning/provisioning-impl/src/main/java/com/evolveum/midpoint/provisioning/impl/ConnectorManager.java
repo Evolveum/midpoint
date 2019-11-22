@@ -22,6 +22,7 @@ import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConnectorInstance;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -258,6 +259,11 @@ public class ConnectorManager implements Cacheable {
                     ResourceTypeUtil.getResourceNamespace(connectorSpec.getResource()),
                     connectorSpec.getResource().getName().toString(),
                     connectorSpec.toString());
+
+            // FIXME temporary -- remove when no longer needed (MID-5931)
+            if (connector instanceof AbstractManagedConnectorInstance) {
+                ((AbstractManagedConnectorInstance) connector).setResourceOid(connectorSpec.getResource().getOid());
+            }
 
         } catch (ObjectNotFoundException e) {
             result.recordFatalError(e.getMessage(), e);

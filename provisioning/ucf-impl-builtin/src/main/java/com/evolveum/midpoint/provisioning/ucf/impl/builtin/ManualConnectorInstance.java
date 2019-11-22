@@ -150,7 +150,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     protected String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
             PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
             OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
-        LOGGER.debug("Creating case to modify account {}:\n{}", identifiers, DebugUtil.debugDump(changes, 1));
+        LOGGER.debug("Creating case to modify account {}:\n{}", identifiers, DebugUtil.debugDumpLazily(changes, 1));
         if (InternalsConfig.isSanityChecks()) {
             if (MiscUtil.hasDuplicates(changes)) {
                 throw new SchemaException("Duplicated changes: "+changes);

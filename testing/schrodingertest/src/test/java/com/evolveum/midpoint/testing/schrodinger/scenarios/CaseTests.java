@@ -7,17 +7,25 @@
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
+import com.evolveum.midpoint.schrodinger.component.modal.ForwardWorkitemModal;
+import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.page.cases.*;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
+
+import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by honchar.
@@ -33,6 +41,7 @@ public class CaseTests extends TestBase {
     public static final String REJECT_WORKITEM_TEST_USER_NAME = "rejectWorkitemTestUser";
     public static final String CLAIM_WORKITEM_TEST_USER_NAME = "claimWorkitemTestUser";
     public static final String FORWARD_WORKITEM_TEST_USER_NAME = "forwardWorkitemTestUser";
+    public static final String FORWARD_WORKITEM_TO_USER_NAME = "forwardToUser";
 
     @BeforeMethod
     private void importRoleWithApprovement() {
@@ -141,7 +150,7 @@ public class CaseTests extends TestBase {
                         .changesAreApplied());
     }
 
-    @Test (dependsOnMethods = {"test110isCaseCreated"})
+    @Test
     public void test130rejectCaseAction() {
         createUserAndAssignRoleWithApprovement(REJECT_WORKITEM_TEST_USER_NAME);
 
@@ -179,6 +188,74 @@ public class CaseTests extends TestBase {
         Assert.assertTrue(casePage
                 .selectTabOperationRequest()
                 .changesAreRejected());
+    }
+
+    @Test
+    public void test140forwardCaseAction() {
+        createUserAndAssignRoleWithApprovement(FORWARD_WORKITEM_TEST_USER_NAME);
+
+        UserPage user = basicPage.newUser();
+        user.selectTabBasic()
+                .form()
+                .addAttributeValue("name", FORWARD_WORKITEM_TO_USER_NAME)
+                .and()
+                .and()
+                .clickSave();
+
+        Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
+
+        AllRequestsPage allRequestsPage = basicPage.listAllRequests();
+        WorkitemDetailsPanel<CasePage> workitemDetailsPanel = allRequestsPage
+                .table()
+                .search()
+                .byName()
+                .inputValue(REQUEST_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                .updateSearch()
+                .and()
+                .clickByPartialName(REQUEST_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                .selectTabChildren()
+                .table()
+                .clickByPartialName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                .selectTabWorkitems()
+                .table()
+                .clickByName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME);
+
+        ForwardWorkitemModal forwardWorkitemModal = workitemDetailsPanel.forwardButtonClick();
+        forwardWorkitemModal
+                .table()
+                .search()
+                .byName()
+                .inputValue(FORWARD_WORKITEM_TO_USER_NAME)
+                .updateSearch();
+        forwardWorkitemModal
+                .table()
+                .clickByName(FORWARD_WORKITEM_TO_USER_NAME);
+
+        Assert.assertTrue(workitemDetailsPanel
+                .forwardOperationUserSelectionPerformed()
+                .clickYes()
+                .feedback()
+                .isSuccess());
+
+        Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
+
+        allRequestsPage = basicPage.listAllRequests();
+        Assert.assertTrue(allRequestsPage
+                .table()
+                .search()
+                .byName()
+                .inputValue(REQUEST_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                .updateSearch()
+                .and()
+                .clickByPartialName(REQUEST_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                .selectTabChildren()
+                .table()
+                .clickByPartialName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                .selectTabWorkitems()
+                .table()
+                .clickByName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                .matchApproverElementValue(FORWARD_WORKITEM_TO_USER_NAME));
+
     }
 
     private boolean isCaseMenuItemActive(String menuIdentifier, boolean checkByLabelText){

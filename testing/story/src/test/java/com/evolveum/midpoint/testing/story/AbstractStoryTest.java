@@ -77,6 +77,9 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
     protected static final QName PIRACY_SHIP_QNAME = new QName(NS_PIRACY, "ship");
     protected static final ItemPath PATH_EXTENSION_SHIP = ItemPath.create(ObjectType.F_EXTENSION, PIRACY_SHIP_QNAME);
 
+    protected static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME = "firstname";
+    protected static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME = "lastname";
+
     protected MatchingRule<String> caseIgnoreMatchingRule;
 
     @Autowired protected MatchingRuleRegistry matchingRuleRegistry;

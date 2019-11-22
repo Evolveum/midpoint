@@ -13,6 +13,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateSource;
 import com.evolveum.midpoint.provisioning.ucf.api.async.ChangeListener;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConnectorInstance;
+import com.evolveum.midpoint.repo.api.RepositoryAware;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -51,7 +53,7 @@ import java.util.function.Supplier;
 @SuppressWarnings("DefaultAnnotationParam")
 @ManagedConnector(type="AsyncUpdateConnector", version="1.0.0")
 public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstance implements UcfExpressionEvaluatorAware,
-        SecurityContextManagerAware, TracerAware, TaskManagerAware {
+        SecurityContextManagerAware, TracerAware, TaskManagerAware, RepositoryAware {
 
     @SuppressWarnings("unused")
     private static final Trace LOGGER = TraceManager.getTrace(AsyncUpdateConnectorInstance.class);
@@ -73,6 +75,8 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     private Tracer tracer;
 
     private TaskManager taskManager;
+
+    private RepositoryService repositoryService;
 
     /**
      * Listening helper. Null if there's no listening in progress.
@@ -212,6 +216,16 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
         this.taskManager = taskManager;
     }
 
+    @Override
+    public RepositoryService getRepositoryService() {
+        return repositoryService;
+    }
+
+    @Override
+    public void setRepositoryService(RepositoryService repositoryService) {
+        this.repositoryService = repositoryService;
+    }
+
     ExpressionType getTransformExpression() {
         return configuration.getTransformExpression();
     }
@@ -222,7 +236,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
                 AsyncUpdateErrorHandlingActionType.STOP_PROCESSING);
     }
 
-    public SourceManager getSourceManager() {
+    SourceManager getSourceManager() {
         return sourceManager;
     }
 
@@ -309,5 +323,16 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     @Override
     public String toString() {
         return "AsyncUpdateConnectorInstance (" + getInstanceName() + ")";
+    }
+
+    @Override
+    protected void setResourceSchema(ResourceSchema resourceSchema) {
+        super.setResourceSchema(resourceSchema);
+        // TODO eliminate these diagnostic messages when no longer needed (MID-5931)
+        if (resourceSchema == null) {
+            LOGGER.warn("Setting null resource schema for {}. This might or might not be OK, depending on circumstances", this);
+        } else {
+            LOGGER.info("Setting resource schema for {}", this);
+        }
     }
 }
