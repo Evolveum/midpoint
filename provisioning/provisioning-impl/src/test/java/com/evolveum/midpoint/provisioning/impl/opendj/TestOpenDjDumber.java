@@ -11,6 +11,9 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -19,6 +22,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.testng.annotations.Test;
 
 /**
  * Test for provisioning service implementation using embedded OpenDj instance.
@@ -71,6 +75,35 @@ public class TestOpenDjDumber extends TestOpenDj {
         String str = (String)timestampValue;
         assertTrue("Timestamp "+attrName+" does not start with 2: "+str, str.startsWith("2"));
         assertTrue("Timestamp "+attrName+" does not end with Z: "+str, str.endsWith("Z"));
+    }
+
+    /**
+     * This resource has disabled "tree delete".
+     */
+    @Test
+    @Override
+    public void test489DeleteOuSuperWithSub() throws Exception {
+        final String TEST_NAME = "test489DeleteOuSuperWithSub";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        createSubOrg();
+
+        try {
+            // WHEN
+            displayWhen(TEST_NAME);
+            provisioningService.deleteObject(ShadowType.class, OU_SUPER_OID, null, null, task, result);
+
+            assertNotReached();
+        } catch (IllegalArgumentException e) {
+            // expected
+        }
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertFailure(result);
     }
 
 }

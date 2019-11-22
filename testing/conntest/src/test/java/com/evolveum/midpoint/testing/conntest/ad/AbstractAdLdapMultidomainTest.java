@@ -325,6 +325,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         cleanupDelete(toOrgGroupDn(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME));
         cleanupDelete(toOrgGroupDn(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_ALT_NAME));
         cleanupDelete(toOrgDn(GROUP_MELEE_ISLAND_NAME));
+        cleanupDelete("ou=underMelee," + toOrgDn(GROUP_MELEE_ISLAND_ALT_NAME));
         cleanupDelete(toOrgDn(GROUP_MELEE_ISLAND_ALT_NAME));
     }
 
@@ -1654,8 +1655,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         orgMeleeIslandOid = org.getOid();
         Entry entryGroup = assertLdapGroup(GROUP_MELEE_ISLAND_NAME);
@@ -1868,8 +1868,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         display("Shadow after", shadow);
         assertNotNull(shadow);
@@ -1879,6 +1878,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         Entry entryOu = assertLdapOrg(GROUP_MELEE_ISLAND_ALT_NAME);
         assertNoLdapOrg(GROUP_MELEE_ISLAND_NAME);
         Entry entryOrgGroup = assertLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_ALT_NAME);
+        display("Melee org", entryOrgGroup);
         assertNoLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME);
 
 //        assertLdapConnectorInstances(2);
@@ -1899,8 +1899,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         assertNoLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_ALT_NAME);
         assertNoLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME);
@@ -1910,6 +1909,13 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 //        assertLdapConnectorInstances(2);
     }
 
+    /**
+     * We create "underMelee" org that gets into the way of the delete.
+     * Melee cannot be deleted in an ordinary way. "tree delete" control must
+     * be used. This is configured in the connector config.
+     *
+     * MID-5935
+     */
     @Test
     public void test599DeleteOrgMeleeIsland() throws Exception {
         final String TEST_NAME = "test599DeleteOrgMeleeIsland";
@@ -1919,14 +1925,15 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
+        createUnderMeleeEntry();
+
         // WHEN
         displayWhen(TEST_NAME);
         deleteObject(OrgType.class, orgMeleeIslandOid, task, result);
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         assertNoLdapGroup(GROUP_MELEE_ISLAND_NAME);
         assertNoLdapGroup(GROUP_MELEE_ISLAND_ALT_NAME);
@@ -1937,6 +1944,15 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertNoObject(ShadowType.class, ouMeleeIslandOid);
 
 //        assertLdapConnectorInstances(2);
+    }
+
+    protected void createUnderMeleeEntry() throws LdapException, IOException {
+        // This OU just gets into the way of the delete.
+        Entry entry = new DefaultEntry("ou=underMelee," + toOrgDn(GROUP_MELEE_ISLAND_ALT_NAME),
+                "objectclass", "organizationalUnit",
+                "ou", "underMelee");
+        display("underMelee org", entry);
+        addLdapEntry(entry);
     }
 
     @Test

@@ -136,6 +136,10 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
     protected static final String GROUP_CORSAIRS_OID = "70a1f3ee-4b5b-11e5-95d0-001e8c717e5b";
     protected static final String GROUP_CORSAIRS_DN = "cn=corsairs,ou=groups,dc=example,dc=com";
 
+    protected static final File OU_SUPER_FILE = new File(TEST_DIR, "ou-super.xml");
+    protected static final String OU_SUPER_OID = "1d1e519e-0d22-11ea-8cdf-3f09f7f3a585";
+    protected static final String OU_SUPER_DN = "ou=Super,dc=example,dc=com";
+
     protected static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 
     public static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
