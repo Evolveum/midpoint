@@ -350,7 +350,7 @@ public class SynchronizationTests extends TestBase {
                         .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                             .selectTabProjections()
                                 .table()
-                                .selectCheckboxByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                                .selectCheckboxByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                             .and()
                                 .clickHeaderActionDropDown()
                                     .delete()
