@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
+import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -18,6 +19,7 @@ import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthenti
 import com.evolveum.midpoint.web.security.module.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -40,7 +42,7 @@ public class MidpointSaml2Provider extends MidPointAuthenticationProvider {
     private transient AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
 
     @Override
-    protected Authentication internalAuthentication(Authentication authentication) throws AuthenticationException {
+    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment) throws AuthenticationException {
         ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
 
         try {
@@ -65,7 +67,7 @@ public class MidpointSaml2Provider extends MidPointAuthenticationProvider {
                     }
                 }
                 Validate.notBlank(enteredUsername);
-                token = authenticationEvaluator.authenticateUserPreAuthenticated(connEnv, enteredUsername);
+                token = authenticationEvaluator.authenticateUserPreAuthenticated(connEnv, new PreAuthenticationContext(enteredUsername, requireAssignment));
             } else {
                 LOGGER.error("Unsupported authentication {}", authentication);
                 throw new AuthenticationServiceException("web.security.provider.unavailable");

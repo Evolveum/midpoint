@@ -326,12 +326,12 @@ public class SecurityUtils {
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (required && moduleAuthentication == null) {
                 LOGGER.error("Couldn't find processing module authentication {}", mpAuthentication);
-                throw new AuthenticationServiceException("web.security.auth.module.null"); //TODO localization
+                throw new AuthenticationServiceException("web.security.flexAuth.module.null");
             }
             return moduleAuthentication;
         } else if (required) {
             LOGGER.error("Type of actual authentication in security context isn't MidpointAuthentication");
-            throw new AuthenticationServiceException("web.security.auth.wrong.type"); //TODO localization
+            throw new AuthenticationServiceException("web.security.flexAuth.auth.wrong.type");
         }
         return null;
     }

@@ -64,7 +64,7 @@ public class MidpointSamlAuthenticationResponseFilter extends SamlAuthentication
         boolean requiresAuthentication = requiresAuthentication((HttpServletRequest) req, (HttpServletResponse) res);
 
         if (!requiresAuthentication && sendedRequest) {
-            AuthenticationServiceException exception = new AuthenticationServiceException("Midpoint saml module doesn't receive response from Identity Provider server."); //TODO localization
+            AuthenticationServiceException exception = new AuthenticationServiceException("web.security.flexAuth.saml.not.response");
             unsuccessfulAuthentication((HttpServletRequest) req, (HttpServletResponse) res, exception);
             return;
         } else {

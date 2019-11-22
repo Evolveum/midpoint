@@ -65,8 +65,11 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
 
         if (WebModelServiceUtils.isPostAuthenticationEnabled(taskManager, modelInteractionService)) {
             String requestUrl = request.getRequestURL().toString();
+            String contextPath = request.getContextPath();
             if (requestUrl.contains("spring_security_login")) {
-                String target = requestUrl.replace("spring_security_login", "self/postAuthentication");
+                String target = requestUrl.substring(0, requestUrl.indexOf(contextPath));
+                target = target + contextPath + "self/postAuthentication";
+//                        String target = requestUrl.replace("spring_security_login", "self/postAuthentication");
                 getRedirectStrategy().sendRedirect(request, response, target);
                 return;
             }

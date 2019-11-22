@@ -114,7 +114,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         getPreLogoutFilter().doFilter(httpRequest, response);
 
-        if (mpAuthentication != null && (mpAuthentication.isAuthenticated() || SecurityUtils.isPermitAll(httpRequest))) {
+        if (mpAuthentication != null && mpAuthentication.isAuthenticated()) {
             processingInMidpoint(httpRequest, response, chain);
             return;
         }
@@ -134,8 +134,13 @@ public class MidpointAuthFilter extends GenericFilterBean {
             authenticationsPolicy = getDefaultAuthenticationPolicy();
         }
 
+        AuthenticationSequenceType sequence;
+        if (mpAuthentication != null && SecurityUtils.isPermitAll(httpRequest)) {
+          sequence = mpAuthentication.getSequence();
+        } else {
+            sequence = SecurityUtils.getSequence(httpRequest.getServletPath(), authenticationsPolicy);
+        }
 
-        AuthenticationSequenceType sequence = SecurityUtils.getSequence(httpRequest.getServletPath(), authenticationsPolicy);
         if (sequence == null) {
             throw new IllegalArgumentException("Couldn't find sequence for URI '" + httpRequest.getRequestURI() + "' in " + authenticationsPolicy);
         }
@@ -171,11 +176,11 @@ public class MidpointAuthFilter extends GenericFilterBean {
             indexOfProcessingModule = mpAuthentication.getIndexOfProcessingModule(true);
         }
 
-        if (mpAuthentication != null && mpAuthentication.isAuthenticationFailed()) {
+        if (mpAuthentication != null && mpAuthentication.isAuthenticationFailed() && mpAuthentication.getAuthModules().size() > 1) {
 
             Exception actualException = (Exception) httpRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
             String actualMessage;
-            String restartFlowMessage = "Authentication failed, and as a consequence\twas restarted authentication flow"; //TODO localization
+            String restartFlowMessage = "web.security.flexAuth.restart.flow";
             if (actualException != null && StringUtils.isNotBlank(actualException.getMessage())) {
                 actualMessage = actualException.getMessage() + ";" + restartFlowMessage;
             } else {

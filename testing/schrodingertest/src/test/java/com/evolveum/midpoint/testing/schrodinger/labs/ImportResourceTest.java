@@ -61,6 +61,10 @@ public class ImportResourceTest extends TestBase {
                         .isSuccess()
         );
 
+        String basePathTofile = "/src/test/resources/labs/resources/csv-1.csv";
+        String pathToProject = System.getProperty("user.dir");
+        changeResourceAttribute("CSV-1 (Document Access)", "File path", pathToProject + basePathTofile);
+
         ListResourcesPage listResourcesPage = basicPage.listResources();
 
         //test connection

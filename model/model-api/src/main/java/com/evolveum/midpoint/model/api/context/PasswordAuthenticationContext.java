@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import java.util.List;
+
 public class PasswordAuthenticationContext extends AbstractAuthenticationContext {
 
     private String password;
@@ -15,7 +19,11 @@ public class PasswordAuthenticationContext extends AbstractAuthenticationContext
     }
 
     public PasswordAuthenticationContext(String username, String password) {
-        super(username);
+        this(username,password, null);
+    }
+
+    public PasswordAuthenticationContext(String username, String password, List<ObjectReferenceType> requireAssignments) {
+        super(username, requireAssignments);
         this.password = password;
     }
 

@@ -68,14 +68,17 @@ public class PageSamlSelect extends PageBase implements Serializable {
             if (moduleAuthentication != null && moduleAuthentication instanceof Saml2ModuleAuthentication){
                 providers = ((Saml2ModuleAuthentication) moduleAuthentication).getProviders();
                 if (providers.isEmpty()) {
-                    error("web.security.saml2.empty.providers"); //TODO localization
+                    String key = "PageSamlSelect.empty.providers";
+                    error(getString(key));
                 }
                 return providers;
             }
-            error("web.security.saml2.unsupported.authentication.type"); //TODO localization
+            String key = "PageSamlSelect.unsupported.authentication.type";
+            error(getString(key));
             return providers;
         }
-        error("web.security.mp.unsupported.authentication.type"); //TODO localization
+        String key = "web.security.flexAuth.unsupported.auth.type";
+        error(getString(key));
         return providers;
     }
 

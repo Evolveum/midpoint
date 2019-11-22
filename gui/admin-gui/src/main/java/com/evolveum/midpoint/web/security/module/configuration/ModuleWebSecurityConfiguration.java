@@ -64,7 +64,7 @@ public class ModuleWebSecurityConfiguration {
         if (getPrefixOfSequence() == null || StringUtils.isBlank(stripSlashes(getPrefixOfSequence()))) {
             return DEFAULT_PREFIX + "/default/" + stripSlashes(getNameOfModule()) + "/";
         }
-        return DEFAULT_PREFIX + "/" + stripSlashes(getPrefixOfSequence()) + "/" + stripSlashes(getNameOfModule());
+        return DEFAULT_PREFIX + "/" + stripSlashes(getPrefixOfSequence()) + "/" + stripSlashes(getNameOfModule() + "/");
     }
 
     public static ModuleWebSecurityConfiguration build(AbstractAuthenticationModuleType module, String prefixOfSequence){

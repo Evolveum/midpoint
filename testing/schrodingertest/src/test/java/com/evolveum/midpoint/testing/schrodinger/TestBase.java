@@ -13,7 +13,7 @@ import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceConfigurationTab;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
-import com.evolveum.midpoint.schrodinger.page.LoginPage;
+import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
@@ -62,10 +62,10 @@ public abstract class TestBase {
 
         }
 
-        LoginPage login = midPoint.login();
+        FormLoginPage login = midPoint.formLogin();
 
 
-        basicPage = login.login(midPoint.getUsername(),midPoint.getPassword());
+        basicPage = login.loginWithReloadLoginPage(midPoint.getUsername(),midPoint.getPassword());
 
 
     }
@@ -78,8 +78,8 @@ public abstract class TestBase {
         Selenide.clearBrowserLocalStorage();
         Selenide.close();
 
-        midPoint.login()
-                .login(midPoint.getUsername(),midPoint.getPassword());
+        midPoint.formLogin()
+                .loginWithReloadLoginPage(midPoint.getUsername(),midPoint.getPassword());
     System.out.println("After: Login name "+ midPoint.getUsername()+ " pass " +midPoint.getPassword());
         AboutPage aboutPage = basicPage.aboutPage();
                 aboutPage

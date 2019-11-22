@@ -20,6 +20,8 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
+import static org.springframework.security.saml.util.StringUtils.stripEndingSlases;
+
 /**
  * @author skublik
  */
@@ -30,16 +32,16 @@ public class PreLogoutFilter implements FilterChain {
     public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (!((HttpServletRequest) request).getServletPath().endsWith("/logout")) {
+        if (authentication == null || !((HttpServletRequest) request).getServletPath().endsWith("/logout")) {
             return;
         }
         String path = ((HttpServletRequest) request).getServletPath();
-        String prefix = path.substring(0, path.indexOf("logout"));
+        String prefix = path.substring(0, path.indexOf("/logout"));
 
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             for (ModuleAuthentication moduleAuthentication : mpAuthentication.getAuthentications()) {
-                if (prefix.equals(moduleAuthentication.getPrefix())
+                if (prefix.equals(stripEndingSlases(moduleAuthentication.getPrefix()))
                         && StateOfModule.SUCCESSFULLY.equals(moduleAuthentication.getState())) {
                     moduleAuthentication.setState(StateOfModule.LOGOUT_PROCESSING);
                     break;

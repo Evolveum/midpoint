@@ -150,6 +150,7 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         web.ignoring().antMatchers("/actuator");
         web.ignoring().antMatchers("/actuator/health");
+        web.ignoring().antMatchers("/favicon.ico");
 
 //            web.debug(true);
     }

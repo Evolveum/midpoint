@@ -8,8 +8,10 @@
 package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
 import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
@@ -30,6 +32,8 @@ import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import java.util.List;
 
 /**
  * @author lazyman
@@ -56,6 +60,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider, M
     @Override
     public Authentication authenticate(Authentication originalAuthentication) throws AuthenticationException {
 
+        List<ObjectReferenceType> requireAssignment = null;
         try {
             Authentication processingAuthentication = originalAuthentication;
             if (originalAuthentication instanceof MidpointAuthentication) {
@@ -65,9 +70,13 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider, M
                     return mpAuthentication; // hack for specific situation when user is anonymous, but accessDecisionManager resolve it
                 }
                 processingAuthentication = moduleAuthentication.getAuthentication();
+                requireAssignment = mpAuthentication.getSequence().getRequireAssignmentTarget();
             }
-            Authentication token = internalAuthentication(processingAuthentication);
             Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
+            if (actualAuthentication instanceof MidpointAuthentication) {
+                requireAssignment = ((MidpointAuthentication) actualAuthentication).getSequence().getRequireAssignmentTarget();
+            }
+            Authentication token = internalAuthentication(processingAuthentication, requireAssignment);
 
             if (actualAuthentication instanceof MidpointAuthentication) {
                 MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
@@ -100,12 +109,12 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider, M
         ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
         if (moduleAuthentication == null) {
             LOGGER.error("Couldn't find processing module authentication {}", mpAuthentication);
-            throw new AuthenticationServiceException("web.security.auth.module.null"); //TODO localization
+            throw new AuthenticationServiceException("web.security.auth.module.null"); //
         }
         return moduleAuthentication;
     }
 
-    protected Authentication internalAuthentication(Authentication authentication) throws AuthenticationException {
+    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment) throws AuthenticationException {
         if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof MidPointUserProfilePrincipal) {
             return authentication;
         }
@@ -118,9 +127,9 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider, M
             Authentication token;
             if (authentication instanceof UsernamePasswordAuthenticationToken) {
                 String enteredPassword = (String) authentication.getCredentials();
-                token = passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(enteredUsername, enteredPassword));
+                token = passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(enteredUsername, enteredPassword, requireAssignment));
             } else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
-                token = passwordAuthenticationEvaluator.authenticateUserPreAuthenticated(connEnv, enteredUsername);
+                token = passwordAuthenticationEvaluator.authenticateUserPreAuthenticated(connEnv, new PreAuthenticationContext(enteredUsername, requireAssignment));
             } else {
                 LOGGER.error("Unsupported authentication {}", authentication);
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
@@ -165,7 +174,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider, M
             return false;
         }
         if (moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken) {
-            return true;
+            return true; // hack for specific situation when user is anonymous, but accessDecisionManager resolve it
         }
         return supports(moduleAuthentication.getAuthentication().getClass());
     }
