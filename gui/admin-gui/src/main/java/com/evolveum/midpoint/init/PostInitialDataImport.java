@@ -29,7 +29,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
@@ -37,9 +36,11 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressio
  * @author lazyman
  * @author skublik
  */
-public class PostInitialDataImport extends DataImport{
+public class PostInitialDataImport extends DataImport {
 
     private static final Trace LOGGER = TraceManager.getTrace(PostInitialDataImport.class);
+
+    private static final String OPERATION_EXECUTE_SCRIPT = DOT_CLASS + "executeScript";
 
     private static final String SUFFIX_FOR_IMPORTED_FILE = "done";
     private static final String XML_SUFFIX = "xml";
@@ -63,18 +64,19 @@ public class PostInitialDataImport extends DataImport{
 
         SecurityContext securityContext = provideFakeSecurityContext();
 
-        int countImpotredObjects = 0;
+        int countImportedObjects = 0;
         int countExecutedScripts = 0;
 
         for (File file : files) {
-            if(FilenameUtils.getExtension(file.getName()).equals(SUFFIX_FOR_IMPORTED_FILE)) {
+            String fileExtension = FilenameUtils.getExtension(file.getName());
+            if (fileExtension.equals(SUFFIX_FOR_IMPORTED_FILE)) {
                 continue;
             }
-            if(!FilenameUtils.getExtension(file.getName()).equals(XML_SUFFIX)) {
+            if (!fileExtension.equals(XML_SUFFIX)) {
                 LOGGER.warn("Post-initial import support only xml files. Actual file: " + file.getName());
                 continue;
             }
-            Item item = null;
+            Item<?,?> item = null;
             try {
                 item = prismContext.parserFor(file).parseItem();
             } catch (Exception ex) {
@@ -82,29 +84,21 @@ public class PostInitialDataImport extends DataImport{
                 mainResult.recordFatalError("Couldn't parse file '" + file.getName() + "'", ex);
             }
 
-            if(item instanceof PrismProperty && (((PrismProperty)item).getRealValue() instanceof ScriptingExpressionType || ((PrismProperty)item).getRealValue() instanceof ExecuteScriptType)){
-                PrismProperty<Object> expression = (PrismProperty<Object>)item;
-                Boolean executeScript = executeScript(expression, file, task, mainResult);
-                if (executeScript) {
-                    file.renameTo(new File(file.getPath() + "." + SUFFIX_FOR_IMPORTED_FILE));
+            if (item instanceof PrismProperty && (item.getRealValue() instanceof ScriptingExpressionType || item.getRealValue() instanceof ExecuteScriptType)) {
+                //noinspection unchecked
+                PrismProperty<Object> expression = (PrismProperty<Object>) item;
+                if (executeScript(expression, file, task, mainResult)) {
+                    markAsDone(file);
                     countExecutedScripts++;
                 } else {
                     break;
                 }
             } else {
-                try {
-                    LOGGER.debug("Considering post-initial import of file {}.", file.getName());
-
-                    Boolean importObject = importObject(file, task, mainResult);
-                    if (importObject) {
-                        file.renameTo(new File(file.getPath() + "." + SUFFIX_FOR_IMPORTED_FILE));
-                        countImpotredObjects++;
-                    } else {
-                        break;
-                    }
-                } catch (Exception ex) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import file {}", ex, file.getName());
-                    mainResult.recordFatalError("Couldn't import file '" + file.getName() + "'", ex);
+                if (importObject(file, task, mainResult)) {
+                    markAsDone(file);
+                    countImportedObjects++;
+                } else {
+                    break;
                 }
             }
         }
@@ -113,45 +107,41 @@ public class PostInitialDataImport extends DataImport{
 
         mainResult.recomputeStatus("Couldn't import objects.");
 
-        LOGGER.info("Post-initial object import finished ({} objects imported, {} scripts executed)", countImpotredObjects, countExecutedScripts);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Initialization status:\n" + mainResult.debugDump());
+        LOGGER.info("Post-initial object import finished ({} objects imported, {} scripts executed)", countImportedObjects, countExecutedScripts);
+        LOGGER.trace("Initialization status:\n{}", mainResult.debugDumpLazily());
+    }
+
+    private void markAsDone(File file) {
+        if (!file.renameTo(new File(file.getPath() + "." + SUFFIX_FOR_IMPORTED_FILE))) {
+            LOGGER.warn("Renaming {} to indicate 'done' status was not successful", file);
         }
     }
 
     /**
-     * @param object
-     * @param task
-     * @param mainResult
      * @return true if it was success, otherwise false
      */
-    private <O extends ObjectType> Boolean importObject(File file, Task task, OperationResult mainResult) {
+    private boolean importObject(File file, Task task, OperationResult mainResult) {
         OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
         try {
-               LOGGER.info("Starting post-initial import of file {}.", file.getName());
-               ImportOptionsType options = new ImportOptionsType();
-               options.overwrite(true);
-               model.importObjectsFromFile(file, options, task, result);
-               result.recordSuccess();
-               return true;
-           } catch (Exception e) {
-               LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import object from file {}: ", e, file.getName(), e.getMessage());
-               result.recordFatalError(e);
-
-               LOGGER.info("\n" + result.debugDump());
-               return false;
-           }
+            LOGGER.info("Starting post-initial import of file {}.", file.getName());
+            ImportOptionsType options = new ImportOptionsType();
+            options.overwrite(true);
+            model.importObjectsFromFile(file, options, task, result);
+            result.recordSuccess();
+            return true;
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import object from file {}: ", e, file.getName(), e.getMessage());
+            result.recordFatalError(e);
+            LOGGER.info("\n{}", result.debugDump());
+            return false;
+        }
     }
 
     /**
-     * @param expression
-     * @param file
-     * @param task
-     * @param mainResult
-     * @return rue if it was success, otherwise false
+     * @return true if it was success, otherwise false
      */
-    private <O extends ObjectType> Boolean executeScript(PrismProperty<Object> expression, File file, Task task, OperationResult mainResult) {
-        OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
+    private boolean executeScript(PrismProperty<Object> expression, File file, Task task, OperationResult mainResult) {
+        OperationResult result = mainResult.createSubresult(OPERATION_EXECUTE_SCRIPT);
 
         try {
             LOGGER.info("Starting post-initial execute script from file {}.", file.getName());
@@ -163,7 +153,7 @@ public class PostInitialDataImport extends DataImport{
                         scripting.evaluateExpression((ScriptingExpressionType) parsed, task, result);
             result.recordSuccess();
             result.addReturn("console", executionResult.getConsoleOutput());
-            LOGGER.info("Executed {} as part of post-initial import with output: {}", expression, executionResult.getConsoleOutput());
+            LOGGER.info("Executed a script in {} as part of post-initial import. Output is:\n{}", file.getName(), executionResult.getConsoleOutput());
             return true;
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script from file {}", ex, file.getName());
@@ -204,15 +194,16 @@ public class PostInitialDataImport extends DataImport{
 
     private File[] listFiles(File folder) {
         File[] files = folder.listFiles();
-        File[] retFiles =new File[0];
-        for(File file: files){
-            if(file.isFile()){
-                retFiles = (File[])ArrayUtils.add(retFiles, file);
-                continue;
-            }
-            if(file.isDirectory()){
-
-                retFiles = (File[])ArrayUtils.addAll(retFiles, listFiles(file));
+        File[] retFiles = new File[0];
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    retFiles = (File[]) ArrayUtils.add(retFiles, file);
+                    continue;
+                }
+                if (file.isDirectory()) {
+                    retFiles = (File[]) ArrayUtils.addAll(retFiles, listFiles(file));
+                }
             }
         }
         return retFiles;
@@ -231,5 +222,4 @@ public class PostInitialDataImport extends DataImport{
             return false;
         }
     }
-
 }
