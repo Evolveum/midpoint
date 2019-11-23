@@ -35,6 +35,7 @@
              <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
              <icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
              <icfcldap:languageTagAttributes>description</icfcldap:languageTagAttributes> <!-- MID-5210 -->
+            <icfcldap:useTreeDelete>auto</icfcldap:useTreeDelete>
              <icfcldap:enableExtraTests>false</icfcldap:enableExtraTests> <!-- MID-3477 -->
         </icfc:configurationProperties>
 
@@ -216,6 +217,21 @@
                     </q:equal>
                 </filter>
             </baseContext>
+            <attribute>
+                <ref>ri:entryUUID</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <kind>generic</kind>
+            <intent>ou</intent>
+            <displayName>Organizational Unit</displayName>
+            <objectClass>ri:organizationalUnit</objectClass>
             <attribute>
                 <ref>ri:entryUUID</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>

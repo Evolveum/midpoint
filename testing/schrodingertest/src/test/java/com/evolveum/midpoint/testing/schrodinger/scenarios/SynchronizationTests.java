@@ -163,21 +163,12 @@ public class SynchronizationTests extends TestBase {
                             .feedback()
                             .isSuccess();
 
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
+
         LOG.info("File length before data copying, {}", CSV_TARGET_FILE.length());
         FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
         LOG.info("File length after data copying, {}", CSV_TARGET_FILE.length());
-
-
-        ListTasksPage tasksPage = basicPage.listTasks();
-        EditTaskPage taskPage = tasksPage.table().clickByName("LiveSyncTest");
-        if (taskPage.isRunNowVisible()){
-            taskPage.clickRunNow();
-            LOG.info("Sync task is run manually");
-        }
-        Selenide.sleep(MidPoint.TIMEOUT_EXTRA_LONG_1_M);
-
-        taskPage.loggedUser().logout().login(midPoint.getUsername(), midPoint.getPassword());
 
         ListUsersPage usersListPage = basicPage.listUsers();
         UserProjectionsTab projectionsTab = usersListPage
@@ -359,7 +350,7 @@ public class SynchronizationTests extends TestBase {
                         .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                             .selectTabProjections()
                                 .table()
-                                .selectCheckboxByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                                .selectCheckboxByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                             .and()
                                 .clickHeaderActionDropDown()
                                     .delete()
