@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2017-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -108,7 +108,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
                         connectorMap.put(type, struct);
                     } catch (ClassNotFoundException e) {
                         LOGGER.error("Error loading connector class {}: {}", beanClassName, e.getMessage(), e);
-                    } catch (ObjectNotFoundException | SchemaException e) {
+                    } catch (SchemaException e) {
                         LOGGER.error("Error discovering the connector {}: {}", beanClassName, e.getMessage(), e);
                     }
                 }
@@ -117,7 +117,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         }
     }
 
-    private ConnectorStruct createConnectorStruct(Class connectorClass, ManagedConnector annotation) throws ObjectNotFoundException, SchemaException {
+    private ConnectorStruct createConnectorStruct(Class connectorClass, ManagedConnector annotation) throws SchemaException {
         ConnectorStruct struct = new ConnectorStruct();
         //noinspection unchecked
         struct.connectorClass = connectorClass;
@@ -125,14 +125,14 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         ConnectorType connectorType = new ConnectorType();
         String bundleName = connectorClass.getPackage().getName();
         String type = annotation.type();
-        if (type == null || type.isEmpty()) {
+        if (type.isEmpty()) {
             type = connectorClass.getSimpleName();
         }
         String version = annotation.version();
         UcfUtil.addConnectorNames(connectorType, "Built-in", bundleName, type, version, null);
         connectorType.setConnectorBundle(bundleName);
         connectorType.setConnectorType(type);
-        connectorType.setVersion(version);
+        connectorType.setConnectorVersion(version);
         connectorType.setFramework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN);
         String namespace = CONFIGURATION_NAMESPACE_PREFIX + bundleName + "/" + type;
         connectorType.setNamespace(namespace);
@@ -140,6 +140,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         struct.connectorObject = connectorType;
 
         PrismSchema connectorSchema = generateConnectorConfigurationSchema(struct);
+        //noinspection ConstantConditions (probably can be null in the future)
         if (connectorSchema != null) {
             LOGGER.trace("Generated connector schema for {}: {} definitions",
                     connectorType, connectorSchema.getDefinitions().size());
