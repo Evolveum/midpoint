@@ -161,8 +161,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
             authModules = mpAuthentication.getAuthModules();
         }
 
-//        this.filterChains = authModules;
-
         if (authModules == null || authModules.size() == 0) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(UrlUtils.buildRequestUrl(httpRequest)
@@ -207,29 +205,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     private void processingInMidpoint(ServletRequest httpRequest, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         MidpointAuthFilter.VirtualFilterChain vfc = new MidpointAuthFilter.VirtualFilterChain(httpRequest, chain, authenticatedFilter.getFilters());
         vfc.doFilter(httpRequest, response);
-//        chain.doFilter(httpRequest,response);
     }
-
-//    private List<Filter> getFilters(HttpServletRequest request) {
-//        for (SecurityFilterChain chain : filterChains) {
-//            if (chain.matches(request)) {
-//                return chain.getFilters();
-//            }
-//        }
-//
-//        return null;
-//    }
-
-//    @Override
-//    public String toString() {
-//        StringBuilder sb = new StringBuilder();
-//        sb.append("FilterChainProxy[");
-//        sb.append("Filter Chains: ");
-//        sb.append(filterChains);
-//        sb.append("]");
-//
-//        return sb.toString();
-//    }
 
     private static class VirtualFilterChain implements FilterChain {
         private final FilterChain originalChain;

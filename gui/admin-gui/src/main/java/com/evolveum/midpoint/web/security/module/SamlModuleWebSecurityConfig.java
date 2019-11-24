@@ -47,7 +47,7 @@ import static org.springframework.security.saml.util.StringUtils.stripEndingSlas
  * @author skublik
  */
 
-public class SamlModuleWebSecurityConfig extends ModuleWebSecurityConfig {
+public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfig.class);
 
@@ -61,7 +61,7 @@ public class SamlModuleWebSecurityConfig extends ModuleWebSecurityConfig {
 
     private MidpointSamlProviderServerBeanConfiguration beanConfiguration;
 
-    public SamlModuleWebSecurityConfig(SamlModuleWebSecurityConfiguration configuration) {
+    public SamlModuleWebSecurityConfig(C configuration) {
         super(configuration);
         this.saml2Configuration = configuration.getSamlConfiguration();
         this.beanConfiguration = new MidpointSamlProviderServerBeanConfiguration(configuration);
@@ -154,7 +154,7 @@ public class SamlModuleWebSecurityConfig extends ModuleWebSecurityConfig {
             return new SamlProviderLogoutFilter(
                     getSamlProvisioning(),
                     new MidpointServiceProviderLogoutHandler(getSamlProvisioning()),
-                    new SimpleUrlLogoutSuccessHandler(),
+                    createLogoutHandler(getConfiguration().getDefaultSuccessLogoutURL()),
                     new SecurityContextLogoutHandler(),
                     new CookieClearingLogoutHandler("JSESSIONID")
             );

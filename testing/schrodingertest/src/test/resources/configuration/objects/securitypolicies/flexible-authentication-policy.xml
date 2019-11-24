@@ -14,6 +14,10 @@
                 <name>internalLoginForm</name>
                 <description>Internal username/password authentication, default user password, login form</description>
             </loginForm>
+            <loginForm id="2">
+                <name>internalLoginForm2</name>
+                <description>Internal username/password authentication, default user password, login form</description>
+            </loginForm>
         </modules>
         <sequence id="8">
             <name>admin-gui-default</name>
@@ -27,7 +31,7 @@
                 <necessity>sufficient</necessity>
             </module>
             <module id="13">
-                <name>internalLoginForm</name>
+                <name>internalLoginForm2</name>
                 <order>20</order>
                 <necessity>sufficient</necessity>
             </module>

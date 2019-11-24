@@ -62,8 +62,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
 
     private static SamlModuleWebSecurityConfiguration buildInternal(AuthenticationModuleSaml2Type modelType, String prefixOfSequence, ServletRequest request){
         SamlModuleWebSecurityConfiguration configuration = new SamlModuleWebSecurityConfiguration();
-        configuration.setPrefixOfSequence(prefixOfSequence);
-        configuration.setNameOfModule(modelType.getName());
+        build(configuration, modelType, prefixOfSequence);
         SamlServerConfiguration samlConfiguration = new SamlServerConfiguration();
         AuthenticationModuleSaml2NetworkType networkType = modelType.getNetwork();
         if (networkType != null) {

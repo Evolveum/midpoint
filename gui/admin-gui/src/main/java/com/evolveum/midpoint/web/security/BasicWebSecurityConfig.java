@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.web.security.filter.MidpointRequestAttributeAuthenticationFilter;
+import com.evolveum.midpoint.web.security.filter.MidpointRequestHeaderAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.AuthFilterConfigurer;
 import org.jasig.cas.client.session.SingleSignOutFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -175,7 +177,6 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     @Override
-    @DependsOn("midPointAuthenticationProvider")
     protected AuthenticationManager authenticationManager() throws Exception {
         List<AuthenticationProvider> providers = new ArrayList<AuthenticationProvider>();
 //        providers.add(midPointAuthenticationProvider());
@@ -194,24 +195,26 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 //    }
 
 
-    @Profile("sso")
-    @Bean
-    public RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter() {
-        RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
-        filter.setPrincipalRequestHeader(principalRequestHeader);
-        filter.setExceptionIfHeaderMissing(false);
-        filter.setAuthenticationManager(authenticationManager);
-
-        return filter;
-    }
+//    @Profile("sso")
+//    @Bean
+//    public RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter() {
+//        MidpointRequestHeaderAuthenticationFilter filter = new MidpointRequestHeaderAuthenticationFilter();
+//        filter.setPrincipalRequestHeader(principalRequestHeader);
+//        filter.setExceptionIfHeaderMissing(false);
+//        filter.setAuthenticationManager(authenticationManager);
+//        filter.setAuthenticationFailureHandler(new MidpointAuthenticationFauileHandler());
+//
+//        return filter;
+//    }
 
     @Profile("ssoenv")
     @Bean
     public RequestAttributeAuthenticationFilter requestAttributeAuthenticationFilter() {
-        RequestAttributeAuthenticationFilter filter = new RequestAttributeAuthenticationFilter();
+        MidpointRequestAttributeAuthenticationFilter filter = new MidpointRequestAttributeAuthenticationFilter();
         filter.setPrincipalEnvironmentVariable(principalRequestEnvVariable);
         filter.setExceptionIfVariableMissing(false);
         filter.setAuthenticationManager(authenticationManager);
+        filter.setAuthenticationFailureHandler(new MidpointAuthenticationFauileHandler());
 
         return filter;
     }

@@ -6,8 +6,13 @@
  */
 package com.evolveum.midpoint.web.security;
 
+import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.web.security.module.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.security.util.StateOfModule;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
@@ -36,6 +41,14 @@ public class MidpointAuthenticationFauileHandler extends SimpleUrlAuthentication
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+            moduleAuthentication.setState(StateOfModule.FAILURE);
+        }
+
         saveException(request, exception);
 
         SavedRequest savedRequest = getRequestCache().getRequest(request, response);

@@ -69,7 +69,6 @@ public class ActuatorWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
-    @Bean
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {
         return super.authenticationManager();

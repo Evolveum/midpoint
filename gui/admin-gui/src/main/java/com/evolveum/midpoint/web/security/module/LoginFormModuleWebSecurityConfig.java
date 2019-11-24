@@ -31,7 +31,7 @@ import static org.springframework.security.saml.util.StringUtils.stripEndingSlas
  * @author skublik
  */
 
-public class LoginFormModuleWebSecurityConfig extends ModuleWebSecurityConfig {
+public class LoginFormModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
 
     @Autowired
     private MidPointAccessDeniedHandler accessDeniedHandler;
@@ -46,9 +46,6 @@ public class LoginFormModuleWebSecurityConfig extends ModuleWebSecurityConfig {
     private Environment environment;
 
     @Autowired(required = false)
-    private RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
-
-    @Autowired(required = false)
     private RequestAttributeAuthenticationFilter requestAttributeAuthenticationFilter;
 
     @Autowired(required = false)
@@ -57,9 +54,9 @@ public class LoginFormModuleWebSecurityConfig extends ModuleWebSecurityConfig {
     @Autowired(required = false)
     private LogoutFilter requestSingleLogoutFilter;
 
-    private ModuleWebSecurityConfiguration configuration;
+    private C configuration;
 
-    public LoginFormModuleWebSecurityConfig(ModuleWebSecurityConfiguration configuration) {
+    public LoginFormModuleWebSecurityConfig(C configuration) {
         super(configuration);
         this.configuration = configuration;
     }
@@ -82,30 +79,19 @@ public class LoginFormModuleWebSecurityConfig extends ModuleWebSecurityConfig {
                         new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix()))).permitAll();
         http.apply(new MidpointExceptionHandlingConfigurer())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/login"));
-//                .accessDeniedHandler(accessDeniedHandler)
-//                .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
 
         http.logout().clearAuthentication(true)
                 .logoutUrl(stripEndingSlases(getPrefix()) +"/logout")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
-                .logoutSuccessHandler(auditedLogoutHandler);
-//        http.sessionManagement()
-//                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
-//                .maximumSessions(-1)
-//                .sessionRegistry(sessionRegistry)
-//                .maxSessionsPreventsLogin(true);
+                .logoutSuccessHandler(createLogoutHandler(getConfiguration().getDefaultSuccessLogoutURL()));
 
         if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("cas"))) {
             http.addFilterAt(casFilter, CasAuthenticationFilter.class);
             http.addFilterBefore(requestSingleLogoutFilter, LogoutFilter.class);
         }
 
-        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("sso"))) {
-            http.addFilterBefore(requestHeaderAuthenticationFilter, LogoutFilter.class);
-        }
-
-        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("ssoenv"))) {
+                                if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("ssoenv"))) {
             http.addFilterBefore(requestAttributeAuthenticationFilter, LogoutFilter.class);
         }
     }

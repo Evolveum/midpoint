@@ -38,15 +38,9 @@ import static org.springframework.util.StringUtils.hasText;
 
 public class MidpointSamlAuthenticationResponseFilter extends SamlAuthenticationResponseFilter {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MidpointSamlAuthenticationResponseFilter.class);
-
-    private UserProfileService userProfileService;
-
-    private final SamlProviderProvisioning<ServiceProviderService> provisioning;
-
     public MidpointSamlAuthenticationResponseFilter(SamlProviderProvisioning<ServiceProviderService> provisioning) {
         super(provisioning);
-        this.provisioning = provisioning;
+//        this.provisioning = provisioning;
     }
 
     @Override
@@ -72,99 +66,8 @@ public class MidpointSamlAuthenticationResponseFilter extends SamlAuthentication
         }
     }
 
-    //    public void setUserProfileService(UserProfileService userProfileService) {
-//        this.userProfileService = userProfileService;
-//    }
-
-//    @Override
-//    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
-////        DefaultSamlAuthentication authentication = (DefaultSamlAuthentication) super.attemptAuthentication(request, response);
-////
-////        MidPointUserProfilePrincipal midPointUserProfilePrincipal = null;
-////
-////        if (authentication.getAssertion() != null
-////        && authentication.getAssertion().getAttributes() != null
-////        && !authentication.getAssertion().getAttributes().isEmpty()) {
-////            List<Attribute> attributes = ((DefaultSamlAuthentication) authentication).getAssertion().getAttributes();
-////            for (Attribute attribute : attributes){
-////                if (attribute.getFriendlyName().equals("uid")) {
-////                    try {
-////                        midPointUserProfilePrincipal = userProfileService.getPrincipal((String)attribute.getValues().get(0));
-////                    } catch (ObjectNotFoundException e) {
-////                        e.printStackTrace();
-////                    } catch (SchemaException e) {
-////                        e.printStackTrace();
-////                    } catch (CommunicationException e) {
-////                        e.printStackTrace();
-////                    } catch (ConfigurationException e) {
-////                        e.printStackTrace();
-////                    } catch (SecurityViolationException e) {
-////                        e.printStackTrace();
-////                    } catch (ExpressionEvaluationException e) {
-////                        e.printStackTrace();
-////                    }
-////                }
-////            }
-////
-////        }
-////
-////        MidpointSamlAuthentication mpAuthentication = new MidpointSamlAuthentication(
-////                true,
-////                authentication.getAssertion(),
-////                authentication.getAssertingEntityId(),
-////                authentication.getHoldingEntityId(),
-////                authentication.getRelayState(),
-////                midPointUserProfilePrincipal
-////        );
-////        mpAuthentication.setResponseXml(authentication.getResponseXml());
-////
-////        return getAuthenticationManager().authenticate(mpAuthentication);
-//
-//        String responseData = getSamlResponseData(request);
-//        if (!hasText(responseData)) {
-//            processingModuleauthenticationFail();
-//            throw new AuthenticationCredentialsNotFoundException("SAMLResponse parameter missing");
-//        }
-//
-//        ServiceProviderService provider = getProvisioning().getHostedProvider();
-//
-//        Response r = provider.fromXml(responseData, true, GET.matches(request.getMethod()), Response.class);
-//        if (LOGGER.isTraceEnabled()) {
-//            LOGGER.trace("Received SAMLResponse XML:" + r.getOriginalXML());
-//        }
-//        IdentityProviderMetadata remote = provider.getRemoteProvider(r);
-//
-//        ValidationResult validationResult = provider.validate(r);
-//        if (validationResult.hasErrors()) {
-//            processingModuleauthenticationFail();
-//            throw new InsufficientAuthenticationException(
-//                    validationResult.toString()
-//            );
-//        }
-//
-//        DefaultSamlAuthentication authentication = new DefaultSamlAuthentication(
-//                true,
-//                r.getAssertions().get(0),
-//                remote.getEntityId(),
-//                provider.getMetadata().getEntityId(),
-//                request.getParameter("RelayState")
-//        );
-//        authentication.setResponseXml(r.getOriginalXML());
-//
-//        return getAuthenticationManager().authenticate(authentication);
-//
-//    }
-
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            Saml2ModuleAuthentication moduleAuthentication = (Saml2ModuleAuthentication) mpAuthentication.getProcessingModuleAuthentication();
-            moduleAuthentication.setState(StateOfModule.FAILURE);
-            moduleAuthentication.setRequestState(RequestState.RECEIVED);
-        }
 
 //        if (logger.isDebugEnabled()) {
 //            logger.debug("Authentication request failed: " + failed.toString(), failed);
@@ -176,37 +79,4 @@ public class MidpointSamlAuthenticationResponseFilter extends SamlAuthentication
 
         getFailureHandler().onAuthenticationFailure(request, response, failed);
     }
-
-    //    private void processingModuleauthenticationFail() {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//
-//        if (authentication instanceof MidpointAuthentication) {
-//            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-//            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-//            moduleAuthentication.setState(StateOfModule.FAILURE);
-//        }
-//    }
-
-
-    @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-
-        if (authResult instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authResult;
-            Saml2ModuleAuthentication moduleAuthentication = (Saml2ModuleAuthentication) mpAuthentication.getProcessingModuleAuthentication();
-            moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
-            moduleAuthentication.setRequestState(RequestState.RECEIVED);
-        }
-
-        super.successfulAuthentication(request, response, chain, authResult);
-    }
-
-    protected SamlProviderProvisioning<ServiceProviderService> getProvisioning() {
-        return provisioning;
-    }
-
-    protected String getSamlResponseData(HttpServletRequest request) {
-        return request.getParameter("SAMLResponse");
-    }
-
 }

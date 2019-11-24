@@ -6,13 +6,11 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
-import com.evolveum.midpoint.web.security.MidpointAuthenticationTrustResolverImpl;
-import com.evolveum.midpoint.web.security.MidpointProviderManager;
+import com.evolveum.midpoint.web.security.*;
 import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.web.security.MidPointAccessDeniedHandler;
-import com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +24,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 import java.util.UUID;
 
@@ -33,7 +32,7 @@ import java.util.UUID;
  * @author skublik
  */
 
-public class ModuleWebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private SessionRegistry sessionRegistry;
@@ -45,7 +44,7 @@ public class ModuleWebSecurityConfig extends WebSecurityConfigurerAdapter {
     private MidPointAccessDeniedHandler accessDeniedHandler;
 
     @Autowired
-    private MidpointProviderManager authenticationManager;
+    private AuthenticationManager authenticationManager;
 
     @Autowired
     private AuthenticationProvider midPointAuthenticationProvider;
@@ -54,11 +53,15 @@ public class ModuleWebSecurityConfig extends WebSecurityConfigurerAdapter {
     private boolean csrfEnabled;
 
     private ObjectPostProcessor<Object> objectPostProcessor;
-    private ModuleWebSecurityConfiguration configuration;
+    private C configuration;
 
-    public ModuleWebSecurityConfig(ModuleWebSecurityConfiguration configuration){
+    public ModuleWebSecurityConfig(C configuration){
         super(true);
         this.configuration = configuration;
+    }
+
+    public C getConfiguration() {
+        return configuration;
     }
 
     public String getPrefix() {
@@ -125,8 +128,8 @@ public class ModuleWebSecurityConfig extends WebSecurityConfigurerAdapter {
 //        authenticationManager.getProviders().add(midPointAuthenticationProvider);
         if (configuration != null && !configuration.getAuthenticationProviders().isEmpty()) {
             for (AuthenticationProvider authenticationProvider : configuration.getAuthenticationProviders()) {
-                if (!(authenticationManager.getProviders().contains(authenticationProvider))) {
-                    authenticationManager.getProviders().add(authenticationProvider);
+                if (!(((MidpointProviderManager)authenticationManager).getProviders().contains(authenticationProvider))) {
+                    ((MidpointProviderManager)authenticationManager).getProviders().add(authenticationProvider);
                 }
             }
         }
@@ -142,6 +145,16 @@ public class ModuleWebSecurityConfig extends WebSecurityConfigurerAdapter {
         } else {
             super.configure(auth);
         }
+    }
+
+    protected LogoutSuccessHandler createLogoutHandler(String defaultSuccessLogoutURL) {
+        AuditedLogoutHandler handler = objectPostProcessor.postProcess(new AuditedLogoutHandler());
+        if (StringUtils.isNotBlank(defaultSuccessLogoutURL)
+        && (defaultSuccessLogoutURL.startsWith("/") || defaultSuccessLogoutURL.startsWith("http")
+        || defaultSuccessLogoutURL.startsWith("https"))) {
+            handler.setDefaultTargetUrl(defaultSuccessLogoutURL);
+        }
+        return handler;
     }
 
 }

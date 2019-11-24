@@ -13,15 +13,15 @@ import com.evolveum.midpoint.web.security.util.StateOfModule;
  * @author skublik
  */
 
-public class LoginFormModuleAuthentication extends ModuleAuthentication {
+public class HttpHeaderModuleAuthentication extends ModuleAuthentication {
 
-    public LoginFormModuleAuthentication() {
+    public HttpHeaderModuleAuthentication() {
         setType(ModuleType.LOCAL);
         setState(StateOfModule.LOGIN_PROCESSING);
     }
 
     public ModuleAuthentication clone() {
-        LoginFormModuleAuthentication module = new LoginFormModuleAuthentication();
+        HttpHeaderModuleAuthentication module = new HttpHeaderModuleAuthentication();
         clone(module);
         return module;
     }

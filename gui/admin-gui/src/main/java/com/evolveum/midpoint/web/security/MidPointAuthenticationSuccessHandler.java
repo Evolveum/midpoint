@@ -10,7 +10,10 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.web.security.module.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.web.security.util.StateOfModule;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -62,6 +65,12 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws ServletException, IOException {
+
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+            moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
+        }
 
         if (WebModelServiceUtils.isPostAuthenticationEnabled(taskManager, modelInteractionService)) {
             String requestUrl = request.getRequestURL().toString();

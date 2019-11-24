@@ -26,6 +26,10 @@ public class ModuleAuthentication {
 
     private String prefix;
 
+    public ModuleAuthentication() {
+        setState(StateOfModule.LOGIN_PROCESSING);
+    }
+
     public String getPrefix() {
         return prefix;
     }

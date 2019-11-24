@@ -89,8 +89,6 @@ public class AbstractLoginPageTest extends TestBase {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         login.login("bad_administrator", "5ecr3t");
-//        sleep(1000);
-//        open("/login");
         login.login("administrator", "5ecr3t");
 
         AuditLogViewerPage auditLogViewer = basicPage.auditLogViewer();

@@ -26,8 +26,17 @@ public class ModuleWebSecurityConfiguration {
     private List<AuthenticationProvider> authenticationProviders = new ArrayList<AuthenticationProvider>();
     private String prefixOfSequence;
     private String nameOfModule;
+    private String defaultSuccessLogoutURL;
 
     protected ModuleWebSecurityConfiguration(){
+    }
+
+    public void setDefaultSuccessLogoutURL(String defaultSuccessLogoutURL) {
+        this.defaultSuccessLogoutURL = defaultSuccessLogoutURL;
+    }
+
+    public String getDefaultSuccessLogoutURL() {
+        return defaultSuccessLogoutURL;
     }
 
     public void setAuthenticationProviders(List<AuthenticationProvider> authenticationProviders) {
@@ -69,8 +78,14 @@ public class ModuleWebSecurityConfiguration {
 
     public static ModuleWebSecurityConfiguration build(AbstractAuthenticationModuleType module, String prefixOfSequence){
         ModuleWebSecurityConfiguration configuration = new ModuleWebSecurityConfiguration();
+        return build(configuration, module, prefixOfSequence);
+    }
+
+    protected static ModuleWebSecurityConfiguration build(ModuleWebSecurityConfiguration configuration, AbstractAuthenticationModuleType module,
+                                                          String prefixOfSequence){
         configuration.setNameOfModule(module.getName());
         configuration.setPrefixOfSequence(prefixOfSequence);
+        configuration.setDefaultSuccessLogoutURL(module.getLogoutUrl());
         configuration.validate();
         return configuration;
     }
