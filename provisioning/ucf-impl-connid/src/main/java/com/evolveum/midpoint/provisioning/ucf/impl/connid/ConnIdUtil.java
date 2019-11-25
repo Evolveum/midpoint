@@ -132,8 +132,10 @@ public class ConnIdUtil {
             throw new IllegalArgumentException("Null exception while processing ConnId exception ");
         }
 
-        LOGGER.error("ConnId Exception {} in {}: {}", connIdException.getClass().getName(),
-                desc, connIdException.getMessage(), connIdException);
+        // We intentionally do not use LOGGER.error here, to avoid dumping the stack unless the DEBUG logging is set.
+        // This is because ConnID errors often get handled in upper layers. See also MID-5937.
+        LoggingUtils.logExceptionAsWarning(LOGGER, "Got ConnId exception (might be handled by upper layers later) {} in {}: {}",
+                connIdException, connIdException.getClass().getName(), desc, connIdException.getMessage());
 
         if (connIdException instanceof RemoteWrappedException) {
             // brutal hack, for now
