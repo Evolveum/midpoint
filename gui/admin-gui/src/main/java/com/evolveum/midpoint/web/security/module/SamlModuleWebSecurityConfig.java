@@ -33,7 +33,6 @@ import org.springframework.security.saml.provider.SamlServerConfiguration;
 import org.springframework.security.saml.provider.service.config.SamlServiceProviderServerBeanConfiguration;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
-import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.servlet.Filter;
@@ -154,7 +153,7 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
             return new SamlProviderLogoutFilter(
                     getSamlProvisioning(),
                     new MidpointServiceProviderLogoutHandler(getSamlProvisioning()),
-                    createLogoutHandler(getConfiguration().getDefaultSuccessLogoutURL()),
+                    createLogoutHandler("/"),
                     new SecurityContextLogoutHandler(),
                     new CookieClearingLogoutHandler("JSESSIONID")
             );

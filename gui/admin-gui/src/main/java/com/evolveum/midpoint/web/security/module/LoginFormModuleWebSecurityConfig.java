@@ -21,7 +21,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.preauth.RequestAttributeAuthenticationFilter;
-import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 
 import java.util.Arrays;
 
@@ -84,7 +83,7 @@ public class LoginFormModuleWebSecurityConfig<C extends ModuleWebSecurityConfigu
                 .logoutUrl(stripEndingSlases(getPrefix()) +"/logout")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
-                .logoutSuccessHandler(createLogoutHandler(getConfiguration().getDefaultSuccessLogoutURL()));
+                .logoutSuccessHandler(createLogoutHandler("/"));
 
         if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("cas"))) {
             http.addFilterAt(casFilter, CasAuthenticationFilter.class);

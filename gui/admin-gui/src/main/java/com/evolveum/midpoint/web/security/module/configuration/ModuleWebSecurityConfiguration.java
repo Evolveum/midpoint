@@ -77,16 +77,15 @@ public class ModuleWebSecurityConfiguration {
     }
 
     public static ModuleWebSecurityConfiguration build(AbstractAuthenticationModuleType module, String prefixOfSequence){
-        ModuleWebSecurityConfiguration configuration = new ModuleWebSecurityConfiguration();
-        return build(configuration, module, prefixOfSequence);
+        ModuleWebSecurityConfiguration configuration = build(new ModuleWebSecurityConfiguration(), module, prefixOfSequence);
+        configuration.validate();
+        return configuration;
     }
 
     protected static ModuleWebSecurityConfiguration build(ModuleWebSecurityConfiguration configuration, AbstractAuthenticationModuleType module,
                                                           String prefixOfSequence){
         configuration.setNameOfModule(module.getName());
         configuration.setPrefixOfSequence(prefixOfSequence);
-        configuration.setDefaultSuccessLogoutURL(module.getLogoutUrl());
-        configuration.validate();
         return configuration;
     }
 

@@ -33,12 +33,14 @@ public class HttpHeaderModuleWebSecurityConfiguration extends ModuleWebSecurityC
 
     public static HttpHeaderModuleWebSecurityConfiguration build(AuthenticationModuleHttpHeaderType module, String prefixOfSequence){
         HttpHeaderModuleWebSecurityConfiguration configuration = new HttpHeaderModuleWebSecurityConfiguration();
+        configuration.setDefaultSuccessLogoutURL(module.getLogoutUrl());
         build(configuration, module, prefixOfSequence);
         if (module.getUsernameHeader() != null) {
             configuration.setPrincipalRequestHeader(module.getUsernameHeader());
         } else {
             configuration.setPrincipalRequestHeader(DEFAULT_HEADER);
         }
+        configuration.validate();
         return configuration;
     }
 }

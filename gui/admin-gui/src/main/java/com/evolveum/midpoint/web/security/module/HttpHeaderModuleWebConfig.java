@@ -6,16 +6,13 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
-import com.evolveum.midpoint.web.security.AuditedLogoutHandler;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationFauileHandler;
 import com.evolveum.midpoint.web.security.MidpointProviderManager;
 import com.evolveum.midpoint.web.security.filter.MidpointRequestHeaderAuthenticationFilter;
 import com.evolveum.midpoint.web.security.module.configuration.HttpHeaderModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 
 /**

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.saml.key.KeyType;
@@ -83,7 +84,10 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                 .setWantAssertionsSigned(Boolean.TRUE.equals(serviceProviderType.isWantAssertionsSigned()))
                 .setSingleLogoutEnabled(Boolean.TRUE.equals(serviceProviderType.isSingleLogoutEnabled()))
                 .setBasePath(getBasePath(((HttpServletRequest) request)));
-        List<Object> objectList = new ArrayList<Object>(serviceProviderType.getNameId());
+        List<Object> objectList = new ArrayList<Object>();
+        for (AuthenticationModuleSaml2NameIdType nameIdType : serviceProviderType.getNameId()) {
+            objectList.add(nameIdType.value());
+        }
         serviceProvider.setNameIds(objectList);
         if (serviceProviderType.getDefaultDigest() != null) {
             serviceProvider.setDefaultDigest(DigestMethod.fromUrn(serviceProviderType.getDefaultDigest().value()));
@@ -91,16 +95,16 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         if (serviceProviderType.getDefaultSigningAlgorithm() != null) {
             serviceProvider.setDefaultSigningAlgorithm(AlgorithmMethod.fromUrn(serviceProviderType.getDefaultSigningAlgorithm().value()));
         }
-        AuthenticationModuleSaml2KeyType keyType = serviceProviderType.getKey();
+        AuthenticationModuleSaml2KeyType keysType = serviceProviderType.getKeys();
         RotatingKeys key = new RotatingKeys();
-        AuthenticationModuleSaml2SimpleKeyType activeKeyType = keyType.getActive();
+        AuthenticationModuleSaml2SimpleKeyType activeKeyType = keysType.getActive();
         try {
             key.setActive(createSimpleKey(activeKeyType));
         } catch (EncryptionException e) {
             LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + activeKeyType);
         }
 
-        for (AuthenticationModuleSaml2SimpleKeyType standByKey : keyType.getStandBy()) {
+        for (AuthenticationModuleSaml2SimpleKeyType standByKey : keysType.getStandBy()) {
             try {
                 key.getStandBy().add(createSimpleKey(standByKey));
             } catch (EncryptionException e) {
@@ -120,7 +124,14 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             if (StringUtils.isNotBlank(providerType.getLinkText())) {
                 provider.setLinktext(providerType.getLinkText());
             }
-            List<String> verificationKeys = providerType.getVerificationKeys();
+            List<String> verificationKeys = new ArrayList<String>();
+            for (ProtectedStringType verificationKeyProtected : providerType.getVerificationKeys()) {
+                try {
+                    String verificationKey = protector.decryptString(verificationKeyProtected);
+                } catch (EncryptionException e) {
+                    LOGGER.error("Couldn't obtain clear string for provider verification key");
+                }
+            }
             if (verificationKeys != null && !verificationKeys.isEmpty()) {
                 provider.setVerificationKeys(verificationKeys);
             }
