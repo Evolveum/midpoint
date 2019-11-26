@@ -100,7 +100,7 @@ public class RepoCommonUtils {
      *
      * TODO think about handled errors here: e.g. should we skip them when looking for exceptions?
      */
-    private static Throwable getResultExceptionIfExists(OperationResult result) {
+    public static Throwable getResultExceptionIfExists(OperationResult result) {
         if (result.getCause() != null) {
             return result.getCause();
         }
