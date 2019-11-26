@@ -23,6 +23,7 @@ import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -82,13 +83,30 @@ public class PasswordPanel extends InputPanel {
         inputContainer.setOutputMarkupId(true);
         add(inputContainer);
 
-        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new PasswordModel(model));
+        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new PasswordModel(model)) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onComponentTag(ComponentTag tag) {
+                super.onComponentTag(tag);
+                tag.remove("value");
+            }
+        };
         password1.setRequired(false);
         password1.setOutputMarkupId(true);
         password1.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         inputContainer.add(password1);
 
-        final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO, new PasswordModel(Model.of(new ProtectedStringType())));
+        final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO, new PasswordModel(Model.of(new ProtectedStringType()))) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onComponentTag(ComponentTag tag) {
+                super.onComponentTag(tag);
+                tag.remove("value");
+            }
+
+        };
         password2.setRequired(false);
         password2.setOutputMarkupId(true);
         inputContainer.add(password2);
