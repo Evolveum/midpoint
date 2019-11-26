@@ -443,6 +443,9 @@ public class SchemaTransformer {
 			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision) {
 		LOGGER.trace("applySecurityConstraints(objectDelta): items={}, phase={}, defaults R={}, A={}, M={}",
 				objectDelta, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
+		if (objectDelta == null) {
+			return;
+		}
 		if (objectDelta.isAdd()) {
 			applySecurityConstraints(objectDelta.getObjectToAdd().getValue(), securityConstraints, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision, false);
 			return;
