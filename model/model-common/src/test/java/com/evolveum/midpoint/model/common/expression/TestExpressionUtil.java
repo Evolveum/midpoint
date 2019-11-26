@@ -213,6 +213,7 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
         ExpressionVariables variables = new ExpressionVariables();
         PrismObject<UserType> user = createUser();
         variables.addVariableDefinition(ExpressionConstants.VAR_USER, user, user.getDefinition());
+        variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
         return variables;
     }
 
@@ -225,6 +226,7 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
         ObjectDeltaObject<UserType> odo = new ObjectDeltaObject<>(userOld, delta, null, userOld.getDefinition());
         odo.recompute();
         variables.addVariableDefinition(ExpressionConstants.VAR_USER, odo, odo.getDefinition());
+        variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, odo, odo.getDefinition());
         return variables;
     }
 

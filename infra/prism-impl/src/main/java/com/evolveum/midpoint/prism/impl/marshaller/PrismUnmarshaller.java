@@ -275,7 +275,8 @@ public class PrismUnmarshaller {
                 SchemaMigration migration = determineSchemaMigration(complexTypeDefinition, itemName, pc);
                 if (migration != null) {
                     if (migration.getOperation() == SchemaMigrationOperation.REMOVED) {
-                        LOGGER.warn("Item {} was removed from the schema, skipping", itemName);
+                        String msg = "Item "+itemName+" was removed from the schema, skipped processing of that item";
+                        pc.warn(LOGGER, msg);
                         continue;
                     } else {
                         pc.warnOrThrow(LOGGER, "Unsupported migration operation " + migration.getOperation() + " for item " + itemName + " (in container "

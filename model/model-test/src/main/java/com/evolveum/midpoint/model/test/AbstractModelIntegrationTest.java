@@ -1751,7 +1751,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected <O extends ObjectType> void assertNoObject(Class<O> type, String oid, Task task, OperationResult result) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         try {
             PrismObject<O> object = modelService.getObject(type, oid, null, task, result);
-
+            display("Unexpected object", object);
             AssertJUnit.fail("Expected that "+object+" does not exist, but it does");
         } catch (ObjectNotFoundException e) {
             // This is expected

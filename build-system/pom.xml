@@ -1725,6 +1725,9 @@
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
                     <linkXRef>false</linkXRef>
+                    <includes>**/*.java</includes>
+                    <!-- Also need to add suffixes to checkstyle.xml -->
+                    <resourceIncludes>**/*.properties,**/*.xml,**/*.xsd,**/*.wsdl,**/*.json,**/*.yaml,**/*.yml</resourceIncludes>
                 </configuration>
                 <executions>
                     <execution>

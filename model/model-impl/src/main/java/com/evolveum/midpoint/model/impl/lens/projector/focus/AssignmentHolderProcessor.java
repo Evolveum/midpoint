@@ -119,6 +119,8 @@ public class AssignmentHolderProcessor {
         LensFocusContext<AH> focusContext = context.getFocusContext();
         PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();
 
+        checkArchetypeRefDelta(context);
+
         boolean resetOnRename = true; // This is fixed now. TODO: make it configurable
 
         boolean wasResetOnIterationSpecificationChange = false;
@@ -806,6 +808,36 @@ public class AssignmentHolderProcessor {
                 FocusType.F_ITERATION_TOKEN, iterationTokenVal);
         focusContext.swallowToSecondaryDelta(iterationTokenDelta);
 
+    }
+
+    private <F extends ObjectType> void checkArchetypeRefDelta(LensContext<F> context) throws PolicyViolationException {
+        ObjectDelta<F> focusPrimaryDelta = context.getFocusContext().getPrimaryDelta();
+        if (focusPrimaryDelta != null) {
+            ReferenceDelta archetypeRefDelta = focusPrimaryDelta.findReferenceModification(AssignmentHolderType.F_ARCHETYPE_REF);
+            if (archetypeRefDelta != null) {
+                // We want to allow this under special circumstances. E.g. we want be able to import user with archetypeRef.
+                // Otherwise we won't be able to export a user and re-import it again.
+                if (focusPrimaryDelta.isAdd()) {
+                    String archetypeOidFromAssignments = LensUtil.determineExplicitArchetypeOidFromAssignments(focusPrimaryDelta.getObjectToAdd());
+                    if (archetypeOidFromAssignments == null) {
+                        throw new PolicyViolationException("Attempt add archetypeRef without a matching assignment");
+                    } else {
+                        boolean match = true;
+                        for (PrismReferenceValue archetypeRefDeltaVal : archetypeRefDelta.getValuesToAdd()) {
+                            if (!archetypeOidFromAssignments.equals(archetypeRefDeltaVal.getOid())) {
+                                match = false;
+                            }
+                        }
+                        if (match) {
+                            return;
+                        } else {
+                            throw new PolicyViolationException("Attempt add archetypeRef that does not match assignment");
+                        }
+                    }
+                }
+                throw new PolicyViolationException("Attempt to modify archetypeRef directly");
+            }
+        }
     }
 
 //    private <F extends FocusType> void processAssignmentActivation(LensContext<F> context, XMLGregorianCalendar now,

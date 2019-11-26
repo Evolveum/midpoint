@@ -190,7 +190,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         secondaryDelta.swallow(propDelta);
     }
 
-    // TODO is this method ever needed?
+    // This method may be useful for hooks. E.g. if a hook wants to insert a special secondary delta to avoid
+    // splitting the changes to several audit records. It is not entirely clean and we should think about a better
+    // solution in the future. But it is good enough for now.
     @SuppressWarnings("unused")
     public void swallowToWave0SecondaryDelta(ItemDelta<?,?> propDelta) throws SchemaException {
           ObjectDelta<O> secondaryDelta = getSecondaryDelta(0);
