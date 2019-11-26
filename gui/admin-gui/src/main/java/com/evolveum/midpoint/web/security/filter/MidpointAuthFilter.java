@@ -114,15 +114,18 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         getPreLogoutFilter().doFilter(httpRequest, response);
 
+        //authenticated request
         if (mpAuthentication != null && mpAuthentication.isAuthenticated()) {
             processingInMidpoint(httpRequest, response, chain);
             return;
         }
 
+        //load security policy with authentication
         AuthenticationsPolicyType authenticationsPolicy;
         try {
             PrismObject<SecurityPolicyType> authPolicy = systemObjectCache.getSecurityPolicy(new OperationResult("load authentication policy"));
 
+            //security policy without authentication
             if (authPolicy == null || authPolicy.asObjectable().getAuthentication() == null) {
                 authenticationsPolicy = getDefaultAuthenticationPolicy();
             } else {
@@ -135,6 +138,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         }
 
         AuthenticationSequenceType sequence;
+        // permitAll pages (login, select ID for saml ...) during processing of modules
         if (mpAuthentication != null && SecurityUtils.isPermitAll(httpRequest)) {
           sequence = mpAuthentication.getSequence();
         } else {
@@ -144,12 +148,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
         if (sequence == null) {
             throw new IllegalArgumentException("Couldn't find sequence for URI '" + httpRequest.getRequestURI() + "' in " + authenticationsPolicy);
         }
-
-//        // authentication pages (login, select ID for saml ...) during processing of modules
-//        if (AuthUtil.isPermitAll(httpRequest) && mpAuthentication != null && mpAuthentication.isProcessing()) {
-//            chain.doFilter(request, response);
-//            return;
-//        }
 
         List<AuthModule> authModules;
         //change sequence of authentication during another sequence
@@ -161,6 +159,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
             authModules = mpAuthentication.getAuthModules();
         }
 
+        //couldn't find authentication modules
         if (authModules == null || authModules.size() == 0) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(UrlUtils.buildRequestUrl(httpRequest)
@@ -170,10 +169,12 @@ public class MidpointAuthFilter extends GenericFilterBean {
         }
 
         int indexOfProcessingModule = -1;
+        // if exist authentication (authentication flow is processed) find actual processing module
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
             indexOfProcessingModule = mpAuthentication.getIndexOfProcessingModule(true);
         }
 
+        //authentication flow fail and exist more as one authentication module write error
         if (mpAuthentication != null && mpAuthentication.isAuthenticationFailed() && mpAuthentication.getAuthModules().size() > 1) {
 
             Exception actualException = (Exception) httpRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
@@ -188,6 +189,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
             SecurityUtils.saveException(httpRequest, exception);
         }
 
+        // if index == -1 indicate restart authentication flow
         if (indexOfProcessingModule == -1) {
             SecurityContextHolder.getContext().setAuthentication(null);
             SecurityContextHolder.getContext().setAuthentication(new MidpointAuthentication(sequence));
