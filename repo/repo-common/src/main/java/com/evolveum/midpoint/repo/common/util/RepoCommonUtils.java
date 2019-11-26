@@ -13,6 +13,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
 
+import java.util.List;
+
 /**
  * @author katka
  *
@@ -80,15 +82,35 @@ public class RepoCommonUtils {
         throw new SystemException(e.getMessage(), e);
     }
 }
-    //TODO implement better
+
     public static Throwable getResultException(OperationResult result) {
-        if (result.getCause() != null) {
-            return result.getCause();
-        } else if (result.getLastSubresult().getCause() != null) {
-            return result.getLastSubresult().getCause();
+        Throwable t = getResultExceptionIfExists(result);
+        if (t != null) {
+            return t;
         } else {
+            LOGGER.debug("No exception found in operation result - but there should be some. Using an artificial one:\n{}",
+                    result.debugDump(1));
             return new SystemException(result.getMessage());
         }
     }
 
+    /**
+     * This method tries to determine an exception from an operation result. It does a depth-first search, but treating
+     * subresults from last one to the first one. Hopefully this will lead to correct exception.
+     *
+     * TODO think about handled errors here: e.g. should we skip them when looking for exceptions?
+     */
+    private static Throwable getResultExceptionIfExists(OperationResult result) {
+        if (result.getCause() != null) {
+            return result.getCause();
+        }
+        List<OperationResult> subresults = result.getSubresults();
+        for (int i = subresults.size() - 1; i >= 0; i--) {
+            Throwable subresultException = getResultExceptionIfExists(subresults.get(i));
+            if (subresultException != null) {
+                return subresultException;
+            }
+        }
+        return null;
+    }
 }
