@@ -347,19 +347,21 @@ public class TestRunAs extends AbstractLongTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
 
-        long readCountIncremenet = getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);
+        long readCountIncrement = getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);
         long runTimeMillis = (endMillis - starMillis);
-        display("Run time "+runTimeMillis+"ms, repo read count increment " + readCountIncremenet);
+        display("Run time "+runTimeMillis+"ms, repo read count increment " + readCountIncrement);
         long percentRuntimeIncrease = (runTimeMillis - baselineRunTime)*100/baselineRunTime;
+        long readCountIncrease = readCountIncrement - baselineRepoReadCountIncrement;
         display("Increase over baseline",
                 "  run time: "+(runTimeMillis - baselineRunTime) + " (" + percentRuntimeIncrease + "%) \n" +
-                "  repo read: "+(readCountIncremenet - baselineRepoReadCountIncrement));
+                "  repo read: "+ readCountIncrease);
 
-        assertEquals("High increase over repo read count baseline", 2, readCountIncremenet - baselineRepoReadCountIncrement);
+        if (readCountIncrease > 2) {
+            fail("High increase over repo read count baseline: " + readCountIncrease + " (expected: at most 2)");
+        }
         if (percentRuntimeIncrease > 20) {
             fail("Too high run time increase over baseline: "+percentRuntimeIncrease+"% "+baselineRunTime+"ms -> "+runTimeMillis+"ms");
         }
-
 
         PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
         display("User after", userAfter);

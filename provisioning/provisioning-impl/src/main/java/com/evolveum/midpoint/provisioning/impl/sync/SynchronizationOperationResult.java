@@ -20,6 +20,7 @@ public class SynchronizationOperationResult {
     private AtomicInteger errors = new AtomicInteger(0);
     private volatile boolean suspendEncountered;
     private volatile boolean haltingErrorEncountered;
+    private Throwable exceptionEncountered;             // FIXME this is a workaround for thresholds
     private boolean allChangesFetched;
     private PrismProperty<?> initialToken;
     private PrismProperty<?> taskTokenUpdatedTo;
@@ -46,6 +47,14 @@ public class SynchronizationOperationResult {
 
     public void setHaltingErrorEncountered(boolean haltingErrorEncountered) {
         this.haltingErrorEncountered = haltingErrorEncountered;
+    }
+
+    public Throwable getExceptionEncountered() {
+        return exceptionEncountered;
+    }
+
+    public void setExceptionEncountered(Throwable exceptionEncountered) {
+        this.exceptionEncountered = exceptionEncountered;
     }
 
     public boolean isAllChangesFetched() {
@@ -78,6 +87,7 @@ public class SynchronizationOperationResult {
                 ", errors=" + errors +
                 ", suspendEncountered=" + suspendEncountered +
                 ", haltingErrorEncountered=" + haltingErrorEncountered +
+                ", exceptionEncountered=" + exceptionEncountered +
                 ", allChangesFetched=" + allChangesFetched +
                 ", initialToken=" + initialToken +
                 ", taskTokenUpdatedTo=" + taskTokenUpdatedTo;
