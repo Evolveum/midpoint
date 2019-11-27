@@ -84,6 +84,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             UserType.F_METADATA,
             UserType.F_ASSIGNMENT,
             UserType.F_ACTIVATION,
+            UserType.F_TRIGGER,
             UserType.F_CREDENTIALS,
             UserType.F_ADMIN_GUI_CONFIGURATION);
     private static final List<ItemPath> BASIC_SHADOW_CONTAINERS_PATHS = Arrays.asList(
@@ -91,6 +92,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             ShadowType.F_METADATA,
             ShadowType.F_PENDING_OPERATION,
             ShadowType.F_ATTRIBUTES,
+            ShadowType.F_TRIGGER,
             ShadowType.F_ASSOCIATION,
             ShadowType.F_ACTIVATION,
             ShadowType.F_CREDENTIALS);
@@ -105,6 +107,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             OrgType.F_CONDITION,
             OrgType.F_ADMIN_GUI_CONFIGURATION,
             OrgType.F_DATA_PROTECTION,
+            OrgType.F_TRIGGER,
             OrgType.F_AUTOASSIGN);
 
     private String userWallyOid;

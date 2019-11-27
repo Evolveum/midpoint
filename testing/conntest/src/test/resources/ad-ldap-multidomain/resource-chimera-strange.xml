@@ -40,6 +40,7 @@
             <icfcldap:operationalAttributes>msExchHideFromAddressLists</icfcldap:operationalAttributes>
             <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests>
             <icfcldap:forcePasswordChangeAtNextLogon>false</icfcldap:forcePasswordChangeAtNextLogon>
+            <icfcldap:useTreeDelete>never</icfcldap:useTreeDelete>
             <icfcldap:winRmUsername>midpoint</icfcldap:winRmUsername>
             <icfcldap:winRmDomain>midpoint</icfcldap:winRmDomain>
             <icfcldap:winRmAuthenticationScheme>credssp</icfcldap:winRmAuthenticationScheme>

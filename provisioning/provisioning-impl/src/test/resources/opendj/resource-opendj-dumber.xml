@@ -39,6 +39,7 @@ somehow dumber: no shortcut in associations, expclicit duplicity checks, etc.
              <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
              <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
              <icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
+            <icfcldap:useTreeDelete>never</icfcldap:useTreeDelete>
              <icfcldap:languageTagAttributes>description</icfcldap:languageTagAttributes> <!-- MID-5210 -->
              <icfcldap:usePermissiveModify>never</icfcldap:usePermissiveModify>
              <icfcldap:timestampPresentation>string</icfcldap:timestampPresentation>

@@ -23,6 +23,7 @@ import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -60,6 +61,7 @@ public class PasswordPanel extends InputPanel {
     private static final Trace LOGGER = TraceManager.getTrace(PasswordPanel.class);
 
     private boolean passwordInputVisble;
+    private static boolean clearPasswordInput = false;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model) {
         this(id, model, false, model == null || model.getObject() == null);
@@ -74,6 +76,8 @@ public class PasswordPanel extends InputPanel {
     private void initLayout(final IModel<ProtectedStringType> model, final boolean isReadOnly) {
         setOutputMarkupId(true);
         final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible() {
                 return passwordInputVisble;
@@ -82,7 +86,18 @@ public class PasswordPanel extends InputPanel {
         inputContainer.setOutputMarkupId(true);
         add(inputContainer);
 
-        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new PasswordModel(model));
+        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new PasswordModel(model)){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onComponentTag(ComponentTag tag) {
+                super.onComponentTag(tag);
+                if (clearPasswordInput) {
+                    tag.remove("value");
+                }
+            }
+
+        };
         password1.setRequired(false);
         password1.setOutputMarkupId(true);
         password1.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -94,6 +109,8 @@ public class PasswordPanel extends InputPanel {
         inputContainer.add(password2);
 
         password1.add(new AjaxFormComponentUpdatingBehavior("change") {
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 boolean required = !StringUtils.isEmpty(password1.getModelObject());
@@ -106,6 +123,8 @@ public class PasswordPanel extends InputPanel {
         password2.add(new PasswordValidator(password1));
 
         final WebMarkupContainer linkContainer = new WebMarkupContainer(ID_LINK_CONTAINER) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible() {
                 return !passwordInputVisble;
@@ -123,17 +142,21 @@ public class PasswordPanel extends InputPanel {
         linkContainer.add(passwordRemoveLabel);
 
         AjaxLink<Void> link = new AjaxLink<Void>(ID_CHANGE_PASSWORD_LINK) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
-                model.setObject(null);
+                clearPasswordInput = true;
                 onLinkClick(target);
             }
+
             @Override
             public boolean isVisible() {
-                return !passwordInputVisble;
+                return !passwordInputVisble && model != null && model.getObject() != null;
             }
         };
         link.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -147,6 +170,8 @@ public class PasswordPanel extends InputPanel {
 
         final WebMarkupContainer removeButtonContainer = new WebMarkupContainer(ID_REMOVE_BUTTON_CONTAINER);
         AjaxLink<Void> removePassword = new AjaxLink<Void>(ID_REMOVE_PASSWORD_LINK) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onRemovePassword(model, target);
@@ -154,6 +179,7 @@ public class PasswordPanel extends InputPanel {
 
         };
         removePassword.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -186,8 +212,8 @@ public class PasswordPanel extends InputPanel {
         get(ID_LINK_CONTAINER).get(ID_PASSWORD_SET).setVisible(false);
         get(ID_LINK_CONTAINER).get(ID_PASSWORD_REMOVE).setVisible(true);
         passwordInputVisble = false;
-        target.add(this);
         model.setObject(null);
+        target.add(this);
     }
 
     @Override
@@ -230,6 +256,7 @@ public class PasswordPanel extends InputPanel {
     }
 
     private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
+        private static final long serialVersionUID = 1L;
 
         public EmptyOnBlurAjaxFormUpdatingBehaviour() {
             super("blur");
@@ -241,6 +268,7 @@ public class PasswordPanel extends InputPanel {
     }
 
     private static class PasswordModel implements IModel<String> {
+        private static final long serialVersionUID = 1L;
 
         IModel<ProtectedStringType> psModel;
 
@@ -273,6 +301,10 @@ public class PasswordPanel extends InputPanel {
 
         @Override
         public void setObject(String object) {
+            if (clearPasswordInput){
+                clearPasswordInput = false;
+                return;
+            }
             if (object == null) {
                 psModel.setObject(null);
             } else {

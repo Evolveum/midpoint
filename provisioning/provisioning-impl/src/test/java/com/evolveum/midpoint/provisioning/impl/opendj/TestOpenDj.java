@@ -37,6 +37,7 @@ import com.evolveum.midpoint.schema.processor.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
+import org.opends.server.util.LDIFException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -2852,7 +2853,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(GROUP_SPECIALISTS_FILE, ShadowType.class);
-        IntegrationTestTools.display("Adding object", object);
+        display("Adding object", object);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -3281,6 +3282,84 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 
         assertShadows(25);
+    }
+
+    @Test
+    public void test480AddOuSuper() throws Exception {
+        final String TEST_NAME = "test480AddOuSuper";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ShadowType object = parseObjectType(OU_SUPER_FILE, ShadowType.class);
+        display("Adding object", object);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertEquals(OU_SUPER_OID, addedObjectOid);
+
+        ShadowType shadowType =  getShadowRepo(OU_SUPER_OID).asObjectable();
+        PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", OU_SUPER_DN, shadowType.getName());
+
+        PrismObject<ShadowType> provisioningShadow = provisioningService.getObject(ShadowType.class, OU_SUPER_OID,
+                null, taskManager.createTaskInstance(), result);
+        ShadowType provisioningShadowType = provisioningShadow.asObjectable();
+        assertEquals("Wrong ICF name (provisioning)", dnMatchingRule.normalize(OU_SUPER_DN),
+                dnMatchingRule.normalize(provisioningShadowType.getName().getOrig()));
+
+        String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());
+        assertNotNull(uid);
+
+        Entry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
+        display("LDAP ou", ldapEntry);
+        assertNotNull("No LDAP ou entry");
+        String groupDn = ldapEntry.getDN().toString();
+        assertEquals("Wrong ou DN", dnMatchingRule.normalize(OU_SUPER_DN), dnMatchingRule.normalize(groupDn));
+
+        assertShadows(26);
+    }
+
+    /**
+     * Try to delete ou=Super,dc=example,dc=com. But before doing that create a subobject:
+     * ou=sub,ou=Super,dc=example,dc=com. LDAP server should normally refuse to delete the Super OU
+     * because it is not empty. But we have configured use of "tree delete" control here.
+     * Therefore the delete should work.
+     *
+     * MID-5935
+     */
+    @Test
+    public void test489DeleteOuSuperWithSub() throws Exception {
+        final String TEST_NAME = "test489DeleteOuSuperWithSub";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        createSubOrg();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        provisioningService.deleteObject(ShadowType.class, OU_SUPER_OID, null, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertNoRepoShadow(OU_SUPER_OID);
+        openDJController.assertNoEntry(OU_SUPER_DN);
+
+        assertShadows(25);
+    }
+
+    protected void createSubOrg() throws IOException, LDIFException {
+        openDJController.addEntry("dn: ou=sub,ou=Super,dc=example,dc=com\n"+
+                "objectClass: organizationalUnit\n"+
+                "ou: sub");
     }
 
     @Test

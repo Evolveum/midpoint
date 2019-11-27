@@ -40,6 +40,7 @@
             <icfcldap:operationalAttributes>msExchHideFromAddressLists</icfcldap:operationalAttributes>
             <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests>
             <icfcldap:forcePasswordChangeAtNextLogon>false</icfcldap:forcePasswordChangeAtNextLogon>
+            <icfcldap:useTreeDelete>always</icfcldap:useTreeDelete>
             <icfcldap:winRmUsername>midpoint</icfcldap:winRmUsername>
             <icfcldap:winRmDomain>midpoint</icfcldap:winRmDomain>
             <icfcldap:winRmAuthenticationScheme>credssp</icfcldap:winRmAuthenticationScheme>
@@ -87,7 +88,7 @@
                 <matchingRule>mr:distinguishedName</matchingRule>
                 <outbound>
                     <source>
-                        <path>$user/fullName</path>
+                        <path>fullName</path>
                     </source>
                     <expression>
                         <script>
@@ -105,7 +106,7 @@
                     <secondaryIdentifier>true</secondaryIdentifier>
                     <outbound>
                         <source>
-                            <path>$user/name</path>
+                            <path>name</path>
                         </source>
                     </outbound>
                     <inbound>
@@ -176,7 +177,7 @@
                     <ref>ri:userPrincipalName</ref>
                     <outbound>
                     <source>
-                        <path>$user/name</path>
+                        <path>name</path>
                     </source>
                     <expression>
                         <script>

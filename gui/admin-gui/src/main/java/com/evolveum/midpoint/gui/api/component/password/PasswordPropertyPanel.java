@@ -31,16 +31,16 @@ public class PasswordPropertyPanel  extends PrismPropertyPanel<ProtectedStringTy
     protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ProtectedStringType>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
 
         PasswordPanel passwordPanel;
-        if (!(getPageBase() instanceof PageUser)) {
-            passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new ItemRealValueModel<>(item.getModel()),
-                    getModelObject() != null && getModelObject().isReadOnly(), true);
+//        if (!(getPageBase() instanceof PageUser)) {
+//            passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new ItemRealValueModel<>(item.getModel()),
+//                    getModelObject() != null && getModelObject().isReadOnly(), getModelObject() == null);
 
-        } else {
-
+//        } else {
+//
             passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new ItemRealValueModel<>(item.getModel()),
                     getModelObject() != null && getModelObject().isReadOnly(),
                     item.getModelObject() == null || item.getModelObject().getRealValue() == null );
-        }
+//        }
         passwordPanel.setOutputMarkupId(true);
         item.add(passwordPanel);
         return passwordPanel;
