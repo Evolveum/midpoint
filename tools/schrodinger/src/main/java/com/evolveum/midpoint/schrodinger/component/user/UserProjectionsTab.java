@@ -59,7 +59,7 @@ public class UserProjectionsTab extends Component<UserPage> {
             @Override
             public AbstractTable<UserProjectionsTab> selectCheckboxByName(String name) {
 
-                $(Schrodinger.byFollowingSiblingEnclosedValue("input", "type", "checkbox", "class", "check-table-label", name))
+                $(Schrodinger.byAncestorFollowingSiblingDescendantOrSelfElementEnclosedValue("input", "type", "checkbox", "data-s-id", "3", name))
                         .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
                 return this;

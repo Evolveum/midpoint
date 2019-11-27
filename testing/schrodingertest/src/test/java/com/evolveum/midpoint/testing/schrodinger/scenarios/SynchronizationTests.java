@@ -363,8 +363,10 @@ public class SynchronizationTests extends TestBase {
         );
 
         changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath()+"err",false);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath(),true);
 
@@ -375,7 +377,7 @@ public class SynchronizationTests extends TestBase {
                     .clickByName("LiveSyncTest")
                     .clickResume();
 
-        Selenide.sleep(3000);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         listUsersPage = basicPage.listUsers();
         Assert.assertTrue(
