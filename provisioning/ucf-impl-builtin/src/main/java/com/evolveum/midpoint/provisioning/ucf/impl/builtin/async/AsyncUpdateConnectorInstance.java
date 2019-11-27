@@ -273,7 +273,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object,
-            Collection<Operation> additionalOperations, StateReporter reporter, OperationResult parentResult) {
+            StateReporter reporter, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("addObject");
         return null;
     }
@@ -288,8 +288,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass,
-            Collection<Operation> additionalOperations, PrismObject<ShadowType> shadow,
-            Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter, OperationResult parentResult) {
+            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("deleteObject");
         return null;
     }

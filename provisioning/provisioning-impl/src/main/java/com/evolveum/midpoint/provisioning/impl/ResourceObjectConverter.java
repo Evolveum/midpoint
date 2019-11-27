@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -250,21 +251,20 @@ public class ResourceObjectConverter {
 
             checkForCapability(ctx, CreateCapabilityType.class, result);
 
-            Collection<Operation> additionalOperations = new ArrayList<>();
-            addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource, result);
+            executeProvisioningScripts(ctx, ProvisioningOperationTypeType.ADD, BeforeAfterType.BEFORE, scripts, result);
+
             entitlementConverter.processEntitlementsAdd(ctx, shadowClone);
 
             ConnectorInstance connector = ctx.getConnector(CreateCapabilityType.class, result);
             AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> connectorAsyncOpRet;
             try {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("PROVISIONING ADD operation on resource {}\n ADD object:\n{}\n additional operations:\n{}",
-                            resource.asPrismObject(), shadowType.asPrismObject().debugDump(),
-                            SchemaDebugUtil.debugDump(additionalOperations, 2));
+                    LOGGER.debug("PROVISIONING ADD operation on resource {}\n ADD object:\n{}\n",
+                            resource.asPrismObject(), shadowType.asPrismObject().debugDump());
                 }
                 transformActivationAttributesAdd(ctx, shadowType, result);
 
-                connectorAsyncOpRet = connector.addObject(shadowClone, additionalOperations, ctx, result);
+                connectorAsyncOpRet = connector.addObject(shadowClone, ctx, result);
                 resourceAttributesAfterAdd = connectorAsyncOpRet.getReturnValue();
 
                 if (LOGGER.isDebugEnabled()) {
@@ -296,6 +296,8 @@ public class ResourceObjectConverter {
             executeEntitlementChangesAdd(ctx, shadowClone, scripts, connOptions, result);
 
             LOGGER.trace("Added resource object {}", shadow);
+
+            executeProvisioningScripts(ctx, ProvisioningOperationTypeType.ADD, BeforeAfterType.AFTER, scripts, result);
 
             computeResultStatus(result);
 
@@ -391,9 +393,7 @@ public class ResourceObjectConverter {
         // Execute entitlement modification on other objects (if needed)
         executeEntitlementChangesDelete(ctx, shadow, scripts, connOptions, result);
 
-        Collection<Operation> additionalOperations = new ArrayList<>();
-        addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.DELETE, scripts, ctx.getResource(),
-                result);
+        executeProvisioningScripts(ctx, ProvisioningOperationTypeType.DELETE, BeforeAfterType.BEFORE, scripts, result);
 
         ConnectorInstance connector = ctx.getConnector(DeleteCapabilityType.class, result);
         AsynchronousOperationResult connectorAsyncOpRet = null;
@@ -401,10 +401,9 @@ public class ResourceObjectConverter {
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(
-                        "PROVISIONING DELETE operation on {}\n DELETE object, object class {}, identified by:\n{}\n additional operations:\n{}",
+                        "PROVISIONING DELETE operation on {}\n DELETE object, object class {}, identified by:\n{}",
                         ctx.getResource(), shadow.asObjectable().getObjectClass(),
-                        SchemaDebugUtil.debugDump(identifiers),
-                        SchemaDebugUtil.debugDump(additionalOperations));
+                        SchemaDebugUtil.debugDump(identifiers));
             }
 
             if (!ResourceTypeUtil.isDeleteCapabilityEnabled(ctx.getResource())){
@@ -413,7 +412,7 @@ public class ResourceObjectConverter {
                 throw e;
             }
 
-            connectorAsyncOpRet = connector.deleteObject(ctx.getObjectClassDefinition(), additionalOperations, shadow, identifiers, ctx, result);
+            connectorAsyncOpRet = connector.deleteObject(ctx.getObjectClassDefinition(), shadow, identifiers, ctx, result);
 
             computeResultStatus(result);
             LOGGER.debug("PROVISIONING DELETE: {}", result.getStatus());
@@ -446,8 +445,10 @@ public class ResourceObjectConverter {
             throw ex;
         }
 
-
         LOGGER.trace("Deleted resource object {}", shadow);
+
+        executeProvisioningScripts(ctx, ProvisioningOperationTypeType.DELETE, BeforeAfterType.AFTER, scripts, result);
+
         AsynchronousOperationResult aResult = AsynchronousOperationResult.wrap(result);
         updateQuantum(ctx, connector, aResult, parentResult);
         if (connectorAsyncOpRet != null) {
@@ -568,9 +569,6 @@ public class ResourceObjectConverter {
 
             if (!operations.isEmpty()) {
 
-                // This must go after the skip check above. Otherwise the scripts would be executed even if there is no need to.
-                addExecuteScriptOperation(operations, ProvisioningOperationTypeType.MODIFY, scripts, ctx.getResource(), result);
-
                 if (InternalsConfig.isSanityChecks()) {
                     // MID-3964
                     if (MiscUtil.hasDuplicates(operations)) {
@@ -579,7 +577,7 @@ public class ResourceObjectConverter {
                 }
 
                 // Execute primary ICF operation on this shadow
-                modifyAsyncRet = executeModify(ctx, (preReadShadow == null ? repoShadow.clone() : preReadShadow), identifiers, operations, connOptions, result);
+                modifyAsyncRet = executeModify(ctx, (preReadShadow == null ? repoShadow.clone() : preReadShadow), identifiers, operations, scripts, result, connOptions);
                 if (modifyAsyncRet != null) {
                     sideEffectOperations = modifyAsyncRet.getReturnValue();
                 }
@@ -668,9 +666,7 @@ public class ResourceObjectConverter {
     }
 
     @SuppressWarnings("rawtypes")
-    private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> executeModify(ProvisioningContext ctx,
-            PrismObject<ShadowType> currentShadow, Collection<? extends ResourceAttribute<?>> identifiers,
-            Collection<Operation> operations, ConnectorOperationOptions connOptions, OperationResult parentResult)
+    private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> executeModify(ProvisioningContext ctx, PrismObject<ShadowType> currentShadow, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> operations, OperationProvisioningScriptsType scripts, OperationResult parentResult, ConnectorOperationOptions connOptions)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, PolicyViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
         Collection<PropertyModificationOperation> sideEffectChanges = new HashSet<>();
@@ -696,7 +692,9 @@ public class ResourceObjectConverter {
             identifiers = allIdentifiers;
         }
 
-        // Invoke ICF
+        executeProvisioningScripts(ctx, ProvisioningOperationTypeType.MODIFY, BeforeAfterType.BEFORE, scripts, parentResult);
+
+        // Invoke connector operation
         ConnectorInstance connector = ctx.getConnector(UpdateCapabilityType.class, parentResult);
         AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> connectorAsyncOpRet = null;
         try {
@@ -734,8 +732,6 @@ public class ResourceObjectConverter {
                             } else {
                                 LOGGER.trace("Filtering out modification {} because it has empty delta after narrow", propertyDelta);
                             }
-                        } else if (origOperation instanceof ExecuteProvisioningScriptOperation) {
-                            filteredOperations.add(origOperation);
                         }
                     }
                     if (filteredOperations.isEmpty()) {
@@ -828,6 +824,8 @@ public class ResourceObjectConverter {
             parentResult.recordFatalError(ex.getMessage(), ex);
             throw ex;
         }
+
+        executeProvisioningScripts(ctx, ProvisioningOperationTypeType.MODIFY, BeforeAfterType.AFTER, scripts, parentResult);
 
         AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> asyncOpRet = AsynchronousOperationReturnValue.wrap(sideEffectChanges, parentResult);
         if (connectorAsyncOpRet != null) {
@@ -1207,7 +1205,7 @@ public class ResourceObjectConverter {
             OperationResult result = parentResult.createMinorSubresult(OPERATION_MODIFY_ENTITLEMENT);
             try {
 
-                executeModify(entitlementCtx, entry.getValue().getCurrentShadow(), allIdentifiers, operations, connOptions, result);
+                executeModify(entitlementCtx, entry.getValue().getCurrentShadow(), allIdentifiers, operations, null, result, connOptions);
 
                 result.recordSuccess();
 
@@ -2519,27 +2517,62 @@ public class ResourceObjectConverter {
         return capActStatus.getLockedValue().iterator().next();
     }
 
-    private void addExecuteScriptOperation(Collection<Operation> operations, ProvisioningOperationTypeType type,
-            OperationProvisioningScriptsType scripts, ResourceType resource, OperationResult result) throws SchemaException {
-        if (scripts == null) {
-            // No warning needed, this is quite normal
-            LOGGER.trace("Skipping creating script operation to execute. Scripts was not defined.");
+    private void executeProvisioningScripts(ProvisioningContext ctx, ProvisioningOperationTypeType provisioningOperationType,
+                                            BeforeAfterType beforeAfter, OperationProvisioningScriptsType scripts, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, GenericConnectorException {
+        Collection<ExecuteProvisioningScriptOperation> operations = determineExecuteScriptOperations(provisioningOperationType, beforeAfter, scripts, ctx.getResource(), result);
+        if (operations == null) {
             return;
         }
+        ConnectorInstance connector = ctx.getConnector(ScriptCapabilityType.class, result);
+        for (ExecuteProvisioningScriptOperation operation : operations) {
+            StateReporter reporter = new StateReporter(ctx.getResource().getOid(), ctx.getTask());
 
+            try {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("PROVISIONING SCRIPT EXECUTION {} {} operation on resource {}",
+                            beforeAfter.value(), provisioningOperationType.value(),
+                            ctx.getResource());
+                }
+
+                Object returnedValue = connector.executeScript(operation, reporter, result);
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("PROVISIONING SCRIPT EXECUTION {} {} successful, returned value: {}", returnedValue);
+                }
+
+            } catch (CommunicationException ex) {
+                result.recordFatalError(
+                        "Could not execute provisioning script. Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
+                throw new CommunicationException("Error communicating with the connector " + connector + ": "
+                        + ex.getMessage(), ex);
+            } catch (GenericFrameworkException ex) {
+                result.recordFatalError("Could not execute provisioning script. Generic error in connector: " + ex.getMessage(), ex);
+                throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
+            }
+
+        }
+    }
+
+    private Collection<ExecuteProvisioningScriptOperation> determineExecuteScriptOperations(ProvisioningOperationTypeType provisioningOperationType,
+                                           BeforeAfterType beforeAfter, OperationProvisioningScriptsType scripts, ResourceType resource, OperationResult result) throws SchemaException {
+        if (scripts == null) {
+            // No warning needed, this is quite normal
+            LOGGER.trace("Skipping creating script operation to execute. No scripts were defined.");
+            return null;
+        }
+
+        Collection<ExecuteProvisioningScriptOperation> operations = new ArrayList<>();
         for (OperationProvisioningScriptType script : scripts.getScript()) {
             for (ProvisioningOperationTypeType operationType : script.getOperation()) {
-                if (type.equals(operationType)) {
+                if (provisioningOperationType.equals(operationType) && beforeAfter.equals(script.getOrder())) {
                     ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(
                             script, "script value for " + operationType + " in " + resource, prismContext);
-
-                    scriptOperation.setScriptOrder(script.getOrder());
-
                     LOGGER.trace("Created script operation: {}", SchemaDebugUtil.prettyPrint(scriptOperation));
                     operations.add(scriptOperation);
                 }
             }
         }
+        return operations;
     }
 
     public AsynchronousOperationResult refreshOperationStatus(ProvisioningContext ctx,

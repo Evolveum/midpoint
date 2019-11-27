@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
 
@@ -17,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
  *
  * @author Radovan Semancik
  */
-public class ExecuteProvisioningScriptOperation extends Operation {
+public class ExecuteProvisioningScriptOperation implements DebugDumpable {
 
     private static final int DEBUG_MAX_CODE_LENGTH = 32;
 
@@ -28,8 +29,6 @@ public class ExecuteProvisioningScriptOperation extends Operation {
 
     private String textCode;
     private String language;
-
-    private BeforeAfterType scriptOrder;
 
     private CriticalityType criticality;
 
@@ -76,14 +75,6 @@ public class ExecuteProvisioningScriptOperation extends Operation {
         this.language = language;
     }
 
-    public BeforeAfterType getScriptOrder() {
-        return scriptOrder;
-    }
-
-    public void setScriptOrder(BeforeAfterType scriptOrder) {
-        this.scriptOrder = scriptOrder;
-    }
-
     public CriticalityType getCriticality() {
         return criticality;
     }
@@ -101,7 +92,6 @@ public class ExecuteProvisioningScriptOperation extends Operation {
         result = prime * result + ((criticality == null) ? 0 : criticality.hashCode());
         result = prime * result + ((language == null) ? 0 : language.hashCode());
         result = prime * result + (resourceHost ? 1231 : 1237);
-        result = prime * result + ((scriptOrder == null) ? 0 : scriptOrder.hashCode());
         result = prime * result + ((textCode == null) ? 0 : textCode.hashCode());
         return result;
     }
@@ -141,9 +131,6 @@ public class ExecuteProvisioningScriptOperation extends Operation {
         if (resourceHost != other.resourceHost) {
             return false;
         }
-        if (scriptOrder != other.scriptOrder) {
-            return false;
-        }
         if (textCode == null) {
             if (other.textCode != null) {
                 return false;
@@ -176,7 +163,6 @@ public class ExecuteProvisioningScriptOperation extends Operation {
         if (resourceHost) {
             sb.append("on resource ");
         }
-        sb.append(scriptOrder);
         sb.append(" : ");
         if (textCode.length() <= DEBUG_MAX_CODE_LENGTH) {
             sb.append(textCode);
