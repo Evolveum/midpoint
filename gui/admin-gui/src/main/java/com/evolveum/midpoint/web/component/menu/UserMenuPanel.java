@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -206,13 +207,13 @@ public class UserMenuPanel extends BasePanel {
         username.setRenderBodyOnly(true);
         add(username);
 
-        Form form = new Form<>(ID_LOGOUT_FORM) {
-
+        Form form = new Form(ID_LOGOUT_FORM);
+        form.add(AttributeModifier.replace("action", new IModel<String>() {
             @Override
-            protected CharSequence getActionUrl() {
+            public String getObject() {
                 return getUrlForLogout();
             }
-        };
+        }));
         add(form);
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);

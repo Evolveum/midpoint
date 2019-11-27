@@ -69,12 +69,7 @@ public class PageLogin extends PageBase {
 
     public PageLogin() {
 
-        Form form = new Form<>(ID_FORM){
-            @Override
-            protected void onSubmit() {
-                super.onSubmit();
-            }
-        };
+        Form form = new Form(ID_FORM);
         form.add(AttributeModifier.replace("action", new IModel<String>() {
             @Override
             public String getObject() {
