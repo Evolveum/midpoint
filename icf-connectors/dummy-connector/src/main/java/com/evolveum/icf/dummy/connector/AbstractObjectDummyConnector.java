@@ -14,8 +14,6 @@ import org.identityconnectors.common.security.GuardedString.Accessor;
 import org.identityconnectors.framework.common.exceptions.*;
 import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.*;
-import org.identityconnectors.framework.spi.Configuration;
-import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.PoolableConnector;
 import org.identityconnectors.framework.spi.SearchResultsHandler;
 import org.identityconnectors.framework.spi.operations.*;
@@ -27,7 +25,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.evolveum.icf.dummy.connector.Utils.notNull;
-import static com.evolveum.icf.dummy.connector.Utils.notNullArgument;
 
 /**
  * Connector for the Dummy Resource, abstract superclass.
@@ -132,9 +129,9 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         }
 
         String id;
-        if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+        if (configuration.isUidBoundToName()) {
             id = newObject.getName();
-        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+        } else if (configuration.isUidSeparateFromName()) {
             id = newObject.getId();
         } else {
             throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
@@ -160,33 +157,33 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         try {
 
             if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
-                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                if (configuration.isUidBoundToName()) {
                     resource.deleteAccountByName(id);
-                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                } else if (configuration.isUidSeparateFromName()) {
                     resource.deleteAccountById(id);
                 } else {
                     throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
                 }
             } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
-                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                if (configuration.isUidBoundToName()) {
                     resource.deleteGroupByName(id);
-                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                } else if (configuration.isUidSeparateFromName()) {
                     resource.deleteGroupById(id);
                 } else {
                     throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
                 }
             } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
-                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                if (configuration.isUidBoundToName()) {
                     resource.deletePrivilegeByName(id);
-                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                } else if (configuration.isUidSeparateFromName()) {
                     resource.deletePrivilegeById(id);
                 } else {
                     throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
                 }
             } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
-                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                if (configuration.isUidBoundToName()) {
                     resource.deleteOrgByName(id);
-                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                } else if (configuration.isUidSeparateFromName()) {
                     resource.deleteOrgById(id);
                 } else {
                     throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
@@ -538,9 +535,9 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             Attribute uidAttribute = ((EqualsFilter)query).getAttribute();
             String uid = (String)uidAttribute.getValue().get(0);
             T object;
-            if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+            if (configuration.isUidBoundToName()) {
                 object = nameGetter.get(uid);
-            } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+            } else if (configuration.isUidSeparateFromName()) {
                 object = idGetter.get(uid);
             } else {
                 throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
@@ -927,9 +924,9 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
                 }
 
                 Uid uid;
-                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                if (configuration.isUidBoundToName()) {
                     uid = new Uid(delta.getObjectName());
-                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                } else if (configuration.isUidSeparateFromName()) {
                     if (nameHintChecksEnabled()) {
                         uid = new Uid(delta.getObjectId(), new Name(delta.getObjectName()));
                     } else {
@@ -998,9 +995,9 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
            DummyObjectClass objectClass, Collection<String> attributesToGet, boolean supportActivation) {
        ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
 
-       if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+       if (configuration.isUidBoundToName()) {
            builder.setUid(dummyObject.getName());
-       } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+       } else if (configuration.isUidSeparateFromName()) {
            builder.setUid(dummyObject.getId());
        } else {
                throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());

@@ -137,16 +137,17 @@ public class ShadowCache {
     }
 
     public PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repositoryShadow,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-                    throws ObjectNotFoundException, CommunicationException, SchemaException,
-                    ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+            Collection<ResourceAttribute<?>> identifiersOverride, Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, CommunicationException, SchemaException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
 
         Validate.notNull(oid, "Object id must not be null.");
 
         if (repositoryShadow == null) {
-            LOGGER.trace("Start getting object with oid {}", oid);
+            LOGGER.trace("Start getting object with oid {}; identifiers override = {}", oid, identifiersOverride);
         } else {
-            LOGGER.trace("Start getting object {}", repositoryShadow);
+            LOGGER.trace("Start getting object {}; identifiers override = {}", repositoryShadow, identifiersOverride);
         }
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
@@ -170,13 +171,8 @@ public class ShadowCache {
 
         ProvisioningContext ctx = ctxFactory.create(repositoryShadow, task, parentResult);
         ctx.setGetOperationOptions(options);
-        try {
-            ctx.assertDefinition();
-            shadowCaretaker.applyAttributesDefinition(ctx, repositoryShadow);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException
-                | ConfigurationException | ExpressionEvaluationException e) {
-            throw e;
-        }
+        ctx.assertDefinition();
+        shadowCaretaker.applyAttributesDefinition(ctx, repositoryShadow);
 
         ResourceType resource = ctx.getResource();
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
@@ -222,37 +218,41 @@ public class ShadowCache {
 
         PrismObject<ShadowType> resourceObject;
 
-        Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repositoryShadow);
-        if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
-            if (ProvisioningUtil.hasPendingAddOperation(repositoryShadow) || ShadowUtil.isDead(repositoryShadow.asObjectable())) {
-                if (ProvisioningUtil.isFuturePointInTime(options)) {
-                    // Get of uncreated or dead shadow, we want to see future state (how the shadow WILL look like).
-                    // We cannot even try fetch operation here. We do not have the identifiers.
-                    // But we have quite a good idea how the shadow is going to look like. Therefore we can return it.
-                    PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, null, options, now);
-                    shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
-                    validateShadow(resultShadow, true);
-                    // NOTE: do NOT re-try add operation here. It will be retried in separate task.
-                    // re-trying the operation here would not provide big benefits and it will complicate the code.
-                    return resultShadow;
-                } else {
-                    // Get of uncreated shadow, but we want current state. Therefore we have to throw an error because
-                    // the object does not exist yet - to our best knowledge. But we cannot really throw ObjectNotFound here.
-                    // ObjectNotFound is a positive indication that the object does not exist.
-                    // We do not know that for sure because resource is unavailable. The object might have been created in the meantime.
-                    throw new GenericConnectorException(
-                            "Unable to get object from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+        if (identifiersOverride == null) {
+            Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repositoryShadow);
+            if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
+                if (ProvisioningUtil.hasPendingAddOperation(repositoryShadow) || ShadowUtil
+                        .isDead(repositoryShadow.asObjectable())) {
+                    if (ProvisioningUtil.isFuturePointInTime(options)) {
+                        // Get of uncreated or dead shadow, we want to see future state (how the shadow WILL look like).
+                        // We cannot even try fetch operation here. We do not have the identifiers.
+                        // But we have quite a good idea how the shadow is going to look like. Therefore we can return it.
+                        PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, null, options, now);
+                        shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
+                        validateShadow(resultShadow, true);
+                        // NOTE: do NOT re-try add operation here. It will be retried in separate task.
+                        // re-trying the operation here would not provide big benefits and it will complicate the code.
+                        return resultShadow;
+                    } else {
+                        // Get of uncreated shadow, but we want current state. Therefore we have to throw an error because
+                        // the object does not exist yet - to our best knowledge. But we cannot really throw ObjectNotFound here.
+                        // ObjectNotFound is a positive indication that the object does not exist.
+                        // We do not know that for sure because resource is unavailable. The object might have been created in the meantime.
+                        throw new GenericConnectorException(
+                                "Unable to get object from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+                    }
                 }
-            }
 
-            // No identifiers found
-            SchemaException ex = new SchemaException("No primary identifiers found in the repository shadow "
-                    + repositoryShadow + " with respect to " + resource);
-            parentResult.recordFatalError("No primary identifiers found in the repository shadow " + repositoryShadow, ex);
-            throw ex;
+                // No identifiers found
+                SchemaException ex = new SchemaException("No primary identifiers found in the repository shadow "
+                        + repositoryShadow + " with respect to " + resource);
+                parentResult.recordFatalError("No primary identifiers found in the repository shadow " + repositoryShadow, ex);
+                throw ex;
+            }
         }
 
-        Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repositoryShadow);
+        Collection<? extends ResourceAttribute<?>> identifiers = identifiersOverride != null ? identifiersOverride :
+                ShadowUtil.getAllIdentifiers(repositoryShadow);
         try {
 
             try {

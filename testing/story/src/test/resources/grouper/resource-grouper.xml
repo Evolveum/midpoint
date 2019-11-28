@@ -34,6 +34,7 @@
                             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
             <icfi:instanceId>grouper</icfi:instanceId>
+            <icfi:uidMode>external</icfi:uidMode>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -147,11 +148,12 @@
                     </expression>
                 </q:equal>
             </correlation>
-            <reaction>
-                <situation>linked</situation>
-                <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#asyncUpdate</channel>
-                <synchronize>false</synchronize>
-            </reaction>
+            <!-- TEMPORARILY DISABLED (MID-5932) -->
+<!--            <reaction>-->
+<!--                <situation>linked</situation>-->
+<!--                <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#asyncUpdate</channel>-->
+<!--                <synchronize>false</synchronize>-->
+<!--            </reaction>-->
             <reaction>
                 <situation>linked</situation>
                 <synchronize>true</synchronize>

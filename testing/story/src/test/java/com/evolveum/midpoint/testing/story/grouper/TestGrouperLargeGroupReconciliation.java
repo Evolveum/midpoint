@@ -33,8 +33,8 @@ public class TestGrouperLargeGroupReconciliation extends AbstractGrouperTest {
         super.initSystem(initTask, initResult);
 
         InternalsConfig.setConsistencyChecks(false);
-        createGroup(ALUMNI_NAME, ALUMNI_USERS);
-        createGroup(STAFF_NAME, STAFF_USERS);
+        createGroup(ALUMNI_ID, ALUMNI_NAME, ALUMNI_USERS);
+        createGroup(STAFF_ID, STAFF_NAME, STAFF_USERS);
         //setGlobalTracingOverride(createPerformanceTracingProfile());
         //setGlobalTracingOverride(createDefaultTracingProfile());
     }

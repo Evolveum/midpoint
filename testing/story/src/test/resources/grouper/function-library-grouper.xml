@@ -156,6 +156,19 @@
                         delta = null
                     }
                     return UcfChangeUtil.create(GROUP_OBJECT_CLASS, identifiers, delta, prismContext)
+                } else if (eventType == 'GROUP_UPDATE') {
+                    groupName = esbEvent['name']
+                    groupId = esbEvent['id']
+                    isExported = matches(groupName, groupIncludePattern, groupExcludePattern)
+                    if (!isExported) {
+                        log.info('Irrelevant group add/delete event, ignoring it: {}', groupName)
+                        return null
+                    }
+                    // Notification-only change: so we fetch current state of this group and synchronize it fully
+                    identifiers = new HashMap()
+                    identifiers.put(ICFS_NAME, groupName)
+                    identifiers.put(ICFS_UID, groupId)
+                    return UcfChangeUtil.create(GROUP_OBJECT_CLASS, identifiers, null, prismContext)
                 } else {
                     log.warn('Unsupported event type: {} -> {}', eventType, esbEvent)
                     return null

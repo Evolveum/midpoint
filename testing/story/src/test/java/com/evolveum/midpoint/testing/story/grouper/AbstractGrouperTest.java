@@ -73,8 +73,12 @@ public abstract class AbstractGrouperTest extends AbstractStoryTest {
     protected static final String JLEWIS685_USERNAME = "jlewis685";
     protected static final String NOBODY_USERNAME = "nobody";
 
+    protected static final String ALUMNI_ID = "321931093132132alumni";
     protected static final String ALUMNI_NAME = "ref:affiliation:alumni";
+
+    protected static final String STAFF_ID = "9789654960496542staff";
     protected static final String STAFF_NAME = "ref:affiliation:staff";
+    protected static final String STAFF2_NAME = "ref:affiliation:staff2";
     protected static final String MEMBER_NAME = "ref:affiliation:member";
 
     protected static final ItemName ATTR_MEMBER = new ItemName(MidPointConstants.NS_RI, "members");
@@ -83,6 +87,7 @@ public abstract class AbstractGrouperTest extends AbstractStoryTest {
     protected static final String DN_JLEWIS685 = "uid=jlewis685,ou=people,dc=example,dc=com";
     protected static final String DN_ALUMNI = "cn=alumni,ou=Affiliations,ou=Groups,dc=example,dc=com";
     protected static final String DN_STAFF = "cn=staff,ou=Affiliations,ou=Groups,dc=example,dc=com";
+    protected static final String DN_STAFF2 = "cn=staff2,ou=Affiliations,ou=Groups,dc=example,dc=com";
 
     protected static final QName GROUPER_GROUP_OBJECT_CLASS_NAME = new QName(MidPointConstants.NS_RI, "GroupObjectClass");
 
@@ -156,10 +161,12 @@ public abstract class AbstractGrouperTest extends AbstractStoryTest {
         openDJController.stop();
     }
 
-    void createGroup(String groupName, int users) throws Exception {
+    void createGroup(String groupId, String groupName, int users) throws Exception {
         long start = System.currentTimeMillis();
         System.out.println("Creating the group");
-        DummyGroup group = new DummyGroup(groupName);
+        DummyGroup group = new DummyGroup();
+        group.setId(groupId);
+        group.setName(groupName);
         for (int i = 0; i < users; i++) {
             group.addMember(String.format(USERNAME_FORMAT, i));
         }
