@@ -35,7 +35,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
  */
 @Order(SecurityProperties.BASIC_AUTH_ORDER - 2)
 @Configuration
-@EnableWebSecurity
 @Profile("!test")
 public class ActuatorWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -70,7 +69,6 @@ public class ActuatorWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
-    @Bean
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {
         return super.authenticationManager();

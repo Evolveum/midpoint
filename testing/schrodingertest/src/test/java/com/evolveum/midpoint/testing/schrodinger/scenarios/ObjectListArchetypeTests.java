@@ -108,8 +108,8 @@ public class ObjectListArchetypeTests extends TestBase {
     @Test(priority = 2, dependsOnMethods ={"configureArchetypeObjectListView"}, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
     public void actualizeArchetypeConfiguration() {
         basicPage.loggedUser().logout();
-        midPoint.login()
-                .login(midPoint.getUsername(),midPoint.getPassword());
+        midPoint.formLogin()
+                .loginWithReloadLoginPage(midPoint.getUsername(),midPoint.getPassword());
 
         //check archetype pluralLabel
         ListUsersPage collectionListPage = basicPage.listUsers(ARCHETYPE_PLURAL_LABEL);

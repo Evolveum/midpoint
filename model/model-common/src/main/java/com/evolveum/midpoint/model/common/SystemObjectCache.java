@@ -66,6 +66,8 @@ public class SystemObjectCache implements Cacheable {
 
     private PrismObject<SystemConfigurationType> systemConfiguration;
     private Long systemConfigurationCheckTimestamp;
+    private PrismObject<SecurityPolicyType> securityPolicy;
+    private Long securityPolicyCheckTimestamp;
 
     private ExpressionProfiles expressionProfiles;
 
@@ -80,6 +82,10 @@ public class SystemObjectCache implements Cacheable {
     }
 
     private long getSystemConfigurationExpirationMillis() {
+        return 1000;
+    }
+
+    private long getSecurityPolicyExpirationMillis() {
         return 1000;
     }
 
@@ -100,6 +106,7 @@ public class SystemObjectCache implements Cacheable {
         }
         return systemConfiguration;
     }
+
 
     private boolean hasValidSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
         if (systemConfiguration == null) {
@@ -134,9 +141,80 @@ public class SystemObjectCache implements Cacheable {
         }
     }
 
+    public synchronized PrismObject<SecurityPolicyType> getSecurityPolicy(OperationResult result) throws SchemaException {
+        PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
+        if (systemConfiguration == null){
+            securityPolicy = null;
+            return securityPolicy;
+        } else if (systemConfiguration.asObjectable().getGlobalSecurityPolicyRef() == null
+        || systemConfiguration.asObjectable().getGlobalSecurityPolicyRef().getOid() == null) {
+            securityPolicy = null;
+            String message = "Cache ERROR: System configuration don't contains auth policy";
+            LOGGER.trace(message);
+            result.recordFatalError(message);
+            return securityPolicy;
+        }
+
+        String securityPolicyOid = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef().getOid();
+        try {
+            if (!hasValidSecurityPolicy(result, securityPolicyOid)) {
+                LOGGER.trace("Cache MISS: reading security policy from the repository: {}, oid: {}, version {}",
+                        securityPolicy, securityPolicyOid, securityPolicy ==null?null: securityPolicy.getVersion());
+                loadSecurityPolicy(result, securityPolicyOid);
+            } else {
+                LOGGER.trace("Cache HIT: reusing cached security policy: {}, oid: {}, version {}",
+                        securityPolicy, securityPolicyOid, securityPolicy ==null?null: securityPolicy.getVersion());
+            }
+        } catch (ObjectNotFoundException e) {
+            securityPolicy = null;
+            LOGGER.trace("Cache ERROR: Security policy with oid " + securityPolicyOid + " not found", e);
+            result.muteLastSubresultError();
+        }
+        return securityPolicy;
+}
+
+
+    private boolean hasValidSecurityPolicy(OperationResult result, String oid) throws ObjectNotFoundException, SchemaException {
+        if (securityPolicy == null) {
+            return false;
+        }
+        if (securityPolicy.getVersion() == null) {
+            return false;
+        }
+        if (securityPolicyCheckTimestamp == null) {
+            return false;
+        }
+
+        if (!securityPolicy.getOid().equals(oid)) {
+            return false;
+        }
+
+        if (System.currentTimeMillis() < securityPolicyCheckTimestamp + getSecurityPolicyExpirationMillis()) {
+            return true;
+        }
+        String repoVersion = cacheRepositoryService.getVersion(SecurityPolicyType.class, oid, result);
+        if (securityPolicy.getVersion().equals(repoVersion)) {
+            securityPolicyCheckTimestamp = System.currentTimeMillis();
+            return true;
+        }
+        return false;
+    }
+
+    private void loadSecurityPolicy(OperationResult result, String oid) throws ObjectNotFoundException, SchemaException {
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+        securityPolicy = cacheRepositoryService.getObject(SecurityPolicyType.class, oid, options, result);
+        expressionProfiles = null;
+        securityPolicyCheckTimestamp = System.currentTimeMillis();
+        if (securityPolicy != null && securityPolicy.getVersion() == null) {
+            LOGGER.warn("Retrieved auth policy with null version");
+        }
+    }
+
     public synchronized void invalidateCaches() {
         systemConfiguration = null;
         expressionProfiles = null;
+        securityPolicy = null;
+        securityPolicyCheckTimestamp = null;
     }
 
     public PrismObject<ArchetypeType> getArchetype(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {

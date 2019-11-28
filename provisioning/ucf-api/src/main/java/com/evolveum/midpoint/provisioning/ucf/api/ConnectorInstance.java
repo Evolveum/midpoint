@@ -254,9 +254,8 @@ public interface ConnectorInstance {
      * @return created object attributes. May be null.
      * @throws ObjectAlreadyExistsException object already exists on the resource
      */
-    AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object, Collection<Operation> additionalOperations, StateReporter reporter,
-                                                      OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException,
-            ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException;
+    AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object, StateReporter reporter, OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException;
 
     /**
      * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
@@ -281,7 +280,7 @@ public interface ConnectorInstance {
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ConfigurationException;
 
-    AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
+    AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
                              OperationResult parentResult)
                     throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException;
 

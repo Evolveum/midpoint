@@ -8,25 +8,45 @@
 package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.codeborne.selenide.Condition;
-import com.evolveum.midpoint.schrodinger.page.LoginPage;
+import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
+import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
+import com.evolveum.midpoint.schrodinger.page.login.SamlSelectPage;
 import org.openqa.selenium.By;
+import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
 
-import static com.codeborne.selenide.Selenide.$;
+import java.io.File;
+import java.io.IOException;
+
+import static com.codeborne.selenide.Selenide.*;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class LoginPageTest extends TestBase {
+public class LoginPageTest extends AbstractLoginPageTest {
 
     @Test
-    public void changeLanguage() {
-        basicPage.loggedUser().logout();
-        LoginPage login = midPoint.login();
+    public void changeLanguageFormPage() {
+        basicPage.loggedUser().logoutIfUserIsLogin();
+        FormLoginPage login = midPoint.formLogin();
 
         login.changeLanguage("de");
 
         $(By.cssSelector(".btn.btn-primary")).shouldHave(Condition.value("Anmelden"));
     }
+
+    @Test
+    public void changeLanguageSamlSelectPage() {
+        basicPage.loggedUser().logoutIfUserIsLogin();
+        SamlSelectPage login = midPoint.samlSelect();
+        login.goToUrl();
+
+        login.changeLanguage("us");
+
+        $(By.xpath("/html/body/div[2]/div/section/div[2]/div/div/div/h4"))
+                .shouldHave(Condition.text("Select an Identity Provider"));
+    }
+
 }

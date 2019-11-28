@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -33,7 +34,7 @@ import java.util.Collection;
 import static org.testng.AssertJUnit.assertNotNull;
 
 /**
- * Test for asynchronous Grouper->midPoint interface (demo/complex2s in Internet2 scenario).
+ * Test for asynchronous Grouper->midPoint interface (demo/grouper in Internet2 scenario).
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -93,6 +94,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test110AddAlumni() throws Exception {
         Task task = getTask();
+        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getResult();
 
         // GIVEN
@@ -144,6 +146,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test115AddStaff() throws Exception {
         Task task = getTask();
+        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getResult();
 
         // GIVEN
@@ -194,6 +197,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test200AddAlumniForAnderson() throws Exception {
         Task task = getTask();
+        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getResult();
 
         // GIVEN
@@ -259,6 +263,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test210AddStaffForAnderson() throws Exception {
         Task task = getTask();
+        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getResult();
 
         // GIVEN
@@ -322,6 +327,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test220AddAlumniForLewis() throws Exception {
         Task task = getTask();
+        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getResult();
 
         // GIVEN
@@ -352,6 +358,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test221AddStaffForLewis() throws Exception {
         Task task = getTask();
+        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getResult();
 
         // GIVEN
@@ -414,6 +421,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test230AddAlumniForNobody() throws Exception {
         Task task = getTask();
+        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getResult();
 
         // GIVEN
@@ -440,6 +448,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test250DeleteAlumniForAnderson() throws Exception {
         Task task = getTask();
+        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getResult();
 
         // GIVEN
@@ -499,6 +508,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test310DeleteStaff() throws Exception {
         Task task = getTask();
+        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getResult();
 
         // GIVEN

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -68,8 +68,6 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
     private ConnIdNameMapper connIdNameMapper;
     private Protector protector;
 
-    private List<Operation> additionalOperations = new ArrayList<>();
-
     public Collection<Operation> getChanges() {
         return changes;
     }
@@ -132,10 +130,6 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 
     public void setProtector(Protector protector) {
         this.protector = protector;
-    }
-
-    public List<Operation> getAdditionalOperations() {
-        return additionalOperations;
     }
 
     public ConnectorOperationOptions getOptions() {
@@ -250,10 +244,6 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                 } else {
                     throw new SchemaException("Change of unknown attribute " + delta.getPath());
                 }
-
-            } else if (operation instanceof ExecuteProvisioningScriptOperation) {
-                ExecuteProvisioningScriptOperation scriptOperation = (ExecuteProvisioningScriptOperation) operation;
-                additionalOperations.add(scriptOperation);
 
             } else {
                 throw new IllegalArgumentException("Unknown operation type " + operation.getClass().getName()
@@ -392,7 +382,6 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
         debugDumpOutput(sb, indent);
-        DebugUtil.debugDumpWithLabel(sb, "additionalOperations", additionalOperations, indent + 1);
         return sb.toString();
     }
 

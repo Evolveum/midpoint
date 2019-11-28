@@ -29,28 +29,52 @@ public class FeedbackBox<T> extends Component<T> {
         super(parent, parentElement);
     }
 
-    public Boolean isSuccess() {
+    public SelenideElement getChildElement(String id){
+        return getParentElement().$(Schrodinger.byDataId("div", id)).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);
+    }
 
-        return getParentElement().$(By.cssSelector("div.feedback-message.box.box-solid.box-success")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M).exists();
+    public SelenideElement getChildElement(){
+        return getParentElement().$(Schrodinger.byDataId("div", "0")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);
+    }
+
+    public Boolean isSuccess(String idOfChild) {
+
+        return getChildElement(idOfChild).$(By.cssSelector("div.feedback-message.box.box-solid.box-success")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M).exists();
+
+    }
+
+    public Boolean isSuccess() {
+        return  isSuccess("0");
+    }
+
+    public Boolean isWarning(String idOfChild) {
+
+        return getChildElement(idOfChild).$(By.cssSelector("div.feedback-message.box.box-solid.box-warning")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M).exists();
 
     }
 
     public Boolean isWarning() {
+        return  isWarning("0");
+    }
 
-        return getParentElement().$(By.cssSelector("div.feedback-message.box.box-solid.box-warning")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M).exists();
+    public Boolean isError(String idOfChild) {
+
+        return getChildElement(idOfChild).$(By.cssSelector("div.feedback-message.box.box-solid.box-danger")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M).exists();
 
     }
 
     public Boolean isError() {
+        return  isError("0");
+    }
 
-        return getParentElement().$(By.cssSelector("div.feedback-message.box.box-solid.box-danger")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M).exists();
+    public Boolean isInfo(String idOfChild) {
+
+        return getChildElement(idOfChild).$(By.cssSelector("div.feedback-message.box.box-solid.box-info")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M).exists();
 
     }
 
     public Boolean isInfo() {
-
-        return getParentElement().$(By.cssSelector("div.feedback-message.box.box-solid.box-info")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M).exists();
-
+        return  isInfo("0");
     }
 
     public FeedbackBox<T> clickShowAll() {

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.security;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.security.api.*;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,12 +100,58 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
 
         if (checkCredentials(principal, authnCtx, connEnv)) {
-            recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials));
-            return new UsernamePasswordAuthenticationToken(principal, authnCtx.getEnteredCredential(), principal.getAuthorities());
+
+            if(checkRequiredAssignment(userType.getAssignment(), authnCtx.getRequireAssignments())){
+                recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials));
+                return new UsernamePasswordAuthenticationToken(principal, authnCtx.getEnteredCredential(), principal.getAuthorities());
+            } else {
+                recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "not contains required assignment");
+                throw new InternalAuthenticationServiceException("web.security.flexAuth.invalid.required.assignment");
+            }
         } else {
             recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch");
             throw new BadCredentialsException("web.security.provider.invalid");
         }
+    }
+
+    protected boolean checkRequiredAssignment(List<AssignmentType> assignments, List<ObjectReferenceType> requireAssignments) {
+        if (requireAssignments == null || requireAssignments.isEmpty()){
+            return true;
+        }
+        if (assignments == null || assignments.isEmpty()) {
+            return false;
+        }
+
+        for (ObjectReferenceType requiredAssignment : requireAssignments) {
+            if (requiredAssignment == null) {
+                throw new IllegalStateException("Required assignment is null");
+            }
+            if (requiredAssignment.getOid() == null){
+                throw new IllegalStateException("Oid of required assignment is null");
+            }
+            boolean match = false;
+            for (AssignmentType assignment : assignments) {
+                ObjectReferenceType targetRef = assignment.getTargetRef();
+                if (targetRef != null) {
+                    if (targetRef.getOid() != null && targetRef.getOid().equals(requiredAssignment.getOid())) {
+                        match = true;
+                        break;
+                    }
+                } else if (assignment.getConstruction() != null && requiredAssignment.getType() != null
+                && QNameUtil.match(requiredAssignment.getType(), ResourceType.COMPLEX_TYPE)) {
+                            if (assignment.getConstruction().getResourceRef() != null &&
+                                    assignment.getConstruction().getResourceRef().getOid() != null &&
+                                    assignment.getConstruction().getResourceRef().getOid().equals(requiredAssignment.getOid())) {
+                                match = true;
+                                break;
+                            }
+                }
+            }
+            if (!match) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -180,11 +228,11 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
      * In that case there is no reasonable way how to reuse existing methods. Therefore this method is NOT part of the
      * AuthenticationEvaluator interface. It is mostly a glue to make the old Java security code work.
      */
-    public String getAndCheckUserPassword(ConnectionEnvironment connEnv, String enteredUsername)
+    public String getAndCheckUserPassword(ConnectionEnvironment connEnv, String username)
             throws AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
             CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, enteredUsername, true);
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, username, true);
 
         UserType userType = principal.getUser();
         CredentialsType credentials = userType.getCredentials();
@@ -215,10 +263,9 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     @Override
-    public PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv,
-            String enteredUsername) {
+    public PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, AbstractAuthenticationContext authnCtx) {
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, enteredUsername, true);
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(), true);
 
         // Authorizations
         if (!hasAnyAuthorization(principal)) {
@@ -226,11 +273,14 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             throw new InternalAuthenticationServiceException("web.security.provider.access.denied");
         }
 
-        PreAuthenticatedAuthenticationToken token = new PreAuthenticatedAuthenticationToken(principal, null, principal.getAuthorities());
-
-        recordAuthenticationSuccess(principal, connEnv);
-
-        return token;
+        if(checkRequiredAssignment(principal.getUser().getAssignment(), authnCtx.getRequireAssignments())){
+            PreAuthenticatedAuthenticationToken token = new PreAuthenticatedAuthenticationToken(principal, null, principal.getAuthorities());
+            recordAuthenticationSuccess(principal, connEnv);
+            return token;
+        } else {
+            recordAuthenticationFailure(principal.getUsername(), connEnv,"not contains required assignment");
+            throw new InternalAuthenticationServiceException("web.security.flexAuth.invalid.required.assignment");
+        }
     }
 
     @NotNull

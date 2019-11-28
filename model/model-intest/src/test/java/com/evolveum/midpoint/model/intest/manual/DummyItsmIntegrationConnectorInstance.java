@@ -84,8 +84,7 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
 
 
     @Override
-    protected String createTicketAdd(PrismObject<? extends ShadowType> object,
-            Collection<Operation> additionalOperations, OperationResult result) throws CommunicationException,
+    protected String createTicketAdd(PrismObject<? extends ShadowType> object, OperationResult result) throws CommunicationException,
             GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
         DummyItsm itsm = DummyItsm.getInstance();
         String identifier;

@@ -72,8 +72,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     // Operations to be implemented in the subclasses. These operations create the tickets.
 
-    protected abstract String createTicketAdd(PrismObject<? extends ShadowType> object,
-            Collection<Operation> additionalOperations, OperationResult result) throws CommunicationException,
+    protected abstract String createTicketAdd(PrismObject<? extends ShadowType> object, OperationResult result) throws CommunicationException,
                 GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException;
 
     protected abstract String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
@@ -88,7 +87,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(
-            PrismObject<? extends ShadowType> object, Collection<Operation> additionalOperations,
+            PrismObject<? extends ShadowType> object,
             StateReporter reporter, OperationResult parentResult) throws CommunicationException,
             GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 
@@ -101,7 +100,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
         try {
 
-            ticketIdentifier = createTicketAdd(object, additionalOperations, result);
+            ticketIdentifier = createTicketAdd(object, result);
 
         } catch (CommunicationException | GenericFrameworkException | SchemaException |
                 ObjectAlreadyExistsException | ConfigurationException | RuntimeException | Error e) {
@@ -158,7 +157,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass,
-            Collection<Operation> additionalOperations, PrismObject<ShadowType> shadow,
+            PrismObject<ShadowType> shadow,
             Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
             OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
             GenericFrameworkException, SchemaException, ConfigurationException {

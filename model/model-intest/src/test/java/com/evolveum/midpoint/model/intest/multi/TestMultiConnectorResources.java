@@ -65,6 +65,8 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
         super.initSystem(initTask, initResult);
 
         initDummyResourcePirate(RESOURCE_DUMMY_OPALINE_NAME, RESOURCE_DUMMY_OPALINE_FILE, RESOURCE_DUMMY_OPALINE_OID, initTask, initResult);
+        DummyResourceContoller opalineScriptController = DummyResourceContoller.create(RESOURCE_DUMMY_OPALINE_SCRIPT_NAME, getDummyResourceObject(RESOURCE_DUMMY_OPALINE_NAME));
+        dummyResourceCollection.initDummyResource(RESOURCE_DUMMY_OPALINE_SCRIPT_NAME, opalineScriptController);
 
         repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
         repoAddObjectFromFile(PASSWORD_POLICY_BENEVOLENT_FILE, initResult);
@@ -73,7 +75,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
         repoAddObjectFromFile(USER_GUYBRUSH_FILE, true, initResult);
     }
 
-    @Test(enabled = false) // MID-5921
+    @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
@@ -93,7 +95,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
         assertEquals("Wrong OPALINE-SCRIPT useless string", CONF_USELESS_SCRIPT, getDummyResource(RESOURCE_DUMMY_OPALINE_SCRIPT_NAME).getUselessString());
     }
 
-    @Test(enabled = false) // MID-5921
+    @Test
     public void test100JackAssignDummyOpaline() throws Exception {
         final String TEST_NAME = "test100JackAssignDummyOpaline";
         displayTestTitle(TEST_NAME);
