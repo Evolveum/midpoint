@@ -274,8 +274,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
         PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 
-        Set<Operation> operation = new HashSet<>();
-        AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> ret = cc.addObject(shadow, operation, null, result);
+        AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> ret = cc.addObject(shadow, null, result);
         Collection<ResourceAttribute<?>> resourceAttributes = ret.getReturnValue();
         return resourceAttributes;
     }
@@ -309,7 +308,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
         ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
 
-        cc.deleteObject(accountDefinition, null, null, identifiers, null, result);
+        cc.deleteObject(accountDefinition, null, identifiers, null, result);
 
         ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
                 accountDefinition, identifiers);
@@ -597,7 +596,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
         PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
         // Add a testing object
-        cc.addObject(shadow, null, null, addResult);
+        cc.addObject(shadow, null, addResult);
 
         ObjectClassComplexTypeDefinition accountDefinition = resourceObject.getDefinition().getComplexTypeDefinition();
 
@@ -653,7 +652,6 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
         ResourceAttributeContainer resourceObject = createResourceObject(
                 "uid=lechuck,ou=people,dc=example,dc=com", "Ghost Pirate LeChuck", "LeChuck");
 
-        Set<Operation> additionalOperations = new HashSet<>();
         ProtectedStringType ps = protector.encryptString("t4k30v3rTh3W0rld");
 
 //        PasswordChangeOperation passOp = new PasswordChangeOperation(ps);
@@ -670,7 +668,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
         shadow.asObjectable().setCredentials(credentials);
 
         // WHEN
-        cc.addObject(shadow, additionalOperations, null, addResult);
+        cc.addObject(shadow, null, addResult);
 
         // THEN
 
@@ -698,7 +696,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
         OperationResult addResult = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
         // Add a testing object
-        cc.addObject(shadow, null, null, addResult);
+        cc.addObject(shadow, null, addResult);
 
         String entryUuid = (String) resourceObject.getPrimaryIdentifier().getValue().getValue();
         Entry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);

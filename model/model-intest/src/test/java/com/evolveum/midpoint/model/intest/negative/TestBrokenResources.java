@@ -1284,6 +1284,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
         // THEN
         displayThen(TEST_NAME);
+        display("Result", result);
         assertPartialError(result);
 
         String shadowOid = assertUserAfter(USER_GUYBRUSH_OID)

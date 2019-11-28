@@ -56,6 +56,7 @@
         <spring.boot.version>2.1.8.RELEASE</spring.boot.version>
         <spring.version>5.1.9.RELEASE</spring.version>
         <spring.security.version>5.1.6.RELEASE</spring.security.version>
+        <spring.security.saml2.version>2.0.0.M30</spring.security.saml2.version>
         <cache2k.version>1.2.1.Final</cache2k.version>
         <cas.client.version>3.5.0</cas.client.version>
         <testng.version>6.14.3</testng.version>
@@ -913,6 +914,11 @@
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-ldap</artifactId>
                 <version>${spring.security.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security.extensions</groupId>
+                <artifactId>spring-security-saml2-core</artifactId>
+                <version>${spring.security.saml2.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.cache2k</groupId>

@@ -17,9 +17,9 @@ import org.testng.annotations.Test;
  */
 public class AboutPageTest extends TestBase {
 
-    private static final String VERSION_EXPECTED = "3.8-SNAPSHOT"; // Static value, should be changed each version change.
+    private static final String VERSION_EXPECTED = "4.1-SNAPSHOT"; // Static value, should be changed each version change.
     private static final String HIBERNATE_DIALECT_EXPECTED = "org.hibernate.dialect.H2Dialect";
-    private static final String CONNID_VERSION_EXPECTED = "1.4.3.11"; // Static value, should be changed each version change.
+    private static final String CONNID_VERSION_EXPECTED = "1.5.0.10"; // Static value, should be changed each version change.
     private static final String REINDEX_REPO_TASK_CATEGORY_EXPECTED = "Utility";
     private static final String REINDEX_REPO_TASK_DISPLAY_NAME_EXPECTED = "Reindex repository objects";
 

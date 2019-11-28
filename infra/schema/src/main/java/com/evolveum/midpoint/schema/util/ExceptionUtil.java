@@ -80,6 +80,10 @@ public class ExceptionUtil {
         }
     }
 
+    public static boolean isFatalCriticality(CriticalityType value, CriticalityType defaultValue) {
+        return getCriticality(value,defaultValue) == CriticalityType.FATAL;
+    }
+
     public static LocalizableMessage getUserFriendlyMessage(Throwable cause) {
         while (cause != null) {
             if (cause instanceof CommonException) {

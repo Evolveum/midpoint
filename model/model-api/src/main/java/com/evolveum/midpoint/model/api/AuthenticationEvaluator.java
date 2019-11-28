@@ -37,6 +37,6 @@ public interface AuthenticationEvaluator<T extends AbstractAuthenticationContext
             throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
             CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
 
-    PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, String enteredUsername);
+    PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, AbstractAuthenticationContext authnCtx);
 
 }

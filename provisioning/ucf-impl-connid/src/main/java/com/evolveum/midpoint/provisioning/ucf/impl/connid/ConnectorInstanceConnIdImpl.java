@@ -752,9 +752,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> shadow, Collection<Operation> additionalOperations, StateReporter reporter,
-                                                      OperationResult parentResult) throws CommunicationException,
-            GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+    public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> shadow, StateReporter reporter, OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException {
         validateShadow(shadow, "add", false);
         ShadowType shadowType = shadow.asObjectable();
 
@@ -762,7 +761,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
                 + ".addObject");
         result.addParam("resourceObject", shadow);
-        result.addParam("additionalOperations", DebugUtil.debugDump(additionalOperations));         // because of serialization issues
 
         ObjectClassComplexTypeDefinition ocDef;
         ResourceAttributeContainerDefinition attrContDef = attributesContainer.getDefinition();
@@ -845,8 +843,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         OperationOptionsBuilder operationOptionsBuilder = new OperationOptionsBuilder();
         OperationOptions options = operationOptionsBuilder.build();
 
-        checkAndExecuteAdditionalOperations(reporter, additionalOperations, BeforeAfterType.BEFORE, result);
-
         OperationResult connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".create");
         connIdResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
         connIdResult.addArbitraryObjectCollectionAsParam("auxiliaryObjectClasses", icfAuxiliaryObjectClasses);
@@ -908,8 +904,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             attributesContainer.getValue().addReplaceExisting(identifier);
         }
         connIdResult.recordSuccess();
-
-        checkAndExecuteAdditionalOperations(reporter, additionalOperations, BeforeAfterType.AFTER, result);
 
         result.computeStatus();
         return AsynchronousOperationReturnValue.wrap(attributesContainer.getAttributes(), result);
@@ -1031,8 +1025,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             LOGGER.trace("converted attributesDelta:\n {}", converter.debugDump(1));
         }
 
-        checkAndExecuteAdditionalOperations(reporter, converter.getAdditionalOperations(), BeforeAfterType.BEFORE, result);
-
         OperationResult connIdResult = null;
 
         Set<AttributeDelta> attributesDelta = converter.getAttributesDelta();
@@ -1093,8 +1085,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 }
             }
         }
-        checkAndExecuteAdditionalOperations(reporter, converter.getAdditionalOperations(), BeforeAfterType.AFTER, result);
-
         result.computeStatus();
 
         Collection<PropertyModificationOperation> sideEffectChanges = new ArrayList<>();
@@ -1196,8 +1186,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         // Needs three complete try-catch blocks because we need to create
         // icfResult for each operation
         // and handle the faults individually
-
-        checkAndExecuteAdditionalOperations(reporter, converter.getAdditionalOperations(), BeforeAfterType.BEFORE, result);
 
         OperationResult connIdResult = null;
         Set<Attribute> attributesToAdd = converter.getAttributesToAdd();
@@ -1381,8 +1369,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 }
             }
         }
-        checkAndExecuteAdditionalOperations(reporter, converter.getAdditionalOperations(), BeforeAfterType.AFTER, result);
-
         result.computeStatus();
 
         Collection<PropertyModificationOperation> sideEffectChanges = new ArrayList<>();
@@ -1493,7 +1479,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
+    public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
                              OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException {
         Validate.notNull(objectClass, "No objectclass");
@@ -1510,8 +1496,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             result.recordFatalError(e);
             throw e;
         }
-
-        checkAndExecuteAdditionalOperations(reporter, additionalOperations, BeforeAfterType.BEFORE, result);
 
         OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".delete");
         icfResult.addArbitraryObjectAsParam("uid", uid);
@@ -1552,8 +1536,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
             }
         }
-
-        checkAndExecuteAdditionalOperations(reporter, additionalOperations, BeforeAfterType.AFTER, result);
 
         result.computeStatus();
         return AsynchronousOperationResult.wrap(result);
@@ -2399,30 +2381,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         PrismProperty<T> property = propDef.instantiate();
         property.addRealValue(realValue);
         return property;
-    }
-
-    /**
-     * check additional operation order, according to the order are script
-     * executed before or after operation..
-     */
-    private void checkAndExecuteAdditionalOperations(StateReporter reporter, Collection<Operation> additionalOperations, BeforeAfterType order, OperationResult result) throws CommunicationException, GenericFrameworkException {
-
-        if (additionalOperations == null) {
-            // TODO: add warning to the result
-            return;
-        }
-
-        for (Operation op : additionalOperations) {
-            if (op instanceof ExecuteProvisioningScriptOperation) {
-                ExecuteProvisioningScriptOperation executeOp = (ExecuteProvisioningScriptOperation) op;
-                LOGGER.trace("Find execute script operation: {}", SchemaDebugUtil.prettyPrint(executeOp));
-                // execute operation in the right order..
-                if (order.equals(executeOp.getScriptOrder())) {
-                    executeScriptIcf(reporter, executeOp, result);
-                }
-            }
-        }
-
     }
 
     @Override

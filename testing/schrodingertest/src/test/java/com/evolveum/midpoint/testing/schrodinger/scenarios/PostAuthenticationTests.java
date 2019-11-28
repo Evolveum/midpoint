@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.codeborne.selenide.Selenide;
+import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -15,7 +17,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 
 import static com.codeborne.selenide.Selenide.open;
-import static com.codeborne.selenide.Selenide.screenshot;
+import static com.codeborne.selenide.Selenide.sleep;
 
 public class PostAuthenticationTests extends TestBase {
 
@@ -100,8 +102,8 @@ public class PostAuthenticationTests extends TestBase {
     @Test (dependsOnGroups = {TEST_GROUP_BEFORE_POST_AUTH_FLOW}, alwaysRun = true)
     public void flowWithoutPostAuthRoleAssigned(){
         midPoint.logout();
-        midPoint.login()
-                .login(TEST_USER_TITIAN_NAME,TEST_USER_TITIAN_PASSWORD)
+        midPoint.formLogin()
+                .loginWithReloadLoginPage(TEST_USER_TITIAN_NAME,TEST_USER_TITIAN_PASSWORD)
                 .dynamicForm();
 
         Selenide.sleep(5000);
@@ -112,8 +114,8 @@ public class PostAuthenticationTests extends TestBase {
         Selenide.clearBrowserCookies();
         Selenide.refresh();
 
-        midPoint.login()
-                .login(midPoint.getUsername(),midPoint.getPassword());
+        midPoint.formLogin()
+                .loginWithReloadLoginPage(midPoint.getUsername(),midPoint.getPassword());
 
         //todo midpoint opens the previous page before logout
         open("/self/dashboard");
@@ -121,34 +123,35 @@ public class PostAuthenticationTests extends TestBase {
         importObject(SYSTEM_CONFIGURATION_POST_AUTH_ACTIVE_FILE,true);
 
           ListUsersPage usersPage = basicPage.listUsers();
-              usersPage
+        UserPage parent = usersPage
                 .table()
-                    .search()
-                        .byName()
-                        .inputValue(TEST_USER_TITIAN_NAME)
-                    .updateSearch()
+                .search()
+                .byName()
+                .inputValue(TEST_USER_TITIAN_NAME)
+                .updateSearch()
                 .and()
-                    .clickByName(TEST_USER_TITIAN_NAME)
-                      .selectTabAssignments()
-                        .clickAddAssignemnt()
-                            .table()
-                                .search()
-                                    .byName()
-                                    .inputValue(ROLE_POST_AUTHENTICATION_AUTHORIZATION_NAME)
-                                .updateSearch()
-                            .and()
-                            .selectCheckboxByName(ROLE_POST_AUTHENTICATION_AUTHORIZATION_NAME)
-                            .and()
-                            .clickAdd()
-                    .and()
-                    .checkKeepDisplayingResults()
-                      .clickSave()
-                        .feedback()
-                        .isSuccess();
+                .clickByName(TEST_USER_TITIAN_NAME)
+                .selectTabAssignments()
+                .clickAddAssignemnt()
+                .table()
+                .search()
+                .byName()
+                .inputValue(ROLE_POST_AUTHENTICATION_AUTHORIZATION_NAME)
+                .updateSearch()
+                .and()
+                .selectCheckboxByName(ROLE_POST_AUTHENTICATION_AUTHORIZATION_NAME)
+                .and()
+                .clickAdd().and();
+        sleep(1000);
+//                .and()
+        parent.checkKeepDisplayingResults()
+                .clickSave()
+                .feedback()
+                .isSuccess();
 
     midPoint.logout();
-    midPoint.login()
-            .login(TEST_USER_TITIAN_NAME,TEST_USER_TITIAN_PASSWORD)
+    midPoint.formLogin()
+            .loginWithReloadLoginPage(TEST_USER_TITIAN_NAME,TEST_USER_TITIAN_PASSWORD)
                 .dynamicForm();
 
 }

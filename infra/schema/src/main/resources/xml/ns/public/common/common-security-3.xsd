@@ -278,6 +278,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="logoutUrl" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Url for redirect after logout. Default is '/'.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!-- later: oidHeader -->
                 </xsd:sequence>
             </xsd:extension>
@@ -287,7 +294,7 @@
     <xsd:complexType name="AuthenticationModuleSaml2Type">
         <xsd:annotation>
             <xsd:documentation>
-                SAML2 authentication module.
+                SAML2 authentication module support authentication via Identity provider with SAML2.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -298,7 +305,7 @@
             <xsd:extension base="tns:AbstractAuthenticationModuleType">
                 <xsd:sequence>
                     <xsd:element name="network" type="tns:AuthenticationModuleSaml2NetworkType" minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="serviceProvider" type="tns:AuthenticationModuleSaml2ServiceProviderType" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="serviceProvider" type="tns:AuthenticationModuleSaml2ServiceProviderType" minOccurs="1" maxOccurs="1"/>
                     <!-- TODO: other elements -->
                 </xsd:sequence>
             </xsd:extension>
@@ -317,7 +324,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="readTimeout" type="xsd:int" minOccurs="0" maxOccurs="1"/>
-            <!-- TODO: other elements -->
+            <xsd:element name="connectTimeout" type="xsd:int" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -332,8 +339,406 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="entityId" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <!-- TODO: other elements -->
+            <xsd:element name="entityId" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique identifier of the service provider.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="alias" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique alias used to identify the selected local service provider based on used URL.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultSigningAlgorithm" type="tns:AuthenticationModuleSaml2SigningAlgorithmType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default signing algorithm. Default is RSA_SHA256.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultDigest" type="tns:AuthenticationModuleSaml2DigestType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default digest method. Default is SHA256;
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="signMetadata" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When true generated metadata will be signed using XML Signature using certificate with alias of signing key.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="signRequests" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Flag indicating whether this service signs authentication requests.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="wantAssertionsSigned" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Flag indicating whether this service requires signed assertions.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="singleLogoutEnabled" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Flag indicating whether this service enable single logout.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="nameId" type="tns:AuthenticationModuleSaml2NameIdType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name identifiers to be included in the metadata. Supported values are:
+                        EMAIL, TRANSIENT, PERSISTENT, UNSPECIFIED and X509_SUBJECT.
+                        Order of NameIDs in the property determines order of NameIDs
+                        in the generated metadata.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="keys" type="tns:AuthenticationModuleSaml2KeyType" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Key used by service provider.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="provider" type="tns:AuthenticationModuleSaml2ProviderType" minOccurs="1" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Possible identity providers for this service provider.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="metadata" type="tns:AuthenticationModuleSaml2ProviderMetadataType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Service provider can use prepared metadata.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="AuthenticationModuleSaml2NameIdType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Possible NameId.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EMAIL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TRANSIENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="urn:oasis:names:tc:SAML:2.0:nameid-format:persistent">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PERSISTENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNSPECIFIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="X509_SUBJECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="AuthenticationModuleSaml2DigestType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Possible digest method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="http://www.w3.org/2000/09/xmldsig#sha1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SHA1"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="http://www.w3.org/2001/04/xmlenc#sha256">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SHA256"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="http://www.w3.org/2001/04/xmlenc#sha512">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SHA512"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="http://www.w3.org/2001/04/xmlenc#ripemd160">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RIPEMD160"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="AuthenticationModuleSaml2SigningAlgorithmType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Possible signing algorithm.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="http://www.w3.org/2000/09/xmldsig#rsa-sha1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RSA_SHA1"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RSA_SHA256"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="http://www.w3.org/2001/04/xmldsig-more#rsa-sha512">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RSA_SHA512"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="http://www.w3.org/2001/04/xmldsig-more#rsa-ripemd160">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RSA_RIPEMD160"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="AuthenticationModuleSaml2KeyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                SAML2 key.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="active" type="tns:AuthenticationModuleSaml2SimpleKeyType" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Active key.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="standBy" type="tns:AuthenticationModuleSaml2SimpleKeyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Stand-by keys.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleSaml2SimpleKeyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                SAML2 active key.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="privateKey" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="passphrase" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="certificate" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="type" type="tns:AuthenticationModuleSaml2KeyTypeType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="AuthenticationModuleSaml2KeyTypeType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <xsd:documentation>
+                    Possible types of key.
+                </xsd:documentation>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="signing">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SIGNING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="unspecified">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNSPECIFIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="encryption">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ENCRYPTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="AuthenticationModuleSaml2ProviderType">
+        <xsd:annotation>
+            <xsd:documentation>
+                SAML2 provider.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="entityId" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique identifier of the identity provider.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="alias" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique alias used to identify the selected local service provider based on used URL.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="metadata" type="tns:AuthenticationModuleSaml2ProviderMetadataType" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Metadata of Identity provider.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="skipSslValidation" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+            <xsd:element name="metadataTrustCheck" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Flag indicating disabled signature verification.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="linkText" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        User friendly name of provider.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="authenticationRequestBinding" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        SAML2 binding used for authentication request.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="verificationKeys" type="t:ProtectedStringType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="nameOfUsernameAttribute" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of attribute in response, which value define name of user in Midpoint. For example 'uid'.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleSaml2ProviderMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                SAML2 provider metadata.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:element name="metadataUrl" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            URL, which show metadata.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="xml" type="xsd:base64Binary">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Metadata encrypted by base64.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="pathToFile" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Path to file, which contains metadata.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -522,7 +927,7 @@
             </xsd:element>
             <!-- later: prohibitAssignmentTarget -->
             <!-- later: authenticationContextAttribute -->
-            <xsd:element name="module" type="tns:AuthenticationSequenceModuleType" minOccurs="0">
+            <xsd:element name="module" type="tns:AuthenticationSequenceModuleType" minOccurs="1" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Specification of authentication module in the sequence.

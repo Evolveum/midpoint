@@ -128,8 +128,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     }
 
     @Override
-    protected String createTicketAdd(PrismObject<? extends ShadowType> object,
-            Collection<Operation> additionalOperations, OperationResult result) throws SchemaException,
+    protected String createTicketAdd(PrismObject<? extends ShadowType> object, OperationResult result) throws SchemaException,
             ObjectAlreadyExistsException {
         LOGGER.debug("Creating case to add account\n{}", object.debugDump(1));
         ObjectDelta<? extends ShadowType> objectDelta = DeltaFactory.Object.createAddDelta(object);

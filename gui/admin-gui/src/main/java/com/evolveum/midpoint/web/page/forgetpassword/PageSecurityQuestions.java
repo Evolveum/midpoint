@@ -504,7 +504,7 @@ public class PageSecurityQuestions extends PageBase {
 
             Message message = new MimeMessage(session);
 
-            // TODO Localization
+            //
             message.setSubject("New Midpoint Password");
 
             message.setText("Password : " + newPassword + "\n");
