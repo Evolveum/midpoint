@@ -30,10 +30,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.*;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.task.api.Task;
@@ -390,10 +387,10 @@ public class ResourceObjectConverter {
             throw e;
         }
 
+        executeProvisioningScripts(ctx, ProvisioningOperationTypeType.DELETE, BeforeAfterType.BEFORE, scripts, result);
+
         // Execute entitlement modification on other objects (if needed)
         executeEntitlementChangesDelete(ctx, shadow, scripts, connOptions, result);
-
-        executeProvisioningScripts(ctx, ProvisioningOperationTypeType.DELETE, BeforeAfterType.BEFORE, scripts, result);
 
         ConnectorInstance connector = ctx.getConnector(DeleteCapabilityType.class, result);
         AsynchronousOperationResult connectorAsyncOpRet = null;
@@ -413,9 +410,6 @@ public class ResourceObjectConverter {
             }
 
             connectorAsyncOpRet = connector.deleteObject(ctx.getObjectClassDefinition(), shadow, identifiers, ctx, result);
-
-            computeResultStatus(result);
-            LOGGER.debug("PROVISIONING DELETE: {}", result.getStatus());
 
         } catch (ObjectNotFoundException ex) {
             result.recordFatalError("Can't delete object " + shadow
@@ -448,6 +442,9 @@ public class ResourceObjectConverter {
         LOGGER.trace("Deleted resource object {}", shadow);
 
         executeProvisioningScripts(ctx, ProvisioningOperationTypeType.DELETE, BeforeAfterType.AFTER, scripts, result);
+
+        computeResultStatus(result);
+        LOGGER.debug("PROVISIONING DELETE result: {}", result.getStatus());
 
         AsynchronousOperationResult aResult = AsynchronousOperationResult.wrap(result);
         updateQuantum(ctx, connector, aResult, parentResult);
@@ -2541,13 +2538,29 @@ public class ResourceObjectConverter {
                 }
 
             } catch (CommunicationException ex) {
-                result.recordFatalError(
-                        "Could not execute provisioning script. Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
-                throw new CommunicationException("Error communicating with the connector " + connector + ": "
-                        + ex.getMessage(), ex);
+                String message = "Could not execute provisioning script. Error communicating with the connector " + connector + ": " + ex.getMessage();
+                if (ExceptionUtil.isFatalCriticality(operation.getCriticality(), CriticalityType.FATAL)) {
+                    result.recordFatalError(message, ex);
+                    throw new CommunicationException(message, ex);
+                } else {
+                    LOGGER.warn("{}", message);
+                }
             } catch (GenericFrameworkException ex) {
-                result.recordFatalError("Could not execute provisioning script. Generic error in connector: " + ex.getMessage(), ex);
-                throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
+                String message = "Could not execute provisioning script. Generic error in connector: " + ex.getMessage();
+                if (ExceptionUtil.isFatalCriticality(operation.getCriticality(), CriticalityType.FATAL)) {
+                    result.recordFatalError(message, ex);
+                    throw new GenericConnectorException(message, ex);
+                } else {
+                    LOGGER.warn("{}", message);
+                }
+            } catch (Throwable t) {
+                String message = "Could not execute provisioning script. Unexpected error in connector: " +t.getClass().getSimpleName() + ": " + t.getMessage();
+                if (ExceptionUtil.isFatalCriticality(operation.getCriticality(), CriticalityType.FATAL)) {
+                    result.recordFatalError(message, t);
+                    throw t;
+                } else {
+                    LOGGER.warn("{}", message);
+                }
             }
 
         }
