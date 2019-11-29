@@ -148,12 +148,23 @@
                     </expression>
                 </q:equal>
             </correlation>
-            <!-- TEMPORARILY DISABLED (MID-5932) -->
-<!--            <reaction>-->
-<!--                <situation>linked</situation>-->
-<!--                <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#asyncUpdate</channel>-->
-<!--                <synchronize>false</synchronize>-->
-<!--            </reaction>-->
+            <reaction>
+                <situation>linked</situation>
+                <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#asyncUpdate</channel>
+                <condition>
+                    <script>
+                        <code>import com.evolveum.midpoint.prism.path.ItemPath
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType
+
+                        // member-only updates should _NOT_ be synchronized
+                        resourceObjectDelta != null &amp;&amp; resourceObjectDelta.isModify() &amp;&amp;
+                                resourceObjectDelta.modifications.size() == 1 &amp;&amp;
+                                ItemPath.create(ShadowType.F_ATTRIBUTES, 'members').equivalent(resourceObjectDelta.modifications.iterator().next().path)
+                        </code>
+                    </script>
+                </condition>
+                <synchronize>false</synchronize>
+            </reaction>
             <reaction>
                 <situation>linked</situation>
                 <synchronize>true</synchronize>
