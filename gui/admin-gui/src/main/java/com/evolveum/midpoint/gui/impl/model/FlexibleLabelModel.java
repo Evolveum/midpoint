@@ -111,7 +111,14 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
             throw new RestartResponseException(PageError.class);
         }
 
-        return getStringRealValue(property != null ? property.getRealValue() : null);
+        if (property == null || property.getRealValue() == null){
+            return "";
+        }
+        if (property.getRealValue() instanceof PolyString){
+            return serviceLocator.getLocalizationService().translate((PolyString)property.getRealValue(),
+                    serviceLocator.getLocale(),true);
+        }
+        return ((Object) property.getRealValue()).toString();
     }
 
     private String getExpressionValue(ExpressionType expressionType, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -150,16 +157,5 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
 
     @Override
     public void detach() {
-    }
-
-    private <T> String getStringRealValue(T value) {
-        if (value == null) {
-            return "";
-        }
-        if (value instanceof PolyString) {
-            return ((PolyString) value).getOrig();
-        }
-
-        return value.toString();
     }
 }
