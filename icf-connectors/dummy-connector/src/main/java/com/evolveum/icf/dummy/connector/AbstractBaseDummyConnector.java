@@ -127,6 +127,7 @@ public abstract class AbstractBaseDummyConnector implements PoolableConnector, T
             uselessGuardedString.access(chars -> resource.setUselessGuardedString(new String(chars)));
         }
         resource.setMonsterization(this.configuration.isMonsterized());
+        resource.setUidMode(this.configuration.getUidMode());
         if (connected) {
             throw new IllegalStateException("Double connect in "+this);
         }

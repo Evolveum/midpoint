@@ -20,6 +20,7 @@ import com.evolveum.midpoint.test.asserter.prism.PrismPropertyAsserter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,6 +49,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     private static final File CHANGE_221 = new File(TEST_DIR, "change-221-jlewis685-add-staff.json");
     private static final File CHANGE_230 = new File(TEST_DIR, "change-230-nobody-add-alumni.json");
     private static final File CHANGE_250 = new File(TEST_DIR, "change-250-banderson-delete-alumni.json");
+    private static final File CHANGE_305 = new File(TEST_DIR, "change-305-staff-rename.json");
     private static final File CHANGE_310 = new File(TEST_DIR, "change-310-staff-delete.json");
 
     private String orgAlumniOid;
@@ -56,15 +58,14 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-
-        setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
+//        setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
     }
 
-    @Override
-    protected TracingProfileType getTestMethodTracingProfile() {
-        return createModelAndProvisioningLoggingTracingProfile()
-                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
-    }
+//    @Override
+//    protected TracingProfileType getTestMethodTracingProfile() {
+//        return createModelAndProvisioningLoggingTracingProfile()
+//                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
+//    }
 
     @Test
     public void test000Sanity() throws Exception {
@@ -101,7 +102,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         MockAsyncUpdateSource.INSTANCE.reset();
         MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_110));
-        grouperDummyResource.addGroup(new DummyGroup(ALUMNI_NAME));
+        grouperDummyResource.addGroup(createGroup(ALUMNI_ID, ALUMNI_NAME));
 
         // WHEN
 
@@ -153,7 +154,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         MockAsyncUpdateSource.INSTANCE.reset();
         MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_115));
-        grouperDummyResource.addGroup(new DummyGroup(STAFF_NAME));
+        grouperDummyResource.addGroup(createGroup(STAFF_ID, STAFF_NAME));
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
@@ -503,10 +504,10 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     }
 
     /**
-     * Deleting ref:affiliation:staff group.
+     * Renaming ref:affiliation:staff group to ref:affiliation:staff2.
      */
     @Test
-    public void test310DeleteStaff() throws Exception {
+    public void test305RenameStaff() throws Exception {
         Task task = getTask();
         task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getResult();
@@ -514,8 +515,8 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // GIVEN
 
         MockAsyncUpdateSource.INSTANCE.reset();
-        MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_310));
-        grouperDummyResource.deleteGroupByName(STAFF_NAME);
+        MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_305));
+        grouperDummyResource.renameGroup(STAFF_NAME, STAFF_NAME, STAFF2_NAME);
 
         executeChanges(deltaFor(UserType.class).item(UserType.F_TRIGGER).replace().asObjectDelta(USER_BANDERSON.oid), null, task, result);
         executeChanges(deltaFor(UserType.class).item(UserType.F_TRIGGER).replace().asObjectDelta(USER_JLEWIS685.oid), null, task, result);
@@ -529,16 +530,74 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         assertSuccess(result);
 
-        assertOrgByName("affiliation_staff", "staff after deletion")
+        assertOrgByName("affiliation_staff2", "staff2 after rename")
+                .display()
+                .assertLifecycleState("active")
+                .extension()
+                    .property(EXT_GROUPER_NAME).singleValue().assertValue(STAFF2_NAME).end().end()
+                    .property(EXT_LDAP_DN).singleValue().assertValue(DN_STAFF2).end().end()
+                .end()
+                .assertAssignments(1)           // archetype, todo assert target
+                    .assertDisplayName("Affiliation: staff2")
+                    .assertIdentifier("staff2")
+                .links()
+                    .projectionOnResource(RESOURCE_GROUPER.oid)
+                        .target()
+                            .display()
+                            .assertNotDead()
+                        .end()
+                    .end()
+                    .projectionOnResource(RESOURCE_LDAP.oid)
+                        .target()
+                            .display()
+                            .assertName(DN_STAFF2)
+                            .assertNotDead()
+                        .end()
+                    .end()
+                .end();
+
+        openDJController.assertNoEntry(DN_STAFF);
+        openDJController.assertUniqueMember(DN_STAFF2, DN_BANDERSON);
+        openDJController.assertUniqueMember(DN_STAFF2, DN_JLEWIS685);
+    }
+
+    /**
+     * Deleting ref:affiliation:staff2 group.
+     */
+    @Test
+    public void test310DeleteStaff() throws Exception {
+        Task task = getTask();
+        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+        OperationResult result = getResult();
+
+        // GIVEN
+
+        MockAsyncUpdateSource.INSTANCE.reset();
+        MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_310));
+        grouperDummyResource.deleteGroupByName(STAFF2_NAME);
+
+        executeChanges(deltaFor(UserType.class).item(UserType.F_TRIGGER).replace().asObjectDelta(USER_BANDERSON.oid), null, task, result);
+        executeChanges(deltaFor(UserType.class).item(UserType.F_TRIGGER).replace().asObjectDelta(USER_JLEWIS685.oid), null, task, result);
+
+        // WHEN
+
+        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
+
+        // THEN
+
+        assertSuccess(result);
+
+        assertOrgByName("affiliation_staff2", "staff2 after deletion")
                 .display()
                 .assertLifecycleState("retired")
                 .extension()
-                    .property(EXT_GROUPER_NAME).singleValue().assertValue(STAFF_NAME).end().end()
-                    .property(EXT_LDAP_DN).singleValue().assertValue(DN_STAFF).end().end()
+                    .property(EXT_GROUPER_NAME).singleValue().assertValue(STAFF2_NAME).end().end()
+                    .property(EXT_LDAP_DN).singleValue().assertValue(DN_STAFF2).end().end()
                 .end()
                 .assertAssignments(1)           // archetype, todo assert target
-                    .assertDisplayName("Affiliation: staff")
-                    .assertIdentifier("staff")
+                    .assertDisplayName("Affiliation: staff2")
+                    .assertIdentifier("staff2")
                 .links()
                     .projectionOnResource(RESOURCE_GROUPER.oid)
                         .target()
@@ -593,6 +652,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                     .projectionOnResource(resourceLdap.getOid());
 
         openDJController.assertNoEntry(DN_STAFF);
+        openDJController.assertNoEntry(DN_STAFF2);
 
         openDJController.assertNoUniqueMember(DN_ALUMNI, DN_BANDERSON);
         openDJController.assertUniqueMember(DN_ALUMNI, DN_JLEWIS685);
@@ -626,5 +686,13 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                 .attributes()
                     .attribute(ATTR_MEMBER.getLocalPart())
                         .assertRealValues(expectedUsers);
+    }
+
+    @NotNull
+    private DummyGroup createGroup(String id, String name) {
+        DummyGroup group = new DummyGroup();
+        group.setId(id);
+        group.setName(name);
+        return group;
     }
 }

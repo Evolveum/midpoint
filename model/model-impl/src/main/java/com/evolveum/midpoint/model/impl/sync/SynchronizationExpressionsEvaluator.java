@@ -266,7 +266,8 @@ public class SynchronizationExpressionsEvaluator {
     }
 
 
-    public <F extends FocusType> boolean matchFocusByCorrelationRule(SynchronizationContext<F> syncCtx, PrismObject<F> focus) {
+    public <F extends FocusType> boolean matchFocusByCorrelationRule(SynchronizationContext<F> syncCtx, PrismObject<F> focus,
+            OperationResult result) {
 
         if (!syncCtx.hasApplicablePolicy()) {
             LOGGER.warn(
@@ -282,12 +283,12 @@ public class SynchronizationExpressionsEvaluator {
 
                 //TODO: can we expect that systemConfig and resource are always present?
                 if (matchUserCorrelationRule(syncCtx.getFocusClass(), syncCtx.getApplicableShadow(), syncCtx.getExpressionProfile(), focus, syncCtx.getResource().asObjectable(),
-                        syncCtx.getSystemConfiguration().asObjectable(), conditionalFilter, syncCtx.getTask(), syncCtx.getResult())) {
+                        syncCtx.getSystemConfiguration().asObjectable(), conditionalFilter, syncCtx.getTask(), result)) {
                     LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} match user: {}", syncCtx.getApplicableShadow(), focus);
                     return true;
                 }
             }
-        } catch (SchemaException ex){
+        } catch (SchemaException ex) {
             throw new SystemException("Failed to match user using correlation rule. " + ex.getMessage(), ex);
         }
 

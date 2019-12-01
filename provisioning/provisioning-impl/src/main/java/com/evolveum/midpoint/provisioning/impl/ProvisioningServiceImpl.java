@@ -216,7 +216,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             if (repositoryObject.canRepresent(ShadowType.class)) {
                 try {
                     resultingObject = (PrismObject<T>) shadowCache.getShadow(oid,
-                            (PrismObject<ShadowType>) (repositoryObject), options, task, result);
+                            (PrismObject<ShadowType>) (repositoryObject), null, options, task, result);
                 } catch (ObjectNotFoundException e) {
                     if (!GetOperationOptions.isAllowNotFound(rootOptions)){
                         ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);

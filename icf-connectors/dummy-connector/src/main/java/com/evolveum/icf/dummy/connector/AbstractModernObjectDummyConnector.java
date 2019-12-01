@@ -61,9 +61,9 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
             if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
 
                 final DummyAccount account;
-                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                if (configuration.isUidBoundToName()) {
                     account = resource.getAccountByUsername(uid.getUidValue(), false);
-                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                } else if (configuration.isUidSeparateFromName()) {
                     account = resource.getAccountById(uid.getUidValue(), false);
                 } else {
                     throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
@@ -89,8 +89,8 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                         } catch (SchemaViolationException e) {
                             throw new org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException("Schema exception: " + e.getMessage(), e);
                         }
-                        // We need to change the returned uid here (only if the mode is not set to UUID)
-                        if (!(configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID))) {
+                        // We need to change the returned uid here (only if the mode is set to Name)
+                        if (configuration.isUidBoundToName()) {
                             addUidChange(sideEffectChanges, newName);
                         }
                     } else if (delta.is(OperationalAttributes.PASSWORD_NAME)) {
@@ -144,9 +144,9 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
             } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
 
                 final DummyGroup group;
-                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                if (configuration.isUidBoundToName()) {
                     group = resource.getGroupByName(uid.getUidValue(), false);
-                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                } else if (configuration.isUidSeparateFromName()) {
                     group = resource.getGroupById(uid.getUidValue(), false);
                 } else {
                     throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
@@ -191,9 +191,9 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
             } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
 
                 final DummyPrivilege priv;
-                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                if (configuration.isUidBoundToName()) {
                     priv = resource.getPrivilegeByName(uid.getUidValue(), false);
-                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                } else if (configuration.isUidSeparateFromName()) {
                     priv = resource.getPrivilegeById(uid.getUidValue(), false);
                 } else {
                     throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
@@ -231,9 +231,9 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
             } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
 
                 final DummyOrg org;
-                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                if (configuration.isUidBoundToName()) {
                     org = resource.getOrgByName(uid.getUidValue(), false);
-                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                } else if (configuration.isUidSeparateFromName()) {
                     org = resource.getOrgById(uid.getUidValue(), false);
                 } else {
                     throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());

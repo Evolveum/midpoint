@@ -5,7 +5,7 @@
       "sourceId": "ldap",
       "membershipType": "flattened",
       "fieldName": "members",
-      "groupId": "ref:affiliation:alumni",
+      "groupId": "321931093132132alumni",
       "changeOccurred": false,
       "createdOnMicros": 1551884899000200,
       "subjectId": "nobody",

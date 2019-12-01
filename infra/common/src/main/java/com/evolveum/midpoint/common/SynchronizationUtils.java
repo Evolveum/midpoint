@@ -211,9 +211,8 @@ public class SynchronizationUtils {
         return true;
     }
 
-    public static boolean isPolicyApplicable(QName objectClass, ShadowKindType kind, String intent, ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource) throws SchemaException{
+    public static boolean isPolicyApplicable(QName objectClass, ShadowKindType kind, String intent,
+            ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource) throws SchemaException {
         return isPolicyApplicable(objectClass, kind, intent, synchronizationPolicy, resource, false);
-
     }
-
 }

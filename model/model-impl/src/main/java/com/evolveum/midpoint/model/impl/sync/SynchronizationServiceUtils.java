@@ -6,16 +6,12 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
-import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -24,9 +20,6 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -47,10 +40,12 @@ public class SynchronizationServiceUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationServiceUtils.class);
 
+    public static <F extends FocusType> boolean isPolicyApplicable(ObjectSynchronizationType synchronizationPolicy,
+            ObjectSynchronizationDiscriminatorType discriminator, ExpressionFactory expressionFactory,
+            SynchronizationContext<F> syncCtx, OperationResult result) throws SchemaException, ExpressionEvaluationException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-    public static <F extends FocusType> boolean isPolicyApplicable(ObjectSynchronizationType synchronizationPolicy, ObjectSynchronizationDiscriminatorType discriminator, ExpressionFactory expressionFactory, SynchronizationContext<F> syncCtx) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-        boolean isApplicablePolicy = false;
+        boolean isApplicablePolicy;
         if (discriminator != null) {
             isApplicablePolicy = isPolicyApplicable(discriminator, synchronizationPolicy, syncCtx.getResource());
         } else {
@@ -58,12 +53,11 @@ public class SynchronizationServiceUtils {
         }
 
         if (isApplicablePolicy) {
-            Boolean conditionResult = evaluateSynchronizationPolicyCondition(synchronizationPolicy, syncCtx, expressionFactory);
+            Boolean conditionResult = evaluateSynchronizationPolicyCondition(synchronizationPolicy, syncCtx, expressionFactory, result);
             return conditionResult != null ? conditionResult : true;
+        } else {
+            return false;
         }
-
-        return isApplicablePolicy;
-
     }
 
     private static <F extends FocusType> boolean isPolicyApplicable(ObjectSynchronizationType synchronizationPolicy, SynchronizationContext<F> syncCtx)
@@ -89,12 +83,13 @@ public class SynchronizationServiceUtils {
                             + kind + ", intent=" + intent);
         }
         return SynchronizationUtils.isPolicyApplicable(null, kind, intent, synchronizationPolicy, resource);
-
     }
 
-    private static <F extends FocusType> Boolean evaluateSynchronizationPolicyCondition(ObjectSynchronizationType synchronizationPolicy,
-            SynchronizationContext<F> syncCtx, ExpressionFactory expressionFactory)
-                    throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private static <F extends FocusType> Boolean evaluateSynchronizationPolicyCondition(
+            ObjectSynchronizationType synchronizationPolicy, SynchronizationContext<F> syncCtx,
+            ExpressionFactory expressionFactory, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         if (synchronizationPolicy.getCondition() == null) {
             return null;
         }
@@ -103,9 +98,9 @@ public class SynchronizationServiceUtils {
         ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, syncCtx.getApplicableShadow(), null,
                 syncCtx.getResource(), syncCtx.getSystemConfiguration(), null, syncCtx.getPrismContext());
         try {
-            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(syncCtx.getTask(), syncCtx.getResult()));
+            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(syncCtx.getTask(), result));
             PrismPropertyValue<Boolean> evaluateCondition = ExpressionUtil.evaluateCondition(variables,
-                    conditionExpressionType, syncCtx.getExpressionProfile(), expressionFactory, desc, syncCtx.getTask(), syncCtx.getResult());
+                    conditionExpressionType, syncCtx.getExpressionProfile(), expressionFactory, desc, syncCtx.getTask(), result);
             return evaluateCondition.getValue();
         } finally {
             ModelExpressionThreadLocalHolder.popExpressionEnvironment();

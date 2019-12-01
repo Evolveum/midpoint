@@ -40,6 +40,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -287,32 +288,39 @@ public class ChangeProcessor {
             // pure delta changes that do not need to know the current state.
             if (change.isAdd()) {
                 change.setCurrentResourceObject(change.getObjectDelta().getObjectToAdd().clone());
-                LOGGER.trace("...taken from ADD delta:\n{}", change.getCurrentResourceObject().debugDumpLazily());
+                LOGGER.trace("-> current object was taken from ADD delta:\n{}", change.getCurrentResourceObject().debugDumpLazily());
             } else {
-                if (ctx.getCachingStrategy() == CachingStategyType.PASSIVE) {
-                    PrismObject<ShadowType> resourceObject = oldShadow.clone();     // this might not be correct w.r.t. index-only attributes!
-                    if (change.getObjectDelta() != null) {
-                        change.getObjectDelta().applyTo(resourceObject);
-                        markIndexOnlyItemsAsIncomplete(resourceObject, change.getObjectDelta(), ctx);
-                        LOGGER.trace("...taken from old shadow + delta:\n{}", resourceObject.debugDumpLazily());
-                    } else {
-                        LOGGER.trace("...taken from old shadow:\n{}", resourceObject.debugDumpLazily());
-                    }
-                    change.setCurrentResourceObject(resourceObject);
-                } else {
-                    // no caching; let us retrieve the object from the resource
+                boolean passiveCaching = ctx.getCachingStrategy() == CachingStategyType.PASSIVE;
+                ReadCapabilityType readCapability = ctx.getEffectiveCapability(ReadCapabilityType.class);
+                boolean canReadFromResource = readCapability != null && !Boolean.TRUE.equals(readCapability.isCachingOnly());
+                if (canReadFromResource && (!passiveCaching || change.isNotificationOnly())) {
+                    // Either we don't use caching or we have a notification-only change. Such changes mean that we want to
+                    // refresh the object from the resource.
                     Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
                             .doNotDiscovery().build();
                     PrismObject<ShadowType> resourceObject;
                     try {
-                        resourceObject = shadowCache.getShadow(oldShadow.getOid(), oldShadow, options, ctx.getTask(), parentResult);
+                        resourceObject = shadowCache.getShadow(oldShadow.getOid(), oldShadow, change.getIdentifiers(), options,
+                                ctx.getTask(), parentResult);
                     } catch (ObjectNotFoundException e) {
                         // The object on the resource does not exist (any more?).
                         LOGGER.warn("Object {} does not exist on the resource any more", oldShadow);
                         throw e;            // TODO
                     }
-                    LOGGER.trace("...taken from the resource:\n{}", resourceObject.debugDumpLazily());
+                    LOGGER.trace("-> current object was taken from the resource:\n{}", resourceObject.debugDumpLazily());
                     change.setCurrentResourceObject(resourceObject);
+                } else if (passiveCaching) {
+                    PrismObject<ShadowType> resourceObject = oldShadow.clone();     // this might not be correct w.r.t. index-only attributes!
+                    if (change.getObjectDelta() != null) {
+                        change.getObjectDelta().applyTo(resourceObject);
+                        markIndexOnlyItemsAsIncomplete(resourceObject, change.getObjectDelta(), ctx);
+                        LOGGER.trace("-> current object was taken from old shadow + delta:\n{}", resourceObject.debugDumpLazily());
+                    } else {
+                        LOGGER.trace("-> current object was taken from old shadow:\n{}", resourceObject.debugDumpLazily());
+                    }
+                    change.setCurrentResourceObject(resourceObject);
+                } else {
+                    throw new IllegalStateException("Cannot get current resource object: read capability is not present and passive caching is not configured");
                 }
             }
         }

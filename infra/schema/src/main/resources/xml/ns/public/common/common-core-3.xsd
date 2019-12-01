@@ -11170,6 +11170,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="condition" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that is evaluated to check whether this reaction is applicable in a particular
+                        context. It is assumed to return a boolean value. If it returns 'true' then this reaction
+                        will be applied. If it returns 'false' it will be ignored.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="action" type="tns:SynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -26,14 +27,12 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
@@ -45,7 +44,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelIntegrationTest {
+public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelIntegrationTest {
 
     private static final String TEST_DIR = "src/test/resources/sync";
     private static final String CORRELATION_OR_FILTER = TEST_DIR + "/correlation-or-filter.xml";
@@ -56,11 +55,9 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
     private static final String CORRELATION_WITH_CONDITION = TEST_DIR + "/correlation-with-condition.xml";
     private static final String CORRELATION_WITH_CONDITION_EMPL_NUMBER = TEST_DIR + "/correlation-with-condition-emplNumber.xml";
 
-    @Autowired(required=true)
-    private RepositoryService repositoryService;
-
-    @Autowired(required = true)
-    private SynchronizationExpressionsEvaluator evaluator;
+    @Autowired private RepositoryService repositoryService;
+    @Autowired private SynchronizationExpressionsEvaluator evaluator;
+    @Autowired private ExpressionFactory expressionFactory;
 
     @Test
     public void test001CorrelationOrFilter() throws Exception{
@@ -180,7 +177,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
         SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE, CORRELATION_CASE_INSENSITIVE, RESOURCE_DUMMY_FILE, task, result);
 
         try{
-            boolean matchedUsers = evaluator.matchFocusByCorrelationRule(syncCtx, userType);
+            boolean matchedUsers = evaluator.matchFocusByCorrelationRule(syncCtx, userType, result);
 
             System.out.println("matched users " + matchedUsers);
 
@@ -208,7 +205,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
         SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE, CORRELATION_CASE_INSENSITIVE_EMPL_NUMBER, RESOURCE_DUMMY_FILE, task, result);
 
         try{
-            boolean matchedUsers = evaluator.matchFocusByCorrelationRule(syncCtx, userType);
+            boolean matchedUsers = evaluator.matchFocusByCorrelationRule(syncCtx, userType, result);
 
             System.out.println("matched users " + matchedUsers);
 
@@ -234,7 +231,8 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
         assertNotNull("Unexpected null system configuration", systemConfiguration);
 
-        SynchronizationContext<UserType> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), shadow.asPrismObject(), resourceType.asPrismObject(), null, prismContext, task, result);
+        SynchronizationContext<UserType> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), shadow.asPrismObject(),
+                null, resourceType.asPrismObject(), null, prismContext, expressionFactory, task);
         syncCtx.setSystemConfiguration(systemConfiguration);
         syncCtx.setObjectSynchronization(objectSynchronizationType);
         syncCtx.setFocusClass(UserType.class);
