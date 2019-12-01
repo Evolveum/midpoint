@@ -538,6 +538,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return taskManager;
     }
 
+    public LocalizationService getLocalizationService(){
+        return localizationService;
+    }
+
     public ModelAuditService getAuditService() {
         return auditService;
     }
