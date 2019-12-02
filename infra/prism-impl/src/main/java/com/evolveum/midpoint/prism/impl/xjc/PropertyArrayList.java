@@ -147,4 +147,17 @@ public class PropertyArrayList<T> extends AbstractList<T> implements Serializabl
         }
         return changed;
     }
+
+    @Override
+    public T set(int index, T element) {
+
+        if (index < 0 || index >= size()) {
+            throw new IndexOutOfBoundsException("Can't set object on position '"
+                    + index + "', list size is '" + size() + "'.");
+        }
+        Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(element);
+        getPropertyValue(index).setValue(propertyRealValue);
+
+        return element;
+    }
 }
