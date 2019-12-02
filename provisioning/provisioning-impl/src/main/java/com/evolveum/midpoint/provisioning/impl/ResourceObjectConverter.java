@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
@@ -35,10 +36,7 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.Tracer;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -764,19 +762,8 @@ public class ResourceObjectConverter {
             boolean inProgress = false;
             String asynchronousOperationReference = null;
             for (Collection<Operation> operationsWave : operationsWaves) {
-                Collection<RefinedAttributeDefinition> readReplaceAttributes = determineReadReplace(ctx, operationsWave, objectClassDefinition);
-                LOGGER.trace("Read+Replace attributes: {}", readReplaceAttributes);
-                if (!readReplaceAttributes.isEmpty()) {
-                    AttributesToReturn attributesToReturn = new AttributesToReturn();
-                    attributesToReturn.setReturnDefaultAttributes(false);
-                    attributesToReturn.setAttributesToReturn(readReplaceAttributes);
-                    // TODO eliminate this fetch if this is first wave and there are no explicitly requested attributes
-                    // but make sure currentShadow contains all required attributes
-                    LOGGER.trace("Fetching object because of READ+REPLACE mode");
-                    currentShadow = fetchResourceObject(ctx,
-                            identifiersWorkingCopy, attributesToReturn, false, parentResult);
-                    operationsWave = convertToReplace(ctx, operationsWave, currentShadow);
-                }
+                operationsWave = convertToReplaceAsNeeded(ctx, operationsWave, identifiersWorkingCopy, objectClassDefinition, parentResult);
+
                 if (!operationsWave.isEmpty()) {
                     ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectClassDefinition, identifiersWorkingCopy);
                     connectorAsyncOpRet = connector.modifyObject(identification, currentShadow, operationsWave, connOptions, ctx, parentResult);
@@ -829,6 +816,31 @@ public class ResourceObjectConverter {
             asyncOpRet.setOperationType(connectorAsyncOpRet.getOperationType());
         }
         return asyncOpRet;
+    }
+
+    private Collection<Operation> convertToReplaceAsNeeded(ProvisioningContext ctx, Collection<Operation> operationsWave, Collection<ResourceAttribute<?>> identifiers, RefinedObjectClassDefinition objectClassDefinition, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
+        Collection<RefinedAttributeDefinition> readReplaceAttributes = determineReadReplace(ctx, operationsWave, objectClassDefinition);
+        LOGGER.trace("Read+Replace attributes: {}", readReplaceAttributes);
+        if (!readReplaceAttributes.isEmpty()) {
+            AttributesToReturn attributesToReturn = new AttributesToReturn();
+            attributesToReturn.setReturnDefaultAttributes(false);
+            attributesToReturn.setAttributesToReturn(readReplaceAttributes);
+            // TODO eliminate this fetch if this is first wave and there are no explicitly requested attributes
+            // but make sure currentShadow contains all required attributes
+            LOGGER.trace("Fetching object because of READ+REPLACE mode");
+            PrismObject<ShadowType> currentShadow = fetchResourceObject(ctx, identifiers, attributesToReturn, false, result);
+            operationsWave = convertToReplace(ctx, operationsWave, currentShadow, false);
+        }
+        UpdateCapabilityType updateCapability = ctx.getEffectiveCapability(UpdateCapabilityType.class);
+        if (updateCapability != null) {
+            AttributeContentRequirementType attributeContentRequirement = updateCapability.getAttributeContentRequirement();
+            if (AttributeContentRequirementType.ALL.equals(attributeContentRequirement)) {
+                LOGGER.trace("AttributeContentRequirement: {} for {}", attributeContentRequirement, ctx.getResource());
+                PrismObject<ShadowType> currentShadow = fetchResourceObject(ctx, identifiers, null, false, result);
+                operationsWave = convertToReplace(ctx, operationsWave, currentShadow, true);
+            }
+        }
+        return operationsWave;
     }
 
     @SuppressWarnings("rawtypes")
@@ -922,7 +934,7 @@ public class ResourceObjectConverter {
     /**
      *  Converts ADD/DELETE VALUE operations into REPLACE VALUE, if needed
      */
-    private Collection<Operation> convertToReplace(ProvisioningContext ctx, Collection<Operation> operations, PrismObject<ShadowType> currentShadow) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+    private Collection<Operation> convertToReplace(ProvisioningContext ctx, Collection<Operation> operations, PrismObject<ShadowType> currentShadow, boolean requireAllAttributes) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         List<Operation> retval = new ArrayList<>(operations.size());
         for (Operation operation : operations) {
             if (operation instanceof PropertyModificationOperation) {
@@ -930,7 +942,7 @@ public class ResourceObjectConverter {
                 if (isAttributeDelta(propertyDelta)) {
                     QName attributeName = propertyDelta.getElementName();
                     RefinedAttributeDefinition rad = ctx.getObjectClassDefinition().findAttributeDefinition(attributeName);
-                    if (isReadReplaceMode(ctx, rad, ctx.getObjectClassDefinition()) && (propertyDelta.isAdd() || propertyDelta.isDelete())) {
+                    if ((requireAllAttributes || isReadReplaceMode(ctx, rad, ctx.getObjectClassDefinition())) && (propertyDelta.isAdd() || propertyDelta.isDelete())) {
                         PropertyModificationOperation newOp = convertToReplace(propertyDelta, currentShadow, rad.getMatchingRuleQName());
                         newOp.setMatchingRuleQName(((PropertyModificationOperation) operation).getMatchingRuleQName());
                         retval.add(newOp);
@@ -941,7 +953,31 @@ public class ResourceObjectConverter {
             }
             retval.add(operation);        // for yet-unprocessed operations
         }
+        if (requireAllAttributes) {
+            for (ResourceAttribute<?> currentAttribute : ShadowUtil.getAttributes(currentShadow)) {
+                if (!containsDelta(operations, currentAttribute.getElementName())) {
+                    RefinedAttributeDefinition rad = ctx.getObjectClassDefinition().findAttributeDefinition(currentAttribute.getElementName());
+                    if (rad.canModify()) {
+                        PropertyDelta resultingDelta = prismContext.deltaFactory().property().create(currentAttribute.getPath(), currentAttribute.getDefinition());
+                        resultingDelta.setValuesToReplace(currentAttribute.getClonedValues());
+                        retval.add(new PropertyModificationOperation(resultingDelta));
+                    }
+                }
+            }
+        }
         return retval;
+    }
+
+    private boolean containsDelta(Collection<Operation> operations, ItemName attributeName) {
+        for (Operation operation : operations) {
+            if (operation instanceof PropertyModificationOperation) {
+                PropertyDelta propertyDelta = ((PropertyModificationOperation) operation).getPropertyDelta();
+                if (isAttributeDelta(propertyDelta) && QNameUtil.match(attributeName, propertyDelta.getElementName())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private PropertyModificationOperation convertToReplace(PropertyDelta<?> propertyDelta, PrismObject<ShadowType> currentShadow, QName matchingRuleQName) throws SchemaException {
