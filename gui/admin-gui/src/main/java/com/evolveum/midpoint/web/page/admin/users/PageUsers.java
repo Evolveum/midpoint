@@ -150,16 +150,16 @@ public class PageUsers extends PageAdminObjectList<UserType> {
     protected List<IColumn<SelectableBean<UserType>, String>> initColumns() {
         List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
 
-        IColumn<SelectableBean<UserType>, String> column = new PropertyColumn(
+        IColumn<SelectableBean<UserType>, String> column = new PolyStringPropertyColumn(
                 createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
                 SelectableBean.F_VALUE + ".givenName");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("UserType.familyName"),
+        column = new PolyStringPropertyColumn(createStringResource("UserType.familyName"),
                 UserType.F_FAMILY_NAME.getLocalPart(), SelectableBean.F_VALUE + ".familyName");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("UserType.fullName"),
+        column = new PolyStringPropertyColumn(createStringResource("UserType.fullName"),
                 UserType.F_FULL_NAME.getLocalPart(), SelectableBean.F_VALUE + ".fullName");
         columns.add(column);
 

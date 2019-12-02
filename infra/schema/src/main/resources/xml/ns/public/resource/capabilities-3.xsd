@@ -472,12 +472,72 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="attributeContentRequirement" type="tns:AttributeContentRequirementType" minOccurs="0" default="none">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Specifies requirement on attribute values that should be passed to an operation.
+                                    E.g. whether only changed attributes should be passed to update operation
+                                    or whether all the values should be passed.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.1</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
     <xsd:element name="update" type="tns:UpdateCapabilityType"/>
+
+    <xsd:simpleType name="AttributeContentRequirementType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies requirement on attribute values that should be passed to an operation.
+                E.g. whether only changed attributes should be passed to update operation
+                or whether all the values should be passed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        There is no special requrement for attribute content. E.g. only the changed attributes
+                        shoudl be passed into the update operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- Later:
+                        available - values that are currently available (without significant overhead).
+                        identifiers - all the identifiers should be passed (primary, secondary, ...)
+               -->
+            <xsd:enumeration value="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The connector requires all the attributes of all attributes to be able to execute the operation.
+                        MidPoint should take all necessary steps to retrieve needed to retrieve the values, even if that
+                        means additional overhead.
+                        E.g. update operation needs values for all attributes to be passed as "fake" modifications for
+                        the connector to operate correctly.
+                        All modification deltas will be replace deltas. Multi-value attribute deltas will contain all the values,
+                        both all and new in a replace delta.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="DeleteCapabilityType">
         <xsd:annotation>

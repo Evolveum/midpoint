@@ -19,6 +19,366 @@
     <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector</namespace>
     <schema>
         <definition>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:qn917="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+                <xsd:complexType name="ConfigurationType">
+                    <xsd:sequence>
+                        <xsd:element minOccurs="0" ref="qn917:connectorPoolConfiguration">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:type>qn917:ConnectorPoolConfigurationType</a:type>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" ref="icfc:producerBufferSize"/>
+                        <xsd:element minOccurs="0" ref="icfc:timeouts">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:type>icfc:TimeoutsType</a:type>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" ref="icfc:resultsHandlerConfiguration">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:type>icfc:ResultsHandlerConfigurationType</a:type>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" ref="icfc:legacySchema"/>
+                        <xsd:element ref="icfc:configurationProperties">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:type>tns:ConfigurationPropertiesType</a:type>
+                                    <a:container/>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+                <xsd:complexType name="ConfigurationPropertiesType">
+                    <xsd:sequence>
+                        <xsd:element minOccurs="0" name="monsterized" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>monsterized.display</a:displayName>
+                                    <a:displayOrder>1</a:displayOrder>
+                                    <a:help>monsterized.help</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="requireUselessString" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_REQUIRE_USELESS_STRING</a:displayName>
+                                    <a:displayOrder>2</a:displayOrder>
+                                    <a:help>UI_REQUIRE_USELESS_STRING_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="impreciseTokenValues" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>impreciseTokenValues.display</a:displayName>
+                                    <a:displayOrder>3</a:displayOrder>
+                                    <a:help>impreciseTokenValues.help</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="useLegacySchema" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_USE_LEGACY_SCHEMA</a:displayName>
+                                    <a:displayOrder>4</a:displayOrder>
+                                    <a:help>UI_USE_LEGACY_SCHEMA_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="upCaseName" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_UPCASE_NAME</a:displayName>
+                                    <a:displayOrder>5</a:displayOrder>
+                                    <a:help>UI_UPCASE_NAME_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="supportActivation" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_SUPPORT_ACTIVATION</a:displayName>
+                                    <a:displayOrder>6</a:displayOrder>
+                                    <a:help>UI_SUPPORT_ACTIVATION_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="enforceUniqueName" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_ENFORCE_UNIQUE_NAME</a:displayName>
+                                    <a:displayOrder>7</a:displayOrder>
+                                    <a:help>UI_ENFORCE_UNIQUE_NAME</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="passwordReadabilityMode" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_INSTANCE_READABLE_PASSWORD</a:displayName>
+                                    <a:displayOrder>8</a:displayOrder>
+                                    <a:help>UI_INSTANCE_READABLE_PASSWORD_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="caseIgnoreValues" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_CASE_IGNORE_VALUES</a:displayName>
+                                    <a:displayOrder>9</a:displayOrder>
+                                    <a:help>UI_CASE_IGNORE_VALUES_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="generateAccountDescriptionOnUpdate" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_GENERATE_ACCOUNT_DESCRIPTION_ON_UPDATE</a:displayName>
+                                    <a:displayOrder>10</a:displayOrder>
+                                    <a:help>UI_GENERATE_ACCOUNT_DESCRIPTION_ON_UPDATE_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="instanceId" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>Instance identifier</a:displayName>
+                                    <a:displayOrder>11</a:displayOrder>
+                                    <a:help>Symbolic name of the resource instance.</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="supportSchema" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_SUPPORT_SCHEMA</a:displayName>
+                                    <a:displayOrder>12</a:displayOrder>
+                                    <a:help>UI_SUPPORT_SCHEMA_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="supportReturnDefaultAttributes" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>supportReturnDefaultAttributes.display</a:displayName>
+                                    <a:displayOrder>13</a:displayOrder>
+                                    <a:help>supportReturnDefaultAttributes.help</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="uidMode" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_UID_MODE</a:displayName>
+                                    <a:displayOrder>14</a:displayOrder>
+                                    <a:help>UI_UID_MODE_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="supportValidity" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_SUPPORT_VALIDITY</a:displayName>
+                                    <a:displayOrder>15</a:displayOrder>
+                                    <a:help>UI_SUPPORT_VALIDITY_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <!--  The type of uselessString is overridden to ProtectedString. This is the hack we want to test. -->
+                        <xsd:element minOccurs="0" name="uselessString" type="t:ProtectedStringType">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_INSTANCE_USELESS_STRING</a:displayName>
+                                    <a:displayOrder>16</a:displayOrder>
+                                    <a:help>UI_INSTANCE_USELESS_STRING_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="uselessGuardedString" type="t:ProtectedStringType">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_INSTANCE_USELESS_GUARDED_STRING</a:displayName>
+                                    <a:displayOrder>17</a:displayOrder>
+                                    <a:help>UI_INSTANCE_USELESS_GUARDED_STRING_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="forbiddenNames" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_FORBIDDEN_NAMES</a:displayName>
+                                    <a:displayOrder>18</a:displayOrder>
+                                    <a:help>UI_FORBIDDEN_NAMES_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="connectorInstanceNumberAttribute" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>connectorInstanceNumberAttribute.display</a:displayName>
+                                    <a:displayOrder>19</a:displayOrder>
+                                    <a:help>connectorInstanceNumberAttribute.help</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="pagingStrategy" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>pagingStrategy.display</a:displayName>
+                                    <a:displayOrder>20</a:displayOrder>
+                                    <a:help>pagingStrategy.help</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="caseIgnoreId" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_CASE_IGNORE_ID</a:displayName>
+                                    <a:displayOrder>21</a:displayOrder>
+                                    <a:help>UI_CASE_IGNORE_ID</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="connectorInstanceNameAttribute" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>connectorInstanceNameAttribute.display</a:displayName>
+                                    <a:displayOrder>22</a:displayOrder>
+                                    <a:help>connectorInstanceNameAttribute.help</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="tolerateDuplicateValues" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_TOLERATE_DUPLICATE_VALUES</a:displayName>
+                                    <a:displayOrder>23</a:displayOrder>
+                                    <a:help>UI_TOLERATE_DUPLICATE_VALUES_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="requireNameHint" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>requireNameHint.display</a:displayName>
+                                    <a:displayOrder>24</a:displayOrder>
+                                    <a:help>requireNameHint.help</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="requireExplicitEnable" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_INSTANCE_REQUIRE_EXPLICIT_ENABLE</a:displayName>
+                                    <a:displayOrder>25</a:displayOrder>
+                                    <a:help>UI_INSTANCE_REQUIRE_EXPLICIT_ENABLE</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="supportRunAs" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_SUPPORT_RUN_AS</a:displayName>
+                                    <a:displayOrder>26</a:displayOrder>
+                                    <a:help>UI_SUPPORT_RUN_AS_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="varyLetterCase" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_VARY_LETTER_CASE</a:displayName>
+                                    <a:displayOrder>27</a:displayOrder>
+                                    <a:help>UI_VARY_LETTER_CASE_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="referentialIntegrity" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_REFERENTIAL_INTEGRITY</a:displayName>
+                                    <a:displayOrder>28</a:displayOrder>
+                                    <a:help>UI_REFERENTIAL_INTEGRITY_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="generateDefaultValues" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_GENERATE_DEFAULT_VALUES</a:displayName>
+                                    <a:displayOrder>29</a:displayOrder>
+                                    <a:help>UI_GENERATE_DEFAULT_VALUES_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="requiredBaseContextOrgName" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_REQUIRED_BASE_CONTEXT_ORG_NAME</a:displayName>
+                                    <a:displayOrder>30</a:displayOrder>
+                                    <a:help>UI_REQUIRED_BASE_CONTEXT_ORG_NAME_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="generateAccountDescriptionOnCreate" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>UI_GENERATE_ACCOUNT_DESCRIPTION_ON_CREATE</a:displayName>
+                                    <a:displayOrder>31</a:displayOrder>
+                                    <a:help>UI_GENERATE_ACCOUNT_DESCRIPTION_ON_CREATE_HELP</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="alwaysRequireUpdateOfAttribute" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>alwaysRequireUpdateOfAttribute.display</a:displayName>
+                                    <a:displayOrder>32</a:displayOrder>
+                                    <a:help>alwaysRequireUpdateOfAttribute.help</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="addConnectorStateAttributes" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>addConnectorStateAttributes.display</a:displayName>
+                                    <a:displayOrder>33</a:displayOrder>
+                                    <a:help>addConnectorStateAttributes.help</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="minPasswordLength" type="xsd:int">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>minPasswordLength.display</a:displayName>
+                                    <a:displayOrder>34</a:displayOrder>
+                                    <a:help>minPasswordLength.help</a:help>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+                <xsd:element name="connectorConfiguration" type="tns:ConfigurationType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:container/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:schema>
+<!--
+
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                 xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
@@ -33,8 +393,9 @@
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
                 <xsd:complexType name="ConfigurationPropertiesType">
-                   <xsd:sequence>
+                   <xsd:sequence> -->
                          <!--  The type of uselessString is overridden to ProtectedString. This is the hack we want to test. -->
+            <!--
                       <xsd:element minOccurs="0" name="uselessString" type="t:ProtectedStringType">
                          <xsd:annotation>
                             <xsd:appinfo>
@@ -95,7 +456,9 @@
                       </xsd:appinfo>
                    </xsd:annotation>
                 </xsd:element>
-             </xsd:schema>
+             </xsd:schema> -->
+
+
         </definition>
     </schema>
 </connector>
