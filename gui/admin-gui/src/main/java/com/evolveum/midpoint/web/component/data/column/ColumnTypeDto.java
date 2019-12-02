@@ -17,6 +17,7 @@ public class ColumnTypeDto<T> implements Serializable{
     private String sortableColumn;
     private boolean sortable = false;
     private boolean multivalue = false;
+    private boolean translated = false;
 
     public ColumnTypeDto(String columnName, String columnValue, String sortableColumn) {
         super();
@@ -26,11 +27,16 @@ public class ColumnTypeDto<T> implements Serializable{
     }
 
     public ColumnTypeDto(String columnName, String sortableColumn, String columnValue, boolean multivalue) {
+        this(columnName, sortableColumn, columnValue, multivalue, false);
+    }
+
+    public ColumnTypeDto(String columnName, String sortableColumn, String columnValue, boolean multivalue, boolean translated) {
         super();
         this.columnName = columnName;
         this.columnValue = columnValue;
         this.sortableColumn = sortableColumn;
         this.multivalue = multivalue;
+        this.translated = translated;
     }
 
     public String getColumnName() {
@@ -57,6 +63,14 @@ public class ColumnTypeDto<T> implements Serializable{
 
     public void setMultivalue(boolean multivalue) {
         this.multivalue = multivalue;
+    }
+
+    public boolean isTranslated() {
+        return translated;
+    }
+
+    public void setTranslated(boolean translated) {
+        this.translated = translated;
     }
 
     public boolean isSortable() {

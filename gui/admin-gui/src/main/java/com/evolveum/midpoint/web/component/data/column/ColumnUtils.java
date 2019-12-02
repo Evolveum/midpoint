@@ -60,11 +60,16 @@ public class ColumnUtils {
             PropertyColumn<T, String> tableColumn = null;
             if (column.isSortable()) {
                 tableColumn = createPropertyColumn(column.getColumnName(), column.getSortableColumn(),
-                        column.getColumnValue(), column.isMultivalue());
+                        column.getColumnValue(), column.isMultivalue(), column.isTranslated());
 
             } else {
-                tableColumn = new PropertyColumn<>(createStringResource(column.getColumnName()),
-                    column.getColumnValue());
+                if (column.isTranslated()) {
+                    tableColumn = new PolyStringPropertyColumn<>(createStringResource(column.getColumnName()),
+                            column.getColumnValue());
+                } else {
+                    tableColumn = new PropertyColumn<>(createStringResource(column.getColumnName()),
+                            column.getColumnValue());
+                }
             }
             tableColumns.add(tableColumn);
 
@@ -73,8 +78,11 @@ public class ColumnUtils {
     }
 
     private static <T> PropertyColumn<T, String> createPropertyColumn(String name, String sortableProperty,
-            final String expression, final boolean multivalue) {
-
+            final String expression, final boolean multivalue, boolean translated) {
+        if (!multivalue && translated){
+            return new PolyStringPropertyColumn<T>(createStringResource(name), sortableProperty,
+                    expression);
+        }
         return new PropertyColumn<T, String>(createStringResource(name), sortableProperty, expression) {
             private static final long serialVersionUID = 1L;
 
@@ -256,11 +264,11 @@ public class ColumnUtils {
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("UserType.givenName", UserType.F_GIVEN_NAME.getLocalPart(),
-                        SelectableBean.F_VALUE + ".givenName.orig", false),
+                        SelectableBean.F_VALUE + ".givenName.orig", false, true),
                 new ColumnTypeDto<String>("UserType.familyName", UserType.F_FAMILY_NAME.getLocalPart(),
-                        SelectableBean.F_VALUE + ".familyName.orig", false),
+                        SelectableBean.F_VALUE + ".familyName.orig", false, true),
                 new ColumnTypeDto<String>("UserType.fullName", UserType.F_FULL_NAME.getLocalPart(),
-                        SelectableBean.F_VALUE + ".fullName.orig", false),
+                        SelectableBean.F_VALUE + ".fullName.orig", false, true),
                 new ColumnTypeDto<String>("UserType.emailAddress", UserType.F_EMAIL_ADDRESS.getLocalPart(),
                         SelectableBean.F_VALUE + ".emailAddress", false)
 
@@ -390,7 +398,7 @@ public class ColumnUtils {
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("AbstractRoleType.displayName",
                         sortByDisplayName,
-                        SelectableBean.F_VALUE + ".displayName", false),
+                        SelectableBean.F_VALUE + ".displayName", false, true),
                 new ColumnTypeDto<String>("AbstractRoleType.description",
                         null,
                         SelectableBean.F_VALUE + ".description", false),
