@@ -20,6 +20,7 @@ import java.util.Collection;
  */
 public interface DeltaFactory {
 
+    @Deprecated // please use DeltaBuilder instead
     interface Property {
 
         @SuppressWarnings("unchecked")
@@ -89,6 +90,7 @@ public interface DeltaFactory {
                 PrismObjectDefinition<?> objectDefinition, java.lang.Object... propertyValues);
     }
 
+    @Deprecated // please use DeltaBuilder instead
     interface Reference {
 
         ReferenceDelta create(ItemPath path, PrismReferenceDefinition definition);
@@ -161,6 +163,7 @@ public interface DeltaFactory {
                 PrismObject<?> refTarget);
     }
 
+    @Deprecated // please use DeltaBuilder instead
     interface Container {
         <C extends Containerable> ContainerDelta<C> create(ItemPath path, PrismContainerDefinition<C> definition);
 
