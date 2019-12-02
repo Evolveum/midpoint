@@ -6,12 +6,15 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!-- This is a resource with hacks and various dirty solutions -->
+
 <resource oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
@@ -29,6 +32,13 @@
             <icfi:uselessGuardedString>       <!-- Add some whitespace -->
                 <t:clearValue>Dead men tell no tales</t:clearValue>
             </icfi:uselessGuardedString>
+            <icfi:supportValidity>true</icfi:supportValidity>
+            <!-- MID-5944 -->
+            <!-- Ever though there is attributeContentRequirement=all, we can only require those attributes that are present in all objects. -->
+            <icfi:alwaysRequireUpdateOfAttribute>__ACCOUNT__:__NAME__</icfi:alwaysRequireUpdateOfAttribute>
+            <icfi:alwaysRequireUpdateOfAttribute>__ACCOUNT__:weapon</icfi:alwaysRequireUpdateOfAttribute>
+            <icfi:alwaysRequireUpdateOfAttribute>__ACCOUNT__:ship</icfi:alwaysRequireUpdateOfAttribute>
+            <icfi:alwaysRequireUpdateOfAttribute>__GROUP__:__NAME__</icfi:alwaysRequireUpdateOfAttribute>
         </icfc:configurationProperties>
 
         <icfc:resultsHandlerConfiguration>
@@ -50,6 +60,80 @@
                 <ref>icfs:name</ref>
                 <displayName>Username</displayName>
             </attribute>
+            <attribute>
+                <ref>ri:weapon</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:loot</ref>
+                <fetchStrategy>explicit</fetchStrategy>
+            </attribute>
+            <attribute>
+                <ref>ri:ship</ref>
+                <limitations>
+                    <access>
+                        <read>true</read>
+                        <add>true</add>
+                        <modify>true</modify>
+                    </access>
+                </limitations>
+            </attribute>
+            <attribute>
+                <ref>ri:drink</ref>
+                <limitations>
+                    <access>
+                        <read>true</read>
+                        <add>false</add>
+                        <modify>true</modify>
+                    </access>
+                </limitations>
+            </attribute>
+            <attribute>
+                <ref>ri:quote</ref>
+                <limitations>
+                    <access>
+                        <read>true</read>
+                        <add>true</add>
+                        <modify>false</modify>
+                    </access>
+                </limitations>
+            </attribute>
+            <attribute>
+                <ref>ri:gossip</ref>
+                <limitations>
+                    <access>
+                        <read>false</read>
+                        <add>true</add>
+                        <modify>true</modify>
+                    </access>
+                </limitations>
+            </attribute>
+            <attribute>
+                <ref>ri:water</ref>
+                <limitations>
+                    <access>
+                        <read>false</read>
+                        <add>false</add>
+                        <modify>false</modify>
+                    </access>
+                </limitations>
+            </attribute>
+            <association>
+                <ref>ri:group</ref>
+                <kind>entitlement</kind>
+                <intent>group</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:members</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
+            </association>
+            <association>
+                <ref>ri:priv</ref>
+                <kind>entitlement</kind>
+                <intent>privilege</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:privileges</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
+            </association>
             <protected>
                 <filter>
                     <q:equal>
@@ -102,9 +186,30 @@
                 </filter>
             </protected>
         </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <default>true</default>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <attribute>
+                <ref>ri:members</ref>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>privilege</intent>
+            <default>false</default>
+            <objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
     </schemaHandling>
     <capabilities>
         <configured>
+            <cap:update>
+                <cap:delta>true</cap:delta>
+                <!-- MID-5944 -->
+                <cap:attributeContentRequirement>all</cap:attributeContentRequirement>
+            </cap:update>
             <cap:countObjects>
                 <cap:simulate>pagedSearchEstimate</cap:simulate>
             </cap:countObjects>

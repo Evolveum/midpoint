@@ -15,6 +15,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
@@ -70,10 +71,6 @@ public class ConnIdConfigurationTransformer {
      * The provided ICF APIConfiguration will be modified, some values may be
      * overwritten.
      *
-     * @param apiConfig
-     *            ICF connector configuration
-     * @param resourceType
-     *            midPoint XML configuration
      * @throws SchemaException
      * @throws ConfigurationException
      */
@@ -162,7 +159,7 @@ public class ConnIdConfigurationTransformer {
 
                 Class<?> type = property.getType();
                 if (type.isArray()) {
-                    Object[] connIdArray = convertToConnIdfArray(prismProperty, type.getComponentType());
+                    Object[] connIdArray = convertToConnIdArray(prismProperty, type.getComponentType());
                     if (connIdArray != null && connIdArray.length != 0) {
                         property.setValue(connIdArray);
                     }
@@ -319,21 +316,23 @@ public class ConnIdConfigurationTransformer {
             return null;
         }
         PrismPropertyValue<?> pval = configProperty.getValue();
-        return convertToIcf(pval, expectedType);
+        return convertToConnId(pval, expectedType);
     }
 
-    private Object[] convertToConnIdfArray(PrismProperty prismProperty, Class<?> componentType)
-            throws ConfigurationException {
+    private Object[] convertToConnIdArray(PrismProperty prismProperty, Class<?> componentType) throws ConfigurationException, SchemaException {
         List<PrismPropertyValue> values = prismProperty.getValues();
         Object valuesArrary = Array.newInstance(componentType, values.size());
         for (int j = 0; j < values.size(); ++j) {
-            Object icfValue = convertToIcf(values.get(j), componentType);
+            Object icfValue = convertToConnId(values.get(j), componentType);
+            if (icfValue != null && icfValue instanceof RawType) {
+                throw new SchemaException("Cannot convert value of "+prismProperty.getElementName().getLocalPart()+" because it is still raw. Missing definition in connector schema?");
+            }
             Array.set(valuesArrary, j, icfValue);
         }
         return (Object[]) valuesArrary;
     }
 
-    private Object convertToIcf(PrismPropertyValue<?> pval, Class<?> expectedType) throws ConfigurationException {
+    private Object convertToConnId(PrismPropertyValue<?> pval, Class<?> expectedType) throws ConfigurationException {
         Object midPointRealValue = pval.getValue();
         if (expectedType.equals(GuardedString.class)) {
             // Guarded string is a special ICF beast
@@ -366,6 +365,10 @@ public class ConnIdConfigurationTransformer {
                 throw new ConfigurationException(e);
             }
         } else {
+            // Cannot really make this simple check because of boxed types (boolean vs Boolear).
+//            if (midPointRealValue != null && !expectedType.isAssignableFrom(midPointRealValue.getClass())) {
+//                throw new IllegalArgumentException("Type mismatch for "+pval+", expected "+expectedType+", got "+midPointRealValue.getClass());
+//            }
             return midPointRealValue;
         }
     }

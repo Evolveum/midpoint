@@ -83,7 +83,7 @@ public class TestDummyCaseIgnore extends TestDummy {
     }
 
     @Override
-    protected boolean isAvoidDuplicateValues() {
+    protected boolean isPreFetchResource() {
         return true;
     }
 

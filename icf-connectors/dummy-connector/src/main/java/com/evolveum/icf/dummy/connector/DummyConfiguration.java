@@ -63,6 +63,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private String connectorInstanceNumberAttribute = null;
     private String connectorInstanceNameAttribute = null;
     private boolean impreciseTokenValues = false;
+    private String[] alwaysRequireUpdateOfAttribute = new String[0];
 
     /**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
@@ -424,6 +425,19 @@ public class DummyConfiguration extends AbstractConfiguration {
 
     public void setImpreciseTokenValues(boolean impreciseTokenValues) {
         this.impreciseTokenValues = impreciseTokenValues;
+    }
+
+    /**
+     * Name of attributes that will always need to be part of update operation.
+     * Used for testing attributeContentRequirement in UpdateCapabilityType.
+     */
+    @ConfigurationProperty
+    public String[] getAlwaysRequireUpdateOfAttribute() {
+        return alwaysRequireUpdateOfAttribute;
+    }
+
+    public void setAlwaysRequireUpdateOfAttribute(String[] alwaysRequireUpdateOfAttribute) {
+        this.alwaysRequireUpdateOfAttribute = alwaysRequireUpdateOfAttribute;
     }
 
     /**

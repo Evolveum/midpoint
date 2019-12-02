@@ -7,6 +7,7 @@
 package com.evolveum.icf.dummy.connector;
 
 import com.evolveum.icf.dummy.resource.*;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.*;
@@ -53,6 +54,7 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
         LOG.info("updateDelta::begin {0}", instanceName);
         validate(objectClass);
         validate(uid);
+        validateModifications(objectClass, modifications);
 
         final Set<AttributeDelta> sideEffectChanges = new HashSet<>();
 
@@ -80,18 +82,21 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                     if (delta.is(Name.NAME)) {
                         assertReplace(delta);
                         String newName = getSingleReplaceValueMandatory(delta, String.class);
-                        try {
-                            resource.renameAccount(account.getId(), account.getName(), newName);
-                        } catch (ObjectDoesNotExistException e) {
-                            throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
-                        } catch (ObjectAlreadyExistsException e) {
-                            throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
-                        } catch (SchemaViolationException e) {
-                            throw new org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException("Schema exception: " + e.getMessage(), e);
-                        }
-                        // We need to change the returned uid here (only if the mode is set to Name)
-                        if (configuration.isUidBoundToName()) {
-                            addUidChange(sideEffectChanges, newName);
+                        boolean doRename = handlePhantomRenames(objectClass, account, newName);
+                        if (doRename) {
+                            try {
+                                resource.renameAccount(account.getId(), account.getName(), newName);
+                            } catch (ObjectDoesNotExistException e) {
+                                throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
+                            } catch (ObjectAlreadyExistsException e) {
+                                throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+                            } catch (SchemaViolationException e) {
+                                throw new org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException("Schema exception: " + e.getMessage(), e);
+                            }
+                            // We need to change the returned uid here (only if the mode is set to Name)
+                            if (configuration.isUidBoundToName()) {
+                                addUidChange(sideEffectChanges, newName);
+                            }
                         }
                     } else if (delta.is(OperationalAttributes.PASSWORD_NAME)) {
                         if (delta.getValuesToReplace() != null) {
@@ -160,15 +165,18 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                     if (delta.is(Name.NAME)) {
                         assertReplace(delta);
                         String newName = getSingleReplaceValueMandatory(delta, String.class);
-                        try {
-                            resource.renameGroup(group.getId(), group.getName(), newName);
-                        } catch (ObjectDoesNotExistException e) {
-                            throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
-                        } catch (ObjectAlreadyExistsException e) {
-                            throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+                        boolean doRename = handlePhantomRenames(objectClass, group, newName);
+                        if (doRename) {
+                            try {
+                                resource.renameGroup(group.getId(), group.getName(), newName);
+                            } catch (ObjectDoesNotExistException e) {
+                                throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
+                            } catch (ObjectAlreadyExistsException e) {
+                                throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+                            }
+                            // We need to change the returned uid here
+                            addUidChange(sideEffectChanges, newName);
                         }
-                        // We need to change the returned uid here
-                        addUidChange(sideEffectChanges, newName);
                     } else if (delta.is(OperationalAttributes.PASSWORD_NAME)) {
                         throw new InvalidAttributeValueException("Attempt to change password on group");
 
@@ -207,15 +215,18 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
                     if (delta.is(Name.NAME)) {
                         assertReplace(delta);
                         String newName = getSingleReplaceValueMandatory(delta, String.class);
-                        try {
-                            resource.renamePrivilege(priv.getId(), priv.getName(), newName);
-                        } catch (ObjectDoesNotExistException e) {
-                            throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
-                        } catch (ObjectAlreadyExistsException e) {
-                            throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+                        boolean doRename = handlePhantomRenames(objectClass, priv, newName);
+                        if (doRename) {
+                            try {
+                                resource.renamePrivilege(priv.getId(), priv.getName(), newName);
+                            } catch (ObjectDoesNotExistException e) {
+                                throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
+                            } catch (ObjectAlreadyExistsException e) {
+                                throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+                            }
+                            // We need to change the returned uid here
+                            addUidChange(sideEffectChanges, newName);
                         }
-                        // We need to change the returned uid here
-                        addUidChange(sideEffectChanges, newName);
                     } else if (delta.is(OperationalAttributes.PASSWORD_NAME)) {
                         throw new InvalidAttributeValueException("Attempt to change password on privilege");
 
@@ -294,6 +305,71 @@ public abstract class AbstractModernObjectDummyConnector extends AbstractObjectD
 
         LOG.info("update::end {0}", instanceName);
         return sideEffectChanges;
+    }
+
+    private boolean handlePhantomRenames(ObjectClass objectClass, DummyObject account, String newName) {
+        LOG.info("XXX: RENAME {0} -> {1}", account.getName(), newName);
+        if (isNameEquivalent(account.getName(), newName)) {
+            if (ArrayUtils.contains(getConfiguration().getAlwaysRequireUpdateOfAttribute(), objectClass.getObjectClassValue() + ":" + Name.NAME)) {
+                LOG.ok("Phantom rename of {0} {1}", objectClass.getObjectClassValue(), newName);
+                return false;
+            } else {
+                throw new ConnectorException("Phantom rename of object " + newName);
+            }
+        }
+        return true;
+    }
+
+    protected boolean isNameEquivalent(String oldName, String newName) {
+        if (Objects.equals(oldName, newName)) {
+            return true;
+        }
+        if (getConfiguration().getCaseIgnoreId()) {
+            if (StringUtils.equalsIgnoreCase(oldName, newName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected void validateModifications(ObjectClass objectClass, Set<AttributeDelta> modifications) {
+        String[] alwaysRequireUpdateOfAttributes = getConfiguration().getAlwaysRequireUpdateOfAttribute();
+        if (alwaysRequireUpdateOfAttributes.length == 0) {
+            return;
+        }
+        for (String alwaysRequireUpdateOfAttributeSpec : alwaysRequireUpdateOfAttributes) {
+            String[] split = alwaysRequireUpdateOfAttributeSpec.split(":");
+            String objectClassName = split[0];
+            String alwaysRequireUpdateOfAttribute = split[1];
+            if (!objectClassName.equals(objectClass.getObjectClassValue())) {
+                continue;
+            }
+            AttributeDelta modification = findModification(modifications, alwaysRequireUpdateOfAttribute);
+            if (modification == null) {
+                throw new InvalidAttributeValueException("Missing required attribute "+alwaysRequireUpdateOfAttribute+" in update operation");
+            }
+            if (modification.getValuesToAdd() != null) {
+                throw new InvalidAttributeValueException("Unexpected add delta for attribute "+alwaysRequireUpdateOfAttribute+" in update operation");
+            }
+            if (modification.getValuesToRemove() != null) {
+                throw new InvalidAttributeValueException("Unexpected remove delta for attribute "+alwaysRequireUpdateOfAttribute+" in update operation");
+            }
+            if (modification.getValuesToReplace() == null) {
+                throw new InvalidAttributeValueException("No replace delta for attribute "+alwaysRequireUpdateOfAttribute+" in update operation");
+            }
+        }
+    }
+
+    private AttributeDelta findModification(Set<AttributeDelta> modifications, String attributeName) {
+        if (modifications == null) {
+            return null;
+        }
+        for (AttributeDelta modification : modifications) {
+            if (modification.is(attributeName)) {
+                return modification;
+            }
+        }
+        return null;
     }
 
     private void applyAuxiliaryObjectClassDelta(DummyObject dummyObject, AttributeDelta delta) {
