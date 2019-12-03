@@ -73,7 +73,10 @@ public class CaseWorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemT
             CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
             return defaultIfNull(
                     WfGuiUtil.getLocalizedProcessName(caseType != null ? caseType.getApprovalContext() : null, CaseWorkItemSummaryPanel.this),
-                    caseWorkItemType != null ? PolyString.getOrig(caseWorkItemType.getName()) : "");    // todo MID-5916
+                    caseWorkItemType != null ?
+                            getPageBase().getLocalizationService().translate(PolyString.toPolyString(caseWorkItemType.getName()),
+                                    getPageBase().getLocale(), true)
+                    : null);
         });
     }
 

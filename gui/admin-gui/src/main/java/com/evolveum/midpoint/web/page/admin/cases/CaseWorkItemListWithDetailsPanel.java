@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.Component;
@@ -262,7 +263,9 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
 
             @Override
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                return Model.of(PolyString.getOrig(unwrapRowModel(rowModel).getName()));    // todo MID-5916
+                PolyStringType workitemName = unwrapRowModel(rowModel).getName();
+                return Model.of(getPageBase().getLocalizationService().translate(PolyString.toPolyString(workitemName),
+                        getPageBase().getLocale(), true));
             }
 
             @Override
