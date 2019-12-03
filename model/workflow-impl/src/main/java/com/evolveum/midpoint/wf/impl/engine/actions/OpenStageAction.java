@@ -201,10 +201,10 @@ class OpenStageAction extends InternalAction {
             if (preStageComputationResult.noApproversFound()) {
                 LOGGER.debug("No approvers at the stage '{}' for process {} (case oid {}) - outcome-if-no-approvers is {}",
                         stageDef.getName(),
-                        ctx.getProcessInstanceName(), ctx.getCurrentCase().getOid(), stageDef.getOutcomeIfNoApprovers());
+                        ctx.getProcessInstanceNameOrig(), ctx.getCurrentCase().getOid(), stageDef.getOutcomeIfNoApprovers());
             }
             LOGGER.debug("Approval process instance {} (case oid {}), stage {}: predetermined outcome: {}, approvers: {}",
-                    ctx.getProcessInstanceName(), ctx.getCurrentCase().getOid(),
+                    ctx.getProcessInstanceNameOrig(), ctx.getCurrentCase().getOid(),
                     ApprovalContextUtil.getStageDiagName(stageDef), predeterminedOutcome, approverRefs);
         }
     }

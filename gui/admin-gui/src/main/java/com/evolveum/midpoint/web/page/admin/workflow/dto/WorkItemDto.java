@@ -148,7 +148,7 @@ public class WorkItemDto extends Selectable {
     }
 
     public String getName() {
-        return workItem.getName();
+        return PolyString.getOrig(workItem.getName());  // todo MID-5916
     }
 
     public String getCreatedFormatted() {
