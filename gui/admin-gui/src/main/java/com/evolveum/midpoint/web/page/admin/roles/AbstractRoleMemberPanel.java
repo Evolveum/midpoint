@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
@@ -1002,12 +1003,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 SelectableBean<ObjectType> bean = rowModel.getObject();
                 ObjectType object = bean.getValue();
                 cellItem.add(new Label(componentId,
-                            getMemberObjectDisplayName(object)));
+                            getMemberObjectDisplayName(object, true)));
             }
 
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
-                return Model.of(getMemberObjectDisplayName(rowModel.getObject().getValue()));
+                return Model.of(getMemberObjectDisplayName(rowModel.getObject().getValue(), true));
             }
 
         };
@@ -1064,14 +1065,19 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 
     private String getMemberObjectDisplayName(ObjectType object){
+        return getMemberObjectDisplayName(object, false);
+    }
+
+    private String getMemberObjectDisplayName(ObjectType object, boolean translate){
         if (object == null){
             return "";
         }
         if (object instanceof UserType) {
-            return WebComponentUtil.getOrigStringFromPoly(((UserType) object).getFullName());
+            return getPageBase().getLocalizationService().translate(PolyString.toPolyString(((UserType) object).getFullName()),
+                    getPageBase().getLocale(), true);
         } else if (object instanceof AbstractRoleType) {
-            return WebComponentUtil
-                    .getOrigStringFromPoly(((AbstractRoleType) object).getDisplayName());
+            return getPageBase().getLocalizationService().translate(PolyString.toPolyString(((AbstractRoleType) object).getDisplayName()),
+                    getPageBase().getLocale(), true);
         } else {
             return "";
         }

@@ -264,11 +264,11 @@ public class ColumnUtils {
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("UserType.givenName", UserType.F_GIVEN_NAME.getLocalPart(),
-                        SelectableBean.F_VALUE + ".givenName.orig", false, true),
+                        SelectableBean.F_VALUE + ".givenName", false, true),
                 new ColumnTypeDto<String>("UserType.familyName", UserType.F_FAMILY_NAME.getLocalPart(),
-                        SelectableBean.F_VALUE + ".familyName.orig", false, true),
+                        SelectableBean.F_VALUE + ".familyName", false, true),
                 new ColumnTypeDto<String>("UserType.fullName", UserType.F_FULL_NAME.getLocalPart(),
-                        SelectableBean.F_VALUE + ".fullName.orig", false, true),
+                        SelectableBean.F_VALUE + ".fullName", false, true),
                 new ColumnTypeDto<String>("UserType.emailAddress", UserType.F_EMAIL_ADDRESS.getLocalPart(),
                         SelectableBean.F_VALUE + ".emailAddress", false)
 

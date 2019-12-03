@@ -19,7 +19,7 @@ import org.apache.wicket.model.PropertyModel;
  * @author honchar
  *
  */
-public class PolyStringPropertyColumn<T extends Object> extends PropertyColumn<T, String> {
+public class PolyStringPropertyColumn<T> extends PropertyColumn<T, String> {
     private static final long serialVersionUID = 1L;
 
     public PolyStringPropertyColumn(IModel<String> displayModel, String sortProperty, String propertyExpression) {
