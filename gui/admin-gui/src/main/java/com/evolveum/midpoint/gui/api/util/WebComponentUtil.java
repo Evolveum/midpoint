@@ -305,8 +305,12 @@ public final class WebComponentUtil {
     }
 
     public static String getReferencedObjectNames(List<ObjectReferenceType> refs, boolean showTypes) {
+        return getReferencedObjectNames(refs, showTypes, false);
+    }
+
+    public static String getReferencedObjectNames(List<ObjectReferenceType> refs, boolean showTypes, boolean translate) {
         return refs.stream()
-                .map(ref -> emptyIfNull(getName(ref)) + (showTypes ? (" (" + emptyIfNull(getTypeLocalized(ref)) + ")") : ""))
+                .map(ref -> emptyIfNull(getName(ref, translate)) + (showTypes ? (" (" + emptyIfNull(getTypeLocalized(ref)) + ")") : ""))
                 .collect(Collectors.joining(", "));
     }
 
@@ -1046,32 +1050,45 @@ public final class WebComponentUtil {
     }
 
     public static String getEffectiveName(ObjectType object, QName propertyName) {
+        return getEffectiveName(object, propertyName, false);
+    }
+
+    public static String getEffectiveName(ObjectType object, QName propertyName, boolean translate) {
         if (object == null) {
             return null;
         }
 
-        return getEffectiveName(object.asPrismObject(), propertyName);
+        return getEffectiveName(object.asPrismObject(), propertyName, translate);
     }
 
     public static <O extends ObjectType> String getEffectiveName(PrismObject<O> object, QName propertyName) {
+        return getEffectiveName(object, propertyName, false);
+    }
+
+    public static <O extends ObjectType> String getEffectiveName(PrismObject<O> object, QName propertyName, boolean translate) {
         if (object == null) {
             return null;
         }
 
         PrismProperty prop = object.findProperty(ItemName.fromQName(propertyName));
+        MidPointApplication application = MidPointApplication.get();
 
         if (prop != null) {
             Object realValue = prop.getRealValue();
             if (prop.getDefinition().getTypeName().equals(DOMUtil.XSD_STRING)) {
                 return (String) realValue;
             } else if (realValue instanceof PolyString) {
-                return WebComponentUtil.getOrigStringFromPoly((PolyString) realValue);
+                return translate ? application.getLocalizationService().translate((PolyString) realValue, getCurrentLocale(), true)
+                        : WebComponentUtil.getOrigStringFromPoly((PolyString) realValue);
             }
         }
 
         PolyString name = getValue(object, ObjectType.F_NAME, PolyString.class);
-
-        return name != null ? name.getOrig() : null;
+        if (name == null){
+            return null;
+        }
+        return translate ? application.getLocalizationService().translate(name, getCurrentLocale(), true)
+                : WebComponentUtil.getOrigStringFromPoly(name);
     }
 
     public static <O extends ObjectType> String getName(ObjectReferenceType ref, PageBase pageBase, String operation) {
@@ -1130,7 +1147,7 @@ public final class WebComponentUtil {
             if (translate){
                 MidPointApplication application = MidPointApplication.get();
                 return application.getLocalizationService().translate(PolyString.toPolyString(ref.getTargetName()),
-                        WebComponentUtil.getCurrentLocale(), true);
+                        getCurrentLocale(), true);
             }
             return getOrigStringFromPoly(ref.getTargetName());
         }
@@ -1154,7 +1171,7 @@ public final class WebComponentUtil {
         }
         if (translate){
             MidPointApplication application = MidPointApplication.get();
-            return application.getLocalizationService().translate(name, WebComponentUtil.getCurrentLocale(), true);
+            return application.getLocalizationService().translate(name, getCurrentLocale(), true);
         }
         return name.getOrig();
     }
@@ -1342,7 +1359,7 @@ public final class WebComponentUtil {
         if (translate){
             MidPointApplication application = MidPointApplication.get();
             return application.getLocalizationService().translate(PolyString.toPolyString(ObjectTypeUtil.getDisplayName(ref)),
-                    WebComponentUtil.getCurrentLocale(), true);
+                    getCurrentLocale(), true);
         } else {
             return PolyString.getOrig(ObjectTypeUtil.getDisplayName(ref));
         }
@@ -1356,7 +1373,7 @@ public final class WebComponentUtil {
         if (translate){
             MidPointApplication application = MidPointApplication.get();
             return application.getLocalizationService().translate(PolyString.toPolyString(ObjectTypeUtil.getDisplayName(object)),
-                    WebComponentUtil.getCurrentLocale(), true);
+                    getCurrentLocale(), true);
         } else {
             return PolyString.getOrig(ObjectTypeUtil.getDisplayName(object));
         }
@@ -1609,7 +1626,7 @@ public final class WebComponentUtil {
             return null;
         }
         PatternDateConverter converter = new PatternDateConverter(getLocalizedDatePattern(style), true);
-        return converter.convertToString(date, WebComponentUtil.getCurrentLocale());
+        return converter.convertToString(date, getCurrentLocale());
     }
 
     public static String getShortDateTimeFormattedValue(XMLGregorianCalendar date, PageBase pageBase) {
