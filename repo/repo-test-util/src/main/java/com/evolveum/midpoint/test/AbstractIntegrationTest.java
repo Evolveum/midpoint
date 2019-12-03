@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.test.PredefinedTestMethodTracing.OFF;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
@@ -181,6 +182,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     protected static OpenDJController openDJController = new OpenDJController();
     protected static DerbyController derbyController = new DerbyController();
 
+    /**
+     * Fast and simple way how to enable tracing of test methods.
+     * (Assuming that auto task management is enabled.)
+     */
+    protected PredefinedTestMethodTracing predefinedTestMethodTracing;
+
+    /**
+     * Enables automatic task and operation result management in test methods.
+     */
+    protected boolean autoTaskManagementEnabled;
+
     // We need this complicated init as we want to initialize repo only once.
     // JUnit will
     // create new class instance for every test, so @Before and @PostInit will
@@ -232,9 +244,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 
     /**
-     * Creates appropriate task and result and set it into ITestContext.
+     * Creates appropriate task and result and set it into MidpointTestMethodContext.
      *
-     * EXPERIMENTAL. Probably requires single-threaded test methods execution (if ITestContext is shared).
+     * EXPERIMENTAL.
      */
     @BeforeMethod
     public void setTaskAndResult(ITestContext ctx, Method testMethod) throws SchemaException {
@@ -266,14 +278,42 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 
     protected TracingProfileType getTestMethodTracingProfile() {
-        return null;
+        if (predefinedTestMethodTracing == null || predefinedTestMethodTracing == OFF) {
+            return null;
+        } else {
+            TracingProfileType profile;
+            switch (predefinedTestMethodTracing) {
+                case MODEL_LOGGING: profile = createModelLoggingTracingProfile(); break;
+                case MODEL_WORKFLOW_LOGGING: profile = createModelAndWorkflowLoggingTracingProfile(); break;
+                case MODEL_PROVISIONING_LOGGING: profile = createModelAndProvisioningLoggingTracingProfile(); break;
+                default: throw new AssertionError(predefinedTestMethodTracing.toString());
+            }
+            return profile
+                    .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
+        }
     }
 
-    // To be enabled only for specific test classes (until agreed in devel team).
-    // TEMPORARY
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    /**
+     * @return Whether automatic task and operation result management is enabled.
+     *
+     * Please either override this method or set autoTaskManagementEnabled to true.
+     *
+     * This method is a temporary solution until all test methods will use this automatic task/result management.
+     */
     protected boolean isAutoTaskManagementEnabled() {
-        return false;
+        return autoTaskManagementEnabled;
+    }
+
+    public void setAutoTaskManagementEnabled(boolean autoTaskManagementEnabled) {
+        this.autoTaskManagementEnabled = autoTaskManagementEnabled;
+    }
+
+    public PredefinedTestMethodTracing getPredefinedTestMethodTracing() {
+        return predefinedTestMethodTracing;
+    }
+
+    public void setPredefinedTestMethodTracing(PredefinedTestMethodTracing predefinedTestMethodTracing) {
+        this.predefinedTestMethodTracing = predefinedTestMethodTracing;
     }
 
     /**
