@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
@@ -261,7 +262,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
 
             @Override
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                return Model.of(unwrapRowModel(rowModel).getName());
+                return Model.of(PolyString.getOrig(unwrapRowModel(rowModel).getName()));    // todo MID-5916
             }
 
             @Override

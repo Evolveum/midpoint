@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.page.admin.cases.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -132,7 +133,7 @@ public class CaseWorkItemDto extends Selectable {
     }
 
     public String getName() {
-        return workItem.getName();
+        return PolyString.getOrig(workItem.getName());  // todo MID-5916
     }
 
     public AbstractWorkItemOutputType getOutput() {

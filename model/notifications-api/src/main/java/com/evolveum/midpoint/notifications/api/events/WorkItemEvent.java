@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -58,7 +59,7 @@ public class WorkItemEvent extends WorkflowEvent {
     }
 
     public String getWorkItemName() {
-        return workItem.getName();
+        return PolyString.getOrig(workItem.getName());  // todo MID-5916
     }
 
     @NotNull

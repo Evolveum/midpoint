@@ -104,7 +104,7 @@ public class CloseStageAction extends InternalAction {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(
                         "Closing the stage for approval process instance {} (case oid {}), stage {}: result of this stage: {}",
-                        ctx.getProcessInstanceName(),
+                        ctx.getProcessInstanceNameOrig(),
                         ctx.getCaseOid(), ApprovalContextUtil.getStageDiagName(stageDef), approved);
             }
 
