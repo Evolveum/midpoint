@@ -20,6 +20,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationArgumentType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
@@ -188,6 +189,10 @@ public class LocalizationServiceImpl implements LocalizationService {
             } else if (param instanceof LocalizableMessage) {
                 LocalizableMessage msg = (LocalizableMessage) param;
                 param = translate(msg, locale);
+            } else if (param instanceof PolyString) {
+                param = translate((PolyString) param, locale, true);
+            } else if (param instanceof PolyStringType) {
+                param = translate(((PolyStringType) param).toPolyString(), locale, true);
             } else if (param instanceof PolyStringTranslationType) {
                 param = translate((PolyStringTranslationType)param, locale);
             } else if (param instanceof PolyStringTranslationArgumentType) {

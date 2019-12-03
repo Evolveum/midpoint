@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,6 +130,9 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     protected static final File ROLE_CORP_AUTH_FILE = new File(TEST_DIR, "role-corp-auth.xml");
     protected static final String ROLE_CORP_AUTH_OID = "12345678-d34d-b33f-f00d-55555555aaaa";
 
+    protected static final TestResource USER_LOCALIZED = new TestResource(TEST_DIR, "user-localized.xml", "c46f4b09-2200-4977-88bc-da1f3ffd0b42");
+    protected static final TestResource ROLE_LOCALIZED = new TestResource(TEST_DIR, "role-localized.xml", "25294519-5e0e-44d4-bebc-ea549d850ed9");
+
     protected static final File[] ROLE_CORP_FILES = {
             ROLE_METAROLE_SOD_NOTIFICATION_FILE,
             ROLE_CORP_AUTH_FILE,
@@ -190,7 +194,8 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     }
 
     protected void assertTargetTriggers(LensContext<? extends FocusType> context, PolicyConstraintKindType selectedConstraintKind, int expectedCount) {
-        List<EvaluatedPolicyRuleTrigger> triggers = new ArrayList<>();
+        display("Asserting target triggers for selected constraint kind = " + selectedConstraintKind + ", expected count = " + expectedCount);
+        List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
         forTriggeredTargetPolicyRule(context, null, trigger -> {
             if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
                 return;
