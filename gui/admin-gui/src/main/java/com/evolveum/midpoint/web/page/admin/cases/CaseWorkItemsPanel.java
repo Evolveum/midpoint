@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -159,7 +160,9 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                return Model.of(PolyString.getOrig(ColumnUtils.unwrapRowModel(rowModel).getName()));    // todo MID-5916
+                PolyStringType workitemName = ColumnUtils.unwrapRowModel(rowModel).getName();
+                return Model.of(getPageBase().getLocalizationService().translate(PolyString.toPolyString(workitemName),
+                        getPageBase().getLocale(), true));
             }
 
             @Override
