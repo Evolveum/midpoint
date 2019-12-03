@@ -361,6 +361,7 @@ public class SynchronizationTests extends TestBase {
                             .feedback()
                     .isSuccess()
         );
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath()+"err",false);
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
@@ -369,7 +370,7 @@ public class SynchronizationTests extends TestBase {
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath(),true);
-
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListTasksPage  tasksPage = basicPage.listTasks();
         tasksPage
