@@ -76,7 +76,7 @@ public class SynchronizationTests extends TestBase {
                             .and()
                                 .schedulingTable()
                                     .clickCheckBox("Recurring task")
-                                    .addAttributeValue("Schedule interval (seconds)","1")
+                                    .addAttributeValue("Schedule interval (seconds)","30")
                             .and()
                                 .clickSave()
                                     .feedback()
