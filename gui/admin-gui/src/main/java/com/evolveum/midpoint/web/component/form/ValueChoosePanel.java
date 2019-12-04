@@ -181,7 +181,9 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
                 R prv = model.getObject();
 
                     return prv == null ? null
-                            : (prv.getTargetName() != null ? (prv.getTargetName().getOrig()
+                            : (prv.getTargetName() != null ?
+                            (getPageBase().getLocalizationService().translate(PolyString.toPolyString(prv.getTargetName()),
+                                    getPageBase().getLocale(), true)
                                     + (prv.getType() != null ? ": " + prv.getType().getLocalPart() : ""))
                                     : prv.getOid());
             }
