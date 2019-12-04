@@ -121,8 +121,8 @@ public class CaseWorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemT
                     return getString("TaskSummaryPanel.requestedBy", getString("TaskSummaryPanel.unknown"));
                 }
 
-                String displayName = WebComponentUtil.getDisplayName(requester);
-                String name = WebComponentUtil.getName(requester);
+                String displayName = WebComponentUtil.getDisplayName(requester, true);
+                String name = WebComponentUtil.getName(requester, true);
                 if (displayName != null) {
                     return getString("TaskSummaryPanel.requestedByWithFullName", displayName, name);
                 } else {

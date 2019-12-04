@@ -1108,7 +1108,12 @@ public final class WebComponentUtil {
     }
 
     public static <O extends ObjectType> String getDisplayNameOrName(ObjectReferenceType ref, PageBase pageBase, String operation) {
-        String name = getName(ref);
+        return getDisplayNameOrName(ref, pageBase, operation, false);
+    }
+
+    public static <O extends ObjectType> String getDisplayNameOrName(ObjectReferenceType ref, PageBase pageBase,
+                                                                     String operation, boolean translate) {
+        String name = getName(ref, translate);
         if (StringUtils.isEmpty(name) || name.equals(ref.getOid())) {
             String oid = ref.getOid();
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions
@@ -1117,7 +1122,7 @@ public final class WebComponentUtil {
             PrismObject<O> object = WebModelServiceUtils.loadObject(type, oid, pageBase,
                     pageBase.createSimpleTask(operation), new OperationResult(operation));
             if (object != null) {
-                name = getDisplayNameOrName(object);
+                name = getDisplayNameOrName(object, true);
             }
         }
         return name;
