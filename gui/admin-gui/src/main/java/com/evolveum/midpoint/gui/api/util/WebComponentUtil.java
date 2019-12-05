@@ -333,7 +333,7 @@ public final class WebComponentUtil {
             return "";
         }
         String name = ref.getTargetName() == null ? "" :
-                (translate ? ref.getTargetName().getOrig());
+                (translate ? ref.getTargetName().getOrig() : "");
         StringBuilder sb = new StringBuilder(name);
         if(showTypes) {
             sb.append(" (");
