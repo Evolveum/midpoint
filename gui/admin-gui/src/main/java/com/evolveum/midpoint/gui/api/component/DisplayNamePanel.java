@@ -173,8 +173,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
         if (name == null || name.isEmpty()) {
             return Model.of("");
         }
-        return Model.of(getPageBase().getLocalizationService().translate(name.getRealValue(), getPageBase().getLocale(),
-                true));
+        return Model.of(WebComponentUtil.getTranslatedPolyString(name.getRealValue()));
     }
 
     private IModel<String> createIdentifierModel() {
