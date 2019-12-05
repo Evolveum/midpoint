@@ -161,8 +161,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             @Override
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 PolyStringType workitemName = ColumnUtils.unwrapRowModel(rowModel).getName();
-                return Model.of(getPageBase().getLocalizationService().translate(PolyString.toPolyString(workitemName),
-                        getPageBase().getLocale(), true));
+                return Model.of(WebComponentUtil.getTranslatedPolyString(workitemName));
             }
 
             @Override

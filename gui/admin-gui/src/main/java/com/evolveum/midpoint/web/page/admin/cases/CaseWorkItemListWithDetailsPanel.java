@@ -264,8 +264,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
             @Override
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 PolyStringType workitemName = unwrapRowModel(rowModel).getName();
-                return Model.of(getPageBase().getLocalizationService().translate(PolyString.toPolyString(workitemName),
-                        getPageBase().getLocale(), true));
+                return Model.of(WebComponentUtil.getTranslatedPolyString(workitemName));
             }
 
             @Override

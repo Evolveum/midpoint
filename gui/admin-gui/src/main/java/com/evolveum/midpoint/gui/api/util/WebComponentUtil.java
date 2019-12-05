@@ -325,10 +325,15 @@ public final class WebComponentUtil {
     }
 
     public static String getReferencedObjectDisplayNamesAndNames(Referencable ref, boolean showTypes) {
+        return getReferencedObjectDisplayNamesAndNames(ref, showTypes, false);
+    }
+
+    public static String getReferencedObjectDisplayNamesAndNames(Referencable ref, boolean showTypes, boolean translate) {
         if (ref == null){
             return "";
         }
-        String name = ref.getTargetName() == null ? "" : ref.getTargetName().getOrig();
+        String name = ref.getTargetName() == null ? "" :
+                (translate ? ref.getTargetName().getOrig());
         StringBuilder sb = new StringBuilder(name);
         if(showTypes) {
             sb.append(" (");
@@ -1071,14 +1076,13 @@ public final class WebComponentUtil {
         }
 
         PrismProperty prop = object.findProperty(ItemName.fromQName(propertyName));
-        MidPointApplication application = MidPointApplication.get();
 
         if (prop != null) {
             Object realValue = prop.getRealValue();
             if (prop.getDefinition().getTypeName().equals(DOMUtil.XSD_STRING)) {
                 return (String) realValue;
             } else if (realValue instanceof PolyString) {
-                return translate ? application.getLocalizationService().translate((PolyString) realValue, getCurrentLocale(), true)
+                return translate ? getTranslatedPolyString((PolyString) realValue)
                         : WebComponentUtil.getOrigStringFromPoly((PolyString) realValue);
             }
         }
@@ -1087,8 +1091,17 @@ public final class WebComponentUtil {
         if (name == null){
             return null;
         }
-        return translate ? application.getLocalizationService().translate(name, getCurrentLocale(), true)
+        return translate ? getTranslatedPolyString(name)
                 : WebComponentUtil.getOrigStringFromPoly(name);
+    }
+
+    public static String getTranslatedPolyString(PolyStringType value){
+        return getTranslatedPolyString(PolyString.toPolyString(value));
+    }
+
+    public static String getTranslatedPolyString(PolyString value){
+        MidPointApplication application = MidPointApplication.get();
+        return application.getLocalizationService().translate(value, getCurrentLocale(), true);
     }
 
     public static <O extends ObjectType> String getName(ObjectReferenceType ref, PageBase pageBase, String operation) {
@@ -1155,9 +1168,7 @@ public final class WebComponentUtil {
         }
         if (ref.getTargetName() != null) {
             if (translate){
-                MidPointApplication application = MidPointApplication.get();
-                return application.getLocalizationService().translate(PolyString.toPolyString(ref.getTargetName()),
-                        getCurrentLocale(), true);
+                return getTranslatedPolyString(ref.getTargetName());
             }
             return getOrigStringFromPoly(ref.getTargetName());
         }
@@ -1180,8 +1191,7 @@ public final class WebComponentUtil {
             return null;
         }
         if (translate){
-            MidPointApplication application = MidPointApplication.get();
-            return application.getLocalizationService().translate(name, getCurrentLocale(), true);
+            return getTranslatedPolyString(name);
         }
         return name.getOrig();
     }
@@ -1367,9 +1377,7 @@ public final class WebComponentUtil {
 
     public static String getDisplayName(ObjectReferenceType ref, boolean translate) {
         if (translate){
-            MidPointApplication application = MidPointApplication.get();
-            return application.getLocalizationService().translate(PolyString.toPolyString(ObjectTypeUtil.getDisplayName(ref)),
-                    getCurrentLocale(), true);
+            return getTranslatedPolyString(ObjectTypeUtil.getDisplayName(ref));
         } else {
             return PolyString.getOrig(ObjectTypeUtil.getDisplayName(ref));
         }
@@ -1381,9 +1389,7 @@ public final class WebComponentUtil {
 
     public static String getDisplayName(PrismObject object, boolean translate) {
         if (translate){
-            MidPointApplication application = MidPointApplication.get();
-            return application.getLocalizationService().translate(PolyString.toPolyString(ObjectTypeUtil.getDisplayName(object)),
-                    getCurrentLocale(), true);
+            return getTranslatedPolyString(ObjectTypeUtil.getDisplayName(object));
         } else {
             return PolyString.getOrig(ObjectTypeUtil.getDisplayName(object));
         }
