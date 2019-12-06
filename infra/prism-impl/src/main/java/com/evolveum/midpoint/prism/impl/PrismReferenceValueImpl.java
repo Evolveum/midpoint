@@ -536,9 +536,9 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         }
 
         Itemable parent = getParent();
-        if (parent != null) {
+        if (parent != null && parent.getDefinition() != null) {
             QName xsdType = parent.getDefinition().getTypeName();
-            Class clazz = getPrismContext().getSchemaRegistry().getCompileTimeClass(xsdType);
+            Class clazz = getPrismContext() != null ? getPrismContext().getSchemaRegistry().getCompileTimeClass(xsdType) : null;
             if (clazz != null) {
                 try {
                     referencable = (Referencable) clazz.newInstance();
