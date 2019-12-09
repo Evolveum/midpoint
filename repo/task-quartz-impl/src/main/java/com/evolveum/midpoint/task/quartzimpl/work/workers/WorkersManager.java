@@ -21,7 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.TemplateUtil;
+import com.evolveum.midpoint.util.template.TemplateEngine;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -382,10 +382,10 @@ public class WorkersManager {
             nameTemplate = "{coordinatorTaskName} ({node}:{index})";
         }
 
-        String name = TemplateUtil.replace(nameTemplate, replacements);
+        String name = TemplateEngine.simpleExpand(nameTemplate, replacements);
 
         String executionGroupTemplate = defaultIfNull(perNodeConfig.getExecutionGroup(), "{node}");
-        String executionGroup = MiscUtil.nullIfEmpty(TemplateUtil.replace(executionGroupTemplate, replacements));
+        String executionGroup = MiscUtil.nullIfEmpty(TemplateEngine.simpleExpand(executionGroupTemplate, replacements));
 
         return new WorkerKey(executionGroup, name, scavenger);
     }

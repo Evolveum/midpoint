@@ -7,31 +7,23 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManagerConfigurationException;
 import com.evolveum.midpoint.task.api.UseThreadInterrupt;
-import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.*;
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
 
 /**
  * Task Manager configuration, derived from "taskManager" section of midPoint config,
@@ -48,6 +40,9 @@ import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.*;
 public class TaskManagerConfiguration {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerConfiguration.class);
+
+    @Autowired private RepositoryService repositoryService;
+    @Autowired private PrismContext prismContext;
 
     private static final String STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY = "stopOnInitializationFailure";
     private static final String THREADS_CONFIG_ENTRY = "threads";
@@ -97,7 +92,6 @@ public class TaskManagerConfiguration {
     private static final int THREADS_DEFAULT = 10;
     private static final boolean CLUSTERED_DEFAULT = false;             // do not change this value!
     private static final boolean CREATE_QUARTZ_TABLES_DEFAULT = true;
-    private static final String NODE_ID_DEFAULT = "DefaultNode";
     @Deprecated private static final int JMX_PORT_DEFAULT = 20001;
     @Deprecated private static final int JMX_CONNECT_TIMEOUT_DEFAULT = 5;
     private static final String USE_THREAD_INTERRUPT_DEFAULT = "whenNecessary";
@@ -118,9 +112,6 @@ public class TaskManagerConfiguration {
     private static final int WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_DEFAULT = 7;
     private static final long WORK_ALLOCATION_INITIAL_DELAY_DEFAULT = 5000L;
     private static final long WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_DEFAULT = 20000L;
-
-    private static final String NODE_ID_SOURCE_RANDOM = "random";
-    private static final String NODE_ID_SOURCE_HOSTNAME = "hostname";
 
     private boolean stopOnInitializationFailure;
     private int threads;
@@ -255,7 +246,7 @@ public class TaskManagerConfiguration {
         }
     }
 
-    void setBasicInformation(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
+    void setBasicInformation(MidpointConfiguration masterConfig, OperationResult result) throws TaskManagerConfigurationException {
         Configuration root = masterConfig.getConfiguration();
         Configuration c = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
 
@@ -265,16 +256,7 @@ public class TaskManagerConfiguration {
         clustered = c.getBoolean(CLUSTERED_CONFIG_ENTRY, CLUSTERED_DEFAULT);
         jdbcJobStore = c.getBoolean(JDBC_JOB_STORE_CONFIG_ENTRY, clustered);
 
-        nodeId = root.getString(MidpointConfiguration.MIDPOINT_NODE_ID_PROPERTY, null);
-        if (StringUtils.isEmpty(nodeId)) {
-            String source = root.getString(MidpointConfiguration.MIDPOINT_NODE_ID_SOURCE_PROPERTY, null);
-            if (StringUtils.isEmpty(source)) {
-                nodeId = clustered ? null : NODE_ID_DEFAULT;
-            } else {
-                nodeId = provideNodeId(source);
-                LOGGER.info("Using node ID of '{}' as determined by the '{}' source", nodeId, source);
-            }
-        }
+        nodeId = new NodeIdComputer(prismContext, repositoryService).determineNodeId(root, clustered, result);
 
         hostName = root.getString(MidpointConfiguration.MIDPOINT_HOST_NAME_PROPERTY, null);
         jmxHostName = root.getString(MidpointConfiguration.MIDPOINT_JMX_HOST_NAME_PROPERTY, null);
@@ -285,8 +267,8 @@ public class TaskManagerConfiguration {
         } else {
             try {
                 jmxPort = Integer.parseInt(jmxPortString);
-            } catch(NumberFormatException nfe) {
-                throw new TaskManagerConfigurationException("Cannot get JMX management port - invalid integer value of " + jmxPortString, nfe);
+            } catch (NumberFormatException e) {
+                throw new TaskManagerConfigurationException("Cannot get JMX management port - invalid integer value of " + jmxPortString, e);
             }
         }
         httpPort = root.getInteger(MidpointConfiguration.MIDPOINT_HTTP_PORT_PROPERTY, null);
@@ -385,28 +367,6 @@ public class TaskManagerConfiguration {
         }
     }
 
-    private String provideNodeId(@NotNull String source) {
-        switch (source) {
-            case NODE_ID_SOURCE_RANDOM:
-                return "node-" + Math.round(Math.random() * 1000000000.0);
-            case NODE_ID_SOURCE_HOSTNAME:
-                try {
-                    String hostName = NodeRegistrar.getLocalHostNameFromOperatingSystem();
-                    if (hostName != null) {
-                        return hostName;
-                    } else {
-                        LOGGER.error("Couldn't determine nodeId as host name couldn't be obtained from the operating system");
-                        throw new SystemException(
-                                "Couldn't determine nodeId as host name couldn't be obtained from the operating system");
-                    }
-                } catch (UnknownHostException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine nodeId as host name couldn't be obtained from the operating system", e);
-                }
-            default:
-                throw new IllegalArgumentException("Unsupported node ID source: " + source);
-        }
-    }
-
     private static final Map<Database, String> SCHEMAS = new HashMap<>();
     private static final Map<Database, String> DELEGATES = new HashMap<>();
 
@@ -492,8 +452,7 @@ public class TaskManagerConfiguration {
             mustBeTrue(jdbcJobStore, "Clustered task manager requires JDBC Quartz job store.");
         }
 
-        notEmpty(nodeId, "Node identifier must be set when run in clustered mode.");
-        mustBeFalse(clustered && jmxPort == 0, "JMX port number must be known when run in clustered mode.");
+        notEmpty(nodeId, "Node identifier must be set.");
 
         mustBeTrue(quartzNodeRegistrationCycleTime > 1 && quartzNodeRegistrationCycleTime <= 600, "Quartz node registration cycle time must be between 1 and 600 seconds");
         mustBeTrue(nodeRegistrationCycleTime > 1 && nodeRegistrationCycleTime <= 600, "Node registration cycle time must be between 1 and 600 seconds");

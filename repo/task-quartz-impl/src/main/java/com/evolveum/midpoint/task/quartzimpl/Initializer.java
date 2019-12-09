@@ -25,9 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 /**
- * @author Pavol Mederly
+ * Initializes the task manager.
  */
-
 public class Initializer {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(Initializer.class);
@@ -47,7 +46,7 @@ public class Initializer {
         // get the configuration (general section + JDBC section as well)
         TaskManagerConfiguration configuration = taskManager.getConfiguration();
         configuration.checkAllowedKeys(midpointConfiguration);
-        configuration.setBasicInformation(midpointConfiguration);
+        configuration.setBasicInformation(midpointConfiguration, result);
         configuration.validateBasicInformation();
 
         LOGGER.info("Task Manager: Quartz Job Store: "
