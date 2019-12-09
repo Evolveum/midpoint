@@ -64,6 +64,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private String connectorInstanceNameAttribute = null;
     private boolean impreciseTokenValues = false;
     private String[] alwaysRequireUpdateOfAttribute = new String[0];
+    private boolean canRead = true;
 
     /**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
@@ -438,6 +439,15 @@ public class DummyConfiguration extends AbstractConfiguration {
 
     public void setAlwaysRequireUpdateOfAttribute(String[] alwaysRequireUpdateOfAttribute) {
         this.alwaysRequireUpdateOfAttribute = alwaysRequireUpdateOfAttribute;
+    }
+
+    @ConfigurationProperty
+    public boolean isCanRead() {
+        return canRead;
+    }
+
+    public void setCanRead(boolean canRead) {
+        this.canRead = canRead;
     }
 
     /**

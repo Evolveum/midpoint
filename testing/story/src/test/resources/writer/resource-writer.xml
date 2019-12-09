@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="607c4616-1a66-11ea-b513-ef360fa00fe1"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+    <name>Writer Resource</name>
+    <description>Write-only resource, caching is used for reading</description>
+
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>c:connectorType</q:path>
+                <q:value>ManualConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration>
+        <conf:defaultAssignee>administrator</conf:defaultAssignee>
+    </connectorConfiguration>
+
+    <additionalConnector>
+        <name>writer</name>
+        <connectorRef type="ConnectorType">
+            <filter>
+                <q:and>
+                    <q:equal>
+                        <q:path>connectorType</q:path>
+                        <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                    </q:equal>
+                    <q:equal>
+                        <q:path>connectorVersion</q:path>
+                        <q:value>2.0</q:value>
+                    </q:equal>
+                </q:and>
+            </filter>
+        </connectorRef>
+        <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+            <icfc:configurationProperties>
+                <icfi:instanceId>writer</icfi:instanceId> <!-- Default instance. -->
+                <icfi:canRead>false</icfi:canRead>
+                <!-- MID-5944 -->
+                <!-- Ever though there is attributeContentRequirement=all, we can only require those attributes that are present in all objects. -->
+                <icfi:alwaysRequireUpdateOfAttribute>__ACCOUNT__:__NAME__</icfi:alwaysRequireUpdateOfAttribute>
+                <icfi:alwaysRequireUpdateOfAttribute>__ACCOUNT__:location</icfi:alwaysRequireUpdateOfAttribute>
+                <icfi:alwaysRequireUpdateOfAttribute>__GROUP__:__NAME__</icfi:alwaysRequireUpdateOfAttribute>
+            </icfc:configurationProperties>
+
+            <icfc:resultsHandlerConfiguration>
+                <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+                <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+                <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+            </icfc:resultsHandlerConfiguration>
+
+        </connectorConfiguration>
+        <capabilities>
+            <configured>
+                <!-- SCHEMA capability is enabled here -->
+                <cap:read>
+                    <cap:enabled>false</cap:enabled>
+                </cap:read>
+                <!-- WRITE capabilities are enabled here -->
+                <cap:update>
+                    <cap:enabled>true</cap:enabled>
+                    <cap:delta>true</cap:delta>
+                    <!-- MID-5944 -->
+                    <cap:attributeContentRequirement>all</cap:attributeContentRequirement>
+                </cap:update>
+                <cap:liveSync>
+                    <cap:enabled>false</cap:enabled>
+                </cap:liveSync>
+                <cap:script>
+                    <cap:enabled>false</cap:enabled>
+                </cap:script>
+                <cap:activation>
+                    <cap:status>
+                        <cap:attribute>ri:disabled</cap:attribute>
+                        <cap:enableValue>false</cap:enableValue>
+                        <cap:disableValue>true</cap:disableValue>
+                    </cap:status>
+                </cap:activation>
+            </configured>
+        </capabilities>
+    </additionalConnector>
+
+    <!-- Schema definition comes from the dummy connector -->
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>name + iterationToken</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <outbound>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:title</ref>
+                <tolerant>true</tolerant>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <displayName>Location</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>locality</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ship</ref>
+                <displayName>Ship</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:weapon</ref>
+                <displayName>Weapon</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:drink</ref>
+                <displayName>Drink</displayName>
+                <tolerant>false</tolerant>
+            </attribute>
+            <attribute>
+                <ref>ri:quote</ref>
+                <displayName>Quote</displayName>
+                <tolerant>false</tolerant>
+            </attribute>
+            <attribute>
+                <ref>ri:gossip</ref>
+                <displayName>Gossip</displayName>
+                <tolerant>true</tolerant>
+            </attribute>
+            <attribute>
+                <ref>ri:water</ref>
+                <limitations>
+                    <ignore>true</ignore>
+                </limitations>
+            </attribute>
+
+            <iteration>
+                <maxIterations>5</maxIterations>
+            </iteration>
+
+            <activation>
+                <existence>
+                    <outbound/>
+                </existence>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+                <lockoutStatus>
+                    <outbound/>
+                </lockoutStatus>
+            </activation>
+
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+
+        </objectType>
+
+    </schemaHandling>
+
+    <capabilities>
+        <configured>
+            <!-- READ capability is enabled here -->
+            <cap:schema>
+                <cap:enabled>false</cap:enabled>
+            </cap:schema>
+            <cap:liveSync>
+                <cap:enabled>false</cap:enabled>
+            </cap:liveSync>
+            <cap:create>
+                <cap:enabled>false</cap:enabled>
+            </cap:create>
+            <cap:update>
+                <cap:enabled>false</cap:enabled>
+            </cap:update>
+            <cap:delete>
+                <cap:enabled>false</cap:enabled>
+            </cap:delete>
+            <cap:script>
+                <cap:enabled>false</cap:enabled>
+            </cap:script>
+            <cap:activation>
+                <cap:status>
+                    <cap:attribute>ri:disabled</cap:attribute>
+                    <cap:enableValue>false</cap:enableValue>
+                    <cap:disableValue>true</cap:disableValue>
+                </cap:status>
+            </cap:activation>
+        </configured>
+    </capabilities>
+
+    <consistency>
+        <shadowConstraintsCheck>light</shadowConstraintsCheck>
+        <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
+        <pendingOperationRetentionPeriod>PT30M</pendingOperationRetentionPeriod>
+        <deadShadowRetentionPeriod>PT2H</deadShadowRetentionPeriod>
+        <reshreshOnRead>true</reshreshOnRead>
+    </consistency>
+
+
+</resource>

@@ -62,6 +62,7 @@
             <class name="com.evolveum.midpoint.testing.story.security.TestRoleMembers"/>
             <class name="com.evolveum.midpoint.testing.story.TestPhotoAssignment"/>
             <class name="com.evolveum.midpoint.testing.story.grouper.TestGrouperAsyncUpdate"/>
+            <class name="com.evolveum.midpoint.testing.story.TestWriter"/>
         </classes>
     </test>
 </suite>
