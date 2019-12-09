@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -230,7 +231,8 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
         List<TaskAddResourcesDto> resourceList = new ArrayList<>();
 
         try {
-            resources = parentPage.getModelService().searchObjects(ResourceType.class, null, null, task, result);
+            resources = parentPage.getModelService().searchObjects(ResourceType.class, null,
+                    GetOperationOptions.createNoFetchCollection(), task, result);
             result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError(getString("ResourceRelatedHandlerPanel.message.createResourceList.fatalError"), ex);
