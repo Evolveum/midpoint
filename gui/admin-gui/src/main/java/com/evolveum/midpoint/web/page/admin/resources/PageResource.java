@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -31,8 +32,10 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionResultPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -175,7 +178,7 @@ public class PageResource extends PageAdmin {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible() {
-                return canEdit(resourceModel);
+                return isVisibleRefresSchemaButton(resourceModel);
             }
         });
         add(refreshSchema);
@@ -251,6 +254,24 @@ public class PageResource extends PageAdmin {
         };
         add(back);
 
+    }
+
+    private boolean isVisibleRefresSchemaButton(LoadableModel<PrismObject<ResourceType>> resourceModel) {
+        ResourceType resource = resourceModel.getObject().asObjectable();
+        if (!resource.getAdditionalConnector().isEmpty()) {
+            if (resource.getCapabilities() == null) {
+                return false;
+            }
+            if (resource.getCapabilities().getConfigured() != null) {
+                SchemaCapabilityType configuredCapability = CapabilityUtil.getCapability(resource.getCapabilities().getConfigured().getAny(), SchemaCapabilityType.class);
+                if (configuredCapability == null) {
+                    return false;
+                }
+                return configuredCapability.isEnabled();
+            }
+            return false;
+        }
+        return true;
     }
 
     private boolean canEdit(LoadableModel<PrismObject<ResourceType>> resourceModel) {
