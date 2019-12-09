@@ -22,6 +22,7 @@ public interface MidpointConfiguration {
     String MIDPOINT_LOGGING_ALT_FILENAME_PROPERTY = "midpoint.logging.alt.filename";
     String MIDPOINT_LOGGING_ALT_PREFIX_PROPERTY = "midpoint.logging.alt.prefix";
     String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
+    String MIDPOINT_NODE_ID_EXPRESSION_PROPERTY = "midpoint.nodeIdExpression";
     String MIDPOINT_NODE_ID_SOURCE_PROPERTY = "midpoint.nodeIdSource";
     @Deprecated String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
     String MIDPOINT_URL_PROPERTY = "midpoint.url";

@@ -111,20 +111,4 @@ public class TestMiscUtil {
         System.out.println(combinations);
         assertEquals("Wrong number of results", 24, combinations.size());
     }
-
-    @Test
-    public void testExpandProperties() {
-        System.out.println("===[ testExpandProperties ]===");
-        System.setProperty("t1", "TEST1");
-        System.setProperty("t2", "TEST2");
-        assertEquals("Wrong result", "", MiscUtil.expandProperties(""));
-        assertEquals("Wrong result", "abc", MiscUtil.expandProperties("abc"));
-        assertEquals("Wrong result", "TEST1", MiscUtil.expandProperties("${t1}"));
-        assertEquals("Wrong result", "abcTEST1", MiscUtil.expandProperties("abc${t1}"));
-        assertEquals("Wrong result", "abcTEST1def", MiscUtil.expandProperties("abc${t1}def"));
-        assertEquals("Wrong result", "TEST1TEST2", MiscUtil.expandProperties("${t1}${t2}"));
-        assertEquals("Wrong result", "${t1", MiscUtil.expandProperties("${t1"));
-        assertEquals("Wrong result", "abc${t1", MiscUtil.expandProperties("abc${t1"));
-
-    }
 }
