@@ -148,7 +148,7 @@ public class WorkItemDto extends Selectable {
     }
 
     public String getName() {
-        return PolyString.getOrig(workItem.getName());  // todo MID-5916
+        return WebComponentUtil.getTranslatedPolyString(workItem.getName());
     }
 
     public String getCreatedFormatted() {

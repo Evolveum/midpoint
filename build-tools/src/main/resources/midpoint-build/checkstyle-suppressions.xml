@@ -15,6 +15,7 @@
     <suppress files="[/\\]com[/\\]evolveum[/\\]midpoint[/\\]prism[/\\]delta[/\\]builder[/\\]" checks="TypeName"/>
     <suppress files="[/\\]com[/\\]evolveum[/\\]midpoint[/\\]prism[/\\]query[/\\]builder[/\\]" checks="TypeName"/>
     <suppress files="[/\\]com[/\\]evolveum[/\\]midpoint[/\\]prism[/\\]impl[/\\]query[/\\]builder[/\\]" checks="TypeName"/>
+    <suppress files="[/\\]resources[/\\]localization[/\\]Midpoint.*.properties" checks="NewlineAtEndOfFile"/>
 
     <!-- This will be gone anyway. Sooner or later. -->
     <suppress files="[/\\]com[/\\]evolveum[/\\]midpoint[/\\]model[/\\]api[/\\]ModelPort.java$" checks="InterfaceIsType"/>

@@ -38,9 +38,7 @@ public class PolyStringPropertyColumn<T> extends PropertyColumn<T, String> {
         }
         if (PolyStringType.class.equals(propertyModel.getObjectClass())){
             MidPointApplication application = MidPointApplication.get();
-            return Model.of(application.getLocalizationService().translate(
-                    PolyString.toPolyString((PolyStringType) propertyModel.getObject()),
-                    WebComponentUtil.getCurrentLocale(), true));
+            return Model.of(WebComponentUtil.getTranslatedPolyString((PolyStringType) propertyModel.getObject()));
         }
         return propertyModel;
     }

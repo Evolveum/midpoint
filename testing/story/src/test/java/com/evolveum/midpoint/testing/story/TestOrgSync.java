@@ -291,7 +291,7 @@ public class TestOrgSync extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
         TestUtil.assertSuccess(testResultHr);

@@ -73,7 +73,7 @@ public class CaseWorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemT
             CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
             return defaultIfNull(
                     WfGuiUtil.getLocalizedProcessName(caseType != null ? caseType.getApprovalContext() : null, CaseWorkItemSummaryPanel.this),
-                    caseWorkItemType != null ? PolyString.getOrig(caseWorkItemType.getName()) : "");    // todo MID-5916
+                    caseWorkItemType != null ? WebComponentUtil.getTranslatedPolyString(caseWorkItemType.getName()) : null);
         });
     }
 
@@ -118,8 +118,8 @@ public class CaseWorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemT
                     return getString("TaskSummaryPanel.requestedBy", getString("TaskSummaryPanel.unknown"));
                 }
 
-                String displayName = WebComponentUtil.getDisplayName(requester);
-                String name = WebComponentUtil.getName(requester);
+                String displayName = WebComponentUtil.getDisplayName(requester, true);
+                String name = WebComponentUtil.getName(requester, true);
                 if (displayName != null) {
                     return getString("TaskSummaryPanel.requestedByWithFullName", displayName, name);
                 } else {

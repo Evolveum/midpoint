@@ -76,7 +76,7 @@ public class SynchronizationTests extends TestBase {
                             .and()
                                 .schedulingTable()
                                     .clickCheckBox("Recurring task")
-                                    .addAttributeValue("Schedule interval (seconds)","1")
+                                    .addAttributeValue("Schedule interval (seconds)","10")
                             .and()
                                 .clickSave()
                                     .feedback()
@@ -88,7 +88,7 @@ public class SynchronizationTests extends TestBase {
     public void newResourceAccountUserCreated() throws IOException {
 
     FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
-        Selenide.sleep(3000);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListUsersPage usersPage = basicPage.listUsers();
         Assert.assertTrue(
@@ -193,7 +193,7 @@ public class SynchronizationTests extends TestBase {
     public void alreadyLinkedResourceAccountModified() throws IOException {
 
         FileUtils.copyFile(CSV_UPDATED_SOURCE_FILE,CSV_TARGET_FILE);
-        Selenide.sleep(10000);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListUsersPage usersPage = basicPage.listUsers();
         Assert.assertTrue(
@@ -215,7 +215,7 @@ public class SynchronizationTests extends TestBase {
     public void alreadyLinkedResourceAccountDeleted() throws IOException {
 
         FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE,CSV_TARGET_FILE);
-        Selenide.sleep(3000);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListUsersPage usersPage = basicPage.listUsers();
         Assert.assertFalse(
@@ -296,7 +296,7 @@ public class SynchronizationTests extends TestBase {
 
         FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
 
-        Selenide.sleep(3000);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListUsersPage usersPage = basicPage.listUsers();
         Assert.assertFalse(
@@ -320,7 +320,7 @@ public class SynchronizationTests extends TestBase {
                 .clickResume();
 
 
-        Selenide.sleep(3000);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         usersPage = basicPage.listUsers();
         Assert.assertTrue(
@@ -361,6 +361,7 @@ public class SynchronizationTests extends TestBase {
                             .feedback()
                     .isSuccess()
         );
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath()+"err",false);
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
@@ -369,7 +370,7 @@ public class SynchronizationTests extends TestBase {
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath(),true);
-
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListTasksPage  tasksPage = basicPage.listTasks();
         tasksPage

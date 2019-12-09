@@ -133,7 +133,7 @@ public class CaseWorkItemDto extends Selectable {
     }
 
     public String getName() {
-        return PolyString.getOrig(workItem.getName());  // todo MID-5916
+        return PolyString.getOrig(workItem.getName());  // todo MID-5916, not used anymore (honchar)
     }
 
     public AbstractWorkItemOutputType getOutput() {

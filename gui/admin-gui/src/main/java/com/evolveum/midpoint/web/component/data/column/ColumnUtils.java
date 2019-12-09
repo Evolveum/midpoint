@@ -499,9 +499,9 @@ public class ColumnUtils {
                 String name;
                 AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltyForCase(caseType);
                 if (object == null) {
-                    name = WebModelServiceUtils.resolveReferenceName(caseType.getObjectRef(), pageBase);
+                    name = WebModelServiceUtils.resolveReferenceName(caseType.getObjectRef(), pageBase, true);
                 } else {
-                    name = WebComponentUtil.getEffectiveName(object, AbstractRoleType.F_DISPLAY_NAME);
+                    name = WebComponentUtil.getEffectiveName(object, AbstractRoleType.F_DISPLAY_NAME, true);
                 }
                 return Model.of(name);
             }
@@ -543,7 +543,7 @@ public class ColumnUtils {
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                 CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                return Model.of(WebModelServiceUtils.resolveReferenceName(caseType.getTargetRef(), pageBase));
+                return Model.of(WebModelServiceUtils.resolveReferenceName(caseType.getTargetRef(), pageBase, true));
             }
 
             @Override
@@ -577,9 +577,10 @@ public class ColumnUtils {
                 public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
                                          String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
 
-                    String assignee = WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getAssigneeRef(), false);
+                    String assignee = WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getAssigneeRef(), false, true);
                     cellItem.add(new Label(componentId,
-                            assignee != null ? assignee : WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getCandidateRef(), true)));
+                            assignee != null ? assignee
+                                    : WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getCandidateRef(), true, true)));
                 }
 
                 @Override

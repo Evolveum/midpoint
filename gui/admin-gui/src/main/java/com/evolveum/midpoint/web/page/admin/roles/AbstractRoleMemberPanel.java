@@ -1073,11 +1073,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             return "";
         }
         if (object instanceof UserType) {
-            return getPageBase().getLocalizationService().translate(PolyString.toPolyString(((UserType) object).getFullName()),
-                    getPageBase().getLocale(), true);
+            return WebComponentUtil.getTranslatedPolyString(((UserType) object).getFullName());
         } else if (object instanceof AbstractRoleType) {
-            return getPageBase().getLocalizationService().translate(PolyString.toPolyString(((AbstractRoleType) object).getDisplayName()),
-                    getPageBase().getLocale(), true);
+            return WebComponentUtil.getTranslatedPolyString(((AbstractRoleType) object).getDisplayName());
         } else {
             return "";
         }

@@ -91,16 +91,25 @@ public class WebModelServiceUtils {
     private static final String OPERATION_LOAD_FLOW_POLICY = DOT_CLASS + "loadFlowPolicy";
 
     public static String resolveReferenceName(ObjectReferenceType ref, PageBase page) {
+        return resolveReferenceName(ref, page, false);
+    }
+
+    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, boolean translate) {
         Task task = page.createSimpleTask(WebModelServiceUtils.class.getName() + ".resolveReferenceName");
-        return resolveReferenceName(ref, page, task, task.getResult());
+        return resolveReferenceName(ref, page, task, task.getResult(), translate);
     }
 
     public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result) {
+        return resolveReferenceName(ref, page, task, result, false);
+    }
+
+    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result, boolean translate) {
         if (ref == null) {
             return null;
         }
         if (ref.getTargetName() != null) {
-            return ref.getTargetName().getOrig();
+            return translate ? page.getLocalizationService().translate(ref.getTargetName().toPolyString(), page.getLocale(), true)
+                    : ref.getTargetName().getOrig();
         }
         if (StringUtils.isEmpty(ref.getOid()) || ref.getType() == null){
             return null;
@@ -110,7 +119,7 @@ public class WebModelServiceUtils {
             return ref.getOid();
         } else {
             ref.asReferenceValue().setObject(object);
-            return WebComponentUtil.getName(object);
+            return WebComponentUtil.getName(object, translate);
         }
     }
 

@@ -300,6 +300,7 @@
                         <a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
                         <a:displayName>OrgType.tenant</a:displayName>
                         <a:displayOrder>250</a:displayOrder>
+                        <a:operational>true</a:operational>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

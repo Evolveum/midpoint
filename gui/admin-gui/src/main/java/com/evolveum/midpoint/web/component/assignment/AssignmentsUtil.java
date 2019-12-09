@@ -263,7 +263,7 @@ public class AssignmentsUtil {
                 if (constraints != null && constraints.getExclusion() != null && constraints.getExclusion().size() > 0){
                     sb.append(pageBase.createStringResource("PolicyConstraintsType.exclusion").getString() + ": ");
                     constraints.getExclusion().forEach(exclusion -> {
-                        sb.append(WebComponentUtil.getName(exclusion.getTargetRef()));
+                        sb.append(WebComponentUtil.getName(exclusion.getTargetRef(), true));
                         sb.append("; ");
                     });
                 }
@@ -277,7 +277,7 @@ public class AssignmentsUtil {
             // account assignment through account construction
             ConstructionType construction = assignment.getConstruction();
             if (construction.getResourceRef() != null) {
-                sb.append(WebComponentUtil.getName(construction.getResourceRef()));
+                sb.append(WebComponentUtil.getName(construction.getResourceRef(), true));
             }
             return sb.toString();
         }
@@ -299,7 +299,8 @@ public class AssignmentsUtil {
         }
 
         if (isNotEmptyRef(assignment.getTargetRef())) {
-            sb.append(WebComponentUtil.getEffectiveName(assignment.getTargetRef(), OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName"));
+            sb.append(WebComponentUtil.getEffectiveName(assignment.getTargetRef(), OrgType.F_DISPLAY_NAME, pageBase,
+                    "loadTargetName", true));
         }
 
 //        appendTenantAndOrgName(assignment, pageBase);

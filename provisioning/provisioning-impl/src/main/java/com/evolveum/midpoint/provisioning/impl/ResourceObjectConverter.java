@@ -837,6 +837,9 @@ public class ResourceObjectConverter {
             if (AttributeContentRequirementType.ALL.equals(attributeContentRequirement)) {
                 LOGGER.trace("AttributeContentRequirement: {} for {}", attributeContentRequirement, ctx.getResource());
                 PrismObject<ShadowType> currentShadow = fetchResourceObject(ctx, identifiers, null, false, result);
+                if (currentShadow == null) {
+                    throw new SystemException("Attribute content requirement set for resource "+ctx.toHumanReadableDescription()+", but read of shadow returned null, identifiers: "+identifiers);
+                }
                 operationsWave = convertToReplace(ctx, operationsWave, currentShadow, true);
             }
         }

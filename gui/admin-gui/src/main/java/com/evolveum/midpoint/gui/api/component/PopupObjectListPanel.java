@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -91,9 +92,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
                 protected IModel createLinkModel(IModel<SelectableBean<O>> rowModel) {
                     IModel linkModel = new PropertyModel(rowModel, getPropertyExpression());
                     if (linkModel.getObject() != null && linkModel.getObject() instanceof PolyStringType){
-                        return Model.of(getPageBase().getLocalizationService().translate(
-                                PolyString.toPolyString((PolyStringType)linkModel.getObject()),
-                                getPageBase().getLocale(), true));
+                        return Model.of(WebComponentUtil.getTranslatedPolyString((PolyStringType)linkModel.getObject()));
                     }
                     return linkModel;
                 }

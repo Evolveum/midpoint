@@ -445,6 +445,7 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
     @Override
     public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
         LOG.info("executeQuery({0},{1},{2},{3})", objectClass, query, handler, options);
+        validateCanRead();
         validate(objectClass);
         validate(query);
         notNull(handler, "Results handled object can't be null.");
@@ -1617,6 +1618,12 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
                 }
 
             }, null);
+        }
+    }
+
+    public void validateCanRead() {
+        if (!getConfiguration().isCanRead()) {
+            throw new UnsupportedOperationException("Dummy connector instance "+resource.getInstanceName()+"("+getInstanceNumber()+") does not support READ operations");
         }
     }
 
