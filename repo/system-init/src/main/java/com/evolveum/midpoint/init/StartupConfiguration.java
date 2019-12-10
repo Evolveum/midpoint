@@ -20,10 +20,12 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration2.CompositeConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.XMLConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -113,7 +115,6 @@ public class StartupConfiguration implements MidpointConfiguration {
         if (getMidpointHome() != null) {
             sub.addProperty(MIDPOINT_HOME_PROPERTY, getMidpointHome());
         } else {
-            @SuppressWarnings("unchecked")
             Iterator<String> i = sub.getKeys();
             while (i.hasNext()) {
                 String key = i.next();
@@ -126,7 +127,6 @@ public class StartupConfiguration implements MidpointConfiguration {
     private void dumpConfiguration(String componentName, Configuration sub) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Configuration for {} :", componentName);
-            @SuppressWarnings("unchecked")
             Iterator<String> i = sub.getKeys();
             while (i.hasNext()) {
                 String key = i.next();
@@ -192,7 +192,7 @@ public class StartupConfiguration implements MidpointConfiguration {
             config.clear();
         } else {
             config = new CompositeConfiguration();
-            config.setDelimiterParsingDisabled(true);
+//            config.setDelimiterParsingDisabled(true);
         }
 
         DocumentBuilder documentBuilder = DOMUtil.createDocumentBuilder();          // we need namespace-aware document builder (see GeneralChangeProcessor.java)
@@ -276,11 +276,15 @@ public class StartupConfiguration implements MidpointConfiguration {
     }
 
     private void createXmlConfiguration(DocumentBuilder documentBuilder, String filename) throws ConfigurationException {
-        XMLConfiguration xmlConfig = new XMLConfiguration();
-        xmlConfig.setDocumentBuilder(documentBuilder);
-        xmlConfig.setDelimiterParsingDisabled(true);
-        xmlConfig.setFileName(filename);
-        xmlConfig.load();
+        FileBasedConfigurationBuilder<XMLConfiguration> builder =
+                new FileBasedConfigurationBuilder<>(XMLConfiguration.class)
+                        .configure(
+                                new Parameters()
+                                        .xml()
+                                        .setFileName(filename)
+                                        .setDocumentBuilder(documentBuilder)
+                        );
+        XMLConfiguration xmlConfig = builder.getConfiguration();
         config.addConfiguration(xmlConfig);
         applyEnvironmentProperties();
         resolveFileReferences();

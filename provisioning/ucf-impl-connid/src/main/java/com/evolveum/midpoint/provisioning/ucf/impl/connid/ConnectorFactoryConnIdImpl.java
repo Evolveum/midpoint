@@ -35,7 +35,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.util.MiscUtil;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.identityconnectors.common.Version;
 import org.identityconnectors.common.security.Encryptor;
 import org.identityconnectors.common.security.EncryptorFactory;
@@ -192,10 +192,9 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         }
 
         // Scan all provided directories
-        @SuppressWarnings("unchecked")
-        List<String> dirs = config.getList("scanDirectory");
-        for (String dir : dirs) {
-            bundleURIs.addAll(scanDirectory(dir));
+        List<Object> dirs = config.getList("scanDirectory");
+        for (Object dir : dirs) {
+            bundleURIs.addAll(scanDirectory(dir.toString()));
         }
 
         for (URI u : bundleURIs) {

@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.schema.internals;
 
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * @author semancik

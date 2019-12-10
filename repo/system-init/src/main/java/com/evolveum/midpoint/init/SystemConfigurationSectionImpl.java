@@ -9,7 +9,7 @@ package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.common.configuration.api.SystemConfigurationSection;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  *

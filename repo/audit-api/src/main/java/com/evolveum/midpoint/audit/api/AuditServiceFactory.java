@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.audit.api;
 
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * @author lazyman
