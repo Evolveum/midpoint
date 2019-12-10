@@ -22104,30 +22104,38 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="closedTasks" type="tns:CleanupPolicyType" minOccurs="0">
-            <xsd:annotation>
+                <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>CleanupPoliciesType.closedTasks</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="closedCertificationCampaigns" type="tns:CleanupPolicyType" minOccurs="0">
-            <xsd:annotation>
+                <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>CleanupPoliciesType.closedCertificationCampaigns</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="outputReports" type="tns:CleanupPolicyType" minOccurs="0">
-            <xsd:annotation>
+                <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>CleanupPoliciesType.outputReports</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="objectResults" type="tns:CleanupPolicyType" minOccurs="0">
-            <xsd:annotation>
+                <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>CleanupPoliciesType.objectResults</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="deadNodes" type="tns:DeadNodeCleanupPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>CleanupPoliciesType.deadNodes</a:displayName>
+                        <a:since>4.1</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -22157,6 +22165,28 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>CleanupPolicyType.maxRecords</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DeadNodeCleanupPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Cleanup policy for dead nodes.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="maxAge" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>DeadNodeCleanupPolicyType.maxAge</a:displayName>
+                        <a:help>DeadNodeCleanupPolicyType.maxAge.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

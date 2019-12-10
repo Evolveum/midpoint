@@ -298,6 +298,11 @@ public interface TaskManager {
     void cleanupTasks(CleanupPolicyType closedTasksPolicy, RunningTask task, OperationResult opResult) throws SchemaException;
 
     /**
+     * Deletes dead nodes, i.e. ones that were not checked-in for a given time period.
+     */
+    void cleanupNodes(DeadNodeCleanupPolicyType deadNodesPolicy, RunningTask task, OperationResult opResult) throws SchemaException;
+
+    /**
      * This is a signal to task manager that a new task was created in the repository.
      * Task manager can react to it e.g. by creating shadow quartz job and trigger.
      */

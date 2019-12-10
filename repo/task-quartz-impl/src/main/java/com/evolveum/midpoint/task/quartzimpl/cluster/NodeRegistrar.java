@@ -354,6 +354,7 @@ public class NodeRegistrar {
                     .item(NodeType.F_HOSTNAME).replace(getMyHostname())
                     .item(NodeType.F_IP_ADDRESS).replaceRealValues(getMyIpAddresses())
                     .item(NodeType.F_LAST_CHECK_IN_TIME).replace(currentTime)
+                    .item(NodeType.F_RUNNING).replace(true)
                     .asItemDeltas();
             if (shouldRenewSecret(cachedLocalNodeObject.asObjectable())) {
                 LOGGER.info("Renewing node secret for the current node");
@@ -481,9 +482,9 @@ public class NodeRegistrar {
     }
 
     boolean isUp(NodeType n) {
-        return n.isRunning() && n.getLastCheckInTime() != null &&
-                (System.currentTimeMillis() - n.getLastCheckInTime().toGregorianCalendar().getTimeInMillis())
-                        <= (taskManager.getConfiguration().getNodeTimeout() * 1000L);
+        return !Boolean.FALSE.equals(n.isRunning()) && n.getLastCheckInTime() != null &&
+                System.currentTimeMillis() - n.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
+                        <= taskManager.getConfiguration().getNodeTimeout() * 1000L;
     }
 
 

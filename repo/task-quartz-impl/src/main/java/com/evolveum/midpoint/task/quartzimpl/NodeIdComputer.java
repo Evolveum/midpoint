@@ -10,6 +10,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -161,8 +162,12 @@ class NodeIdComputer {
                 try {
                     // Let us try to create node with given name. If we fail we know we need to iterate.
                     // If we succeed, we will (later) replace the node with the correct content.
+                    // Note that we set (fake) last check-in time here so this node will not be accidentally cleaned-up.
+                    // TODO consider moving this addObject call to NodeRegistrar (requires cleanup of the mix of
+                    //   Spring injected and manually created objects)
                     NodeType node = new NodeType(prismContext)
-                            .name(candidateNodeId);
+                            .name(candidateNodeId)
+                            .lastCheckInTime(XmlTypeConverter.createXMLGregorianCalendar());
                     repositoryService.addObject(node.asPrismObject(), null, result);
                 } catch (ObjectAlreadyExistsException e) {
                     // We have a conflict. But the node might be - in fact - dead. So let's try to reclaim it if possible.

@@ -28,9 +28,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.TerminateSessionEventType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.cxf.common.util.Base64Utility;
@@ -43,7 +40,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 /**
  *  Helps with the intra-cluster remote code execution.
@@ -95,8 +91,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
         try {
             String nodeId = taskManager.getNodeId();
             ObjectQuery query = prismContext.queryFor(NodeType.class).not().item(NodeType.F_NODE_IDENTIFIER).eq(nodeId).build();
-            SearchResultList<PrismObject<NodeType>> otherClusterNodes = taskManager.searchObjects(NodeType.class, query, null, result);
-            return otherClusterNodes;
+            return taskManager.searchObjects(NodeType.class, query, null, result);
         } catch (SchemaException e) {
             LOGGER.warn("Couldn't find nodes to execute remote operation on them ({}). Skipping it.", context, e);
             result.recordFatalError("Couldn't find nodes to execute remote operation on them (" + context + "). Skipping it.", e);
@@ -118,17 +113,21 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
         String nodeIdentifier = node.getNodeIdentifier();
         result.addParam("node", nodeIdentifier);
 
-        try {
-
-            WebClient client = createClient(node, context);
-            if (client == null) {
-                return;
+        if (!Boolean.FALSE.equals(node.isRunning())) {
+            try {
+                WebClient client = createClient(node, context);
+                if (client == null) {
+                    return;
+                }
+                code.accept(client, result);
+                result.computeStatusIfUnknown();
+            } catch (SchemaException | RuntimeException t) {
+                result.recordFatalError(
+                        "Couldn't invoke operation (" + context + ") on node " + nodeIdentifier + ": " + t.getMessage(), t);
+                throw t;
             }
-            code.accept(client, result);
-            result.computeStatusIfUnknown();
-        } catch (SchemaException | RuntimeException t) {
-            result.recordFatalError("Couldn't invoke operation (" + context + ") on node " + nodeIdentifier + ": " + t.getMessage(), t);
-            throw t;
+        } else {
+            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Node " + nodeIdentifier + " is not running");
         }
     }
 
@@ -160,6 +159,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
         client.header("Authorization", RestAuthenticationMethod.CLUSTER.getMethod() + " " + Base64Utility.encode(secret.getBytes()));
         return client;
     }
+
     @Override
     public <T> T extractResult(Response response, Class<T> expectedClass) throws SchemaException {
         if (response.hasEntity()) {

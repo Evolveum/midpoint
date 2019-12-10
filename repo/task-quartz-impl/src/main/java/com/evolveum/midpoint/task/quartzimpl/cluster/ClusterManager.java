@@ -7,12 +7,15 @@
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -106,11 +109,14 @@ public class ClusterManager {
 
     class ClusterManagerThread extends Thread {
 
-        boolean canRun = true;
+        private boolean canRun = true;
 
         @Override
         public void run() {
             LOGGER.info("ClusterManager thread starting.");
+
+            long nodeAlivenessCheckInterval = taskManager.getConfiguration().getNodeAlivenessCheckInterval() * 1000L;
+            long lastNodeAlivenessCheck = 0;
 
             long delay = taskManager.getConfiguration().getNodeRegistrationCycleTime() * 1000L;
             while (canRun) {
@@ -143,6 +149,15 @@ public class ClusterManager {
                         LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while checking stalled tasks; continuing execution.", t);
                     }
 
+                    if (System.currentTimeMillis() - lastNodeAlivenessCheck >= nodeAlivenessCheckInterval) {
+                        try {
+                            checkNodeAliveness(result);
+                            lastNodeAlivenessCheck = System.currentTimeMillis();
+                        } catch (Throwable t) {
+                            LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while checking node aliveness; continuing execution.", t);
+                        }
+                    }
+
                 } catch (Throwable t) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception in ClusterManager thread; continuing execution.", t);
                 }
@@ -158,11 +173,34 @@ public class ClusterManager {
             LOGGER.info("ClusterManager thread stopping.");
         }
 
-        void signalShutdown() {
+        private void signalShutdown() {
             canRun = false;
             this.interrupt();
         }
 
+    }
+
+    private void checkNodeAliveness(OperationResult result) throws SchemaException {
+        SearchResultList<PrismObject<NodeType>> nodes = getRepositoryService()
+                .searchObjects(NodeType.class, null, null, result);
+        for (PrismObject<NodeType> nodeObject : nodes) {
+            NodeType node = nodeObject.asObjectable();
+            if (taskManager.getNodeId() == null || !taskManager.getNodeId().equals(node.getNodeIdentifier())) {
+                if (!Boolean.FALSE.equals(node.isRunning()) && node.getLastCheckInTime() != null) {
+                    if (!isUp(node)) {
+                        LOGGER.warn("Node {} is down, marking it as such", node);
+                        List<ItemDelta<?, ?>> modifications = taskManager.getPrismContext().deltaFor(NodeType.class)
+                                .item(NodeType.F_RUNNING).replace(false)
+                                .asItemDeltas();
+                        try {
+                            getRepositoryService().modifyObject(NodeType.class, node.getOid(), modifications, result);
+                        } catch (ObjectNotFoundException | ObjectAlreadyExistsException e) {
+                            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't mark node {} as down", e, node);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public void stopClusterManagerThread(long waitTime, OperationResult parentResult) {

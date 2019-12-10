@@ -62,6 +62,7 @@ public class TaskManagerConfiguration {
     @Deprecated private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
     private static final String QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "quartzNodeRegistrationInterval";
     private static final String NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "nodeRegistrationInterval";
+    private static final String NODE_ALIVENESS_CHECK_INTERVAL = "nodeAlivenessCheckInterval";
     private static final String NODE_TIMEOUT_CONFIG_ENTRY = "nodeTimeout";
     private static final String USE_JMX_CONFIG_ENTRY = "useJmx";
     @Deprecated private static final String JMX_USERNAME_CONFIG_ENTRY = "jmxUsername";
@@ -97,6 +98,7 @@ public class TaskManagerConfiguration {
     private static final String USE_THREAD_INTERRUPT_DEFAULT = "whenNecessary";
     private static final int QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
+    private static final int NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT = 120;
     private static final int NODE_TIMEOUT_DEFAULT = 30;
     private static final boolean USE_JMX_DEFAULT = false;
     @Deprecated private static final String JMX_USERNAME_DEFAULT = "midpoint";
@@ -126,7 +128,7 @@ public class TaskManagerConfiguration {
     @Deprecated private int jmxPort;
     @Deprecated private int jmxConnectTimeout;
     private int quartzNodeRegistrationCycleTime;            // UNUSED (currently) !
-    private int nodeRegistrationCycleTime, nodeTimeout;
+    private int nodeRegistrationCycleTime, nodeAlivenessCheckInterval, nodeTimeout;
     private UseThreadInterrupt useThreadInterrupt;
     private int waitingTasksCheckInterval;
     private int stalledTasksCheckInterval;
@@ -300,6 +302,7 @@ public class TaskManagerConfiguration {
 
         quartzNodeRegistrationCycleTime = c.getInt(QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
         nodeRegistrationCycleTime = c.getInt(NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
+        nodeAlivenessCheckInterval = c.getInt(NODE_ALIVENESS_CHECK_INTERVAL, NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT);
         nodeTimeout = c.getInt(NODE_TIMEOUT_CONFIG_ENTRY, NODE_TIMEOUT_DEFAULT);
 
         useJmx = c.getBoolean(USE_JMX_CONFIG_ENTRY, USE_JMX_DEFAULT);
@@ -572,6 +575,10 @@ public class TaskManagerConfiguration {
 
     public int getNodeRegistrationCycleTime() {
         return nodeRegistrationCycleTime;
+    }
+
+    public int getNodeAlivenessCheckInterval() {
+        return nodeAlivenessCheckInterval;
     }
 
     @SuppressWarnings("unused")
