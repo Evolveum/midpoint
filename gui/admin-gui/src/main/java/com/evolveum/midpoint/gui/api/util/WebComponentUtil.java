@@ -1101,6 +1101,13 @@ public final class WebComponentUtil {
 
     public static String getTranslatedPolyString(PolyString value){
         MidPointApplication application = MidPointApplication.get();
+        return getTranslatedPolyString(value, application);
+    }
+
+    public static String getTranslatedPolyString(PolyString value, MidPointApplication application){
+        if (value == null){
+            return "";
+        }
         return application.getLocalizationService().translate(value, getCurrentLocale(), true);
     }
 
@@ -1388,8 +1395,19 @@ public final class WebComponentUtil {
     }
 
     public static String getDisplayName(PrismObject object, boolean translate) {
+        return getDisplayName(object, translate, null);
+    }
+
+    public static String getDisplayName(PrismObject object, boolean translate, MidPointApplication application) {
+        if (object == null){
+            return  "";
+        }
         if (translate){
-            return getTranslatedPolyString(ObjectTypeUtil.getDisplayName(object));
+            if (application == null) {
+                return getTranslatedPolyString(ObjectTypeUtil.getDisplayName(object));
+            } else {
+                return getTranslatedPolyString(PolyString.toPolyString(ObjectTypeUtil.getDisplayName(object)), application);
+            }
         } else {
             return PolyString.getOrig(ObjectTypeUtil.getDisplayName(object));
         }
