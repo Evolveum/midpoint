@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.common.configuration.api;
 
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 public interface RuntimeConfiguration {
 
     /**
-     * Return symbolic name of the component in configuration subsytem.
+     * Return symbolic name of the component in configuration subsystem.
      *  Samples:
      *  <li>
      *      <ul>repository -> midpoint.repository</ul>

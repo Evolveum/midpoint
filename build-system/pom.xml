@@ -376,12 +376,12 @@
             <dependency>
                 <groupId>commons-beanutils</groupId>
                 <artifactId>commons-beanutils</artifactId>
-                <version>1.8.3</version>
+                <version>1.9.4</version>
             </dependency>
             <dependency>
                 <groupId>commons-beanutils</groupId>
                 <artifactId>commons-beanutils-core</artifactId>
-                <version>1.8.3</version>
+                <version>1.9.4</version>
             </dependency>
             <dependency>
                 <groupId>commons-codec</groupId>
@@ -394,23 +394,23 @@
                 <version>3.2.2</version>
             </dependency>
             <dependency>
-                <groupId>commons-configuration</groupId>
-                <artifactId>commons-configuration</artifactId>
-                <version>1.6</version>
-                <exclusions>
-                    <exclusion> <!-- Conflicting version with Spring core -->
-                        <groupId>commons-logging</groupId>
-                        <artifactId>commons-logging</artifactId>
-                    </exclusion>
-                    <exclusion> <!-- Conflicting version with Jasper Reports -->
-                        <groupId>commons-digester</groupId>
-                        <artifactId>commons-digester</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>commons-beanutils</groupId>
-                        <artifactId>commons-beanutils</artifactId>
-                    </exclusion>
-                </exclusions>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-configuration2</artifactId>
+                <version>2.5</version>
+<!--                <exclusions>-->
+<!--                    <exclusion> &lt;!&ndash; Conflicting version with Spring core &ndash;&gt;-->
+<!--                        <groupId>commons-logging</groupId>-->
+<!--                        <artifactId>commons-logging</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion> &lt;!&ndash; Conflicting version with Jasper Reports &ndash;&gt;-->
+<!--                        <groupId>commons-digester</groupId>-->
+<!--                        <artifactId>commons-digester</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>commons-beanutils</groupId>-->
+<!--                        <artifactId>commons-beanutils</artifactId>-->
+<!--                    </exclusion>-->
+<!--                </exclusions>-->
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>

@@ -36,7 +36,7 @@ import javax.validation.Validator;
 import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.repo.cache.CacheRegistry;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ConverterLocator;

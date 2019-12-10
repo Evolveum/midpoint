@@ -16,7 +16,7 @@ import java.io.File;
 import java.util.Iterator;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.test.util.TestUtil;
