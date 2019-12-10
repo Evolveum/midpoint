@@ -361,7 +361,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
             File file = new File(filePath);
 
             if (file.exists()) {
-                file.delete();
+                if (!file.delete()) {
+                    LOGGER.error("Couldn't delete report file {}", file);
+                }
             } else {
                 String fileName = checkNodeAndFileName(file, reportOutput, result);
                 if (fileName == null) {
