@@ -63,6 +63,7 @@ public class TaskManagerConfiguration {
     private static final String QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "quartzNodeRegistrationInterval";
     private static final String NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "nodeRegistrationInterval";
     private static final String NODE_ALIVENESS_CHECK_INTERVAL = "nodeAlivenessCheckInterval";
+    private static final String NODE_ALIVENESS_TIMEOUT = "nodeAlivenessTimeout";
     private static final String NODE_TIMEOUT_CONFIG_ENTRY = "nodeTimeout";
     private static final String USE_JMX_CONFIG_ENTRY = "useJmx";
     @Deprecated private static final String JMX_USERNAME_CONFIG_ENTRY = "jmxUsername";
@@ -99,6 +100,7 @@ public class TaskManagerConfiguration {
     private static final int QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT = 120;
+    private static final int NODE_ALIVENESS_TIMEOUT_DEFAULT = 900;              // node should be down for 900 seconds before declaring as dead in the repository -- this is to avoid marking node as down during its own startup
     private static final int NODE_TIMEOUT_DEFAULT = 30;
     private static final boolean USE_JMX_DEFAULT = false;
     @Deprecated private static final String JMX_USERNAME_DEFAULT = "midpoint";
@@ -128,7 +130,10 @@ public class TaskManagerConfiguration {
     @Deprecated private int jmxPort;
     @Deprecated private int jmxConnectTimeout;
     private int quartzNodeRegistrationCycleTime;            // UNUSED (currently) !
-    private int nodeRegistrationCycleTime, nodeAlivenessCheckInterval, nodeTimeout;
+    private int nodeRegistrationCycleTime;                  // How often should node register itself in repository
+    private int nodeTimeout;                                // After what time should be node considered (temporarily) down.
+    private int nodeAlivenessTimeout;                       // After what time should be node considered (permanently) down and recorded as such in the repository.
+    private int nodeAlivenessCheckInterval;                 // How often to check for down nodes.
     private UseThreadInterrupt useThreadInterrupt;
     private int waitingTasksCheckInterval;
     private int stalledTasksCheckInterval;
@@ -303,6 +308,7 @@ public class TaskManagerConfiguration {
         quartzNodeRegistrationCycleTime = c.getInt(QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
         nodeRegistrationCycleTime = c.getInt(NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
         nodeAlivenessCheckInterval = c.getInt(NODE_ALIVENESS_CHECK_INTERVAL, NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT);
+        nodeAlivenessTimeout = c.getInt(NODE_ALIVENESS_TIMEOUT, NODE_ALIVENESS_TIMEOUT_DEFAULT);
         nodeTimeout = c.getInt(NODE_TIMEOUT_CONFIG_ENTRY, NODE_TIMEOUT_DEFAULT);
 
         useJmx = c.getBoolean(USE_JMX_CONFIG_ENTRY, USE_JMX_DEFAULT);
@@ -459,7 +465,7 @@ public class TaskManagerConfiguration {
 
         mustBeTrue(quartzNodeRegistrationCycleTime > 1 && quartzNodeRegistrationCycleTime <= 600, "Quartz node registration cycle time must be between 1 and 600 seconds");
         mustBeTrue(nodeRegistrationCycleTime > 1 && nodeRegistrationCycleTime <= 600, "Node registration cycle time must be between 1 and 600 seconds");
-        mustBeTrue(nodeTimeout > 5 && nodeTimeout <= 3600, "Node timeout must be between 5 and 3600 seconds");
+        mustBeTrue(nodeTimeout > 5, "Node timeout must be at least 5 seconds");
     }
 
     void validateJdbcJobStoreInformation() throws TaskManagerConfigurationException {
@@ -571,6 +577,10 @@ public class TaskManagerConfiguration {
 
     public int getNodeTimeout() {
         return nodeTimeout;
+    }
+
+    public int getNodeAlivenessTimeout() {
+        return nodeAlivenessTimeout;
     }
 
     public int getNodeRegistrationCycleTime() {
