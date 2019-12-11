@@ -17,7 +17,7 @@ import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskPartitionsDefinition.TaskPartitionDefinition;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.util.template.TemplateEngine;
+import com.evolveum.midpoint.util.template.StringSubstitutorUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -242,7 +242,7 @@ public class PartitioningTaskHandler implements TaskHandler {
                 p -> p.getName(masterTask),
                 ps -> ps.getName(masterTask),
                 "{masterTaskName} ({index})", partition, partitionsDefinition);
-        String name = TemplateEngine.simpleExpand(nameTemplate, replacements);
+        String name = StringSubstitutorUtil.simpleExpand(nameTemplate, replacements);
         subtask.setName(PolyStringType.fromOrig(name));
 
         TaskWorkManagementType workManagement = applyDefaults(
@@ -262,7 +262,7 @@ public class PartitioningTaskHandler implements TaskHandler {
                 ps -> ps.getHandlerUri(masterTask),
                 null,
                 partition, partitionsDefinition);
-        String handlerUri = TemplateEngine.simpleExpand(handlerUriTemplate, replacements);
+        String handlerUri = StringSubstitutorUtil.simpleExpand(handlerUriTemplate, replacements);
         if (handlerUri == null) {
             // The default for coordinator-based partitions is to put default handler into workers configuration
             // - but only if both partition and workers handler URIs are null. This is to be revisited some day.
@@ -270,10 +270,11 @@ public class PartitioningTaskHandler implements TaskHandler {
                 handlerUri = TaskConstants.WORKERS_CREATION_TASK_HANDLER_URI;
                 if (workManagement.getWorkers() != null && workManagement.getWorkers().getHandlerUri() == null) {
                     workManagement = workManagement.clone();
-                    workManagement.getWorkers().setHandlerUri(TemplateEngine.simpleExpand(DEFAULT_HANDLER_URI, replacements));
+                    workManagement.getWorkers().setHandlerUri(
+                            StringSubstitutorUtil.simpleExpand(DEFAULT_HANDLER_URI, replacements));
                 }
             } else {
-                handlerUri = TemplateEngine.simpleExpand(DEFAULT_HANDLER_URI, replacements);
+                handlerUri = StringSubstitutorUtil.simpleExpand(DEFAULT_HANDLER_URI, replacements);
             }
         }
         subtask.setHandlerUri(handlerUri);

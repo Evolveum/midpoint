@@ -165,7 +165,7 @@ public class LocalizationServiceImpl implements LocalizationService {
     }
 
     private URL buildMidpointHomeLocalizationFolderUrl() {
-        String midpointHome = System.getProperty("midpoint.home");
+        String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
 
         File file = new File(midpointHome, "localization");
         try {

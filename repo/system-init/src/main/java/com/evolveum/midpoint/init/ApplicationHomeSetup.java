@@ -17,25 +17,26 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.MIDPOINT_HOME_PROPERTY;
-import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.MIDPOINT_SILENT_PROPERTY;
 
-public class ApplicationHomeSetup {
+class ApplicationHomeSetup {
 
     private static final Trace LOGGER = TraceManager.getTrace(ApplicationHomeSetup.class);
 
-    private boolean silent = false;
+    private final boolean silent;
+    private final String midPointHomePath;
 
-    public void init() {
-        this.silent = Boolean.getBoolean(MIDPOINT_SILENT_PROPERTY);
+    ApplicationHomeSetup(boolean silent, String midPointHomePath) {
+        this.silent = silent;
+        this.midPointHomePath = midPointHomePath;
+    }
 
-        String midpointHomePath = System.getProperty(MIDPOINT_HOME_PROPERTY);
-
-        String homeMessage = MIDPOINT_HOME_PROPERTY + " = " + midpointHomePath;
-        LOGGER.info(homeMessage);
+    void init() {
+        String homeMessage = MIDPOINT_HOME_PROPERTY + " = " + midPointHomePath;
+        LOGGER.info("{}", homeMessage);
         printToSysout(homeMessage);
 
-        createMidpointHomeDirectories(midpointHomePath);
-        setupMidpointHomeDirectory(midpointHomePath);
+        createMidpointHomeDirectories();
+        setupMidpointHomeDirectory();
     }
 
     private void printToSysout(String message) {
@@ -49,24 +50,21 @@ public class ApplicationHomeSetup {
      * <p/>
      * Directory information based on: http://wiki.evolveum.com/display/midPoint/midpoint.home+-+directory+structure
      */
-    private void createMidpointHomeDirectories(String midpointHomePath) {
-        if (!checkDirectoryExistence(midpointHomePath)) {
-            createDir(midpointHomePath);
+    private void createMidpointHomeDirectories() {
+        if (!checkDirectoryExistence(midPointHomePath)) {
+            createDir(midPointHomePath);
         }
 
-        if (!midpointHomePath.endsWith("/")) {
-            midpointHomePath = midpointHomePath + "/";
-        }
         String[] directories = {
-                midpointHomePath + "icf-connectors",
-                midpointHomePath + "idm-legacy",
-                midpointHomePath + "log",
-                midpointHomePath + "schema",
-                midpointHomePath + "import",
-                midpointHomePath + "export",
-                midpointHomePath + "tmp",
-                midpointHomePath + "lib",
-                midpointHomePath + "trace"
+                midPointHomePath + "icf-connectors",
+                midPointHomePath + "idm-legacy",
+                midPointHomePath + "log",
+                midPointHomePath + "schema",
+                midPointHomePath + "import",
+                midPointHomePath + "export",
+                midPointHomePath + "tmp",
+                midPointHomePath + "lib",
+                midPointHomePath + "trace"
         };
 
         for (String directory : directories) {
@@ -78,13 +76,12 @@ public class ApplicationHomeSetup {
         }
     }
 
-    private void setupMidpointHomeDirectory(String midpointHomePath) {
+    private void setupMidpointHomeDirectory() {
         try {
-            ClassPathUtil.extractFilesFromClassPath("initial-midpoint-home", midpointHomePath, false);
+            ClassPathUtil.extractFilesFromClassPath("initial-midpoint-home", midPointHomePath, false);
         } catch (URISyntaxException | IOException e) {
-            LOGGER.error("Error copying the content of initial-midpoint-home to {}: {}", midpointHomePath, e.getMessage(), e);
+            LOGGER.error("Error copying the content of initial-midpoint-home to {}: {}", midPointHomePath, e.getMessage(), e);
         }
-
     }
 
     private boolean checkDirectoryExistence(String dir) {

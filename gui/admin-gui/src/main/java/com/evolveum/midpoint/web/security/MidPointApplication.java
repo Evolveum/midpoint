@@ -392,7 +392,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         }
 
         String value = environment.getProperty(MidpointConfiguration.MIDPOINT_SCHRODINGER_PROPERTY);
-        Boolean enabled = Boolean.parseBoolean(value);
+        boolean enabled = Boolean.parseBoolean(value);
 
         if (enabled) {
             LOGGER.info("Schrodinger plugin enabled");

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
@@ -43,8 +44,6 @@ import java.util.List;
 public class ExtensionSchemaRestService {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExtensionSchemaRestService.class);
-
-    private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
 
     @Autowired private PrismContext prismContext;
     @Autowired private SecurityEnforcer securityEnforcer;
@@ -100,7 +99,8 @@ public class ExtensionSchemaRestService {
             return null;
         }
 
-        File home = new File(ExtensionSchemaRestService.MIDPOINT_HOME, "/schema");
+        String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
+        File home = new File(midpointHome, "/schema");
         java.nio.file.Path homePath = home.toPath();
         java.nio.file.Path filePath = file.toPath();
         java.nio.file.Path relative = homePath.relativize(filePath);

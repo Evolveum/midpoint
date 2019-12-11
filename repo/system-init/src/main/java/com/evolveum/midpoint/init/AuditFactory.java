@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration2.*;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -43,10 +44,11 @@ public class AuditFactory implements ApplicationContextAware, RuntimeConfigurati
     public void init() {
         Configuration config = getCurrentConfiguration();
         List<HierarchicalConfiguration<ImmutableNode>> auditServices =
-                ((BaseHierarchicalConfiguration) config).childConfigurationsAt(CONF_AUDIT_SERVICE);
+                ((BaseHierarchicalConfiguration) config).configurationsAt(CONF_AUDIT_SERVICE);
         for (Configuration serviceConfig : auditServices) {
             try {
                 String factoryClass = getFactoryClassName(serviceConfig);
+                //noinspection unchecked
                 Class<AuditServiceFactory> clazz = (Class<AuditServiceFactory>) Class.forName(factoryClass);
                 AuditServiceFactory factory = getFactory(clazz);
                 factory.init(serviceConfig);
@@ -107,7 +109,7 @@ public class AuditFactory implements ApplicationContextAware, RuntimeConfigurati
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(@NotNull ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
 

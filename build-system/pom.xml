@@ -379,11 +379,6 @@
                 <version>1.9.4</version>
             </dependency>
             <dependency>
-                <groupId>commons-beanutils</groupId>
-                <artifactId>commons-beanutils-core</artifactId>
-                <version>1.9.4</version>
-            </dependency>
-            <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
                 <version>1.10</version>
@@ -396,21 +391,12 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-configuration2</artifactId>
-                <version>2.5</version>
-<!--                <exclusions>-->
-<!--                    <exclusion> &lt;!&ndash; Conflicting version with Spring core &ndash;&gt;-->
-<!--                        <groupId>commons-logging</groupId>-->
-<!--                        <artifactId>commons-logging</artifactId>-->
-<!--                    </exclusion>-->
-<!--                    <exclusion> &lt;!&ndash; Conflicting version with Jasper Reports &ndash;&gt;-->
-<!--                        <groupId>commons-digester</groupId>-->
-<!--                        <artifactId>commons-digester</artifactId>-->
-<!--                    </exclusion>-->
-<!--                    <exclusion>-->
-<!--                        <groupId>commons-beanutils</groupId>-->
-<!--                        <artifactId>commons-beanutils</artifactId>-->
-<!--                    </exclusion>-->
-<!--                </exclusions>-->
+                <version>2.6</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>1.8</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
@@ -1676,8 +1662,6 @@
                                 <!-- The xjc-plugin does not compile without dependency on this -->
                                 <ignoredUnusedDeclaredDependency>org.apache.cxf:cxf-tools-common</ignoredUnusedDeclaredDependency>
 
-                                <!-- Cannot help myself with this one (commons-configuration 1.6 causes this) TODO: revisit -->
-                                <ignoredUnusedDeclaredDependency>commons-beanutils:commons-beanutils-core</ignoredUnusedDeclaredDependency>
                             </ignoredUnusedDeclaredDependencies>
                             <ignoredUsedUndeclaredDependencies>
                                 <!-- Unreliable detection -->

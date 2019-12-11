@@ -30,7 +30,7 @@ public class WfConfiguration {
     private static final transient Trace LOGGER = TraceManager.getTrace(WfConfiguration.class);
 
     private static final String KEY_ENABLED = "enabled";
-    private static final List<String> KNOWN_KEYS = Arrays.asList("midpoint.home", KEY_ENABLED);
+    private static final List<String> KNOWN_KEYS = Arrays.asList(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, KEY_ENABLED);
     private static final List<String> DEPRECATED_KEYS = Collections.emptyList();
 
     @Autowired

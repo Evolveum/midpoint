@@ -184,7 +184,7 @@ public class TaskManagerConfiguration {
     private boolean midPointTestMode = false;
 
     private static final List<String> KNOWN_KEYS = Arrays.asList(
-            "midpoint.home",
+            MidpointConfiguration.MIDPOINT_HOME_PROPERTY,            // probably can be removed from this list
             STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY,
             THREADS_CONFIG_ENTRY,
             CLUSTERED_CONFIG_ENTRY,
