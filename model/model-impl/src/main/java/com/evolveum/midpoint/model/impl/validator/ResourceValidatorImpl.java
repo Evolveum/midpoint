@@ -316,7 +316,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
             QName itemName, MappingType mapping, boolean outbound, int index, boolean implicitSourceOrTarget) {
         String inOut = outbound ? getString("ResourceValidator.outboundMapping") : getString("ResourceValidator.inboundMapping", index);
         String itemNameText = prettyPrintUsingStandardPrefix(itemName);
-        if (outbound && mapping.getTarget() != null) {
+        if (outbound && mapping.getTarget() != null && mapping.getTarget().getSet() == null) {
             ctx.validationResult.add(Issue.Severity.INFO,
                     CAT_SCHEMA_HANDLING, C_SUPERFLUOUS_MAPPING_TARGET,
                     getString(CLASS_DOT + C_SUPERFLUOUS_MAPPING_TARGET, getName(objectType),
