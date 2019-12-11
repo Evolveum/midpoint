@@ -62,8 +62,8 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
         try {
             repositoryFactory.init(config);
             auditService = new SqlAuditServiceImpl(repositoryFactory);
-            List<HierarchicalConfiguration<ImmutableNode>> subConfigColumns = ((BaseHierarchicalConfiguration)config).childConfigurationsAt(CONF_AUDIT_SERVICE_COLUMNS);
-            for(Configuration subConfigColumn : subConfigColumns) {
+            List<HierarchicalConfiguration<ImmutableNode>> subConfigColumns = ((BaseHierarchicalConfiguration)config).configurationsAt(CONF_AUDIT_SERVICE_COLUMNS);
+            for (Configuration subConfigColumn : subConfigColumns) {
                 String columnName = getStringFromConfig(subConfigColumn, CONF_AUDIT_SERVICE_COLUMN_NAME);
                 String eventRecordPropertyName = getStringFromConfig(subConfigColumn, CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME);
                 auditService.getCustomColumn().put(eventRecordPropertyName, columnName);

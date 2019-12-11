@@ -38,11 +38,6 @@ public class ConfigurableProtectorFactory {
         Configuration config = configuration.getConfiguration(MidpointConfiguration.PROTECTOR_CONFIGURATION);
         protectorConfig = new ProtectorConfiguration(config);
 
-        //Extract file if not exists
-        if (config.getString("midpoint.home") == null) {
-            return;
-        }
-
         String keyStorePath = protectorConfig.getKeyStorePath();
         if (keyStorePath == null) {
             throw new SystemException("Keystore path not defined");

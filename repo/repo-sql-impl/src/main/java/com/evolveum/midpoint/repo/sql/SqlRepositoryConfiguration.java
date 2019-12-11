@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
@@ -253,9 +254,6 @@ public class SqlRepositoryConfiguration {
     private static final int DEFAULT_MIN_POOL_SIZE = 8;
     private static final int DEFAULT_MAX_POOL_SIZE = 20;
     private static final int DEFAULT_MAX_OBJECTS_FOR_IMPLICIT_FETCH_ALL_ITERATION_METHOD = 500;
-
-    private static final String USER_HOME_VARIABLE = "user.home";
-    private static final String MIDPOINT_HOME_VARIABLE = "midpoint.home";
 
     public static final String PROPERTY_DATABASE = "database";
     public static final String PROPERTY_BASE_DIR = "baseDir";
@@ -552,15 +550,16 @@ public class SqlRepositoryConfiguration {
     private String getDerivedBaseDir() {
         LOGGER.debug("Base dir path in configuration was not defined.");
         String rv;
-        if (StringUtils.isNotEmpty(System.getProperty(MIDPOINT_HOME_VARIABLE))) {
-            rv = System.getProperty(MIDPOINT_HOME_VARIABLE);
-            LOGGER.info("Using {} with value {} as base dir for configuration.", MIDPOINT_HOME_VARIABLE, rv);
-        } else if (StringUtils.isNotEmpty(System.getProperty(USER_HOME_VARIABLE))) {
-            rv = System.getProperty(USER_HOME_VARIABLE);
-            LOGGER.info("Using {} with value {} as base dir for configuration.", USER_HOME_VARIABLE, rv);
+        if (StringUtils.isNotEmpty(System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY))) {
+            rv = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
+            LOGGER.info("Using {} with value {} as base dir for configuration.", MidpointConfiguration.MIDPOINT_HOME_PROPERTY, rv);
+        } else if (StringUtils.isNotEmpty(System.getProperty(MidpointConfiguration.USER_HOME_PROPERTY))) {
+            rv = System.getProperty(MidpointConfiguration.USER_HOME_PROPERTY);
+            LOGGER.info("Using {} with value {} as base dir for configuration.", MidpointConfiguration.USER_HOME_PROPERTY, rv);
         } else {
             rv = ".";
-            LOGGER.info("Using '.' as base dir for configuration (neither {} nor {} was defined).", MIDPOINT_HOME_VARIABLE, USER_HOME_VARIABLE);
+            LOGGER.info("Using '.' as base dir for configuration (neither {} nor {} was defined).",
+                    MidpointConfiguration.MIDPOINT_HOME_PROPERTY, MidpointConfiguration.USER_HOME_PROPERTY);
         }
         return rv;
     }

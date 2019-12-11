@@ -25,6 +25,7 @@ import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.NetworkUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -39,7 +40,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -525,7 +525,7 @@ public class NodeRegistrar {
             return taskManager.getConfiguration().getJmxHostName();
         } else {
             try {
-                String hostName = getLocalHostNameFromOperatingSystem();
+                String hostName = NetworkUtil.getLocalHostNameFromOperatingSystem();
                 if (hostName != null) {
                     return hostName;
                 } else {
@@ -598,35 +598,6 @@ public class NodeRegistrar {
                 return getDiscoveredUrlScheme() + "://" + getMyHostname() + ":" + getMyHttpPort() + path;
             }
         }
-    }
-
-    @Nullable
-    public static String getLocalHostNameFromOperatingSystem() throws UnknownHostException {
-        // Not entirely correct. But we have no other option here
-        // other than go native or execute a "hostname" shell command.
-        // We do not want to do neither.
-        InetAddress localHost = InetAddress.getLocalHost();
-        if (localHost == null) {
-            String hostname = System.getenv("HOSTNAME");        // Unix
-            if (StringUtils.isNotEmpty(hostname)) {
-                return hostname;
-            }
-            hostname = System.getenv("COMPUTERNAME");           // Windows
-            if (StringUtils.isNotEmpty(hostname)) {
-                return hostname;
-            }
-            return null;
-        }
-
-        String hostname = localHost.getCanonicalHostName();
-        if (StringUtils.isNotEmpty(hostname)) {
-            return hostname;
-        }
-        hostname = localHost.getHostName();
-        if (StringUtils.isNotEmpty(hostname)) {
-            return hostname;
-        }
-        return localHost.getHostAddress();
     }
 
     private List<String> getMyIpAddresses() {

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.common;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import org.testng.AssertJUnit;
@@ -22,20 +23,18 @@ import java.util.Locale;
  */
 public class LocalizationTest {
 
-    private static final String MIDPOINT_HOME_PROPERTY = "midpoint.home";
-
     private static String midpointHome;
 
     private static LocalizationServiceImpl service;
 
     @BeforeClass
     public static void beforeClass() {
-        midpointHome = System.getProperty(MIDPOINT_HOME_PROPERTY);
+        midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
 
         File file = new File(".");
         String newMidpointHome = file.getAbsolutePath() + "/fake-midpoint-home";
 
-        System.setProperty(MIDPOINT_HOME_PROPERTY, newMidpointHome);
+        System.setProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, newMidpointHome);
 
         service = new LocalizationServiceImpl();
         service.init();
@@ -43,7 +42,7 @@ public class LocalizationTest {
 
     @AfterClass
     public static void afterClass() {
-        System.setProperty(MIDPOINT_HOME_PROPERTY, midpointHome);
+        System.setProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, midpointHome);
     }
 
     @Test

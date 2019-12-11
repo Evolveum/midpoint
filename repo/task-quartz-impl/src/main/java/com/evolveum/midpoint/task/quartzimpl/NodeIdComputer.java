@@ -15,7 +15,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManagerConfigurationException;
-import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -23,16 +22,12 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.util.template.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.interpol.ConfigurationInterpolator;
+import org.apache.commons.configuration2.interpol.InterpolatorSpecification;
+import org.apache.commons.configuration2.interpol.Lookup;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.net.UnknownHostException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Determines node ID for the current node based on configuration and currently registered nodes.
@@ -41,14 +36,13 @@ class NodeIdComputer {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(NodeIdComputer.class);
 
-    private static final double DEFAULT_RANDOM_RANGE = 1000000000.0;
     private static final String DEFAULT_NODE_ID = "DefaultNode";
 
-    private static final String NODE_ID_SOURCE_RANDOM = "random";
-    private static final String NODE_ID_SOURCE_HOSTNAME = "hostname";
-    private static final String NODE_ID_EXPRESSION_SEQUENCE = "sequence";
+    private static final int DEFAULT_SEQUENCE_START = 0;
+    private static final int DEFAULT_SEQUENCE_END = 100;
+    private static final String DEFAULT_SEQUENCE_FORMAT = "%d";
 
-    private static final int MAX_ITERATIONS = 100;
+    private static final int MAX_ATTEMPTS_SAFEGUARD = 10000;
 
     private final PrismContext prismContext;
     private final RepositoryService repositoryService;
@@ -58,107 +52,105 @@ class NodeIdComputer {
         this.repositoryService = repositoryService;
     }
 
-    String determineNodeId(Configuration c, boolean clustered, OperationResult result) throws TaskManagerConfigurationException {
-        String id = c.getString(MidpointConfiguration.MIDPOINT_NODE_ID_PROPERTY, null);
-        if (StringUtils.isNotEmpty(id)) {
-            LOGGER.info("Using explicitly provided node ID of '{}'", id);
-            return id;
-        }
-
-        String expression = c.getString(MidpointConfiguration.MIDPOINT_NODE_ID_EXPRESSION_PROPERTY, null);
-        if (StringUtils.isNotEmpty(expression)) {
-            String idFromExpression = getNodeIdFromExpression(expression, result);
-            if (StringUtils.isNotEmpty(idFromExpression)) {
-                LOGGER.info("Using node ID of '{}' as provided by the expression '{}'", idFromExpression, expression);
-                return idFromExpression;
+    String determineNodeId(Configuration root, boolean clustered, OperationResult result) throws TaskManagerConfigurationException {
+        String nodeIdExpression;
+        Object nodeIdRaw = root.getProperty(MidpointConfiguration.MIDPOINT_NODE_ID_PROPERTY);  // this is a value without interpolation
+        if (nodeIdRaw instanceof String && !"".equals(nodeIdRaw)) {
+            nodeIdExpression = (String) nodeIdRaw;
+        } else {
+            // No nodeId. Let's try nodeIdSource and convert it into nodeId expression.
+            String source = root.getString(MidpointConfiguration.MIDPOINT_NODE_ID_SOURCE_PROPERTY, null);
+            if (StringUtils.isNotEmpty(source)) {
+                nodeIdExpression = "${" + source + (source.contains(":") ? "" : ":") + "}";
             } else {
-                LOGGER.warn("Node ID expression '{}' returned no value, continuing with other options", expression);
+                nodeIdExpression = null;
             }
         }
 
-        String source = c.getString(MidpointConfiguration.MIDPOINT_NODE_ID_SOURCE_PROPERTY, null);
-        if (StringUtils.isNotEmpty(source)) {
-            String idFromSource = getNodeIdFromSource(source);
-            if (StringUtils.isNotEmpty(idFromSource)) {
-                LOGGER.info("Using node ID of '{}' as determined by the '{}' source", idFromSource, source);
-                return idFromSource;
+        String nodeId = getNodeIdFromExpression(root.getInterpolator(), nodeIdExpression, result);
+        if (StringUtils.isNotEmpty(nodeId)) {
+            if (nodeId.equals(nodeIdExpression)) {
+                LOGGER.info("Using configured node ID '{}'", nodeId);
             } else {
-                LOGGER.warn("Node ID source '{}' provided no value, continuing with other options", source);
+                LOGGER.info("Using node ID '{}' as provided by '{}' expression", nodeId, nodeIdExpression);
             }
-        }
-
-        if (!clustered) {
-            LOGGER.info("Using default node ID of '{}'", DEFAULT_NODE_ID);
+            return nodeId;
+        } else if (!clustered) {
+            LOGGER.info("Using default node ID '{}'", DEFAULT_NODE_ID);
             return DEFAULT_NODE_ID;
         } else {
             throw new TaskManagerConfigurationException("Node ID must be set when running in clustered mode");
         }
     }
 
-    private class BuiltinResolver extends AbstractChainedResolver {
+    /**
+     * Expects variable names of start:end:format with the defaults of start=0, end=100, format=%d.
+     */
+    private static class SequenceLookup implements Lookup {
 
-        private boolean iterationRequired = false;
-        private int iterationCounter = 0;
+        private boolean iterationRequired;
+        private int iterationCounter;
 
-        private BuiltinResolver(ReferenceResolver upstreamResolver, boolean actsAsDefault) {
-            super(upstreamResolver, actsAsDefault);
-        }
+        private int end;
+        private int number;
 
         @Override
-        protected String resolveLocally(String reference, List<String> parameters) {
-            if (NODE_ID_SOURCE_RANDOM.equals(reference)) {
-                double range;
-                if (parameters.isEmpty()) {
-                    range = DEFAULT_RANDOM_RANGE;
-                } else if (parameters.size() == 1) {
-                    range = Double.parseDouble(parameters.get(0));
+        public String lookup(String variable) {
+            LOGGER.trace("Lookup called with {}; iteration counter = {}", variable, iterationCounter);
+            iterationRequired = true;
+
+            int start = DEFAULT_SEQUENCE_START;
+            end = DEFAULT_SEQUENCE_END;
+            String format = DEFAULT_SEQUENCE_FORMAT;
+
+            int firstColon = variable.indexOf(':');
+            if (firstColon >= 0) {
+                start = Integer.parseInt(variable.substring(0, firstColon));
+                int secondColon = variable.indexOf(':', firstColon+1);
+                if (secondColon >= 0) {
+                    end = Integer.parseInt(variable.substring(firstColon+1, secondColon));
+                    format = variable.substring(secondColon+1);
                 } else {
-                    throw new IllegalArgumentException("Too many parameters for 'random' expression: " + parameters);
+                    end = Integer.parseInt(variable.substring(firstColon+1));
                 }
-                return getNodeIdAsRandomValue(range);
-            } else if (NODE_ID_SOURCE_HOSTNAME.equals(reference)) {
-                return getNodeIdAsHostName();
-            } else if (NODE_ID_EXPRESSION_SEQUENCE.equals(reference)) {
-                iterationRequired = true;
-                int iteration = iterationCounter++;
-                String format;
-                int base;
-                if (parameters.size() >= 1) {
-                    format = parameters.get(0);
-                } else {
-                    format = "%d";
-                }
-                if (parameters.size() >= 2) {
-                    base = Integer.parseInt(parameters.get(1));
-                } else {
-                    base = 0;
-                }
-                if (parameters.size() >= 3) {
-                    throw new IllegalArgumentException("Too many parameters for 'sequence' expression: " + parameters);
-                }
-                return String.format(format, base + iteration);
-            } else {
-                return null;
+            } else if (!variable.isEmpty()) {
+                start = Integer.parseInt(variable);
             }
+            number = start + iterationCounter;
+            String rv = String.format(format, number);
+            LOGGER.trace("Lookup exiting with {}; iteration counter = {}", rv, iterationCounter);
+            return rv;
         }
 
-        @NotNull
-        @Override
-        protected Collection<String> getScopes() {
-            return Collections.singleton("");
+        private void advance() {
+            iterationCounter++;
+        }
+
+        private boolean isOutOfNumbers() {
+            return number > end;
         }
     }
 
-    @NotNull
-    private String getNodeIdFromExpression(String expression, OperationResult result) {
-        BuiltinResolver builtinResolver = new BuiltinResolver(null, true);
-        AbstractChainedResolver propertiesResolver = new JavaPropertiesResolver(builtinResolver, true);
-        AbstractChainedResolver osEnvironmentResolver = new OsEnvironmentResolver(propertiesResolver, true);
-        TemplateEngine engine = new TemplateEngine(osEnvironmentResolver, true, true);
-
-        for (;;) {
-            String candidateNodeId = engine.expand(expression);
-            if (builtinResolver.iterationRequired) {
+    private String getNodeIdFromExpression(ConfigurationInterpolator parentInterpolator, String expression,
+            OperationResult result) {
+        SequenceLookup sequenceLookup = new SequenceLookup();
+        InterpolatorSpecification sequenceProvidingInterpolatorSpec = new InterpolatorSpecification.Builder()
+                .withParentInterpolator(parentInterpolator)
+                .withPrefixLookup("sequence", sequenceLookup)
+                .create();
+        ConfigurationInterpolator interpolator = ConfigurationInterpolator.fromSpecification(sequenceProvidingInterpolatorSpec);
+        for (int attempt = 0; ; attempt++) {
+            Object interpolationResult = interpolator.interpolate(expression);
+            if (!(interpolationResult instanceof String)) {
+                LOGGER.warn("Node ID expression '{}' returned null or non-String value: {}", expression, interpolationResult);
+                return null;
+            }
+            String candidateNodeId = (String) interpolationResult;
+            if (candidateNodeId.contains("${")) {
+                // This is a bit of hack: it looks like the node was not resolved correctly.
+                throw new SystemException("Looks like we couldn't resolve the node ID expression. The (partial) result is: '" + candidateNodeId + "'");
+            }
+            if (sequenceLookup.iterationRequired) {
                 try {
                     // Let us try to create node with given name. If we fail we know we need to iterate.
                     // If we succeed, we will (later) replace the node with the correct content.
@@ -185,11 +177,13 @@ class NodeIdComputer {
                     }
                     if (existingNodes.isEmpty()) {
                         // Strange. The node should have gone in the meanwhile. To be safe, let's try another one.
-                        LOGGER.info("Node name '{}' seemed to be already reserved. But it cannot be found now. Iterating to the"
+                        LOGGER.warn("Node name '{}' seemed to be already reserved. But it cannot be found now. Iterating to the"
                                 + " next one (if possible).", candidateNodeId);
+                        sequenceLookup.advance();
                     } else if (existingNodes.size() > 1) {
                         LOGGER.warn("Strange: More than one node with the name of '{}': {}. Trying next name in the sequence"
                                 + "(if possible).", candidateNodeId, existingNodes);
+                        sequenceLookup.advance();
                     } else {
                         NodeType existingNode = existingNodes.get(0).asObjectable();
                         if (Boolean.FALSE.equals(existingNode.isRunning())) {
@@ -201,58 +195,27 @@ class NodeIdComputer {
                                 LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't delete the node {}. Probably someone"
                                         + " else is faster than us.", ex, existingNode);
                             }
-                            builtinResolver.iterationCounter--;     // will retry this node
+                            // no advance here
                         } else {
-                            LOGGER.info("Node name '{}' is already reserved. Iterating to next one (if possible).", candidateNodeId);
+                            LOGGER.debug("Node name '{}' is already reserved. Iterating to next one (if possible).", candidateNodeId);
+                            sequenceLookup.advance();
                         }
                     }
 
-                    if (builtinResolver.iterationCounter < MAX_ITERATIONS) {
-                        continue;
+                    if (attempt > MAX_ATTEMPTS_SAFEGUARD) {
+                        throw new SystemException("Maximum attempts safeguard value of " + MAX_ATTEMPTS_SAFEGUARD + " has been reached. "
+                                + "Something very strange must have happened.");
+                    } else if (sequenceLookup.isOutOfNumbers()) {
+                        throw new SystemException("Cannot acquire node name. The sequence upper border (" + sequenceLookup.end
+                                + ") has been reached.");
                     } else {
-                        throw new SystemException("Cannot acquire node name. Maximum number of iterations ("
-                                + MAX_ITERATIONS + ") has been reached.");
+                        continue;
                     }
                 } catch (SchemaException e) {
                     throw new SystemException("Unexpected schema exception while creating temporary node: " + e.getMessage(), e);
                 }
             }
             return candidateNodeId;
-        }
-    }
-
-    @NotNull
-    private String getNodeIdFromSource(@NotNull String source) {
-        switch (source) {
-            case NODE_ID_SOURCE_RANDOM:
-                return getNodeIdAsRandomValue(DEFAULT_RANDOM_RANGE);
-            case NODE_ID_SOURCE_HOSTNAME:
-                return getNodeIdAsHostName();
-            default:
-                throw new IllegalArgumentException("Unsupported node ID source: " + source);
-        }
-    }
-
-    @NotNull
-    private String getNodeIdAsRandomValue(double range) {
-        return "node-" + Math.round(Math.random() * range);
-    }
-
-    @NotNull
-    private String getNodeIdAsHostName() {
-        try {
-            String hostName = NodeRegistrar.getLocalHostNameFromOperatingSystem();
-            if (hostName != null) {
-                return hostName;
-            } else {
-                LOGGER.error("Couldn't determine nodeId as host name couldn't be obtained from the operating system");
-                throw new SystemException(
-                        "Couldn't determine nodeId as host name couldn't be obtained from the operating system");
-            }
-        } catch (UnknownHostException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine nodeId as host name couldn't be obtained from the operating system", e);
-            throw new SystemException(
-                    "Couldn't determine nodeId as host name couldn't be obtained from the operating system", e);
         }
     }
 }

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.task.quartzimpl.tracing;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,8 +82,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
     private static final String OP_STORE_TRACE = TracerImpl.class.getName() + ".storeTrace";
 
-    private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
-    private static final String TRACE_DIR = MIDPOINT_HOME + "trace/";
+    private static final String TRACE_DIR_NAME = "trace";
     private static final String ZIP_ENTRY_NAME = "trace.xml";
 
     private static final String DEFAULT_FILE_NAME_PATTERN = "trace-%{timestamp}";
@@ -416,7 +417,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
     @NotNull
     private File createFileName(boolean zip, TracingProfileType profile, Map<String, String> parameters) {
-        File traceDir = new File(TRACE_DIR);
+        File traceDir = new File(System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY), TRACE_DIR_NAME);
         if (!traceDir.exists() || !traceDir.isDirectory()) {
             if (!traceDir.mkdir()) {
                 LOGGER.warn("Attempted to create trace directory but failed: {}", traceDir);
@@ -431,28 +432,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
     }
 
     private String expandMacros(String pattern, Map<String, String> parameters) {
-        StringBuilder sb = new StringBuilder();
-        for (int current = 0;;) {
-            int i = pattern.indexOf("%{", current);
-            if (i < 0) {
-                sb.append(pattern.substring(current));
-                return sb.toString();
-            }
-            sb.append(pattern, current, i);
-            int j = pattern.indexOf("}", i);
-            if (j < 0) {
-                LOGGER.warn("Missing '}' in pattern '{}'", pattern);
-                return sb.toString() + " - error - " + parameters.get(MACRO_RANDOM);
-            } else {
-                String macroName = pattern.substring(i+2, j);
-                String value = parameters.get(macroName);
-                if (value == null) {
-                    LOGGER.warn("Unknown parameter '{}' in pattern '{}'", macroName, pattern);
-                }
-                sb.append(value);
-            }
-            current = j+1;
-        }
+        return new StringSubstitutor(parameters, "%{", "}").replace(pattern);
     }
 
     @Override

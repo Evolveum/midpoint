@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.test;
 
 import java.lang.management.ManagementFactory;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.boot.Banner;
 import org.springframework.boot.ExitCodeGenerator;
@@ -24,7 +25,6 @@ import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.boot.AbstractSpringBootApplication;
-import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
 
 /**
  * @author katka
@@ -107,16 +107,17 @@ public class TestMidPointSpringApplication extends AbstractSpringBootApplication
 
     //what is this for? why static?
     private static SpringApplicationBuilder configureApplication(SpringApplicationBuilder application) {
-        String mpHome = System.getProperty(MIDPOINT_HOME_PROPERTY);
+        String mpHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
         if (StringUtils.isEmpty(mpHome)) {
-            LOGGER.info("{} system property is not set, using default configuration", MIDPOINT_HOME_PROPERTY);
+            LOGGER.info("{} system property is not set, using default configuration",
+                    MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
 
-            mpHome = System.getProperty(USER_HOME_PROPERTY_NAME);
+            mpHome = System.getProperty(MidpointConfiguration.USER_HOME_PROPERTY);
             if (!mpHome.endsWith("/")) {
                 mpHome += "/";
             }
             mpHome += "midpoint";
-            System.setProperty(MIDPOINT_HOME_PROPERTY, mpHome);
+            System.setProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, mpHome);
         }
 
         System.setProperty("spring.config.additional-location", "${midpoint.home}/");
