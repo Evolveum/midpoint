@@ -185,22 +185,28 @@ public class ClusterManager {
                 .searchObjects(NodeType.class, null, null, result);
         for (PrismObject<NodeType> nodeObject : nodes) {
             NodeType node = nodeObject.asObjectable();
-            if (taskManager.getNodeId() == null || !taskManager.getNodeId().equals(node.getNodeIdentifier())) {
-                if (!Boolean.FALSE.equals(node.isRunning()) && node.getLastCheckInTime() != null) {
-                    if (!isUp(node)) {
-                        LOGGER.warn("Node {} is down, marking it as such", node);
-                        List<ItemDelta<?, ?>> modifications = taskManager.getPrismContext().deltaFor(NodeType.class)
-                                .item(NodeType.F_RUNNING).replace(false)
-                                .asItemDeltas();
-                        try {
-                            getRepositoryService().modifyObject(NodeType.class, node.getOid(), modifications, result);
-                        } catch (ObjectNotFoundException | ObjectAlreadyExistsException e) {
-                            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't mark node {} as down", e, node);
-                        }
-                    }
+            if (isRemoteNode(node) && shouldBeMarkedAsDown(node)) {
+                LOGGER.warn("Node {} is down, marking it as such", node);
+                List<ItemDelta<?, ?>> modifications = taskManager.getPrismContext().deltaFor(NodeType.class)
+                        .item(NodeType.F_RUNNING).replace(false)
+                        .asItemDeltas();
+                try {
+                    getRepositoryService().modifyObject(NodeType.class, node.getOid(), modifications, result);
+                } catch (ObjectNotFoundException | ObjectAlreadyExistsException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't mark node {} as down", e, node);
                 }
             }
         }
+    }
+
+    private boolean isRemoteNode(NodeType node) {
+        return taskManager.getNodeId() == null || !taskManager.getNodeId().equals(node.getNodeIdentifier());
+    }
+
+    private boolean shouldBeMarkedAsDown(NodeType node) {
+        return !Boolean.FALSE.equals(node.isRunning()) && (node.getLastCheckInTime() == null ||
+                System.currentTimeMillis() - node.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
+                        > taskManager.getConfiguration().getNodeAlivenessTimeout() * 1000L);
     }
 
     public void stopClusterManagerThread(long waitTime, OperationResult parentResult) {
