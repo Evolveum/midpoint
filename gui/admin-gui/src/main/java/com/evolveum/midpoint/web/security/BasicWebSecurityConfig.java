@@ -10,17 +10,14 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.security.filter.MidpointRequestAttributeAuthenticationFilter;
-import com.evolveum.midpoint.web.security.filter.MidpointRequestHeaderAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.AuthFilterConfigurer;
 import org.jasig.cas.client.session.SingleSignOutFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -37,7 +34,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.authentication.preauth.RequestAttributeAuthenticationFilter;
-import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
@@ -56,8 +52,8 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private AuthenticationProvider midPointAuthenticationProvider;
+//    @Autowired
+//    private AuthenticationProvider midPointAuthenticationProvider;
 
     @Autowired
     private SessionRegistry sessionRegistry;
@@ -183,11 +179,11 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new MidpointProviderManager(providers);
     }
 
-    @ConditionalOnMissingBean(name = "midPointAuthenticationProvider")
-    @Bean
-    public AuthenticationProvider midPointAuthenticationProvider() throws Exception {
-        return new MidPointAuthenticationProvider();
-    }
+//    @ConditionalOnMissingBean(name = "midPointAuthenticationProvider")
+//    @Bean
+//    public AuthenticationProvider midPointAuthenticationProvider() throws Exception {
+//        return new MidPointAuthenticationProvider();
+//    }
 
 //    @Override
 //    protected void configure(AuthenticationManagerBuilder auth) throws Exception {

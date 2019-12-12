@@ -6,14 +6,13 @@
  */
 package com.evolveum.midpoint.web.security.module.configuration;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModuleHttpHeaderType;
 
 /**
  * @author skublik
  */
 
-public class HttpHeaderModuleWebSecurityConfiguration extends ModuleWebSecurityConfiguration {
+public class HttpHeaderModuleWebSecurityConfiguration extends ModuleWebSecurityConfigurationImpl {
 
     private String principalRequestHeader;
 

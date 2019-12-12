@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.util;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
@@ -116,6 +117,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import net.sf.cglib.core.Local;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -1101,7 +1103,17 @@ public final class WebComponentUtil {
 
     public static String getTranslatedPolyString(PolyString value){
         MidPointApplication application = MidPointApplication.get();
-        return application.getLocalizationService().translate(value, getCurrentLocale(), true);
+        return getTranslatedPolyString(value, application != null ? application.getLocalizationService() : null);
+    }
+
+    public static String getTranslatedPolyString(PolyString value, LocalizationService localizationService){
+        if (value == null){
+            return "";
+        }
+        if (localizationService == null){
+            localizationService = MidPointApplication.get().getLocalizationService();
+        }
+        return localizationService.translate(value, getCurrentLocale(), true);
     }
 
     public static <O extends ObjectType> String getName(ObjectReferenceType ref, PageBase pageBase, String operation) {
@@ -1183,6 +1195,10 @@ public final class WebComponentUtil {
     }
 
     public static String getName(PrismObject object, boolean translate) {
+        return getName(object, translate, (LocalizationService) null);
+    }
+
+    public static String getName(PrismObject object, boolean translate, LocalizationService localizationService) {
         if (object == null) {
             return null;
         }
@@ -1191,7 +1207,7 @@ public final class WebComponentUtil {
             return null;
         }
         if (translate){
-            return getTranslatedPolyString(name);
+            return getTranslatedPolyString(name, localizationService);
         }
         return name.getOrig();
     }
@@ -1337,12 +1353,16 @@ public final class WebComponentUtil {
     }
 
     public static String getDisplayNameOrName(PrismObject object, boolean translate) {
+        return getDisplayNameOrName(object, translate, null);
+    }
+
+    public static String getDisplayNameOrName(PrismObject object, boolean translate, LocalizationService localizationService) {
         if (object == null) {
             return null;
         }
 
-        String displayName = getDisplayName(object, translate);
-        return displayName != null ? displayName : getName(object, translate);
+        String displayName = getDisplayName(object, translate, localizationService);
+        return displayName != null ? displayName : getName(object, translate, localizationService);
     }
 
     public static String getDisplayNameOrName(ObjectReferenceType ref) {
@@ -1388,8 +1408,19 @@ public final class WebComponentUtil {
     }
 
     public static String getDisplayName(PrismObject object, boolean translate) {
+        return getDisplayName(object, translate, null);
+    }
+
+    public static String getDisplayName(PrismObject object, boolean translate, LocalizationService localizationService) {
+        if (object == null){
+            return  "";
+        }
         if (translate){
-            return getTranslatedPolyString(ObjectTypeUtil.getDisplayName(object));
+            if (localizationService == null) {
+                return getTranslatedPolyString(ObjectTypeUtil.getDisplayName(object));
+            } else {
+                return getTranslatedPolyString(PolyString.toPolyString(ObjectTypeUtil.getDisplayName(object)), localizationService);
+            }
         } else {
             return PolyString.getOrig(ObjectTypeUtil.getDisplayName(object));
         }

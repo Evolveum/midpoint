@@ -6,15 +6,11 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.web.security.module.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.web.security.util.StateOfModule;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

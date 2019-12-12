@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.web.security;
 
-import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.web.security.module.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.web.security.util.StateOfModule;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;

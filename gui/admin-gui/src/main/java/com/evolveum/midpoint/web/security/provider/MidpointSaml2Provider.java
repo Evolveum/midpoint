@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.security;
+package com.evolveum.midpoint.web.security.provider;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
@@ -15,11 +15,10 @@ import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.web.security.module.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -34,7 +33,7 @@ import java.util.List;
  * @author skublik
  */
 
-public class MidpointSaml2Provider extends MidPointAuthenticationProvider {
+public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointSaml2Provider.class);
 
@@ -42,7 +41,23 @@ public class MidpointSaml2Provider extends MidPointAuthenticationProvider {
     private transient AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
 
     @Override
-    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment) throws AuthenticationException {
+    protected AuthenticationEvaluator getEvaluator() {
+        return authenticationEvaluator;
+    }
+
+    @Override
+    protected void writeAutentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication,
+                                      ModuleAuthentication moduleAuthentication, Authentication token) {
+        Object principal = token.getPrincipal();
+        if (principal != null && principal instanceof MidPointUserProfilePrincipal) {
+            mpAuthentication.setPrincipal((MidPointUserProfilePrincipal) principal);
+        }
+
+        moduleAuthentication.setAuthentication(originalAuthentication);
+    }
+
+    @Override
+    protected Authentication internalAuthentication(Authentication authentication, List requireAssignment) throws AuthenticationException {
         ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
 
         try {
@@ -86,25 +101,10 @@ public class MidpointSaml2Provider extends MidPointAuthenticationProvider {
     }
 
     @Override
-    protected void writeAutentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication,
-                                      ModuleAuthentication moduleAuthentication, Authentication token) {
-        Object principal = token.getPrincipal();
-        if (principal != null && principal instanceof MidPointUserProfilePrincipal) {
-            mpAuthentication.setPrincipal((MidPointUserProfilePrincipal) principal);
-        }
-
-        moduleAuthentication.setAuthentication(originalAuthentication);
-    }
-
-    @Override
-    public boolean supports(Class<?> authentication) {
+    public boolean supports(Class authentication) {
         if (DefaultSamlAuthentication.class.equals(authentication)) {
             return true;
         }
-
-//        if (MidpointAuthentication.class.equals(authentication)) {
-//            return true;
-//        }
 
         return false;
     }

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.provider.MidPointAbstractAuthenticationProvider;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -39,8 +40,8 @@ public class MidpointProviderManager implements AuthenticationManager {
         boolean debug = LOGGER.isDebugEnabled();
 
         for (AuthenticationProvider provider : getProviders()) {
-            if (provider instanceof MidPointAuthenticationProvider) {
-                if (! ((MidPointAuthenticationProvider)provider).supports(toTest, authentication)) {
+            if (provider instanceof MidPointAbstractAuthenticationProvider) {
+                if (! ((MidPointAbstractAuthenticationProvider)provider).supports(toTest, authentication)) {
                     continue;
                 }
 

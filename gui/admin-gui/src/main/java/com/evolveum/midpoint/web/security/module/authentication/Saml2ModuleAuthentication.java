@@ -6,10 +6,11 @@
  */
 package com.evolveum.midpoint.web.security.module.authentication;
 
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleType;
+import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import com.evolveum.midpoint.web.security.util.IdentityProvider;
-import com.evolveum.midpoint.web.security.util.ModuleType;
 import com.evolveum.midpoint.web.security.util.RequestState;
-import com.evolveum.midpoint.web.security.util.StateOfModule;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ import java.util.Map;
  * @author skublik
  */
 
-public class Saml2ModuleAuthentication extends ModuleAuthentication{
+public class Saml2ModuleAuthentication extends ModuleAuthentication {
 
     private List<IdentityProvider> providers = new ArrayList<IdentityProvider>();
     private Map<String, String> namesOfUsernameAttributes;

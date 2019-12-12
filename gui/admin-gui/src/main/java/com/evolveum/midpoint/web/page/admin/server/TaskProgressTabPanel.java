@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.page.admin.server.dto.SynchronizationInformationDto;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -79,7 +80,13 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
         add(iterativeInformationPanel);
 
         synchronizationInformationPanelBefore = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL_BEFORE,
-            new PropertyModel<>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_DTO), false);
+                new LoadableModel<SynchronizationInformationDto>() {
+                    @Override
+                    protected SynchronizationInformationDto load() {
+                        return model == null || model.getObject() == null ? null :
+                                model.getObject().getSynchronizationInformationDto();
+                    }
+                }, false);
         synchronizationInformationPanelBefore.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
@@ -90,7 +97,13 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
         add(synchronizationInformationPanelBefore);
 
         synchronizationInformationPanelAfter = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL_AFTER,
-            new PropertyModel<>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_AFTER_DTO), true);
+                new LoadableModel<SynchronizationInformationDto>() {
+                    @Override
+                    protected SynchronizationInformationDto load() {
+                        return model == null || model.getObject() == null ? null :
+                                model.getObject().getSynchronizationInformationDto();
+                    }
+                }, true);
         synchronizationInformationPanelAfter.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {

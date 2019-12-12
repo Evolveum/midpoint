@@ -4,11 +4,9 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.security.module.authentication;
+package com.evolveum.midpoint.model.api.authentication;
 
-import com.evolveum.midpoint.web.security.module.AuthModule;
-import com.evolveum.midpoint.web.security.util.StateOfModule;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
@@ -41,7 +39,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
-        this.modules = SecurityUtils.getSortedModules(sequence);
+        this.modules = SecurityPolicyUtil.getSortedModules(sequence);
         this.sequence = sequence;
     }
 

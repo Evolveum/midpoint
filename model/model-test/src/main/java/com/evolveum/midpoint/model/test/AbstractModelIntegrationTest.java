@@ -38,6 +38,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.test.asserter.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -96,9 +97,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -4516,7 +4514,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void login(MidPointPrincipal principal) {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
-        securityContext.setAuthentication(authentication);
+        securityContext.setAuthentication(createMpAuthentication(authentication));
+    }
+
+    protected Authentication createMpAuthentication(Authentication authentication) {
+        MidpointAuthentication mpAuthentication = new MidpointAuthentication(SecurityPolicyUtil.createDefaultSequence());
+        ModuleAuthentication moduleAuthentication = new ModuleAuthentication();
+        moduleAuthentication.setAuthentication(authentication);
+        moduleAuthentication.setNameOfModule(SecurityPolicyUtil.DEFAULT_MODULE_NAME);
+        moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
+        moduleAuthentication.setPrefix(ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
+                + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_NAME + "/");
+        mpAuthentication.addAuthentications(moduleAuthentication);
+        mpAuthentication.setPrincipal(authentication.getPrincipal());
+        return mpAuthentication;
     }
 
     protected void loginSuperUser(String principalName) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -4538,13 +4549,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         authorities.add(superAutz);
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
-        securityContext.setAuthentication(authentication);
+        securityContext.setAuthentication(createMpAuthentication(authentication));
     }
 
     protected void loginAnonymous() {
         Authentication authentication = new AnonymousAuthenticationToken("foo",
                 AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL, AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        SecurityContextHolder.getContext().setAuthentication(createMpAuthentication(authentication));
     }
 
     protected void assertLoggedInUsername(String username) {

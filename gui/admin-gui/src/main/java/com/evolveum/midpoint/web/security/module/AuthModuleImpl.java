@@ -4,10 +4,9 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.security.module;
+package com.evolveum.midpoint.model.api.authentication;
 
-import com.evolveum.midpoint.web.security.module.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -15,9 +14,9 @@ import org.springframework.security.web.SecurityFilterChain;
  * @author skublik
  */
 
-public class AuthModule {
+public class AuthModuleImpl implements AuthModule {
 
-    private AuthModule(){
+    private AuthModuleImpl(){
 
     }
 
@@ -52,11 +51,11 @@ public class AuthModule {
     }
 
     public static AuthModule build(SecurityFilterChain securityFilterChain, ModuleWebSecurityConfiguration configuration,
-                                   ModuleAuthentication baseModuleAuthentication) {
+                                       ModuleAuthentication baseModuleAuthentication) {
         Validate.notNull(securityFilterChain);
         Validate.notNull(configuration);
         Validate.notNull(baseModuleAuthentication);
-        AuthModule module = new AuthModule();
+        AuthModuleImpl module = new AuthModuleImpl();
         module.setSecurityFilterChain(securityFilterChain);
         module.setConfiguration(configuration);
         module.setBaseModuleAuthentication(baseModuleAuthentication);

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.module.configuration;
 
+import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -19,16 +20,14 @@ import static org.springframework.security.saml.util.StringUtils.stripSlashes;
  * @author skublik
  */
 
-public class ModuleWebSecurityConfiguration {
-
-    public static final String DEFAULT_PREFIX = "/auth";
+public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConfiguration {
 
     private List<AuthenticationProvider> authenticationProviders = new ArrayList<AuthenticationProvider>();
     private String prefixOfSequence;
     private String nameOfModule;
     private String defaultSuccessLogoutURL;
 
-    protected ModuleWebSecurityConfiguration(){
+    protected ModuleWebSecurityConfigurationImpl(){
     }
 
     public void setDefaultSuccessLogoutURL(String defaultSuccessLogoutURL) {
@@ -71,19 +70,19 @@ public class ModuleWebSecurityConfiguration {
 
     public String getPrefix() {
         if (getPrefixOfSequence() == null || StringUtils.isBlank(stripSlashes(getPrefixOfSequence()))) {
-            return DEFAULT_PREFIX + "/default/" + stripSlashes(getNameOfModule()) + "/";
+            return DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + DEFAULT_PREFIX_FOR_DEFAULT_MODULE + stripSlashes(getNameOfModule()) + "/";
         }
-        return DEFAULT_PREFIX + "/" + stripSlashes(getPrefixOfSequence()) + "/" + stripSlashes(getNameOfModule() + "/");
+        return DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/" + stripSlashes(getPrefixOfSequence()) + "/" + stripSlashes(getNameOfModule() + "/");
     }
 
-    public static ModuleWebSecurityConfiguration build(AbstractAuthenticationModuleType module, String prefixOfSequence){
-        ModuleWebSecurityConfiguration configuration = build(new ModuleWebSecurityConfiguration(), module, prefixOfSequence);
+    public static ModuleWebSecurityConfigurationImpl build(AbstractAuthenticationModuleType module, String prefixOfSequence){
+        ModuleWebSecurityConfigurationImpl configuration = build(new ModuleWebSecurityConfigurationImpl(), module, prefixOfSequence);
         configuration.validate();
         return configuration;
     }
 
-    protected static ModuleWebSecurityConfiguration build(ModuleWebSecurityConfiguration configuration, AbstractAuthenticationModuleType module,
-                                                          String prefixOfSequence){
+    protected static ModuleWebSecurityConfigurationImpl build(ModuleWebSecurityConfigurationImpl configuration, AbstractAuthenticationModuleType module,
+                                                              String prefixOfSequence){
         configuration.setNameOfModule(module.getName());
         configuration.setPrefixOfSequence(prefixOfSequence);
         return configuration;

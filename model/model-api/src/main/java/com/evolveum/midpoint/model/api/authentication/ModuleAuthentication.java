@@ -4,10 +4,8 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.security.module.authentication;
+package com.evolveum.midpoint.model.api.authentication;
 
-import com.evolveum.midpoint.web.security.util.ModuleType;
-import com.evolveum.midpoint.web.security.util.StateOfModule;
 import org.springframework.security.core.Authentication;
 
 /**

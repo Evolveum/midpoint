@@ -5,17 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.security;
+package com.evolveum.midpoint.web.security.provider;
 
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
-import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.web.security.module.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.MessageSourceAware;
-import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -26,10 +22,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -38,24 +30,24 @@ import java.util.List;
 /**
  * @author lazyman
  * @author Radovan Semancik
+ * @author skublik
  */
-public class MidPointAuthenticationProvider implements AuthenticationProvider, MessageSourceAware {
+public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractAuthenticationContext> implements AuthenticationProvider {//}, MessageSourceAware {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthenticationProvider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MidPointAbstractAuthenticationProvider.class);
 
-    private MessageSourceAccessor messages;
+//    private MessageSourceAccessor messages;
 
-    @Override
-    public void setMessageSource(MessageSource messageSource) {
-        this.messages = new MessageSourceAccessor(messageSource);
-    }
+//    @Override
+//    public void setMessageSource(MessageSource messageSource) {
+//        this.messages = new MessageSourceAccessor(messageSource);
+//    }
+//
+//    @Autowired
+//    private transient
+//    private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
 
-    @Autowired
-    private transient AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
-
-    protected AuthenticationEvaluator getEvaluator() {
-        return passwordAuthenticationEvaluator;
-    }
+    protected abstract AuthenticationEvaluator<T> getEvaluator();
 
     @Override
     public Authentication authenticate(Authentication originalAuthentication) throws AuthenticationException {
@@ -114,55 +106,23 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider, M
         return moduleAuthentication;
     }
 
-    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof MidPointUserProfilePrincipal) {
-            return authentication;
-        }
-        String enteredUsername = (String) authentication.getPrincipal();
-        LOGGER.trace("Authenticating username '{}'", enteredUsername);
+    protected abstract Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment) throws AuthenticationException;
 
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
-
-        try {
-            Authentication token;
-            if (authentication instanceof UsernamePasswordAuthenticationToken) {
-                String enteredPassword = (String) authentication.getCredentials();
-                token = passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(enteredUsername, enteredPassword, requireAssignment));
-            } else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
-                token = passwordAuthenticationEvaluator.authenticateUserPreAuthenticated(connEnv, new PreAuthenticationContext(enteredUsername, requireAssignment));
-            } else {
-                LOGGER.error("Unsupported authentication {}", authentication);
-                throw new AuthenticationServiceException("web.security.provider.unavailable");
-            }
-
-            MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();
-
-            LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
-                    authentication.getClass().getSimpleName(), principal.getAuthorities());
-            return token;
-
-        } catch (AuthenticationException e) {
-            LOGGER.info("Authentication failed for {}: {}", enteredUsername, e.getMessage());
-            throw e;
-        }
-    }
-
-
-    @Override
-    public boolean supports(Class<?> authentication) {
-        if (UsernamePasswordAuthenticationToken.class.equals(authentication)) {
-            return true;
-        }
-        if (PreAuthenticatedAuthenticationToken.class.equals(authentication)) {
-            return true;
-        }
-
-//        if (MidpointAuthentication.class.equals(authentication)) {
+//    @Override
+//    public boolean supports(Class<?> authentication) {
+//        if (UsernamePasswordAuthenticationToken.class.equals(authentication)) {
 //            return true;
 //        }
-
-        return false;
-    }
+//        if (PreAuthenticatedAuthenticationToken.class.equals(authentication)) {
+//            return true;
+//        }
+//
+////        if (MidpointAuthentication.class.equals(authentication)) {
+////            return true;
+////        }
+//
+//        return false;
+//    }
 
     public boolean supports(Class<?> authenticationClass, Authentication authentication) {
         if (!(authentication instanceof MidpointAuthentication)) {
@@ -170,7 +130,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider, M
         }
         MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
         ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
-        if (mpAuthentication == null || moduleAuthentication.getAuthentication() == null) {
+        if (mpAuthentication == null || moduleAuthentication == null || moduleAuthentication.getAuthentication() == null) {
             return false;
         }
         if (moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken) {
@@ -191,6 +151,6 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider, M
     public boolean equals(Object obj) {
         if (obj == null) return false;
         if (this.getClass() != obj.getClass()) return false;
-        return (this == obj);
+        return (this.hashCode() == obj.hashCode());
     }
 }

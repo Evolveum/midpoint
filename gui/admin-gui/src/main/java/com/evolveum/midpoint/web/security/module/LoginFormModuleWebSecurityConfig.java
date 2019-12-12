@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
+import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationFauileHandler;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointFormLoginConfigurer;
-import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.web.security.AuditedLogoutHandler;
 import com.evolveum.midpoint.web.security.MidPointAccessDeniedHandler;

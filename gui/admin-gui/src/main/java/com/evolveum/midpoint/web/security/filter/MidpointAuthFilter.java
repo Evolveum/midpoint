@@ -6,14 +6,16 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
+import com.evolveum.midpoint.model.api.authentication.AuthModule;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.web.security.module.AuthModule;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.AuthModuleImpl;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.factory.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -77,24 +79,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     public AuthenticationsPolicyType getDefaultAuthenticationPolicy() {
         if (authenticationPolicy == null) {
-            authenticationPolicy = new AuthenticationsPolicyType();
-            AuthenticationModulesType modules = new AuthenticationModulesType();
-            AuthenticationModuleLoginFormType loginForm = new AuthenticationModuleLoginFormType();
-            loginForm.name("loginForm");
-            modules.loginForm(loginForm);
-            authenticationPolicy.setModules(modules);
-            AuthenticationSequenceType sequence = new AuthenticationSequenceType();
-            sequence.name("admin-gui-default");
-            AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
-            channel.setDefault(true);
-            channel.channelId("http://midpoint.evolveum.com/xml/ns/public/model/channels-3#user");
-            sequence.channel(channel);
-            AuthenticationSequenceModuleType module = new AuthenticationSequenceModuleType();
-            module.name("loginForm");
-            module.order(1);
-            module.necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT);
-            sequence.module(module);
-            authenticationPolicy.sequence(sequence);
+            authenticationPolicy = SecurityPolicyUtil.createDefaultAuthenticationPolicy();
         }
         return authenticationPolicy;
     }
@@ -122,14 +107,20 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         //load security policy with authentication
         AuthenticationsPolicyType authenticationsPolicy;
+        CredentialsPolicyType credentialsPolicy = null;
+        PrismObject<SecurityPolicyType> authPolicy = null;
         try {
-            PrismObject<SecurityPolicyType> authPolicy = systemObjectCache.getSecurityPolicy(new OperationResult("load authentication policy"));
+            authPolicy = systemObjectCache.getSecurityPolicy(new OperationResult("load authentication policy"));
 
             //security policy without authentication
             if (authPolicy == null || authPolicy.asObjectable().getAuthentication() == null) {
-                authenticationsPolicy = getDefaultAuthenticationPolicy();
+                    authenticationsPolicy = getDefaultAuthenticationPolicy();
             } else {
                 authenticationsPolicy = authPolicy.asObjectable().getAuthentication();
+            }
+
+            if (authPolicy != null) {
+                credentialsPolicy = authPolicy.asObjectable().getCredentials();
             }
 
         } catch (SchemaException e) {
@@ -154,7 +145,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         if (mpAuthentication == null || !sequence.equals(mpAuthentication.getSequence())) {
             SecurityContextHolder.getContext().setAuthentication(null);
             authModules = SecurityUtils.buildModuleFilters(authRegistry, sequence, httpRequest, authenticationsPolicy.getModules(),
-                    sharedObjects);
+                    credentialsPolicy, sharedObjects);
         } else {
             authModules = mpAuthentication.getAuthModules();
         }

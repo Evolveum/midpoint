@@ -21,12 +21,12 @@ public class AuthModuleRegistryImpl {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(AuthModuleRegistryImpl.class);
 
-    List<ModuleFactory> moduleFactories = new ArrayList<>();
+    List<AbstractModuleFactory> moduleFactories = new ArrayList<>();
 
-    public void addToRegistry(ModuleFactory factory) {
+    public void addToRegistry(AbstractModuleFactory factory) {
         moduleFactories.add(factory);
 
-        Comparator<? super ModuleFactory> comparator =
+        Comparator<? super AbstractModuleFactory> comparator =
                 (f1,f2) -> {
 
                     Integer f1Order = f1.getOrder();
@@ -53,14 +53,14 @@ public class AuthModuleRegistryImpl {
 
     }
 
-    public ModuleFactory findModelFactory(AbstractAuthenticationModuleType configuration) {
+    public AbstractModuleFactory findModelFactory(AbstractAuthenticationModuleType configuration) {
 
-        Optional<ModuleFactory> opt = moduleFactories.stream().filter(f -> f.match(configuration)).findFirst();
+        Optional<AbstractModuleFactory> opt = moduleFactories.stream().filter(f -> f.match(configuration)).findFirst();
         if (!opt.isPresent()) {
             LOGGER.trace("No factory found for {}", configuration);
             return null;
         }
-        ModuleFactory factory = opt.get();
+        AbstractModuleFactory factory = opt.get();
         LOGGER.trace("Found component factory {} for {}", factory, configuration);
         return factory;
     }

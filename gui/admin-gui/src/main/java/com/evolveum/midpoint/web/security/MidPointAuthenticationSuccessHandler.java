@@ -10,10 +10,10 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.web.security.module.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.web.security.util.StateOfModule;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
+import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -85,8 +85,8 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
         }
 
         SavedRequest savedRequest = requestCache.getRequest(request, response);
-        if (savedRequest != null && savedRequest.getRedirectUrl().contains(ModuleWebSecurityConfiguration.DEFAULT_PREFIX + "/")) {
-            String target = savedRequest.getRedirectUrl().substring(0, savedRequest.getRedirectUrl().indexOf(ModuleWebSecurityConfiguration.DEFAULT_PREFIX + "/")) + "/self/dashboard";
+        if (savedRequest != null && savedRequest.getRedirectUrl().contains(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/")) {
+            String target = savedRequest.getRedirectUrl().substring(0, savedRequest.getRedirectUrl().indexOf(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/")) + "/self/dashboard";
             getRedirectStrategy().sendRedirect(request, response, target);
             return;
         }
