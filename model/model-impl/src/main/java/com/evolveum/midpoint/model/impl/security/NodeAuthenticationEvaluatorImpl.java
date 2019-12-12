@@ -130,13 +130,14 @@ public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvalua
         }
         // We should eliminate "not checking in" nodes if there are more possibilities
         if (matchingNodes.size() > 1) {
-            List<PrismObject<NodeType>> up = knownNodes.stream()
+            List<PrismObject<NodeType>> up = matchingNodes.stream()
                     .filter(node -> taskManager.isCheckingIn(node.asObjectable()))
                     .collect(Collectors.toList());
+            LOGGER.trace("Tried to eliminate nodes that are not checking in; found {} node(s) that are up: {}", up.size(), up);
             if (up.size() == 1) {
                 return up;
             } else {
-                return matchingNodes;       // Nothing can be done here. Let's return all the nodes.
+                // Nothing reasonable can be done here. Let's return all the nodes.
             }
         }
         return matchingNodes;
