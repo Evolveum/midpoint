@@ -128,10 +128,10 @@ public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvalua
                 matchingNodes.add(node);
             }
         }
-        // We should eliminate "almost-dead" nodes if there are more possibilities
+        // We should eliminate "not checking in" nodes if there are more possibilities
         if (matchingNodes.size() > 1) {
             List<PrismObject<NodeType>> up = knownNodes.stream()
-                    .filter(node -> taskManager.isUp(node.asObjectable()))
+                    .filter(node -> taskManager.isCheckingIn(node.asObjectable()))
                     .collect(Collectors.toList());
             if (up.size() == 1) {
                 return up;

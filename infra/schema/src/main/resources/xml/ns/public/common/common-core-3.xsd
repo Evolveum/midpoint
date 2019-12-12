@@ -2277,10 +2277,29 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="notCheckingIn">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node has not checked in for at least "nodeTimeout" seconds (default is 30).
+                        But it has not declared itself as turned off.
+
+                        Note that other nodes can declare a node as turned off after not checking in for
+                        "nodeAlivenessTimeout" seconds (default is 900).
+
+                        This status is available only for remote nodes, of course.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOT_CHECKING_IN"/>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="down">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Node down (this status is available only for remote nodes, of course).
+                        Node is turned off (its "running" flag is set to false). It either declares itself to be in this state
+                        when going down, or other nodes can do it after it does not check in for "nodeAlivenessTimeout" seconds
+                        (default is 900).
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DOWN"/>

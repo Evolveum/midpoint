@@ -117,8 +117,9 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
         result.addParam("node", nodeIdentifier);
 
         boolean dead = Boolean.FALSE.equals(node.isRunning());
-        boolean up = taskManager.isUp(node);
-        if (up || ClusterExecutionOptions.isTryDeadNodes(options) || !dead && ClusterExecutionOptions.isTryAlmostDeadNodes(options)) {
+        boolean isCheckingIn = taskManager.isCheckingIn(node);
+        if (isCheckingIn || ClusterExecutionOptions.isTryAllNodes(options) ||
+                !dead && ClusterExecutionOptions.isTryNodesNotCheckingIn(options)) {
             try {
                 WebClient client = createClient(node, context);
                 if (client == null) {

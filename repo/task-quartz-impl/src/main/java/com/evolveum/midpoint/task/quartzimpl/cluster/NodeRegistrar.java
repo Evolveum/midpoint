@@ -458,7 +458,7 @@ public class NodeRegistrar {
         List<PrismObject<NodeType>> allNodes = clusterManager.getAllNodes(result);
         for (PrismObject<NodeType> nodePrism : allNodes) {
             NodeType n = nodePrism.asObjectable();
-            if (isUp(n)) {
+            if (isCheckingIn(n)) {
                 if (n.isClustered()) {
                     clustered.add(n.getNodeIdentifier());
                 } else {
@@ -481,7 +481,7 @@ public class NodeRegistrar {
 
     }
 
-    boolean isUp(NodeType n) {
+    boolean isCheckingIn(NodeType n) {
         return !Boolean.FALSE.equals(n.isRunning()) && n.getLastCheckInTime() != null &&
                 System.currentTimeMillis() - n.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
                         <= taskManager.getConfiguration().getNodeTimeout() * 1000L;
@@ -677,7 +677,7 @@ public class NodeRegistrar {
 
         PrismObject<NodeType> nodePrism = clusterManager.getNode(nodeOid, result);
 
-        if (isUp(nodePrism.asObjectable())) {
+        if (isCheckingIn(nodePrism.asObjectable())) {
             result.recordFatalError("Node " + nodeOid + " cannot be deleted, because it is currently up.");
         } else {
             try {

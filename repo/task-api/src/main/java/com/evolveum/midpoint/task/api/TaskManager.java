@@ -772,5 +772,5 @@ public interface TaskManager {
      * @return true if we consider this node to be "up" (alive). This is determined by looking at "running" state (should not
      * be false) and last check-in information (should not be more than nodeTimeout ago).
      */
-    boolean isUp(NodeType node);
+    boolean isCheckingIn(NodeType node);
 }

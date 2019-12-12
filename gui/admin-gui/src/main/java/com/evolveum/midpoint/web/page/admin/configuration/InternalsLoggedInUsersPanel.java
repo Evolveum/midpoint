@@ -150,7 +150,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
                 usersMap.put(user.getUser().getOid(), user);
             }
 
-            }, new ClusterExecutionOptions().tryAlmostDeadNodes() /* reconsider if needed */,
+            }, new ClusterExecutionOptions().tryNodesNotCheckingIn() /* reconsider if needed */,
                 " list principals from remote nodes ", result);
 
         return new ArrayList<>(usersMap.values());

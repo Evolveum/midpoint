@@ -14,47 +14,47 @@ package com.evolveum.midpoint.task.api;
 public class ClusterExecutionOptions {
 
     /**
-     * Whether to try connecting to "almost dead" nodes. I.e. nodes that are not declared dead (running=false) but
+     * Whether to try connecting to "not checking in" nodes. I.e. nodes that are not declared dead (running=false) but
      * are not up either (last check-in was more than "nodeTimeout" ago).
      */
-    private boolean tryAlmostDeadNodes;
+    private boolean tryNodesNotCheckingIn;
 
     /**
      * Whether to try connecting to nodes in all cases (i.e. also to nodes that are declared dead).
      */
-    private boolean tryDeadNodes;
+    private boolean tryAllNodes;
 
-    public boolean isTryAlmostDeadNodes() {
-        return tryAlmostDeadNodes;
+    public boolean isTryNodesNotCheckingIn() {
+        return tryNodesNotCheckingIn;
     }
 
-    public void setTryAlmostDeadNodes(boolean tryAlmostDeadNodes) {
-        this.tryAlmostDeadNodes = tryAlmostDeadNodes;
+    public void setTryNodesNotCheckingIn(boolean tryNodesNotCheckingIn) {
+        this.tryNodesNotCheckingIn = tryNodesNotCheckingIn;
     }
 
-    public ClusterExecutionOptions tryAlmostDeadNodes() {
-        setTryAlmostDeadNodes(true);
+    public ClusterExecutionOptions tryNodesNotCheckingIn() {
+        setTryNodesNotCheckingIn(true);
         return this;
     }
 
-    public static boolean isTryAlmostDeadNodes(ClusterExecutionOptions options) {
-        return options != null && options.isTryAlmostDeadNodes();
+    public static boolean isTryNodesNotCheckingIn(ClusterExecutionOptions options) {
+        return options != null && options.isTryNodesNotCheckingIn();
     }
 
-    public boolean isTryDeadNodes() {
-        return tryDeadNodes;
+    public boolean isTryAllNodes() {
+        return tryAllNodes;
     }
 
-    public void setTryDeadNodes(boolean tryDeadNodes) {
-        this.tryDeadNodes = tryDeadNodes;
+    public void setTryAllNodes(boolean tryAllNodes) {
+        this.tryAllNodes = tryAllNodes;
     }
 
-    public ClusterExecutionOptions tryDeadNodes() {
-        setTryDeadNodes(true);
+    public ClusterExecutionOptions tryAllNodes() {
+        setTryAllNodes(true);
         return this;
     }
 
-    public static boolean isTryDeadNodes(ClusterExecutionOptions options) {
-        return options != null && options.isTryDeadNodes();
+    public static boolean isTryAllNodes(ClusterExecutionOptions options) {
+        return options != null && options.isTryAllNodes();
     }
 }

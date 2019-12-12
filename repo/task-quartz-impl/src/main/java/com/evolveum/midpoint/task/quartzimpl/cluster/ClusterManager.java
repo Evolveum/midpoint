@@ -103,8 +103,8 @@ public class ClusterManager {
         return nodeRegistrar.verifyNodeObject(result);
     }
 
-    public boolean isUp(NodeType nodeType) {
-        return nodeRegistrar.isUp(nodeType);
+    public boolean isCheckingIn(NodeType nodeType) {
+        return nodeRegistrar.isCheckingIn(nodeType);
     }
 
     class ClusterManagerThread extends Thread {
