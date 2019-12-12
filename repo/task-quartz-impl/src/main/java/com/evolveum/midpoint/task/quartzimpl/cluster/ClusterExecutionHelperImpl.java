@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.RestAuthenticationMethod;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
+import com.evolveum.midpoint.task.api.ClusterExecutionOptions;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -61,10 +62,10 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
     private static final String DOT_CLASS = ClusterExecutionHelperImpl.class.getName() + ".";
 
     @Override
-    public void execute(@NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult) {
+    public void execute(@NotNull BiConsumer<WebClient, OperationResult> code,
+            ClusterExecutionOptions options, String context, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "execute");
-
 
         if (!taskManager.isClustered()) {
             LOGGER.trace("Node is not part of a cluster, skipping remote code execution");
@@ -79,7 +80,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
 
         for (PrismObject<NodeType> node : otherClusterNodes.getList()) {
             try {
-                execute(node.asObjectable(), code, context, result);
+                execute(node.asObjectable(), code, options, context, result);
             } catch (SchemaException|RuntimeException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute operation ({}) on node {}", e, context, node);
             }
@@ -100,20 +101,24 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
     }
 
     @Override
-    public void execute(@NotNull String nodeOid, @NotNull BiConsumer<WebClient, OperationResult> code, String context,
+    public void execute(@NotNull String nodeOid, @NotNull BiConsumer<WebClient, OperationResult> code,
+            ClusterExecutionOptions options, String context,
             OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         PrismObject<NodeType> node = repositoryService.getObject(NodeType.class, nodeOid, null, parentResult);
-        execute(node.asObjectable(), code, context, parentResult);
+        execute(node.asObjectable(), code, options, context, parentResult);
     }
 
     @Override
-    public void execute(@NotNull NodeType node, @NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult)
+    public void execute(@NotNull NodeType node, @NotNull BiConsumer<WebClient, OperationResult> code,
+            ClusterExecutionOptions options, String context, OperationResult parentResult)
             throws SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "execute.node");
         String nodeIdentifier = node.getNodeIdentifier();
         result.addParam("node", nodeIdentifier);
 
-        if (!Boolean.FALSE.equals(node.isRunning())) {
+        boolean dead = Boolean.FALSE.equals(node.isRunning());
+        boolean up = taskManager.isUp(node);
+        if (up || ClusterExecutionOptions.isTryDeadNodes(options) || !dead && ClusterExecutionOptions.isTryAlmostDeadNodes(options)) {
             try {
                 WebClient client = createClient(node, context);
                 if (client == null) {
@@ -127,7 +132,8 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
                 throw t;
             }
         } else {
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Node " + nodeIdentifier + " is not running");
+            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Node " + nodeIdentifier +
+                    " is not running (isRunning = " + node.isRunning() + ", last check in time = " + node.getLastCheckInTime());
         }
     }
 

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
+import com.evolveum.midpoint.task.api.ClusterExecutionOptions;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
@@ -44,7 +45,6 @@ import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -382,7 +382,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                         result1.recordFatalError("Could not delete report output file: Got " + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
                     }
                     response.close();
-                }, "get report output", result);
+                }, new ClusterExecutionOptions().tryAlmostDeadNodes(), "get report output", result);
                 result.computeStatusIfUnknown();
             }
 
@@ -452,7 +452,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                         result1.recordFatalError("Could not retrieve report output file: Got " + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
                         response.close();
                     }
-                }, "get report output", result);
+                }, new ClusterExecutionOptions().tryAlmostDeadNodes(), "get report output", result);
                 result.computeStatusIfUnknown();
                 return inputStreamHolder.getValue();
             }

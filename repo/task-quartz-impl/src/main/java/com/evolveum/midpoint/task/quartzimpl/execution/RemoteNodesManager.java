@@ -55,25 +55,25 @@ public class RemoteNodesManager {
      * @param node Node which to query
      */
     void addNodeStatusFromRemoteNode(ClusterStatusInformation info, PrismObject<NodeType> node, OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(RemoteNodesManager.class.getName() + ".addNodeStatusFromRemoteNode");
         NodeType nodeInfo = node.asObjectable();
+        OperationResult result = parentResult.createSubresult(RemoteNodesManager.class.getName() + ".addNodeStatusFromRemoteNode");
         result.addParam("node", nodeInfo.getNodeIdentifier());
         try {
             if (!taskManager.getClusterManager().isUp(nodeInfo)) {
                 nodeInfo.setExecutionStatus(NodeExecutionStatusType.DOWN);
                 info.addNodeInfo(nodeInfo);
                 result.recordStatus(OperationResultStatus.SUCCESS, "Node is down");
-                return;
-            }
-
-            if (taskManager.getConfiguration().isUseJmx()) {
-                jmxConnector.addNodeStatusUsingJmx(info, nodeInfo, result);
             } else {
-                restConnector.addNodeStatus(info, nodeInfo, result);
+                if (taskManager.getConfiguration().isUseJmx()) {
+                    jmxConnector.addNodeStatusUsingJmx(info, nodeInfo, result);
+                } else {
+                    restConnector.addNodeStatus(info, nodeInfo, result);
+                }
             }
-            result.computeStatus();
         } catch (Throwable t) {
             result.recordFatalError("Couldn't get status from remote node", t);
+        } finally {
+            result.computeStatusIfUnknown();
         }
     }
 
