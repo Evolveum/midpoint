@@ -6,15 +6,11 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.web.security.module.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.web.security.util.StateOfModule;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.DefaultRedirectStrategy;
-import org.springframework.security.web.RedirectStrategy;
-import org.springframework.security.web.util.matcher.RegexRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;

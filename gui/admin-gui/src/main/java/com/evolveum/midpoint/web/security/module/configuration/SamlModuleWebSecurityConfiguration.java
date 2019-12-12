@@ -39,7 +39,7 @@ import java.util.Map;
  * @author skublik
  */
 
-public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfiguration {
+public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigurationImpl {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfiguration.class);
     private static Protector protector;

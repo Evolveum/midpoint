@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.web.security.module.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.web.security.util.StateOfModule;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -26,7 +26,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**

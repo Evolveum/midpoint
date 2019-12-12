@@ -6,10 +6,11 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
+import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.*;
 import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
-import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,8 +47,8 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private AuthenticationProvider midPointAuthenticationProvider;
+//    @Autowired
+//    private AuthenticationProvider midPointAuthenticationProvider;
 
     @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;

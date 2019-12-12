@@ -8,18 +8,19 @@
 package com.evolveum.midpoint.web.security.util;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.model.api.authentication.AuthModuleImpl;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.security.module.AuthModule;
-import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.web.security.module.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.security.module.authentication.LoginFormModuleAuthentication;
+import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.web.security.module.factory.AuthModuleRegistryImpl;
-import com.evolveum.midpoint.web.security.module.factory.ModuleFactory;
+import com.evolveum.midpoint.web.security.module.factory.AbstractModuleFactory;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
 
@@ -54,8 +55,6 @@ public class SecurityUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SecurityUtils.class);
 
-    private static final String DEFAULT_CHANNEL = "http://midpoint.evolveum.com/xml/ns/public/model/channels-3#user";
-
     public static MidPointUserProfilePrincipal getPrincipalUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -65,7 +64,7 @@ public class SecurityUtils {
     private static final Map<String, String> MY_MAP;
     static {
         Map<String, String> map = new HashMap<String, String>();
-//        map.put("auth", "http://midpoint.evolveum.com/xml/ns/public/model/channels-3#user");
+        map.put("rest", "http://midpoint.evolveum.com/xml/ns/public/model/channels-3#rest");
         MY_MAP = Collections.unmodifiableMap(map);
     }
 
@@ -169,21 +168,21 @@ public class SecurityUtils {
             if (partsOfLocalPath.length == 1 && MY_MAP.containsKey(partsOfLocalPath[0])) {
                 usedChannel = MY_MAP.get(partsOfLocalPath[0]);
             } else {
-                usedChannel = DEFAULT_CHANNEL;
+                usedChannel = SecurityPolicyUtil.DEFAULT_CHANNEL;
             }
 
             AuthenticationSequenceType sequence = searchSequence(usedChannel, true, authenticationPolicy);
             return sequence;
         }
-        if (partsOfLocalPath[0].equals("auth")) {
+        if (partsOfLocalPath[0].equals(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE)) {
             if (partsOfLocalPath[1].equals("default")) {
-                AuthenticationSequenceType sequence = searchSequence(DEFAULT_CHANNEL, true, authenticationPolicy);
+                AuthenticationSequenceType sequence = searchSequence(SecurityPolicyUtil.DEFAULT_CHANNEL, true, authenticationPolicy);
                 return  sequence;
             }
             AuthenticationSequenceType sequence = searchSequence(partsOfLocalPath[1], false, authenticationPolicy);
             if (sequence == null) {
                 LOGGER.debug("Couldn't find sequence by preffix {}, so try default channel", partsOfLocalPath[1]);
-                sequence = searchSequence(DEFAULT_CHANNEL, true, authenticationPolicy);
+                sequence = searchSequence(SecurityPolicyUtil.DEFAULT_CHANNEL, true, authenticationPolicy);
             }
             return sequence;
         }
@@ -191,7 +190,7 @@ public class SecurityUtils {
         if (MY_MAP.containsKey(partsOfLocalPath[0])) {
             usedChannel = MY_MAP.get(partsOfLocalPath[0]);
         } else {
-            usedChannel = DEFAULT_CHANNEL;
+            usedChannel = SecurityPolicyUtil.DEFAULT_CHANNEL;
         }
 
         AuthenticationSequenceType sequence = searchSequence(usedChannel, true, authenticationPolicy);
@@ -221,19 +220,19 @@ public class SecurityUtils {
     }
 
     public static List<AuthModule> buildModuleFilters(AuthModuleRegistryImpl authRegistry, AuthenticationSequenceType sequence,
-                                                      ServletRequest request, AuthenticationModulesType authenticationModulesType,
-                                                      Map<Class<? extends Object
-                                                              >, Object> sharedObjects) {
+                                                          ServletRequest request, AuthenticationModulesType authenticationModulesType,
+                                                          CredentialsPolicyType credentialPolicy, Map<Class<? extends Object>, Object> sharedObjects) {
         Validate.notNull(authRegistry);
         Validate.notEmpty(sequence.getModule());
-        List<AuthenticationSequenceModuleType> sequenceModules = getSortedModules(sequence);
+        List<AuthenticationSequenceModuleType> sequenceModules = SecurityPolicyUtil.getSortedModules(sequence);
         List<AuthModule> authModules = new ArrayList<AuthModule>();
 
         sequenceModules.forEach(sequenceModule -> {
             try {
                 AbstractAuthenticationModuleType module = getModuleByName(sequenceModule.getName(), authenticationModulesType);
-                ModuleFactory moduleFactory = authRegistry.findModelFactory(module);
-                AuthModule authModule = moduleFactory.createModuleFilter(module, sequence.getChannel().getUrlSuffix(), request, sharedObjects);
+                AbstractModuleFactory moduleFactory = authRegistry.findModelFactory(module);
+                AuthModule authModule = moduleFactory.createModuleFilter(module, sequence.getChannel().getUrlSuffix(), request,
+                        sharedObjects, authenticationModulesType, credentialPolicy);
                 authModules.add(authModule);
             } catch (Exception e) {
                 LOGGER.error("Couldn't build filter for module moduleFactory", e);
@@ -265,42 +264,12 @@ public class SecurityUtils {
         return null;
     }
 
-    public static ModuleFactory getFactoryByName(AuthModuleRegistryImpl authRegistry, String name, AuthenticationModulesType authenticationModulesType){
+    public static AbstractModuleFactory getFactoryByName(AuthModuleRegistryImpl authRegistry, String name, AuthenticationModulesType authenticationModulesType){
         AbstractAuthenticationModuleType module = getModuleByName(name, authenticationModulesType);
         if (module != null) {
             return authRegistry.findModelFactory(module);
         }
         return null;
-    }
-
-    public static List<AuthenticationSequenceModuleType> getSortedModules(AuthenticationSequenceType sequence){
-        Validate.notNull(sequence);
-        ArrayList<AuthenticationSequenceModuleType> modules = new ArrayList<AuthenticationSequenceModuleType>();
-        modules.addAll(sequence.getModule());
-        Validate.notNull(modules);
-        Validate.notEmpty(modules);
-        Comparator<AuthenticationSequenceModuleType> comparator =
-                (f1,f2) -> {
-
-                    Integer f1Order = f1.getOrder();
-                    Integer f2Order = f2.getOrder();
-
-                    if (f1Order == null) {
-                        if (f2Order != null) {
-                            return 1;
-                        }
-                        return 0;
-                    }
-
-                    if (f2Order == null) {
-                        if (f1Order != null) {
-                            return -1;
-                        }
-                    }
-                    return Integer.compare(f1Order, f2Order);
-                };
-        modules.sort(comparator);
-        return Collections.unmodifiableList(modules);
     }
 
     public static boolean isPermitAll(HttpServletRequest request) {
@@ -341,5 +310,13 @@ public class SecurityUtils {
         HttpSession session = request.getSession(false);
 
         request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
+    }
+
+    public static ModuleAuthentication createDefaultAuthenticationModule() {
+        LoginFormModuleAuthentication moduleAuthentication = new LoginFormModuleAuthentication();
+        moduleAuthentication.setPrefix(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
+                + ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_NAME + "/");
+        moduleAuthentication.setNameOfModule(SecurityPolicyUtil.DEFAULT_MODULE_NAME);
+        return moduleAuthentication;
     }
 }

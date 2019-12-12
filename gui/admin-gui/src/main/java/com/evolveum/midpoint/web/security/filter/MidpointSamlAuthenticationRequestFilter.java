@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.RequestState;
 import org.springframework.security.core.Authentication;

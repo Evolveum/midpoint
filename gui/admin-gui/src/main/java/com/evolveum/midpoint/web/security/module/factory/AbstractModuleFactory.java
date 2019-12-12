@@ -6,8 +6,11 @@
  */
 package com.evolveum.midpoint.web.security.module.factory;
 
-import com.evolveum.midpoint.web.security.module.AuthModule;
+import com.evolveum.midpoint.model.api.authentication.AuthModule;
+import com.evolveum.midpoint.model.api.authentication.AuthModuleImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,7 +23,7 @@ import java.util.Map;
  * @author skublik
  */
 
-public abstract class ModuleFactory {
+public abstract class AbstractModuleFactory {
 
     @PostConstruct
     public void register() {
@@ -44,7 +47,8 @@ public abstract class ModuleFactory {
     public abstract boolean match(AbstractAuthenticationModuleType moduleType);
 
     public abstract AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence,
-                                                  ServletRequest request, Map<Class<? extends Object>, Object> sharedObjects) throws Exception;
+                                                  ServletRequest request, Map<Class<? extends Object>, Object> sharedObjects,
+                                                  AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy) throws Exception;
 
     protected Integer getOrder(){
         return 0;

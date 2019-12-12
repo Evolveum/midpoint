@@ -6,8 +6,9 @@
  */
 package com.evolveum.midpoint.web.security.module.authentication;
 
-import com.evolveum.midpoint.web.security.util.ModuleType;
-import com.evolveum.midpoint.web.security.util.StateOfModule;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleType;
+import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 
 /**
  * @author skublik

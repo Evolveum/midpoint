@@ -15,6 +15,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.evolveum.midpoint.web.security.provider.InternalPasswordProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.*;
@@ -38,8 +39,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 @Profile("!test")
 public class ActuatorWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    private AuthenticationProvider authenticationProvider;
+//    @Autowired
+//    private AuthenticationProvider authenticationProvider;
 
     @Autowired
     private MidPointGuiAuthorizationEvaluator accessDecisionManager;
@@ -76,7 +77,7 @@ public class ActuatorWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(authenticationProvider);
+        auth.authenticationProvider(new InternalPasswordProvider());
     }
 }
 

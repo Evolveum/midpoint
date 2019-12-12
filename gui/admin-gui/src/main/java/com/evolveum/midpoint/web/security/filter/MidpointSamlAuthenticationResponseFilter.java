@@ -7,13 +7,9 @@
 
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.model.api.authentication.UserProfileService;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.module.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.RequestState;
-import com.evolveum.midpoint.web.security.util.StateOfModule;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
