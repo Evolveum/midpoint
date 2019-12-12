@@ -27,6 +27,8 @@ import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 
+import java.util.Objects;
+
 import static com.evolveum.midpoint.repo.sql.util.RUtil.qnameToString;
 
 /**
@@ -167,25 +169,19 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        RObjectReference ref = (RObjectReference) o;
-
-        if (targetOid != null ? !targetOid.equals(ref.targetOid) : ref.targetOid != null) return false;
-        if (type != ref.type) return false;
-        if (relation != null ? !relation.equals(ref.relation) : ref.relation != null) return false;
-
-        return true;
+        if (this == o)
+            return true;
+        if (!(o instanceof RObjectReference))
+            return false;
+        RObjectReference<?> that = (RObjectReference<?>) o;
+        return referenceType == that.referenceType &&
+                Objects.equals(targetOid, that.targetOid) &&
+                Objects.equals(relation, that.relation);
     }
 
     @Override
     public int hashCode() {
-        int result = targetOid != null ? targetOid.hashCode() : 0;
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (relation != null ? relation.hashCode() : 0);
-
-        return result;
+        return Objects.hash(referenceType, targetOid, relation);
     }
 
     @Override
