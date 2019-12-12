@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.security;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -111,20 +112,31 @@ public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvalua
 
     private List<PrismObject<NodeType>> getMatchingNodes(List<PrismObject<NodeType>> knownNodes, String remoteName,
             String remoteAddress) {
+        LOGGER.trace("Selecting matching node(s) for remote name '{}' and remote address '{}'", remoteName, remoteAddress);
         List<PrismObject<NodeType>> matchingNodes = new ArrayList<>();
         for (PrismObject<NodeType> node : knownNodes) {
             NodeType actualNode = node.asObjectable();
-            if (remoteName != null && remoteName.equalsIgnoreCase(actualNode.getHostname())) {
+            if (Boolean.FALSE.equals(actualNode.isRunning())) {
+                LOGGER.trace("Skipping {} because it has running=FALSE", actualNode);
+            } else if (remoteName != null && remoteName.equalsIgnoreCase(actualNode.getHostname())) {
                 LOGGER.trace("The node {} was recognized as a known node (remote host name {} matched).",
                         actualNode.getName(), actualNode.getHostname());
                 matchingNodes.add(node);
-                continue;
-            }
-            if (actualNode.getIpAddress().contains(remoteAddress)) {
+            } else if (actualNode.getIpAddress().contains(remoteAddress)) {
                 LOGGER.trace("The node {} was recognized as a known node (remote host address {} matched).",
                         actualNode.getName(), remoteAddress);
                 matchingNodes.add(node);
-                continue;
+            }
+        }
+        // We should eliminate "almost-dead" nodes if there are more possibilities
+        if (matchingNodes.size() > 1) {
+            List<PrismObject<NodeType>> up = knownNodes.stream()
+                    .filter(node -> taskManager.isUp(node.asObjectable()))
+                    .collect(Collectors.toList());
+            if (up.size() == 1) {
+                return up;
+            } else {
+                return matchingNodes;       // Nothing can be done here. Let's return all the nodes.
             }
         }
         return matchingNodes;

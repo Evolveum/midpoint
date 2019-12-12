@@ -9,6 +9,7 @@ package com.evolveum.midpoint.task.quartzimpl.execution.remote;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
+import com.evolveum.midpoint.task.api.ClusterExecutionOptions;
 import com.evolveum.midpoint.task.api.TaskConstants;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
@@ -59,7 +60,7 @@ public class RestConnector {
                         statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
             }
             response.close();
-        }, "get scheduler information", result);
+        }, null, "get scheduler information", result);
     }
 
     public void stopRemoteScheduler(NodeType node, OperationResult result) throws SchemaException {
@@ -76,7 +77,7 @@ public class RestConnector {
                 result1.recordFatalError("Stopping remote scheduler finished with status " + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
             }
             response.close();
-        }, "stop scheduler", result);
+        }, new ClusterExecutionOptions().tryDeadNodes(), "stop scheduler", result);
     }
 
     public void startRemoteScheduler(NodeType node, OperationResult result) throws SchemaException {
@@ -93,7 +94,7 @@ public class RestConnector {
                 result1.recordFatalError("Starting remote scheduler finished with status " + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
             }
             response.close();
-        }, "start scheduler", result);
+        }, new ClusterExecutionOptions().tryDeadNodes(), "start scheduler", result);
     }
 
     public void stopRemoteTask(String oid, NodeType node, OperationResult result) throws SchemaException {
@@ -110,6 +111,6 @@ public class RestConnector {
                 result1.recordFatalError("Stopping remote task finished with status " + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
             }
             response.close();
-        }, "stop task", result);
+        }, new ClusterExecutionOptions().tryDeadNodes(), "stop task", result);
     }
 }

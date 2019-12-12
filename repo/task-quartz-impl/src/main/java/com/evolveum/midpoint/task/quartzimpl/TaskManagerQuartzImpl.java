@@ -2646,4 +2646,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             return new TimeBoundary(positiveDuration, boundary);
         }
     }
+
+    @Override
+    public boolean isUp(NodeType node) {
+        return clusterManager.isUp(node);
+    }
 }

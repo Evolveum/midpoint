@@ -487,7 +487,6 @@ public class NodeRegistrar {
                         <= taskManager.getConfiguration().getNodeTimeout() * 1000L;
     }
 
-
     private boolean doesNodeExist(OperationResult result, String myName) {
         try {
             return !findNodesWithGivenName(result, myName).isEmpty();
@@ -501,7 +500,6 @@ public class NodeRegistrar {
         ObjectQuery q = ObjectQueryUtil.createOrigNameQuery(name, getPrismContext());
         return getRepositoryService().searchObjects(NodeType.class, q, null, result);
     }
-
 
     /**
      * Sets node error status and shuts down the scheduler (used when an error occurs after initialization).
