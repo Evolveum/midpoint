@@ -631,7 +631,7 @@ public class PageSelfDashboard extends PageSelf {
             return new AssignmentItemDto(null, null, null, null);
         }
 
-        String name = WebComponentUtil.getDisplayNameOrName(value);
+        String name = WebComponentUtil.getDisplayNameOrName(value, true, getLocalizationService());
         AssignmentEditorDtoType type = AssignmentEditorDtoType.getType(value.getCompileTimeClass());
         String relation = refValue.getRelation() != null ? refValue.getRelation().getLocalPart() : null;
 
