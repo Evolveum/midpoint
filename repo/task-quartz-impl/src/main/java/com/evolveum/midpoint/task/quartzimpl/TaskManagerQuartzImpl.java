@@ -2333,10 +2333,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
                     break;
                 }
                 if (!clusterManager.isCurrentNode(node) &&
-                        !clusterManager.isUp(node.asObjectable()) &&
+                        !clusterManager.isCheckingIn(node.asObjectable()) &&
                         XmlTypeConverter.compareMillis(node.asObjectable().getLastCheckInTime(), deleteNodesNotCheckedInAfter) <= 0) {
                     // This includes last check in time == null
-                    LOGGER.info("Deleting dead node {}", node);
+                    LOGGER.info("Deleting dead node {}; last check in time = {}", node, node.asObjectable().getLastCheckInTime());
                     String nodeName = PolyString.getOrig(node.getName());
                     long started = System.currentTimeMillis();
                     try {
@@ -2648,7 +2648,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     }
 
     @Override
-    public boolean isUp(NodeType node) {
-        return clusterManager.isUp(node);
+    public boolean isCheckingIn(NodeType node) {
+        return clusterManager.isCheckingIn(node);
     }
 }

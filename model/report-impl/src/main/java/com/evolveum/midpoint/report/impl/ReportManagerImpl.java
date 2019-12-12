@@ -382,7 +382,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                         result1.recordFatalError("Could not delete report output file: Got " + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
                     }
                     response.close();
-                }, new ClusterExecutionOptions().tryAlmostDeadNodes(), "get report output", result);
+                }, new ClusterExecutionOptions().tryNodesNotCheckingIn(), "get report output", result);
                 result.computeStatusIfUnknown();
             }
 
@@ -452,7 +452,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                         result1.recordFatalError("Could not retrieve report output file: Got " + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
                         response.close();
                     }
-                }, new ClusterExecutionOptions().tryAlmostDeadNodes(), "get report output", result);
+                }, new ClusterExecutionOptions().tryNodesNotCheckingIn(), "get report output", result);
                 result.computeStatusIfUnknown();
                 return inputStreamHolder.getValue();
             }

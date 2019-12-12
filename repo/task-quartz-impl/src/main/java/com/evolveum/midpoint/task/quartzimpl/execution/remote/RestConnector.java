@@ -77,7 +77,7 @@ public class RestConnector {
                 result1.recordFatalError("Stopping remote scheduler finished with status " + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
             }
             response.close();
-        }, new ClusterExecutionOptions().tryDeadNodes(), "stop scheduler", result);
+        }, new ClusterExecutionOptions().tryAllNodes(), "stop scheduler", result);
     }
 
     public void startRemoteScheduler(NodeType node, OperationResult result) throws SchemaException {
@@ -94,7 +94,7 @@ public class RestConnector {
                 result1.recordFatalError("Starting remote scheduler finished with status " + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
             }
             response.close();
-        }, new ClusterExecutionOptions().tryDeadNodes(), "start scheduler", result);
+        }, new ClusterExecutionOptions().tryAllNodes(), "start scheduler", result);
     }
 
     public void stopRemoteTask(String oid, NodeType node, OperationResult result) throws SchemaException {
@@ -111,6 +111,6 @@ public class RestConnector {
                 result1.recordFatalError("Stopping remote task finished with status " + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
             }
             response.close();
-        }, new ClusterExecutionOptions().tryDeadNodes(), "stop task", result);
+        }, new ClusterExecutionOptions().tryAllNodes(), "stop task", result);
     }
 }
