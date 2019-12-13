@@ -66,6 +66,7 @@ public class TaskManagerConfiguration {
     private static final String NODE_ALIVENESS_TIMEOUT_CONFIG_ENTRY = "nodeAlivenessTimeout";
     private static final String NODE_STARTUP_TIMEOUT_CONFIG_ENTRY = "nodeStartupTimeout";
     private static final String NODE_TIMEOUT_CONFIG_ENTRY = "nodeTimeout";
+    private static final String CHECK_FOR_TASK_CONCURRENT_EXECUTION_CONFIG_ENTRY = "checkForTaskConcurrentExecution";
     private static final String NODE_STARTUP_DELAY_CONFIG_ENTRY = "nodeStartupDelay";
 
     private static final String USE_JMX_CONFIG_ENTRY = "useJmx";
@@ -106,6 +107,7 @@ public class TaskManagerConfiguration {
     private static final int NODE_ALIVENESS_TIMEOUT_DEFAULT = 900;              // node should be down for 900 seconds before declaring as dead in the repository
     private static final int NODE_STARTUP_TIMEOUT_DEFAULT = 900;              // node should be not checking in for 900 seconds before reporting it as starting too long
     private static final int NODE_TIMEOUT_DEFAULT = 30;
+    private static final boolean CHECK_FOR_TASK_CONCURRENT_EXECUTION_DEFAULT = false;
     private static final int NODE_STARTUP_DELAY_DEFAULT = 0;
     private static final boolean USE_JMX_DEFAULT = false;
     @Deprecated private static final String JMX_USERNAME_DEFAULT = "midpoint";
@@ -140,6 +142,7 @@ public class TaskManagerConfiguration {
     private int nodeAlivenessTimeout;                       // After what time should be node considered (permanently) down and recorded as such in the repository.
     private int nodeStartupTimeout;                         // After what time the node start-up is considered to be "too long".
     private int nodeAlivenessCheckInterval;                 // How often to check for down nodes.
+    private boolean checkForTaskConcurrentExecution;
     private int nodeStartupDelay;                           // # of seconds after which we declare the node as started and announce it as a part of the cluster
     private UseThreadInterrupt useThreadInterrupt;
     private int waitingTasksCheckInterval;
@@ -322,6 +325,7 @@ public class TaskManagerConfiguration {
         nodeAlivenessTimeout = c.getInt(NODE_ALIVENESS_TIMEOUT_CONFIG_ENTRY, NODE_ALIVENESS_TIMEOUT_DEFAULT);
         nodeStartupTimeout = c.getInt(NODE_STARTUP_TIMEOUT_CONFIG_ENTRY, NODE_STARTUP_TIMEOUT_DEFAULT);
         nodeTimeout = c.getInt(NODE_TIMEOUT_CONFIG_ENTRY, NODE_TIMEOUT_DEFAULT);
+        checkForTaskConcurrentExecution = c.getBoolean(CHECK_FOR_TASK_CONCURRENT_EXECUTION_CONFIG_ENTRY, CHECK_FOR_TASK_CONCURRENT_EXECUTION_DEFAULT);
         nodeStartupDelay = c.getInt(NODE_STARTUP_DELAY_CONFIG_ENTRY, NODE_STARTUP_DELAY_DEFAULT);
 
         useJmx = c.getBoolean(USE_JMX_CONFIG_ENTRY, USE_JMX_DEFAULT);
@@ -610,6 +614,10 @@ public class TaskManagerConfiguration {
 
     public int getNodeAlivenessCheckInterval() {
         return nodeAlivenessCheckInterval;
+    }
+
+    public boolean isCheckForTaskConcurrentExecution() {
+        return checkForTaskConcurrentExecution;
     }
 
     @SuppressWarnings("unused")

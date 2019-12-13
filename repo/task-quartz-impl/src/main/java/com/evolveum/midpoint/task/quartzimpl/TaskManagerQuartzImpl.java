@@ -70,10 +70,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.text.ParseException;
 import java.util.*;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.function.Function;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
@@ -160,7 +157,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     // Use ONLY for those actions that need to work with these instances, e.g. when calling heartbeat() methods on them.
     // For any other business please use LocalNodeManager.getLocallyRunningTasks(...).
     // Maps task id -> task
-    private final HashMap<String,RunningTaskQuartzImpl> locallyRunningTaskInstancesMap = new HashMap<>();
+    private final Map<String,RunningTaskQuartzImpl> locallyRunningTaskInstancesMap = new ConcurrentHashMap<>();
 
     private ExecutorService lightweightHandlersExecutor = Executors.newCachedThreadPool();
 

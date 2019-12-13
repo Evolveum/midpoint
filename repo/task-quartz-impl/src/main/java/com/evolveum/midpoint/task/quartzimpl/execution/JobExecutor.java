@@ -8,8 +8,10 @@
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -23,10 +25,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.quartz.*;
@@ -34,6 +33,7 @@ import org.springframework.security.core.Authentication;
 
 import javax.xml.datatype.Duration;
 import java.util.*;
+import java.util.Objects;
 
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
@@ -111,14 +111,15 @@ public class JobExecutor implements InterruptableJob {
             return;
         }
 
-        boolean isRecovering = false;
+        boolean isRecovering;
 
         // if this is a restart, check whether the task is resilient
         if (context.isRecovering()) {
-
-            // reset task node (there's potentially the old information from crashed node)
+            // reset task node (there's potentially old information from crashed node)
             try {
                 if (task.getNode() != null) {
+                    LOGGER.info("Resetting executing-at-node information for {} because it is recovering. Previous value was '{}'.",
+                            task, task.getNode());
                     task.setNodeImmediate(null, executionResult);
                 }
             } catch (ObjectNotFoundException | SchemaException e) {
@@ -129,6 +130,8 @@ public class JobExecutor implements InterruptableJob {
                 return;
             }
             isRecovering = true;
+        } else {
+            isRecovering = false;
         }
 
         if (!checkExecutionConstraints(task, executionResult)) {
@@ -139,16 +142,24 @@ public class JobExecutor implements InterruptableJob {
 
         LOGGER.trace("execute called; task = {}, thread = {}, isRecovering = {}", task, task.getExecutingThread(), isRecovering);
 
+        boolean executionNodeSet = false;
+        boolean taskRegistered = false;
         TaskHandler handler = null;
         try {
+            executionNodeSet = checkAndSetTaskExecutionNode(executionResult);
+            if (!executionNodeSet) {
+                return;
+            }
 
             taskManagerImpl.registerRunningTask(task);
+            taskRegistered = true;
 
             taskManagerImpl.getCacheConfigurationManager().setThreadLocalProfiles(task.getCachingProfiles());
             OperationResult.setThreadLocalHandlingStrategy(task.getOperationResultHandlingStrategyName());
 
             handler = taskManagerImpl.getHandler(task.getHandlerUri());
-            logThreadRunStart(handler);
+
+            LOGGER.debug("Task thread run STARTING: {}, handler = {}, isRecovering = {}", task, handler, isRecovering);
             taskManagerImpl.notifyTaskThreadStart(task, isRecovering);
 
             if (handler==null) {
@@ -188,21 +199,102 @@ public class JobExecutor implements InterruptableJob {
                 waitForTransientChildrenAndCloseThem(executionResult);              // this is only a safety net; because we've waited for children just after executing a handler
 
                 taskManagerImpl.getCacheConfigurationManager().unsetThreadLocalProfiles();
-                taskManagerImpl.unregisterRunningTask(task);
+
+                if (taskRegistered) {
+                    taskManagerImpl.unregisterRunningTask(task);
+                }
+
                 task.setExecutingThread(null);
+                if (executionNodeSet) {
+                    resetTaskExecutionNode(executionResult);
+                }
 
                 if (!task.canRun()) {
                     processTaskStop(executionResult);
                 }
 
-                logThreadRunFinish(handler);
+                LOGGER.debug("Task thread run FINISHED: {}, handler = {}", task, handler);
                 taskManagerImpl.notifyTaskThreadFinish(task);
             } finally {
                 // "logout" this thread
                 taskManagerImpl.getSecurityContextManager().setupPreAuthenticatedSecurityContext((Authentication) null);
             }
         }
+    }
 
+    /**
+     * We have a suspicion that Quartz (in some cases) allows multiple instances of a given task to run concurrently.
+     * So we use "node" property to check this.
+     *
+     * Note that if the task is being recovered, its "node" property should be already cleared.
+     *
+     * The following algorithm is only approximate one. It could generate false positives e.g. if a node goes down abruptly
+     * (i.e. without stopping tasks cleanly) and then restarts sooner than in "nodeTimeout" (30) seconds. Therefore, its use
+     * is currently optional.
+     */
+    private boolean checkAndSetTaskExecutionNode(OperationResult result) {
+        try {
+            if (taskManagerImpl.getConfiguration().isCheckForTaskConcurrentExecution()) {
+                task.refresh(result);
+                String executingAtNode = task.getNode();
+                if (executingAtNode != null) {
+                    LOGGER.debug("Task {} seems to be executing on node {}", task, executingAtNode);
+                    if (executingAtNode.equals(taskManagerImpl.getNodeId())) {
+                        RunningTask locallyRunningTask = taskManagerImpl
+                                .getLocallyRunningTaskByIdentifier(task.getTaskIdentifier());
+                        if (locallyRunningTask != null) {
+                            LOGGER.error(
+                                    "Current task {} seems to be already running in thread {} on the local node. We will NOT start it here.",
+                                    task, ((RunningTaskQuartzImpl) locallyRunningTask).getExecutingThread());
+                            return false;
+                        } else {
+                            LOGGER.warn("Current task {} seemed to be already running on the local node but it cannot be found"
+                                    + " there. So we'll start it now.", task);
+                        }
+                    } else {
+                        ObjectQuery query = taskManagerImpl.getPrismContext().queryFor(NodeType.class)
+                                .item(NodeType.F_NODE_IDENTIFIER).eq(executingAtNode)
+                                .build();
+                        SearchResultList<PrismObject<NodeType>> nodes = taskManagerImpl
+                                .searchObjects(NodeType.class, query, null, result);
+                        if (nodes.size() > 1) {
+                            throw new IllegalStateException(
+                                    "More than one node with identifier " + executingAtNode + ": " + nodes);
+                        } else if (nodes.size() == 1) {
+                            NodeType remoteNode = nodes.get(0).asObjectable();
+                            if (taskManagerImpl.isCheckingIn(remoteNode)) {
+                                LOGGER.error(
+                                        "Current task {} seems to be already running at node {} that is alive. We will NOT start it here.",
+                                        task, remoteNode.getNodeIdentifier());
+                                // We should probably contact the remote node and check if the task is really running there.
+                                // But let's keep things simple for the time being.
+                                return false;
+                            } else {
+                                LOGGER.warn(
+                                        "Current task {} seems to be already running at node {} but this node is not currently "
+                                                + "checking in (last: {}). So we will start the task here.", task,
+                                        remoteNode.getNodeIdentifier(), remoteNode.getLastCheckInTime());
+                            }
+                        } else {
+                            LOGGER.warn("Current task {} seems to be already running at node {} but this node cannot be found"
+                                    + "in the repository. So we will start the task here.", task, executingAtNode);
+                        }
+                    }
+                }
+            }
+            task.setNodeImmediate(taskManagerImpl.getNodeId(), result);
+            return true;
+        } catch (Throwable t) {
+            throw new SystemException("Couldn't check and set task execution node: " + t.getMessage(), t);
+        }
+    }
+
+    private void resetTaskExecutionNode(OperationResult result) {
+        try {
+            task.setNodeImmediate(null, result);
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reset task execution node information for {}", t, task);
+        }
     }
 
     static class GroupExecInfo {
@@ -646,14 +738,6 @@ mainCycle:
         return new OperationResult(DOT_CLASS + methodName);
     }
 
-    private void logThreadRunStart(TaskHandler handler) {
-        LOGGER.debug("Task thread run STARTING  " + task + ", handler = " + handler);
-    }
-
-    private void logThreadRunFinish(TaskHandler handler) {
-        LOGGER.debug("Task thread run FINISHED " + task + ", handler = " + handler);
-    }
-
     private void recordCycleRunStart(OperationResult result, TaskHandler handler) {
         LOGGER.debug("Task cycle run STARTING " + task + ", handler = " + handler);
         taskManagerImpl.notifyTaskStart(task);
@@ -662,7 +746,6 @@ mainCycle:
             if (task.getCategory() == null) {
                 task.setCategory(task.getCategoryFromHandler());
             }
-            task.setNode(taskManagerImpl.getNodeId());
             OperationResult newResult = new OperationResult("run");
             newResult.setStatus(OperationResultStatus.IN_PROGRESS);
             task.setResult(newResult);                                        // MID-4033
@@ -695,7 +778,6 @@ mainCycle:
                     task.setResult(runResult.getOperationResult());
                 }
             }
-            task.setNode(null);
             task.storeOperationStatsDeferred();     // maybe redundant, but better twice than never at all
             task.flushPendingModifications(result);
 
