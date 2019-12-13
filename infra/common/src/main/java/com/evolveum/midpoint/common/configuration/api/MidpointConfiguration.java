@@ -6,33 +6,34 @@
  */
 package com.evolveum.midpoint.common.configuration.api;
 
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author mamut
  */
-
 public interface MidpointConfiguration {
 
     // Names of system properties. Note that they are also copied into config.xml-loaded configuration.
     String MIDPOINT_SILENT_PROPERTY = "midpoint.silent";
     String MIDPOINT_HOME_PROPERTY = "midpoint.home";
+    String MIDPOINT_SCHRODINGER_PROPERTY = "midpoint.schrodinger";
     String MIDPOINT_LOGGING_ALT_ENABLED_PROPERTY = "midpoint.logging.alt.enabled";
     String MIDPOINT_LOGGING_ALT_FILENAME_PROPERTY = "midpoint.logging.alt.filename";
     String MIDPOINT_LOGGING_ALT_PREFIX_PROPERTY = "midpoint.logging.alt.prefix";
+
+    String USER_HOME_PROPERTY = "user.home";
+
+    // Other commonly-used configuration properties
     String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
+    String MIDPOINT_NODE_ID_EXPRESSION_PROPERTY = "midpoint.nodeIdExpression";
     String MIDPOINT_NODE_ID_SOURCE_PROPERTY = "midpoint.nodeIdSource";
     @Deprecated String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
     String MIDPOINT_URL_PROPERTY = "midpoint.url";
     String MIDPOINT_HOST_NAME_PROPERTY = "midpoint.hostName";
     String MIDPOINT_HTTP_PORT_PROPERTY = "midpoint.httpPort";
 
-    // TODO read these from the MidpointConfiguration instead of system properties.
-    // It will provide greater flexibility, as the administrator will be able to set them permanently in config.xml.
-    String MIDPOINT_SCHRODINGER_PROPERTY = "midpoint.schrodinger";
-
-    // names of configuration sections
+    // Names of configuration sections
     String AUDIT_CONFIGURATION = "midpoint.audit";
     String SYSTEM_CONFIGURATION = "midpoint.system";
     String GLOBAL_CONFIGURATION = "midpoint.global";
@@ -54,6 +55,9 @@ public interface MidpointConfiguration {
      */
     String MIDPOINT_SYSTEM_PROPERTIES_BASE_PATH = "midpoint-system";
 
+    /**
+     * @return midPoint home directory. Currently it is the same value as in "midpoint.home" system property.
+     */
     String getMidpointHome();
 
     /**
@@ -64,8 +68,7 @@ public interface MidpointConfiguration {
      *            Samples of names:
      *            <li>
      *              <ul>repository -> midpoint.repository</ul>
-     *              <ul> provisioning -> midpoint.provisioning</ul>
-     *              <ul> model -> midpoint.model</ul>
+     *              <ul>provisioning -> midpoint.provisioning</ul>
      *            </li>
      *
      * @return Configuration object
@@ -73,18 +76,32 @@ public interface MidpointConfiguration {
      */
     Configuration getConfiguration(String component);
 
+    /**
+     * @return Global configuration.
+     */
     Configuration getConfiguration();
 
+    /**
+     * @return True if we are running in safe mode (the exact meaning gradually evolves; but the overall idea is to make
+     * midPoint barely usable to be able to fix the worst problems preventing it from running normally).
+     */
     boolean isSafeMode();
 
     /**
-     * @return true if the profiling interceptor should be loaded
+     * @return True if the profiling interceptor should be loaded.
      */
+    @SuppressWarnings("unused")     // It is actually used from ctx-interceptor.xml
     boolean isProfilingEnabled();
 
+    /**
+     * @return Current profiling mode e.g. on, off, dynamic.
+     */
     @NotNull
     ProfilingMode getProfilingMode();
 
+    /**
+     * @return "midpoint.system" section of the system configuration
+     */
     @NotNull
     SystemConfigurationSection getSystemSection();
 }

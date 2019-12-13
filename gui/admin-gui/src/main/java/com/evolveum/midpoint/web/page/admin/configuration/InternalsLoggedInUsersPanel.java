@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.ClusterExecutionOptions;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -149,8 +150,8 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
                 usersMap.put(user.getUser().getOid(), user);
             }
 
-            }, " list principals from remote nodes ", result);
-
+            }, new ClusterExecutionOptions().tryNodesNotCheckingIn() /* reconsider if needed */,
+                " list principals from remote nodes ", result);
 
         return new ArrayList<>(usersMap.values());
     }

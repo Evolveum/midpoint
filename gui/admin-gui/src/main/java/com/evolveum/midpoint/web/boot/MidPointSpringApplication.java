@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.boot;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.impl.factory.TextAreaPanelFactory;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -128,16 +129,17 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
     }
 
     private static SpringApplicationBuilder configureApplication(SpringApplicationBuilder application) {
-        String mpHome = System.getProperty(MIDPOINT_HOME_PROPERTY);
+        String mpHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
         if (StringUtils.isEmpty(mpHome)) {
-            LOGGER.info("{} system property is not set, using default configuration", MIDPOINT_HOME_PROPERTY);
+            LOGGER.info("{} system property is not set, using default configuration",
+                    MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
 
-            mpHome = System.getProperty(USER_HOME_PROPERTY_NAME);
+            mpHome = System.getProperty(MidpointConfiguration.USER_HOME_PROPERTY);
             if (!mpHome.endsWith("/")) {
                 mpHome += "/";
             }
             mpHome += "midpoint";
-            System.setProperty(MIDPOINT_HOME_PROPERTY, mpHome);
+            System.setProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, mpHome);
         }
 
         System.setProperty("spring.config.additional-location", "${midpoint.home}/");

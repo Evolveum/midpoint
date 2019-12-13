@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.SystemUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.text.StringSubstitutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -659,7 +660,7 @@ public class ModelDiagController implements ModelDiagnosticService {
                         .filter(a -> rootLoggerAppender.equals(a.getName())).findFirst().orElse(null);
                 if (rootFileAppender instanceof FileAppenderConfigurationType) {
                     String fileName = ((FileAppenderConfigurationType) rootFileAppender).getFileName();
-                    return new File(MiscUtil.expandProperties(fileName));
+                    return new File(StringSubstitutor.replaceSystemProperties(fileName));
                 }
             }
         }

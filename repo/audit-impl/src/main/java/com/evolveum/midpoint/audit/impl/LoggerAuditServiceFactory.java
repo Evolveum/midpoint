@@ -10,7 +10,7 @@ package com.evolveum.midpoint.audit.impl;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.audit.api.AuditServiceFactory;
 import com.evolveum.midpoint.audit.api.AuditServiceFactoryException;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * @author lazyman

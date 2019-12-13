@@ -25,6 +25,7 @@ import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.NetworkUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -39,7 +40,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -354,6 +354,7 @@ public class NodeRegistrar {
                     .item(NodeType.F_HOSTNAME).replace(getMyHostname())
                     .item(NodeType.F_IP_ADDRESS).replaceRealValues(getMyIpAddresses())
                     .item(NodeType.F_LAST_CHECK_IN_TIME).replace(currentTime)
+                    .item(NodeType.F_RUNNING).replace(true)
                     .asItemDeltas();
             if (shouldRenewSecret(cachedLocalNodeObject.asObjectable())) {
                 LOGGER.info("Renewing node secret for the current node");
@@ -457,7 +458,7 @@ public class NodeRegistrar {
         List<PrismObject<NodeType>> allNodes = clusterManager.getAllNodes(result);
         for (PrismObject<NodeType> nodePrism : allNodes) {
             NodeType n = nodePrism.asObjectable();
-            if (isUp(n)) {
+            if (isCheckingIn(n)) {
                 if (n.isClustered()) {
                     clustered.add(n.getNodeIdentifier());
                 } else {
@@ -480,12 +481,11 @@ public class NodeRegistrar {
 
     }
 
-    boolean isUp(NodeType n) {
-        return n.isRunning() && n.getLastCheckInTime() != null &&
-                (System.currentTimeMillis() - n.getLastCheckInTime().toGregorianCalendar().getTimeInMillis())
-                        <= (taskManager.getConfiguration().getNodeTimeout() * 1000L);
+    boolean isCheckingIn(NodeType n) {
+        return !Boolean.FALSE.equals(n.isRunning()) && n.getLastCheckInTime() != null &&
+                System.currentTimeMillis() - n.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
+                        <= taskManager.getConfiguration().getNodeTimeout() * 1000L;
     }
-
 
     private boolean doesNodeExist(OperationResult result, String myName) {
         try {
@@ -500,7 +500,6 @@ public class NodeRegistrar {
         ObjectQuery q = ObjectQueryUtil.createOrigNameQuery(name, getPrismContext());
         return getRepositoryService().searchObjects(NodeType.class, q, null, result);
     }
-
 
     /**
      * Sets node error status and shuts down the scheduler (used when an error occurs after initialization).
@@ -524,7 +523,7 @@ public class NodeRegistrar {
             return taskManager.getConfiguration().getJmxHostName();
         } else {
             try {
-                String hostName = getLocalHostNameFromOperatingSystem();
+                String hostName = NetworkUtil.getLocalHostNameFromOperatingSystem();
                 if (hostName != null) {
                     return hostName;
                 } else {
@@ -597,35 +596,6 @@ public class NodeRegistrar {
                 return getDiscoveredUrlScheme() + "://" + getMyHostname() + ":" + getMyHttpPort() + path;
             }
         }
-    }
-
-    @Nullable
-    public static String getLocalHostNameFromOperatingSystem() throws UnknownHostException {
-        // Not entirely correct. But we have no other option here
-        // other than go native or execute a "hostname" shell command.
-        // We do not want to do neither.
-        InetAddress localHost = InetAddress.getLocalHost();
-        if (localHost == null) {
-            String hostname = System.getenv("HOSTNAME");        // Unix
-            if (StringUtils.isNotEmpty(hostname)) {
-                return hostname;
-            }
-            hostname = System.getenv("COMPUTERNAME");           // Windows
-            if (StringUtils.isNotEmpty(hostname)) {
-                return hostname;
-            }
-            return null;
-        }
-
-        String hostname = localHost.getCanonicalHostName();
-        if (StringUtils.isNotEmpty(hostname)) {
-            return hostname;
-        }
-        hostname = localHost.getHostName();
-        if (StringUtils.isNotEmpty(hostname)) {
-            return hostname;
-        }
-        return localHost.getHostAddress();
     }
 
     private List<String> getMyIpAddresses() {
@@ -707,7 +677,7 @@ public class NodeRegistrar {
 
         PrismObject<NodeType> nodePrism = clusterManager.getNode(nodeOid, result);
 
-        if (isUp(nodePrism.asObjectable())) {
+        if (isCheckingIn(nodePrism.asObjectable())) {
             result.recordFatalError("Node " + nodeOid + " cannot be deleted, because it is currently up.");
         } else {
             try {

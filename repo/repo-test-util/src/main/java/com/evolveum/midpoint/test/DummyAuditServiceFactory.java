@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.test;
 
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.audit.api.AuditServiceFactory;

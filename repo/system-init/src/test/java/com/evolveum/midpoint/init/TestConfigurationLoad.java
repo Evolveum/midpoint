@@ -16,7 +16,7 @@ import java.io.File;
 import java.util.Iterator;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -31,30 +31,26 @@ public class TestConfigurationLoad {
     public void test010SimpleConfigTest() {
         LOGGER.info("---------------- test010SimpleConfigTest -----------------");
 
-        System.clearProperty("midpoint.home");
-        LOGGER.info("midpoint.home => " + System.getProperty("midpoint.home"));
+        System.clearProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
+        LOGGER.info("midpoint.home => {}", System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY));
 
-        assertNull(System.getProperty("midpoint.home"), "midpoint.home");
+        assertNull(System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY), "midpoint.home");
 
         StartupConfiguration sc = new StartupConfiguration();
-        assertNotNull(sc);
         sc.init();
         Configuration c = sc.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
         assertEquals(c.getString("repositoryServiceFactoryClass"),
                 "com.evolveum.midpoint.repo.sql.SqlRepositoryFactory");
-        LOGGER.info(sc.toString());
+        LOGGER.info("{}", sc);
 
-        @SuppressWarnings("unchecked")
         Iterator<String> i = c.getKeys();
-
-        while ( i.hasNext()) {
+        while (i.hasNext()) {
             String key = i.next();
             LOGGER.info("  " + key + " = " + c.getString(key));
         }
 
         assertEquals(c.getBoolean("asServer"), true);
-        assertEquals(c.getString("baseDir"), System.getProperty("midpoint.home") );
-
+        assertEquals(c.getString("baseDir"), System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY));
     }
 
     /**
@@ -65,9 +61,8 @@ public class TestConfigurationLoad {
         LOGGER.info("---------------- test020DirectoryAndExtractionTest -----------------");
 
         File midpointHome = new File("target/midPointHome");
-        System.setProperty("midpoint.home", "target/midPointHome/");
+        System.setProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, "target/midPointHome/");
         StartupConfiguration sc = new StartupConfiguration();
-        assertNotNull(sc);
         sc.init();
 
         assertNotNull(midpointHome);
@@ -89,9 +84,6 @@ public class TestConfigurationLoad {
         TestUtil.assertPrivateFilePermissions(keystoreFile);
 
         //cleanup
-        System.clearProperty("midpoint.home");
-
+        System.clearProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
     }
-
-
 }

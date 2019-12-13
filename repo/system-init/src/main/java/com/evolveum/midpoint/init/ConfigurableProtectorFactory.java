@@ -14,7 +14,7 @@ import com.evolveum.midpoint.util.SystemUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,11 +37,6 @@ public class ConfigurableProtectorFactory {
     public void init() {
         Configuration config = configuration.getConfiguration(MidpointConfiguration.PROTECTOR_CONFIGURATION);
         protectorConfig = new ProtectorConfiguration(config);
-
-        //Extract file if not exists
-        if (config.getString("midpoint.home") == null) {
-            return;
-        }
 
         String keyStorePath = protectorConfig.getKeyStorePath();
         if (keyStorePath == null) {

@@ -819,26 +819,4 @@ public class MiscUtil {
             }
         }
     }
-
-    public static String expandProperties(String value) {
-        StringBuilder sb = new StringBuilder();
-        int pointer = 0;
-        for (;;) {
-            int i = value.indexOf("${", pointer);
-            if (i < 0) {
-                sb.append(value.substring(pointer));
-                return sb.toString();
-            }
-            int j = value.indexOf("}", i);
-            if (j < 0) {
-                LOGGER.warn("Missing closing '}' in {}", value);
-                sb.append(value.substring(pointer));
-                return sb.toString();
-            }
-            sb.append(value, pointer, i);
-            String propertyName = value.substring(i+2, j);
-            sb.append(System.getProperty(propertyName));
-            pointer = j+1;
-        }
-    }
 }
