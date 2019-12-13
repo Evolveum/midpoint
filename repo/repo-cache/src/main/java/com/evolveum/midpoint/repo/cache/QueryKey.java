@@ -24,7 +24,7 @@ public class QueryKey {
 
     <T extends ObjectType> QueryKey(Class<T> type, ObjectQuery query) {
         this.type = type;
-        this.query = query.clone();
+        this.query = query != null ? query.clone() : null;
     }
 
     @Override
