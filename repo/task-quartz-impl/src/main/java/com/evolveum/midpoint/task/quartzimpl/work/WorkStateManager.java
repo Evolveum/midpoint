@@ -577,7 +577,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
             throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + ctx.workerTask);
         }
         if (bucket.getState() != WorkBucketStateType.READY && bucket.getState() != null) {
-            throw new IllegalStateException("Work bucket " + sequentialNumber + " in " + ctx.coordinatorTask
+            throw new IllegalStateException("Work bucket " + sequentialNumber + " in " + ctx.workerTask
                     + " cannot be marked as complete, as it is not ready; its state = " + bucket.getState());
         }
         Collection<ItemDelta<?, ?>> modifications = bucketStateChangeDeltas(bucket, WorkBucketStateType.COMPLETE);

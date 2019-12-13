@@ -2513,8 +2513,8 @@
                                 Execution status provides information about the task overall high-level execution state.
                                 It tells whether the task is running/runnable, waits for something or is done.
                             </xsd:documentation>
-                <xsd:appinfo>
-                <a:displayName>TaskType.executionStatus</a:displayName>
+                            <xsd:appinfo>
+                                <a:displayName>TaskType.executionStatus</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
