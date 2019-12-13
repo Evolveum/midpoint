@@ -3212,7 +3212,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGlobalStateUntouched();
     }
 
-    @Test
+    @Test(enabled = false)      // temporarily disabled
     public void test312AutzAnonymousPrivileged() throws Exception {
         final String TEST_NAME = "test312AutzAnonymousPrivileged";
         displayTestTitle(TEST_NAME);
