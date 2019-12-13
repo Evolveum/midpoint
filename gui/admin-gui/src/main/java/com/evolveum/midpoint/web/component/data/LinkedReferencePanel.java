@@ -108,8 +108,7 @@ public class LinkedReferencePanel<O extends ObjectType> extends BasePanel<Object
         nameLink.setOutputMarkupId(true);
         add(nameLink);
 
-        Label nameLinkText = new Label(ID_NAME_TEXT, Model.of(WebComponentUtil.getEffectiveName(referencedObjectModel.getObject(),
-                AbstractRoleType.F_DISPLAY_NAME, true)));
+        Label nameLinkText = new Label(ID_NAME_TEXT, Model.of(WebComponentUtil.getDisplayName(referencedObjectModel.getObject().asPrismObject())));
         nameLinkText.setOutputMarkupId(true);
         nameLink.add(nameLinkText);
 
