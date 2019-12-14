@@ -64,6 +64,9 @@ public class CacheRegistry implements CacheListener {
             CacheInvalidationContext context) {
         // We currently ignore clusterwide parameter, because it's used by ClusterCacheListener only.
         // So we assume that the invalidation event - from this point on - is propagated only locally.
+        if (oid == null && (type == null || ObjectType.class.equals(type))) {
+            LOGGER.warn("Invalidation request that is too broad: OID is null and type={}", type);
+        }
         for (Cacheable cacheableService : cacheableServices) {
             cacheableService.invalidate(type, oid, context);
         }

@@ -56,25 +56,6 @@ public class ClusterCacheListener implements CacheListener {
 
         LOGGER.trace("Cache invalidation context {}", context);
 
-        if (context != null && context.isTerminateSession()) {
-            CacheInvalidationDetails details = context.getDetails();
-            if (!(details instanceof TerminateSessionEvent)) {
-                LOGGER.warn("Cannot perform cluster-wide session termination, no details provided.");
-                return;
-            }
-            // We try to invoke this call also on nodes that are not checking in (but not declared dead). It is quite important
-            // that terminate session is executed on as wide scale as realistically possible.
-            clusterExecutionHelper.execute((client, result1) -> {
-                client.path(ClusterRestService.EVENT_TERMINATE_SESSION);
-
-                Response response = client.post(((TerminateSessionEvent)details).toEventType());
-                LOGGER.info("Cluster-wide cache clearance finished with status {}, {}", response.getStatusInfo().getStatusCode(),
-                        response.getStatusInfo().getReasonPhrase());
-                response.close();
-            }, new ClusterExecutionOptions().tryNodesNotCheckingIn(), "session termination", result);
-            return;
-        }
-
         // Regular cache invalidation can be skipped for nodes not checking in. Cache entries will expire on such nodes
         // eventually. (We can revisit this design decision if needed.)
         clusterExecutionHelper.execute((client, result1) -> {

@@ -632,12 +632,7 @@ public class ConnectorManager implements Cacheable {
 
     @Override
     public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
-        if (context != null && context.isTerminateSession()) {
-            LOGGER.trace("Skipping invalidation request. Request is for terminate session, not for connector cache invalidation.");
-            return;
-        }
-
-        if (type == null || ConnectorType.class.isAssignableFrom(type)) {
+        if (type == null || type.isAssignableFrom(ConnectorType.class)) {
             if (StringUtils.isEmpty(oid)) {
                 dispose();
                 connectorInstanceCache = new ConcurrentHashMap<>();
