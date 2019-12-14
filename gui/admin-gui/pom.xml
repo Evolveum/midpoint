@@ -172,17 +172,6 @@
                 <artifactId>spring-boot-actuator-autoconfigure</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs-api</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-rs-client</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
         <!-- webjars -->
         <dependency>
             <groupId>org.webjars</groupId>

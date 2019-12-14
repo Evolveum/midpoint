@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
@@ -253,10 +254,14 @@ public interface ModelInteractionService {
     CompiledUserProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
-     *
-     * @return list of logged in users with at least 1 active session
+     * @return list of logged in users with at least 1 active session (clusterwide)
      */
-    List<UserSessionManagementType>  getLoggedInUsers();
+    List<UserSessionManagementType> getLoggedInPrincipals(Task task, OperationResult result);
+
+    /**
+     * Terminates specified sessions (clusterwide).
+     */
+    void terminateSessions(TerminateSessionEvent terminateSessionEvent, Task task, OperationResult result);
 
     SystemConfigurationType getSystemConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
@@ -361,8 +366,6 @@ public interface ModelInteractionService {
             SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
-
-    void expirePrincipals(List<String> oid);
 
     List<RelationDefinitionType> getRelationDefinitions();
 

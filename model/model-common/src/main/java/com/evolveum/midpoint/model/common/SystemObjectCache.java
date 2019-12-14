@@ -180,13 +180,8 @@ public class SystemObjectCache implements Cacheable {
     // managed by this class.
     @Override
     public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
-        if (context != null && context.isTerminateSession()) {
-            LOGGER.trace("Skipping invalidation request. Request is for terminate session, not for system object cache invalidation.");
-            return;
-        }
-
         // We ignore OID for now
-        if (type == null || SystemConfigurationType.class.isAssignableFrom(type)) {
+        if (type == null || type.isAssignableFrom(SystemConfigurationType.class)) {
             invalidateCaches();
         }
     }
