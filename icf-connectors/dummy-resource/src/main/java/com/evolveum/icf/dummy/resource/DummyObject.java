@@ -248,11 +248,12 @@ public abstract class DummyObject implements DebugDumpable {
             }
         }
 
-        Set<Object> valuesToCheck = new HashSet<>();
-        valuesToCheck.addAll(currentValues);
-        valuesToCheck.add(valueToAdd);
-        checkSchema(attrName, valuesToCheck, "add");
-
+        // an optimization: let's avoid attribute manipulation if we don't want to check the schema anyway
+        if (resource != null && resource.isEnforceSchema()) {
+            Set<Object> valuesToCheck = new HashSet<>(currentValues);
+            valuesToCheck.add(valueToAdd);
+            checkSchema(attrName, valuesToCheck, "add");
+        }
         currentValues.add(valueToAdd);
     }
 

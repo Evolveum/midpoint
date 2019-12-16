@@ -332,7 +332,7 @@ public class ProjectionValuesProcessor {
                                         boolean match = synchronizationService.matchUserCorrelationRule(fullConflictingShadow,
                                                 context.getFocusContext().getObjectNew(), resourceType, context.getSystemConfiguration(), task, result);
 
-                                        if (match){
+                                        if (match) {
                                             //check if it is add account (primary delta contains add shadow deltu)..
                                             //if it is add account, create new context for conflicting account..
                                             //it ensures, that conflicting account is linked to the user

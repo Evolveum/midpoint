@@ -85,7 +85,12 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
     @Test
     public void testSkipItems() throws SchemaException, IOException {
         PrismContext prismContext = getPrismContext();
-        PrismObject<UserType> jack = prismContext.parserFor(getFile()).language(language).parse();
+        PrismObject<UserType> jack;
+        try {
+            jack = prismContext.parserFor(getFile()).language(language).parse();
+        } catch (SchemaException e) {
+            throw new SchemaException("Error parsing file "+getFile().getPath()+": " + e.getMessage(), e);
+        }
         String serialized = prismContext.serializerFor(language)
                 .itemsToSkip(Arrays.asList(UserType.F_ORGANIZATIONAL_UNIT, UserType.F_LINK_REF, UserType.F_ASSIGNMENT))
                 .serialize(jack);

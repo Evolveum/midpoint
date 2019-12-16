@@ -44,8 +44,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 /**
@@ -149,16 +147,16 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
         } catch (ClassNotFoundException e) {
             throw new SystemException("Panel class '"+panelClassName+"' as specified in admin GUI configuration was not found", e);
         }
-        if (AbstractObjectTabPanel.class.isAssignableFrom(panelClass)) {
+        if (AbstractFocusTabPanel.class.isAssignableFrom(panelClass)) {
             Constructor<?> constructor;
             try {
-                constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, LoadableModel.class, PageBase.class);
+                constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, LoadableModel.class);
             } catch (NoSuchMethodException | SecurityException e) {
                 throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,LoadableModel,LoadableModel,PageBase) in "+panelClass+": "+e.getMessage(), e);
             }
-            AbstractObjectTabPanel<F> tabPanel;
+            AbstractFocusTabPanel<F> tabPanel;
             try {
-                tabPanel = (AbstractObjectTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), parentPage);
+                tabPanel = (AbstractFocusTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), projectionModel);
             } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 throw new SystemException("Error instantiating "+panelClass+": "+e.getMessage(), e);
             }
@@ -166,13 +164,13 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
         } else if (AbstractObjectTabPanel.class.isAssignableFrom(panelClass)) {
             Constructor<?> constructor;
             try {
-                constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, PageBase.class);
+                constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class);
             } catch (NoSuchMethodException | SecurityException e) {
                 throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,PageBase) in "+panelClass+": "+e.getMessage(), e);
             }
             AbstractObjectTabPanel<F> tabPanel;
             try {
-                tabPanel = (AbstractObjectTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), parentPage);
+                tabPanel = (AbstractObjectTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel());
             } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 throw new SystemException("Error instantiating "+panelClass+": "+e.getMessage(), e);
             }
@@ -257,18 +255,35 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
                         return new FocusTasksTabPanel<F>(panelId, getMainForm(), getObjectModel(),
-                                countUsersTasks(parentPage) > 0);
+                                countFocusObjectTasks(parentPage) > 0);
                     }
 
                     @Override
                     public String getCount() {
-                        return Integer.toString(countUsersTasks(parentPage));
+                        return Integer.toString(countFocusObjectTasks(parentPage));
+                    }
+                });
+
+        tabs.add(
+                new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.triggers"),
+                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_TASKS_URL, false, parentPage)){
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new FocusTriggersTabPanel<F>(panelId, getMainForm(), getObjectModel());
+                    }
+
+                    @Override
+                    public String getCount() {
+                        return Integer.toString(countFocusObjectTriggers());
                     }
                 });
 
     }
 
-    private int countUsersTasks(PageBase parentPage){
+    private int countFocusObjectTasks(PageBase parentPage){
         String oid = null;
         if (getObjectWrapper() == null || StringUtils.isEmpty(getObjectWrapper().getOid())) {
             oid = "non-existent";
@@ -279,6 +294,15 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
                 .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
                 .build();
         return WebModelServiceUtils.countObjects(CaseType.class, casesQuery, parentPage);
+    }
+
+    private int countFocusObjectTriggers(){
+        PrismObjectWrapper<F> objectWrapper = getObjectWrapper();
+        if (objectWrapper.getObject() != null){
+            F focusObject = objectWrapper.getObject().asObjectable();
+            return focusObject.getTrigger() != null ? focusObject.getTrigger().size() : 0;
+        }
+        return 0;
     }
 
     @Override

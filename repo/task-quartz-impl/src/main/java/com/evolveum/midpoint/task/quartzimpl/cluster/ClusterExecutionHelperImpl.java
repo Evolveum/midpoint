@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.RestAuthenticationMethod;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
+import com.evolveum.midpoint.task.api.ClusterExecutionOptions;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -28,9 +29,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.TerminateSessionEventType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.cxf.common.util.Base64Utility;
@@ -43,7 +41,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 /**
  *  Helps with the intra-cluster remote code execution.
@@ -65,10 +62,10 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
     private static final String DOT_CLASS = ClusterExecutionHelperImpl.class.getName() + ".";
 
     @Override
-    public void execute(@NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult) {
+    public void execute(@NotNull BiConsumer<WebClient, OperationResult> code,
+            ClusterExecutionOptions options, String context, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "execute");
-
 
         if (!taskManager.isClustered()) {
             LOGGER.trace("Node is not part of a cluster, skipping remote code execution");
@@ -83,7 +80,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
 
         for (PrismObject<NodeType> node : otherClusterNodes.getList()) {
             try {
-                execute(node.asObjectable(), code, context, result);
+                execute(node.asObjectable(), code, options, context, result);
             } catch (SchemaException|RuntimeException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute operation ({}) on node {}", e, context, node);
             }
@@ -95,8 +92,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
         try {
             String nodeId = taskManager.getNodeId();
             ObjectQuery query = prismContext.queryFor(NodeType.class).not().item(NodeType.F_NODE_IDENTIFIER).eq(nodeId).build();
-            SearchResultList<PrismObject<NodeType>> otherClusterNodes = taskManager.searchObjects(NodeType.class, query, null, result);
-            return otherClusterNodes;
+            return taskManager.searchObjects(NodeType.class, query, null, result);
         } catch (SchemaException e) {
             LOGGER.warn("Couldn't find nodes to execute remote operation on them ({}). Skipping it.", context, e);
             result.recordFatalError("Couldn't find nodes to execute remote operation on them (" + context + "). Skipping it.", e);
@@ -105,30 +101,40 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
     }
 
     @Override
-    public void execute(@NotNull String nodeOid, @NotNull BiConsumer<WebClient, OperationResult> code, String context,
+    public void execute(@NotNull String nodeOid, @NotNull BiConsumer<WebClient, OperationResult> code,
+            ClusterExecutionOptions options, String context,
             OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         PrismObject<NodeType> node = repositoryService.getObject(NodeType.class, nodeOid, null, parentResult);
-        execute(node.asObjectable(), code, context, parentResult);
+        execute(node.asObjectable(), code, options, context, parentResult);
     }
 
     @Override
-    public void execute(@NotNull NodeType node, @NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult)
+    public void execute(@NotNull NodeType node, @NotNull BiConsumer<WebClient, OperationResult> code,
+            ClusterExecutionOptions options, String context, OperationResult parentResult)
             throws SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "execute.node");
         String nodeIdentifier = node.getNodeIdentifier();
         result.addParam("node", nodeIdentifier);
 
-        try {
-
-            WebClient client = createClient(node, context);
-            if (client == null) {
-                return;
+        boolean dead = Boolean.FALSE.equals(node.isRunning());
+        boolean isCheckingIn = taskManager.isCheckingIn(node);
+        if (isCheckingIn || ClusterExecutionOptions.isTryAllNodes(options) ||
+                !dead && ClusterExecutionOptions.isTryNodesNotCheckingIn(options)) {
+            try {
+                WebClient client = createClient(node, context);
+                if (client == null) {
+                    return;
+                }
+                code.accept(client, result);
+                result.computeStatusIfUnknown();
+            } catch (SchemaException | RuntimeException t) {
+                result.recordFatalError(
+                        "Couldn't invoke operation (" + context + ") on node " + nodeIdentifier + ": " + t.getMessage(), t);
+                throw t;
             }
-            code.accept(client, result);
-            result.computeStatusIfUnknown();
-        } catch (SchemaException | RuntimeException t) {
-            result.recordFatalError("Couldn't invoke operation (" + context + ") on node " + nodeIdentifier + ": " + t.getMessage(), t);
-            throw t;
+        } else {
+            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Node " + nodeIdentifier +
+                    " is not running (isRunning = " + node.isRunning() + ", last check in time = " + node.getLastCheckInTime());
         }
     }
 
@@ -160,6 +166,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
         client.header("Authorization", RestAuthenticationMethod.CLUSTER.getMethod() + " " + Base64Utility.encode(secret.getBytes()));
         return client;
     }
+
     @Override
     public <T> T extractResult(Response response, Class<T> expectedClass) throws SchemaException {
         if (response.hasEntity()) {

@@ -404,10 +404,14 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     public boolean addAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException {
+        return addAll(newValues, true, strategy);
+    }
+
+    public boolean addAll(Collection<V> newValues, boolean checkUniqueness, EquivalenceStrategy strategy) throws SchemaException {
         checkMutability();
         boolean changed = false;
         for (V val: newValues) {
-            if (add(val, strategy)) {
+            if (add(val, checkUniqueness, strategy)) {
                 changed = true;
             }
         }

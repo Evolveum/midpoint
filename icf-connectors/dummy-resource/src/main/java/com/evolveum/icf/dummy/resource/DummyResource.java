@@ -62,6 +62,21 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class DummyResource implements DebugDumpable {
 
+    /**
+     * Externally visible UID is derived from (bound to) the NAME attribute.
+     */
+    public static final String UID_MODE_NAME = "name";
+
+    /**
+     * Externally visible UID is the same as internal ID and is generated as random UUID.
+     */
+    public static final String UID_MODE_UUID = "uuid";
+
+    /**
+     * Externally visible UID is the same as internal ID and is provided by the creator of the dummy objects.
+     */
+    public static final String UID_MODE_EXTERNAL = "external";
+
     private static final Trace LOGGER = TraceManager.getTrace(DummyResource.class);
     private static final Random RND = new Random();
 
@@ -137,6 +152,8 @@ public class DummyResource implements DebugDumpable {
     // completely useless.
     private String uselessString;
     private String uselessGuardedString;
+
+    private String uidMode;
 
     private static Map<String, DummyResource> instances = new HashMap<>();
 
@@ -388,6 +405,14 @@ public class DummyResource implements DebugDumpable {
         this.monsterization = monsterization;
     }
 
+    public String getUidMode() {
+        return uidMode;
+    }
+
+    public void setUidMode(String uidMode) {
+        this.uidMode = uidMode;
+    }
+
     public int getConnectionCount() {
         return connectionCount;
     }
@@ -591,24 +616,32 @@ public class DummyResource implements DebugDumpable {
             throw new ObjectAlreadyExistsException(normalName + " is forbidden to use as an object name");
         }
 
-        String newId = UUID.randomUUID().toString();
-        newObject.setId(newId);
-        if (allObjects.containsKey(newId)) {
-            throw new IllegalStateException("The hell is frozen over. The impossible has happened. ID "+newId+" already exists ("+ type.getSimpleName()+" with identifier "+normalName+")");
+        if (UID_MODE_EXTERNAL.equals(uidMode)) {
+            if (newObject.getId() == null) {
+                throw new IllegalStateException("Cannot add object with no ID when UID mode is 'external'");
+            }
+            if (allObjects.containsKey(newObject.getId())) {
+                throw new IllegalStateException("ID "+newObject.getId()+" already exists (when adding "+ type.getSimpleName()+" with identifier "+normalName+")");
+            }
+        } else {
+            String newId = UUID.randomUUID().toString();
+            newObject.setId(newId);
+            if (allObjects.containsKey(newId)) {
+                throw new IllegalStateException("The hell is frozen over. The impossible has happened. ID "+newId+" already exists ("+ type.getSimpleName()+" with identifier "+normalName+")");
+            }
         }
 
         //this is "resource-generated" attribute (used to simulate resource which generate by default attributes which we need to sync)
-        if (generateDefaultValues){
+        if (generateDefaultValues) {
 //            int internalId = allObjects.size();
             newObject.addAttributeValue(DummyAccount.ATTR_INTERNAL_ID, new Random().nextInt());
         }
-
 
         String mapKey;
         if (enforceUniqueName) {
             mapKey = normalName;
         } else {
-            mapKey = newId;
+            mapKey = newObject.getId();
         }
 
         if (map.containsKey(mapKey)) {
@@ -617,11 +650,11 @@ public class DummyResource implements DebugDumpable {
 
         newObject.setResource(this);
         map.put(mapKey, newObject);
-        allObjects.put(newId, newObject);
+        allObjects.put(newObject.getId(), newObject);
 
         if (syncStyle != DummySyncStyle.NONE) {
             int syncToken = nextSyncToken();
-            DummyDelta delta = new DummyDelta(syncToken, type, newId, newObject.getName(), DummyDeltaType.ADD);
+            DummyDelta delta = new DummyDelta(syncToken, type, newObject.getId(), newObject.getName(), DummyDeltaType.ADD);
             deltas.add(delta);
         }
 
@@ -927,6 +960,13 @@ public class DummyResource implements DebugDumpable {
             delta.dump(sb);
         }
         return sb.toString();
+    }
+
+    public void recordEmptyDeltaForAccountByUsername(String accountUsername, DummyDeltaType deltaType) throws InterruptedException, FileNotFoundException, ConnectException, SchemaViolationException, ConflictException {
+        DummyAccount account = getAccountByUsername(accountUsername);
+        DummyDelta delta = new DummyDelta(nextSyncToken(), account.getClass(), account.getId(), account.getName(), deltaType);
+        // No delta details here, no addeded/removed attributes, nothing
+        deltas.add(delta);
     }
 
     void breakIt(BreakMode breakMode, String operation) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {

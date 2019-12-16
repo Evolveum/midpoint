@@ -7,51 +7,88 @@
 
 package com.evolveum.midpoint.web.security;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
+import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.util.UrlUtils;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SelfRegistrationPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 
 /**
- * @author Viliam Repan (lazyman)
+ * @author skublik
  */
+
 public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
+
+    @Autowired
+    private ModelInteractionService modelInteractionService;
+
+    @Autowired
+    private TaskManager taskManager;
 
     private String defaultTargetUrl;
 
-    @Autowired private ModelInteractionService modelInteractionService;
-    @Autowired private TaskManager taskManager;
+    private String prefix = "";
+
+    public MidPointAuthenticationSuccessHandler setPrefix(String prefix) {
+        this.prefix = "/" + stripSlashes(prefix) + "/";
+        return this;
+    }
+
+    public MidPointAuthenticationSuccessHandler() {
+        setRequestCache(new HttpSessionRequestCache());
+    }
+
+    private RequestCache requestCache;
+
+    @Override
+    public void setRequestCache(RequestCache requestCache) {
+        super.setRequestCache(requestCache);
+        this.requestCache = requestCache;
+    }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws ServletException, IOException {
 
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+            moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
+        }
+
         if (WebModelServiceUtils.isPostAuthenticationEnabled(taskManager, modelInteractionService)) {
             String requestUrl = request.getRequestURL().toString();
-             if (requestUrl.contains("spring_security_login")) {
-                 String target = requestUrl.replace("spring_security_login", "self/postAuthentication");
-                 getRedirectStrategy().sendRedirect(request, response, target);
-                 return;
-             }
+            String contextPath = request.getContextPath();
+            if (requestUrl.contains("spring_security_login")) {
+                String target = requestUrl.substring(0, requestUrl.indexOf(contextPath));
+                target = target + contextPath + "self/postAuthentication";
+//                        String target = requestUrl.replace("spring_security_login", "self/postAuthentication");
+                getRedirectStrategy().sendRedirect(request, response, target);
+                return;
+            }
+        }
+
+        SavedRequest savedRequest = requestCache.getRequest(request, response);
+        if (savedRequest != null && savedRequest.getRedirectUrl().contains(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/")) {
+            String target = savedRequest.getRedirectUrl().substring(0, savedRequest.getRedirectUrl().indexOf(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/")) + "/self/dashboard";
+            getRedirectStrategy().sendRedirect(request, response, target);
+            return;
         }
         super.onAuthenticationSuccess(request, response, authentication);
     }

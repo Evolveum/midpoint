@@ -9,6 +9,9 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -92,7 +95,7 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
             @Override
             public void onClick(AjaxRequestTarget target) {
                 LOGGER.trace("{} CLICK: {}", this, getModel().getObject());
-                toggleRole(getModel().getObject());
+                toggleRole(getModel().getObject(), target);
                 target.add(this);
             }
 
@@ -131,7 +134,7 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
         return false;
     }
 
-    private void toggleRole(PrismObject<R> role) {
+    private void toggleRole(PrismObject<R> role, AjaxRequestTarget target) {
         Iterator<PrismContainerValueWrapper<AssignmentType>> iterator = getModel().getObject().getValues().iterator();
         while (iterator.hasNext()) {
             PrismContainerValueWrapper<AssignmentType> assignmentContainer = iterator.next();
@@ -149,6 +152,8 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
             }
         }
 
+        AssignmentType newAssignment = ObjectTypeUtil.createAssignmentTo(role, SchemaConstants.ORG_DEFAULT);
+        WebPrismUtil.createNewValueWrapper(getModelObject(), newAssignment.asPrismContainerValue(), getPageBase(), target);
 //        AssignmentType newAssignment = ObjectTypeUtil.createAssignmentTo(role, prismContext);
         //TODO
         //create ContainerValueWrapper for new assignment

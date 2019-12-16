@@ -14,6 +14,7 @@ import com.evolveum.midpoint.provisioning.impl.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ChangeHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -100,7 +101,7 @@ public class LiveSynchronizer {
             public boolean handleChange(Change change, OperationResult result) {
                 int sequentialNumber = oldestTokenWatcher.changeArrived(change.getToken());
                 if (ctx.canRun()) {
-                    ProcessChangeRequest request = new ProcessChangeRequest(change, ctx, isSimulate) {
+                    ProcessChangeRequest request = new ProcessChangeRequest(change, ctx, isSimulate, result) {
                         /**
                          * This is a success reported by change processor. It is hopefully the usual case.
                          */
@@ -118,7 +119,7 @@ public class LiveSynchronizer {
                         public void onError(OperationResult result) {
                             LOGGER.error("An error occurred during live synchronization in {}, when processing #{}: {}", task,
                                     sequentialNumber, change);
-                            treatError(sequentialNumber);
+                            treatError(sequentialNumber, RepoCommonUtils.getResultExceptionIfExists(result));
                         }
 
                         /**
@@ -130,11 +131,11 @@ public class LiveSynchronizer {
                         public void onError(Throwable t, OperationResult result) {
                             LoggingUtils.logUnexpectedException(LOGGER, "An exception occurred during live synchronization in {},"
                                     + " when processing #{}: {}", t, task, sequentialNumber, change);
-                            treatError(sequentialNumber);
+                            treatError(sequentialNumber, t);
                         }
                     };
                     try {
-                        coordinator.submit(request, result);
+                        coordinator.submit(request);
                     } catch (InterruptedException e) {
                         LOGGER.trace("Got InterruptedException, probably the coordinator task was suspended. Let's stop fetching changes.");
                         syncResult.setSuspendEncountered(true);     // ok?
@@ -156,7 +157,7 @@ public class LiveSynchronizer {
                         .logUnexpectedException(LOGGER, "An exception occurred during live synchronization in {}, "
                                 + "as part of pre-processing #{}: {}", exception, task,
                                 sequentialNumber, change != null ? "change " + change : "sync delta with token " + token);
-                return treatError(sequentialNumber);
+                return treatError(sequentialNumber, exception);
             }
 
             @Override
@@ -175,12 +176,13 @@ public class LiveSynchronizer {
                 return ctx.canRun();
             }
 
-            private boolean treatError(int sequentialNumber) {
+            private boolean treatError(int sequentialNumber, Throwable t) {
                 syncResult.incrementErrors();
                 if (retryLiveSyncErrors) {
                     // We need to retry the failed change -- so we must not update the token.
                     // Moreover, we have to stop here, so that the changes will be applied in correct order.
                     syncResult.setHaltingErrorEncountered(true);
+                    syncResult.setExceptionEncountered(t);
                     LOGGER.info("LiveSync encountered an error and 'retryLiveSyncErrors' is set to true: so exiting now with "
                                     + "the hope that the error will be cleared on the next task run. Task: {}; processed changes: {}",
                             ctx.getTask(), syncResult.getChangesProcessed());

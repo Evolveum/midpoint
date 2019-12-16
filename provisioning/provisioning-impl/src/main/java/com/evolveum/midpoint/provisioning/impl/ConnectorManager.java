@@ -22,6 +22,7 @@ import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConnectorInstance;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -258,6 +259,11 @@ public class ConnectorManager implements Cacheable {
                     ResourceTypeUtil.getResourceNamespace(connectorSpec.getResource()),
                     connectorSpec.getResource().getName().toString(),
                     connectorSpec.toString());
+
+            // FIXME temporary -- remove when no longer needed (MID-5931)
+            if (connector instanceof AbstractManagedConnectorInstance) {
+                ((AbstractManagedConnectorInstance) connector).setResourceOid(connectorSpec.getResource().getOid());
+            }
 
         } catch (ObjectNotFoundException e) {
             result.recordFatalError(e.getMessage(), e);
@@ -626,12 +632,7 @@ public class ConnectorManager implements Cacheable {
 
     @Override
     public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
-        if (context != null && context.isTerminateSession()) {
-            LOGGER.trace("Skipping invalidation request. Request is for terminate session, not for connector cache invalidation.");
-            return;
-        }
-
-        if (type == null || ConnectorType.class.isAssignableFrom(type)) {
+        if (type == null || type.isAssignableFrom(ConnectorType.class)) {
             if (StringUtils.isEmpty(oid)) {
                 dispose();
                 connectorInstanceCache = new ConcurrentHashMap<>();

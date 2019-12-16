@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
@@ -61,14 +62,6 @@ import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DetailsPageSaveMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -87,6 +80,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     protected static final String OPERATION_SAVE = DOT_CLASS + "save";
     protected static final String OPERATION_PREVIEW_CHANGES = DOT_CLASS + "previewChanges";
     protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
+    protected static final String OPERATION_LOAD_ARCHETYPE_REF = DOT_CLASS + "loadArchetypeRef";
 
     protected static final String ID_SUMMARY_PANEL = "summaryPanel";
     protected static final String ID_MAIN_PANEL = "mainPanel";
@@ -136,7 +130,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        String simpleName = getCompileTimeClass().getSimpleName();
+        String simpleName = getObjectSimpleName();
         String lokalizedSimpleName = new StringResourceModel("ObjectType." + simpleName).setDefaultValue(simpleName).getString();
         if (isAdd()) {
             return createStringResource("PageAdminObjectDetails.title.new", lokalizedSimpleName);
@@ -148,6 +142,43 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         }
 
         return createStringResource("PageAdminObjectDetails.title.edit.readonly.${readOnly}", getObjectModel(), lokalizedSimpleName, name);
+    }
+
+    private String getObjectSimpleName(){
+        if (getObjectWrapper() != null && getObjectWrapper().getObject() != null
+                && getObjectWrapper().getObject().asObjectable() instanceof AssignmentHolderType){
+            AssignmentHolderType assignmentHolderObj = (AssignmentHolderType) getObjectWrapper().getObject().asObjectable();
+            DisplayType displayType = WebComponentUtil
+                    .getArchetypePolicyDisplayType(assignmentHolderObj, PageAdminObjectDetails.this);
+            if (displayType == null){
+                ObjectReferenceType archetypeReference = null;
+                if (assignmentHolderObj.getAssignment() != null){
+                    for (AssignmentType assignment : assignmentHolderObj.getAssignment()){
+                        if (assignment.getTargetRef() != null && assignment.getTargetRef().getType() != null
+                                && QNameUtil.match(assignment.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)){
+                            archetypeReference = assignment.getTargetRef();
+                            break;
+                        }
+                    }
+                }
+                if (archetypeReference != null){
+                    OperationResult result = new OperationResult(OPERATION_LOAD_ARCHETYPE_REF);
+                    Task task = createSimpleTask(OPERATION_LOAD_ARCHETYPE_REF);
+                    PrismObject<ArchetypeType> archetypeObj = WebModelServiceUtils.resolveReferenceNoFetch(archetypeReference,
+                            this, task, result);
+                    displayType = archetypeObj != null && archetypeObj.asObjectable().getArchetypePolicy() != null ?
+                            archetypeObj.asObjectable().getArchetypePolicy().getDisplay() : null;
+                }
+            }
+            if (displayType != null && displayType.getLabel() != null) {
+                String archetypeLocalizedName = getLocalizationService()
+                        .translate(displayType.getLabel().toPolyString(), WebComponentUtil.getCurrentLocale(), true);
+                if (StringUtils.isNotEmpty(archetypeLocalizedName)) {
+                    return archetypeLocalizedName;
+                }
+            }
+        }
+        return getCompileTimeClass().getSimpleName();
     }
 
     private boolean isAdd() {

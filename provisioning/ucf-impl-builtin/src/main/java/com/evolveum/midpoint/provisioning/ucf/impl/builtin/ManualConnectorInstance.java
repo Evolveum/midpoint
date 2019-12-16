@@ -128,8 +128,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     }
 
     @Override
-    protected String createTicketAdd(PrismObject<? extends ShadowType> object,
-            Collection<Operation> additionalOperations, OperationResult result) throws SchemaException,
+    protected String createTicketAdd(PrismObject<? extends ShadowType> object, OperationResult result) throws SchemaException,
             ObjectAlreadyExistsException {
         LOGGER.debug("Creating case to add account\n{}", object.debugDump(1));
         ObjectDelta<? extends ShadowType> objectDelta = DeltaFactory.Object.createAddDelta(object);
@@ -150,7 +149,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     protected String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
             PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
             OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
-        LOGGER.debug("Creating case to modify account {}:\n{}", identifiers, DebugUtil.debugDump(changes, 1));
+        LOGGER.debug("Creating case to modify account {}:\n{}", identifiers, DebugUtil.debugDumpLazily(changes, 1));
         if (InternalsConfig.isSanityChecks()) {
             if (MiscUtil.hasDuplicates(changes)) {
                 throw new SchemaException("Duplicated changes: "+changes);
@@ -281,7 +280,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             CaseWorkItemType workItem = new CaseWorkItemType(getPrismContext())
                     .originalAssigneeRef(operator.clone())
                     .assigneeRef(operator.clone())
-                    .name(caseType.getName().getOrig())
+                    .name(caseType.getName())
                     .createTimestamp(now)
                     .deadline(deadline);
             caseType.getWorkItem().add(workItem);

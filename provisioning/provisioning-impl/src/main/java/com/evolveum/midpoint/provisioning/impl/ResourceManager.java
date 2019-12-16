@@ -227,11 +227,11 @@ public class ResourceManager {
      * @return completed resource
      */
     private PrismObject<ResourceType> completeResource(PrismObject<ResourceType> repoResource, ResourceSchema resourceSchema,
-            boolean fetchedSchema, Map<String,Collection<Object>> capabilityMap, GetOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            boolean fetchedSchema, Map<String,Collection<Object>> capabilityMap, GetOperationOptions options, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         // do not add as a subresult..it will be added later, if the completing
-        // of resource will be successfull.if not, it will be only set as a
+        // of resource will be successful.if not, it will be only set as a
         // fetch result in the resource..
         OperationResult result = parentResult.createMinorSubresult(OPERATION_COMPLETE_RESOURCE);
 
@@ -286,23 +286,16 @@ public class ResourceManager {
 
 
             try {
-                // Now we need to re-read the resource from the repository and re-aply the schemas. This ensures that we will
+                // Now we need to re-read the resource from the repository and re-apply the schemas. This ensures that we will
                 // cache the correct version and that we avoid race conditions, etc.
 
                 newResource = readResourceFromRepository(repoResource.getOid(), null, result);
                 applyConnectorSchemaToResource(newResource, task, result);
 
-            } catch (SchemaException e) {
-                result.recordFatalError(e);
-                throw e;
-            } catch (ObjectNotFoundException e) {
-                result.recordFatalError(e);
-                throw e;
-            } catch (RuntimeException e) {
+            } catch (SchemaException | ObjectNotFoundException | RuntimeException e) {
                 result.recordFatalError(e);
                 throw e;
             }
-
         }
 
         try {
@@ -381,12 +374,10 @@ public class ResourceManager {
 
         if (fetchedSchema) {
             adjustSchemaForSimulatedCapabilities(resource, resourceSchema);
-            ContainerDelta<XmlSchemaType> schemaContainerDelta = createSchemaUpdateDelta(resource, resourceSchema);
-            modifications.add(schemaContainerDelta);
+            modifications.add(createSchemaUpdateDelta(resource, resourceSchema));
 
             // We have successfully fetched the resource schema. Therefore the resource must be up.
             modifications.add(createResourceAvailabilityStatusDelta(resource, AvailabilityStatusType.UP));
-
         } else {
             if (resourceSchema != null) {
                 CachingMetadataType schemaCachingMetadata = resource.asObjectable().getSchema().getCachingMetadata();
@@ -404,9 +395,7 @@ public class ResourceManager {
 
         if (!modifications.isEmpty()) {
             try {
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Completing {}:\n{}", resource, DebugUtil.debugDump(modifications, 1));
-                }
+                LOGGER.trace("Completing {}:\n{}", resource, DebugUtil.debugDumpLazily(modifications, 1));
                 repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
                 InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
             } catch (ObjectAlreadyExistsException ex) {
@@ -414,7 +403,6 @@ public class ResourceManager {
                 throw new SystemException(ex);
             }
         }
-
     }
 
     private void completeCapabilities(PrismObject<ResourceType> resource, boolean forceRefresh, Map<String,Collection<Object>> capabilityMap, Collection<ItemDelta<?, ?>> modifications,
@@ -493,18 +481,14 @@ public class ResourceManager {
     }
 
     private ContainerDelta<XmlSchemaType> createSchemaUpdateDelta(PrismObject<ResourceType> resource, ResourceSchema resourceSchema) throws SchemaException {
-        Document xsdDoc = null;
+        Document xsdDoc;
         try {
             xsdDoc = resourceSchema.serializeToXsd();
-
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Serialized XSD resource schema for {}:\n{}",
-                        resource, DOMUtil.serializeDOMToString(xsdDoc));
+                LOGGER.trace("Serialized XSD resource schema for {}:\n{}", resource, DOMUtil.serializeDOMToString(xsdDoc));
             }
-
         } catch (SchemaException e) {
-            throw new SchemaException("Error processing resource schema for "
-                    + resource + ": " + e.getMessage(), e);
+            throw new SchemaException("Error processing resource schema for " + resource + ": " + e.getMessage(), e);
         }
 
         Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
@@ -736,7 +720,7 @@ public class ResourceManager {
         OperationResult schemaResult = parentResult.createSubresult(ConnectorTestOperation.RESOURCE_SCHEMA
                 .getOperation());
 
-        ResourceSchema schema = null;
+        ResourceSchema schema;
         try {
 
             schema = fetchResourceSchema(resource, capabilityMap, task, schemaResult);
@@ -755,11 +739,15 @@ public class ResourceManager {
             return;
         } catch (ObjectNotFoundException e) {
             modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
-            schemaResult.recordFatalError("Configuration error: " + e.getMessage(), e);
+            schemaResult.recordFatalError("Object not found: " + e.getMessage(), e);
             return;
         } catch (SchemaException e) {
             modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
-            schemaResult.recordFatalError("Configuration error: " + e.getMessage(), e);
+            schemaResult.recordFatalError("Schema error: " + e.getMessage(), e);
+            return;
+        } catch (RuntimeException e) {
+            modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
+            schemaResult.recordFatalError("Unexpected error: " + e.getMessage(), e);
             return;
         }
 
@@ -781,12 +769,9 @@ public class ResourceManager {
             }
         }
 
-        // Invoke completeResource(). This will store the fetched schema to the
-        // ResourceType
-        // if there is no <schema> definition already. Therefore the
-        // testResource() can be used to
-        // generate the resource schema - until we have full schema caching
-        // capability.
+        // Invoke completeResource(). This will store the fetched schema to the ResourceType if there is no <schema>
+        // definition already. Therefore the testResource() can be used to generate the resource schema - until we
+        // have full schema caching capability.
         try {
             resource = completeResource(resource, schema, true, capabilityMap, null, task, schemaResult);
         } catch (ObjectNotFoundException e) {
@@ -799,17 +784,13 @@ public class ResourceManager {
             schemaResult.recordFatalError(
                     "Schema processing error (probably connector bug): " + e.getMessage(), e);
             return;
-        } catch (CommunicationException e) {
-            modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
-            schemaResult.recordFatalError("Communication error: " + e.getMessage(), e);
-            return;
-        } catch (ConfigurationException e) {
-            modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
-            schemaResult.recordFatalError("Configuration error: " + e.getMessage(), e);
-            return;
         } catch (ExpressionEvaluationException e) {
             modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
             schemaResult.recordFatalError("Expression error: " + e.getMessage(), e);
+            return;
+        } catch (RuntimeException e) {
+            modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
+            schemaResult.recordFatalError("Unspecified exception: " + e.getMessage(), e);
             return;
         }
 

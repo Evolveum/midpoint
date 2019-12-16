@@ -7,31 +7,23 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManagerConfigurationException;
 import com.evolveum.midpoint.task.api.UseThreadInterrupt;
-import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.*;
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
 
 /**
  * Task Manager configuration, derived from "taskManager" section of midPoint config,
@@ -48,6 +40,9 @@ import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.*;
 public class TaskManagerConfiguration {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerConfiguration.class);
+
+    @Autowired private RepositoryService repositoryService;
+    @Autowired private PrismContext prismContext;
 
     private static final String STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY = "stopOnInitializationFailure";
     private static final String THREADS_CONFIG_ENTRY = "threads";
@@ -67,7 +62,10 @@ public class TaskManagerConfiguration {
     @Deprecated private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
     private static final String QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "quartzNodeRegistrationInterval";
     private static final String NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "nodeRegistrationInterval";
+    private static final String NODE_ALIVENESS_CHECK_INTERVAL = "nodeAlivenessCheckInterval";
+    private static final String NODE_ALIVENESS_TIMEOUT = "nodeAlivenessTimeout";
     private static final String NODE_TIMEOUT_CONFIG_ENTRY = "nodeTimeout";
+    private static final String CHECK_FOR_TASK_CONCURRENT_EXECUTION_CONFIG_ENTRY = "checkForTaskConcurrentExecution";
     private static final String USE_JMX_CONFIG_ENTRY = "useJmx";
     @Deprecated private static final String JMX_USERNAME_CONFIG_ENTRY = "jmxUsername";
     @Deprecated private static final String JMX_PASSWORD_CONFIG_ENTRY = "jmxPassword";
@@ -97,13 +95,15 @@ public class TaskManagerConfiguration {
     private static final int THREADS_DEFAULT = 10;
     private static final boolean CLUSTERED_DEFAULT = false;             // do not change this value!
     private static final boolean CREATE_QUARTZ_TABLES_DEFAULT = true;
-    private static final String NODE_ID_DEFAULT = "DefaultNode";
     @Deprecated private static final int JMX_PORT_DEFAULT = 20001;
     @Deprecated private static final int JMX_CONNECT_TIMEOUT_DEFAULT = 5;
     private static final String USE_THREAD_INTERRUPT_DEFAULT = "whenNecessary";
     private static final int QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
+    private static final int NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT = 120;
+    private static final int NODE_ALIVENESS_TIMEOUT_DEFAULT = 900;              // node should be down for 900 seconds before declaring as dead in the repository -- this is to avoid marking node as down during its own startup
     private static final int NODE_TIMEOUT_DEFAULT = 30;
+    private static final boolean CHECK_FOR_TASK_CONCURRENT_EXECUTION_DEFAULT = false;
     private static final boolean USE_JMX_DEFAULT = false;
     @Deprecated private static final String JMX_USERNAME_DEFAULT = "midpoint";
     @Deprecated private static final String JMX_PASSWORD_DEFAULT = "secret";
@@ -119,9 +119,6 @@ public class TaskManagerConfiguration {
     private static final long WORK_ALLOCATION_INITIAL_DELAY_DEFAULT = 5000L;
     private static final long WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_DEFAULT = 20000L;
 
-    private static final String NODE_ID_SOURCE_RANDOM = "random";
-    private static final String NODE_ID_SOURCE_HOSTNAME = "hostname";
-
     private boolean stopOnInitializationFailure;
     private int threads;
     private boolean jdbcJobStore;
@@ -135,7 +132,11 @@ public class TaskManagerConfiguration {
     @Deprecated private int jmxPort;
     @Deprecated private int jmxConnectTimeout;
     private int quartzNodeRegistrationCycleTime;            // UNUSED (currently) !
-    private int nodeRegistrationCycleTime, nodeTimeout;
+    private int nodeRegistrationCycleTime;                  // How often should node register itself in repository
+    private int nodeTimeout;                                // After what time should be node considered (temporarily) down.
+    private int nodeAlivenessTimeout;                       // After what time should be node considered (permanently) down and recorded as such in the repository.
+    private int nodeAlivenessCheckInterval;                 // How often to check for down nodes.
+    private boolean checkForTaskConcurrentExecution;
     private UseThreadInterrupt useThreadInterrupt;
     private int waitingTasksCheckInterval;
     private int stalledTasksCheckInterval;
@@ -191,7 +192,7 @@ public class TaskManagerConfiguration {
     private boolean midPointTestMode = false;
 
     private static final List<String> KNOWN_KEYS = Arrays.asList(
-            "midpoint.home",
+            MidpointConfiguration.MIDPOINT_HOME_PROPERTY,            // probably can be removed from this list
             STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY,
             THREADS_CONFIG_ENTRY,
             CLUSTERED_CONFIG_ENTRY,
@@ -255,7 +256,7 @@ public class TaskManagerConfiguration {
         }
     }
 
-    void setBasicInformation(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
+    void setBasicInformation(MidpointConfiguration masterConfig, OperationResult result) throws TaskManagerConfigurationException {
         Configuration root = masterConfig.getConfiguration();
         Configuration c = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
 
@@ -265,16 +266,7 @@ public class TaskManagerConfiguration {
         clustered = c.getBoolean(CLUSTERED_CONFIG_ENTRY, CLUSTERED_DEFAULT);
         jdbcJobStore = c.getBoolean(JDBC_JOB_STORE_CONFIG_ENTRY, clustered);
 
-        nodeId = root.getString(MidpointConfiguration.MIDPOINT_NODE_ID_PROPERTY, null);
-        if (StringUtils.isEmpty(nodeId)) {
-            String source = root.getString(MidpointConfiguration.MIDPOINT_NODE_ID_SOURCE_PROPERTY, null);
-            if (StringUtils.isEmpty(source)) {
-                nodeId = clustered ? null : NODE_ID_DEFAULT;
-            } else {
-                nodeId = provideNodeId(source);
-                LOGGER.info("Using node ID of '{}' as determined by the '{}' source", nodeId, source);
-            }
-        }
+        nodeId = new NodeIdComputer(prismContext, repositoryService).determineNodeId(root, clustered, result);
 
         hostName = root.getString(MidpointConfiguration.MIDPOINT_HOST_NAME_PROPERTY, null);
         jmxHostName = root.getString(MidpointConfiguration.MIDPOINT_JMX_HOST_NAME_PROPERTY, null);
@@ -285,8 +277,8 @@ public class TaskManagerConfiguration {
         } else {
             try {
                 jmxPort = Integer.parseInt(jmxPortString);
-            } catch(NumberFormatException nfe) {
-                throw new TaskManagerConfigurationException("Cannot get JMX management port - invalid integer value of " + jmxPortString, nfe);
+            } catch (NumberFormatException e) {
+                throw new TaskManagerConfigurationException("Cannot get JMX management port - invalid integer value of " + jmxPortString, e);
             }
         }
         httpPort = root.getInteger(MidpointConfiguration.MIDPOINT_HTTP_PORT_PROPERTY, null);
@@ -318,7 +310,10 @@ public class TaskManagerConfiguration {
 
         quartzNodeRegistrationCycleTime = c.getInt(QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
         nodeRegistrationCycleTime = c.getInt(NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
+        nodeAlivenessCheckInterval = c.getInt(NODE_ALIVENESS_CHECK_INTERVAL, NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT);
+        nodeAlivenessTimeout = c.getInt(NODE_ALIVENESS_TIMEOUT, NODE_ALIVENESS_TIMEOUT_DEFAULT);
         nodeTimeout = c.getInt(NODE_TIMEOUT_CONFIG_ENTRY, NODE_TIMEOUT_DEFAULT);
+        checkForTaskConcurrentExecution = c.getBoolean(CHECK_FOR_TASK_CONCURRENT_EXECUTION_CONFIG_ENTRY, CHECK_FOR_TASK_CONCURRENT_EXECUTION_DEFAULT);
 
         useJmx = c.getBoolean(USE_JMX_CONFIG_ENTRY, USE_JMX_DEFAULT);
         jmxUsername = c.getString(JMX_USERNAME_CONFIG_ENTRY, JMX_USERNAME_DEFAULT);
@@ -382,28 +377,6 @@ public class TaskManagerConfiguration {
                         .limit(groupLimit);
             }
             return rv;
-        }
-    }
-
-    private String provideNodeId(@NotNull String source) {
-        switch (source) {
-            case NODE_ID_SOURCE_RANDOM:
-                return "node-" + Math.round(Math.random() * 1000000000.0);
-            case NODE_ID_SOURCE_HOSTNAME:
-                try {
-                    String hostName = NodeRegistrar.getLocalHostNameFromOperatingSystem();
-                    if (hostName != null) {
-                        return hostName;
-                    } else {
-                        LOGGER.error("Couldn't determine nodeId as host name couldn't be obtained from the operating system");
-                        throw new SystemException(
-                                "Couldn't determine nodeId as host name couldn't be obtained from the operating system");
-                    }
-                } catch (UnknownHostException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine nodeId as host name couldn't be obtained from the operating system", e);
-                }
-            default:
-                throw new IllegalArgumentException("Unsupported node ID source: " + source);
         }
     }
 
@@ -492,12 +465,11 @@ public class TaskManagerConfiguration {
             mustBeTrue(jdbcJobStore, "Clustered task manager requires JDBC Quartz job store.");
         }
 
-        notEmpty(nodeId, "Node identifier must be set when run in clustered mode.");
-        mustBeFalse(clustered && jmxPort == 0, "JMX port number must be known when run in clustered mode.");
+        notEmpty(nodeId, "Node identifier must be set.");
 
         mustBeTrue(quartzNodeRegistrationCycleTime > 1 && quartzNodeRegistrationCycleTime <= 600, "Quartz node registration cycle time must be between 1 and 600 seconds");
         mustBeTrue(nodeRegistrationCycleTime > 1 && nodeRegistrationCycleTime <= 600, "Node registration cycle time must be between 1 and 600 seconds");
-        mustBeTrue(nodeTimeout > 5 && nodeTimeout <= 3600, "Node timeout must be between 5 and 3600 seconds");
+        mustBeTrue(nodeTimeout > 5, "Node timeout must be at least 5 seconds");
     }
 
     void validateJdbcJobStoreInformation() throws TaskManagerConfigurationException {
@@ -611,8 +583,20 @@ public class TaskManagerConfiguration {
         return nodeTimeout;
     }
 
+    public int getNodeAlivenessTimeout() {
+        return nodeAlivenessTimeout;
+    }
+
     public int getNodeRegistrationCycleTime() {
         return nodeRegistrationCycleTime;
+    }
+
+    public int getNodeAlivenessCheckInterval() {
+        return nodeAlivenessCheckInterval;
+    }
+
+    public boolean isCheckForTaskConcurrentExecution() {
+        return checkForTaskConcurrentExecution;
     }
 
     @SuppressWarnings("unused")

@@ -17,8 +17,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.util.List;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.SubnodeConfiguration;
+import org.apache.commons.configuration2.BaseHierarchicalConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -60,8 +62,8 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
         try {
             repositoryFactory.init(config);
             auditService = new SqlAuditServiceImpl(repositoryFactory);
-            List<SubnodeConfiguration> subConfigColumns = ((SubnodeConfiguration)config).configurationsAt(CONF_AUDIT_SERVICE_COLUMNS);
-            for(SubnodeConfiguration subConfigColumn : subConfigColumns) {
+            List<HierarchicalConfiguration<ImmutableNode>> subConfigColumns = ((BaseHierarchicalConfiguration)config).configurationsAt(CONF_AUDIT_SERVICE_COLUMNS);
+            for (Configuration subConfigColumn : subConfigColumns) {
                 String columnName = getStringFromConfig(subConfigColumn, CONF_AUDIT_SERVICE_COLUMN_NAME);
                 String eventRecordPropertyName = getStringFromConfig(subConfigColumn, CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME);
                 auditService.getCustomColumn().put(eventRecordPropertyName, columnName);

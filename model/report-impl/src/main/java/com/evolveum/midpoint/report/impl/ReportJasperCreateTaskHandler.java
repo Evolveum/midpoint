@@ -20,6 +20,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
@@ -53,7 +54,6 @@ import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import net.sf.jasperreports.export.SimpleWriterExporterOutput;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,10 +112,6 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
 //    public static final String PARAMETER_TASK = "midpointTask";
 //    public static final String PARAMETER_OPERATION_RESULT = "midpointOperationResult";
 
-    private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
-    private static final String EXPORT_DIR = MIDPOINT_HOME + "export/";
-    private static final String TEMP_DIR = MIDPOINT_HOME + "tmp/";
-
     private static final String JASPER_VIRTUALIZER_PKG = "net.sf.jasperreports.engine.fill";
 
     @Autowired private TaskManager taskManager;
@@ -131,6 +127,18 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
             LOGGER.trace("Registering with taskManager as a handler for " + REPORT_CREATE_TASK_URI);
         }
         taskManager.registerHandler(REPORT_CREATE_TASK_URI, this);
+    }
+
+    private File getExportDir() {
+        return new File(getMidPointHomeDirName(), "export");
+    }
+
+    private String getTempDirName() {
+        return new File(getMidPointHomeDirName(), "tmp/").getPath();
+    }
+
+    private String getMidPointHomeDirName() {
+        return System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
     }
 
     @Override
@@ -215,12 +223,12 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
                     Class<?> clazz = Class.forName(virtualizerClassName);
 
                     if (clazz.equals(JRSwapFileVirtualizer.class)) {
-                        swapFile = new JRSwapFile(TEMP_DIR, 4096, 200);
+                        swapFile = new JRSwapFile(getTempDirName(), 4096, 200);
                         virtualizer = new JRSwapFileVirtualizer(virtualizerKickOn, swapFile);
                     } else if (clazz.equals(JRGzipVirtualizer.class)) {
                         virtualizer = new JRGzipVirtualizer(virtualizerKickOn);
                     } else if (clazz.equals(JRFileVirtualizer.class)) {
-                        virtualizer = new JRFileVirtualizer(virtualizerKickOn, TEMP_DIR);
+                        virtualizer = new JRFileVirtualizer(virtualizerKickOn, getTempDirName());
                     } else {
                         throw new ClassNotFoundException("No support for virtualizer class: " + clazz.getName());
                     }
@@ -535,19 +543,22 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
     }
 
     protected String getDestinationFileName(ReportType reportType) {
-        File exportFolder = new File(EXPORT_DIR);
-        if (!exportFolder.exists() || !exportFolder.isDirectory()) {
-            exportFolder.mkdir();
+        File exportDir = getExportDir();
+        if (!exportDir.exists() || !exportDir.isDirectory()) {
+            if (!exportDir.mkdir()) {
+                LOGGER.error("Couldn't create export dir {}", exportDir);
+            }
         }
 
-        String output = EXPORT_DIR + reportType.getName().getOrig() + " " + getDateTime();
-
+        String fileNamePrefix = reportType.getName().getOrig() + " " + getDateTime();
+        String fileName;
         ExportType export = getExport(reportType);
         if (export == ExportType.XML_EMBED) {
-            return output + "_embed.xml";
+            fileName = fileNamePrefix + "_embed.xml";
+        } else {
+            fileName = fileNamePrefix + "." + export.value();
         }
-
-        return output + "." + export.value();
+        return new File(getExportDir(), fileName).getPath();
     }
 
     protected void saveReportOutputType(String filePath, ReportType reportType, Task task, OperationResult parentResult) throws Exception {

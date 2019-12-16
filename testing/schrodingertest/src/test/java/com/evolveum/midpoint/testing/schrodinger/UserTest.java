@@ -7,12 +7,10 @@
 
 package com.evolveum.midpoint.testing.schrodinger;
 
-import com.codeborne.selenide.Condition;
-import com.evolveum.midpoint.schrodinger.page.LoginPage;
+import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -74,8 +72,8 @@ public class UserTest extends TestBase {
         );
 
         basicPage.loggedUser().logout();
-        LoginPage loginPage = midPoint.login();
-        loginPage.login(midPoint.getUsername(),midPoint.getPassword(), LOCALIZATION_VALUE);
+        FormLoginPage loginPage = midPoint.formLogin();
+        loginPage.loginWithReloadLoginPage(midPoint.getUsername(),midPoint.getPassword(), LOCALIZATION_VALUE);
 
         ListUsersPage usersPage = basicPage.listUsers();
         Assert.assertTrue(

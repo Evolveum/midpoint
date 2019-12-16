@@ -1724,7 +1724,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             resource = getObject(ResourceType.class, resourceOid, GetOperationOptions.createNoFetchCollection());
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException
                 | SecurityViolationException | ExpressionEvaluationException e) {
-            LOGGER.error("Cannot get resource, reason: {}", e);
+            LOGGER.error("Cannot get resource, reason: {}", e.getMessage(), e);
             return null;
         }
         SynchronizationType synchronization = resource.getSynchronization();
@@ -1737,18 +1737,20 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         discriminator.setIntent(intent);
 
         SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), shadow.asPrismObject(),
-                resource.asPrismObject(), getCurrentTask().getChannel(), getPrismContext(), getCurrentTask(), getCurrentResult());
+                null, resource.asPrismObject(), getCurrentTask().getChannel(), getPrismContext(), expressionFactory, getCurrentTask());
 
         ObjectSynchronizationType applicablePolicy = null;
 
+        OperationResult result = getCurrentResult();
+
         try {
 
-            SystemConfigurationType systemConfiguration = modelInteractionService.getSystemConfiguration(getCurrentResult());
+            SystemConfigurationType systemConfiguration = modelInteractionService.getSystemConfiguration(result);
             syncCtx.setSystemConfiguration(systemConfiguration.asPrismObject());
 
             for (ObjectSynchronizationType objectSync : synchronization.getObjectSynchronization()) {
 
-                if (SynchronizationServiceUtils.isPolicyApplicable(objectSync, discriminator, expressionFactory, syncCtx)) {
+                if (SynchronizationServiceUtils.isPolicyApplicable(objectSync, discriminator, expressionFactory, syncCtx, result)) {
                     applicablePolicy = objectSync;
                     break;
                 }
@@ -1758,7 +1760,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 return null;
             }
 
-            List<PrismObject<F>> correlatedFocuses = correlationConfirmationEvaluator.findFocusesByCorrelationRule(type, shadow, applicablePolicy.getCorrelation(), resource, systemConfiguration, syncCtx.getTask(), syncCtx.getResult());
+            List<PrismObject<F>> correlatedFocuses = correlationConfirmationEvaluator.findFocusesByCorrelationRule(type, shadow, applicablePolicy.getCorrelation(), resource, systemConfiguration, syncCtx.getTask(), result);
             return MiscSchemaUtil.toObjectableList(correlatedFocuses);
 
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
@@ -1851,12 +1853,17 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     // temporary
     public MessageWrapper wrap(AsyncUpdateMessageType message) {
-        return new MessageWrapper(message);
+        return new MessageWrapper(message, prismContext);
     }
 
     // temporary
     public Map<String, Object> getMessageBodyAsMap(AsyncUpdateMessageType message) throws IOException {
         return wrap(message).getBodyAsMap();
+    }
+
+    // temporary
+    public Item<?, ?> getMessageBodyAsPrismItem(AsyncUpdateMessageType message) throws SchemaException {
+        return wrap(message).getBodyAsPrismItem(PrismContext.LANG_XML);
     }
 
     @Override

@@ -51,14 +51,12 @@
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
         <name>Admin-owned role</name>
         <linkRef oid="11223355"/>
-        <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
     </role>
 
     <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
         <name>Admin-owned org</name>
-        <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
     </org>
 
     <accessCertificationCampaign>

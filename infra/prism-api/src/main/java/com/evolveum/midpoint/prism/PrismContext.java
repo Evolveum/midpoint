@@ -345,9 +345,24 @@ public interface PrismContext extends ProtectorCreator {
 
     S_FilterEntryOrEmpty queryFor(Class<? extends Containerable> queryClass);
 
+    /**
+     * Access point to the "old" way of creating deltas. It is generally considered deprecated.
+     * DeltaBuilder (accessed via deltaFor method) should be used instead.
+     *
+     * However, because there is some functionality (like creation of empty deltas) that is not covered by the delta
+     * builder, we keep this method not marked as deprecated. Only particular parts of DeltaFactory are marked as deprecated.
+     */
     @NotNull
     DeltaFactory deltaFactory();
 
+    /**
+     * Access point to the "old" way of creating queries, filters and paging instructions.
+     * It is generally considered deprecated. QueryBuilder (accessed via queryFor method) should be used instead.
+     *
+     * However, because there is some functionality (like creation of standalone paging instructions) that is not covered
+     * by the query builder, we keep this method not marked as deprecated. Only particular parts of QueryFactory are marked
+     * as deprecated.
+     */
     @NotNull
     QueryFactory queryFactory();
 

@@ -315,10 +315,8 @@ public class ProvisioningUtil {
         return refinedSchema;
     }
 
-    public static void recordFatalError(Trace logger, OperationResult opResult, String message, Throwable ex) {
-        if (message == null) {
-            message = ex.getMessage();
-        }
+    public static void recordFatalError(Trace logger, OperationResult opResult, String explicitMessage, Throwable ex) {
+        String message = explicitMessage != null ? explicitMessage : ex.getMessage();
         logger.error(message, ex);
         opResult.recordFatalError(message, ex);
         opResult.cleanupResult(ex);

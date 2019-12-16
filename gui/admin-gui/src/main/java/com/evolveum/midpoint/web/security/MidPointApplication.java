@@ -32,11 +32,11 @@ import java.util.ResourceBundle;
 import java.util.Set;
 
 import javax.servlet.ServletContext;
-import javax.validation.Validator;
 import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.repo.cache.CacheRegistry;
-import org.apache.commons.configuration.Configuration;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ConverterLocator;
@@ -46,7 +46,6 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -61,11 +60,9 @@ import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
 import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
 import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
-import org.apache.wicket.markup.html.HTML5Attributes;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.protocol.http.CsrfPreventionRequestCycleListener;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -392,7 +389,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         }
 
         String value = environment.getProperty(MidpointConfiguration.MIDPOINT_SCHRODINGER_PROPERTY);
-        Boolean enabled = Boolean.parseBoolean(value);
+        boolean enabled = Boolean.parseBoolean(value);
 
         if (enabled) {
             LOGGER.info("Schrodinger plugin enabled");
@@ -490,7 +487,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         JavaSerializer javaSerializer = new JavaSerializer( getApplicationKey() ) {
             @Override
             protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException {
-                LOGGER.info("XXXXXXX YX Y");
                 IObjectChecker checker1 = new MidPointObjectChecker();
                 IObjectChecker checker2 = new NotDetachedModelChecker();
                 IObjectChecker checker3 = new ObjectSerializationChecker();
@@ -540,6 +536,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     public TaskManager getTaskManager() {
         return taskManager;
+    }
+
+    public LocalizationService getLocalizationService(){
+        return localizationService;
     }
 
     public ModelAuditService getAuditService() {

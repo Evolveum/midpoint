@@ -219,7 +219,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             LOGGER.trace("DECIDE: authentication={}, object={}, configAttributes={}: ERROR (wrong principal)",
                     authentication, object, configAttributes);
             throw new IllegalArgumentException("Expected that spring security principal will be of type "+
-                    MidPointPrincipal.class.getName()+" but it was "+principalObject.getClass());
+                    MidPointPrincipal.class.getName()+" but it was "+(principalObject == null ? null :principalObject.getClass()));
         }
         MidPointPrincipal principal = (MidPointPrincipal)principalObject;
 

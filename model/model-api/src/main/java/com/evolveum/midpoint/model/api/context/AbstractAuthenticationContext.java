@@ -6,16 +6,31 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import java.util.List;
+
 public abstract class AbstractAuthenticationContext {
 
     private String username;
+
+    private List<ObjectReferenceType> requireAssignments;
 
     public String getUsername() {
         return username;
     }
 
     public AbstractAuthenticationContext(String username) {
+        this(username, null);
+    }
+
+    public AbstractAuthenticationContext(String username, List<ObjectReferenceType> requireAssignment){
         this.username = username;
+        this.requireAssignments = requireAssignment;
+    }
+
+    public List<ObjectReferenceType> getRequireAssignments() {
+        return requireAssignments;
     }
 
     public abstract Object getEnteredCredential();

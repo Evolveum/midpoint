@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.intest.async;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -105,8 +104,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -154,8 +152,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -201,8 +198,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -242,8 +238,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -283,8 +278,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -324,8 +318,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -365,8 +358,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -406,8 +398,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 
@@ -449,8 +440,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
-        provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+        provisioningService.processAsynchronousUpdates(coords, task, result);
 
         // THEN
 

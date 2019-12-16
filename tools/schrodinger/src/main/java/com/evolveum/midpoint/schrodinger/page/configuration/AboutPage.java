@@ -12,7 +12,7 @@ import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.common.table.ReadOnlyTable;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
-import com.evolveum.midpoint.schrodinger.page.LoginPage;
+import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
@@ -67,7 +67,7 @@ public class AboutPage extends BasicPage {
     }
 
     public String gitDescribe() {
-        return $(Schrodinger.bySchrodingerDataResourceKey("PageAbout.midPointRevision")).parent().getText();
+        return $(Schrodinger.bySchrodingerDataResourceKey("midpoint.system.build")).parent().getText();
     }
 
     public String buildAt() {
@@ -131,12 +131,12 @@ public class AboutPage extends BasicPage {
     }
 
 
-    public ConfirmationModal<LoginPage> clickSwitchToFactoryDefaults() {
+    public ConfirmationModal<FormLoginPage> clickSwitchToFactoryDefaults() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.factoryDefault")).waitUntil(Condition.visible,MidPoint.TIMEOUT_DEFAULT_2_S).click();
         SelenideElement confirmBox =$(Schrodinger.byElementAttributeValue("div","aria-labelledby","Confirm deletion"))
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new ConfirmationModal<>(new LoginPage(),confirmBox);
+        return new ConfirmationModal<>(new FormLoginPage(),confirmBox);
     }
 
     public String getSystemProperty(String propertyNameUserHome) {

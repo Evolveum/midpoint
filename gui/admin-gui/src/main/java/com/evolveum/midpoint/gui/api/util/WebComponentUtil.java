@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.util;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
@@ -101,7 +102,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.DateValidator;
@@ -116,6 +117,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import net.sf.cglib.core.Local;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -305,8 +307,12 @@ public final class WebComponentUtil {
     }
 
     public static String getReferencedObjectNames(List<ObjectReferenceType> refs, boolean showTypes) {
+        return getReferencedObjectNames(refs, showTypes, true);
+    }
+
+    public static String getReferencedObjectNames(List<ObjectReferenceType> refs, boolean showTypes, boolean translate) {
         return refs.stream()
-                .map(ref -> emptyIfNull(getName(ref)) + (showTypes ? (" (" + emptyIfNull(getTypeLocalized(ref)) + ")") : ""))
+                .map(ref -> emptyIfNull(getName(ref, translate)) + (showTypes ? (" (" + emptyIfNull(getTypeLocalized(ref)) + ")") : ""))
                 .collect(Collectors.joining(", "));
     }
 
@@ -321,10 +327,15 @@ public final class WebComponentUtil {
     }
 
     public static String getReferencedObjectDisplayNamesAndNames(Referencable ref, boolean showTypes) {
+        return getReferencedObjectDisplayNamesAndNames(ref, showTypes, true);
+    }
+
+    public static String getReferencedObjectDisplayNamesAndNames(Referencable ref, boolean showTypes, boolean translate) {
         if (ref == null){
             return "";
         }
-        String name = ref.getTargetName() == null ? "" : ref.getTargetName().getOrig();
+        String name = ref.getTargetName() == null ? "" :
+                (translate ? ref.getTargetName().getOrig() : "");
         StringBuilder sb = new StringBuilder(name);
         if(showTypes) {
             sb.append(" (");
@@ -1034,22 +1045,34 @@ public final class WebComponentUtil {
     }
 
     public static String getName(ObjectType object) {
+        return getName(object, true);
+    }
+
+    public static String getName(ObjectType object, boolean translate) {
         if (object == null) {
             return null;
         }
 
-        return getName(object.asPrismObject());
+        return getName(object.asPrismObject(), translate);
     }
 
     public static String getEffectiveName(ObjectType object, QName propertyName) {
+        return getEffectiveName(object, propertyName, true);
+    }
+
+    public static String getEffectiveName(ObjectType object, QName propertyName, boolean translate) {
         if (object == null) {
             return null;
         }
 
-        return getEffectiveName(object.asPrismObject(), propertyName);
+        return getEffectiveName(object.asPrismObject(), propertyName, translate);
     }
 
     public static <O extends ObjectType> String getEffectiveName(PrismObject<O> object, QName propertyName) {
+        return getEffectiveName(object, propertyName, true);
+    }
+
+    public static <O extends ObjectType> String getEffectiveName(PrismObject<O> object, QName propertyName, boolean translate) {
         if (object == null) {
             return null;
         }
@@ -1061,13 +1084,36 @@ public final class WebComponentUtil {
             if (prop.getDefinition().getTypeName().equals(DOMUtil.XSD_STRING)) {
                 return (String) realValue;
             } else if (realValue instanceof PolyString) {
-                return WebComponentUtil.getOrigStringFromPoly((PolyString) realValue);
+                return translate ? getTranslatedPolyString((PolyString) realValue)
+                        : WebComponentUtil.getOrigStringFromPoly((PolyString) realValue);
             }
         }
 
         PolyString name = getValue(object, ObjectType.F_NAME, PolyString.class);
+        if (name == null){
+            return null;
+        }
+        return translate ? getTranslatedPolyString(name)
+                : WebComponentUtil.getOrigStringFromPoly(name);
+    }
 
-        return name != null ? name.getOrig() : null;
+    public static String getTranslatedPolyString(PolyStringType value){
+        return getTranslatedPolyString(PolyString.toPolyString(value));
+    }
+
+    public static String getTranslatedPolyString(PolyString value){
+        MidPointApplication application = MidPointApplication.get();
+        return getTranslatedPolyString(value, application != null ? application.getLocalizationService() : null);
+    }
+
+    public static String getTranslatedPolyString(PolyString value, LocalizationService localizationService){
+        if (value == null){
+            return "";
+        }
+        if (localizationService == null){
+            localizationService = MidPointApplication.get().getLocalizationService();
+        }
+        return localizationService.translate(value, getCurrentLocale(), true);
     }
 
     public static <O extends ObjectType> String getName(ObjectReferenceType ref, PageBase pageBase, String operation) {
@@ -1087,7 +1133,12 @@ public final class WebComponentUtil {
     }
 
     public static <O extends ObjectType> String getDisplayNameOrName(ObjectReferenceType ref, PageBase pageBase, String operation) {
-        String name = getName(ref);
+        return getDisplayNameOrName(ref, pageBase, operation, true);
+    }
+
+    public static <O extends ObjectType> String getDisplayNameOrName(ObjectReferenceType ref, PageBase pageBase,
+                                                                     String operation, boolean translate) {
+        String name = getName(ref, translate);
         if (StringUtils.isEmpty(name) || name.equals(ref.getOid())) {
             String oid = ref.getOid();
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions
@@ -1096,13 +1147,18 @@ public final class WebComponentUtil {
             PrismObject<O> object = WebModelServiceUtils.loadObject(type, oid, pageBase,
                     pageBase.createSimpleTask(operation), new OperationResult(operation));
             if (object != null) {
-                name = getDisplayNameOrName(object);
+                name = getDisplayNameOrName(object, true);
             }
         }
         return name;
     }
 
-    public static <O extends ObjectType> String getEffectiveName(ObjectReferenceType ref, QName propertyName, PageBase pageBase, String operation) {
+    public static <O extends ObjectType> String getEffectiveName(ObjectReferenceType ref, QName propertyName,
+                                                                 PageBase pageBase, String operation) {
+        return getEffectiveName(ref, propertyName, pageBase, operation, true);
+    }
+    public static <O extends ObjectType> String getEffectiveName(ObjectReferenceType ref, QName propertyName,
+                                                                 PageBase pageBase, String operation, boolean translate) {
         PrismObject<O> object = WebModelServiceUtils.loadObject(ref, pageBase,
                 pageBase.createSimpleTask(operation), new OperationResult(operation));
 
@@ -1110,30 +1166,50 @@ public final class WebComponentUtil {
             return "Not Found";
         }
 
-        return getEffectiveName(object, propertyName);
+        return getEffectiveName(object, propertyName, translate);
 
     }
 
     public static String getName(ObjectReferenceType ref) {
+        return getName(ref, true);
+    }
+
+    public static String getName(ObjectReferenceType ref, boolean translate) {
         if (ref == null) {
             return null;
         }
         if (ref.getTargetName() != null) {
+            if (translate){
+                return getTranslatedPolyString(ref.getTargetName());
+            }
             return getOrigStringFromPoly(ref.getTargetName());
         }
         if (ref.asReferenceValue().getObject() != null) {
-            return getName(ref.asReferenceValue().getObject());
+            return getName(ref.asReferenceValue().getObject(), translate);
         }
         return ref.getOid();
     }
 
     public static String getName(PrismObject object) {
+        return getName(object, true);
+    }
+
+    public static String getName(PrismObject object, boolean translate) {
+        return getName(object, translate, (LocalizationService) null);
+    }
+
+    public static String getName(PrismObject object, boolean translate, LocalizationService localizationService) {
         if (object == null) {
             return null;
         }
         PolyString name = getValue(object, ObjectType.F_NAME, PolyString.class);
-
-        return name != null ? name.getOrig() : null;
+        if (name == null){
+            return null;
+        }
+        if (translate){
+            return getTranslatedPolyString(name, localizationService);
+        }
+        return name.getOrig();
     }
 
     public static <C extends Containerable> String getDisplayName(PrismContainerValue<C> prismContainerValue) {
@@ -1273,38 +1349,81 @@ public final class WebComponentUtil {
     }
 
     public static String getDisplayNameOrName(PrismObject object) {
+        return getDisplayNameOrName(object, true);
+    }
+
+    public static String getDisplayNameOrName(PrismObject object, boolean translate) {
+        return getDisplayNameOrName(object, translate, null);
+    }
+
+    public static String getDisplayNameOrName(PrismObject object, boolean translate, LocalizationService localizationService) {
         if (object == null) {
             return null;
         }
 
-        String displayName = getDisplayName(object);
-        return displayName != null ? displayName : getName(object);
+        String displayName = getDisplayName(object, translate, localizationService);
+        return displayName != null ? displayName : getName(object, translate, localizationService);
     }
 
     public static String getDisplayNameOrName(ObjectReferenceType ref) {
+        return getDisplayNameOrName(ref, true);
+    }
+
+    public static String getDisplayNameOrName(ObjectReferenceType ref, boolean translate) {
         if (ref == null) {
             return null;
         }
-        String displayName = getDisplayName(ref);
+        String displayName = getDisplayName(ref, translate);
         return displayName != null ? displayName : getName(ref);
     }
 
     // <display-name> (<name>) OR simply <name> if there's no display name
     private static String getDisplayNameAndName(ObjectReferenceType ref) {
+        return getDisplayNameOrName(ref, true);
+    }
+
+    private static String getDisplayNameAndName(ObjectReferenceType ref, boolean translate) {
         if (ref == null) {
             return null;
         }
-        String displayName = getDisplayName(ref);
-        String name = getName(ref);
+        String displayName = getDisplayName(ref, translate);
+        String name = getName(ref, translate);
         return displayName != null ? displayName + " (" + name + ")" : name;
     }
 
     public static String getDisplayName(ObjectReferenceType ref) {
-        return PolyString.getOrig(ObjectTypeUtil.getDisplayName(ref));
+        return getDisplayName(ref, true);
+    }
+
+    public static String getDisplayName(ObjectReferenceType ref, boolean translate) {
+        if (translate){
+            return getTranslatedPolyString(ObjectTypeUtil.getDisplayName(ref));
+        } else {
+            return PolyString.getOrig(ObjectTypeUtil.getDisplayName(ref));
+        }
     }
 
     public static String getDisplayName(PrismObject object) {
-        return PolyString.getOrig(ObjectTypeUtil.getDisplayName(object));
+        return getDisplayName(object, true);
+    }
+
+    public static String getDisplayName(PrismObject object, boolean translate) {
+        return getDisplayName(object, translate, null);
+    }
+
+    public static String getDisplayName(PrismObject object, boolean translate, LocalizationService localizationService) {
+        if (object == null){
+            return  "";
+        }
+        if (translate){
+            if (localizationService == null) {
+                return getTranslatedPolyString(ObjectTypeUtil.getDisplayName(object));
+            } else {
+                return getTranslatedPolyString(PolyString.toPolyString(ObjectTypeUtil.getDisplayName(object)), localizationService);
+            }
+        } else {
+            return PolyString.getOrig(ObjectTypeUtil.getDisplayName(object));
+        }
     }
 
     public static PolyStringType createPolyFromOrigString(String str) {
@@ -1554,7 +1673,7 @@ public final class WebComponentUtil {
             return null;
         }
         PatternDateConverter converter = new PatternDateConverter(getLocalizedDatePattern(style), true);
-        return converter.convertToString(date, WebComponentUtil.getCurrentLocale());
+        return converter.convertToString(date, getCurrentLocale());
     }
 
     public static String getShortDateTimeFormattedValue(XMLGregorianCalendar date, PageBase pageBase) {

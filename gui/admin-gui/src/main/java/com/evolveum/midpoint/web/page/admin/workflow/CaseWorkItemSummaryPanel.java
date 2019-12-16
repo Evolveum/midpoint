@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
@@ -72,7 +73,7 @@ public class CaseWorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemT
             CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
             return defaultIfNull(
                     WfGuiUtil.getLocalizedProcessName(caseType != null ? caseType.getApprovalContext() : null, CaseWorkItemSummaryPanel.this),
-                    caseWorkItemType != null ? caseWorkItemType.getName() : "");
+                    caseWorkItemType != null ? WebComponentUtil.getTranslatedPolyString(caseWorkItemType.getName()) : null);
         });
     }
 
@@ -117,8 +118,8 @@ public class CaseWorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemT
                     return getString("TaskSummaryPanel.requestedBy", getString("TaskSummaryPanel.unknown"));
                 }
 
-                String displayName = WebComponentUtil.getDisplayName(requester);
-                String name = WebComponentUtil.getName(requester);
+                String displayName = WebComponentUtil.getDisplayName(requester, true);
+                String name = WebComponentUtil.getName(requester, true);
                 if (displayName != null) {
                     return getString("TaskSummaryPanel.requestedByWithFullName", displayName, name);
                 } else {

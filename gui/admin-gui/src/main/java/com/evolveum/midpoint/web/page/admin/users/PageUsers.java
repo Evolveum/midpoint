@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -24,9 +25,9 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.search.SearchValue;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
@@ -59,7 +60,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -149,21 +150,21 @@ public class PageUsers extends PageAdminObjectList<UserType> {
     protected List<IColumn<SelectableBean<UserType>, String>> initColumns() {
         List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
 
-        IColumn<SelectableBean<UserType>, String> column = new PropertyColumn(
+        IColumn<SelectableBean<UserType>, String> column = new PolyStringPropertyColumn(
                 createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
-                SelectableBeanImpl.F_VALUE + ".givenName");
+                SelectableBean.F_VALUE + ".givenName");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("UserType.familyName"),
-                UserType.F_FAMILY_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".familyName");
+        column = new PolyStringPropertyColumn(createStringResource("UserType.familyName"),
+                UserType.F_FAMILY_NAME.getLocalPart(), SelectableBean.F_VALUE + ".familyName");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("UserType.fullName"),
-                UserType.F_FULL_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".fullName");
+        column = new PolyStringPropertyColumn(createStringResource("UserType.fullName"),
+                UserType.F_FULL_NAME.getLocalPart(), SelectableBean.F_VALUE + ".fullName");
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("UserType.emailAddress"), null,
-                SelectableBeanImpl.F_VALUE + ".emailAddress");
+                SelectableBean.F_VALUE + ".emailAddress");
         columns.add(column);
 
         column = new AbstractExportableColumn<SelectableBean<UserType>, String>(
@@ -199,14 +200,14 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBeanImpl<UserType>>() {
+                return new ColumnMenuAction<SelectableBean<UserType>>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         if (getRowModel() == null){
                             updateActivationPerformed(target, true, null);
                         } else {
-                            SelectableBeanImpl<UserType> rowDto = getRowModel().getObject();
+                            SelectableBean<UserType> rowDto = getRowModel().getObject();
                             updateActivationPerformed(target, true, rowDto.getValue());
                         }
                     }
@@ -231,7 +232,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBeanImpl<UserType>>() {
+                return new ColumnMenuAction<SelectableBean<UserType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -239,7 +240,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                         if (getRowModel() == null) {
                             updateActivationPerformed(target, false, null);
                         } else {
-                            SelectableBeanImpl<UserType> rowDto = getRowModel().getObject();
+                            SelectableBean<UserType> rowDto = getRowModel().getObject();
                             updateActivationPerformed(target, false, rowDto.getValue());
                         }
                     }
@@ -259,7 +260,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBeanImpl<UserType>>() {
+                return new ColumnMenuAction<SelectableBean<UserType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -267,7 +268,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                         if (getRowModel() == null) {
                             reconcilePerformed(target, null);
                         } else {
-                            SelectableBeanImpl<UserType> rowDto = getRowModel().getObject();
+                            SelectableBean<UserType> rowDto = getRowModel().getObject();
                             reconcilePerformed(target, rowDto.getValue());
                         }
                     }
@@ -291,7 +292,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBeanImpl<UserType>>() {
+                return new ColumnMenuAction<SelectableBean<UserType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -299,7 +300,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                         if (getRowModel() == null) {
                             unlockPerformed(target, null);
                         } else {
-                            SelectableBeanImpl<UserType> rowDto = getRowModel().getObject();
+                            SelectableBean<UserType> rowDto = getRowModel().getObject();
                             unlockPerformed(target, rowDto.getValue());
                         }
                     }
@@ -318,13 +319,13 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBeanImpl<UserType>>() {
+                return new ColumnMenuAction<SelectableBean<UserType>>() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         if (getRowModel() == null) {
                             deleteConfirmedPerformed(target, null);
                         } else {
-                            SelectableBeanImpl<UserType> rowDto = getRowModel().getObject();
+                            SelectableBean<UserType> rowDto = getRowModel().getObject();
                             deleteConfirmedPerformed(target, rowDto.getValue());
                         }
                     }
@@ -343,7 +344,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBeanImpl<UserType>>() {
+                return new ColumnMenuAction<SelectableBean<UserType>>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -367,7 +368,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                         if (getRowModel() == null) {
                             mergePerformed(target, null);
                         } else {
-                            SelectableBeanImpl<UserType> rowDto = getRowModel().getObject();
+                            SelectableBean<UserType> rowDto = getRowModel().getObject();
                             mergePerformed(target, rowDto.getValue());
                         }
                     }
@@ -608,7 +609,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                     actionName, getTable().getSelectedObjectsCount() );
         } else {
             return createStringResource("pageUsers.message.confirmationMessageForSingleObject",
-                    actionName, ((ObjectType)((SelectableBeanImpl)action.getRowModel().getObject()).getValue()).getName());
+                    actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
         }
 
     }

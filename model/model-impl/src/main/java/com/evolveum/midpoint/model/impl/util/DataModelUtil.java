@@ -110,10 +110,10 @@ public class DataModelUtil {
             itemPath = path;
         }
 
-        if (ExpressionConstants.VAR_ACCOUNT.equals(varName)) {
+        if (ExpressionConstants.VAR_PROJECTION.equals(varName) || ExpressionConstants.VAR_SHADOW.equals(varName) || ExpressionConstants.VAR_ACCOUNT.equals(varName)) {
             if (!(context instanceof ResourceResolutionContext)) {
                 return new PathResolutionResult(new Issue(Issue.Severity.WARNING, CAT_ITEM_PATH, C_ILLEGAL_USE_OF_ACCOUNT_VARIABLE,
-                        "Illegal use of 'account' variable: '" + path + "'", null, null));
+                        "Illegal use of '"+varName+"' variable: '" + path + "'", null, null));
             } else {
                 // TODO implement checking of $account-based paths
                 return null;

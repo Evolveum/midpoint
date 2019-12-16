@@ -19,6 +19,7 @@ import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
@@ -96,6 +97,7 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
                 getPageBase().hideMainPopup(ajaxRequestTarget);
             }
         };
+        cancelButton.add(new VisibleBehaviour(() -> showCancelButton()));
         content.add(cancelButton);
     }
 
@@ -187,6 +189,7 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
     protected abstract boolean showDirectIndirectColumn();
     protected abstract boolean showKindAndIntentColumns();
     protected abstract boolean showRelationColumn();
+    protected abstract boolean showCancelButton();
 
     @Override
     public int getWidth() {

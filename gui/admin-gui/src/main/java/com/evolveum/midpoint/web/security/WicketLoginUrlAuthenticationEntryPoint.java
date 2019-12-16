@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.web.security;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
 import javax.servlet.ServletException;
@@ -33,6 +35,8 @@ public class WicketLoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticati
 
             return;
         }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         String url = buildRedirectUrlToLoginPage(request, response, authException);
 

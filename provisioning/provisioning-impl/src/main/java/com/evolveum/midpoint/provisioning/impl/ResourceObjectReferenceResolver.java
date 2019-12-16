@@ -12,6 +12,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.shadowmanager.ShadowManager;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -224,8 +225,13 @@ public class ResourceObjectReferenceResolver {
 
         try {
 
-            if (!ResourceTypeUtil.isReadCapabilityEnabled(resource)){
-                throw new UnsupportedOperationException("Resource does not support 'read' operation");
+            ReadCapabilityType readCapability = ctx.getEffectiveCapability(ReadCapabilityType.class);
+            if (readCapability == null) {
+                throw new UnsupportedOperationException("Resource does not support 'read' operation: " + ctx.toHumanReadableDescription());
+            }
+
+            if (Boolean.TRUE.equals(readCapability.isCachingOnly())) {
+                return ctx.getOriginalShadow();
             }
 
             ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectClassDefinition, identifiers);

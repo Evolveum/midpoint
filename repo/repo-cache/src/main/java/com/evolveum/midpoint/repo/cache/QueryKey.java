@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum and contributors
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,41 +7,45 @@
 
 package com.evolveum.midpoint.repo.cache;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import java.util.Objects;
+
 /**
- * @author Pavol Mederly
+ * Key for repository query cache. The query is stored as a clone, in order to make sure it won't be
+ * changed during the lifetime of the cache entry.
  */
 public class QueryKey {
 
-    private Class<? extends ObjectType> type;
-    private ObjectQuery query;
+    private final Class<? extends ObjectType> type;
+    private final ObjectQuery query;
+    private Integer cachedHashCode;
 
-    public <T extends ObjectType> QueryKey(Class<T> type, ObjectQuery query) {
+    <T extends ObjectType> QueryKey(Class<T> type, ObjectQuery query) {
         this.type = type;
-        this.query = query;
+        this.query = query != null ? query.clone() : null;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        QueryKey queryKey = (QueryKey) o;
-
-        if (query != null ? !query.equals(queryKey.query) : queryKey.query != null) return false;
-        if (type != null ? !type.equals(queryKey.type) : queryKey.type != null) return false;
-
-        return true;
+        if (this == o) {
+            return true;
+        } else if (!(o instanceof QueryKey)) {
+            return false;
+        } else {
+            QueryKey queryKey = (QueryKey) o;
+            return Objects.equals(type, queryKey.type) &&
+                    Objects.equals(query, queryKey.query);
+        }
     }
 
     @Override
     public int hashCode() {
-        int result = type != null ? type.hashCode() : 0;
-        result = 31 * result + (query != null ? query.hashCode() : 0);
-        return result;
+        if (cachedHashCode == null) {
+            cachedHashCode = Objects.hash(type, query);
+        }
+        return cachedHashCode;
     }
 
     public Class<? extends ObjectType> getType() {

@@ -8,7 +8,10 @@ package com.evolveum.midpoint.security.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.util.exception.*;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -129,6 +132,26 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
         }
     }
 
+    private boolean isAnonymous(Authentication origAuthentication) {
+        Authentication authentication;
+        if (origAuthentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) origAuthentication;
+            List<ModuleAuthentication> moduleAuthentications = mpAuthentication.getAuthentications();
+            if (moduleAuthentications == null || moduleAuthentications.size() != 1) {
+                return false;
+            }
+            authentication = moduleAuthentications.get(0).getAuthentication();
+        } else {
+            authentication = origAuthentication;
+        }
+
+        if (authentication instanceof AnonymousAuthenticationToken) {
+            return true;
+        }
+
+        return false;
+    }
+
     @Override
     public <T> T runPrivileged(Producer<T> producer) {
         LOGGER.debug("Running {} as privileged", producer);
@@ -142,7 +165,7 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
 
         if (origAuthentication != null) {
             Object origPrincipal = origAuthentication.getPrincipal();
-            if (origAuthentication instanceof AnonymousAuthenticationToken) {
+            if (isAnonymous(origAuthentication)) {
                 newPrincipal = origPrincipal;
             } else {
                 LOGGER.trace("ORIG principal {} ({})", origPrincipal, origPrincipal != null ? origPrincipal.getClass() : null);

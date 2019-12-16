@@ -10,7 +10,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateSource;
+import com.evolveum.midpoint.provisioning.ucf.api.async.ChangeListener;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConnectorInstance;
+import com.evolveum.midpoint.repo.api.RepositoryAware;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -32,12 +36,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AsyncUpdateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
+import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  *  Connector that is able to obtain and process asynchronous updates.
@@ -45,12 +49,11 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  *  Currently we keep no state besides the configuration and open listening activities. It is because calls to this
  *  connector should be really infrequent. Sources are therefore instantiated on demand, e.g. on test() or startListening() calls.
- *
  */
 @SuppressWarnings("DefaultAnnotationParam")
 @ManagedConnector(type="AsyncUpdateConnector", version="1.0.0")
 public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstance implements UcfExpressionEvaluatorAware,
-        SecurityContextManagerAware, TracerAware, TaskManagerAware {
+        SecurityContextManagerAware, TracerAware, TaskManagerAware, RepositoryAware {
 
     @SuppressWarnings("unused")
     private static final Trace LOGGER = TraceManager.getTrace(AsyncUpdateConnectorInstance.class);
@@ -58,7 +61,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory CAPABILITY_OBJECT_FACTORY
             = new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
 
-    private AsyncUpdateConnectorConfiguration configuration;
+    private ConnectorConfiguration configuration;
 
     private final SourceManager sourceManager = new SourceManager(this);
 
@@ -73,28 +76,31 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     private TaskManager taskManager;
 
+    private RepositoryService repositoryService;
+
     /**
-     * Open listening activities. Needed mainly to be able to restart them on configuration change.
+     * Listening helper. Null if there's no listening in progress.
      */
-    private final Collection<ConnectorInstanceListeningActivity> openListeningActivities = ConcurrentHashMap.newKeySet();
+    private ConnectorListeningHelper listeningHelper;
 
     @ManagedConnectorConfiguration
-    public AsyncUpdateConnectorConfiguration getConfiguration() {
+    public ConnectorConfiguration getConfiguration() {
         return configuration;
     }
 
-    public void setConfiguration(AsyncUpdateConnectorConfiguration configuration) {
-        LOGGER.info("Setting new configuration");
+    public void setConfiguration(ConnectorConfiguration configuration) {
+        LOGGER.info("Setting new configuration in {}", this);       // todo debug
         configuration.validate();
-        boolean sourcesChanged = configuration.hasSourcesChanged(this.configuration);
-        this.configuration = configuration;
-        if (sourcesChanged) {
-            HashSet<ConnectorInstanceListeningActivity> openActivitiesClone = new HashSet<>(openListeningActivities);
-            LOGGER.info("Sources have changed; open activities: {}", openActivitiesClone);
-            if (!openActivitiesClone.isEmpty()) {
-                restartListeningActivities(openActivitiesClone);
+        if (listeningHelper != null && configuration.hasSourcesChanged(this.configuration)) {
+            LOGGER.info("Configuration of sources has changed. Restarting listening in {}", this);      // todo debug
+            try {
+                listeningHelper.restart(configuration);
+            } catch (RuntimeException | SchemaException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restart listening activity in {}", e, this);
+                listeningHelper.stop();
             }
         }
+        this.configuration = configuration;
     }
 
     @Override
@@ -132,50 +138,23 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     @Override
-    public ListeningActivity startListeningForChanges(ChangeListener changeListener, OperationResult parentResult)
-            throws SchemaException {
+    public void listenForChanges(@NotNull ChangeListener changeListener, @NotNull Supplier<Boolean> canRunSupplier,
+            @NotNull OperationResult parentResult) throws SchemaException {
+
+        // TODO implement some synchronization here (but note that listeningState.stop() can take some time)
+        if (listeningHelper != null) {
+            LOGGER.warn("Starting listening for changes while other listening activities are in progress in {}. "
+                    + "Closing them first. State: {}", this, listeningHelper);
+            listeningHelper.stop();
+            listeningHelper = null;
+        }
 
         Authentication authentication = securityContextManager.getAuthentication();
-        ConnectorInstanceListeningActivity listeningActivity = new ConnectorInstanceListeningActivity(changeListener, authentication);
+        listeningHelper = new ConnectorListeningHelper(this, changeListener, authentication);
         try {
-            openListeningActivities.add(listeningActivity);
-            startListeningInternal(listeningActivity);
-        } catch (Throwable t) {
-            openListeningActivities.remove(listeningActivity);
-            throw t;
-        }
-        return listeningActivity;
-    }
-
-    private void startListeningInternal(ConnectorInstanceListeningActivity listeningActivity)
-            throws SchemaException {
-        TransformationalAsyncUpdateMessageListener messageListener = new TransformationalAsyncUpdateMessageListener(
-                listeningActivity.changeListener, listeningActivity.authentication, this, tracer, taskManager);
-        Collection<AsyncUpdateSource> sources = sourceManager.createSources(configuration.getAllSources());
-        try {
-            for (AsyncUpdateSource source : sources) {
-                listeningActivity.addActivity(source.startListening(messageListener));
-            }
-        } catch (Throwable t) {
-            listeningActivity.stopInnerActivities();
-            throw t;
-        }
-    }
-
-    private void restartListeningActivities(Set<ConnectorInstanceListeningActivity> activities) {
-        LOGGER.info("Restarting {} open listening activities", activities.size());
-
-        for (ConnectorInstanceListeningActivity activity : activities) {
-            try {
-                activity.status = AsyncUpdateListeningActivityStatusType.RECONNECTING;
-                LOGGER.info("Stopping listening activity {}", activity);    // todo debug
-                activity.stopInnerActivities();
-                LOGGER.info("Starting listening activity {} again", activity);  // todo debug
-                startListeningInternal(activity);
-                activity.status = null;
-            } catch (RuntimeException | SchemaException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restart listening activity {} on {}", e, activity, this);
-            }
+            listeningHelper.listenForChanges(configuration, canRunSupplier);
+        } finally {
+            listeningHelper = null;
         }
     }
 
@@ -237,14 +216,28 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
         this.taskManager = taskManager;
     }
 
+    @Override
+    public RepositoryService getRepositoryService() {
+        return repositoryService;
+    }
+
+    @Override
+    public void setRepositoryService(RepositoryService repositoryService) {
+        this.repositoryService = repositoryService;
+    }
+
     ExpressionType getTransformExpression() {
         return configuration.getTransformExpression();
     }
 
     @NotNull
-    AsyncUpdateErrorHandlingActionType getErrorHandlingAction() {
-        return configuration.getErrorHandlingAction() != null ?
-                configuration.getErrorHandlingAction() : AsyncUpdateErrorHandlingActionType.STOP_PROCESSING;
+    public AsyncUpdateErrorHandlingActionType getErrorHandlingAction() {
+        return ObjectUtils.defaultIfNull(configuration.getErrorHandlingAction(),
+                AsyncUpdateErrorHandlingActionType.STOP_PROCESSING);
+    }
+
+    SourceManager getSourceManager() {
+        return sourceManager;
     }
 
     //region Unsupported operations
@@ -280,7 +273,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object,
-            Collection<Operation> additionalOperations, StateReporter reporter, OperationResult parentResult) {
+            StateReporter reporter, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("addObject");
         return null;
     }
@@ -295,8 +288,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass,
-            Collection<Operation> additionalOperations, PrismObject<ShadowType> shadow,
-            Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter, OperationResult parentResult) {
+            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("deleteObject");
         return null;
     }
@@ -327,66 +319,19 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     //endregion
 
-    //region Listening activity
-    private class ConnectorInstanceListeningActivity implements ListeningActivity {
-
-        @NotNull private final List<ListeningActivity> activities = new ArrayList<>();       // do not forget to synchronize on this
-        @NotNull private final ChangeListener changeListener;
-        @Nullable private final Authentication authentication;
-        private AsyncUpdateListeningActivityStatusType status;
-
-        ConnectorInstanceListeningActivity(@NotNull ChangeListener changeListener, @Nullable Authentication authentication) {
-            this.changeListener = changeListener;
-            this.authentication = authentication;
-        }
-
-        @Override
-        public void stop() {
-            openListeningActivities.remove(this);
-            stopInnerActivities();
-        }
-
-        private void stopInnerActivities() {
-            List<ListeningActivity> activitiesCopy;
-            synchronized (activities) {
-                activitiesCopy = new ArrayList<>(activities);
-                activities.clear();
-            }
-            for (ListeningActivity activity : activitiesCopy) {
-                try {
-                    activity.stop();
-                } catch (RuntimeException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop listening on {}", e, activity);
-                }
-            }
-        }
-
-        void addActivity(ListeningActivity activity) {
-            synchronized (activities) {
-                activities.add(activity);
-            }
-        }
-
-        @Override
-        public AsyncUpdateListeningActivityInformationType getInformation() {
-            List<ListeningActivity> activitiesCopy;
-            synchronized (activities) {
-                activitiesCopy = new ArrayList<>(activities);
-            }
-            AsyncUpdateListeningActivityInformationType rv = new AsyncUpdateListeningActivityInformationType();
-            rv.setName("[root]");
-            rv.setStatus(status);
-            for (ListeningActivity activity : activitiesCopy) {
-                rv.getSubActivity().add(activity.getInformation());
-            }
-            return rv;
-        }
-
-        @Override
-        public String toString() {
-            return "ConnectorInstanceListeningActivity{" + activities + "}";
-        }
+    @Override
+    public String toString() {
+        return "AsyncUpdateConnectorInstance (" + getInstanceName() + ")";
     }
 
-    //endregion
+    @Override
+    protected void setResourceSchema(ResourceSchema resourceSchema) {
+        super.setResourceSchema(resourceSchema);
+        // TODO eliminate these diagnostic messages when no longer needed (MID-5931)
+        if (resourceSchema == null) {
+            LOGGER.warn("Setting null resource schema for {}. This might or might not be OK, depending on circumstances", this);
+        } else {
+            LOGGER.info("Setting resource schema for {}", this);
+        }
+    }
 }

@@ -35,16 +35,19 @@ public class DeltaFactoryImpl implements DeltaFactory {
         this.objectDeltaFactory = new ObjectDeltaFactoryImpl(prismContext);
     }
 
+    @Deprecated // please use DeltaBuilder instead
     @Override
     public Property property() {
         return propertyDeltaFactory;
     }
 
+    @Deprecated // please use DeltaBuilder instead
     @Override
     public Reference reference() {
         return referenceDeltaFactory;
     }
 
+    @Deprecated // please use DeltaBuilder instead
     @Override
     public Container container() {
         return containerDeltaFactory;

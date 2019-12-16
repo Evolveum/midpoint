@@ -176,8 +176,7 @@ public class MemberOperationsHelper {
     }
 
     public static <O extends ObjectType, R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
-            AvailableRelationDto availableRelationList, List<QName> objectTypes,
-                                                                                    boolean isOrgTreePanelVisible) {
+            AvailableRelationDto availableRelationList, List<QName> objectTypes, boolean isOrgTreePanelVisible) {
 
         ChooseMemberPopup<O, R> browser = new ChooseMemberPopup<O, R>(pageBase.getMainPopupBodyId(), availableRelationList) {
             private static final long serialVersionUID = 1L;

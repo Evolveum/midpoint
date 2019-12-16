@@ -90,8 +90,6 @@ public class TestOrgSync extends AbstractStoryTest {
     protected static final QName OPENDJ_ASSOCIATION_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE,
             "group");
 
-    private static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME = "firstname";
-    private static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME = "lastname";
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH = "orgpath";
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES = "responsibilities";
 
@@ -209,9 +207,6 @@ public class TestOrgSync extends AbstractStoryTest {
     private DebugReconciliationTaskResultListener reconciliationTaskResultListener;
 
     protected static DummyResource dummyResourceHr;
-    protected static DummyResourceContoller dummyResourceCtlHr;
-    protected ResourceType resourceDummyHrType;
-    protected PrismObject<ResourceType> resourceDummyHr;
 
     protected ResourceType resourceOpenDjType;
     protected PrismObject<ResourceType> resourceOpenDj;
@@ -245,23 +240,19 @@ public class TestOrgSync extends AbstractStoryTest {
         reconciliationTaskHandler.setReconciliationTaskResultListener(reconciliationTaskResultListener);
 
         // Resources
-        dummyResourceCtlHr = DummyResourceContoller.create(RESOURCE_DUMMY_HR_ID, resourceDummyHr);
-        DummyObjectClass dummyAdAccountObjectClass = dummyResourceCtlHr.getDummyResource()
-                .getAccountObjectClass();
-        dummyResourceCtlHr.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME,
-                String.class, false, false);
-        dummyResourceCtlHr.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME,
-                String.class, false, false);
-        dummyResourceCtlHr.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH,
-                String.class, false, false);
-        dummyResourceCtlHr.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES,
-                String.class, false, true);
-        dummyResourceHr = dummyResourceCtlHr.getDummyResource();
-        resourceDummyHr = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_HR_FILE,
-                RESOURCE_DUMMY_HR_OID, initTask, initResult);
-        resourceDummyHrType = resourceDummyHr.asObjectable();
-        dummyResourceCtlHr.setResource(resourceDummyHr);
-        dummyResourceHr.setSyncStyle(DummySyncStyle.SMART);
+        initDummyResource(RESOURCE_DUMMY_HR_ID, RESOURCE_DUMMY_HR_FILE, RESOURCE_DUMMY_HR_OID, c -> {
+                DummyObjectClass dummyAdAccountObjectClass = c.getDummyResource().getAccountObjectClass();
+                c.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME,
+                        String.class, false, false);
+                c.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME,
+                        String.class, false, false);
+                c.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH,
+                        String.class, false, false);
+                c.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES,
+                        String.class, false, true);
+                c.getDummyResource().setSyncStyle(DummySyncStyle.SMART);
+            } , initTask, initResult);
+        dummyResourceHr = getDummyResource(RESOURCE_DUMMY_HR_ID);
 
         resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE,
                 RESOURCE_OPENDJ_OID, initTask, initResult);
@@ -300,7 +291,7 @@ public class TestOrgSync extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
         TestUtil.assertSuccess(testResultHr);

@@ -175,7 +175,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         System.out.println("---------------------------------------------------------------------");
 
-        assertEquals("Unexpected number of connectors discovered", 7, connectors.size());
+        assertEquals("Unexpected number of connectors discovered", 8, connectors.size());
     }
 
     @Test
@@ -338,7 +338,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         icfsNameProp.setRealValue(ACCOUNT_JACK_USERNAME);
 
         // WHEN
-        cc.addObject(shadow, null, null, result);
+        cc.addObject(shadow, null, result);
 
         // THEN
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_JACK_USERNAME);

@@ -31,67 +31,81 @@ public interface QueryFactory {
 
     ObjectFilter createUndefined();
 
+    @Deprecated // please use QueryBuilder instead
     @NotNull
     <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
             @Nullable QName matchingRule);
 
     // values
+    @Deprecated // please use QueryBuilder instead
     @NotNull
     <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
             @Nullable QName matchingRule, @NotNull PrismContext prismContext, Object... values);
 
     // expression-related
+    @Deprecated // please use QueryBuilder instead
     @NotNull
     <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
             @Nullable QName matchingRule, @NotNull ExpressionWrapper expression);
 
     // right-side-related; right side can be supplied later (therefore it's nullable)
+    @Deprecated // please use QueryBuilder instead
     @NotNull
     <T> EqualFilter<T> createEqual(@NotNull ItemPath path, PrismPropertyDefinition<T> definition,
             QName matchingRule, @NotNull ItemPath rightSidePath, ItemDefinition rightSideDefinition);
 
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition,
             Collection<PrismReferenceValue> values);
 
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression);
 
     // empty (can be filled-in later)
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     <T> GreaterFilter<T> createGreater(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, boolean equals);
 
     // value
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     <T> GreaterFilter<T> createGreater(@NotNull ItemPath path, PrismPropertyDefinition<T> definition,
             QName matchingRule, Object value, boolean equals, @NotNull PrismContext prismContext);
 
     // expression-related
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     <T> GreaterFilter<T> createGreater(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, QName matchingRule,
             @NotNull ExpressionWrapper wrapper, boolean equals);
 
     // right-side-related
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     <T> GreaterFilter<T> createGreater(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, QName matchingRule,
             @NotNull ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals);
 
     // empty (can be filled-in later)
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     <T> LessFilter<T> createLess(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, boolean equals);
 
     // value
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     <T> LessFilter<T> createLess(@NotNull ItemPath path, PrismPropertyDefinition<T> definition,
             QName matchingRule, Object value, boolean equals, @NotNull PrismContext prismContext);
 
     // expression-related
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     <T> LessFilter<T> createLess(@NotNull ItemPath path, PrismPropertyDefinition<T> definition, QName matchingRule,
             @NotNull ExpressionWrapper expressionWrapper, boolean equals);
 
     // right-side-related
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     <T> LessFilter<T> createLess(@NotNull ItemPath path, PrismPropertyDefinition<T> definition,
             QName matchingRule, @NotNull ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals);
 
@@ -110,30 +124,39 @@ public interface QueryFactory {
     @NotNull
     NotFilter createNot(ObjectFilter inner);
 
+    @Deprecated // please use QueryBuilder instead
     <C extends Containerable> ExistsFilter createExists(ItemName path, Class<C> containerType, PrismContext prismContext, ObjectFilter inner);
 
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     InOidFilter createInOid(Collection<String> oids);
 
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     InOidFilter createInOid(String... oids);
 
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     InOidFilter createOwnerHasOidIn(Collection<String> oids);
 
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     InOidFilter createOwnerHasOidIn(String... oids);
 
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     OrgFilter createOrg(PrismReferenceValue baseOrgRef, OrgFilter.Scope scope);
 
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     OrgFilter createOrg(String baseOrgOid, OrgFilter.Scope scope);
 
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     OrgFilter createRootOrg();
 
     @NotNull
+    @Deprecated // please use QueryBuilder instead
     TypeFilter createType(QName type, ObjectFilter filter);
 
     @NotNull

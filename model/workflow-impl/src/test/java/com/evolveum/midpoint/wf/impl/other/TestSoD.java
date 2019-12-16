@@ -80,12 +80,10 @@ public class TestSoD extends AbstractWfTestPolicy {
      */
     @Test
     public void test010AssignRoleJudge() throws Exception {
-        final String TEST_NAME = "test010AssignRoleJudge";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         assignRole(userJackOid, roleJudgeOid, task, result);
@@ -100,12 +98,10 @@ public class TestSoD extends AbstractWfTestPolicy {
      */
     @Test
     public void test020AssignRolePirate() throws Exception {
-        final String TEST_NAME = "test020AssignRolePirate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         PrismObject<UserType> jack = getUser(userJackOid);
         String originalDescription = jack.asObjectable().getDescription();
@@ -121,7 +117,7 @@ public class TestSoD extends AbstractWfTestPolicy {
         ObjectDelta<UserType> primaryDelta = ObjectDeltaCollectionsUtil.summarize(addPirateDelta, changeDescriptionDelta);
 
         // WHEN+THEN
-        executeTest2(TEST_NAME, new TestDetails2<UserType>() {
+        executeTest2(null, new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
                 return jack.clone();
@@ -216,12 +212,10 @@ public class TestSoD extends AbstractWfTestPolicy {
      */
     @Test
     public void test030AssignRoleRespectable() throws Exception {
-        final String TEST_NAME = "test030AssignRoleRespectable";
-        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // GIVEN
         unassignRole(userJackOid, rolePirateOid, task, result);
@@ -236,7 +230,7 @@ public class TestSoD extends AbstractWfTestPolicy {
                 .asObjectDelta(userJackOid);
 
         // WHEN+THEN
-        executeTest2(TEST_NAME, new TestDetails2<UserType>() {
+        executeTest2(null, new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
                 return jack.clone();

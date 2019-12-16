@@ -57,15 +57,15 @@ public class ShadowDeltaComputer {
 
     @NotNull
     ObjectDelta<ShadowType> computeShadowDelta(@NotNull ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> repoShadowOld, PrismObject<ShadowType> resourceShadowNew,
+            @NotNull PrismObject<ShadowType> repoShadowOld, PrismObject<ShadowType> currentResourceObject,
             ObjectDelta<ShadowType> resourceObjectDelta, ShadowState shadowState)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
 
         ObjectDelta<ShadowType> computedShadowDelta = repoShadowOld.createModifyDelta();
 
-        RefinedObjectClassDefinition ocDef = ctx.computeCompositeObjectClassDefinition(resourceShadowNew);
-        PrismContainer<Containerable> currentResourceAttributes = resourceShadowNew.findContainer(ShadowType.F_ATTRIBUTES);
+        RefinedObjectClassDefinition ocDef = ctx.computeCompositeObjectClassDefinition(currentResourceObject);
+        PrismContainer<Containerable> currentResourceAttributes = currentResourceObject.findContainer(ShadowType.F_ATTRIBUTES);
         PrismContainer<Containerable> oldRepoAttributes = repoShadowOld.findContainer(ShadowType.F_ATTRIBUTES);
         ShadowType oldRepoShadowType = repoShadowOld.asObjectable();
 
@@ -75,17 +75,17 @@ public class ShadowDeltaComputer {
         processAttributes(computedShadowDelta, incompleteCacheableItems, oldRepoAttributes, currentResourceAttributes,
                 resourceObjectDelta, ocDef, cachingStrategy);
 
-        PolyString currentShadowName = ShadowUtil.determineShadowName(resourceShadowNew);
+        PolyString currentShadowName = ShadowUtil.determineShadowName(currentResourceObject);
         PolyString oldRepoShadowName = repoShadowOld.getName();
-        if (!currentShadowName.equalsOriginalValue(oldRepoShadowName)) {
+        if (currentShadowName != null && !currentShadowName.equalsOriginalValue(oldRepoShadowName)) {
             PropertyDelta<?> shadowNameDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_NAME,
-                    repoShadowOld.getDefinition(),currentShadowName);
+                    repoShadowOld.getDefinition(), currentShadowName);
             computedShadowDelta.addModification(shadowNameDelta);
         }
 
         PropertyDelta<QName> auxOcDelta = ItemUtil.diff(
                 repoShadowOld.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
-                resourceShadowNew.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
+                currentResourceObject.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
         if (auxOcDelta != null) {
             computedShadowDelta.addModification(auxOcDelta);
         }
@@ -105,10 +105,10 @@ public class ShadowDeltaComputer {
 
         } else if (cachingStrategy == CachingStategyType.PASSIVE) {
 
-            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, resourceShadowNew, repoShadowOld);
-            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_FROM, resourceShadowNew, repoShadowOld);
-            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_TO, resourceShadowNew, repoShadowOld);
-            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, resourceShadowNew, repoShadowOld);
+            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, currentResourceObject, repoShadowOld);
+            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_FROM, currentResourceObject, repoShadowOld);
+            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_TO, currentResourceObject, repoShadowOld);
+            compareUpdateProperty(computedShadowDelta, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, currentResourceObject, repoShadowOld);
 
             if (incompleteCacheableItems.isEmpty()) {
                 CachingMetadataType cachingMetadata = new CachingMetadataType();
@@ -210,19 +210,20 @@ public class ShadowDeltaComputer {
         PrismProperty<Object> oldRepoAttributeProperty = oldRepoAttributes.findProperty(attrDef.getItemName());
         if (oldRepoAttributeProperty == null) {
             PropertyDelta<Object> attrAddDelta = currentResourceAttrProperty.createDelta();
-            List<PrismPropertyValue<Object>> currentValues = currentResourceAttrProperty.getValues();
-            // This is a brutal hack: For extension attributes the ADD operation is slow when using large # of
-            // values to add. So let's do REPLACE instead (this is OK if there are no existing values).
-            // TODO Move this logic to repository. Here it is only for PoC purposes.
-            if (currentValues.size() >= 100) {
-                Object[] currentValuesNormalized = new Object[currentValues.size()];
-                for (int i = 0; i < currentValues.size(); i++) {
-                    currentValuesNormalized[i] = matchingRule.normalize(currentValues.get(i).getValue());
-                }
-                attrAddDelta.setRealValuesToReplace(currentValuesNormalized);
+            List<PrismPropertyValue<Object>> valuesOnResource = currentResourceAttrProperty.getValues();
+            if (attrDef.isIndexOnly()) {
+                // We don't know what is in the repository. We simply want to replace everything with the current values.
+                setNormalizedValuesToReplace(attrAddDelta, valuesOnResource, matchingRule);
             } else {
-                for (PrismPropertyValue<?> pval : currentValues) {
-                    attrAddDelta.addRealValuesToAdd(matchingRule.normalize(pval.getValue()));
+                // This is a brutal hack: For extension attributes the ADD operation is slow when using large # of
+                // values to add. So let's do REPLACE instead (this is OK if there are no existing values).
+                // TODO Move this logic to repository. Here it is only for PoC purposes.
+                if (valuesOnResource.size() >= 100) {
+                    setNormalizedValuesToReplace(attrAddDelta, valuesOnResource, matchingRule);
+                } else {
+                    for (PrismPropertyValue<?> pval : valuesOnResource) {
+                        attrAddDelta.addRealValuesToAdd(matchingRule.normalize(pval.getValue()));
+                    }
                 }
             }
             if (attrAddDelta.getDefinition().getTypeName() == null) {
@@ -268,6 +269,15 @@ public class ShadowDeltaComputer {
                 }
             }
         }
+    }
+
+    private void setNormalizedValuesToReplace(PropertyDelta<Object> attrAddDelta, List<PrismPropertyValue<Object>> currentValues,
+            MatchingRule<Object> matchingRule) throws SchemaException {
+        Object[] currentValuesNormalized = new Object[currentValues.size()];
+        for (int i = 0; i < currentValues.size(); i++) {
+            currentValuesNormalized[i] = matchingRule.normalize(currentValues.get(i).getValue());
+        }
+        attrAddDelta.setRealValuesToReplace(currentValuesNormalized);
     }
 
     private <T> void compareUpdateProperty(ObjectDelta<ShadowType> shadowDelta,

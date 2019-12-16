@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.test.PredefinedTestMethodTracing.OFF;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
@@ -147,6 +148,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     protected static final String ATTR_TASK = "task";
     protected static final String ATTR_RESULT = "result";
 
+    private static final String UNKNOWN_METHOD = "unknownMethod";
+
     // Values used to check if something is unchanged or changed properly
 
     protected LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
@@ -180,6 +183,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     // only tests that need OpenDJ or derby should start it
     protected static OpenDJController openDJController = new OpenDJController();
     protected static DerbyController derbyController = new DerbyController();
+
+    /**
+     * Fast and simple way how to enable tracing of test methods.
+     * (Assuming that auto task management is enabled.)
+     */
+    protected PredefinedTestMethodTracing predefinedTestMethodTracing;
+
+    /**
+     * Enables automatic task and operation result management in test methods.
+     */
+    protected boolean autoTaskManagementEnabled;
 
     // We need this complicated init as we want to initialize repo only once.
     // JUnit will
@@ -232,9 +246,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 
     /**
-     * Creates appropriate task and result and set it into ITestContext.
+     * Creates appropriate task and result and set it into MidpointTestMethodContext.
      *
-     * EXPERIMENTAL. Probably requires single-threaded test methods execution (if ITestContext is shared).
+     * EXPERIMENTAL.
      */
     @BeforeMethod
     public void setTaskAndResult(ITestContext ctx, Method testMethod) throws SchemaException {
@@ -262,18 +276,46 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         ctx.setAttribute(ATTR_TASK, task);
         ctx.setAttribute(ATTR_RESULT, result);
 
-        MidpointTestMethodContext.setup(task, result);
+        MidpointTestMethodContext.setup(testMethod.getName(), task, result);
     }
 
     protected TracingProfileType getTestMethodTracingProfile() {
-        return null;
+        if (predefinedTestMethodTracing == null || predefinedTestMethodTracing == OFF) {
+            return null;
+        } else {
+            TracingProfileType profile;
+            switch (predefinedTestMethodTracing) {
+                case MODEL_LOGGING: profile = createModelLoggingTracingProfile(); break;
+                case MODEL_WORKFLOW_LOGGING: profile = createModelAndWorkflowLoggingTracingProfile(); break;
+                case MODEL_PROVISIONING_LOGGING: profile = createModelAndProvisioningLoggingTracingProfile(); break;
+                default: throw new AssertionError(predefinedTestMethodTracing.toString());
+            }
+            return profile
+                    .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
+        }
     }
 
-    // To be enabled only for specific test classes (until agreed in devel team).
-    // TEMPORARY
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    /**
+     * @return Whether automatic task and operation result management is enabled.
+     *
+     * Please either override this method or set autoTaskManagementEnabled to true.
+     *
+     * This method is a temporary solution until all test methods will use this automatic task/result management.
+     */
     protected boolean isAutoTaskManagementEnabled() {
-        return false;
+        return autoTaskManagementEnabled;
+    }
+
+    public void setAutoTaskManagementEnabled(boolean autoTaskManagementEnabled) {
+        this.autoTaskManagementEnabled = autoTaskManagementEnabled;
+    }
+
+    public PredefinedTestMethodTracing getPredefinedTestMethodTracing() {
+        return predefinedTestMethodTracing;
+    }
+
+    public void setPredefinedTestMethodTracing(PredefinedTestMethodTracing predefinedTestMethodTracing) {
+        this.predefinedTestMethodTracing = predefinedTestMethodTracing;
     }
 
     /**
@@ -313,21 +355,53 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         return (Task) attrs.getAttribute(ATTR_TASK);
     }
 
-    protected Task getTask() {
+    protected String getTestNameShort() {
         MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
         if (ctx != null) {
-            return ctx.getTask();
+            return ctx.getMethodName();
         } else {
-            return createAdHocTestContext().getTask();
+            return createAdHocTestContext(UNKNOWN_METHOD).getMethodName();
         }
     }
 
-    protected Task getOrCreateTask(String methodName) {
+    /**
+     * Retrieves the task from thread-local test method context; creating the ad-hoc context if it does not exist.
+     *
+     * We expect this method to be called on startup of auto-task-managed test methods, therefore "getTask" is more suitable
+     * name that "getOrCreateTestTask".
+     */
+    protected Task getTask() {
+        return getOrCreateTestTask(UNKNOWN_METHOD);
+    }
+
+    /**
+     * Retrieves the task from thread-local test method context; creating the appropriately named ad-hoc context
+     * if it does not exist.
+     *
+     * We expect this method to be called from places where we really don't know if the context exists or not. Hence its name.
+     */
+    protected Task getOrCreateTestTask(String methodName) {
         MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
         if (ctx != null) {
             return ctx.getTask();
         } else {
-            return taskManager.createTaskInstance(this.getClass().getName() + "." + methodName);
+            return createAdHocTestContext(methodName).getTask();
+        }
+    }
+
+    /**
+     * Retrieves the task from thread-local test method context; creating the task (but NOT the context) if it does not exist.
+     *
+     * The difference to getTask/getOrCreateTestTask is that we use taskManager.createTaskInstance instead of test-specific
+     * createTask method. So the task created is a simple, plain one -- without all the be bells and whistles provided
+     * by createTask method.
+     */
+    protected Task getOrCreateSimpleTask(String operationName) {
+        MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
+        if (ctx != null) {
+            return ctx.getTask();
+        } else {
+            return taskManager.createTaskInstance(this.getClass().getName() + "." + operationName);
         }
     }
 
@@ -348,16 +422,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         if (ctx != null) {
             return ctx.getResult();
         } else {
-            return createAdHocTestContext().getResult();
+            return createAdHocTestContext(UNKNOWN_METHOD).getResult();
         }
     }
 
     @NotNull
-    private MidpointTestMethodContext createAdHocTestContext() {
+    private MidpointTestMethodContext createAdHocTestContext(String methodName) {
         LOGGER.warn("No test context for current thread: creating new");
         System.out.println("No test context for current thread: creating new");
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + ".unknownMethod");
-        return MidpointTestMethodContext.setup(task, task.getResult());
+        Task task = createTask(methodName);
+        return MidpointTestMethodContext.setup(methodName, task, task.getResult());
     }
 
     abstract public void initSystem(Task initTask, OperationResult initResult) throws Exception;
@@ -1769,12 +1843,20 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         TestUtil.displayTestTitle(this, testName);
     }
 
+    protected void displayWhen() {
+        displayWhen(getTestNameShort());
+    }
+
     protected void displayWhen(String testName) {
         TestUtil.displayWhen(testName);
     }
 
     protected void displayWhen(String testName, String stage) {
         TestUtil.displayWhen(testName + " ("+stage+")");
+    }
+
+    protected void displayThen() {
+        displayThen(getTestNameShort());
     }
 
     protected void displayThen(String testName) {
@@ -2014,6 +2096,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
                 .collectLogEntries(true)
                 .beginTracingTypeProfile()
                     .level(TracingLevelType.NORMAL)
+                .<TracingProfileType>end()
+                .fileNamePattern(DEFAULT_TRACING_FILENAME_PATTERN);
+    }
+
+    protected TracingProfileType createPerformanceTracingProfile() {
+        return new TracingProfileType()
+                .beginTracingTypeProfile()
+                    .level(TracingLevelType.MINIMAL)
                 .<TracingProfileType>end()
                 .fileNamePattern(DEFAULT_TRACING_FILENAME_PATTERN);
     }
@@ -2862,6 +2952,18 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 
     protected void setGlobalTracingOverride(@NotNull TracingProfileType profile) {
+        List<TracingRootType> roots = Arrays.asList(
+                TracingRootType.CLOCKWORK_RUN,
+                TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING,
+                TracingRootType.ASYNCHRONOUS_MESSAGE_PROCESSING,
+                TracingRootType.LIVE_SYNC_CHANGE_PROCESSING,
+                TracingRootType.WORKFLOW_OPERATION
+                // RETRIEVED_RESOURCE_OBJECT_PROCESSING is invoked too frequently to be universally enabled
+        );
+        taskManager.setGlobalTracingOverride(roots, profile);
+    }
+
+    protected void setGlobalTracingOverrideAll(@NotNull TracingProfileType profile) {
         taskManager.setGlobalTracingOverride(Arrays.asList(TracingRootType.values()), profile);
     }
 

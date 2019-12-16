@@ -15,9 +15,9 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 /**
  * Created by honchar
  */
-public class ObjectBrowserModalTable<T> extends Table<ObjectBrowserModal<T>>{
+public class ObjectBrowserModalTable<T, M extends ModalBox<T>> extends Table<M>{
 
-    public ObjectBrowserModalTable(ObjectBrowserModal<T> parent, SelenideElement parentElement){
+    public ObjectBrowserModalTable(M parent, SelenideElement parentElement){
         super(parent, parentElement);
     }
 

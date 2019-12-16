@@ -97,6 +97,8 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     protected static final String USER_HERMAN_FILE_NAME = "user-herman";
     private static final String IMPORT_REF_FILE_NAME = "import-ref";
     private static final String BAD_IMPORT_FILE_NAME = "import-bad";
+    private static final String ROLE_ONE_LEGACY_FILE_NAME = "role-one-legacy";
+    private static final String ROLE_ONE_LEGACY_OID = "0d70504c-d094-11e8-b0cc-675c492577e7";
 
     private DummyResource dummyResource;
     private DummyResourceContoller dummyResourceCtl;
@@ -149,14 +151,14 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
      */
     @Test
     public void test000Integrity() {
-        TestUtil.displayTestTitle(this,"test000Integrity");
+        displayTestTitle("test000Integrity");
         assertNotNull(modelService);
         assertNotNull(repositoryService);
     }
 
     @Test
     public void test001ImportConnector() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
-        TestUtil.displayTestTitle(this,"test001ImportConnector");
+        displayTestTitle("test001ImportConnector");
         // GIVEN
         Task task = taskManager.createTaskInstance();
         OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "test001ImportConnector");
@@ -196,7 +198,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
     @Test
     public void test003ImportUsers() throws Exception {
-        TestUtil.displayTestTitle(this,"test003ImportUsers");
+        displayTestTitle("test003ImportUsers");
         // GIVEN
         Task task = taskManager.createTaskInstance();
         OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "test003ImportUsers");
@@ -257,7 +259,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     // Import the same thing again. Watch how it burns :-)
     @Test
     public void test004DuplicateImportUsers() throws Exception {
-        TestUtil.displayTestTitle(this,"test004DuplicateImportUsers");
+        displayTestTitle("test004DuplicateImportUsers");
         // GIVEN
         Task task = taskManager.createTaskInstance();
         OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "test004DuplicateImportUsers");
@@ -290,7 +292,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     // Import the same thing again, this time with overwrite option. This should go well.
     @Test
     public void test005ImportUsersWithOverwrite() throws Exception {
-        TestUtil.displayTestTitle(this,"test005ImportUsersWithOverwrite");
+        displayTestTitle("test005ImportUsersWithOverwrite");
         // GIVEN
         Task task = taskManager.createTaskInstance();
         OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "test005ImportUsersWithOverwrite");
@@ -354,7 +356,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     // Import the same thing again, with overwrite and also while keeping OIDs
     @Test
     public void test006ImportUsersWithOverwriteKeepOid() throws Exception {
-        TestUtil.displayTestTitle(this,"test006ImportUsersWithOverwriteKeepOid");
+        displayTestTitle("test006ImportUsersWithOverwriteKeepOid");
         // GIVEN
         Task task = taskManager.createTaskInstance();
         OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "test005ImportUsersWithOverwrite");
@@ -416,7 +418,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     @Test
     public void test020ImportTask() throws Exception {
         final String TEST_NAME = "test020ImportTask";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle( TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractImportTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -461,7 +463,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     @Test
     public void test030ImportResource() throws Exception {
         final String TEST_NAME = "test030ImportResource";
-        TestUtil.displayTestTitle(this,TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractImportTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -512,7 +514,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     @Test
     public void test031ReimportResource() throws Exception {
         final String TEST_NAME = "test031ReimportResource";
-        TestUtil.displayTestTitle(this,TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractImportTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -567,7 +569,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     @Test
     public void test032ImportResourceOidAndFilter() throws Exception {
         final String TEST_NAME = "test032ImportResourceOidAndFilter";
-        TestUtil.displayTestTitle(this,TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractImportTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -621,7 +623,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     @Test
     public void test033ImportResourceDummyRuntime() throws Exception {
         final String TEST_NAME = "test033ImportResourceDummyRuntime";
-        TestUtil.displayTestTitle(this,TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractImportTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -660,7 +662,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     @Test
     public void test040ImportUserHermanNoEncryption() throws Exception {
         final String TEST_NAME = "test040ImportUserHermanNoEncryption";
-        TestUtil.displayTestTitle(this,TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
 
         InternalsConfig.readEncryptionChecks = false;
@@ -707,7 +709,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     @Test
     public void test050ImportUserHermanOverwriteFullProcessing() throws Exception {
         final String TEST_NAME = "test050ImportUserHermanOverwriteFullProcessing";
-        TestUtil.displayTestTitle(this,TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = taskManager.createTaskInstance();
@@ -752,7 +754,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     @Test
     public void test060ImportConstrainedWrongFullProcessing() throws Exception {
         final String TEST_NAME = "test060ImportConstrainedWrongFullProcessing";
-        TestUtil.displayTestTitle(this,TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = taskManager.createTaskInstance();
@@ -790,7 +792,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     @Test
     public void test070ImportConstrainedWrong() throws Exception {
         final String TEST_NAME = "test070ImportConstrainedWrong";
-        TestUtil.displayTestTitle(this,TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = taskManager.createTaskInstance();
@@ -826,7 +828,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     @Test
     public void test100GoodRefImport() throws Exception {
         final String TEST_NAME = "test100GoodRefImport";
-        TestUtil.displayTestTitle(this,TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance();
         OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." +TEST_NAME);
@@ -857,11 +859,12 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     }
 
     @Test
-    public void test200BadImport() throws FileNotFoundException, SchemaException, ObjectNotFoundException {
-        TestUtil.displayTestTitle(this,"test200BadImport");
+    public void test200BadImport() throws Exception {
+        final String TEST_NAME = "test200BadImport";
+        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "test001GoodImport");
+        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." + TEST_NAME);
         FileInputStream stream = new FileInputStream(getFile(BAD_IMPORT_FILE_NAME, false));
 
         repositoryService.deleteObject(UserType.class, USER_JACK_OID, result);
@@ -881,13 +884,60 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
             AssertJUnit.fail("Jack was not imported");
         }
 
-        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, null, null, result);
-
-        AssertJUnit.assertNotNull(users);
-        AssertJUnit.assertEquals("Search returned unexpected results: "+users, 8, users.size());
-
+        assertUsers(8);
     }
 
+    /**
+     * Role ONE has elements that has been removed. Import with default options should fail.
+     */
+    @Test
+    public void test210ImportRoleOneLegacyDefault() throws Exception {
+        final String TEST_NAME = "test210ImportRoleOneLegacyDefault";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = taskManager.createTaskInstance();
+        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." + TEST_NAME);
+        FileInputStream stream = new FileInputStream(getFile(ROLE_ONE_LEGACY_FILE_NAME, false));
+
+        // WHEN
+        modelService.importObjectsFromStream(stream, getLanguage(), getDefaultImportOptions(), task, result);
+
+        // THEN
+        result.computeStatus("Failed import.");
+        display("Result after bad import", result);
+        assertFailure(result);
+
+        assertNoObject(RoleType.class, ROLE_ONE_LEGACY_OID);
+
+        assertUsers(8);
+    }
+
+    /**
+     * Role ONE has elements that has been removed. Import with "compat" option should succeed.
+     */
+    @Test
+    public void test212ImportRoleOneLegacyCompat() throws Exception {
+        final String TEST_NAME = "test212ImportRoleOneLegacyCompat";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = taskManager.createTaskInstance();
+        OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." + TEST_NAME);
+        FileInputStream stream = new FileInputStream(getFile(ROLE_ONE_LEGACY_FILE_NAME, false));
+        ImportOptionsType options = getDefaultImportOptions();
+        options.setCompatMode(true);
+
+        // WHEN
+        modelService.importObjectsFromStream(stream, getLanguage(), options, task, result);
+
+        // THEN
+        result.computeStatus("Failed import.");
+        display("Result after import", result);
+        assertSuccess(result);
+
+        assertRoleAfter(ROLE_ONE_LEGACY_OID);
+
+        assertUsers(8);
+    }
 
     private void assertDummyResource(PrismObject<ResourceType> resource, boolean fromRepo) {
         PrismContainer<Containerable> configurationPropertiesContainer = assertResource(resource, "Dummy Resource", RESOURCE_DUMMY_NAMESPACE,

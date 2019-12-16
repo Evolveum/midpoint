@@ -125,7 +125,8 @@ public class PageBulkAction extends PageAdminConfiguration {
                         getScriptingService().evaluateExpressionInBackground((ScriptingExpressionType) parsed, task, result);
                     }
                     result.recordStatus(OperationResultStatus.IN_PROGRESS, createStringResource("PageBulkAction.message.startPerformed.inProgress", task.getName()).getString());
-                } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+                } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException
+                        | CommunicationException | ConfigurationException | ClassCastException e) {
                     result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.submit").getString(), e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
                 }
@@ -140,7 +141,8 @@ public class PageBulkAction extends PageAdminConfiguration {
                     result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageBulkAction.message.startPerformed.success", executionResult.getDataOutput().size()).getString());
                     result.addReturn("console", executionResult.getConsoleOutput());
                     result.addArbitraryObjectCollectionAsReturn("data", executionResult.getDataOutput());
-                } catch (ScriptExecutionException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+                } catch (ScriptExecutionException | SchemaException | SecurityViolationException | ExpressionEvaluationException
+                        | ObjectNotFoundException | CommunicationException | ConfigurationException | ClassCastException e) {
                     result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.execute").getString(), e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute bulk action", e);
                 }

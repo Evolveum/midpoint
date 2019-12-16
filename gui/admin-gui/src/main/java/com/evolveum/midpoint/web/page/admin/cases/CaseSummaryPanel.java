@@ -42,7 +42,7 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
         ObjectReferenceType parentRef = getModelObject().getParentRef();
         if (parentRef != null && StringUtils.isNotEmpty(parentRef.getOid())) {
             return createStringResource("CaseSummaryPanel.parentCase",
-                    WebComponentUtil.getDisplayNameOrName(getModelObject().getParentRef(), getPageBase(), OPERATION_LOAD_PARENT_CASE_DISPLAY_NAME));
+                    WebComponentUtil.getDisplayNameOrName(getModelObject().getParentRef(), getPageBase(), OPERATION_LOAD_PARENT_CASE_DISPLAY_NAME, true));
         } else {
             return null;
         }

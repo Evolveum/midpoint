@@ -112,6 +112,11 @@ public class ManualResourceTest extends AbstractWfTest {
         return SYSTEM_CONFIGURATION_FILE;
     }
 
+    @Override
+    protected boolean isAutoTaskManagementEnabled() {
+        return true;
+    }
+
     private PrismObject<UserType> createUserWill() throws SchemaException {
         PrismObject<UserType> user = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class).instantiate();
         user.asObjectable()
@@ -126,10 +131,7 @@ public class ManualResourceTest extends AbstractWfTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(ManualResourceTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = getResult();
 
         ResourceType repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_MANUAL_OID,
                 null, result).asObjectable();
@@ -153,40 +155,34 @@ public class ManualResourceTest extends AbstractWfTest {
 
     @Test
     public void test012TestConnection() throws Exception {
-        final String TEST_NAME = "test012TestConnection";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTask();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         OperationResult testResult = modelService.testResource(RESOURCE_MANUAL_OID, task);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         display("Test result", testResult);
         TestUtil.assertSuccess("Test resource failed (result)", testResult);
     }
 
     @Test
     public void test100AssignWillRoleOne() throws Exception {
-        final String TEST_NAME = "test100AssignWillRoleOne";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         assignRole(userWillOid, ROLE_ONE_MANUAL_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -205,17 +201,15 @@ public class ManualResourceTest extends AbstractWfTest {
      */
     @Test
     public void test110CloseCaseAndRecomputeWill() throws Exception {
-        final String TEST_NAME = "test110CloseCaseAndRecomputeWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
 
         CaseType caseBefore = getCase(willLastCaseOid);
         display("Case before work item completion", caseBefore);
@@ -242,7 +236,7 @@ public class ManualResourceTest extends AbstractWfTest {
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         assertSuccess(result);
 
         CaseType caseAfter = getCase(willLastCaseOid);

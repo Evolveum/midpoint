@@ -32,4 +32,22 @@ public class CasePage extends AssignmentHolderDetailsPage {
 
         return new AssignmentsTab<CasePage>(this, element);
     }
+
+    public ChildrenCasesTab selectTabChildren(){
+        SelenideElement element = findTabPanel().clickTab("PageCase.childCasesTab");
+
+        return new ChildrenCasesTab(this, element);
+    }
+
+    public OperationRequestTab selectTabOperationRequest(){
+        SelenideElement element = findTabPanel().clickTab("PageCase.operationRequestTab");
+
+        return new OperationRequestTab(this, element);
+    }
+
+    public WorkitemsTab selectTabWorkitems(){
+        SelenideElement element = findTabPanel().clickTab("PageCase.workitemsTab");
+
+        return new WorkitemsTab(this, element);
+    }
 }

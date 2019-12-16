@@ -62,8 +62,6 @@ public class GcpExpressionHelper {
 
         ExpressionVariables variables = new ExpressionVariables();
         variables.put(ExpressionConstants.VAR_MODEL_CONTEXT, context, ModelContext.class);
-        // This should perhaps be modelContext and not just context
-        variables.put(ExpressionConstants.VAR_CONTEXT, context, ModelContext.class);
 
         boolean start;
         try {

@@ -290,10 +290,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
                     request = requestQueue.poll(WORKER_THREAD_WAIT_FOR_REQUEST, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException e) {
                     LOGGER.trace("Interrupted when waiting for next request", e);
-                    workerTask.refreshLowLevelStatistics();
                     return;
+                } finally {
+                    workerTask.refreshLowLevelStatistics();
                 }
-                workerTask.refreshLowLevelStatistics();
                 if (request != null) {
                     processRequest(request, workerTask, workerSpecificResult);
                 } else {
@@ -422,7 +422,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
                 TracingAppender.terminateCollecting();  // todo reconsider
                 LevelOverrideTurboFilter.cancelLoggingOverride();   // todo reconsider
             }
-            if (result.isSuccess()) {
+            if (result.isSuccess() && !tracingRequested && !result.isTraced()) {
                 // FIXME: hack. Hardcoded ugly summarization of successes. something like
                 //   AbstractSummarizingResultHandler [lazyman]
                 result.getSubresults().clear();

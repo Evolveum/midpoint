@@ -14,5 +14,4 @@
             <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
         </construction>
     </inducement>
-    <approverRef oid="f65963e3-9d47-4b18-aaf3-bfc98bdfa000" type="c:UserType"/>
 </role>

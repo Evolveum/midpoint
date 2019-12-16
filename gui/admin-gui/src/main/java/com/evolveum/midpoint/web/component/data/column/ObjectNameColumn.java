@@ -60,7 +60,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
                     OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
                     return cellItem.getString(props.getStatusLabelKey());
                 } else {
-                    String name = WebComponentUtil.getName(value);
+                    String name = WebComponentUtil.getName(value, true);
                     if (selectableBean.getResult() != null){
                         StringBuilder complexName = new StringBuilder();
                         complexName.append(name);
@@ -111,7 +111,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
     public IModel<String> getDataModel(IModel<SelectableBean<O>> rowModel) {
         SelectableBean<O> selectableBean = rowModel.getObject();
         O value = selectableBean.getValue();
-        return Model.of(value == null ? "" : WebComponentUtil.getName(value));
+        return Model.of(value == null ? "" : WebComponentUtil.getName(value, true));
     }
 
 }

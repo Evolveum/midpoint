@@ -38,7 +38,6 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
@@ -148,19 +147,29 @@ public class TestJaxbParsing {
     @Test
     public void testParseLegacyRoleFromJaxb() throws SchemaException, SAXException, IOException, JAXBException {
         System.out.println("\n\n ===[ testParseLegacyRoleFromJaxb ]===\n");
-        testParseRoleFromJaxb(new File(TestConstants.COMMON_DIR, "role-legacy.xml"));
+
+        PrismParser parser = PrismTestUtil.getPrismContext()
+                .parserFor(new File(TestConstants.COMMON_DIR, "role-legacy.xml"))
+                .compat();
+
+        // WHEN
+        PrismObject<RoleType> role = parser.parse();
+
+        // THEN
+        System.out.println("Parsed role:");
+        System.out.println(role.debugDump(1));
+
+        role.checkConsistence();
+        assertPropertyValue(role, RoleType.F_NAME, PrismTestUtil.createPolyString("r3"));
     }
 
     public void testParseRoleFromJaxb(File file) throws SchemaException, SAXException, IOException, JAXBException {
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
-
-        RoleType roleType = PrismTestUtil.parseObjectable(file, RoleType.class);
+        PrismParser parser = PrismTestUtil.getPrismContext().parserFor(file);
 
         // WHEN
-
-        PrismObject<RoleType> role = roleType.asPrismObject();
-        role.revive(prismContext);
+        PrismObject<RoleType> role = parser.parse();
 
         // THEN
         System.out.println("Parsed role:");

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -80,7 +81,8 @@ public class ReferencePopupPanel extends SearchPopupPanel<ObjectReferenceType> {
         if (getModelObject().getValue() != null && getModelObject().getValue().getRelation() == null){
             getModelObject().getValue().setRelation(PrismConstants.Q_ANY);
         }
-        List<QName> allowedRelations = getAllowedRelations();
+        List<QName> allowedRelations = new ArrayList<QName>();
+        allowedRelations.addAll(getAllowedRelations());
         if (!allowedRelations.contains(PrismConstants.Q_ANY)) {
             allowedRelations.add(0, PrismConstants.Q_ANY);
         }

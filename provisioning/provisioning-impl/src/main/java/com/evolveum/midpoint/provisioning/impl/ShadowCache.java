@@ -137,16 +137,17 @@ public class ShadowCache {
     }
 
     public PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repositoryShadow,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-                    throws ObjectNotFoundException, CommunicationException, SchemaException,
-                    ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+            Collection<ResourceAttribute<?>> identifiersOverride, Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, CommunicationException, SchemaException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
 
         Validate.notNull(oid, "Object id must not be null.");
 
         if (repositoryShadow == null) {
-            LOGGER.trace("Start getting object with oid {}", oid);
+            LOGGER.trace("Start getting object with oid {}; identifiers override = {}", oid, identifiersOverride);
         } else {
-            LOGGER.trace("Start getting object {}", repositoryShadow);
+            LOGGER.trace("Start getting object {}; identifiers override = {}", repositoryShadow, identifiersOverride);
         }
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
@@ -170,13 +171,8 @@ public class ShadowCache {
 
         ProvisioningContext ctx = ctxFactory.create(repositoryShadow, task, parentResult);
         ctx.setGetOperationOptions(options);
-        try {
-            ctx.assertDefinition();
-            shadowCaretaker.applyAttributesDefinition(ctx, repositoryShadow);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException
-                | ConfigurationException | ExpressionEvaluationException e) {
-            throw e;
-        }
+        ctx.assertDefinition();
+        shadowCaretaker.applyAttributesDefinition(ctx, repositoryShadow);
 
         ResourceType resource = ctx.getResource();
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
@@ -220,44 +216,48 @@ public class ShadowCache {
             return resultShadow;
         }
 
-        PrismObject<ShadowType> resourceShadow = null;
+        PrismObject<ShadowType> resourceObject;
 
-        Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repositoryShadow);
-        if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
-            if (ProvisioningUtil.hasPendingAddOperation(repositoryShadow) || ShadowUtil.isDead(repositoryShadow.asObjectable())) {
-                if (ProvisioningUtil.isFuturePointInTime(options)) {
-                    // Get of uncreated or dead shadow, we want to see future state (how the shadow WILL look like).
-                    // We cannot even try fetch operation here. We do not have the identifiers.
-                    // But we have quite a good idea how the shadow is going to look like. Therefore we can return it.
-                    PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, null, options, now);
-                    shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
-                    validateShadow(resultShadow, true);
-                    // NOTE: do NOT re-try add operation here. It will be retried in separate task.
-                    // re-trying the operation here would not provide big benefits and it will complicate the code.
-                    return resultShadow;
-                } else {
-                    // Get of uncreated shadow, but we want current state. Therefore we have to throw an error because
-                    // the object does not exist yet - to our best knowledge. But we cannot really throw ObjectNotFound here.
-                    // ObjectNotFound is a positive indication that the object does not exist.
-                    // We do not know that for sure because resource is unavailable. The object might have been created in the meantime.
-                    throw new GenericConnectorException(
-                            "Unable to get object from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+        if (identifiersOverride == null) {
+            Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repositoryShadow);
+            if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
+                if (ProvisioningUtil.hasPendingAddOperation(repositoryShadow) || ShadowUtil
+                        .isDead(repositoryShadow.asObjectable())) {
+                    if (ProvisioningUtil.isFuturePointInTime(options)) {
+                        // Get of uncreated or dead shadow, we want to see future state (how the shadow WILL look like).
+                        // We cannot even try fetch operation here. We do not have the identifiers.
+                        // But we have quite a good idea how the shadow is going to look like. Therefore we can return it.
+                        PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, null, options, now);
+                        shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
+                        validateShadow(resultShadow, true);
+                        // NOTE: do NOT re-try add operation here. It will be retried in separate task.
+                        // re-trying the operation here would not provide big benefits and it will complicate the code.
+                        return resultShadow;
+                    } else {
+                        // Get of uncreated shadow, but we want current state. Therefore we have to throw an error because
+                        // the object does not exist yet - to our best knowledge. But we cannot really throw ObjectNotFound here.
+                        // ObjectNotFound is a positive indication that the object does not exist.
+                        // We do not know that for sure because resource is unavailable. The object might have been created in the meantime.
+                        throw new GenericConnectorException(
+                                "Unable to get object from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+                    }
                 }
-            }
 
-            // No identifiers found
-            SchemaException ex = new SchemaException("No primary identifiers found in the repository shadow "
-                    + repositoryShadow + " with respect to " + resource);
-            parentResult.recordFatalError("No primary identifiers found in the repository shadow " + repositoryShadow, ex);
-            throw ex;
+                // No identifiers found
+                SchemaException ex = new SchemaException("No primary identifiers found in the repository shadow "
+                        + repositoryShadow + " with respect to " + resource);
+                parentResult.recordFatalError("No primary identifiers found in the repository shadow " + repositoryShadow, ex);
+                throw ex;
+            }
         }
 
-        Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repositoryShadow);
+        Collection<? extends ResourceAttribute<?>> identifiers = identifiersOverride != null ? identifiersOverride :
+                ShadowUtil.getAllIdentifiers(repositoryShadow);
         try {
 
             try {
 
-                resourceShadow = resourceObjectConverter.getResourceObject(ctx, identifiers, true, parentResult);
+                resourceObject = resourceObjectConverter.getResourceObject(ctx, identifiers, true, parentResult);
 
             } catch (ObjectNotFoundException e) {
                 // This may be OK, e.g. for connectors that have running async add operation.
@@ -280,30 +280,30 @@ public class ShadowCache {
                 }
             }
 
-            LOGGER.trace("Shadow returned by ResourceObjectConverter:\n{}", resourceShadow.debugDumpLazily(1));
+            LOGGER.trace("Shadow returned by ResourceObjectConverter:\n{}", resourceObject.debugDumpLazily(1));
 
             // Resource shadow may have different auxiliary object classes than
             // the original repo shadow. Make sure we have the definition that
             // applies to resource shadow. We will fix repo shadow later.
             // BUT we need also information about kind/intent and these information is only
             // in repo shadow, therefore the following 2 lines..
-            resourceShadow.asObjectable().setKind(repositoryShadow.asObjectable().getKind());
-            resourceShadow.asObjectable().setIntent(repositoryShadow.asObjectable().getIntent());
-            ProvisioningContext shadowCtx = ctx.spawn(resourceShadow);
+            resourceObject.asObjectable().setKind(repositoryShadow.asObjectable().getKind());
+            resourceObject.asObjectable().setIntent(repositoryShadow.asObjectable().getIntent());
+            ProvisioningContext shadowCtx = ctx.spawn(resourceObject);
 
             resourceManager.modifyResourceAvailabilityStatus(resource.asPrismObject(), AvailabilityStatusType.UP, parentResult);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.debugDump(1));
-                LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.debugDump(1));
+                LOGGER.trace("Resource object fetched from resource:\n{}", resourceObject.debugDump(1));
             }
 
-            repositoryShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, null, repositoryShadow, shadowState, parentResult);
+            repositoryShadow = shadowManager.updateShadow(shadowCtx, resourceObject, null, repositoryShadow, shadowState, parentResult);
             LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDumpLazily(1));
 
             // Complete the shadow by adding attributes from the resource object
             // This also completes the associations by adding shadowRefs
-            PrismObject<ShadowType> assembledShadow = completeShadow(shadowCtx, resourceShadow, repositoryShadow, false, parentResult);
+            PrismObject<ShadowType> assembledShadow = completeShadow(shadowCtx, resourceObject, repositoryShadow, false, parentResult);
             LOGGER.trace("Shadow when assembled:\n{}", assembledShadow.debugDumpLazily(1));
 
             PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, assembledShadow, options, now);
@@ -334,13 +334,8 @@ public class ShadowCache {
             }
         } finally {
             // We need to record the fetch down here. Now it is certain that we
-            // are going to fetch from resource
-            // (we do not have raw/noFetch option)
-            // TODO: is this correct behaviour? don't we really want to record
-            // fetch for protected objects?
-            if (!ShadowUtil.isProtected(resourceShadow)) {
-                InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-            }
+            // are going to fetch from resource (we do not have raw/noFetch option)
+            InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         }
     }
 
@@ -2017,26 +2012,25 @@ public class ShadowCache {
 
         ObjectQuery attributeQuery = createAttributeQuery(query);
 
-        ResultHandler<ShadowType> resultHandler = (PrismObject<ShadowType> resourceShadow, OperationResult objResult) -> {
-            LOGGER.trace("Found resource object\n{}", resourceShadow.debugDumpLazily(1));
+        ResultHandler<ShadowType> resultHandler = (PrismObject<ShadowType> resourceObject, OperationResult objResult) -> {
+            LOGGER.trace("Found resource object\n{}", resourceObject.debugDumpLazily(1));
             PrismObject<ShadowType> resultShadow;
                 try {
                     // The shadow does not have any kind or intent at this point.
                     // But at least locate the definition using object classes.
-                    ProvisioningContext estimatedShadowCtx = shadowCaretaker.reapplyDefinitions(ctx, resourceShadow);
+                    ProvisioningContext estimatedShadowCtx = shadowCaretaker.reapplyDefinitions(ctx, resourceObject);
                     // Try to find shadow that corresponds to the resource object.
                     if (readFromRepository) {
                         PrismObject<ShadowType> repoShadow = acquireRepositoryShadow(
-                                estimatedShadowCtx, resourceShadow, true, isDoDiscovery, parentResult);
+                                estimatedShadowCtx, resourceObject, true, isDoDiscovery, objResult);
 
                         // This determines the definitions exactly. How the repo
                         // shadow should have proper kind/intent
                         ProvisioningContext shadowCtx = shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
                         // TODO: shadowState
-                        repoShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, null, repoShadow,
-                                null, parentResult);
+                        repoShadow = shadowManager.updateShadow(shadowCtx, resourceObject, null, repoShadow, null, objResult);
 
-                        resultShadow = completeShadow(shadowCtx, resourceShadow, repoShadow, isDoDiscovery, objResult);
+                        resultShadow = completeShadow(shadowCtx, resourceObject, repoShadow, isDoDiscovery, objResult);
 
                         // TODO do we want also to futurize the shadow like in getObject?
 
@@ -2050,7 +2044,7 @@ public class ShadowCache {
                         }
 
                     } else {
-                        resultShadow = resourceShadow;
+                        resultShadow = resourceObject;
                     }
 
                     validateShadow(resultShadow, readFromRepository);
@@ -2081,15 +2075,6 @@ public class ShadowCache {
                 } catch (RuntimeException | Error e) {
                     objResult.recordFatalError(e);
                     throw e;
-                } finally {
-                    objResult.computeStatus();
-                    objResult.recordSuccessIfUnknown();
-                    // FIXME: hack. Hardcoded ugly summarization of successes. something like
-                    //  AbstractSummarizingResultHandler [lazyman]
-                    if (objResult.isSuccess()) {
-                        objResult.getSubresults().clear();
-                    }
-                    parentResult.summarize();
                 }
 
                 return doContinue;
@@ -2137,19 +2122,17 @@ public class ShadowCache {
                     throws SchemaException, ConfigurationException, ObjectNotFoundException,
                     CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
-        PrismObject<ShadowType> repoShadow = shadowManager.lookupLiveShadowInRepository(ctx, resourceShadow, parentResult);
+        PrismObject<ShadowType> existingRepoShadow = shadowManager.lookupLiveShadowInRepository(ctx, resourceShadow, parentResult);
 
-        if (repoShadow != null) {
+        if (existingRepoShadow != null) {
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Found shadow object in the repository {}", ShadowUtil.shortDumpShadow(repoShadow));
+                LOGGER.trace("Found shadow object in the repository {}", ShadowUtil.shortDumpShadow(existingRepoShadow));
             }
-            return repoShadow;
+            return existingRepoShadow;
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Shadow object (in repo) corresponding to the resource object (on the resource) was not found. "
-                    + "The repo shadow will be created. The resource object:\n{}", resourceShadow);
-        }
+        LOGGER.trace("Shadow object (in repo) corresponding to the resource object (on the resource) was not found. "
+                + "The repo shadow will be created. The resource object:\n{}", resourceShadow);
 
         // TODO: do something about shadows with mathcing secondary identifiers? We do not need to care about these any longer, do we?
         //MID-5844
@@ -2189,9 +2172,10 @@ public class ShadowCache {
         // not exist in the repository we need to create the shadow to align repo state to the
         // reality (resource)
 
+        PrismObject<ShadowType> createdRepoShadow;
         try {
 
-            repoShadow = shadowManager.addDiscoveredRepositoryShadow(ctx, resourceShadow, parentResult);
+            createdRepoShadow = shadowManager.addDiscoveredRepositoryShadow(ctx, resourceShadow, parentResult);
 
         } catch (ObjectAlreadyExistsException e) {
             // Conflict! But we haven't supplied an OID and we have checked for existing shadow before,
@@ -2225,15 +2209,12 @@ public class ShadowCache {
             return conflictingShadow;
         }
 
-        resourceShadow.setOid(repoShadow.getOid());
-        ObjectReferenceType resourceRef = resourceShadow.asObjectable().getResourceRef();
-        if (resourceRef == null) {
-            resourceRef = new ObjectReferenceType();
-            resourceRef.asReferenceValue().setObject(ctx.getResource().asPrismObject());
-            resourceShadow.asObjectable().setResourceRef(resourceRef);
-        } else {
-            resourceRef.asReferenceValue().setObject(ctx.getResource().asPrismObject());
+        resourceShadow.setOid(createdRepoShadow.getOid());
+        ShadowType resourceShadowBean = resourceShadow.asObjectable();
+        if (resourceShadowBean.getResourceRef() == null) {
+            resourceShadowBean.setResourceRef(new ObjectReferenceType());
         }
+        resourceShadowBean.getResourceRef().asReferenceValue().setObject(ctx.getResource().asPrismObject());
 
         if (isDoDiscovery) {
             // We have object for which there was no shadow. Which means that midPoint haven't known about this shadow before.
@@ -2242,17 +2223,17 @@ public class ShadowCache {
             notifyResourceObjectChangeListeners(resourceShadow, ctx.getResource().asPrismObject(), true);
         }
 
+        PrismObject<ShadowType> finalRepoShadow;
         if (unknownIntent) {
             // Intent may have been changed during the notifyChange processing.
             // Re-read the shadow if necessary.
-            repoShadow = shadowManager.fixShadow(ctx, repoShadow, parentResult);
+            finalRepoShadow = shadowManager.fixShadow(ctx, createdRepoShadow, parentResult);
+        } else {
+            finalRepoShadow = createdRepoShadow;
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Final repo shadow (created):\n{}", repoShadow.debugDump(1));
-        }
-
-        return repoShadow;
+        LOGGER.trace("Final repo shadow (created and possibly re-read):\n{}", finalRepoShadow.debugDumpLazily(1));
+        return finalRepoShadow;
     }
 
     private ObjectQuery createAttributeQuery(ObjectQuery query) throws SchemaException {

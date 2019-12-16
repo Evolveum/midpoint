@@ -9,6 +9,7 @@ package com.evolveum.midpoint.report.impl;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -28,7 +29,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -84,8 +84,7 @@ import org.apache.commons.lang.WordUtils;
  */
 public class ReportUtils {
 
-    private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
-    private static final String EXPORT_DIR = MIDPOINT_HOME + "export/";
+    private static final String EXPORT_DIR_NAME = "export/";
 
     private static final Trace LOGGER = TraceManager
             .getTrace(ReportUtils.class);
@@ -191,12 +190,14 @@ public class ReportUtils {
     }
 
     public static String getReportOutputFilePath(ReportType reportType) {
-        File exportFolder = new File(EXPORT_DIR);
-        if (!exportFolder.exists() || !exportFolder.isDirectory()) {
-            exportFolder.mkdir();
+        File exportDir = getExportDir();
+        if (!exportDir.exists() || !exportDir.isDirectory()) {
+            if (!exportDir.mkdir()) {
+                LOGGER.error("Couldn't create export dir {}", exportDir);
+            }
         }
 
-        String output = EXPORT_DIR + reportType.getName().getOrig() + " " + getDateTime();
+        String output = new File(exportDir, reportType.getName().getOrig() + " " + getDateTime()).getPath();
 
         switch (reportType.getExport()) {
             case PDF:
@@ -1054,5 +1055,9 @@ public class ReportUtils {
             }
         }
         return auditParams;
+    }
+
+    private static File getExportDir() {
+        return new File(System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY), EXPORT_DIR_NAME);
     }
 }

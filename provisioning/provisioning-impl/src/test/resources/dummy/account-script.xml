@@ -18,6 +18,8 @@
     <attributes>
         <icfs:name>william</icfs:name>
         <ri:fullname>William Turner</ri:fullname>
+        <ri:weapon>Axe</ri:weapon>
+        <ri:ship>Interceptor</ri:ship>
     </attributes>
     <credentials>
         <password>

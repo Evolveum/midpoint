@@ -225,6 +225,12 @@ public class DummyReferenceImpl implements PrismReference {
         return realReference.addAll(newValues, strategy);
     }
 
+    @Override
+    public boolean addAll(Collection<PrismReferenceValue> newValues, boolean checkUniqueness, EquivalenceStrategy strategy)
+            throws SchemaException {
+        return realReference.addAll(newValues, checkUniqueness, strategy);
+    }
+
     public boolean remove(PrismReferenceValue value) {
         return realReference.remove(value);
     }

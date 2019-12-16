@@ -14,11 +14,11 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.LocalizationMessageSource;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.security.api.*;
@@ -159,12 +159,12 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             //TODO test maybe later?
             @Override
-            public List<UserSessionManagementType> getAllLoggedPrincipals() {
+            public List<UserSessionManagementType> getLocalLoggedInPrincipals() {
                 return null;
             }
 
             @Override
-            public void expirePrincipals(List<String> principalsOid) {
+            public void terminateLocalSessions(TerminateSessionEvent terminateSessionEvent) {
                 //TOTO test it
             }
         };

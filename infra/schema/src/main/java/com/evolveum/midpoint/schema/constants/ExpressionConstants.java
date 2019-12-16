@@ -157,11 +157,8 @@ public class ExpressionConstants {
 
     public static final String VAR_AUDIT_RECORD = "auditRecord";
 
-    // Do we need those?
+    // This one is used in approvals.
     public static final String VAR_OBJECT_DELTA = "objectDelta";
 
-    // Too vague. modelContext or prismConext should be used instead.
-    @Deprecated
-    public static final String VAR_CONTEXT = "context";
-
+    public static final String VAR_RESOURCE_OBJECT_DELTA = "resourceObjectDelta";
 }

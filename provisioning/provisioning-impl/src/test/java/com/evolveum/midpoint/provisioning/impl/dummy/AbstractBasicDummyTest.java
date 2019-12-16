@@ -139,7 +139,11 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         return null;
     }
 
-    protected boolean isAvoidDuplicateValues() {
+    /**
+     * Returns true if the resource needs pre-fetch operation.
+     * E.g. for avoidDuplicateValues or attributeContentRequirement.
+     */
+    protected boolean isPreFetchResource() {
         return false;
     }
 
@@ -377,6 +381,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         dummyResource.assertConnections(1);
         assertDummyConnectorInstances(1);
 
+        assertResourceAfterTest();
+
+    }
+
+    protected void assertResourceAfterTest() {
+        // For use in subclasses
     }
 
     @Test

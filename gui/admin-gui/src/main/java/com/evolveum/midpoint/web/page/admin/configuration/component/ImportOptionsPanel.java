@@ -31,6 +31,7 @@ public class ImportOptionsPanel extends Panel {
     private static final String ID_VALIDATE_DYNAMIC_SCHEMA = "validateDynamicSchema";
     private static final String ID_VALIDATE_STATIC_SCHEMA = "validateStaticSchema";
     private static final String ID_FULL_PROCESSING = "fullProcessing";
+    private static final String ID_COMPAT_MODE = "compatMode";
     private static final String ID_ERRORS = "errors";
 
     private IModel<ImportOptionsType> model;
@@ -58,5 +59,6 @@ public class ImportOptionsPanel extends Panel {
         add(new CheckBox(ID_VALIDATE_STATIC_SCHEMA, new PropertyModel<>(model, "validateStaticSchema")));
         add(new CheckBox(ID_FULL_PROCESSING, fullProcessingModel));
         add(new TextField<Integer>(ID_ERRORS, new PropertyModel<>(model, "stopAfterErrors")));
+        add(new CheckBox(ID_COMPAT_MODE, new PropertyModel<>(model, "compatMode")));
     }
 }

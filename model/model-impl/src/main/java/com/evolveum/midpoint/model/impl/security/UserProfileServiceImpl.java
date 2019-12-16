@@ -9,24 +9,16 @@ package com.evolveum.midpoint.model.impl.security;
 
 import java.util.*;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 
-import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.TerminateSessionEvent;
-import com.evolveum.midpoint.model.impl.ClusterCacheListener;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.repo.api.CacheInvalidationDetails;
-import com.evolveum.midpoint.repo.api.Cacheable;
-import com.evolveum.midpoint.repo.cache.CacheRegistry;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,14 +66,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 
 /**
  * @author lazyman
  * @author semancik
  */
 @Service(value = "userDetailsService")
-public class UserProfileServiceImpl implements UserProfileService, UserDetailsService, UserDetailsContextMapper, MessageSourceAware, Cacheable {
+public class UserProfileServiceImpl implements UserProfileService, UserDetailsService, UserDetailsContextMapper, MessageSourceAware {
 
     private static final Trace LOGGER = TraceManager.getTrace(UserProfileServiceImpl.class);
 
@@ -107,24 +98,11 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     @Autowired(required = false)
     private SessionRegistry sessionRegistry;
 
-    @Autowired
-    private CacheRegistry cacheRegistry;
-
     //optional application.yml property for LDAP authentication, marks LDAP attribute name that correlates with midPoint UserType name
     @Value("${auth.ldap.search.naming-attr:#{null}}")
     private String ldapNamingAttr;
 
     private MessageSourceAccessor messages;
-
-    @PostConstruct
-    public void register() {
-        cacheRegistry.registerCacheableService(this);
-    }
-
-    @PreDestroy
-    public void unregister() {
-        cacheRegistry.unregisterCacheableService(this);
-    }
 
     @Override
     public void setMessageSource(MessageSource messageSource) {
@@ -184,7 +162,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
 
     @Override
-    public List<UserSessionManagementType> getAllLoggedPrincipals() {
+    public List<UserSessionManagementType> getLocalLoggedInPrincipals() {
 
         String currentNodeId = taskManager.getNodeId();
 
@@ -219,8 +197,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
 
     @Override
-    public void expirePrincipals(List<String> principalsOid) {
-        if (sessionRegistry != null) {
+    public void terminateLocalSessions(TerminateSessionEvent terminateSessionEvent) {
+        List<String> principalOids = terminateSessionEvent.getPrincipalOids();
+        if (sessionRegistry != null && CollectionUtils.isNotEmpty(principalOids)) {
             List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
             for (Object principal : loggedInUsers) {
 
@@ -229,7 +208,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
                 }
 
                 MidPointUserProfilePrincipal midPointPrincipal = (MidPointUserProfilePrincipal) principal;
-                if (!principalsOid.contains(midPointPrincipal.getOid())) {
+                if (!principalOids.contains(midPointPrincipal.getOid())) {
                     continue;
                 }
 
@@ -419,34 +398,6 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
             }
         }
         return username; // fallback to typed-in username in case ldap value is missing
-    }
-
-    @Override
-    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
-        if (context == null || !context.isTerminateSession()) {
-            LOGGER.trace("Skipping cache invalidation for user profile service, not terminate session event.");
-            return;
-        }
-
-        CacheInvalidationDetails details = context.getDetails();
-        if (!(details instanceof TerminateSessionEvent)) {
-            LOGGER.trace("Skipping cache invalidation for user profile service, no details provided. Context {}", context);
-            return;
-        }
-
-        TerminateSessionEvent terminateSessionDetails = (TerminateSessionEvent) details;
-        expirePrincipals(terminateSessionDetails.getPrincipalOids());
-
-    }
-
-    @NotNull
-    @Override
-    public Collection<SingleCacheStateInformationType> getStateInformation() {
-
-        SingleCacheStateInformationType info = new SingleCacheStateInformationType();
-        info.setName("SessionRegistry");
-        return Arrays.asList(info);
-
     }
 }
 

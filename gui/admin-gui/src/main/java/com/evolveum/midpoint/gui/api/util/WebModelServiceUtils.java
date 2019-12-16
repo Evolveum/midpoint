@@ -32,8 +32,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -67,7 +65,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 /**
@@ -93,16 +91,25 @@ public class WebModelServiceUtils {
     private static final String OPERATION_LOAD_FLOW_POLICY = DOT_CLASS + "loadFlowPolicy";
 
     public static String resolveReferenceName(ObjectReferenceType ref, PageBase page) {
+        return resolveReferenceName(ref, page, false);
+    }
+
+    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, boolean translate) {
         Task task = page.createSimpleTask(WebModelServiceUtils.class.getName() + ".resolveReferenceName");
-        return resolveReferenceName(ref, page, task, task.getResult());
+        return resolveReferenceName(ref, page, task, task.getResult(), translate);
     }
 
     public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result) {
+        return resolveReferenceName(ref, page, task, result, false);
+    }
+
+    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result, boolean translate) {
         if (ref == null) {
             return null;
         }
         if (ref.getTargetName() != null) {
-            return ref.getTargetName().getOrig();
+            return translate ? page.getLocalizationService().translate(ref.getTargetName().toPolyString(), page.getLocale(), true)
+                    : ref.getTargetName().getOrig();
         }
         if (StringUtils.isEmpty(ref.getOid()) || ref.getType() == null){
             return null;
@@ -112,7 +119,7 @@ public class WebModelServiceUtils {
             return ref.getOid();
         } else {
             ref.asReferenceValue().setObject(object);
-            return WebComponentUtil.getName(object);
+            return WebComponentUtil.getName(object, translate);
         }
     }
 

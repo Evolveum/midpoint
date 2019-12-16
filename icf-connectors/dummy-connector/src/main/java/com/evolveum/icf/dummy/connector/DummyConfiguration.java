@@ -6,6 +6,7 @@
  */
 package com.evolveum.icf.dummy.connector;
 
+import com.evolveum.icf.dummy.resource.DummyResource;
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -19,9 +20,6 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
  *
  */
 public class DummyConfiguration extends AbstractConfiguration {
-
-    public static final String UID_MODE_NAME = "name";
-    public static final String UID_MODE_UUID = "uuid";
 
     public static final String PASSWORD_READABILITY_MODE_UNREADABLE = "unreadable";
     public static final String PASSWORD_READABILITY_MODE_INCOMPLETE = "incomplete";
@@ -37,7 +35,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean supportActivation = true;
     private boolean supportValidity = false;
     private boolean supportRunAs = true;
-    private String uidMode =  UID_MODE_NAME;
+    private String uidMode = DummyResource.UID_MODE_NAME;
     private boolean enforceUniqueName = true;
     private String passwordReadabilityMode = PASSWORD_READABILITY_MODE_UNREADABLE;
     private boolean requireExplicitEnable = false;
@@ -65,6 +63,8 @@ public class DummyConfiguration extends AbstractConfiguration {
     private String connectorInstanceNumberAttribute = null;
     private String connectorInstanceNameAttribute = null;
     private boolean impreciseTokenValues = false;
+    private String[] alwaysRequireUpdateOfAttribute = new String[0];
+    private boolean canRead = true;
 
     /**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
@@ -429,13 +429,35 @@ public class DummyConfiguration extends AbstractConfiguration {
     }
 
     /**
+     * Name of attributes that will always need to be part of update operation.
+     * Used for testing attributeContentRequirement in UpdateCapabilityType.
+     */
+    @ConfigurationProperty
+    public String[] getAlwaysRequireUpdateOfAttribute() {
+        return alwaysRequireUpdateOfAttribute;
+    }
+
+    public void setAlwaysRequireUpdateOfAttribute(String[] alwaysRequireUpdateOfAttribute) {
+        this.alwaysRequireUpdateOfAttribute = alwaysRequireUpdateOfAttribute;
+    }
+
+    @ConfigurationProperty
+    public boolean isCanRead() {
+        return canRead;
+    }
+
+    public void setCanRead(boolean canRead) {
+        this.canRead = canRead;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
     public void validate() {
         LOG.info("begin");
 
-        if (uidMode.equals(UID_MODE_NAME) && !enforceUniqueName) {
+        if (isUidBoundToName() && !enforceUniqueName) {
             throw new IllegalArgumentException("Cannot use name UID mode without enforceUniqueName");
         }
 
@@ -447,6 +469,26 @@ public class DummyConfiguration extends AbstractConfiguration {
         LOG.info("end");
     }
 
+    public boolean isUidModeUuid() {
+        return DummyResource.UID_MODE_UUID.equals(uidMode);
+    }
 
+    public boolean isUidModeExternal() {
+        return DummyResource.UID_MODE_EXTERNAL.equals(uidMode);
+    }
+
+    /**
+     * @return true if externally visible UID is separate from NAME attribute
+     */
+    public boolean isUidSeparateFromName() {
+        return isUidModeUuid() || isUidModeExternal();
+    }
+
+    /**
+     * @return true if externally visible UID is bound to NAME
+     */
+    public boolean isUidBoundToName() {
+        return DummyResource.UID_MODE_NAME.equals(uidMode);
+    }
 }
 

@@ -357,7 +357,8 @@ public class SecurityUtil {
     }
 
     public static boolean isAuthenticated() {
-        return getAuthentication() != null;
+        Authentication authentication = getAuthentication();
+        return authentication != null && authentication.isAuthenticated();
     }
 
     public static Authentication getAuthentication() {

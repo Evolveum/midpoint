@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -61,11 +60,16 @@ public class ColumnUtils {
             PropertyColumn<T, String> tableColumn = null;
             if (column.isSortable()) {
                 tableColumn = createPropertyColumn(column.getColumnName(), column.getSortableColumn(),
-                        column.getColumnValue(), column.isMultivalue());
+                        column.getColumnValue(), column.isMultivalue(), column.isTranslated());
 
             } else {
-                tableColumn = new PropertyColumn<>(createStringResource(column.getColumnName()),
-                    column.getColumnValue());
+                if (column.isTranslated()) {
+                    tableColumn = new PolyStringPropertyColumn<>(createStringResource(column.getColumnName()),
+                            column.getColumnValue());
+                } else {
+                    tableColumn = new PropertyColumn<>(createStringResource(column.getColumnName()),
+                            column.getColumnValue());
+                }
             }
             tableColumns.add(tableColumn);
 
@@ -74,8 +78,11 @@ public class ColumnUtils {
     }
 
     private static <T> PropertyColumn<T, String> createPropertyColumn(String name, String sortableProperty,
-            final String expression, final boolean multivalue) {
-
+            final String expression, final boolean multivalue, boolean translated) {
+        if (!multivalue && translated){
+            return new PolyStringPropertyColumn<T>(createStringResource(name), sortableProperty,
+                    expression);
+        }
         return new PropertyColumn<T, String>(createStringResource(name), sortableProperty, expression) {
             private static final long serialVersionUID = 1L;
 
@@ -120,12 +127,12 @@ public class ColumnUtils {
         }
     }
 
-    public static <O extends ObjectType> IColumn<SelectableBeanImpl<O>, String> createIconColumn(PageBase pageBase){
+    public static <O extends ObjectType> IColumn<SelectableBean<O>, String> createIconColumn(PageBase pageBase){
 
-        return new IconColumn<SelectableBeanImpl<O>>(createIconColumnHeaderModel()) {
+        return new IconColumn<SelectableBean<O>>(createIconColumnHeaderModel()) {
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<SelectableBeanImpl<O>> rowModel){
+            protected DisplayType getIconDisplayType(IModel<SelectableBean<O>> rowModel){
                 if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
                     return new DisplayType();
                 }
@@ -141,7 +148,7 @@ public class ColumnUtils {
 
     }
 
-    public static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBeanImpl<T>> rowModel) {
+    public static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBean<T>> rowModel) {
         if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
             return "";
         }
@@ -185,7 +192,7 @@ public class ColumnUtils {
         return "";
     }
 
-    private static <T extends ObjectType> IModel<String> getIconColumnDataModel(IModel<SelectableBeanImpl<T>> rowModel){
+    private static <T extends ObjectType> IModel<String> getIconColumnDataModel(IModel<SelectableBean<T>> rowModel){
         Class<T> type = (Class<T>) rowModel.getObject().getValue().getClass();
         if (ShadowType.class.equals(type)) {
                 T shadow = rowModel.getObject().getValue();
@@ -199,7 +206,7 @@ public class ColumnUtils {
         return Model.of();
     }
 
-    public static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBeanImpl<T>> rowModel){
+    public static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBean<T>> rowModel){
         if (rowModel == null || rowModel.getObject() == null){
             return null;
         }
@@ -257,16 +264,16 @@ public class ColumnUtils {
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("UserType.givenName", UserType.F_GIVEN_NAME.getLocalPart(),
-                        SelectableBeanImpl.F_VALUE + ".givenName.orig", false),
+                        SelectableBean.F_VALUE + ".givenName", false, true),
                 new ColumnTypeDto<String>("UserType.familyName", UserType.F_FAMILY_NAME.getLocalPart(),
-                        SelectableBeanImpl.F_VALUE + ".familyName.orig", false),
+                        SelectableBean.F_VALUE + ".familyName", false, true),
                 new ColumnTypeDto<String>("UserType.fullName", UserType.F_FULL_NAME.getLocalPart(),
-                        SelectableBeanImpl.F_VALUE + ".fullName.orig", false),
+                        SelectableBean.F_VALUE + ".fullName", false, true),
                 new ColumnTypeDto<String>("UserType.emailAddress", UserType.F_EMAIL_ADDRESS.getLocalPart(),
-                        SelectableBeanImpl.F_VALUE + ".emailAddress", false)
+                        SelectableBean.F_VALUE + ".emailAddress", false)
 
         );
-        columns.addAll(ColumnUtils.createColumns(columnsDefs));
+        columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
 
         return columns;
 
@@ -341,8 +348,8 @@ public class ColumnUtils {
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("TaskType.executionStatus", TaskType.F_EXECUTION_STATUS.getLocalPart(),
-                        SelectableBeanImpl.F_VALUE + ".executionStatus", false));
-        columns.addAll(ColumnUtils.createColumns(columnsDefs));
+                        SelectableBean.F_VALUE + ".executionStatus", false));
+        columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
 
         return columns;
 
@@ -391,12 +398,12 @@ public class ColumnUtils {
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("AbstractRoleType.displayName",
                         sortByDisplayName,
-                        SelectableBeanImpl.F_VALUE + ".displayName", false),
+                        SelectableBean.F_VALUE + ".displayName", false, true),
                 new ColumnTypeDto<String>("AbstractRoleType.description",
                         null,
-                        SelectableBeanImpl.F_VALUE + ".description", false),
+                        SelectableBean.F_VALUE + ".description", false),
                 new ColumnTypeDto<String>("AbstractRoleType.identifier", sortByIdentifer,
-                        SelectableBeanImpl.F_VALUE + ".identifier", false)
+                        SelectableBean.F_VALUE + ".identifier", false)
 
         );
         List<IColumn<SelectableBean<T>, String>> columns = createColumns(columnsDefs);
@@ -433,11 +440,11 @@ public class ColumnUtils {
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("AbstractRoleType.description", null,
-                        SelectableBeanImpl.F_VALUE + ".description", false)
+                        SelectableBean.F_VALUE + ".description", false)
 
         );
 
-        columns.addAll(ColumnUtils.createColumns(columnsDefs));
+        columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
 
         return columns;
 
@@ -492,9 +499,9 @@ public class ColumnUtils {
                 String name;
                 AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltyForCase(caseType);
                 if (object == null) {
-                    name = WebModelServiceUtils.resolveReferenceName(caseType.getObjectRef(), pageBase);
+                    name = WebModelServiceUtils.resolveReferenceName(caseType.getObjectRef(), pageBase, true);
                 } else {
-                    name = WebComponentUtil.getEffectiveName(object, AbstractRoleType.F_DISPLAY_NAME);
+                    name = WebComponentUtil.getEffectiveName(object, AbstractRoleType.F_DISPLAY_NAME, true);
                 }
                 return Model.of(name);
             }
@@ -536,7 +543,7 @@ public class ColumnUtils {
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                 CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                return Model.of(WebModelServiceUtils.resolveReferenceName(caseType.getTargetRef(), pageBase));
+                return Model.of(WebModelServiceUtils.resolveReferenceName(caseType.getTargetRef(), pageBase, true));
             }
 
             @Override
@@ -570,9 +577,10 @@ public class ColumnUtils {
                 public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
                                          String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
 
-                    String assignee = WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getAssigneeRef(), false);
+                    String assignee = WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getAssigneeRef(), false, true);
                     cellItem.add(new Label(componentId,
-                            assignee != null ? assignee : WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getCandidateRef(), true)));
+                            assignee != null ? assignee
+                                    : WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getCandidateRef(), true, true)));
                 }
 
                 @Override
@@ -709,15 +717,15 @@ public class ColumnUtils {
             columns.add(column);
         }
 
-        column = new AbstractColumn<SelectableBeanImpl<CaseType>, String>(
+        column = new AbstractColumn<SelectableBean<CaseType>, String>(
                 createStringResource("pageCases.table.openTimestamp"),
                 MetadataType.F_CREATE_TIMESTAMP.getLocalPart()) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<SelectableBeanImpl<CaseType>>> cellItem,
-                                     String componentId, final IModel<SelectableBeanImpl<CaseType>> rowModel) {
+            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
+                                     String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
                 CaseType object = rowModel.getObject().getValue();
                 MetadataType metadata = object != null ? object.getMetadata() : null;
                 XMLGregorianCalendar createdCal = metadata != null ? metadata.getCreateTimestamp() : null;
@@ -745,10 +753,10 @@ public class ColumnUtils {
         columns.add(column);
 
         if (!isDashboard) {
-            column = new PropertyColumn<SelectableBeanImpl<CaseType>, String>(createStringResource("pageCases.table.closeTimestamp"), CaseType.F_CLOSE_TIMESTAMP.getLocalPart(), "value.closeTimestamp") {
+            column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.closeTimestamp"), CaseType.F_CLOSE_TIMESTAMP.getLocalPart(), "value.closeTimestamp") {
                 @Override
-                public void populateItem(Item<ICellPopulator<SelectableBeanImpl<CaseType>>> cellItem,
-                                         String componentId, final IModel<SelectableBeanImpl<CaseType>> rowModel) {
+                public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
+                                         String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
                     CaseType object = rowModel.getObject().getValue();
                     XMLGregorianCalendar closedCal = object != null ? object.getCloseTimestamp() : null;
                     final Date closed;
@@ -775,7 +783,7 @@ public class ColumnUtils {
             columns.add(column);
         }
 
-        column = new PropertyColumn<SelectableBeanImpl<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state"){
+        column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state"){
             @Override
             public String getCssClass() {
                 return isDashboard ? "col-md-1 col-sm-2" : super.getCssClass();

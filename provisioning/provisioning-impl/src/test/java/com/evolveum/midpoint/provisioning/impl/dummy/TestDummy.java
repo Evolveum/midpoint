@@ -1276,8 +1276,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         final String TEST_NAME = "test132ModifyScript";
         displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         syncServiceMock.reset();
         dummyResource.purgeScriptHistory();
@@ -1295,9 +1294,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 scriptsType, null, task, result);
 
         // THEN
-        result.computeStatus();
-        display("modifyObject result", result);
-        TestUtil.assertSuccess("modifyObject has failed (result)", result);
+        assertSuccess(result);
         syncServiceMock.assertNotifySuccessOnly();
 
         // Check if the account was modified in the dummy resource
@@ -2621,15 +2618,13 @@ public class TestDummy extends AbstractBasicDummyTest {
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        result.computeStatus();
-        display("modifyObject result", result);
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         delta.checkConsistence();
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
         assertDummyAttributeValues(group, DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Bloodthirsty pirates");
 
-        if (isAvoidDuplicateValues()) {
+        if (isPreFetchResource()) {
             assertDummyResourceGroupMembersReadCountIncrement(null, 1);
         } else {
             assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -2833,7 +2828,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         TestUtil.assertSuccess(result);
 
         delta.checkConsistence();
-        if (isAvoidDuplicateValues()) {
+        if (isPreFetchResource()) {
             assertDummyResourceGroupMembersReadCountIncrement(null, 1);
         } else {
             assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -3334,7 +3329,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     private void assertAccountPiratesDetitled() throws Exception {
-        if (isAvoidDuplicateValues()) {
+        if (isPreFetchResource()) {
             assertDummyResourceGroupMembersReadCountIncrement(null, 1);
         } else {
             assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -3372,7 +3367,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     private void assertAccountPiratesEntitled() throws Exception {
-        if (isAvoidDuplicateValues()) {
+        if (isPreFetchResource()) {
             assertDummyResourceGroupMembersReadCountIncrement(null, 1);
         } else {
             assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -3978,7 +3973,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, values);
     }
 
-    private void assertWillDummyGossipRecord(PlusMinusZero plusminus, String... expectedValues) {
+    protected void assertWillDummyGossipRecord(PlusMinusZero plusminus, String... expectedValues) {
         display("Dummy resource deltas", dummyResource.dumpDeltas());
         List<DummyDelta> dummyDeltas = dummyResource.getDeltas();
         assertFalse("Empty dummy resource deltas", dummyDeltas.isEmpty());

@@ -21,7 +21,7 @@
     <turboFilter class="com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter"/>
 
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="ERROR"/>
-    <logger name="com.evolveum.midpoint" level="TRACE" />
+    <logger name="com.evolveum.midpoint" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl" level="ALL" />
     <logger name="com.evolveum.midpoint.repo" level="DEBUG" />
     <logger name="com.evolveum.midpoint.repo.api.OptimisticLockingRunner" level="TRACE" />
@@ -38,8 +38,8 @@
     <logger name="com.evolveum.icf.dummy.resource" level="TRACE"/>
 
     <!-- too loud: DEBUG -->
-    <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="TRACE" />
-    <logger name="com.evolveum.midpoint.prism.impl.schema" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.prism.impl.schema" level="INFO" />
 
     <!-- WARNING! See also logging.properties. Apache LDAP API logs too much. Therefore it is limited on JUL level. -->
     <logger name="org.apache.directory" level="INFO" />

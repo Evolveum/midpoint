@@ -51,29 +51,33 @@ public class RemoteNodesManager {
     /**
      * Used exclusively for collecting running task information.
      *
-     * @param info A structure to which information should be added
+     * @param clusterInfo A structure to which information should be added
      * @param node Node which to query
      */
-    void addNodeStatusFromRemoteNode(ClusterStatusInformation info, PrismObject<NodeType> node, OperationResult parentResult) {
+    void addNodeStatusFromRemoteNode(ClusterStatusInformation clusterInfo, PrismObject<NodeType> node, OperationResult parentResult) {
+        NodeType nodeBean = node.asObjectable();
         OperationResult result = parentResult.createSubresult(RemoteNodesManager.class.getName() + ".addNodeStatusFromRemoteNode");
-        NodeType nodeInfo = node.asObjectable();
-        result.addParam("node", nodeInfo.getNodeIdentifier());
+        result.addParam("node", nodeBean.getNodeIdentifier());
         try {
-            if (!taskManager.getClusterManager().isUp(nodeInfo)) {
-                nodeInfo.setExecutionStatus(NodeExecutionStatusType.DOWN);
-                info.addNodeInfo(nodeInfo);
+            if (Boolean.FALSE.equals(nodeBean.isRunning())) {
+                nodeBean.setExecutionStatus(NodeExecutionStatusType.DOWN);
+                clusterInfo.addNodeInfo(nodeBean);
                 result.recordStatus(OperationResultStatus.SUCCESS, "Node is down");
-                return;
-            }
-
-            if (taskManager.getConfiguration().isUseJmx()) {
-                jmxConnector.addNodeStatusUsingJmx(info, nodeInfo, result);
+            } else if (!taskManager.getClusterManager().isCheckingIn(nodeBean)) {
+                nodeBean.setExecutionStatus(NodeExecutionStatusType.NOT_CHECKING_IN);
+                clusterInfo.addNodeInfo(nodeBean);
+                result.recordStatus(OperationResultStatus.SUCCESS, "Node is not checking in");
             } else {
-                restConnector.addNodeStatus(info, nodeInfo, result);
+                if (taskManager.getConfiguration().isUseJmx()) {
+                    jmxConnector.addNodeStatusUsingJmx(clusterInfo, nodeBean, result);
+                } else {
+                    restConnector.addNodeStatus(clusterInfo, nodeBean, result);
+                }
             }
-            result.computeStatus();
         } catch (Throwable t) {
             result.recordFatalError("Couldn't get status from remote node", t);
+        } finally {
+            result.computeStatusIfUnknown();
         }
     }
 

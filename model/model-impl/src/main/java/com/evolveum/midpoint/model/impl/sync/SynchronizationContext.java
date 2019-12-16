@@ -10,17 +10,25 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -31,22 +39,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.jetbrains.annotations.Nullable;
 
 public class SynchronizationContext<F extends FocusType> implements DebugDumpable {
 
@@ -54,13 +49,18 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     private PrismObject<ShadowType> applicableShadow;
     private PrismObject<ShadowType> currentShadow;
+
+    /**
+     * Original delta that triggered this synchronization. (If known.)
+     */
+    private ObjectDelta<ShadowType> resourceObjectDelta;
+
     private PrismObject<ResourceType> resource;
     private PrismObject<SystemConfigurationType> systemConfiguration;
     private String channel;
     private ExpressionProfile expressionProfile;
 
     private Task task;
-    private OperationResult result;
 
     private ObjectSynchronizationType objectSynchronization;
     private Class<F> focusClass;
@@ -72,6 +72,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     private String tag;
 
+    private boolean reactionEvaluated = false;
     private SynchronizationReactionType reaction;
 
     private boolean unrelatedChange = false;
@@ -80,23 +81,24 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     private boolean forceIntentChange;
 
     private PrismContext prismContext;
+    private ExpressionFactory expressionFactory;
 
-    public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> currentShadow, PrismObject<ResourceType> resource, String channel, PrismContext prismContext, Task task, OperationResult result) {
+    public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> currentShadow,
+            ObjectDelta<ShadowType> resourceObjectDelta, PrismObject<ResourceType> resource, String channel,
+            PrismContext prismContext, ExpressionFactory expressionFactory, Task task) {
         this.applicableShadow = applicableShadow;
         this.currentShadow = currentShadow;
+        this.resourceObjectDelta = resourceObjectDelta;
         this.resource = resource;
         this.channel = channel;
         this.task = task;
-        this.result = result;
         this.prismContext = prismContext;
+        this.expressionFactory = expressionFactory;
         this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
     }
 
     public boolean isSynchronizationEnabled() {
-        if (objectSynchronization == null) {
-            return false;
-        }
-        return BooleanUtils.isNotFalse(objectSynchronization.isEnabled());
+        return objectSynchronization != null && BooleanUtils.isNotFalse(objectSynchronization.isEnabled());
     }
 
     public boolean isProtected() {
@@ -108,32 +110,32 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return BooleanUtils.isTrue(currentShadowType.isProtectedObject());
     }
 
-    public boolean isSatisfyTaskConstraints() throws SchemaException {
-
-        ShadowKindType kind = getTaskPropertyValue(SchemaConstants.MODEL_EXTENSION_KIND);
-        String intent = getTaskPropertyValue(SchemaConstants.MODEL_EXTENSION_INTENT);
-        QName objectClass = getTaskPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
-
-        LOGGER.trace("checking task constraints: {}", task);
-
-        boolean isApplicable = SynchronizationUtils.isPolicyApplicable(objectClass, kind, intent, objectSynchronization, resource, true);
-        //this mean that kind/intent are null in the task..but this can be a case, so check if at least the objectClass is the same
-        if (!isApplicable && objectClass != null) {
-            return QNameUtil.matchAny(objectClass, objectSynchronization.getObjectClass());
-        }
-
-        return isApplicable;
-    }
-
-    //TODO multi-threaded tasks?
-    private <T> T getTaskPropertyValue(QName propertyName) {
-        PrismProperty<T> prop = task.getExtensionPropertyOrClone(ItemName.fromQName(propertyName));
-        if (prop == null || prop.isEmpty()) {
-            return null;
-        }
-
-        return prop.getRealValue();
-    }
+//    public boolean isSatisfyTaskConstraints() throws SchemaException {
+//
+//        ShadowKindType kind = getTaskPropertyValue(SchemaConstants.MODEL_EXTENSION_KIND);
+//        String intent = getTaskPropertyValue(SchemaConstants.MODEL_EXTENSION_INTENT);
+//        QName objectClass = getTaskPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
+//
+//        LOGGER.trace("checking task constraints: {}", task);
+//
+//        boolean isApplicable = SynchronizationUtils.isPolicyApplicable(objectClass, kind, intent, objectSynchronization, resource, true);
+//        //this mean that kind/intent are null in the task..but this can be a case, so check if at least the objectClass is the same
+//        if (!isApplicable && objectClass != null) {
+//            return QNameUtil.matchAny(objectClass, objectSynchronization.getObjectClass());
+//        }
+//
+//        return isApplicable;
+//    }
+//
+//    //TODO multi-threaded tasks?
+//    private <T> T getTaskPropertyValue(QName propertyName) {
+//        PrismProperty<T> prop = task.getExtensionPropertyOrClone(ItemName.fromQName(propertyName));
+//        if (prop == null || prop.isEmpty()) {
+//            return null;
+//        }
+//
+//        return prop.getRealValue();
+//    }
 
     public ShadowKindType getKind() {
 
@@ -185,36 +187,81 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return objectSynchronization.getObjectTemplateRef();
     }
 
-    public SynchronizationReactionType getReaction() throws ConfigurationException {
-        if (reaction != null) {
+    public SynchronizationReactionType getReaction(OperationResult result)
+            throws ConfigurationException, SchemaException, ObjectNotFoundException, CommunicationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        if (reactionEvaluated) {
             return reaction;
         }
 
         SynchronizationReactionType defaultReaction = null;
-        for (SynchronizationReactionType syncReaction : objectSynchronization.getReaction()) {
-            SynchronizationSituationType reactionSituation = syncReaction.getSituation();
+        for (SynchronizationReactionType reactionToConsider : objectSynchronization.getReaction()) {
+            SynchronizationSituationType reactionSituation = reactionToConsider.getSituation();
             if (reactionSituation == null) {
                 throw new ConfigurationException("No situation defined for a reaction in " + resource);
             }
-            if (reactionSituation.equals(situation)) {
-                if (syncReaction.getChannel().isEmpty()) {
-                    defaultReaction = syncReaction;
-                } else {
-                    if (syncReaction.getChannel().contains("") || syncReaction.getChannel().contains(null)) {
-                        defaultReaction = syncReaction;
+            if (reactionSituation == situation) {
+                List<String> channels = reactionToConsider.getChannel();
+                // The second and third conditions are suspicious but let's keep them here for historical reasons.
+                if (channels.isEmpty() || channels.contains("") || channels.contains(null)) {
+                    if (conditionMatches(reactionToConsider, result)) {
+                        defaultReaction = reactionToConsider;
                     }
-                    if (syncReaction.getChannel().contains(channel)) {
-                        reaction = syncReaction;
+                } else if (channels.contains(this.channel)) {
+                    if (conditionMatches(reactionToConsider, result)) {
+                        reaction = reactionToConsider;
+                        reactionEvaluated = true;
                         return reaction;
-                    } else {
-                        LOGGER.trace("Skipping reaction {} because the channel does not match {}", reaction, channel);
                     }
+                } else {
+                    LOGGER.trace("Skipping reaction {} because the channel does not match {}", reaction, this.channel);
                 }
             }
         }
         LOGGER.trace("Using default reaction {}", defaultReaction);
         reaction = defaultReaction;
+        reactionEvaluated = true;
         return reaction;
+    }
+
+    private boolean conditionMatches(SynchronizationReactionType reaction, OperationResult result) throws SchemaException,
+            ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException {
+        if (reaction.getCondition() != null) {
+            ExpressionType expression = reaction.getCondition();
+            String desc = "condition in synchronization reaction on " + reaction.getSituation()
+                    + (reaction.getName() != null ? " (" + reaction.getName() + ")" : "");
+            ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(getFocus(), applicableShadow, null,
+                    resource, systemConfiguration, null, prismContext);
+            variables.put(ExpressionConstants.VAR_RESOURCE_OBJECT_DELTA, resourceObjectDelta, ObjectDelta.class);
+            try {
+                ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
+                PrismPropertyValue<Boolean> evaluateCondition = ExpressionUtil.evaluateCondition(variables, expression,
+                        expressionProfile, expressionFactory, desc, task, result);
+                boolean value = Boolean.TRUE.equals(evaluateCondition.getValue());
+                if (!value) {
+                    LOGGER.trace("Skipping reaction {} because the condition was evaluated to false", reaction);
+                }
+                return value;
+            } finally {
+                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            }
+        } else {
+            return true;
+        }
+    }
+
+    @Nullable
+    private PrismObject<? extends ObjectType> getFocus() {
+        PrismObject<? extends ObjectType> focus;
+        if (currentOwner != null) {
+            focus = currentOwner.asPrismObject();
+        } else if (correlatedOwner != null) {
+            focus = correlatedOwner.asPrismObject();
+        } else {
+            focus = null;
+        }
+        return focus;
     }
 
     public boolean hasApplicablePolicy() {
@@ -292,6 +339,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
         QName focusTypeQName = objectSynchronization.getFocusType();
         if (focusTypeQName == null) {
+            //noinspection unchecked
             this.focusClass = (Class<F>) UserType.class;
             return focusClass;
         }
@@ -299,6 +347,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         if (objectType == null) {
             throw new SchemaException("Unknown focus type " + focusTypeQName + " in synchronization policy in " + resource);
         }
+        //noinspection unchecked
         this.focusClass = (Class<F>) objectType.getClassDefinition();
         return focusClass;
     }
@@ -346,9 +395,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     public String getChannel() {
         return channel;
     }
-    public void setApplicableShadow(PrismObject<ShadowType> applicableShadow) {
-        this.applicableShadow = applicableShadow;
-    }
     public void setCurrentShadow(PrismObject<ShadowType> currentShadow) {
         this.currentShadow = currentShadow;
     }
@@ -392,14 +438,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     public void setTask(Task task) {
         this.task = task;
-    }
-
-    public OperationResult getResult() {
-        return result;
-    }
-
-    public void setResult(OperationResult result) {
-        this.result = result;
     }
 
     public boolean isShadowExistsInRepo() {

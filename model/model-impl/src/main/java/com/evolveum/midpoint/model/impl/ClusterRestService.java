@@ -10,7 +10,7 @@ import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.model.impl.security.NodeAuthenticationToken;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
@@ -44,9 +44,6 @@ import javax.ws.rs.core.StreamingOutput;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * REST service used for inter-cluster communication.
@@ -82,6 +79,7 @@ public class ClusterRestService {
     @Autowired private SecurityHelper securityHelper;
     @Autowired private TaskManager taskManager;
     @Autowired private MidpointConfiguration midpointConfiguration;
+    @Autowired private UserProfileService userProfileService;
 
     @Autowired private CacheDispatcher cacheDispatcher;
 
@@ -97,7 +95,6 @@ public class ClusterRestService {
     @Path(EVENT_INVALIDATION + "{type}")
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-    @SuppressWarnings("RSReferenceInspection")
     public Response executeClusterCacheInvalidationEvent(@PathParam("type") String type, @Context MessageContext mc) {
         return executeClusterCacheInvalidationEvent(type, null, mc);
     }
@@ -106,7 +103,6 @@ public class ClusterRestService {
     @Path(EVENT_INVALIDATION + "{type}/{oid}")
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-    @SuppressWarnings("RSReferenceInspection")
     public Response executeClusterCacheInvalidationEvent(@PathParam("type") String type, @PathParam("oid") String oid, @Context MessageContext mc) {
         Task task = RestServiceUtil.initRequest(mc);
         OperationResult result = new OperationResult(OPERATION_EXECUTE_CLUSTER_CACHE_INVALIDATION_EVENT);
@@ -133,7 +129,6 @@ public class ClusterRestService {
     @Path(EVENT_TERMINATE_SESSION)
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-    @SuppressWarnings("RSReferenceInspection")
     public Response executeClusterTerminateSessionEvent(TerminateSessionEventType event, @Context MessageContext mc) {
         Task task = RestServiceUtil.initRequest(mc);
         OperationResult result = new OperationResult(OPERATION_EXECUTE_CLUSTER_TERMINATE_SESSION_EVENT);
@@ -142,12 +137,7 @@ public class ClusterRestService {
         try {
             checkNodeAuthentication();
 
-            // clusterwide is false: we got this from another node so we don't need to redistribute it
-            CacheInvalidationContext ctx = new CacheInvalidationContext(true, TerminateSessionEvent.fromEventType(event));
-            ctx.setTerminateSession(true);
-
-            LOGGER.trace("Terminate session event - context created: {}", ctx);
-            cacheDispatcher.dispatchInvalidation(null, null, false, ctx);
+            userProfileService.terminateLocalSessions(TerminateSessionEvent.fromEventType(event));
 
             result.recordSuccess();
             response = RestServiceUtil.createResponse(Status.OK, result);
@@ -169,7 +159,7 @@ public class ClusterRestService {
         Response response;
         try {
             checkNodeAuthentication();
-            List<UserSessionManagementType> principals = modelInteractionService.getLoggedInUsers();
+            List<UserSessionManagementType> principals = userProfileService.getLocalLoggedInPrincipals();
 
             UserSessionManagementListType list = new UserSessionManagementListType();
             list.getSession().addAll(principals);

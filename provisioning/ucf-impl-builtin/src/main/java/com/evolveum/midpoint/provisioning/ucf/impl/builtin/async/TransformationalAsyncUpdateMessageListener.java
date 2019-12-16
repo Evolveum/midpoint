@@ -7,28 +7,23 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateMessageListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateMessageListener;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.ChangeListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.ChangeListener;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -69,19 +64,14 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
     @NotNull private final ChangeListener changeListener;
     @Nullable private final Authentication authentication;
     @NotNull private final AsyncUpdateConnectorInstance connectorInstance;
-    @NotNull private final Tracer tracer;
-    @NotNull private final TaskManager taskManager;
 
     private AtomicInteger messagesSeen = new AtomicInteger(0);
 
     TransformationalAsyncUpdateMessageListener(@NotNull ChangeListener changeListener, @Nullable Authentication authentication,
-            @NotNull AsyncUpdateConnectorInstance connectorInstance, @NotNull Tracer tracer,
-            @NotNull TaskManager taskManager) {
+            @NotNull AsyncUpdateConnectorInstance connectorInstance) {
         this.changeListener = changeListener;
         this.authentication = authentication;
         this.connectorInstance = connectorInstance;
-        this.tracer = tracer;
-        this.taskManager = taskManager;
     }
 
     @Override
@@ -95,11 +85,13 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         try {
             securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
 
-            Task task = taskManager.createTaskInstance(OP_ON_MESSAGE_PREPARATION);
+            Task task = connectorInstance.getTaskManager().createTaskInstance(OP_ON_MESSAGE_PREPARATION);
             task.setChannel(CHANGE_CHANNEL_ASYNC_UPDATE_URI);
             if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {
                 task.setOwner(((MidPointPrincipal) authentication.getPrincipal()).getUser().asPrismObject().clone());
             }
+            Tracer tracer = connectorInstance.getTracer();
+
             OperationResult result = task.getResult();
             OperationResultBuilder resultBuilder = OperationResult.createFor(OP_ON_MESSAGE);
             try {
@@ -148,7 +140,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
                 for (UcfChangeType changeBean : changeBeans) {
                     // intentionally in this order - to process changes even after failure
                     // (if listener wants to fail fast, it can throw an exception)
-                    ok = changeListener.onChange(createChange(changeBean), task, result) && ok;
+                    ok = changeListener.onChange(createChange(changeBean, result), task, result) && ok;
                 }
                 return ok;
             } catch (Throwable t) {
@@ -189,15 +181,12 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         }
     }
 
-    private Change createChange(UcfChangeType changeBean) throws SchemaException {
+    private Change createChange(UcfChangeType changeBean, OperationResult result) throws SchemaException {
         QName objectClassName = changeBean.getObjectClass();
         if (objectClassName == null) {
             throw new SchemaException("Object class name is null in " + changeBean);
         }
-        ResourceSchema resourceSchema = getResourceSchema();
-        if (resourceSchema == null) {
-            throw new SchemaException("No resource schema; have you executed the Test Resource operation?");
-        }
+        ResourceSchema resourceSchema = getResourceSchema(result);
         ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(objectClassName);
         if (objectClassDef == null) {
             throw new SchemaException("Object class " + objectClassName + " not found in " + resourceSchema);
@@ -296,7 +285,28 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         return connectorInstance.getPrismContext();
     }
 
-    private ResourceSchema getResourceSchema() {
-        return connectorInstance.getResourceSchema();
+    private ResourceSchema getResourceSchema(OperationResult result) throws SchemaException {
+        ResourceSchema schemaInConnector = connectorInstance.getResourceSchema();
+        if (schemaInConnector != null) {
+            return schemaInConnector;
+        }
+        LOGGER.warn("No schema defined in connector: {}, will try to fetch one", connectorInstance);
+        String resourceOid = connectorInstance.getResourceOid();
+        if (resourceOid == null) {
+            throw new SchemaException("No resource schema in connector instance and resource OID is not known either. Have you executed the Test Resource operation?");
+        }
+        PrismObject<ResourceType> resource;
+        try {
+            resource = connectorInstance.getRepositoryService().getObject(ResourceType.class, resourceOid, null, result);
+        } catch (ObjectNotFoundException e) {
+            throw new SystemException("Resource with OID " + resourceOid + " could not be found in " + connectorInstance + ": "
+                    + e.getMessage(), e);
+        }
+        ResourceSchema repoResourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, connectorInstance.getPrismContext());
+        if (repoResourceSchema != null) {
+            return repoResourceSchema;
+        } else {
+            throw new SchemaException("No resource schema in connector instance nor in repository. Have you executed the Test Resource operation?");
+        }
     }
 }

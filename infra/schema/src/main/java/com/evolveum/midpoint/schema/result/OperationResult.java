@@ -1744,6 +1744,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
                 // Already summarized
                 continue;
             }
+            if (subresult.isTraced()) {
+                // We don't want to summarize traced subresults.
+                continue;
+            }
             if (subresult.isError() && summarizeErrors) {
                 // go on
             } else if (subresult.isPartialError() && summarizePartialErrors) {
@@ -1768,6 +1772,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         // We implement quite a complex algorithm to ensure "incremental stripping", i.e. calling summarize() repeatedly
         // on an OperationResult to which new standard entries are continually added. The requirement is that there must
         // be at most one summarization record, and it must be placed after all standard records of given type.
+        //
+        // TODO consider tracing here
         Map<OperationStatusKey, OperationStatusCounter> recordsCounters = new HashMap<>();
         iterator = getSubresults().iterator();
         while (iterator.hasNext()) {

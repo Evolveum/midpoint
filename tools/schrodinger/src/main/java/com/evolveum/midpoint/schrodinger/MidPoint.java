@@ -8,11 +8,11 @@ package com.evolveum.midpoint.schrodinger;
 
 import com.codeborne.selenide.Configuration;
 import com.evolveum.midpoint.schrodinger.component.LoggedUser;
-import com.evolveum.midpoint.schrodinger.page.LoginPage;
+import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
+import com.evolveum.midpoint.schrodinger.page.login.SamlSelectPage;
 import org.apache.commons.lang3.Validate;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -27,7 +27,7 @@ public class MidPoint {
     public static final long TIMEOUT_DEFAULT_2_S = 2000;
     public static final long TIMEOUT_MEDIUM_6_S = 6000;
     public static final long TIMEOUT_LONG_1_M = 60000;
-    public static final long TIMEOUT_EXTRA_LONG_1_M = 120000;
+    public static final long TIMEOUT_EXTRA_LONG_1_M = 180000;
 
     private static final String SCHRODINGER_PROPERTIES = "../../testing/schrodingertest/src/test/resources/configuration/schrodinger.properties";
 
@@ -61,8 +61,12 @@ public class MidPoint {
         Configuration.timeout = 6000L;
     }
 
-    public LoginPage login() {
-        return new LoginPage();
+    public FormLoginPage formLogin() {
+        return new FormLoginPage();
+    }
+
+    public SamlSelectPage samlSelect() {
+        return new SamlSelectPage();
     }
 
     public MidPoint logout() {

@@ -691,17 +691,13 @@ public class ShadowManager {
     // Used when new resource object is discovered
     public PrismObject<ShadowType> addDiscoveredRepositoryShadow(ProvisioningContext ctx,
             PrismObject<ShadowType> resourceShadow, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Adding new shadow from resource object:\n{}", resourceShadow.debugDump(1));
-        }
+        LOGGER.trace("Adding new shadow from resource object:\n{}", resourceShadow.debugDumpLazily(1));
         PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, resourceShadow);
         ConstraintsChecker.onShadowAddOperation(repoShadow.asObjectable());
         String oid = repositoryService.addObject(repoShadow, null, parentResult);
         repoShadow.setOid(oid);
         LOGGER.debug("Added new shadow (from resource object): {}", repoShadow);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Added new shadow (from resource object):\n{}", repoShadow.debugDump(1));
-        }
+        LOGGER.trace("Added new shadow (from resource object):\n{}", repoShadow.debugDumpLazily(1));
         return repoShadow;
     }
 

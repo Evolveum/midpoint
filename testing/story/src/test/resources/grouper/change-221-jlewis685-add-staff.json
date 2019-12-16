@@ -5,7 +5,7 @@
       "sourceId": "ldap",
       "membershipType": "flattened",
       "fieldName": "members",
-      "groupId": "ref:affiliation:staff",
+      "groupId": "9789654960496542staff",
       "changeOccurred": false,
       "createdOnMicros": 1551884899000200,
       "subjectId": "jlewis685",

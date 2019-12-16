@@ -7,14 +7,21 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeAssignmentsTabPanel;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -54,6 +61,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
     private static final String ID_ENTITLEMENT_ASSIGNMENTS = "entitlementAssignments";
     private static final String ID_FOCUS_MAPPING_ASSIGNMENTS = "focusMappingAssignments";
     private static final String ID_CONSENT_ASSIGNMENTS = "consentAssignments";
+    private static final String ID_SHOW_INDIRECT_ASSIGNMENTS = "showIndirectAssignmentsButton";
     private static final String ID_ASSIGNMENTS = "assignmentsPanel";
     private static final String ID_DATA_PROTECTION_ASSIGNMENTS = "dataProtectionAssignments";
 
@@ -76,7 +84,8 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
     private void initButtonsPanel(){
         WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_ASSIGNMENT_TYPE_BUTTONS);
         buttonsContainer.setOutputMarkupId(true);
-        buttonsContainer.add(new VisibleBehaviour(() -> getButtonsContainerVisibilityModel().getObject()));
+        buttonsContainer.add(new VisibleBehaviour(() -> ID_SHOW_INDIRECT_ASSIGNMENTS.equals(activeButtonId) ||
+                getButtonsContainerVisibilityModel().getObject()));
         add(buttonsContainer);
 
         AjaxButton allAssignmentsButton = new AjaxButton(ID_ALL_ASSIGNMENTS, createStringResource("AssignmentPanel.allLabel")) {
@@ -458,6 +467,37 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
 //        };
 //        consentsButton.setOutputMarkupId(true);
 //        buttonsContainer.add(consentsButton);
+
+        AjaxIconButton showAllAssignmentsButton = new AjaxIconButton(ID_SHOW_INDIRECT_ASSIGNMENTS, new Model<>("fa fa-address-card"),
+                createStringResource("AssignmentTablePanel.menu.showAllAssignments")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                showAllAssignments(ajaxRequestTarget);
+            }
+        };
+        showAllAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_SHOW_INDIRECT_ASSIGNMENTS)));
+        showAllAssignmentsButton.setOutputMarkupId(true);
+
+        showAllAssignmentsButton.add(new VisibleBehaviour(()  -> !isInducement()));
+        buttonsContainer.add(showAllAssignmentsButton);
+
+    }
+
+    protected void showAllAssignments(AjaxRequestTarget target) {
+        PageBase pageBase = getPageBase();
+        List<AssignmentInfoDto> previewAssignmentsList;
+        if (pageBase instanceof PageAdminFocus) {
+            previewAssignmentsList = ((PageAdminFocus<?>) pageBase).showAllAssignmentsPerformed(target);
+        } else {
+            previewAssignmentsList = Collections.emptyList();
+        }
+        AllAssignmentsPreviewDialog assignmentPanel = new AllAssignmentsPreviewDialog(ID_ASSIGNMENTS, previewAssignmentsList,
+                pageBase);
+        assignmentPanel.setOutputMarkupId(true);
+        switchAssignmentTypePerformed(target, assignmentPanel, ID_SHOW_INDIRECT_ASSIGNMENTS);
     }
 
     private boolean isAssignmentPanelVisible() {
@@ -480,7 +520,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
         };
     }
 
-    private void switchAssignmentTypePerformed(AjaxRequestTarget target, AssignmentPanel assignmentsPanel, String buttonId){
+    private void switchAssignmentTypePerformed(AjaxRequestTarget target, Component assignmentsPanel, String buttonId){
         activeButtonId = buttonId;
         addOrReplace(assignmentsPanel);
         target.add(SwitchAssignmentTypePanel.this);

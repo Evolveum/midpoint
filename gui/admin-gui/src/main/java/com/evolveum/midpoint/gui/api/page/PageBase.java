@@ -121,7 +121,7 @@ import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.*;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -795,7 +795,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         container.add(rightMenu);
 
         LocalePanel locale = new LocalePanel(ID_LOCALE);
-        locale.add(createUserStatusBehaviour(false));
+//        locale.add(createUserStatusBehaviour(false));
         container.add(locale);
     }
 
@@ -2578,6 +2578,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
 
         return getBreadcrumbs().get(getBreadcrumbs().size() - 1);
+    }
+
+    public Breadcrumb getPreviousBreadcrumb() {
+        if (getBreadcrumbs().isEmpty() || getBreadcrumbs().size() < 2) {
+            return null;
+        }
+
+        return getBreadcrumbs().get(getBreadcrumbs().size() - 2);
     }
 
     public void clearBreadcrumbs() {

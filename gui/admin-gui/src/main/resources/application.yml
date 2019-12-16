@@ -9,6 +9,8 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
       file-size-threshold: 256KB
+  thymeleaf:
+    cache: false
 
 server:
   tomcat:
@@ -42,16 +44,16 @@ auth:
 #      url: http://localhost:8080/cas
 #    ticketValidator: Cas30ServiceTicketValidator
 ## Example LDAP authentication configuration
-#  ldap:
-#    host: ldap://localhost:389/dc=example,dc=com
-#    manager: cn=admin,dc=example,dc=com
-#    password: secret
-#    dn:
-#      pattern: uid={0},ou=people
-#
-#    search:
-#      pattern: (uid={0})
-#      subtree: true
+  ldap:
+    host: ldap://localhost:389/dc=example,dc=com
+    manager: cn=admin,dc=example,dc=com
+    password: secret
+    dn:
+      pattern: uid={0},ou=people
+
+    search:
+      pattern: (uid={0})
+      subtree: true
 
 #security:
 #  enable-csrf: false # default for midpoint is true

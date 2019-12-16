@@ -5,14 +5,11 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="00000000-0000-0000-0000-00000000aab1"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Business Role One</name>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000321" type="ArchetypeType"/> <!-- Business Role -->
     </assignment>
     <requestable>true</requestable>
-    <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>
     <subtype>business</subtype>
 </role>

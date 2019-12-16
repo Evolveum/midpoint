@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +40,6 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -66,7 +66,6 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -75,15 +74,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -226,7 +216,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             if (repositoryObject.canRepresent(ShadowType.class)) {
                 try {
                     resultingObject = (PrismObject<T>) shadowCache.getShadow(oid,
-                            (PrismObject<ShadowType>) (repositoryObject), options, task, result);
+                            (PrismObject<ShadowType>) (repositoryObject), null, options, task, result);
                 } catch (ObjectNotFoundException e) {
                     if (!GetOperationOptions.isAllowNotFound(rootOptions)){
                         ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
@@ -321,7 +311,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         return oid;
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition, OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
@@ -372,11 +361,18 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             result.recordSuccess();
         }
         result.cleanupResult();
+
+        // This is a brutal hack for thresholds in LiveSync tasks: it propagates ThresholdPolicyViolationException to upper layers.
+        // FIXME Get rid of this as soon as possible! MID-5940
+        if (liveSyncResult.getExceptionEncountered() instanceof ThresholdPolicyViolationException) {
+            throw (ThresholdPolicyViolationException) liveSyncResult.getExceptionEncountered();
+        }
+
         return liveSyncResult.getChangesProcessed();
     }
 
     @Override
-    public String startListeningForAsyncUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
+    public void processAsynchronousUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
@@ -387,53 +383,17 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         result.addParam(OperationResult.PARAM_OID, resourceOid);
         result.addParam(OperationResult.PARAM_TASK, task.toString());
 
-        String listeningActivityHandle;
         try {
-            LOGGER.trace("Starting listening for async updates for {}", shadowCoordinates);
-            listeningActivityHandle = asyncUpdater.startListeningForAsyncUpdates(shadowCoordinates, task, result);
+            LOGGER.trace("Starting processing async updates for {}", shadowCoordinates);
+            asyncUpdater.processAsynchronousUpdates(shadowCoordinates, task, result);
+            result.recordSuccess();
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
-            result.summarize(true);
             throw e;
-        }
-        result.addReturn("listeningActivityHandle", listeningActivityHandle);
-        result.recordSuccess();
-        result.cleanupResult();
-        return listeningActivityHandle;
-    }
-
-    @Override
-    public void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".stopListeningForAsyncUpdates");
-        result.addParam("listeningActivityHandle", listeningActivityHandle);
-
-        try {
-            LOGGER.trace("Stopping listening for async updates for {}", listeningActivityHandle);
-            asyncUpdater.stopListeningForAsyncUpdates(listeningActivityHandle, task, result);
-        } catch (RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+        } finally {
+            // todo ok?
             result.summarize(true);
-            throw e;
-        }
-        result.recordSuccess();
-        result.cleanupResult();
-    }
-
-    @Override
-    public AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".getAsyncUpdatesListeningActivityInformation");
-        result.addParam("listeningActivityHandle", listeningActivityHandle);
-
-        try {
-            AsyncUpdateListeningActivityInformationType rv = asyncUpdater
-                    .getAsyncUpdatesListeningActivityInformation(listeningActivityHandle, task, result);
-            result.recordSuccess();
             result.cleanupResult();
-            return rv;
-        } catch (RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
-            result.summarize(true);
-            throw e;
         }
     }
 
@@ -950,9 +910,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         Validate.notNull(parentResult, "Operation result must not be null.");
         Validate.notNull(handler, "Handler must not be null.");
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Start of (iterative) search objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
-        }
+        LOGGER.trace("Start of (iterative) search objects. Query:\n{}", DebugUtil.debugDumpLazily(query, 1));
 
         OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".searchObjectsIterative");
         result.setSummarizeSuccesses(true);

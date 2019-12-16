@@ -353,7 +353,7 @@ public class BasicPage {
             return mainMenu;
         }
         SelenideElement menuItem = mainMenu.$(Schrodinger.byDataResourceKey(menuItemKey));
-        menuItem.shouldBe(Condition.visible);
+        menuItem.waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return menuItem;
     }
@@ -385,7 +385,7 @@ public class BasicPage {
         SelenideElement mainMenuLi = mainMenu.parent().parent();
         if (!mainMenuLi.has(Condition.cssClass("active"))) {
             mainMenu.click();
-            mainMenuLi.waitUntil(Condition.cssClass("active"),MidPoint.TIMEOUT_DEFAULT_2_S).shouldHave(Condition.cssClass("active"));
+            mainMenuLi.waitUntil(Condition.cssClass("active"),MidPoint.TIMEOUT_MEDIUM_6_S).shouldHave(Condition.cssClass("active"));
         }
         return mainMenu;
     }
