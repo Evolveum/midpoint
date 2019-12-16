@@ -1378,7 +1378,7 @@ public final class WebComponentUtil {
     }
 
     // <display-name> (<name>) OR simply <name> if there's no display name
-    private static String getDisplayNameAndName(ObjectReferenceType ref) {
+    public static String getDisplayNameAndName(ObjectReferenceType ref) {
         return getDisplayNameOrName(ref, true);
     }
 
