@@ -11,11 +11,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -33,7 +30,7 @@ public class WfConfiguration {
     private static final transient Trace LOGGER = TraceManager.getTrace(WfConfiguration.class);
 
     private static final String KEY_ENABLED = "enabled";
-    private static final List<String> KNOWN_KEYS = Arrays.asList("midpoint.home", KEY_ENABLED);
+    private static final List<String> KNOWN_KEYS = Arrays.asList(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, KEY_ENABLED);
     private static final List<String> DEPRECATED_KEYS = Collections.emptyList();
 
     @Autowired

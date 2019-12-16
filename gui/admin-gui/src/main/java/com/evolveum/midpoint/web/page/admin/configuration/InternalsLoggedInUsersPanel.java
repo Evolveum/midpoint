@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -14,6 +13,8 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.ClusterExecutionOptions;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -45,7 +46,8 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
     private static final String ID_TABLE = "table";
 
     private static final String DOT_CLASS = InternalsLoggedInUsersPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_PRINCIPALS_REMOTE_NODES = DOT_CLASS + "loadPrincipalsFromRemoteNodes";
+    private static final String OPERATION_LOAD_LOGGED_IN_PRINCIPALS = DOT_CLASS + "loadLoggedInPrincipals";
+    private static final String OPERATION_TERMINATE_SESSIONS = DOT_CLASS + "terminateSessions";
 
     public InternalsLoggedInUsersPanel(String id) {
         super(id);
@@ -81,7 +83,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
 
                     @Override
                     protected List<UserSessionManagementType> load() {
-                        return loadLoggedIUsersFromAllNodes();
+                        return loadLoggedInPrincipals();
                     }
                 };
 
@@ -111,48 +113,10 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
         add(table);
     }
 
-    private List<UserSessionManagementType> loadLoggedIUsersFromAllNodes() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_PRINCIPALS_REMOTE_NODES);
-
-        List<UserSessionManagementType> loggedUsers = getPageBase().getModelInteractionService().getLoggedInUsers();
-
-        Map<String, UserSessionManagementType> usersMap = loggedUsers.stream().collect(Collectors.toMap(key -> key.getUser().getOid(), value -> value));
-
-        getPageBase().getClusterExecutionHelper().execute((client, operationResult) -> {
-
-            client.path(UserProfileService.EVENT_LIST_USER_SESSION);
-            Response response = client.get();
-            LOGGER.info("Cluster-wide cache clearance finished with status {}, {}", response.getStatusInfo().getStatusCode(),
-                    response.getStatusInfo().getReasonPhrase());
-
-            if (!response.hasEntity()) {
-                return;
-            }
-
-            UserSessionManagementListType sessionUsers = response.readEntity(UserSessionManagementListType.class);
-            response.close();
-
-            List<UserSessionManagementType> nodeSpecificSessions = sessionUsers.getSession();
-
-            if (sessionUsers == null || nodeSpecificSessions == null || nodeSpecificSessions.isEmpty()) {
-                return;
-            }
-
-            for (UserSessionManagementType user : nodeSpecificSessions) {
-                UserSessionManagementType existingUser = usersMap.get(user.getUser().getOid());
-                if (existingUser != null) {
-                    existingUser.setActiveSessions(existingUser.getActiveSessions() + user.getActiveSessions());
-                    existingUser.getNode().addAll(user.getNode());
-                    continue;
-                }
-
-                usersMap.put(user.getUser().getOid(), user);
-            }
-
-            }, " list principals from remote nodes ", result);
-
-
-        return new ArrayList<>(usersMap.values());
+    private List<UserSessionManagementType> loadLoggedInPrincipals() {
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_LOGGED_IN_PRINCIPALS);
+        OperationResult result = task.getResult();
+        return getPageBase().getModelInteractionService().getLoggedInPrincipals(task, result);
     }
 
     private List<IColumn<SelectableBean<F>, String>> initColumns() {
@@ -180,10 +144,10 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         if (getRowModel() == null){
-                            expireSessionsFor(target, null);
+                            terminateSessions(target, null);
                         } else {
                             SelectableBean<F> rowDto = getRowModel().getObject();
-                            expireSessionsFor(target, rowDto.getValue());
+                            terminateSessions(target, rowDto.getValue());
                         }
                     }
                 };
@@ -198,7 +162,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
 
     }
 
-    private void expireSessionsFor(AjaxRequestTarget target, F selectedObject) {
+    private void terminateSessions(AjaxRequestTarget target, F selectedObject) {
         List<String> selected = getSelectedObjects(selectedObject);
         if (CollectionUtils.isEmpty(selected)) {
             getSession().warn(getString("InternalsLoggedInUsersPanel.expireSession.warn"));
@@ -206,13 +170,13 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
             return;
         }
 
+        Task task = getPageBase().createSimpleTask(OPERATION_TERMINATE_SESSIONS);
+
         TerminateSessionEvent details = new TerminateSessionEvent();
         details.setPrincipalOids(selected);
-        CacheInvalidationContext ctx = new CacheInvalidationContext(false, details);
-        ctx.setTerminateSession(true);
-        getPageBase().getCacheDispatcher().dispatchInvalidation(null, null, true, ctx);
 
-        //getPageBase().getModelInteractionService().expirePrincipals(selected);
+        getPageBase().getModelInteractionService().terminateSessions(details, task, task.getResult());
+
         getSession().success(getString("InternalsLoggedInUsersPanel.expireSession.success"));
         target.add(getPageBase().getFeedbackPanel());
     }

@@ -221,7 +221,7 @@ public interface RepositoryService {
      * @throws IllegalArgumentException
      *             wrong OID format, etc.
      */
-    <T extends ObjectType> String getVersion(Class<T> type,String oid, OperationResult parentResult)
+    <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException;
 
     <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,

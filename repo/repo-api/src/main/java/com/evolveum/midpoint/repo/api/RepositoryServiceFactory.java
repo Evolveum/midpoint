@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.api;
 
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 public interface RepositoryServiceFactory {
 

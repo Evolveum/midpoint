@@ -56,10 +56,6 @@ public class TriggerCreatorGlobalState implements Cacheable {
 
     @Override
     public synchronized void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
-        if (context != null && (context.isTerminateSession() || context.isListUsersSession())) {   // fixme !!!
-            return;
-        }
-
         if (oid != null) {
             // We are interested in object deletion events; just to take care of situations when an object is deleted and
             // a new object (of the same name) is created immediately.

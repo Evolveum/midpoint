@@ -27,8 +27,6 @@ import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfigu
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.SystemMetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration;
-import org.springframework.boot.actuate.autoconfigure.metrics.jdbc.DataSourcePoolMetricsAutoConfiguration;
-import org.springframework.boot.actuate.autoconfigure.metrics.orm.jpa.HibernateMetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.web.servlet.WebMvcMetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.web.tomcat.TomcatMetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.web.servlet.ServletManagementContextAutoConfiguration;
@@ -93,82 +91,77 @@ import ro.isdc.wro.http.WroFilter;
 })
 public abstract class AbstractSpringBootApplication extends SpringBootServletInitializer{
 
-     private static final Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
 
-        protected static final String MIDPOINT_HOME_PROPERTY = "midpoint.home";
-        protected static final String USER_HOME_PROPERTY_NAME = "user.home";
-
-
-        @Autowired StartupConfiguration startupConfiguration;
-        @Autowired NodeAuthenticationEvaluator nodeAuthenticator;
+    @Autowired StartupConfiguration startupConfiguration;
+    @Autowired NodeAuthenticationEvaluator nodeAuthenticator;
 
 
-        @Bean
-        public ServletListenerRegistrationBean<RequestContextListener> requestContextListener() {
-            return new ServletListenerRegistrationBean<>(new RequestContextListener());
-        }
+    @Bean
+    public ServletListenerRegistrationBean<RequestContextListener> requestContextListener() {
+        return new ServletListenerRegistrationBean<>(new RequestContextListener());
+    }
 
-        @Bean
-        public FilterRegistrationBean<MidPointProfilingServletFilter> midPointProfilingServletFilter() {
-            FilterRegistrationBean<MidPointProfilingServletFilter> registration = new FilterRegistrationBean<>();
-            registration.setFilter(new MidPointProfilingServletFilter());
-//            registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
-            registration.addUrlPatterns("/*");
-            return registration;
-        }
+    @Bean
+    public FilterRegistrationBean<MidPointProfilingServletFilter> midPointProfilingServletFilter() {
+        FilterRegistrationBean<MidPointProfilingServletFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new MidPointProfilingServletFilter());
+        //            registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
+        registration.addUrlPatterns("/*");
+        return registration;
+    }
 
-        @Bean
-        public FilterRegistrationBean<WicketFilter> wicket() {
-            FilterRegistrationBean<WicketFilter> registration = new FilterRegistrationBean<>();
-            registration.setFilter(new WicketFilter());
-            registration.setDispatcherTypes(DispatcherType.ERROR, DispatcherType.REQUEST, DispatcherType.FORWARD);
-            registration.addUrlPatterns("/*");
-            registration.addInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/*");
-            registration.addInitParameter(Application.CONFIGURATION, "deployment");     // deployment development
-            registration.addInitParameter("applicationBean", "midpointApplication");
-            registration.addInitParameter(WicketFilter.APP_FACT_PARAM, "org.apache.wicket.spring.SpringWebApplicationFactory");
+    @Bean
+    public FilterRegistrationBean<WicketFilter> wicket() {
+        FilterRegistrationBean<WicketFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new WicketFilter());
+        registration.setDispatcherTypes(DispatcherType.ERROR, DispatcherType.REQUEST, DispatcherType.FORWARD);
+        registration.addUrlPatterns("/*");
+        registration.addInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/*");
+        registration.addInitParameter(Application.CONFIGURATION, "deployment");     // deployment development
+        registration.addInitParameter("applicationBean", "midpointApplication");
+        registration.addInitParameter(WicketFilter.APP_FACT_PARAM, "org.apache.wicket.spring.SpringWebApplicationFactory");
 
-            return registration;
-        }
+        return registration;
+    }
 
-        // Overriding bean from org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration
-        // This method is not very clean. We should probably subclass WebSecurityConfiguration instead.
-        // This is the reason that global bean override is allowed in application.yml
-        @Bean
-        public FilterRegistrationBean<DelegatingFilterProxy> springSecurityFilterChain() {
-            FilterRegistrationBean<DelegatingFilterProxy> registration = new FilterRegistrationBean<>();
-            registration.setFilter(new DelegatingFilterProxy());
-            registration.addUrlPatterns("/*");
-            return registration;
-        }
+    // Overriding bean from org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration
+    // This method is not very clean. We should probably subclass WebSecurityConfiguration instead.
+    // This is the reason that global bean override is allowed in application.yml
+    @Bean
+    public FilterRegistrationBean<DelegatingFilterProxy> springSecurityFilterChain() {
+        FilterRegistrationBean<DelegatingFilterProxy> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new DelegatingFilterProxy());
+        registration.addUrlPatterns("/*");
+        return registration;
+    }
 
-        @Bean
-        public FilterRegistrationBean<WroFilter> webResourceOptimizer(WroFilter wroFilter) {
-            FilterRegistrationBean<WroFilter> registration = new FilterRegistrationBean<>();
-            registration.setFilter(wroFilter);
-            registration.addUrlPatterns("/wro/*");
-            return registration;
-        }
+    @Bean
+    public FilterRegistrationBean<WroFilter> webResourceOptimizer(WroFilter wroFilter) {
+        FilterRegistrationBean<WroFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(wroFilter);
+        registration.addUrlPatterns("/wro/*");
+        return registration;
+    }
 
-        @Bean
-        public ServletRegistrationBean<CXFServlet> cxfServlet() {
-            ServletRegistrationBean<CXFServlet> registration = new ServletRegistrationBean<>();
-            registration.setServlet(new CXFServlet());
-            registration.addInitParameter("service-list-path", "midpointservices");
-            registration.setLoadOnStartup(1);
-            registration.addUrlMappings("/model/*", "/ws/*");
+    @Bean
+    public ServletRegistrationBean<CXFServlet> cxfServlet() {
+        ServletRegistrationBean<CXFServlet> registration = new ServletRegistrationBean<>();
+        registration.setServlet(new CXFServlet());
+        registration.addInitParameter("service-list-path", "midpointservices");
+        registration.setLoadOnStartup(1);
+        registration.addUrlMappings("/model/*", "/ws/*");
 
-            return registration;
-        }
+        return registration;
+    }
 
-        @Bean
-        public ErrorPageRegistrar errorPageRegistrar() {
-            return new MidPointErrorPageRegistrar();
-        }
+    @Bean
+    public ErrorPageRegistrar errorPageRegistrar() {
+        return new MidPointErrorPageRegistrar();
+    }
 
     @Bean
     public SessionRegistry sessionRegistry() {
         return new SessionRegistryImpl();
     }
-
 }

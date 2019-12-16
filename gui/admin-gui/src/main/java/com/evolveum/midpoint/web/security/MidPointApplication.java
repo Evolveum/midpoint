@@ -36,7 +36,7 @@ import javax.validation.Validator;
 import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.repo.cache.CacheRegistry;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ConverterLocator;
@@ -392,7 +392,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         }
 
         String value = environment.getProperty(MidpointConfiguration.MIDPOINT_SCHRODINGER_PROPERTY);
-        Boolean enabled = Boolean.parseBoolean(value);
+        boolean enabled = Boolean.parseBoolean(value);
 
         if (enabled) {
             LOGGER.info("Schrodinger plugin enabled");

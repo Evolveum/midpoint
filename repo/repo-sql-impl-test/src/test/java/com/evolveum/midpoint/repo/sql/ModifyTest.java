@@ -1357,7 +1357,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         // THEN
     }
 
-    @Test(enabled = false)   // MID-5105
+    @Test   // MID-5105
     public void test360ReplaceModifyApprovers() throws Exception {
         final String TEST_NAME = "test360ReplaceModifyApprovers";
         TestUtil.displayTestTitle(TEST_NAME);

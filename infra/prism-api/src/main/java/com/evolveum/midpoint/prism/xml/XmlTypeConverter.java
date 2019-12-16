@@ -291,14 +291,25 @@ public class XmlTypeConverter {
     public static int compare(XMLGregorianCalendar o1, XMLGregorianCalendar o2) {
         if (o1 == null && o2 == null) {
             return 0;
-        }
-        if (o1 == null) {
+        } else if (o1 == null) {
             return -1;
-        }
-        if (o2 == null) {
+        } else if (o2 == null) {
             return 1;
+        } else {
+            return o1.compare(o2);
         }
-        return o1.compare(o2);
+    }
+
+    public static int compareMillis(XMLGregorianCalendar o1, XMLGregorianCalendar o2) {
+        if (o1 == null && o2 == null) {
+            return 0;
+        } else if (o1 == null) {
+            return -1;
+        } else if (o2 == null) {
+            return 1;
+        } else {
+            return Long.compare(o1.toGregorianCalendar().getTimeInMillis(), o2.toGregorianCalendar().getTimeInMillis());
+        }
     }
 
     public static boolean isBeforeNow(XMLGregorianCalendar time) {
@@ -445,24 +456,24 @@ public class XmlTypeConverter {
     /**
      * Parse PolyString from DOM element.
      */
-        private static PolyString polyStringToJava(Element polyStringElement) throws SchemaException {
-            Element origElement = DOMUtil.getChildElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME);
-            if (origElement == null) {
-                // Check for a special syntactic short-cut. If the there are no child elements use the text content of the
-                // element as the value of orig
-                if (DOMUtil.hasChildElements(polyStringElement)) {
-                    throw new SchemaException("Missing element "+PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME+" in polystring element "+
-                            DOMUtil.getQName(polyStringElement));
-                }
-                String orig = polyStringElement.getTextContent();
-                return new PolyString(orig);
+    private static PolyString polyStringToJava(Element polyStringElement) throws SchemaException {
+        Element origElement = DOMUtil.getChildElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME);
+        if (origElement == null) {
+            // Check for a special syntactic short-cut. If the there are no child elements use the text content of the
+            // element as the value of orig
+            if (DOMUtil.hasChildElements(polyStringElement)) {
+                throw new SchemaException("Missing element "+PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME+" in polystring element "+
+                        DOMUtil.getQName(polyStringElement));
             }
-            String orig = origElement.getTextContent();
-            String norm = null;
-            Element normElement = DOMUtil.getChildElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_NORM_QNAME);
-            if (normElement != null) {
-                norm = normElement.getTextContent();
-            }
-            return new PolyString(orig, norm);
+            String orig = polyStringElement.getTextContent();
+            return new PolyString(orig);
         }
+        String orig = origElement.getTextContent();
+        String norm = null;
+        Element normElement = DOMUtil.getChildElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_NORM_QNAME);
+        if (normElement != null) {
+            norm = normElement.getTextContent();
+        }
+        return new PolyString(orig, norm);
+    }
 }

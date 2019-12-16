@@ -49,12 +49,7 @@ public class SystemConfigurationCacheableAdapter implements Cacheable {
 
     @Override
     public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
-        if (context != null && context.isTerminateSession()) {
-            LOGGER.trace("Skipping invalidation request. Request is for terminate session, not for system configuration cache invalidation.");
-            return;
-        }
-
-        if (type == null || SystemConfigurationType.class.isAssignableFrom(type)) {
+        if (type == null || type.isAssignableFrom(SystemConfigurationType.class)) {
             // We ignore OID by now, assuming there's only a single system configuration object
             try {
                 OperationResult result = new OperationResult(SystemConfigurationCacheableAdapter.class.getName() + ".invalidate");

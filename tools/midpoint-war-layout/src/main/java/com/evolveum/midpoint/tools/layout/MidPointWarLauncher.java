@@ -97,7 +97,7 @@ public class MidPointWarLauncher extends WarLauncher {
         List<Archive> archives = super.getClassPathArchives();
 
         File midPointHomeLib = getMidPointHomeLib();
-        if (midPointHomeLib == null || !midPointHomeLib.exists() || !midPointHomeLib.isDirectory()) {
+        if (!midPointHomeLib.exists() || !midPointHomeLib.isDirectory()) {
             return archives;
         }
 

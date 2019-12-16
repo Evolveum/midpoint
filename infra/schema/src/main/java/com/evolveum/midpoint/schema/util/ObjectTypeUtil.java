@@ -547,7 +547,12 @@ public class ObjectTypeUtil {
         if (object instanceof AbstractRoleType) {
             return ((AbstractRoleType) object).getDisplayName();
         } else if (object instanceof UserType) {
-            return ((UserType) object).getFullName();
+            PolyStringType userFullName = ((UserType) object).getFullName();
+            if (userFullName != null && !userFullName.isEmpty()) {
+                return userFullName.plus(" (").plus(object.getName()).plus(")");
+            } else {
+                return object.getName();
+            }
         } else {
             return null;
         }

@@ -298,6 +298,11 @@ public interface TaskManager {
     void cleanupTasks(CleanupPolicyType closedTasksPolicy, RunningTask task, OperationResult opResult) throws SchemaException;
 
     /**
+     * Deletes dead nodes, i.e. ones that were not checked-in for a given time period.
+     */
+    void cleanupNodes(DeadNodeCleanupPolicyType deadNodesPolicy, RunningTask task, OperationResult opResult) throws SchemaException;
+
+    /**
      * This is a signal to task manager that a new task was created in the repository.
      * Task manager can react to it e.g. by creating shadow quartz job and trigger.
      */
@@ -762,4 +767,10 @@ public interface TaskManager {
 
     // EXPERIMENTAL
     void removeGlobalTracingOverride();
+
+    /**
+     * @return true if we consider this node to be "up" (alive). This is determined by looking at "running" state (should not
+     * be false) and last check-in information (should not be more than nodeTimeout ago).
+     */
+    boolean isCheckingIn(NodeType node);
 }

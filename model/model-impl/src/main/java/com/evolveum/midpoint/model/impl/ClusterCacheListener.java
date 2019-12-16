@@ -14,14 +14,12 @@ import com.evolveum.midpoint.repo.api.CacheInvalidationDetails;
 import com.evolveum.midpoint.repo.api.CacheListener;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
+import com.evolveum.midpoint.task.api.ClusterExecutionOptions;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.TerminateSessionEventType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -30,9 +28,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 public class ClusterCacheListener implements CacheListener {
@@ -61,25 +56,8 @@ public class ClusterCacheListener implements CacheListener {
 
         LOGGER.trace("Cache invalidation context {}", context);
 
-        if (context != null && context.isTerminateSession()) {
-            CacheInvalidationDetails details = context.getDetails();
-            if (!(details instanceof TerminateSessionEvent)) {
-                LOGGER.warn("Cannot perform cluster-wide session termination, no details provided.");
-                return;
-            }
-            clusterExecutionHelper.execute((client, result1) -> {
-                client.path(ClusterRestService.EVENT_TERMINATE_SESSION);
-
-                Response response = client.post(((TerminateSessionEvent)details).toEventType());
-                LOGGER.info("Cluster-wide cache clearance finished with status {}, {}", response.getStatusInfo().getStatusCode(),
-                        response.getStatusInfo().getReasonPhrase());
-                response.close();
-            }, "session termination", result);
-            return;
-        }
-
-
-
+        // Regular cache invalidation can be skipped for nodes not checking in. Cache entries will expire on such nodes
+        // eventually. (We can revisit this design decision if needed.)
         clusterExecutionHelper.execute((client, result1) -> {
             client.path(ClusterRestService.EVENT_INVALIDATION +
                     ObjectTypes.getRestTypeFromClass(type) + (oid != null ? "/" + oid : ""));
@@ -87,9 +65,8 @@ public class ClusterCacheListener implements CacheListener {
             LOGGER.info("Cluster-wide cache clearance finished with status {}, {}", response.getStatusInfo().getStatusCode(),
                     response.getStatusInfo().getReasonPhrase());
             response.close();
-        }, "cache invalidation", result);
+        }, null, "cache invalidation", result);
     }
-
 
     private <O extends ObjectType> boolean canExecute(Class<O> type, String oid, boolean clusterwide, CacheInvalidationContext context) {
         if (!clusterwide) {

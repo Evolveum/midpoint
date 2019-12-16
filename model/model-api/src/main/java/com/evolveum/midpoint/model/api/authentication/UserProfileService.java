@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.api.authentication;
 
+import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author semancik
@@ -48,8 +48,7 @@ public interface UserProfileService extends MidPointPrincipalManager {
     @Override
     void updateUser(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas);
 
-    List<UserSessionManagementType> getAllLoggedPrincipals();
+    List<UserSessionManagementType> getLocalLoggedInPrincipals();
 
-    void expirePrincipals(List<String> principalsOid);
-
+    void terminateLocalSessions(TerminateSessionEvent terminateSessionEvent);
 }

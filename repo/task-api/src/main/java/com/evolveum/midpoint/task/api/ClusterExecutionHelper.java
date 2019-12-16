@@ -10,14 +10,11 @@ package com.evolveum.midpoint.task.api;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.jetbrains.annotations.NotNull;
 
 import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**
@@ -34,21 +31,22 @@ public interface ClusterExecutionHelper {
     /**
      * Executes operation on a specified remote node (by OID).
      */
-    void execute(@NotNull String nodeOid, @NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult)
+    void execute(@NotNull String nodeOid, @NotNull BiConsumer<WebClient, OperationResult> code,
+            ClusterExecutionOptions options, String context, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException;
 
     /**
      * Executes operation on a specified remote node (by node object).
      */
-    void execute(@NotNull NodeType node, @NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult)
+    void execute(@NotNull NodeType node, @NotNull BiConsumer<WebClient, OperationResult> code,
+            ClusterExecutionOptions options, String context, OperationResult parentResult)
             throws SchemaException;
 
     /**
      * Executes operation on all cluster nodes except for the current one.
-     * TODO what to do with dead nodes?
      */
-    void execute(@NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult);
-
+    void execute(@NotNull BiConsumer<WebClient, OperationResult> code,
+            ClusterExecutionOptions options, String context, OperationResult parentResult);
 
     /**
      * Extracts the result from the REST response.
