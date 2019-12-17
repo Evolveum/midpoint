@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -152,19 +153,19 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 
         IColumn<SelectableBean<UserType>, String> column = new PolyStringPropertyColumn(
                 createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
-                SelectableBean.F_VALUE + ".givenName");
+                SelectableBeanImpl.F_VALUE + ".givenName");
         columns.add(column);
 
         column = new PolyStringPropertyColumn(createStringResource("UserType.familyName"),
-                UserType.F_FAMILY_NAME.getLocalPart(), SelectableBean.F_VALUE + ".familyName");
+                UserType.F_FAMILY_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".familyName");
         columns.add(column);
 
         column = new PolyStringPropertyColumn(createStringResource("UserType.fullName"),
-                UserType.F_FULL_NAME.getLocalPart(), SelectableBean.F_VALUE + ".fullName");
+                UserType.F_FULL_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".fullName");
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("UserType.emailAddress"), null,
-                SelectableBean.F_VALUE + ".emailAddress");
+                SelectableBeanImpl.F_VALUE + ".emailAddress");
         columns.add(column);
 
         column = new AbstractExportableColumn<SelectableBean<UserType>, String>(

@@ -559,7 +559,15 @@ public class ObjectTypeUtil {
     }
 
     public static PolyStringType getDisplayName(ObjectReferenceType ref) {
-        return ref != null ? getDisplayName(ref.asReferenceValue().getObject()) : null;
+        if (ref == null) {
+            return null;
+        }
+
+        if (ref.getObject() == null) {
+            return getName(ref);
+        }
+
+        return getDisplayName(ref.asReferenceValue().getObject());
     }
 
     public static PolyStringType getName(ObjectReferenceType ref) {

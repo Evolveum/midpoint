@@ -21,6 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.util.time.Duration;
 
 /**
  * @author katkav
@@ -62,6 +64,8 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
 
     public MainObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
         super(id, type, tableId, options);
+
+
     }
 
     @Override
@@ -318,5 +322,10 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
             };
             add(buttonsView);
         }
+    }
+
+    @Override
+    protected boolean isRefreshEnabled() {
+        return true;
     }
 }

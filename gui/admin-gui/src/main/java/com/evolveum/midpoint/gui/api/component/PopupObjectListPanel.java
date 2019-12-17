@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.data.column.PolyStringPropertyColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang3.StringUtils;
@@ -84,7 +85,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
             return new LinkColumn<SelectableBean<O>>(
                     columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
                     StringUtils.isEmpty(itemPath) ? ObjectType.F_NAME.getLocalPart() : itemPath,
-                    SelectableBean.F_VALUE + "." +
+                    SelectableBeanImpl.F_VALUE + "." +
                             (StringUtils.isEmpty(itemPath) ? "name" : itemPath)) {
                 private static final long serialVersionUID = 1L;
 
@@ -113,7 +114,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
             } else {
                 return new PropertyColumn(
                         columnNameModel == null ? createStringResource("userBrowserDialog.name") : columnNameModel,
-                        itemPath,SelectableBean.F_VALUE + "." + itemPath);
+                        itemPath,SelectableBeanImpl.F_VALUE + "." + itemPath);
             }
         }
     }
@@ -143,5 +144,10 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 
     protected IModel<Boolean> getCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel){
         return Model.of(true);
+    }
+
+    @Override
+    protected boolean isRefreshEnabled() {
+        return false;
     }
 }

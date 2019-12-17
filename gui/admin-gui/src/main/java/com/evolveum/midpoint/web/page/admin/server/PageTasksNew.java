@@ -3,17 +3,23 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -21,25 +27,25 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.refresh.Refreshable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.TaskSelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
-import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
+import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.lucene.queryparser.surround.query.AndQuery;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -61,6 +67,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @PageDescriptor(
         urls = {
@@ -79,6 +86,7 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
 
     private static final int REFRESH_INTERVAL = 60000;                // don't set too low to prevent refreshing open inline menus (TODO skip refresh if a menu is open)
 
+
     @Override
     protected Class getType() {
         return TaskType.class;
@@ -91,14 +99,43 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
 
     @Override
     protected List<InlineMenuItem> createRowActions() {
-        return null;
+        return createTasksInlineMenu(true);
     }
 
     @Override
     protected UserProfileStorage.TableId getTableId() {
-        return null;
+        return UserProfileStorage.TableId.TABLE_TASKS;
     }
 
+
+    @Override
+    protected BaseSortableDataProvider<SelectableBean> getCustomProvider() {
+        TaskDtoProviderOptions options = TaskDtoProviderOptions.minimalOptions();
+        options.setGetNextRunStartTime(true);
+        options.setUseClusterInformation(true);
+        options.setResolveObjectRef(true);
+        return (BaseSortableDataProvider) new TaskSelectableBeanProvider(PageTasksNew.this, options) {
+
+            @Override
+            public TaskSelectableBean createTaskDto(PrismObject<TaskType> task, boolean subtasksLoaded, Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+                TaskSelectableBean bean = super.createTaskDto(task, subtasksLoaded, opTask, result);
+                bean.getMenuItems().addAll(createTasksInlineMenu(false));
+                return bean;
+            }
+
+            @Override
+            public ObjectQuery getQuery() {
+                ObjectQuery q = super.getQuery();
+                ObjectFilter noSubtasksFilter = getPrismContext().queryFor(TaskType.class).item(TaskType.F_PARENT).isNull().buildFilter();
+                if (q == null) {
+                    q = getPrismContext().queryFactory().createQuery();
+                }
+                q.addFilter(noSubtasksFilter);
+
+                return q;
+            }
+        };
+    }
 
     @Override
     protected boolean isNameColumnClickable(IModel rowModel) {
@@ -119,62 +156,14 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
     private List<IColumn<TaskSelectableBean, String>> initTaskColumns() {
         List<IColumn<TaskSelectableBean, String>> columns = new ArrayList<>();
 
-//        IColumn column = new CheckBoxHeaderColumn<TaskDto>() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<TaskDto> rowModel, IModel<Boolean> selectedModel) {
-//                TaskDtoProvider taskTableProvider = (TaskDtoProvider) table.getDataProvider();
-//                List<TaskDto> objects = taskTableProvider.getAvailableData();
-//                if (objects == null || objects.isEmpty()) {
-//                    return;
-//                }
-//                objects.forEach(taskDto -> {
-//                    if (taskDto.getOid().equals(rowModel.getObject().getOid())) {
-//                        boolean selected = rowModel.getObject().isSelected();
-//                        taskDto.setSelected(selected);
-//                    }
-//                });
-//                super.onUpdateRow(target, table, rowModel, selectedModel);
-//            }
-//        };
-//        columns.add(column);
-
-//        column = createTaskNameColumn();
-//        columns.add(column);
-
         columns.add(createTaskCategoryColumn());
-
         columns.addAll(initCustomTaskColumns());
-
-        IColumn<TaskSelectableBean, String> menuColumn = new InlineMenuButtonColumn<>(createTasksInlineMenu(true, null), this);
-        columns.add(menuColumn);
 
         return columns;
     }
 
-//    private IColumn<TaskSelectableBean, String> createTaskNameColumn() {
-//        LinkColumn<TaskSelectableBean> nameColumn = new LinkColumn<TaskSelectableBean>(createStringResource("pageTasks.task.name"), TaskDto.F_NAME,
-//                TaskSelectableBean.F_VALUE + "." + TaskDto.F_NAME) {
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target, IModel<TaskSelectableBean> rowModel) {
-//                TaskSelectableBean task = rowModel.getObject();
-//                taskDetailsPerformed(target, task.getValue().getOid());
-//            }
-//
-//
-//
-//            @Override
-//            public boolean isEnabled(IModel<TaskSelectableBean> rowModel) {
-//                return super.isEnabled(rowModel) && rowModel.getObject().getValue().getOid() != null;
-//            }
-//        };
-//        return nameColumn;
-//    }
-
     private IColumn<TaskSelectableBean, String> createTaskCategoryColumn() {
-            return new AbstractExportableColumn<TaskSelectableBean, String>(createStringResource("pageTasks.task.category")) {
+            return new AbstractExportableColumn<TaskSelectableBean, String>(createStringResource("pageTasks.task.category"), TaskType.F_CATEGORY.getLocalPart()) {
 
                 @Override
                 public void populateItem(Item<ICellPopulator<TaskSelectableBean>> item, String componentId,
@@ -245,7 +234,7 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
 
         });
         columns.add(createTaskExecutionStatusColumn());
-        columns.add(new PropertyColumn<>(createStringResource("pageTasks.task.executingAt"), TaskSelectableBean.F_VALUE + ".nodeAsObserved"));
+        columns.add(new PropertyColumn<>(createStringResource("pageTasks.task.executingAt"), TaskSelectableBean.F_VALUE + "." + TaskType.F_NODE_AS_OBSERVED.getLocalPart()));
         columns.add(createProgressColumn("pageTasks.task.progress", this::isProgressComputationEnabled));
         columns.add(new AbstractExportableColumn<TaskSelectableBean, String>(createStringResource("pageTasks.task.currentRunTime")) {
 
@@ -404,9 +393,10 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
         long current = System.currentTimeMillis();
 
         if (getExecution(taskBean.getValue()) == TaskDtoExecutionStatus.RUNNING) {
-            if (!taskBean.getCurrentEditableState().isRecurring()) {
+
+            if (TaskRecurrenceType.RECURRING != taskBean.getValue().getRecurrence()) {
                 return null;
-            } else if (taskBean.getCurrentEditableState().isBound()) {
+            } else if (TaskBindingType.TIGHT == taskBean.getValue().getBinding()) {
                 return RUNS_CONTINUALLY;             // runs continually; todo provide some information also in this case
             }
         }
@@ -449,11 +439,6 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
         }
 
         return WebComponentUtil.getDisplayNameOrName(task.getObjectRef());
-//        if (StringUtils.isNotEmpty(task.getObjectRefName())) {
-//            return task.getObjectRefName();
-//        } else {
-//            return task.getObjectRef().getOid();
-//        }
     }
 
     public EnumPropertyColumn<TaskSelectableBean> createTaskExecutionStatusColumn() {
@@ -598,25 +583,9 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
         return subtasks;
     }
 
-
-//    private void fillInChildren(@NotNull TaskType taskType, TaskDtoProviderOptions options, Task opTask, OperationResult parentResult)
-//            throws SchemaException {
-//        TaskType thisTaskWithChildren = null;
-//        for (TaskType child : TaskTypeUtil.getResolvedSubtasks(taskType)) {
-//            TaskDto childTaskDto = new TaskDto(child, thisTaskWithChildren, modelService, taskService, modelInteractionService,
-//                    taskManager, workflowManager, options, false, opTask, parentResult, pageBase);
-//            addChildTaskDto(childTaskDto);
-//            thisTaskWithChildren = childTaskDto.parentTaskType;     // to avoid repeated reads
-//        }
-//    }
-
     public boolean isWorkStateHolder(TaskSelectableBean taskType) {
-        return (taskType.isCoordinator() || hasBuckets(taskType.getValue())) && !isCoordinatedWorker(taskType.getValue());
+        return (TaskTypeUtil.isCoordinator(taskType.getValue()) || hasBuckets(taskType.getValue())) && !isCoordinatedWorker(taskType.getValue());
     }
-
-//    public boolean isCoordinator(TaskType taskType) {
-//        return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.COORDINATOR;
-//    }
 
     public boolean isCoordinatedWorker(TaskType taskType) {
         return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.WORKER;
@@ -684,24 +653,19 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
 
 
 
-    private List<InlineMenuItem> createTasksInlineMenu(boolean isHeader, TaskDto dto) {
+    private List<InlineMenuItem> createTasksInlineMenu(boolean isHeader) {
         List<InlineMenuItem> items = new ArrayList<>();
         items.add(new ButtonInlineMenuItem(createStringResource("pageTasks.button.suspendTask")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<TaskDto>() {
+                return new ColumnMenuAction<TaskSelectableBean>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-//                        if (getRowModel() == null) {
-//                            suspendTasksPerformed(target);
-//                        } else {
-//                            TaskDto rowDto = getRowModel().getObject();
-//                            suspendTaskPerformed(target, rowDto);
-//                        }
+                            suspendTasksPerformed(target, getRowModel());
                     }
                 };
             }
@@ -722,17 +686,12 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<TaskDto>() {
+                return new ColumnMenuAction<TaskSelectableBean>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-//                        if (getRowModel() == null) {
-//                            resumeTasksPerformed(target);
-//                        } else {
-//                            TaskDto rowDto = getRowModel().getObject();
-//                            resumeTaskPerformed(target, rowDto);
-//                        }
+                            resumeTasksPerformed(target, getRowModel());
                     }
                 };
             }
@@ -753,17 +712,12 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<TaskDto>() {
+                return new ColumnMenuAction<TaskSelectableBean>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-//                        if (getRowModel() == null) {
-//                            scheduleTasksPerformed(target);
-//                        } else {
-//                            TaskDto rowDto = getRowModel().getObject();
-//                            scheduleTaskPerformed(target, rowDto);
-//                        }
+                            scheduleTasksPerformed(target, getRowModel());
                     }
                 };
             }
@@ -799,6 +753,11 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
                 String actionName = createStringResource("pageTasks.message.deleteAction").getString();
                 return PageTasksNew.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
         });
 
         InlineMenuItem reconcileWorkers = new InlineMenuItem(createStringResource("pageTasks.button.reconcileWorkers")) {
@@ -820,11 +779,15 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
                     }
                 };
             }
-
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.reconcileWorkersAction").getString();
                 return PageTasksNew.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+            }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
             }
         };
         reconcileWorkers.setVisibilityChecker(PageTasksNew::isCoordinator);
@@ -855,6 +818,11 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
                 String actionName = createStringResource("pageTasks.message.suspendAction").getString();
                 return PageTasksNew.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
         };
         suspendRootOnly.setVisibilityChecker(PageTasksNew::isManageableTreeRoot);
         items.add(suspendRootOnly);
@@ -884,6 +852,11 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
                 String actionName = createStringResource("pageTasks.message.resumeAction").getString();
                 return PageTasksNew.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
         };
         resumeRootOnly.setVisibilityChecker(PageTasksNew::isManageableTreeRoot);
         items.add(resumeRootOnly);
@@ -912,6 +885,11 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.deleteWorkersAndWorkState").getString();
                 return PageTasksNew.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+            }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
             }
         };
         deleteWorkStateAndWorkers.setVisibilityChecker(PageTasksNew::isManageableTreeRoot);
@@ -967,8 +945,156 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
                 }
 
             });
+
         }
         return items;
+    }
+
+    //region Task-level actions
+    private void suspendTasksPerformed(AjaxRequestTarget target, IModel<TaskSelectableBean> bean) {
+        List<TaskType> selectedTasks = new ArrayList<>();
+        if (bean != null) {
+            selectedTasks.add(bean.getObject().getValue());
+        } else {
+            selectedTasks = getObjectListPanel().getSelectedObjects();
+        }
+//        List<TaskDto> dtoList = WebComponentUtil.getSelectedData(getTaskTable());
+//        if (!isSomeTaskSelected(dtoList, target)) {
+//            return;
+//        }
+        if (selectedTasks.isEmpty()) {
+            getSession().warn("PagetTasks.nothing.selected");
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        suspendTasksPerformed(target, selectedTasks);
+    }
+
+    private void suspendTasksPerformed(AjaxRequestTarget target, List<TaskType> dtoList) {
+        Task opTask = createSimpleTask(TaskDtoTablePanel.OPERATION_SUSPEND_TASKS);
+        OperationResult result = opTask.getResult();
+        try {
+            List<TaskType> plainTasks = dtoList.stream().filter(dto -> !isManageableTreeRoot(dto)).collect(Collectors.toList());
+            List<TaskType> trees = dtoList.stream().filter(dto -> isManageableTreeRoot(dto)).collect(Collectors.toList());
+            boolean suspendedPlain = suspendPlainTasks(plainTasks, result, opTask);
+            boolean suspendedTrees = suspendTrees(trees, result, opTask);
+            result.computeStatus();
+            if (result.isSuccess()) {
+                if (suspendedPlain && suspendedTrees) {
+                    result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.suspendTasksPerformed.success").getString());
+                } else {
+                    result.recordWarning( createStringResource("pageTasks.message.suspendTasksPerformed.warning").getString());
+                }
+            }
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
+            result.recordFatalError(createStringResource("pageTasks.message.suspendTasksPerformed.fatalError").getString(), e);
+        }
+        showResult(result);
+
+        //refresh feedback and table
+        getObjectListPanel().refreshTable(TaskType.class, target);
+    }
+
+    private void resumeTasksPerformed(AjaxRequestTarget target, IModel<TaskSelectableBean> selectedTask) {
+
+        List<TaskType> selectedTasks = new ArrayList<>();
+        if (selectedTask != null) {
+            selectedTasks.add(selectedTask.getObject().getValue());
+        } else {
+            selectedTasks = getObjectListPanel().getSelectedObjects();
+        }
+
+        if (selectedTasks.isEmpty()) {
+            getSession().warn("PagetTasks.nothing.selected");
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        resumeTasksPerformed(target, selectedTasks);
+
+
+    }
+    private void resumeTasksPerformed(AjaxRequestTarget target, List<TaskType> dtoList) {
+        Task opTask = createSimpleTask(TaskDtoTablePanel.OPERATION_RESUME_TASKS);
+        OperationResult result = opTask.getResult();
+        try {
+            List<TaskType> plainTasks = dtoList.stream().filter(dto -> !isManageableTreeRoot(dto)).collect(Collectors.toList());
+            List<TaskType> trees = dtoList.stream().filter(dto -> isManageableTreeRoot(dto)).collect(Collectors.toList());
+            getTaskService().resumeTasks(TaskSelectableBean.getOids(plainTasks), opTask, result);
+            for (TaskType tree : trees) {
+                getTaskService().resumeTaskTree(tree.getOid(), opTask, result);
+            }
+            result.computeStatus();
+            if (result.isSuccess()) {
+                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.resumeTasksPerformed.success").getString());
+            }
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
+            result.recordFatalError(createStringResource("pageTasks.message.resumeTasksPerformed.fatalError").getString(), e);
+        }
+        showResult(result);
+
+        //refresh feedback and table
+        getObjectListPanel().refreshTable(TaskType.class, target);
+    }
+
+    private boolean suspendPlainTasks(List<TaskType> plainTasks, OperationResult result, Task opTask)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        if (!plainTasks.isEmpty()) {
+            return getTaskService().suspendTasks(TaskSelectableBean.getOids(plainTasks), PageTasks.WAIT_FOR_TASK_STOP, opTask, result);
+        } else {
+            return true;
+        }
+    }
+
+    private boolean suspendTrees(List<TaskType> roots, OperationResult result, Task opTask)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        boolean suspended = true;
+        if (!roots.isEmpty()) {
+            for (TaskType root : roots) {
+                boolean s = getTaskService().suspendTaskTree(root.getOid(), PageTasks.WAIT_FOR_TASK_STOP, opTask, result);
+                suspended = suspended && s;
+            }
+        }
+        return suspended;
+    }
+
+    private void scheduleTasksPerformed(AjaxRequestTarget target, IModel<TaskSelectableBean> selectedTask) {
+        List<String> oids = new ArrayList<>();
+        if (selectedTask != null) {
+            oids.add(selectedTask.getObject().getValue().getOid());
+        } else {
+            oids = TaskSelectableBean.getOids(getObjectListPanel().getSelectedObjects());
+        }
+
+        if (oids.isEmpty()) {
+            getSession().warn("PagetTasks.nothing.selected");
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        scheduleTasksPerformed(target, oids);
+
+    }
+
+    private void scheduleTasksPerformed(AjaxRequestTarget target, List<String> oids) {
+        Task opTask = createSimpleTask(TaskDtoTablePanel.OPERATION_SCHEDULE_TASKS);
+        OperationResult result = opTask.getResult();
+        try {
+            getTaskService().scheduleTasksNow(oids, opTask, result);
+            result.computeStatus();
+            if (result.isSuccess()) {
+                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.scheduleTasksPerformed.success").getString());
+            }
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
+            result.recordFatalError(createStringResource("pageTasks.message.scheduleTasksPerformed.fatalError").getString(), e);
+        }
+        showResult(result);
+
+        //refresh feedback and table
+        getObjectListPanel().refreshTable(TaskType.class, target);
     }
 
     private IModel<String> getTaskConfirmationMessageModel(ColumnMenuAction action, String actionName) {
@@ -976,7 +1102,7 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
             return createStringResource("pageTasks.message.confirmationMessageForMultipleTaskObject", actionName, 1);
 //                    WebComponentUtil.getSelectedData(()).size());
         } else {
-            String objectName = ((TaskDto) (action.getRowModel().getObject())).getName();
+            String objectName = ((TaskSelectableBean) (action.getRowModel().getObject())).getValue().getName().getOrig();
             return createStringResource("pageTasks.message.confirmationMessageForSingleTaskObject", actionName, objectName);
         }
 
@@ -985,18 +1111,18 @@ public class PageTasksNew extends PageAdminObjectList implements Refreshable {
     // must be static, otherwise JVM crashes (probably because of some wicket serialization issues)
     private static boolean isCoordinator(IModel<?> rowModel, boolean isHeader) {
         TaskSelectableBean dto = getDto(rowModel, isHeader);
-        return dto != null && dto.isCoordinator();
+        return dto != null && TaskTypeUtil.isCoordinator(dto.getValue());
     }
 
 
     // must be static, otherwise JVM crashes (probably because of some wicket serialization issues)
     private static boolean isManageableTreeRoot(IModel<?> rowModel, boolean isHeader) {
         TaskSelectableBean dto = getDto(rowModel, isHeader);
-        return dto != null && isManageableTreeRoot(dto);
+        return dto != null && isManageableTreeRoot(dto.getValue());
     }
 
-    private static boolean isManageableTreeRoot(TaskSelectableBean dto) {
-        return dto.isCoordinator() || dto.isPartitionedMaster();
+    private static boolean isManageableTreeRoot(TaskType taskType) {
+        return TaskTypeUtil.isCoordinator(taskType) || TaskTypeUtil.isPartitionedMaster(taskType);
     }
 
     protected boolean isProgressComputationEnabled() {

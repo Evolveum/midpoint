@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -91,7 +92,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
 
                     @Override
                     protected SelectableBean<F> createObjectWrapper(UserSessionManagementType principal) {
-                        SelectableBean<F> user = new SelectableBean<F>((F) principal.getUser());
+                        SelectableBeanImpl<F> user = new SelectableBeanImpl<>((F) principal.getUser());
                         user.setActiveSessions(principal.getActiveSessions());
                         user.setNodes(principal.getNode());
                         return user;

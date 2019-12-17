@@ -20,10 +20,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskSelectableBeanProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
@@ -57,6 +59,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import org.apache.wicket.util.time.Duration;
 import org.jetbrains.annotations.NotNull;
 
 import static java.util.Collections.singleton;
@@ -133,11 +136,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
     @SuppressWarnings("unchecked")
     @NotNull
     public List<O> getSelectedObjects() {
-        BaseSortableDataProvider<SelectableBean<O>> dataProvider = getDataProvider();
+        BaseSortableDataProvider<? extends SelectableBean<O>> dataProvider = getDataProvider();
         if (dataProvider instanceof SelectableBeanObjectDataProvider) {
             return ((SelectableBeanObjectDataProvider<O>) dataProvider).getSelectedData();
         } else if (dataProvider instanceof ListDataProvider2) {
             return ((ListDataProvider2) dataProvider).getSelectedObjects();
+        } else if (dataProvider instanceof TaskSelectableBeanProvider) {
+            return (List<O>) ((TaskSelectableBeanProvider) dataProvider).getSelectedTasks();
         }
         return new ArrayList<>();
     }
@@ -203,7 +208,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 
         BoxedTablePanel<SelectableBean<O>> table = new BoxedTablePanel<SelectableBean<O>>(ID_TABLE, provider,
-                columns, tableId, tableId == null ? 10 : getPageBase().getSessionStorage().getUserProfile().getPagingSize(getTableIdKeyValue())) {
+                columns, tableId,
+                tableId == null ? 10 : getPageBase().getSessionStorage().getUserProfile().getPagingSize(getTableIdKeyValue()),
+                isRefreshEnabled()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -240,6 +247,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
         return table;
     }
+
+    protected abstract boolean isRefreshEnabled();
 
     protected WebMarkupContainer createHeader(String headerId) {
         return initSearch(headerId);
@@ -610,24 +619,24 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
     }
 
     public void refreshTable(Class<O> newTypeClass, AjaxRequestTarget target) {
-        ObjectTypes newType = newTypeClass != null ? ObjectTypes.getObjectType(newTypeClass) : null;
-
-        BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
-        provider.setQuery(getQuery());
-        if (newType != null && provider instanceof SelectableBeanObjectDataProvider) {
-            ((SelectableBeanObjectDataProvider<O>) provider).setType(newTypeClass);
-        }
+//        ObjectTypes newType = newTypeClass != null ? ObjectTypes.getObjectType(newTypeClass) : null;
+//
+//        BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
+//        provider.setQuery(getQuery());
+//        if (newType != null && provider instanceof SelectableBeanObjectDataProvider) {
+//            ((SelectableBeanObjectDataProvider<O>) provider).setType(newTypeClass);
+//        }
 
         BoxedTablePanel<SelectableBean<O>> table = getTable();
 
-        ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
-        if (newType != null && !this.type.equals(newType)) {
-            this.type = newType;
-            resetSearchModel();
-            table.setCurrentPage(null);
-        } else {
-            saveSearchModel(getCurrentTablePaging());
-        }
+//        ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
+//        if (newType != null && !this.type.equals(newType)) {
+//            this.type = newType;
+//            resetSearchModel();
+//            table.setCurrentPage(null);
+//        } else {
+//            saveSearchModel(getCurrentTablePaging());
+//        }
 
         target.add((Component) table);
         target.add(getPageBase().getFeedbackPanel());

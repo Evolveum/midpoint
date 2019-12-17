@@ -94,6 +94,11 @@ public class PageAttorneySelection extends PageBase {
                 UserProfileStorage.TableId.PAGE_USER_SELECTION, Collections.emptyList()) {
 
             @Override
+            protected boolean isRefreshEnabled() {
+                return false;
+            }
+
+            @Override
             protected IColumn<SelectableBean<UserType>, String> createCheckboxColumn() {
                 return null;
             }

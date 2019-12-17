@@ -39,6 +39,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         TABLE_ARCHETYPES,
         TABLE_RESOURCES,
         TABLE_VALUE_POLICIES,
+        TABLE_TASKS,
         ROLE_MEMEBER_PANEL,
         ORG_MEMEBER_PANEL,
         ARCHETYPE_MEMEBER_PANEL,

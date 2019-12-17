@@ -29,6 +29,7 @@ public class TaskDtoProviderOptions implements Serializable {
     private boolean retrieveSiblings = true;
     private boolean retrieveOperationResult = true;
     private boolean createHandlerDto = true;
+    private boolean resolveNames = true;
 
     public static TaskDtoProviderOptions minimalOptions() {
         TaskDtoProviderOptions options = new TaskDtoProviderOptions();
@@ -127,5 +128,9 @@ public class TaskDtoProviderOptions implements Serializable {
 
     public void setCreateHandlerDto(boolean createHandlerDto) {
         this.createHandlerDto = createHandlerDto;
+    }
+
+    public boolean isResolveNames() {
+        return resolveNames;
     }
 }

@@ -27,12 +27,14 @@ import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.util.time.Duration;
 
 import java.util.*;
 
@@ -178,11 +180,21 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
                 PageAdminObjectList.this.setDefaultSorting(provider);
             }
 
+            @Override
+            protected BaseSortableDataProvider<SelectableBean<O>> initProvider() {
+                if (getCustomProvider() != null) {
+                    return getCustomProvider();
+                }
+                return super.initProvider();
+            }
         };
 
         userListPanel.setAdditionalBoxCssClasses(WebComponentUtil.getBoxCssClasses(WebComponentUtil.classToQName(getPrismContext(), getType())));
         userListPanel.setOutputMarkupId(true);
         mainForm.add(userListPanel);
+    }
+    protected BaseSortableDataProvider<SelectableBean<O>> getCustomProvider() {
+        return null;
     }
 
     protected abstract Class<O> getType();

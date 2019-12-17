@@ -82,7 +82,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
     public SelectableBeanObjectDataProvider(Component component, Class<? extends O> type, Set<? extends O> selected ) {
-        super(component, true, true);
+        super(component, false, true);
 
         Validate.notNull(type);
         if (selected != null) {

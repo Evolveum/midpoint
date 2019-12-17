@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -133,6 +134,11 @@ public class MidpointAuthFilter extends GenericFilterBean {
         if (mpAuthentication != null && SecurityUtils.isPermitAll(httpRequest)) {
           sequence = mpAuthentication.getSequence();
         } else {
+            sequence = SecurityUtils.getSequence(httpRequest.getServletPath(), authenticationsPolicy);
+        }
+
+        if (sequence == null) {
+            authenticationsPolicy = getDefaultAuthenticationPolicy();
             sequence = SecurityUtils.getSequence(httpRequest.getServletPath(), authenticationsPolicy);
         }
 

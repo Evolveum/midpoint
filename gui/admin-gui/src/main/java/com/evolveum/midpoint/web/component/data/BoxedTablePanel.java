@@ -12,6 +12,7 @@ import java.util.List;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import org.apache.wicket.util.time.Duration;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -51,6 +53,9 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private UserProfileStorage.TableId tableId;
     private boolean showPaging;
     private String additionalBoxCssClasses = null;
+    private boolean isRefreshEnabled;
+
+    private static final Duration TIMER_IN_SECONDS = Duration.seconds(3);
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
         this(id, provider, columns, null, Integer.MAX_VALUE);
@@ -62,9 +67,15 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-            UserProfileStorage.TableId tableId, int pageSize) {
+                           UserProfileStorage.TableId tableId, int pageSize) {
+        this(id, provider, columns, tableId, pageSize, false);
+    }
+
+    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
+            UserProfileStorage.TableId tableId, int pageSize, boolean isRefreshEnabled) {
         super(id);
         this.tableId = tableId;
+        this.isRefreshEnabled = isRefreshEnabled;
 
         initLayout(columns, provider, pageSize);
     }
@@ -102,6 +113,9 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         table.setOutputMarkupId(true);
         tableContainer.add(table);
         box.add(tableContainer);
+        if (isRefreshEnabled) {
+            table.add(new AjaxSelfUpdatingTimerBehavior(TIMER_IN_SECONDS));
+        }
 
         TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider);
         headersTop.setOutputMarkupId(true);

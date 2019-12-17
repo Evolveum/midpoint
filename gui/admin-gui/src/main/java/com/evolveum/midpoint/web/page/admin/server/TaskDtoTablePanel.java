@@ -119,16 +119,16 @@ public class TaskDtoTablePanel extends BasePanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskDtoTablePanel.class);
     private static final String DOT_CLASS = TaskDtoTablePanel.class.getName() + ".";
-    private static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTasks";
-    private static final String OPERATION_SUSPEND_TASK = DOT_CLASS + "suspendTask";
-    private static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
-    private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
-    private static final String OPERATION_DELETE_TASKS = DOT_CLASS + "deleteTasks";
-    private static final String OPERATION_RECONCILE_WORKERS = DOT_CLASS + "reconcileWorkers";
-    private static final String OPERATION_DELETE_WORKERS_AND_WORK_STATE = DOT_CLASS + "deleteWorkersAndWorkState";
-    private static final String OPERATION_DELETE_WORK_STATE = DOT_CLASS + "deleteWorkState";
-    private static final String OPERATION_DELETE_ALL_CLOSED_TASKS = DOT_CLASS + "deleteAllClosedTasks";
-    private static final String OPERATION_SCHEDULE_TASKS = DOT_CLASS + "scheduleTasks";
+    public static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTasks";
+    public static final String OPERATION_SUSPEND_TASK = DOT_CLASS + "suspendTask";
+    public static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
+    public static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
+    public static final String OPERATION_DELETE_TASKS = DOT_CLASS + "deleteTasks";
+    public static final String OPERATION_RECONCILE_WORKERS = DOT_CLASS + "reconcileWorkers";
+    public static final String OPERATION_DELETE_WORKERS_AND_WORK_STATE = DOT_CLASS + "deleteWorkersAndWorkState";
+    public static final String OPERATION_DELETE_WORK_STATE = DOT_CLASS + "deleteWorkState";
+    public static final String OPERATION_DELETE_ALL_CLOSED_TASKS = DOT_CLASS + "deleteAllClosedTasks";
+    public static final String OPERATION_SCHEDULE_TASKS = DOT_CLASS + "scheduleTasks";
     private static final String ALL_CATEGORIES = "";
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
