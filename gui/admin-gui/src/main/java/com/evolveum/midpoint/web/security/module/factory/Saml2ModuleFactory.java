@@ -62,8 +62,8 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
     }
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence,
-                                         ServletRequest request, Map<Class<? extends Object>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy) throws Exception {
+    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, ServletRequest request,
+                                         Map<Class<? extends Object>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy) throws Exception {
         if (!(moduleType instanceof AuthenticationModuleSaml2Type)) {
             LOGGER.error("This factory support only AuthenticationModuleSaml2Type, but modelType is " + moduleType);
             return null;

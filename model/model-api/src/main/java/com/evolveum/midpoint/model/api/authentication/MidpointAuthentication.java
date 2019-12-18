@@ -7,14 +7,18 @@
 package com.evolveum.midpoint.model.api.authentication;
 
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
@@ -188,5 +192,74 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public String getName() {
+        if (getPrincipal() instanceof MidPointPrincipal) {
+            return ((MidPointPrincipal) getPrincipal()).getUsername();
+        }
+        return null;
+    }
+
+    public List<ModuleAuthentication> getParallelProcessingModules() {
+        int indexOfProcessingModule =  getIndexOfProcessingModule(false);
+        if (indexOfProcessingModule == -2) {
+            return new ArrayList<ModuleAuthentication>();
+        }
+        return getParallelProcessingModules(indexOfProcessingModule);
+    }
+
+    private List<ModuleAuthentication> getParallelProcessingModules(int actualIndex) {
+        List<ModuleAuthentication> parallelProcesingModules = new ArrayList<ModuleAuthentication>();
+        ModuleAuthentication processingModule = getAuthentications().get(actualIndex);
+        AuthenticationSequenceModuleType processingModuleType = getModules().get(actualIndex);
+        if (processingModule == null) {
+            return parallelProcesingModules;
+        }
+        parallelProcesingModules.add(processingModule);
+        for (int i = actualIndex + 1; i < getModules().size(); i++) {
+            if (getModules().get(i) != null
+                    && processingModuleType.getOrder() == getModules().get(i).getOrder())
+                parallelProcesingModules.add(getAuthModules().get(i).getBaseModuleAuthentication());
+        }
+
+        return parallelProcesingModules;
+    }
+
+    public int resolveParallelModules(HttpServletRequest request, int actualIndex) {
+        String header = request.getHeader("Authorization");
+        if (header == null){
+            return actualIndex;
+        }
+        int delim = header.indexOf(" ");
+
+        if (delim == -1) {
+            throw new IllegalArgumentException("Invalid authentication header, value of header don't contains delimiter ' '."
+                    + " Please use form 'Authorization: <type> <credentials>'");
+        }
+        String type = header.split(" ")[0];
+        List<ModuleAuthentication> parallelProcesingModules = getParallelProcessingModules(actualIndex);
+        int resolvedIndex = -1;
+        for (ModuleAuthentication parallelProcesingModule : parallelProcesingModules) {
+            if (parallelProcesingModule.getNameOfModuleType().getName().toLowerCase().equals(type.toLowerCase())
+            && resolvedIndex == -1) {
+                parallelProcesingModule.setState(StateOfModule.LOGIN_PROCESSING);
+                resolvedIndex = actualIndex;
+            } else {
+                parallelProcesingModule.setState(StateOfModule.FAILURE);
+            }
+            if (getAuthentications().size() > actualIndex){
+                getAuthentications().set(actualIndex, parallelProcesingModule);
+            } else {
+                getAuthentications().add(parallelProcesingModule);
+            }
+            actualIndex++;
+        }
+        if (resolvedIndex == -1){
+            throw new IllegalArgumentException("Couldn't find module with type '" + type + "' in sequence '"
+                    + getSequence().getName() + "'");
+        }
+        return resolvedIndex;
     }
 }

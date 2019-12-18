@@ -11,15 +11,11 @@ import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.MidpointAuthenticationFauileHandler;
-import com.evolveum.midpoint.web.security.MidpointServiceProviderLogoutHandler;
+import com.evolveum.midpoint.web.security.*;
 import com.evolveum.midpoint.web.security.filter.MidpointSamlAuthenticationRequestFilter;
 import com.evolveum.midpoint.web.security.filter.MidpointSamlAuthenticationResponseFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler;
-import com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator;
-import com.evolveum.midpoint.web.security.WicketLoginUrlAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
@@ -77,7 +73,6 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
 
         http.apply(new MidpointExceptionHandlingConfigurer())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/saml2/select"));
-//                .accessDeniedHandler(accessDeniedHandler)
 //                .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
 
         http.addFilterAfter(

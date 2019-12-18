@@ -62,6 +62,7 @@ public final class DescriptorLoader implements DebugDumpable {
 
     private static Map<String, DisplayableValue<String>[]> actions = new HashMap<>();
     private static List<String> permitAllUrls = new ArrayList<>();
+    private static List<String> loginPages = new ArrayList<>();
     private static Map<String, Class> urlClassMap = new HashMap<>();
 
     public static Map<String, DisplayableValue<String>[]> getActions() {
@@ -74,6 +75,10 @@ public final class DescriptorLoader implements DebugDumpable {
 
     public static Collection<String> getPermitAllUrls() {
         return permitAllUrls;
+    }
+
+    public static List<String> getLoginPages() {
+        return loginPages;
     }
 
     public void loadData(MidPointApplication application) {
@@ -118,6 +123,10 @@ public final class DescriptorLoader implements DebugDumpable {
     }
 
     private void loadActions(PageDescriptor descriptor) {
+
+        if(descriptor.loginPage()) {
+            foreachUrl(descriptor, url -> loginPages.add(url));
+        }
 
         if (descriptor.permitAll()) {
             foreachUrl(descriptor, url -> permitAllUrls.add(url));

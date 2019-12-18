@@ -6,14 +6,25 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
+import com.evolveum.midpoint.model.api.authentication.AuthModule;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.security.module.factory.AuthModuleRegistryImpl;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.util.Assert;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -21,7 +32,9 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author skublik
@@ -31,8 +44,15 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointAnonymousAuthenticationFilter.class);
 
-    public MidpointAnonymousAuthenticationFilter(String key, Object principal, List<GrantedAuthority> authorities) {
+    private AuthModuleRegistryImpl authRegistry;
+
+    private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
+    private String key;
+
+    public MidpointAnonymousAuthenticationFilter(AuthModuleRegistryImpl authRegistry, String key, Object principal, List<GrantedAuthority> authorities) {
         super(key, principal, authorities);
+        this.key = key;
+        this.authRegistry = authRegistry;
     }
 
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -52,7 +72,7 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
                 MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
                 ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
                 if (moduleAuthentication != null && moduleAuthentication.getAuthentication() == null) {
-                    Authentication authentication = createAuthentication((HttpServletRequest) req);
+                    Authentication authentication = createBasicAuthentication((HttpServletRequest) req);
                     moduleAuthentication.setAuthentication(authentication);
                     mpAuthentication.setPrincipal(authentication.getPrincipal());
                 }
@@ -64,5 +84,36 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
         }
 
         chain.doFilter(req, res);
+    }
+
+    protected Authentication createAuthentication(HttpServletRequest request) {
+        Authentication auth = createBasicAuthentication(request);
+
+        MidpointAuthentication authentication = new MidpointAuthentication(SecurityPolicyUtil.createDefaultSequence());
+        AuthenticationsPolicyType authenticationsPolicy = SecurityPolicyUtil.createDefaultAuthenticationPolicy();
+        AuthenticationSequenceType sequence = SecurityPolicyUtil.createDefaultSequence();
+        List<AuthModule> authModules = SecurityUtils.buildModuleFilters(authRegistry, sequence, request, authenticationsPolicy.getModules(),
+                null, new HashMap<Class<? extends Object>, Object>());
+        authentication.setAuthModules(authModules);
+        ModuleAuthentication module = authModules.get(0).getBaseModuleAuthentication();
+        module.setAuthentication(auth);
+        authentication.addAuthentications(module);
+        authentication.setPrincipal(auth.getPrincipal());
+        return authentication;
+    }
+
+    protected Authentication createBasicAuthentication(HttpServletRequest request) {
+        AnonymousAuthenticationToken auth = new AnonymousAuthenticationToken(key,
+                getPrincipal(), getAuthorities());
+        auth.setDetails(authenticationDetailsSource.buildDetails(request));
+
+        return auth;
+    }
+
+    public void setAuthenticationDetailsSource(
+            AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource) {
+        Assert.notNull(authenticationDetailsSource,
+                "AuthenticationDetailsSource required");
+        this.authenticationDetailsSource = authenticationDetailsSource;
     }
 }

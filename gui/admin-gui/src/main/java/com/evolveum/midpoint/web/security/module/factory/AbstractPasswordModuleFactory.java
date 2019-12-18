@@ -13,8 +13,6 @@ import com.evolveum.midpoint.model.api.authentication.AuthModuleImpl;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
-import com.evolveum.midpoint.web.security.provider.InternalPasswordProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -50,21 +48,22 @@ public abstract class AbstractPasswordModuleFactory extends AbstractModuleFactor
 
         ModuleWebSecurityConfiguration configuration = createConfiguration(moduleType, prefixOfSequence);
 
-        configuration.addAuthenticationProvider(getProvider(((AbstractPasswordAuthenticationModuleType)moduleType).getCredentialName(), credentialPolicy));
+        configuration.addAuthenticationProvider(getProvider((AbstractPasswordAuthenticationModuleType)moduleType, credentialPolicy));
 
         ModuleWebSecurityConfig module = createModule(configuration);
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);
 
-        ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication(configuration);
+        ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication(moduleType, configuration);
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 
-    protected AuthenticationProvider getProvider(String credentialName, CredentialsPolicyType credentialsPolicy){
-        Validate.notNull(credentialsPolicy);
+    protected AuthenticationProvider getProvider(AbstractPasswordAuthenticationModuleType moduleType, CredentialsPolicyType credentialsPolicy){
+//        Validate.notNull(credentialsPolicy);
         CredentialPolicyType usedPolicy = null;
+        String credentialName = moduleType.getCredentialName();
 
         if (StringUtils.isNotBlank(credentialName)) {
             List<CredentialPolicyType> credentialPolicies = new ArrayList<CredentialPolicyType>();
@@ -78,16 +77,33 @@ public abstract class AbstractPasswordModuleFactory extends AbstractModuleFactor
                 }
             }
         }
-
-        if (usedPolicy == null || usedPolicy instanceof PasswordCredentialsPolicyType) {
-            return getObjectObjectPostProcessor().postProcess(new InternalPasswordProvider());
+        if (usedPolicy == null && PasswordCredentialsPolicyType.class.equals(supportedClass())) {
+            return getObjectObjectPostProcessor().postProcess(createProvider(null));
         }
-        return null;
+        if (usedPolicy == null) {
+            String message = StringUtils.isBlank(credentialName) ? ("Couldn't find credentialfor module " + moduleType) : ("Couldn't find credential with name " + credentialName);
+            IllegalArgumentException e = new IllegalArgumentException(message);
+            LOGGER.error(message);
+            throw e;
+        }
+
+        if (!usedPolicy.getClass().equals(supportedClass())) {
+            String message = "Module " + moduleType.getName() + "support only " + supportedClass() + " type of credential" ;
+            IllegalArgumentException e = new IllegalArgumentException(message);
+            LOGGER.error(message);
+            throw e;
+        }
+
+        return getObjectObjectPostProcessor().postProcess(createProvider(usedPolicy));
     };
 
-    protected abstract ModuleAuthentication createEmptyModuleAuthentication(ModuleWebSecurityConfiguration configuration);
+    protected abstract ModuleAuthentication createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, ModuleWebSecurityConfiguration configuration);
 
     protected abstract ModuleWebSecurityConfiguration createConfiguration (AbstractAuthenticationModuleType moduleType, String prefixOfSequence);
 
     protected abstract ModuleWebSecurityConfig createModule (ModuleWebSecurityConfiguration configuration);
+
+    protected abstract AuthenticationProvider createProvider (CredentialPolicyType usedPolicy);
+
+    protected abstract Class<? extends CredentialPolicyType> supportedClass ();
 }
