@@ -33,9 +33,6 @@ import static org.springframework.security.saml.util.StringUtils.stripEndingSlas
 public class LoginFormModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
 
     @Autowired
-    private MidPointAccessDeniedHandler accessDeniedHandler;
-
-    @Autowired
     private AuditedLogoutHandler auditedLogoutHandler;
 
     @Autowired

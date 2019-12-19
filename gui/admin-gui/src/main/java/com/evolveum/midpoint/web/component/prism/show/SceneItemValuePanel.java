@@ -76,6 +76,9 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
                     return;
                 }
                 PrismReferenceValue refValue = (PrismReferenceValue) getModelObject().getSourceValue();
+                if (refValue == null){
+                    return;
+                }
                 ObjectReferenceType ort = new ObjectReferenceType();
                 ort.setupReferenceValue(refValue);
                 WebComponentUtil.dispatchToObjectDetailsPage(ort, getPageBase(), false);
@@ -95,13 +98,13 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
     }
 
     private boolean hasValidReferenceValue(SceneItemValue object) {
-        return object != null && object.getSourceValue() instanceof PrismReferenceValue
+        return object != null && object.getSourceValue() != null && object.getSourceValue() instanceof PrismReferenceValue
                 && ((PrismReferenceValue) object.getSourceValue()).getTargetType() != null;
     }
 
     private ObjectTypeGuiDescriptor getObjectTypeDescriptor() {
         SceneItemValue value = getModelObject();
-        if (value != null && value.getSourceValue() instanceof PrismReferenceValue) {
+        if (value != null && value.getSourceValue() != null && value.getSourceValue() instanceof PrismReferenceValue) {
             QName targetType = ((PrismReferenceValue) value.getSourceValue()).getTargetType();
             return ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(targetType));
         } else {

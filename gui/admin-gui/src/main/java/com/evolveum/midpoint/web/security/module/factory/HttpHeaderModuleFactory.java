@@ -48,8 +48,8 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
     }
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence,
-                                         ServletRequest request, Map<Class<? extends Object>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy) throws Exception {
+    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, ServletRequest request,
+                                         Map<Class<? extends Object>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy) throws Exception {
         if (!(moduleType instanceof AuthenticationModuleHttpHeaderType)) {
             LOGGER.error("This factory support only AuthenticationModuleHttpHeaderType, but modelType is " + moduleType);
             return null;

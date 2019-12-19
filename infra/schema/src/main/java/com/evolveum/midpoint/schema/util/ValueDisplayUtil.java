@@ -34,11 +34,12 @@ import java.util.Date;
  */
 public class ValueDisplayUtil {
     public static String toStringValue(PrismPropertyValue propertyValue) {
+        if (propertyValue == null || propertyValue.getValue() == null){
+            return null;
+        }
         Object value = propertyValue.getValue();
         String defaultStr = "(a value of type " + value.getClass().getSimpleName() + ")";  // todo i18n
-        if (value == null) {
-            return null;
-        } else if (value instanceof String) {
+        if (value instanceof String) {
             return (String) value;
         } else if (value instanceof PolyString) {
             return ((PolyString) value).getOrig();

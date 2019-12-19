@@ -35,6 +35,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.springframework.security.saml.util.StringUtils.stripSlashes;
+
 /**
  * @author skublik
  */
@@ -241,5 +243,10 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         if (getSamlConfiguration() == null) {
             throw new IllegalArgumentException("Saml configuration is null");
         }
+        if (StringUtils.isBlank(stripSlashes(getPrefixOfSequence()))) {
+            throw new IllegalArgumentException("Suffix in channel of sequence  can't be null for this usecase");
+        }
     }
+
+
 }

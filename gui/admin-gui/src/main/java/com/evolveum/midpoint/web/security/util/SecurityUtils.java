@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.security.util;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.authentication.AuthModuleImpl;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -64,7 +65,8 @@ public class SecurityUtils {
     private static final Map<String, String> MY_MAP;
     static {
         Map<String, String> map = new HashMap<String, String>();
-        map.put("rest", "http://midpoint.evolveum.com/xml/ns/public/model/channels-3#rest");
+        map.put("rest", SchemaConstants.CHANNEL_REST_URI);
+        map.put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI);
         MY_MAP = Collections.unmodifiableMap(map);
     }
 
@@ -287,6 +289,16 @@ public class SecurityUtils {
         return false;
     }
 
+    public static boolean isLoginPage(HttpServletRequest request) {
+        for (String url: DescriptorLoader.getLoginPages()) {
+            AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
+            if (matcher.matches(request)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static ModuleAuthentication getProcessingModule(boolean required) {
         Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -312,11 +324,11 @@ public class SecurityUtils {
         request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
     }
 
-    public static ModuleAuthentication createDefaultAuthenticationModule() {
-        LoginFormModuleAuthentication moduleAuthentication = new LoginFormModuleAuthentication();
-        moduleAuthentication.setPrefix(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
-                + ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_NAME + "/");
-        moduleAuthentication.setNameOfModule(SecurityPolicyUtil.DEFAULT_MODULE_NAME);
-        return moduleAuthentication;
-    }
+//    public static ModuleAuthentication createDefaultAuthenticationModule() {
+//        LoginFormModuleAuthentication moduleAuthentication = new LoginFormModuleAuthentication();
+//        moduleAuthentication.setPrefix(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
+//                + ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_NAME + "/");
+//        moduleAuthentication.setNameOfModule(SecurityPolicyUtil.DEFAULT_MODULE_NAME);
+//        return moduleAuthentication;
+//    }
 }

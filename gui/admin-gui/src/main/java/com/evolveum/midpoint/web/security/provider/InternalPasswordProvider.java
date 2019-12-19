@@ -29,12 +29,20 @@ import java.util.List;
  * @author skublik
  */
 
-public class InternalPasswordProvider extends MidPointAbstractAuthenticationProvider<PasswordAuthenticationContext> {
+public class InternalPasswordProvider extends PasswordProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(InternalPasswordProvider.class);
 
     @Autowired
     private transient AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
+
+    public InternalPasswordProvider() {
+        this(null);
+    }
+
+    public InternalPasswordProvider(String nameOfCredential) {
+        super(nameOfCredential);
+    }
 
     @Override
     protected AuthenticationEvaluator<PasswordAuthenticationContext> getEvaluator() {

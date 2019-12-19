@@ -94,4 +94,6 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
             throw new IllegalArgumentException("NameOfModule is blank");
         }
     }
+
+
 }

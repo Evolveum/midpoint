@@ -36,4 +36,9 @@ public @interface PageDescriptor {
      * Permit access to all users (even non-authenticated users)
      */
     boolean permitAll() default false;
+
+    /**
+     * Indicate login page, Permit access to all users (even non-authenticated users)
+     */
+    boolean loginPage() default false;
 }

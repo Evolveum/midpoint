@@ -42,7 +42,7 @@ import static java.lang.String.format;
  */
 @PageDescriptor(urls = {
                     @Url(mountUrl = "/saml2/select", matchUrlForSecurity = "/saml2/select")
-                }, permitAll = true)
+                }, permitAll = true, loginPage = true)
 public class PageSamlSelect extends PageBase implements Serializable {
     private static final long serialVersionUID = 1L;
 

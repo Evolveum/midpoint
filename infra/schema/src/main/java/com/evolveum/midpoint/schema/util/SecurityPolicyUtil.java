@@ -11,13 +11,17 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.Validate;
 
+import javax.xml.namespace.QName;
+
 public class SecurityPolicyUtil {
 
-    public static final String DEFAULT_CHANNEL = "http://midpoint.evolveum.com/xml/ns/public/model/channels-3#user";
+    public static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_USER_URI;
+    public static final QName DEFAULT_CHANNEL_QNAME = SchemaConstants.CHANNEL_USER_QNAME;
     public static final String DEFAULT_MODULE_NAME = "loginForm";
     public static final String DEFAULT_SEQUENCE_NAME = "admin-gui-default";
 
@@ -192,6 +196,7 @@ public class SecurityPolicyUtil {
         AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
         channel.setDefault(true);
         channel.channelId(DEFAULT_CHANNEL);
+        channel.setUrlSuffix("default");
         sequence.channel(channel);
         AuthenticationSequenceModuleType module = new AuthenticationSequenceModuleType();
         module.name(DEFAULT_MODULE_NAME);
