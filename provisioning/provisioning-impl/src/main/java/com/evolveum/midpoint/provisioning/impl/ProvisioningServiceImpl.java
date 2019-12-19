@@ -556,10 +556,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         if (ResourceType.class.equals(type)) {
-
-                PrismObject<ResourceType> completeResource = resourceManager.getResource((PrismObject<ResourceType>) inObject,
-                        SelectorOptions.findRootOptions(options), task, result);
-                return (PrismObject<T>) completeResource;
+            //noinspection unchecked
+            return (PrismObject<T>) resourceManager.completeResource((PrismObject<ResourceType>) inObject,
+                    SelectorOptions.findRootOptions(options), task, result);
         } else if (ShadowType.class.equals(type)) {
             // should not happen, the shadow-related code is already in the ShadowCache
             throw new IllegalStateException("BOOOM!");
@@ -568,7 +567,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         }
         return inObject;
-
     }
 
     public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
@@ -749,7 +747,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         } else if (object.canRepresent(ResourceType.class)) {
 
-            resourceManager.deleteResource(oid, options, task, result);
+            resourceManager.deleteResource(oid, result);
 
         } else {
 
