@@ -6,36 +6,73 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.api.Cacheable;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.cache.CacheRegistry;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static com.evolveum.midpoint.util.caching.CacheConfiguration.StatisticsLevel.PER_CACHE;
 
 /**
- * Class for caching ResourceType instances with a parsed schemas.
+ * Caches ResourceType instances with a parsed schemas.
+ *
+ * Resource cache is similar to repository cache. One of the differences is that it does not expire its entries.
+ * It relies on versions and on invalidation events instead. So we have to use resource object versions when querying it.
+ * (This could be perhaps changed in the future. But not now.)
  *
  * @author Radovan Semancik
- *
  */
 @Component
-public class ResourceCache {
+public class ResourceCache implements Cacheable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceCache.class);
 
-    private Map<String,PrismObject<ResourceType>> cache;
+    @Autowired private PrismContext prismContext;
+    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired @Qualifier("cacheRepositoryService")
+    private RepositoryService repositoryService;
 
-    ResourceCache() {
-        cache = new HashMap<>();
+    @PostConstruct
+    public void register() {
+        cacheRegistry.registerCacheableService(this);
     }
 
-    public synchronized void put(PrismObject<ResourceType> resource) throws SchemaException {
+    @PreDestroy
+    public void unregister() {
+        cacheRegistry.unregisterCacheableService(this);
+    }
+
+    /**
+     * Note that prism objects in this map are always immutable. And they must remain immutable after getting them
+     * from the cache. So no "modifyUnfrozen" and similar tricks!
+     *
+     * As for ConcurrentHashMap: Although we use synchronization whenever possible, let's be extra cautious here.
+     */
+    private final Map<String, PrismObject<ResourceType>> cache = new ConcurrentHashMap<>();
+
+    synchronized void put(PrismObject<ResourceType> resource) throws SchemaException {
         String oid = resource.getOid();
         if (oid == null) {
             throw new SchemaException("Attempt to cache "+resource+" without an OID");
@@ -50,70 +87,84 @@ public class ResourceCache {
         if (cachedResource == null) {
             LOGGER.debug("Caching(new): {}", resource);
             cache.put(oid, resource.createImmutableClone());
+        } else if (compareVersion(resource.getVersion(), cachedResource.getVersion())) {
+            LOGGER.debug("Caching fizzle, resource already cached: {}", resource);
+            // We already have equivalent resource, nothing to do
+            //  TODO is this correct? What if the resource being put here is newer than the existing one (although having the same version)?
         } else {
-            if (compareVersion(resource.getVersion(), cachedResource.getVersion())) {
-                LOGGER.debug("Caching fizzle, resource already cached: {}", resource);
-                // We already have equivalent resource, nothing to do
-            } else {
-                LOGGER.debug("Caching(replace): {}", resource);
-                cache.put(oid, resource.createImmutableClone());
-            }
+            LOGGER.debug("Caching(replace): {}", resource);
+            cache.put(oid, resource.createImmutableClone());
         }
     }
 
     private boolean compareVersion(String version1, String version2) {
-        if (version1 == null && version2 == null) {
-            return true;
-        }
-        if (version1 == null || version2 == null) {
-            return false;
-        }
-        return version1.equals(version2);
+        return version1 == null && version2 == null || version1 != null && version1.equals(version2);
     }
 
-    public synchronized PrismObject<ResourceType> get(PrismObject<ResourceType> resource, GetOperationOptions options) throws SchemaException {
-        return get(resource.getOid(), resource.getVersion(), options);
-    }
+    /**
+     * Gets a resource if it has specified version. If it has not, purges it from the cache (even if it exists there).
+     */
+    synchronized PrismObject<ResourceType> get(@NotNull String oid, String requestedVersion, boolean readOnly) {
+        InternalMonitor.getResourceCacheStats().recordRequest();
 
-    public synchronized PrismObject<ResourceType> get(String oid, String requestedVersion, GetOperationOptions options) throws SchemaException {
-        if (oid == null) {
-            return null;
-        }
-
+        PrismObject<ResourceType> resourceToReturn;
         PrismObject<ResourceType> cachedResource = cache.get(oid);
         if (cachedResource == null) {
             LOGGER.debug("MISS(not cached) for {}", oid);
-            return null;
-        }
-
-        if (!compareVersion(requestedVersion, cachedResource.getVersion())) {
+            resourceToReturn = null;
+        } else if (!compareVersion(requestedVersion, cachedResource.getVersion())) {
             LOGGER.debug("MISS(wrong version) for {}", oid);
-            LOGGER.trace("Cached resource version {} does not match requested resource version {}, purging from cache", cachedResource.getVersion(), requestedVersion);
+            LOGGER.trace("Cached resource version {} does not match requested resource version {}, purging from cache",
+                    cachedResource.getVersion(), requestedVersion);
             cache.remove(oid);
-            return null;
-        }
-
-        if (GetOperationOptions.isReadOnly(options)) {
-            try {    // MID-4574
-                cachedResource.checkImmutability();
-            } catch (IllegalStateException ex) {
-                LOGGER.error("Failed immutability test", ex);
-                cache.remove(oid);
-
-                return null;
-            }
+            resourceToReturn = null;
+        } else if (readOnly) {
+            cachedResource.checkImmutability();
             LOGGER.trace("HIT(read only) for {}", cachedResource);
-            return cachedResource;
+            resourceToReturn = cachedResource;
         } else {
             LOGGER.debug("HIT(returning clone) for {}", cachedResource);
-            return cachedResource.clone();
+            resourceToReturn = cachedResource.clone();
         }
+
+        if (resourceToReturn != null) {
+            CachePerformanceCollector.INSTANCE.registerHit(ResourceCache.class, ResourceType.class, PER_CACHE);
+            InternalMonitor.getResourceCacheStats().recordHit();
+        } else {
+            CachePerformanceCollector.INSTANCE.registerMiss(ResourceCache.class, ResourceType.class, PER_CACHE);
+            InternalMonitor.getResourceCacheStats().recordMiss();
+        }
+        return resourceToReturn;
+    }
+
+    /**
+     * Gets a resource without specifying requested version: returns one only if it has the same version as in the repo.
+     *
+     * This requires a cooperation with the repository cache. Therefore this method is NOT synchronized
+     * and has operation result as its parameter.
+     */
+    PrismObject<ResourceType> getIfLatest(@NotNull String oid, boolean readonly, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
+        // First let's check if the cache contains given resource. If not, we can avoid getting version from the repo.
+        if (contains(oid)) {
+            String version = repositoryService.getVersion(ResourceType.class, oid, parentResult);
+            return get(oid, version, readonly);
+        } else {
+            LOGGER.debug("MISS(not cached) for {}", oid);
+            CachePerformanceCollector.INSTANCE.registerMiss(ResourceCache.class, ResourceType.class, PER_CACHE);
+            InternalMonitor.getResourceCacheStats().recordMiss();
+            return null;
+        }
+    }
+
+    private synchronized boolean contains(@NotNull String oid) {
+        return cache.containsKey(oid);
     }
 
     /**
      * Returns currently cached version. FOR DIAGNOSTICS ONLY.
      */
-    public synchronized String getVersion(String oid) {
+    synchronized String getVersion(String oid) {
         if (oid == null) {
             return null;
         }
@@ -124,8 +175,28 @@ public class ResourceCache {
         return cachedResource.getVersion();
     }
 
-    public synchronized void remove(String oid) {
+    synchronized void remove(String oid) {
         cache.remove(oid);
     }
 
+    @Override
+    public synchronized void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+        if (type == null || type.isAssignableFrom(ResourceType.class)) {
+            if (oid != null) {
+                remove(oid);
+            } else {
+                cache.clear();
+            }
+        }
+    }
+
+    @NotNull
+    @Override
+    public synchronized Collection<SingleCacheStateInformationType> getStateInformation() {
+        return Collections.singleton(
+                new SingleCacheStateInformationType(prismContext)
+                        .name(ResourceCache.class.getName())
+                        .size(cache.size())
+        );
+    }
 }
