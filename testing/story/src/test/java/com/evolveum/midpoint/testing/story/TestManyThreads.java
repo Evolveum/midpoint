@@ -8,6 +8,7 @@ package com.evolveum.midpoint.testing.story;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -20,8 +21,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.ThreadTestExecutor;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -90,7 +90,7 @@ public class TestManyThreads extends AbstractStoryTest {
 
             CachingStatistics statsBefore = InternalMonitor.getResourceCacheStats().clone();
 
-            ThreadTestExecutor executor = new ThreadTestExecutor(700, 60000L);
+            ThreadTestExecutor executor = new ThreadTestExecutor(20, 60000L);
             executor.execute(() -> {
                 login(userAdministrator.clone());
                 Task localTask = createTask("execute");
@@ -120,8 +120,9 @@ public class TestManyThreads extends AbstractStoryTest {
     }
 
     private void assertResourceSanity(String oid, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
-        ResourceType resource = repositoryCache.getObject(ResourceType.class, oid, null, result).asObjectable();
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        ResourceType resource = provisioningService.getObject(ResourceType.class, oid, null, task, result).asObjectable();
         assertNotNull("No schemaHandling", resource.getSchemaHandling());
         assertEquals("Wrong # of object type defs", 1, resource.getSchemaHandling().getObjectType().size());
         ResourceObjectTypeDefinitionType typeDef = resource.getSchemaHandling().getObjectType().get(0);
@@ -133,5 +134,13 @@ public class TestManyThreads extends AbstractStoryTest {
         String code = ((ScriptExpressionEvaluatorType) expression.getExpressionEvaluator().get(0).getValue()).getCode();
         assertNotNull("No <code>", code);
         assertTrue("Wrong <code>", code.contains("name"));
+
+        LensUtil.refineProjectionIntent(ShadowKindType.ACCOUNT, "default", resource, prismContext);
+
+//        System.out.println(Thread.currentThread().getName() + ": resource from provisioning is OK");
+
+//        ResourceType resource2 = repositoryCache.getObject(ResourceType.class, oid, null, result).asObjectable();
+//        LensUtil.refineProjectionIntent(ShadowKindType.ACCOUNT, "default", resource2, prismContext);
+//        System.out.println(Thread.currentThread().getName() + ": resource from repository is OK");
     }
 }
