@@ -15,6 +15,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -88,24 +90,6 @@ import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPrevie
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 
 public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentType>> {
 
@@ -126,6 +110,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     protected static final String OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ = DOT_CLASS + "loadAssignmentsTargetRefObject";
     protected static final String OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS = DOT_CLASS + "loadAssignmentTargetRelations";
+    protected static final String OPERATION_LOAD_ASSIGNMENT_HOLDER_SPECIFICATION = DOT_CLASS + "loadAssignmentHolderSpecification";
 
     protected int assignmentsRequestsLimit = -1;
 
@@ -195,8 +180,33 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                 if (isInducement()){
                     return null;
                 } else {
-                    return WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList());
+                    List<AssignmentObjectRelation> assignmentRelationsList =
+                            WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList());
+                    if (assignmentRelationsList == null || assignmentRelationsList.isEmpty()){
+                        return assignmentRelationsList;
+                    }
+                    QName assignmentType = getAssignmentType();
+                    if (assignmentType == null){
+                        return assignmentRelationsList;
+                    }
+                    List<AssignmentObjectRelation> assignmentRelationsListFilteredByType =
+                            new ArrayList<>();
+                    assignmentRelationsList.forEach(assignmentRelation -> {
+                        QName objectType = assignmentRelation.getObjectTypes() != null
+                                && !assignmentRelation.getObjectTypes().isEmpty()
+                                ? assignmentRelation.getObjectTypes().get(0) : null;
+                        if (QNameUtil.match(assignmentType, objectType)){
+                            assignmentRelationsListFilteredByType.add(assignmentRelation);
+                        }
+                    });
+                    return assignmentRelationsListFilteredByType;
                 }
+            }
+
+            @Override
+            protected boolean getNewObjectGenericButtonVisibility(){
+                AssignmentCandidatesSpecification spec = loadAssignmentHolderSpecification();
+                return spec == null || spec.isSupportGenericAssignment();
             }
 
             @Override
@@ -384,6 +394,20 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
         }
         return assignmentTargetRelations;
+    }
+
+    private AssignmentCandidatesSpecification loadAssignmentHolderSpecification(){
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_HOLDER_SPECIFICATION);
+        PrismObject obj = getMultivalueContainerListPanel().getFocusObject();
+        AssignmentCandidatesSpecification spec = null;
+        try {
+            spec = getPageBase().getModelInteractionService()
+                    .determineAssignmentHolderSpecification(obj, result);
+        } catch (SchemaException | ConfigurationException ex){
+            result.recordPartialError(ex.getLocalizedMessage());
+            LOGGER.error("Couldn't load assignment holder specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
+        }
+        return spec;
     }
 
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {

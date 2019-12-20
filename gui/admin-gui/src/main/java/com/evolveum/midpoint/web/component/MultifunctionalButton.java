@@ -79,6 +79,9 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
             }
         };
         mainButton.add(AttributeAppender.append(" data-toggle", additionalButtonsExist() ? "dropdown" : ""));
+        if(!additionalButtonsExist()){
+            mainButton.add(new VisibleBehaviour(this::isMainButtonVisible));
+        }
         add(mainButton);
 
         RepeatingView buttonsPanel = new RepeatingView(ID_BUTTON);
@@ -129,6 +132,7 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
                 }
             };
             defaultButton.add(AttributeAppender.append("class", DEFAULT_BUTTON_STYLE));
+            defaultButton.add(new VisibleBehaviour(this::isMainButtonVisible));
             buttonsPanel.add(defaultButton);
         }
     }
@@ -167,6 +171,10 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
     }
 
     protected void buttonClickPerformed(AjaxRequestTarget target, S buttonObject){
+    }
+
+    protected boolean isMainButtonVisible(){
+        return true;
     }
 
     private boolean additionalButtonsExist(){

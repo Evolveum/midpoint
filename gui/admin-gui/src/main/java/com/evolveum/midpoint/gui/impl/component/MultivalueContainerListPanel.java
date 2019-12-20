@@ -273,6 +273,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
                     }
 
                     @Override
+                    protected boolean isMainButtonVisible(){
+                        return getNewObjectGenericButtonVisibility();
+                    }
+
+                    @Override
                     protected void buttonClickPerformed(AjaxRequestTarget target, S influencingObject) {
                         List<S> additionalButtonObjects = getNewObjectInfluencesList();
                         if (influencingObject == null && (additionalButtonObjects == null || additionalButtonObjects.size() == 0)) {
@@ -327,6 +332,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 
     protected List<S> getNewObjectInfluencesList(){
         return new ArrayList<>();
+    }
+
+    protected boolean getNewObjectGenericButtonVisibility(){
+        return true;
     }
 
     protected CompositedIconBuilder getAdditionalIconBuilder(S additionalButtonObject, DisplayType additionalButtonDisplayType){
