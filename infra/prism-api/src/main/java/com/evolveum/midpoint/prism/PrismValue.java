@@ -100,6 +100,8 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
      */
     PrismValue clone();
 
+    PrismValue createImmutableClone();
+
     /**
      * Complex clone with different cloning strategies.
      * @see CloneStrategy
@@ -130,7 +132,7 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 
     boolean isImmutable();
 
-    void setImmutable(boolean immutable);
+    void setImmutable();
 
     @Nullable
     Class<?> getRealClass();

@@ -699,6 +699,11 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     @Override
+    public PrismContainer<C> createImmutableClone() {
+        return (PrismContainer<C>) super.createImmutableClone();
+    }
+
+    @Override
     public PrismContainer<C> cloneComplex(CloneStrategy strategy) {
         PrismContainerImpl<C> clone = new PrismContainerImpl<>(getElementName(), getDefinition(), prismContext);
         copyValues(strategy, clone);

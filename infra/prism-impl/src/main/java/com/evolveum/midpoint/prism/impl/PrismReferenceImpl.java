@@ -220,6 +220,11 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
     }
 
     @Override
+    public PrismReference createImmutableClone() {
+        return (PrismReference) super.createImmutableClone();
+    }
+
+    @Override
     public PrismReferenceImpl cloneComplex(CloneStrategy strategy) {
         PrismReferenceImpl clone = new PrismReferenceImpl(getElementName(), getDefinition(), prismContext);
         copyValues(strategy, clone);

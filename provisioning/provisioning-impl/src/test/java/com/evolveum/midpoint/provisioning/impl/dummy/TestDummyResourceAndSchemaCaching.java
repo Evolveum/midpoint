@@ -398,7 +398,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         // THEN
         display("Resource cache (1)", InternalMonitor.getResourceCacheStats());
-        assertResourceCacheHitsIncrement(1);
+        assertResourceCacheHitsIncrement(2);            // one hit is "regular", the other one when availability state update is considered
         assertResourceCacheMissesIncrement(0);
 
         PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
@@ -638,7 +638,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         // THEN
         display("Resource cache (2)", InternalMonitor.getResourceCacheStats());
-        assertResourceCacheHitsIncrement(1);
+        assertResourceCacheHitsIncrement(2);  // one hit is "regular", the other one when availability state update is considered
         assertResourceCacheMissesIncrement(0);
 
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);

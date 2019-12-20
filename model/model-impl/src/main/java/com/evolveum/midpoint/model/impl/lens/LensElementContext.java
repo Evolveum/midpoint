@@ -843,7 +843,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     public void finishBuild() {
         if (primaryDelta != null) {
             primaryDelta.normalize();
-            primaryDelta.setImmutable(true);
+            primaryDelta.setImmutable();
         }
     }
 }

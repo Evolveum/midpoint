@@ -354,6 +354,6 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
     boolean isImmutable();
 
-    void setImmutable(boolean immutable);
+    void setImmutable();
 
 }

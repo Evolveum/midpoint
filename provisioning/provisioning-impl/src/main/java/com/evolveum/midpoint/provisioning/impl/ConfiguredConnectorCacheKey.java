@@ -12,8 +12,8 @@ package com.evolveum.midpoint.provisioning.impl;
  */
 public class ConfiguredConnectorCacheKey {
 
-    private String resourceOid;
-    private String connectorName;
+    private final String resourceOid;
+    private final String connectorName;
 
     public ConfiguredConnectorCacheKey(String resourceOid, String connectorName) {
         super();

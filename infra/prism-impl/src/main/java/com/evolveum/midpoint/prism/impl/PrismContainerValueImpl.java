@@ -711,7 +711,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
             Class<I> type, ID itemDefinition, boolean immutable) throws SchemaException {
         I newItem = createDetachedNewItemInternal(name, type, itemDefinition);
         if (immutable) {
-            newItem.setImmutable(true);
+            newItem.setImmutable();
         }
         return newItem;
     }
@@ -1264,6 +1264,12 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     @Override
+    public PrismContainerValue<C> createImmutableClone() {
+        //noinspection unchecked
+        return (PrismContainerValue<C>) super.createImmutableClone();
+    }
+
+    @Override
     public PrismContainerValueImpl<C> cloneComplex(CloneStrategy strategy) {    // TODO resolve also the definition?
         PrismContainerValueImpl<C> clone = new PrismContainerValueImpl<>(getOriginType(), getOriginObject(), getParent(), null,
                 this.complexTypeDefinition, this.prismContext);
@@ -1525,11 +1531,11 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     @Override
-    public void setImmutable(boolean immutable) {
-        super.setImmutable(immutable);
+    public void setImmutable() {
         for (Item item : items.values()) {
-            item.setImmutable(immutable);
+            item.setImmutable();
         }
+        super.setImmutable();
     }
 
     @Override

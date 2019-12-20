@@ -70,7 +70,7 @@ public class PageResourceWizard extends PageAdmin {
 
     // these models should be reset after each 'save' operation, in order to fetch current data (on demand)
     // each step should use corresponding model
-    // these models have always non-null content
+    // these models have always non-null and mutable content
     @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelRaw;                // contains resolved connector as well
     @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelNoFetch;            // contains resolved connector as well
     @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelFull;

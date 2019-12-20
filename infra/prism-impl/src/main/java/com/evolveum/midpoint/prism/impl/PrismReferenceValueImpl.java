@@ -593,6 +593,11 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
     }
 
     @Override
+    public PrismReferenceValue createImmutableClone() {
+        return (PrismReferenceValue) super.createImmutableClone();
+    }
+
+    @Override
     public PrismReferenceValueImpl cloneComplex(CloneStrategy strategy) {
         PrismReferenceValueImpl clone = new PrismReferenceValueImpl(getOid(), getOriginType(), getOriginObject());
         copyValues(strategy, clone);

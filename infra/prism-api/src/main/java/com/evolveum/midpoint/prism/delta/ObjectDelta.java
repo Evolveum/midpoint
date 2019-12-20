@@ -370,5 +370,5 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
 
     boolean isImmutable();
 
-    void setImmutable(boolean immutable);
+    void setImmutable();
 }
