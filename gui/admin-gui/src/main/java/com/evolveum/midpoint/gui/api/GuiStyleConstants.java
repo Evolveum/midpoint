@@ -173,6 +173,8 @@ public class GuiStyleConstants {
     public static final String CLASS_ADD_NEW_OBJECT = "fa fa-plus";
     public static final String CLASS_UPLOAD = "fa fa-upload";
     public static final String CLASS_CREATE_FOCUS = "fa fa-user-plus";
+    public static final String CLASS_PLAY = "fa fa-play";
+    public static final String CLASS_PAUSE = "fa fa-pause";
 
     public static final String EVO_CROW_ICON = "fe fe-crown-object";
     public static final String EVO_RIGHT_TOP_ARROW_ICON = "fe fe-arrow";

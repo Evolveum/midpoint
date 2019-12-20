@@ -55,7 +55,8 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private String additionalBoxCssClasses = null;
     private boolean isRefreshEnabled;
 
-    private static final Duration TIMER_IN_SECONDS = Duration.seconds(3);
+    //interval in seconds
+    private static final int DEFAULT_REFRESH_INTERVAL = 60;
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
         this(id, provider, columns, null, Integer.MAX_VALUE);
@@ -113,9 +114,12 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         table.setOutputMarkupId(true);
         tableContainer.add(table);
         box.add(tableContainer);
-        if (isRefreshEnabled) {
-            table.add(new AjaxSelfUpdatingTimerBehavior(TIMER_IN_SECONDS));
-        }
+        table.add(new AjaxSelfUpdatingTimerBehavior(Duration.seconds(computeRefreshInterval())) {
+            @Override
+            protected boolean shouldTrigger() {
+                return isAutoRefreshEnabled();
+            }
+        });
 
         TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider);
         headersTop.setOutputMarkupId(true);
@@ -125,6 +129,22 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         WebMarkupContainer footer = createFooter(ID_FOOTER);
         footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() ||  provider.size() > pageSize));
         box.add(footer);
+    }
+
+    private int computeRefreshInterval() {
+        int refreshInterval = getAutoRefreshInterval();
+        if (refreshInterval != 0) {
+            return refreshInterval;
+        }
+        return DEFAULT_REFRESH_INTERVAL;
+    }
+
+    public int getAutoRefreshInterval() {
+        return 0;
+    };
+
+    public boolean isAutoRefreshEnabled() {
+        return false;
     }
 
     public String getAdditionalBoxCssClasses() {

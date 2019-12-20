@@ -150,4 +150,9 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     protected boolean isRefreshEnabled() {
         return false;
     }
+
+    @Override
+    protected int getAutoRefreshInterval() {
+        return 0;
+    }
 }

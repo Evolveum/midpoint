@@ -26,6 +26,7 @@ import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.*;
@@ -4051,4 +4052,25 @@ public final class WebComponentUtil {
         return null;
     }
 
+    public static boolean isRefreshEnabled(PageBase pageBase, QName type) {
+        CompiledUserProfile cup = pageBase.getCompiledUserProfile();
+        if (cup == null) {
+            return false;
+        }
+
+       List<CompiledObjectCollectionView> views =  cup.getObjectCollectionViews();
+        if (CollectionUtils.isEmpty(views)) {
+            return false;
+        }
+
+        for (CompiledObjectCollectionView view : views) {
+            if (QNameUtil.match(type, view.getObjectType())) {
+                if (view.getRefreshInterval() != null) {
+                    return true;
+                }
+
+            }
+        }
+        return false;
+    }
 }

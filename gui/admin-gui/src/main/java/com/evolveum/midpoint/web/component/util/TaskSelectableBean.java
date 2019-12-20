@@ -10,8 +10,8 @@ import java.util.List;
 
 public class TaskSelectableBean extends SelectableBeanImpl<TaskType> {
 
-    private boolean loadedChildren;
-    private List<TaskSelectableBean> children;
+//    private boolean loadedChildren;
+//    private List<TaskSelectableBean> children;
 
 //    private TaskEditableState currentEditableState = new TaskEditableState();
 //    private TaskEditableState originalEditableState;
@@ -20,21 +20,21 @@ public class TaskSelectableBean extends SelectableBeanImpl<TaskType> {
         super(taskType);
     }
 
-    public boolean isLoadedChildren() {
-        return loadedChildren;
-    }
+//    public boolean isLoadedChildren() {
+//        return loadedChildren;
+//    }
+//
+//    public void setLoadedChildren(boolean loadedChildren) {
+//        this.loadedChildren = loadedChildren;
+//    }
 
-    public void setLoadedChildren(boolean loadedChildren) {
-        this.loadedChildren = loadedChildren;
-    }
-
-    public List<TaskSelectableBean> getChildren() {
-        return children;
-    }
-
-    public void setChildren(List<TaskSelectableBean> children) {
-        this.children = children;
-    }
+//    public List<TaskSelectableBean> getChildren() {
+//        return children;
+////    }
+//
+//    public void setChildren(List<TaskSelectableBean> children) {
+//        this.children = children;
+//    }
 
 //    public TaskEditableState getCurrentEditableState() {
 //        return currentEditableState;

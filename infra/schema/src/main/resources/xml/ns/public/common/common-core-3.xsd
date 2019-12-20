@@ -23318,6 +23318,20 @@
                                </xsd:appinfo>
                            </xsd:annotation>
                        </xsd:element>
+                       <xsd:element name="refreshInterval" type="xsd:int" minOccurs="0">
+                           <xsd:annotation>
+                               <xsd:documentation>
+                                   Configures the possibility of autorefreshing the table. If nothing is set,
+                                   refresh is not supported. Is set, table is automatically refresh after given
+                                   interval. The interval is specified in seconds.
+
+                                   e.g refreshInterval=5 means autorefreshing table each 5 seconds.
+                               </xsd:documentation>
+                               <xsd:appinfo>
+                                   <a:displayName>GuiObjectListViewType.refreshInterval</a:displayName>
+                               </xsd:appinfo>
+                           </xsd:annotation>
+                       </xsd:element>
                        <!-- TODO: number of results per page (MID-1931) -->
                        <!-- TODO: later: export settings (GuiExportSettingsType) -->
                    </xsd:sequence>

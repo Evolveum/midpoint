@@ -12,12 +12,14 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -49,6 +51,8 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.time.Duration;
 
 /**
@@ -61,6 +65,8 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
     private static final String ID_BUTTON_REPEATER = "buttonsRepeater";
     private static final String ID_BUTTON = "button";
     private static final Trace LOGGER = TraceManager.getTrace(MainObjectListPanel.class);
+
+    private Boolean manualRefreshEnabled;
 
     public MainObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
         super(id, type, tableId, options);
@@ -171,23 +177,6 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         createNewObjectButton.add(AttributeAppender.append("class", "btn-margin-right"));
         buttonsList.add(createNewObjectButton);
 
-
-        AjaxIconButton refreshIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
-                createStringResource("MainObjectListPanel.refresh")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                clearCache();
-                refreshTable((Class<O>) getType(), target);
-
-                target.add((Component) getTable());
-            }
-        };
-        refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-        buttonsList.add(refreshIcon);
-
         AjaxIconButton importObject = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_UPLOAD),
                 createStringResource("MainObjectListPanel.import")) {
 
@@ -246,8 +235,49 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
             }
         });
 
+        AjaxIconButton refreshIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
+                createStringResource("MainObjectListPanel.refresh")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                clearCache();
+                refreshTable((Class<O>) getType(), target);
+
+                target.add((Component) getTable());
+            }
+        };
+        refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        buttonsList.add(refreshIcon);
+
+        AjaxIconButton playPauseIcon = new AjaxIconButton(buttonId, getRefreshPausePlayButtonModel(),
+                createStringResource("MainObjectListPanel.refresh.enabled", isRefreshEnabled())) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                clearCache();
+                manualRefreshEnabled = !isRefreshEnabled();
+                target.add(getTable());
+            }
+        };
+        playPauseIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        buttonsList.add(playPauseIcon);
+
         buttonsList.add(exportDataLink);
         return buttonsList;
+    }
+
+    private IModel<String> getRefreshPausePlayButtonModel() {
+        return () -> {
+            if (isRefreshEnabled()) {
+                return GuiStyleConstants.CLASS_PAUSE;
+            }
+
+            return GuiStyleConstants.CLASS_PLAY;
+        };
     }
 
     private boolean isRawOrNoFetchOption(Collection<SelectorOptions<GetOperationOptions>> options){
@@ -326,6 +356,42 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
 
     @Override
     protected boolean isRefreshEnabled() {
-        return true;
+        if (getAutoRefreshInterval() == 0) {
+            return manualRefreshEnabled == null ? false : manualRefreshEnabled.booleanValue();
+        }
+
+        if (manualRefreshEnabled == null) {
+            return true;
+        }
+
+        return manualRefreshEnabled.booleanValue();
     }
+
+    @Override
+    protected int getAutoRefreshInterval() {
+        if (!isCollectionViewPanel()) {
+            return 0;
+        }
+
+        String collectionName = getCollectionNameParameterValue().toString();
+        CompiledObjectCollectionView view = getPageBase().getCompiledUserProfile().findObjectViewByViewName(getType(), collectionName);
+
+        Integer autoRefreshInterval = view.getRefreshInterval();
+        if (autoRefreshInterval == null) {
+            return 0;
+        }
+
+        return autoRefreshInterval.intValue();
+
+    }
+
+    private StringValue getCollectionNameParameterValue(){
+        PageParameters parameters = getPageBase().getPageParameters();
+        return parameters ==  null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
+    }
+
+    private boolean isCollectionViewPanel() {
+        return getCollectionNameParameterValue() != null && getCollectionNameParameterValue().toString() != null;
+    }
+
 }

@@ -163,6 +163,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
             private static final long serialVersionUID = 1L;
 
+            //TODO unify with PageAdminObjectList.. should be on one place
             @Override
             public Search load() {
                 String storageKey = getStorageKey();
@@ -209,8 +210,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
         BoxedTablePanel<SelectableBean<O>> table = new BoxedTablePanel<SelectableBean<O>>(ID_TABLE, provider,
                 columns, tableId,
-                tableId == null ? 10 : getPageBase().getSessionStorage().getUserProfile().getPagingSize(getTableIdKeyValue()),
-                isRefreshEnabled()) {
+                tableId == null ? 10 : getPageBase().getSessionStorage().getUserProfile().getPagingSize(getTableIdKeyValue())) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -235,6 +235,15 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                 return ObjectListPanel.this.hideFooterIfSinglePage();
             }
 
+            @Override
+            public int getAutoRefreshInterval() {
+                return ObjectListPanel.this.getAutoRefreshInterval();
+            }
+
+            @Override
+            public boolean isAutoRefreshEnabled() {
+                return ObjectListPanel.this.isRefreshEnabled();
+            }
         };
         table.setOutputMarkupId(true);
         String storageKey = getStorageKey();
@@ -247,6 +256,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
         return table;
     }
+
+    protected abstract int getAutoRefreshInterval();
 
     protected abstract boolean isRefreshEnabled();
 
