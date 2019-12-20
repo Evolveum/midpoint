@@ -236,6 +236,11 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
     }
 
     @Override
+    public PrismObject<O> createImmutableClone() {
+        return (PrismObject<O>) super.createImmutableClone();
+    }
+
+    @Override
     public PrismObjectImpl<O> cloneComplex(CloneStrategy strategy) {
         if (prismContext != null && prismContext.getMonitor() != null) {
             prismContext.getMonitor().beforeObjectClone(this);
@@ -445,21 +450,15 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
     }
 
     @Override
-    public void setImmutable(boolean immutable) {
-        if (!this.immutable && immutable && values.isEmpty()) {
+    public void setImmutable() {
+        if (!this.immutable && values.isEmpty()) {
             createNewValue();
         }
-        super.setImmutable(immutable);
+        super.setImmutable();
     }
 
     public PrismObject<O> cloneIfImmutable() {
         return isImmutable() ? clone() : this;
-    }
-
-    public PrismObject<O> createImmutableClone() {
-        PrismObject<O> clone = clone();
-        clone.setImmutable(true);
-        return clone;
     }
 
     @NotNull

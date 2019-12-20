@@ -156,6 +156,9 @@ public interface PrismReferenceValue extends PrismValue, ShortDumpable {
     PrismReferenceValue clone();
 
     @Override
+    PrismReferenceValue createImmutableClone();
+
+    @Override
     PrismReferenceValue cloneComplex(CloneStrategy strategy);
 
     String toHumanReadableString();

@@ -4978,7 +4978,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         display("getObject result (expected failure)", result);
         TestUtil.assertFailure(result);
 
-        assertSteadyResource();
+//        assertSteadyResource();
     }
 
     // test999 shutdown in the superclass

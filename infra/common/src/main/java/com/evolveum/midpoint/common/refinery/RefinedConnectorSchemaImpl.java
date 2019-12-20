@@ -17,8 +17,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import org.w3c.dom.Element;
 
 /**
- * @author semancik
+ * TODO Think about the purpose and future of this class.
  *
+ * @author semancik
  */
 public class RefinedConnectorSchemaImpl extends ConnectorSchemaImpl implements RefinedConnectorSchema {
 
@@ -53,7 +54,8 @@ public class RefinedConnectorSchemaImpl extends ConnectorSchemaImpl implements R
                 throw new IllegalStateException("Parsed schema is null: most likely an internall error");
             }
             parsedSchema.setUsualNamespacePrefix(ConnectorSchemaImpl.retrieveUsualNamespacePrefix(connector.asObjectable()));
-            connector.modifyUnfrozen(c -> c.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, parsedSchema));
+            // TODO What if connector is immutable?
+            connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, parsedSchema);
             return parsedSchema;
         }
     }
@@ -63,7 +65,8 @@ public class RefinedConnectorSchemaImpl extends ConnectorSchemaImpl implements R
             return;
         }
         PrismObject<ConnectorType> connector = connectorType.asPrismObject();
-        connector.modifyUnfrozen(c -> c.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, parsedSchema));
+        // TODO What if connector is immutable?
+        connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, parsedSchema);
     }
 
     public static boolean hasParsedSchema(ConnectorType connectorType) {

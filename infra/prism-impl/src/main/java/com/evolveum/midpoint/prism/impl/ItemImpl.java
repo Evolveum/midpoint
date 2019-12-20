@@ -932,11 +932,11 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
         return immutable;
     }
 
-    public void setImmutable(boolean immutable) {
-        this.immutable = immutable;
+    public void setImmutable() {
         for (V value : getValues()) {
-            value.setImmutable(immutable);
+            value.setImmutable();
         }
+        this.immutable = true;
     }
 
     protected void checkMutability() {
@@ -946,44 +946,8 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     public void checkImmutability() {
-        synchronized (this) {        // because of modifyUnfrozen
-            if (!immutable) {
-                throw new IllegalStateException("Item is not immutable even if it should be: " + this);
-            }
-        }
-    }
-
-    // should be always called on non-overlapping objects! (for the synchronization to work correctly)
-    public void modifyUnfrozen(Runnable mutator) {
-        synchronized (this) {
-            boolean wasImmutable = immutable;
-            if (wasImmutable) {
-                setImmutable(false);
-            }
-            try {
-                mutator.run();
-            } finally {
-                if (wasImmutable) {
-                    setImmutable(true);
-                }
-            }
-        }
-    }
-
-    // should be always called on non-overlapping objects! (for the synchronization to work correctly)
-    public void modifyUnfrozen(Consumer<Item<V, D>> mutator) {
-        synchronized (this) {
-            boolean wasImmutable = immutable;
-            if (wasImmutable) {
-                setImmutable(false);
-            }
-            try {
-                mutator.accept(this);
-            } finally {
-                if (wasImmutable) {
-                    setImmutable(true);
-                }
-            }
+        if (!immutable) {
+            throw new IllegalStateException("Item is not immutable even if it should be: " + this);
         }
     }
 
@@ -998,6 +962,12 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
     @Override
     public abstract Item<V,D> clone();
+
+    public Item<V,D> createImmutableClone() {
+        Item<V,D> clone = clone();
+        clone.setImmutable();
+        return clone;
+    }
 
     @Override
     public Long getHighestId() {

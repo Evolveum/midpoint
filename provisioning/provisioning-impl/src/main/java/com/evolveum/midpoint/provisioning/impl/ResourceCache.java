@@ -66,7 +66,7 @@ public class ResourceCache implements Cacheable {
 
     /**
      * Note that prism objects in this map are always immutable. And they must remain immutable after getting them
-     * from the cache. So no "modifyUnfrozen" and similar tricks!
+     * from the cache.
      *
      * As for ConcurrentHashMap: Although we use synchronization whenever possible, let's be extra cautious here.
      */
