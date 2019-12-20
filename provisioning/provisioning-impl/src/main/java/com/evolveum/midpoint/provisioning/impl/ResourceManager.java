@@ -776,6 +776,10 @@ public class ResourceManager {
             modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
             schemaResult.recordFatalError("Expression error: " + e.getMessage(), e);
             return;
+        } catch (RuntimeException e) {
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            schemaResult.recordFatalError("Unspecified exception: " + e.getMessage(), e);
+            return;
         }
 
         schemaResult.recordSuccess();
