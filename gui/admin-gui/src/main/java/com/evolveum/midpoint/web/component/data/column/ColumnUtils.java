@@ -10,6 +10,9 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -129,14 +132,14 @@ public class ColumnUtils {
 
     public static <O extends ObjectType> IColumn<SelectableBean<O>, String> createIconColumn(PageBase pageBase){
 
-        return new IconColumn<SelectableBean<O>>(createIconColumnHeaderModel()) {
+        return new CompositedIconColumn<SelectableBean<O>>(createIconColumnHeaderModel()) {
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<SelectableBean<O>> rowModel){
+            protected CompositedIcon getCompositedIcon(IModel<SelectableBean<O>> rowModel){
                 if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
-                    return new DisplayType();
+                    return new CompositedIconBuilder().build();
                 }
-                return WebComponentUtil.getDisplayTypeForObject(rowModel.getObject().getValue(),
+                return WebComponentUtil.createCompositeIconForObject(rowModel.getObject().getValue(),
                         rowModel.getObject().getResult(), pageBase);
             }
 

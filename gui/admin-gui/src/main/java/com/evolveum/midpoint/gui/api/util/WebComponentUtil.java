@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
@@ -3328,6 +3329,55 @@ public final class WebComponentUtil {
                     "", ColumnUtils.getIconColumnTitle(obj, result));
         }
         return displayType;
+    }
+
+    public static <O extends ObjectType> CompositedIcon createCompositeIconForObject(O obj, OperationResult result, PageBase pageBase){
+        DisplayType basicIconDisplayType = getDisplayTypeForObject(obj, result, pageBase);
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
+        if (basicIconDisplayType == null){
+            return new CompositedIconBuilder().build();
+        }
+        IconType lifecycleStateIcon = getIconForLifecycleState(obj);
+        IconType activationStatusIcon = getIconForActivationStatus(obj);
+
+        CompositedIcon compositedIconForObject = iconBuilder.setBasicIcon(
+                WebComponentUtil.getIconCssClass(basicIconDisplayType), IconCssStyle.IN_ROW_STYLE)
+                .appendLayerIcon(lifecycleStateIcon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE)
+                .appendLayerIcon(activationStatusIcon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE)
+                .build();
+        return compositedIconForObject;
+    }
+
+    public static <O extends ObjectType> IconType getIconForLifecycleState(O obj){
+        IconType icon = new IconType();
+        if (obj == null){
+            icon.setCssClass("");
+            return icon;
+        }
+        if (SchemaConstants.LIFECYCLE_ARCHIVED.equals(obj.getLifecycleState())){
+            icon.setCssClass(GuiStyleConstants.CLASS_FILE_EXCEL);
+        }
+        if (icon.getCssClass() == null){
+            icon.setCssClass("");
+        }
+        icon.setColor("blue");
+        return icon;
+    }
+
+    public static <O extends ObjectType> IconType getIconForActivationStatus(O obj){
+        IconType icon = new IconType();
+        if (obj == null || !(obj instanceof FocusType) || ((FocusType) obj).getActivation() == null){
+            icon.setCssClass("");
+            return icon;
+        }
+        if (LockoutStatusType.LOCKED.equals(((FocusType) obj).getActivation().getLockoutStatus())){
+            icon.setCssClass(GuiStyleConstants.CLASS_LOCK_STATUS);
+        }
+        if (icon.getCssClass() == null){
+            icon.setCssClass("");
+        }
+        icon.setColor("red");
+        return icon;
     }
 
     public static DisplayType createDisplayType(String iconCssClass){
