@@ -1532,6 +1532,15 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
     @Override
     public void setImmutable() {
+        // Before freezing this PCV we should initialize it (if needed).
+        // We assume that this object is NOT shared at this moment.
+        if (getComplexTypeDefinition() != null && getComplexTypeDefinition().getCompileTimeClass() != null) {
+            asContainerable();
+        } else {
+            // Calling asContainerable does not make sense anyway.
+        }
+
+        // And now let's freeze it; from the bottom up.
         for (Item item : items.values()) {
             item.setImmutable();
         }
@@ -1556,7 +1565,6 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     /**
      * Returns a single-valued container (with a single-valued definition) holding just this value.
      * @param itemName Item name for newly-created container.
-     * @return
      */
     public PrismContainer<C> asSingleValuedContainer(@NotNull QName itemName) throws SchemaException {
         PrismContext prismContext = getPrismContext();
