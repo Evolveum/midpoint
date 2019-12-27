@@ -174,7 +174,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         display("Resource", resource);
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  0);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
 
         assertResourceDummy(resource, false);
 
@@ -381,7 +381,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         assertSuccess(result);
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  4);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  8);
 
         for (PrismObject<ResourceType> resource: resources) {
             assertResource(resource, false);
@@ -1042,7 +1042,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         });
     }
 
-    public void modifyConfigurationDiffExpressionRaw(final String TEST_NAME, FailableFunction<String, PrismObject<ResourceType>> parser) throws Exception {
+    private void modifyConfigurationDiffExpressionRaw(final String TEST_NAME,
+            FailableFunction<String, PrismObject<ResourceType>> parser) throws Exception {
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -1085,16 +1086,16 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
-        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 2);
 
         PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
         display("Resource after", resourceAfter);
 
         assertEquals("Wrong default useless string", IntegrationTestTools.CONST_USELESS, dummyResource.getUselessString());
 
-        // TODO: strictly speaking, this should not be necessary.
-        // But now the schema is re-parsed a bit more than is needed
-        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
+        // The resource is already cached (along with the parsed schema) as a result of "modify availability state" action
+        // in testConnection operation.
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
     }
 
     private ObjectDelta<ResourceType> createConfigurationPropertyDelta(QName elementQName, String newValue) {
