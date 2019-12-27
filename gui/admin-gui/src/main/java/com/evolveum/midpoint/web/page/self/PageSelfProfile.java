@@ -70,8 +70,8 @@ public class PageSelfProfile extends PageUser {
         bc.setIcon(new Model("fa fa-user"));
     }
 
-    @Override
-    protected IModel<String> createPageTitleModel() {
-        return createStringResource("PageSelfProfile.title");
-    }
+//    @Override
+//    protected IModel<String> createPageTitleModel() {
+//        return createStringResource("PageSelfProfile.title");
+//    }
 }

@@ -185,7 +185,17 @@
     <xsd:complexType name="AbstractPasswordAuthenticationModuleType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
-                Common definition for all authentication modules that use password.
+                <p>
+                    Common definition for all authentication modules that use password.
+                </p>
+                <p>
+                    This is an authentication module setting. It controls how credentials are used
+                    for authentication. It does not control how credentials are set (stored), e.g. it does NOT
+                    control password policy. Credential policy setting is supposed to do that.
+                    E.g. acceptEmptyPassword setting in this data type controls whether empty password can
+                    be used for authentication. It does not control whether empty password can be set or whether
+                    existing password can be removed.
+                </p>
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1546,6 +1556,12 @@
                         <p>
                             Credential name is optional, mostly due to historical/compatibility reasons.
                         </p>
+                        <p>
+                            This is a credential policy. Which means that it controls how credentials are set (stored).
+                            It does not control how credentials are used for authentication. That is controlled by the
+                            authentication module setting - and in fact this may even be out of our control completely,
+                            e.g. in case that external authentication is used (SSO).
+                        </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.1</a:since>
@@ -1890,8 +1906,16 @@
     <xsd:complexType name="PasswordCredentialsPolicyType">
         <xsd:annotation>
             <xsd:documentation>
-                Structure that specifies policy for password management. It is in fact only a simple reference
-                to a password policy.
+                <p>
+                    Structure that specifies policy for password management. It is in fact only a simple reference
+                    to a password policy.
+                </p>
+                <p>
+                    This is a credential policy. Which means that it controls how credentials are set (stored).
+                    It does not control how credentials are used for authentication. That is controlled by the
+                    authentication module setting - and in fact this may even be out of our control completely,
+                    e.g. in case that external authentication is used (SSO).
+                </p>
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>

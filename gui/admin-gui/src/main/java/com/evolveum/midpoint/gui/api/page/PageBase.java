@@ -1270,8 +1270,40 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected IModel<String> createPageTitleModel() {
-        String key = getClass().getSimpleName() + ".title";
-        return createStringResource(key);
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                String pageTitleKey = null;
+                List<SideBarMenuItem> sideMenuItems = getSideBarMenuPanel() != null && getSideBarMenuPanel().isVisible()
+                        ? getSideBarMenuPanel().getModelObject() : null;
+                if (sideMenuItems != null){
+                    for (SideBarMenuItem sideBarMenuItem : sideMenuItems){
+                        List<MainMenuItem> mainMenuItems = sideBarMenuItem.getItems();
+                        if (mainMenuItems != null){
+                            for (MainMenuItem mainMenuItem : mainMenuItems){
+                                if (mainMenuItem.isMenuActive(PageBase.this)){
+                                    pageTitleKey = mainMenuItem.getNameModel().getObject();
+                                    break;
+                                }
+                                List<MenuItem> menuItems = mainMenuItem.getItems();
+                                if (menuItems != null){
+                                    for (MenuItem menuItem : menuItems){
+                                        if (menuItem.isMenuActive(PageBase.this)){
+                                            pageTitleKey = menuItem.getNameModel().getObject();
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (StringUtils.isEmpty(pageTitleKey)) {
+                    pageTitleKey = PageBase.this.getClass().getSimpleName() + ".title";
+                }
+                return createStringResource(pageTitleKey).getString();
+            }
+        };
     }
 
     public IModel<String> getPageTitleModel() {
@@ -2729,4 +2761,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return clock;
     }
 
+    private SideBarMenuPanel getSideBarMenuPanel(){
+        return (SideBarMenuPanel) get(ID_SIDEBAR_MENU);
+    }
 }
