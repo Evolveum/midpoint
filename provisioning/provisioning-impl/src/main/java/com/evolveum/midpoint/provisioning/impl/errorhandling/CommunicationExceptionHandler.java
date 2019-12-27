@@ -7,52 +7,35 @@
 
 package com.evolveum.midpoint.provisioning.impl.errorhandling;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
-import com.evolveum.midpoint.provisioning.impl.ResourceManager;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 @Component
 public class CommunicationExceptionHandler extends ErrorHandler {
@@ -67,9 +50,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
     @Override
     public PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
             PrismObject<ShadowType> repositoryShadow, GetOperationOptions rootOptions, Exception cause,
-            Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException,
-            CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            Task task, OperationResult parentResult) throws SchemaException, CommunicationException, ObjectNotFoundException,
+            ConfigurationException, ExpressionEvaluationException {
 
         ResourceType resource = ctx.getResource();
         if (!ProvisioningUtil.isDoDiscovery(resource, rootOptions)) {
@@ -79,7 +61,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_GET_ERROR);
         result.addParam("exception", cause.getMessage());
 
-        markResourceDown(resource, result);
+        markResourceDown(resource.getOid(), task, result);
 
         // nothing to do, just return the shadow from the repo and set fetch
         // result..
@@ -113,14 +95,12 @@ public class CommunicationExceptionHandler extends ErrorHandler {
             OperationResult failedOperationResult,
             Task task,
             OperationResult parentResult)
-                throws SchemaException, GenericFrameworkException, CommunicationException,
-                ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-                SecurityViolationException, ExpressionEvaluationException {
+                throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
+                ExpressionEvaluationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_ADD_ERROR);
         result.addParam("exception", cause.getMessage());
-        ResourceType resource = ctx.getResource();
-        markResourceDown(resource, result);
+        markResourceDown(ctx.getResourceOid(), task, result);
         handleRetriesAndAttempts(ctx, opState, options, cause, result);
         return postponeAdd(ctx, shadowToAdd, opState, failedOperationResult, result);
     }
@@ -130,14 +110,12 @@ public class CommunicationExceptionHandler extends ErrorHandler {
             Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
             Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
-            throws SchemaException, GenericFrameworkException, CommunicationException,
-            ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
+            ExpressionEvaluationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_MODIFY_ERROR);
         result.addParam("exception", cause.getMessage());
-        ResourceType resource = ctx.getResource();
-        markResourceDown(resource, result);
+        markResourceDown(ctx.getResourceOid(), task, result);
         handleRetriesAndAttempts(ctx, opState, options, cause, result);
         return postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
     }
@@ -147,13 +125,11 @@ public class CommunicationExceptionHandler extends ErrorHandler {
             ProvisioningOperationOptions options,
             ProvisioningOperationState<AsynchronousOperationResult> opState, Exception cause,
             OperationResult failedOperationResult, Task task, OperationResult parentResult)
-            throws SchemaException, GenericFrameworkException, CommunicationException,
-            ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
+            ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_DELETE_ERROR);
         result.addParam("exception", cause.getMessage());
-        ResourceType resource = ctx.getResource();
-        markResourceDown(resource, result);
+        markResourceDown(ctx.getResourceOid(), task, result);
         handleRetriesAndAttempts(ctx, opState, options, cause, result);
         return postponeDelete(ctx, repoShadow, opState, failedOperationResult, result);
     }
@@ -166,12 +142,9 @@ public class CommunicationExceptionHandler extends ErrorHandler {
         }
 
         int maxRetryAttempts = ProvisioningUtil.getMaxRetryAttempts(ctx);
-        Integer attemptNumber = opState.getAttemptNumber();
-        if (attemptNumber == null) {
-            attemptNumber = 1;
-        }
+        Integer attemptNumber = defaultIfNull(opState.getAttemptNumber(), 1);
         if (attemptNumber >= maxRetryAttempts) {
-            LOGGER.debug("Maximum nuber of retry attempts ({}) reached for operation on {}", attemptNumber, ctx.getResource() );
+            LOGGER.debug("Maximum number of retry attempts ({}) reached for operation on {}", attemptNumber, ctx.getResource());
             throwException(cause, opState, result);
         }
     }

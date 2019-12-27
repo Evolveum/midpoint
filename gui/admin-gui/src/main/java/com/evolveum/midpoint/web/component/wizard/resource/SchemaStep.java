@@ -52,6 +52,9 @@ public class SchemaStep extends WizardStep {
     private static final String ID_RELOAD = "reload";
     private static final String ID_ACE_EDITOR = "aceEditor";
 
+    /**
+     * Contains MUTABLE resource object.
+     */
     @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> model;
     @NotNull private final PageResourceWizard parentPage;
 

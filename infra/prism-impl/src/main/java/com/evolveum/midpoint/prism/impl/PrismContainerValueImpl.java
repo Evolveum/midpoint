@@ -711,7 +711,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
             Class<I> type, ID itemDefinition, boolean immutable) throws SchemaException {
         I newItem = createDetachedNewItemInternal(name, type, itemDefinition);
         if (immutable) {
-            newItem.setImmutable(true);
+            newItem.setImmutable();
         }
         return newItem;
     }
@@ -1264,6 +1264,12 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     @Override
+    public PrismContainerValue<C> createImmutableClone() {
+        //noinspection unchecked
+        return (PrismContainerValue<C>) super.createImmutableClone();
+    }
+
+    @Override
     public PrismContainerValueImpl<C> cloneComplex(CloneStrategy strategy) {    // TODO resolve also the definition?
         PrismContainerValueImpl<C> clone = new PrismContainerValueImpl<>(getOriginType(), getOriginObject(), getParent(), null,
                 this.complexTypeDefinition, this.prismContext);
@@ -1525,11 +1531,20 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     @Override
-    public void setImmutable(boolean immutable) {
-        super.setImmutable(immutable);
-        for (Item item : items.values()) {
-            item.setImmutable(immutable);
+    public void setImmutable() {
+        // Before freezing this PCV we should initialize it (if needed).
+        // We assume that this object is NOT shared at this moment.
+        if (getComplexTypeDefinition() != null && getComplexTypeDefinition().getCompileTimeClass() != null) {
+            asContainerable();
+        } else {
+            // Calling asContainerable does not make sense anyway.
         }
+
+        // And now let's freeze it; from the bottom up.
+        for (Item item : items.values()) {
+            item.setImmutable();
+        }
+        super.setImmutable();
     }
 
     @Override
@@ -1550,7 +1565,6 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     /**
      * Returns a single-valued container (with a single-valued definition) holding just this value.
      * @param itemName Item name for newly-created container.
-     * @return
      */
     public PrismContainer<C> asSingleValuedContainer(@NotNull QName itemName) throws SchemaException {
         PrismContext prismContext = getPrismContext();

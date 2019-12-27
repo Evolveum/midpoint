@@ -291,7 +291,7 @@ public class ShadowCache {
             resourceObject.asObjectable().setIntent(repositoryShadow.asObjectable().getIntent());
             ProvisioningContext shadowCtx = ctx.spawn(resourceObject);
 
-            resourceManager.modifyResourceAvailabilityStatus(resource.asPrismObject(), AvailabilityStatusType.UP, parentResult);
+            resourceManager.modifyResourceAvailabilityStatus(resource.getOid(), AvailabilityStatusType.UP, false, task, parentResult);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.debugDump(1));
@@ -1242,8 +1242,7 @@ public class ShadowCache {
                             .deleteResourceObject(ctx, repoShadow, scripts, connOptions, parentResult);
                     opState.processAsyncResult(asyncReturnValue);
 
-                    resourceManager.modifyResourceAvailabilityStatus(ctx.getResource().asPrismObject(),
-                            AvailabilityStatusType.UP, parentResult);
+                    resourceManager.modifyResourceAvailabilityStatus(ctx.getResourceOid(), AvailabilityStatusType.UP, false, task, parentResult);
 
                 } catch (Exception ex) {
                     try {

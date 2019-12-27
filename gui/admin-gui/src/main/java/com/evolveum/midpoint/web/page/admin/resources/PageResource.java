@@ -89,7 +89,10 @@ public class PageResource extends PageAdmin {
 
     public static final String PARAMETER_SELECTED_TAB = "tab";
 
-    LoadableModel<PrismObject<ResourceType>> resourceModel;
+    /**
+     * Contains MUTABLE resource object.
+     */
+    private LoadableModel<PrismObject<ResourceType>> resourceModel;
 
     private String resourceOid;
 

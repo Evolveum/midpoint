@@ -284,8 +284,15 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
         return getRefinedSchema(resource, resource.getPrismContext());
     }
 
+    /**
+     * Obtains refined schema for the resource.
+     *
+     * If the resource does NOT contain the schema, it must be mutable.
+     *
+     * TODO rework this -- management of refined resource schemas will be the responsibility of ResourceManager
+     */
     public static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource, PrismContext prismContext) throws SchemaException {
-        if (resource == null){
+        if (resource == null) {
             throw new SchemaException("Could not get refined schema, resource does not exist.");
         }
 
@@ -299,7 +306,10 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
             }
         } else {
             RefinedResourceSchema refinedSchema = parse(resource, prismContext);
-            resource.modifyUnfrozen(r -> r.setUserData(USER_DATA_KEY_REFINED_SCHEMA, refinedSchema));
+            if (resource.isImmutable()) {
+                throw new IllegalStateException("Trying to set parsed schema on immutable resource: " + resource);
+            }
+            resource.setUserData(USER_DATA_KEY_REFINED_SCHEMA, refinedSchema);
             return refinedSchema;
         }
     }
@@ -322,6 +332,13 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
         return getResourceSchema(resource, prismContext);
     }
 
+    /**
+     * Obtains schema for the resource.
+     *
+     * If the resource does NOT contain the schema, it must be mutable.
+     *
+     * TODO rework this -- management of resource schemas will be the responsibility of ResourceManager
+     */
     public static ResourceSchema getResourceSchema(PrismObject<ResourceType> resource, PrismContext prismContext) throws SchemaException {
         Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
         if (resourceXsdSchema == null) {
@@ -342,25 +359,20 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
                             USER_DATA_KEY_PARSED_RESOURCE_SCHEMA + "in " + resource + ", but got " + userDataEntry.getClass());
                 }
             } else {
+                if (resource.isImmutable()) {
+                    throw new IllegalStateException("Trying to set parsed schema on immutable resource: " + resource);
+                }
                 InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
                 ResourceSchemaImpl parsedSchema = ResourceSchemaImpl
                         .parse(resourceXsdSchema, "resource schema of " + resource, prismContext);
                 if (parsedSchema == null) {
-                    throw new IllegalStateException("Parsed schema is null: most likely an internall error");
+                    throw new IllegalStateException("Parsed schema is null: most likely an internal error");
                 }
-                resource.modifyUnfrozen(r -> r.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema));
+                resource.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema);
                 parsedSchema.setNamespace(ResourceTypeUtil.getResourceNamespace(resource));
                 return parsedSchema;
             }
         }
-    }
-
-    public static void setParsedResourceSchemaConditional(ResourceType resourceType, ResourceSchema parsedSchema) {
-        if (hasParsedSchema(resourceType)) {
-            return;
-        }
-        PrismObject<ResourceType> resource = resourceType.asPrismObject();
-        resource.modifyUnfrozen(r -> r.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema));
     }
 
     public static boolean hasParsedSchema(ResourceType resourceType) {

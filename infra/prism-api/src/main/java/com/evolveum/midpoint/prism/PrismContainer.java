@@ -229,6 +229,9 @@ public interface PrismContainer<C extends Containerable>
     PrismContainer<C> clone();
 
     @Override
+    PrismContainer<C> createImmutableClone();
+
+    @Override
     PrismContainer<C> cloneComplex(CloneStrategy strategy);
 
     PrismContainerDefinition<C> deepCloneDefinition(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction);

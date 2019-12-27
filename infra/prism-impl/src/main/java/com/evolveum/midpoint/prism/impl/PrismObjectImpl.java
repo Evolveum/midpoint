@@ -236,25 +236,23 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
     }
 
     @Override
+    public PrismObject<O> createImmutableClone() {
+        return (PrismObject<O>) super.createImmutableClone();
+    }
+
+    @Override
     public PrismObjectImpl<O> cloneComplex(CloneStrategy strategy) {
         if (prismContext != null && prismContext.getMonitor() != null) {
             prismContext.getMonitor().beforeObjectClone(this);
         }
 
-//        MethodInvocationRecord record = MethodInvocationRecord.create(PrismObjectImpl.class.getName() + ".cloneComplex", new Object[] { strategy });
-//        try {
-            PrismObjectImpl<O> clone = new PrismObjectImpl<>(getElementName(), getDefinition(), prismContext);
-            copyValues(strategy, clone);
+        PrismObjectImpl<O> clone = new PrismObjectImpl<>(getElementName(), getDefinition(), prismContext);
+        copyValues(strategy, clone);
 
-            if (prismContext != null && prismContext.getMonitor() != null) {
-                prismContext.getMonitor().afterObjectClone(this, clone);
-            }
-            return clone;
-//        } catch (RuntimeException t) {
-//            throw record.processException(t);
-//        } finally {
-//            record.afterCall();
-//        }
+        if (prismContext != null && prismContext.getMonitor() != null) {
+            prismContext.getMonitor().afterObjectClone(this, clone);
+        }
+        return clone;
     }
 
     protected void copyValues(CloneStrategy strategy, PrismObjectImpl<O> clone) {
@@ -452,21 +450,15 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
     }
 
     @Override
-    public void setImmutable(boolean immutable) {
-        if (!this.immutable && immutable && values.isEmpty()) {
+    public void setImmutable() {
+        if (!this.immutable && values.isEmpty()) {
             createNewValue();
         }
-        super.setImmutable(immutable);
+        super.setImmutable();
     }
 
     public PrismObject<O> cloneIfImmutable() {
-        return isImmutable() ? ((PrismObject) this).clone() : this;
-    }
-
-    public PrismObject<O> createImmutableClone() {
-        PrismObject<O> clone = ((PrismObject) this).clone();
-        clone.setImmutable(true);
-        return clone;
+        return isImmutable() ? clone() : this;
     }
 
     @NotNull

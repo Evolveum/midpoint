@@ -296,7 +296,6 @@ public class Clockwork {
             context.setProgressListeners(listeners);
 
             projector.projectAllWaves(context, "preview", task, result);
-            context.distributeResource();
 
             if (hookRegistry != null) {
                 for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
