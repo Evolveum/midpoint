@@ -66,6 +66,9 @@ public interface PrismReference extends Item<PrismReferenceValue,PrismReferenceD
     PrismReference clone();
 
     @Override
+    PrismReference createImmutableClone();
+
+    @Override
     PrismReference cloneComplex(CloneStrategy strategy);
 
     @Override

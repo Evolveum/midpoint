@@ -369,6 +369,11 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
         return new DummyContainerImpl<>(realContainer, path);
     }
 
+    @Override
+    public PrismContainer<C> createImmutableClone() {
+        return new DummyContainerImpl<>(realContainer.createImmutableClone(), path);
+    }
+
     public PrismContainer<C> cloneComplex(CloneStrategy strategy) {
         return new DummyContainerImpl<>(realContainer, path);
     }
@@ -587,21 +592,12 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
         return realContainer.isImmutable();
     }
 
-    public void setImmutable(boolean immutable) {
-        realContainer.setImmutable(immutable);
+    public void setImmutable() {
+        realContainer.setImmutable();
     }
 
     public void checkImmutability() {
         realContainer.checkImmutability();
-    }
-
-    public void modifyUnfrozen(Runnable mutator) {
-        realContainer.modifyUnfrozen(mutator);
-    }
-
-    public void modifyUnfrozen(
-            Consumer<Item<PrismContainerValue<C>, PrismContainerDefinition<C>>> mutator) {
-        realContainer.modifyUnfrozen(mutator);
     }
 
     @NotNull

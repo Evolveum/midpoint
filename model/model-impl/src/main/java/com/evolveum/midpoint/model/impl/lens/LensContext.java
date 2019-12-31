@@ -895,12 +895,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         return clonedMap;
     }
 
-    public void distributeResource() {
-        for (LensProjectionContext projCtx : getProjectionContexts()) {
-            projCtx.distributeResource();
-        }
-    }
-
     @Override
     public Class<F> getFocusClass() {
         return focusClass;

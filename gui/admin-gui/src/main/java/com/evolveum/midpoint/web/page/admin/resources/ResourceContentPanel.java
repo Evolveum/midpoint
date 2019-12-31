@@ -178,7 +178,6 @@ public abstract class ResourceContentPanel extends Panel {
             return null;
         }
         return refinedSchema.getRefinedDefinition(getKind(), getIntent());
-
     }
 
     public RefinedObjectClassDefinition getDefinitionByObjectClass() throws SchemaException {
