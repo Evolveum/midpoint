@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import org.apache.wicket.Component;
@@ -123,7 +124,7 @@ public class ResourceTasksPanel extends Panel implements Popupable{
             }
 
             @Override
-            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
+            protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
                 getPageBase().navigateToNext(PageTaskAdd.class);
 
             }

@@ -10,8 +10,11 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
@@ -22,23 +25,24 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Created by honchar
  */
-public abstract class MultifunctionalButton<S extends Serializable> extends BasePanel<S> {
+public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctinalButtonDto>> {
 
     private static final String ID_MAIN_BUTTON = "mainButton";
     private static final String ID_BUTTON = "additionalButton";
 
     private static final String DEFAULT_BUTTON_STYLE = "btn btn-default btn-sm buttons-panel-marging";
 
-    public MultifunctionalButton(String id){
+    private List<MultiFunctinalButtonDto> buttonDtos;
+
+    public MultifunctionalButton(String id, List<MultiFunctinalButtonDto> buttonDtos){
         super(id);
+        this.buttonDtos = buttonDtos;
     }
 
     @Override
@@ -48,10 +52,10 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
     }
 
     private void initLayout(){
-        List<S> additionalButtons =  getAdditionalButtonsObjects();
+//        List<S> additionalButtons =  getAdditionalButtonsObjects();
 
-        DisplayType defaultObjectButtonDisplayType = validateDisplayType(getDefaultObjectButtonDisplayType());
-        DisplayType mainButtonDisplayType = validateDisplayType(getMainButtonDisplayType());
+        DisplayType defaultObjectButtonDisplayType = fixDisplayTypeIfNeeded(getDefaultObjectButtonDisplayType());
+        DisplayType mainButtonDisplayType = fixDisplayTypeIfNeeded(getMainButtonDisplayType());
         //we set default button icon class if no other is defined
         if (StringUtils.isEmpty(mainButtonDisplayType.getIcon().getCssClass())){
             mainButtonDisplayType.getIcon().setCssClass(defaultObjectButtonDisplayType.getIcon().getCssClass());
@@ -74,7 +78,7 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (!additionalButtonsExist()){
-                    buttonClickPerformed(target, null);
+                    buttonClickPerformed(target, null, null);
                 }
             }
         };
@@ -86,22 +90,23 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
         add(buttonsPanel);
 
         if (additionalButtonsExist()){
-            additionalButtons.forEach(additionalButtonObject -> {
-                DisplayType additionalButtonDisplayType = validateDisplayType(getAdditionalButtonDisplayType(additionalButtonObject));
+            buttonDtos.forEach(additionalButtonObject -> {
+                DisplayType additionalButtonDisplayType = fixDisplayTypeIfNeeded(additionalButtonObject.getAdditionalButtonDisplayType()); //getAdditionalButtonDisplayType(additionalButtonObject)
+                additionalButtonObject.setAdditionalButtonDisplayType(additionalButtonDisplayType);
                 //we set default button icon class if no other is defined
 //                if (StringUtils.isEmpty(additionalButtonDisplayType.getIcon().getCssClass())){
 //                    additionalButtonDisplayType.getIcon().setCssClass(defaultObjectButtonDisplayType.getIcon().getCssClass());
 //                }
 
-                CompositedIconBuilder additionalButtonBuilder = getAdditionalIconBuilder(additionalButtonObject, additionalButtonDisplayType);
-                AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(buttonsPanel.newChildId(), additionalButtonBuilder.build(),
+//                CompositedIconBuilder additionalButtonBuilder = getAdditionalIconBuilder(additionalButtonObject, additionalButtonDisplayType);
+                AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(buttonsPanel.newChildId(), getCompositedIcon(additionalButtonObject),
                         Model.of(WebComponentUtil.getDisplayTypeTitle(additionalButtonDisplayType))) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        buttonClickPerformed(target, additionalButtonObject);
+                        buttonClickPerformed(target, additionalButtonObject.getAssignmentObjectRelation(), additionalButtonObject.getCollectionView());
                     }
                 };
                 additionalButton.add(AttributeAppender.append("class", DEFAULT_BUTTON_STYLE));
@@ -118,14 +123,14 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
 //                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
             AjaxCompositedIconButton defaultButton = new AjaxCompositedIconButton(buttonsPanel.newChildId(),
-                    getAdditionalIconBuilder(null, defaultObjectButtonDisplayType).build(),
+                    getAdditionalIconBuilder(defaultObjectButtonDisplayType).build(),
                     Model.of(WebComponentUtil.getDisplayTypeTitle(defaultObjectButtonDisplayType))){
 
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
-                    buttonClickPerformed(target, null);
+                    buttonClickPerformed(target, null, null);
                 }
             };
             defaultButton.add(AttributeAppender.append("class", DEFAULT_BUTTON_STYLE));
@@ -133,9 +138,18 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
         }
     }
 
+    private CompositedIcon getCompositedIcon(MultiFunctinalButtonDto additionalButtonObject) {
+        CompositedIcon icon = additionalButtonObject.getCompositedIcon();
+        if (icon != null) {
+            return icon;
+        }
+
+        return getAdditionalIconBuilder(additionalButtonObject.getAdditionalButtonDisplayType()).build();
+    }
+
     protected abstract DisplayType getMainButtonDisplayType();
 
-    protected abstract DisplayType getAdditionalButtonDisplayType(S buttonObject);
+//    protected abstract DisplayType getAdditionalButtonDisplayType(S buttonObject);
 
     /**
      * this method should return the display properties for the last button on the dropdown  panel with additional buttons.
@@ -144,7 +158,7 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
      */
     protected abstract DisplayType getDefaultObjectButtonDisplayType();
 
-    protected CompositedIconBuilder getAdditionalIconBuilder(S additionalButtonObject, DisplayType additionalButtonDisplayType){
+    protected CompositedIconBuilder getAdditionalIconBuilder(DisplayType additionalButtonDisplayType){
         CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
@@ -152,7 +166,7 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
         return builder;
     }
 
-    private DisplayType validateDisplayType(DisplayType displayType){
+    private DisplayType fixDisplayTypeIfNeeded(DisplayType displayType){
         if (displayType == null){
             displayType = new DisplayType();
         }
@@ -166,16 +180,16 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
         return displayType;
     }
 
-    protected void buttonClickPerformed(AjaxRequestTarget target, S buttonObject){
+    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews){
     }
 
-    private boolean additionalButtonsExist(){
-        return !CollectionUtils.isEmpty(getAdditionalButtonsObjects());
+    private boolean additionalButtonsExist() {
+        return !buttonDtos.isEmpty();
     }
 
-    protected List<S> getAdditionalButtonsObjects(){
-        return new ArrayList<>();
-    }
+//    protected List<S> getAdditionalButtonsObjects(){
+//        return new ArrayList<>();
+//    }
 
     protected Map<IconCssStyle, IconType> getMainButtonLayerIcons(){
         return null;

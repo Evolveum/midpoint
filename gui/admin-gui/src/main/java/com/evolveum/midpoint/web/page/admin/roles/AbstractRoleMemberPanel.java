@@ -15,9 +15,11 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.QueryFactory;
@@ -25,6 +27,7 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -213,16 +216,18 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 return WebComponentUtil.hasDetailsPage(objectClass);
             }
 
-            @Override
-            protected List<AssignmentObjectRelation> getNewObjectInfluencesList() {
-                return WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList());
-            }
 
-            @Override
-            protected DisplayType getNewObjectButtonAdditionalDisplayType(AssignmentObjectRelation relationSpec){
-                return WebComponentUtil.getAssignmentObjectRelationDisplayType(AbstractRoleMemberPanel.this.getPageBase(), relationSpec,
-                    "abstractRoleMemberPanel.menu.createMember");
-            }
+
+            //            @Override
+//            protected List<AssignmentObjectRelation> getNewObjectInfluencesList() {
+//                return WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList());
+//            }
+//
+//            @Override
+//            protected DisplayType getNewObjectButtonAdditionalDisplayType(AssignmentObjectRelation relationSpec){
+//                return WebComponentUtil.getAssignmentObjectRelationDisplayType(AbstractRoleMemberPanel.this.getPageBase(), relationSpec,
+//                    "abstractRoleMemberPanel.menu.createMember");
+//            }
 
             @Override
             protected DisplayType getNewObjectButtonSpecialDisplayType(){
@@ -235,63 +240,29 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                         createStringResource("abstractRoleMemberPanel.menu.createMember", "", "").getString());
             }
 
+//            @Override
+//            protected CompositedIconBuilder getNewObjectButtonAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
+//                return WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(), relationSpec,
+//                        additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green"));
+//            }
+
+
+//
+
             @Override
-            protected CompositedIconBuilder getNewObjectButtonAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
-                return WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(), relationSpec,
-                        additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green"));
+            protected List<MultiFunctinalButtonDto> loadButtonDescriptions() {
+                return createAdditionalButtonsDescription();
             }
 
             @Override
-            protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec) {
-                AbstractRoleMemberPanel.this.createFocusMemberPerformed(target, relationSpec);
+            protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
+                AbstractRoleMemberPanel.this.createFocusMemberPerformed(target, relation); //assignemntObjectRelation
             }
 
             @Override
             protected List<Component> createToolbarButtonsList(String buttonId){
                 List<Component> buttonsList = super.createToolbarButtonsList(buttonId);
-                MultifunctionalButton<AssignmentObjectRelation> assignButton = new MultifunctionalButton<AssignmentObjectRelation>(buttonId) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected List<AssignmentObjectRelation> getAdditionalButtonsObjects() {
-                        return WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList());
-                    }
-
-                    @Override
-                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
-                        List<QName> relations = relation != null && !CollectionUtils.isEmpty(relation.getRelations()) ?
-                                Arrays.asList(relation.getRelations().get(0)) : getSupportedRelations().getAvailableRelationList();
-                        AvailableRelationDto avariableRelations = new AvailableRelationDto(relations, getSupportedRelations().getDefaultRelation());
-                        List<QName> objectTypes = relation != null && !CollectionUtils.isEmpty(relation.getObjectTypes()) ?
-                                relation.getObjectTypes() : null;
-                        assignMembers(target, avariableRelations, objectTypes, relation == null);
-                    }
-
-                    @Override
-                    protected DisplayType getMainButtonDisplayType(){
-                        return getAssignMemberButtonDisplayType();
-                    }
-
-                    @Override
-                    protected DisplayType getAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation){
-                        return WebComponentUtil.getAssignmentObjectRelationDisplayType(AbstractRoleMemberPanel.this.getPageBase(), assignmentTargetRelation,
-                                "abstractRoleMemberPanel.menu.assignMember");
-                    }
-
-                    @Override
-                    protected DisplayType getDefaultObjectButtonDisplayType(){
-                        return getAssignMemberButtonDisplayType();
-                    }
-
-                    @Override
-                    protected CompositedIconBuilder getAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
-                        return WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(), relationSpec,
-                                additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
-                    }
-                };
-                assignButton.add(AttributeAppender.append("class", "btn-margin-right"));
-
-
+                MultifunctionalButton assignButton = createAssignButton(buttonId);
                 buttonsList.add(1, assignButton);
                 return buttonsList;
             }
@@ -353,6 +324,89 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
+    }
+
+    private List<MultiFunctinalButtonDto> createAdditionalButtonsDescription() {
+        List<MultiFunctinalButtonDto> multiFunctinalButtonDtos = new ArrayList<>();
+        List<AssignmentObjectRelation> loadedRelations = loadMemberRelationsList();
+        if (org.apache.commons.collections4.CollectionUtils.isNotEmpty(loadedRelations)) {
+            List<AssignmentObjectRelation> relations = WebComponentUtil.divideAssignmentRelationsByAllValues(loadedRelations);
+            relations.forEach(relation -> {
+                MultiFunctinalButtonDto buttonDto = new MultiFunctinalButtonDto();
+                DisplayType additionalButtonDisplayType = WebComponentUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation,
+                        "abstractRoleMemberPanel.menu.createMember");
+                buttonDto.setAdditionalButtonDisplayType(additionalButtonDisplayType);
+                buttonDto.setCompositedIcon(createCompositedIcon(relation, additionalButtonDisplayType));
+                buttonDto.setAssignmentObjectRelation(relation);
+                multiFunctinalButtonDtos.add(buttonDto);
+            });
+        }
+        return  multiFunctinalButtonDtos;
+    }
+
+    private CompositedIcon createCompositedIcon(AssignmentObjectRelation relation, DisplayType additionalButtonDisplayType) {
+        CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(getPageBase(), relation,
+                additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green"));
+        if (builder == null) {
+            return null;
+        }
+        return builder.build();
+    }
+
+    private MultifunctionalButton createAssignButton(String buttonId) {
+        MultifunctionalButton assignButton = new MultifunctionalButton(buttonId, createAssignmentAdditionalButtons()) {
+            private static final long serialVersionUID = 1L;
+
+
+            @Override
+            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
+                List<QName> relations = relation != null && !CollectionUtils.isEmpty(relation.getRelations()) ?
+                        Arrays.asList(relation.getRelations().get(0)) : getSupportedRelations().getAvailableRelationList();
+                AvailableRelationDto avariableRelations = new AvailableRelationDto(relations, getSupportedRelations().getDefaultRelation());
+                List<QName> objectTypes = relation != null && !CollectionUtils.isEmpty(relation.getObjectTypes()) ?
+                        relation.getObjectTypes() : null;
+                assignMembers(target, avariableRelations, objectTypes, relation == null);
+            }
+
+            @Override
+            protected DisplayType getMainButtonDisplayType(){
+                return getAssignMemberButtonDisplayType();
+            }
+
+            @Override
+            protected DisplayType getDefaultObjectButtonDisplayType(){
+                return getAssignMemberButtonDisplayType();
+            }
+
+        };
+        assignButton.add(AttributeAppender.append("class", "btn-margin-right"));
+
+
+        return assignButton;
+    }
+
+    private List<MultiFunctinalButtonDto> createAssignmentAdditionalButtons() {
+        List<MultiFunctinalButtonDto> additionalAssignmentButtons = new ArrayList<>();
+        List<AssignmentObjectRelation> assignmentObjectRelations = WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList());
+        if (assignmentObjectRelations == null) {
+            return additionalAssignmentButtons;
+        }
+        assignmentObjectRelations.forEach(relation -> {
+            MultiFunctinalButtonDto buttonDto = new MultiFunctinalButtonDto();
+            buttonDto.setAssignmentObjectRelation(relation);
+
+            DisplayType additionalDispayType = WebComponentUtil.getAssignmentObjectRelationDisplayType(AbstractRoleMemberPanel.this.getPageBase(), relation,
+                    "abstractRoleMemberPanel.menu.assignMember");
+            //TODO null additinalDisplayType
+            CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(), relation,
+                    additionalDispayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
+            CompositedIcon icon = builder.build();
+            buttonDto.setCompositedIcon(icon);
+            additionalAssignmentButtons.add(buttonDto);
+        });
+
+        return additionalAssignmentButtons;
+
     }
 
     protected TableId getTableId(QName complextType) {
@@ -510,6 +564,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         Map<String, String> memeberAuthz = getAuthorizations(getComplexTypeQName());
         return WebComponentUtil.isAuthorized(memeberAuthz.get(action));
     }
+
+
 
     private List<AssignmentObjectRelation> loadMemberRelationsList(){
         List<AssignmentObjectRelation> assignmentTargetRelations = new ArrayList<>();

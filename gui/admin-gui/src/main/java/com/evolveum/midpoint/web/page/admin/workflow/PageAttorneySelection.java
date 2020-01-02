@@ -93,15 +93,15 @@ public class PageAttorneySelection extends PageBase {
         ObjectListPanel<UserType> table = new ObjectListPanel<UserType>(ID_TABLE, UserType.class,
                 UserProfileStorage.TableId.PAGE_USER_SELECTION, Collections.emptyList()) {
 
-            @Override
-            protected boolean isRefreshEnabled() {
-                return false;
-            }
-
-            @Override
-            protected int getAutoRefreshInterval() {
-                return 0;
-            }
+//            @Override
+//            protected boolean isRefreshEnabled() {
+//                return false;
+//            }
+//
+//            @Override
+//            protected int getAutoRefreshInterval() {
+//                return 0;
+//            }
 
             @Override
             protected IColumn<SelectableBean<UserType>, String> createCheckboxColumn() {

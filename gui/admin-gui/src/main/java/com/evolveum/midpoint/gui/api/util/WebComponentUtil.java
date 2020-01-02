@@ -229,17 +229,6 @@ public final class WebComponentUtil {
         objectListPageMap.put(ResourceType.class, PageResources.class);
     }
 
-    private static Map<Class<?>, String> storageKeyMap;
-
-    static {
-        storageKeyMap = new HashMap<>();
-        storageKeyMap.put(PageUsers.class, SessionStorage.KEY_USERS);
-        storageKeyMap.put(PageResources.class, SessionStorage.KEY_RESOURCES);
-        storageKeyMap.put(PageReports.class, SessionStorage.KEY_REPORTS);
-        storageKeyMap.put(PageRoles.class, SessionStorage.KEY_ROLES);
-        storageKeyMap.put(PageServices.class, SessionStorage.KEY_SERVICES);
-    }
-
     private static Map<TableId, String> storageTableIdMap;
 
     static {
@@ -2355,10 +2344,6 @@ public final class WebComponentUtil {
             return false;
         }
         return hasDetailsPage(t.getClassDefinition());
-    }
-
-    public static String getStorageKeyForPage(Class<?> pageClass) {
-        return storageKeyMap.get(pageClass);
     }
 
     public static String getStorageKeyForTableId(TableId tableId) {

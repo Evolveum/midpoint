@@ -10,15 +10,21 @@ import java.io.Serializable;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -50,7 +56,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.time.Duration;
@@ -121,26 +126,88 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
 
     protected abstract void objectDetailsPerformed(AjaxRequestTarget target, O object);
 
-    protected void newObjectPerformed(AjaxRequestTarget target, S collectionView){}
+    protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView){
+        if (relation != null) {
+
+        }
+
+        if (collectionView == null){
+            collectionView = getObjectCollectionView();
+        }
+
+        List<ObjectReferenceType> archetypeRef = getReferencesList(collectionView);
+        try {
+            WebComponentUtil.initNewObjectWithReference(getPageBase(),
+                    WebComponentUtil.classToQName(getPrismContext(), getType()),
+                    archetypeRef);
+        } catch (SchemaException ex){
+            getPageBase().getFeedbackMessages().error(MainObjectListPanel.this, ex.getUserFriendlyMessage());
+            target.add(getPageBase().getFeedbackPanel());
+        }
+    }
+
+    private List<ObjectReferenceType> getReferencesList(CompiledObjectCollectionView collectionView) {
+        if (!isArchetypedCollectionView(collectionView)) {
+            return null;
+        }
+
+        ObjectReferenceType ref =  collectionView.getCollection().getCollectionRef();
+        return Arrays.asList(ref);
+    }
 
     @Override
     protected WebMarkupContainer createTableButtonToolbar(String id) {
         return new ButtonBar(id, ID_BUTTON_BAR, this, createToolbarButtonsList(ID_BUTTON));
     }
 
+    protected List<AssignmentObjectRelation> getRelationsDefinitions() {
+        return null;
+    }
+
+    protected List<MultiFunctinalButtonDto> loadButtonDescriptions() {
+        List<MultiFunctinalButtonDto> multiFunctinalButtonDtos = new ArrayList<>();
+
+        Collection<CompiledObjectCollectionView> compiledObjectCollectionViews = getNewObjectInfluencesList();
+
+        if (CollectionUtils.isNotEmpty(compiledObjectCollectionViews)) {
+            compiledObjectCollectionViews.forEach(collection -> {
+                MultiFunctinalButtonDto buttonDesc = new MultiFunctinalButtonDto();
+                buttonDesc.setCompositedIcon(createCompositedIcon(collection));
+                buttonDesc.setAdditionalButtonDisplayType(collection.getDisplay());
+                buttonDesc.setCollectionView(collection);
+                multiFunctinalButtonDtos.add(buttonDesc);
+            });
+        }
+
+        return multiFunctinalButtonDtos;
+    }
+
+    private CompositedIcon createCompositedIcon(CompiledObjectCollectionView collectionView) {
+        DisplayType additionalButtonDisplayType = WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
+        CompositedIconBuilder builder = getNewObjectButtonAdditionalIconBuilder(collectionView, additionalButtonDisplayType);
+        if (builder == null){
+            //return super.getAdditionalIconBuilder(additionalButtonDisplayType);
+            return null;
+        }
+//        else {
+//            return builder;
+//        }
+        return builder.build();
+    }
+
     protected List<Component> createToolbarButtonsList(String buttonId){
         List<Component> buttonsList = new ArrayList<>();
-        MultifunctionalButton<S> createNewObjectButton = new MultifunctionalButton<S>(buttonId){
+        MultifunctionalButton createNewObjectButton = new MultifunctionalButton(buttonId, loadButtonDescriptions()){
             private static final long serialVersionUID = 1L;
 
-            @Override
-            protected List<S> getAdditionalButtonsObjects(){
-                return getNewObjectInfluencesList();
-            }
+//            @Override
+//            protected List<CompiledObjectCollectionView> getAdditionalButtonsObjects(){
+//                return getNewObjectInfluencesList();
+//            }
 
             @Override
-            protected void buttonClickPerformed(AjaxRequestTarget target, S influencingObject){
-                newObjectPerformed(target, influencingObject);
+            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionView){
+                newObjectPerformed(target, relationSpec, collectionView);
             }
 
             @Override
@@ -148,30 +215,33 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
                 return getNewObjectButtonStandardDisplayType();
             }
 
-            @Override
-            protected Map<IconCssStyle, IconType> getMainButtonLayerIcons(){
-                return getNewObjectButtonLayerIconStyleMap();
-            }
+
 
             @Override
-            protected CompositedIconBuilder getAdditionalIconBuilder(S influencingObject, DisplayType additionalButtonDisplayType){
-                CompositedIconBuilder builder = MainObjectListPanel.this.getNewObjectButtonAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
-                if (builder == null){
-                    return super.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
-                } else {
-                    return builder;
+            protected Map<IconCssStyle, IconType> getMainButtonLayerIcons(){
+                if (!isCollectionViewPanel()){
+                    return null;
                 }
+                Map<IconCssStyle, IconType> layerIconMap = new HashMap<>();
+                layerIconMap.put(IconCssStyle.BOTTOM_RIGHT_STYLE, WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"));
+                return layerIconMap;
             }
+
+//            @Override
+//            protected CompositedIconBuilder getAdditionalIconBuilder(CompiledObjectCollectionView influencingObject, DisplayType additionalButtonDisplayType){
+//
+//            }
 
             @Override
             protected DisplayType getDefaultObjectButtonDisplayType(){
                 return getNewObjectButtonSpecialDisplayType();
             }
 
-            @Override
-            protected DisplayType getAdditionalButtonDisplayType(S buttonObject){
-                return getNewObjectButtonAdditionalDisplayType(buttonObject);
-            }
+//            @Override
+//            protected DisplayType getAdditionalButtonDisplayType(CompiledObjectCollectionView buttonObject){
+//                return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(buttonObject, getPageBase());
+////                return getNewObjectButtonAdditionalDisplayType(buttonObject);
+//            }
         };
         createNewObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectEnabled()));
         createNewObjectButton.add(AttributeAppender.append("class", "btn-margin-right"));
@@ -297,17 +367,50 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         return true;
     }
 
-    protected List<S> getNewObjectInfluencesList(){
-        return new ArrayList<>();
+    protected List<CompiledObjectCollectionView> getNewObjectInfluencesList(){
+        if (isCollectionViewPanel()){
+            return new ArrayList<>();
+        }
+        return getAllApplicableArchetypeViews();
     }
 
     protected DisplayType getNewObjectButtonStandardDisplayType(){
+        if (isCollectionViewPanel()) {
+
+            CompiledObjectCollectionView view = getObjectCollectionView();
+            if (isArchetypedCollectionView(view)) {
+                return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(view, getPageBase());
+            }
+        }
+
         StringBuilder sb = new StringBuilder();
         sb.append(createStringResource("MainObjectListPanel.newObject").getString());
         sb.append(" ");
         sb.append(createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString());
         return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
                 sb.toString());
+    }
+
+    private boolean isArchetypedCollectionView(CompiledObjectCollectionView view) {
+        if (view == null) {
+            return false;
+        }
+
+        CollectionRefSpecificationType collectionRefSpecificationType = view.getCollection();
+        if (collectionRefSpecificationType == null) {
+            return false;
+        }
+
+        ObjectReferenceType collectionRef = collectionRefSpecificationType.getCollectionRef();
+        if (collectionRef == null) {
+            return false;
+        }
+
+        if (!QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRef.getType())) {
+            return false;
+        }
+
+        return true;
     }
 
     protected Map<IconCssStyle, IconType> getNewObjectButtonLayerIconStyleMap(){
@@ -325,11 +428,11 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         return WebComponentUtil.createDisplayType(iconCssStyle, "", sb.toString());
     }
 
-    protected DisplayType getNewObjectButtonAdditionalDisplayType(S buttonObject){
+    protected DisplayType getNewObjectButtonAdditionalDisplayType(CompiledObjectCollectionView buttonObject){
         return null;
     }
 
-    protected CompositedIconBuilder getNewObjectButtonAdditionalIconBuilder(S influencingObject, DisplayType additionalButtonDisplayType){
+    protected CompositedIconBuilder getNewObjectButtonAdditionalIconBuilder(CompiledObjectCollectionView influencingObject, DisplayType additionalButtonDisplayType){
         return null;
     }
 
@@ -354,44 +457,5 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         }
     }
 
-    @Override
-    protected boolean isRefreshEnabled() {
-        if (getAutoRefreshInterval() == 0) {
-            return manualRefreshEnabled == null ? false : manualRefreshEnabled.booleanValue();
-        }
-
-        if (manualRefreshEnabled == null) {
-            return true;
-        }
-
-        return manualRefreshEnabled.booleanValue();
-    }
-
-    @Override
-    protected int getAutoRefreshInterval() {
-        if (!isCollectionViewPanel()) {
-            return 0;
-        }
-
-        String collectionName = getCollectionNameParameterValue().toString();
-        CompiledObjectCollectionView view = getPageBase().getCompiledUserProfile().findObjectViewByViewName(getType(), collectionName);
-
-        Integer autoRefreshInterval = view.getRefreshInterval();
-        if (autoRefreshInterval == null) {
-            return 0;
-        }
-
-        return autoRefreshInterval.intValue();
-
-    }
-
-    private StringValue getCollectionNameParameterValue(){
-        PageParameters parameters = getPageBase().getPageParameters();
-        return parameters ==  null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
-    }
-
-    private boolean isCollectionViewPanel() {
-        return getCollectionNameParameterValue() != null && getCollectionNameParameterValue().toString() != null;
-    }
 
 }

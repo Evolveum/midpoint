@@ -281,8 +281,8 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     protected Fragment initCustomButtonToolbar(String contentAreaId){
         Fragment searchContainer = new Fragment(contentAreaId, ID_BUTTON_TOOLBAR_FRAGMENT, this);
 
-        MultifunctionalButton newObjectIcon = getMultivalueContainerListPanel().getNewItemButton(ID_NEW_ITEM_BUTTON);
-        searchContainer.add(newObjectIcon);
+//        MultifunctionalButton newObjectIcon = getMultivalueContainerListPanel().getNewItemButton(ID_NEW_ITEM_BUTTON);
+//        searchContainer.add(newObjectIcon);
 
         return searchContainer;
     }

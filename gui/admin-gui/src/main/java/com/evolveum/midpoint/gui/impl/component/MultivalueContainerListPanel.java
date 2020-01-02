@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -259,67 +260,72 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
     }
 
     protected WebMarkupContainer initButtonToolbar(String id) {
-        return getNewItemButton(id);
+//        return getNewItemButton(id);
+        return new WebMarkupContainer(id);
     }
+//
+//    private List<MultiFunctinalButtonDto> loadButtonDescriptions() {
+//        getNewObjectInfluencesList();
+//    }
 
-    public MultifunctionalButton<S> getNewItemButton(String id) {
-        MultifunctionalButton<S> newObjectIcon =
-                new MultifunctionalButton<S>(id) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected List<S> getAdditionalButtonsObjects() {
-                        return getNewObjectInfluencesList();
-                    }
-
-                    @Override
-                    protected void buttonClickPerformed(AjaxRequestTarget target, S influencingObject) {
-                        List<S> additionalButtonObjects = getNewObjectInfluencesList();
-                        if (influencingObject == null && (additionalButtonObjects == null || additionalButtonObjects.size() == 0)) {
-                            newItemPerformed(target);
-                        } else {
-                            newItemPerformed(target, influencingObject);
-                        }
-                    }
-
-                    @Override
-                    protected CompositedIconBuilder getAdditionalIconBuilder(S influencingObject, DisplayType additionalButtonDisplayType){
-                        CompositedIconBuilder builder = MultivalueContainerListPanel.this.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
-                        return builder != null ? builder : super.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
-                    }
-
-                    @Override
-                    protected DisplayType getMainButtonDisplayType() {
-                        return getNewObjectButtonDisplayType();
-                    }
-
-                    @Override
-                    protected DisplayType getAdditionalButtonDisplayType(S buttonObject) {
-                        return getNewObjectAdditionalButtonDisplayType(buttonObject);
-                    }
-
-                    @Override
-                    protected DisplayType getDefaultObjectButtonDisplayType() {
-                        return getNewObjectButtonDisplayType();
-                    }
-                };
-        newObjectIcon.add(AttributeModifier.append("class", "btn-group btn-margin-right"));
-        newObjectIcon.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return enableActionNewObject();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return isNewObjectButtonEnabled();
-            }
-        });
-//        newObjectIcon.add(AttributeModifier.append("class", createStyleClassModelForNewObjectIcon()));
-        return newObjectIcon;
-    }
+//    public MultifunctionalButton getNewItemButton(String id) {
+//        MultifunctionalButton newObjectIcon =
+//                new MultifunctionalButton(id) {
+//                    private static final long serialVersionUID = 1L;
+//
+////                    @Override
+////                    protected List<MultiFunctinalButtonDto> getAdditionalButtonsObjects() {
+////                        return getNewObjectInfluencesList();
+////                    }
+//
+//                    @Override
+//                    protected void buttonClickPerformed(AjaxRequestTarget target, S influencingObject) {
+//                        List<S> additionalButtonObjects = getNewObjectInfluencesList();
+//                        if (influencingObject == null && (additionalButtonObjects == null || additionalButtonObjects.size() == 0)) {
+//                            newItemPerformed(target);
+//                        } else {
+//                            newItemPerformed(target, influencingObject);
+//                        }
+//                    }
+//
+//                    @Override
+//                    protected CompositedIconBuilder getAdditionalIconBuilder(S influencingObject, DisplayType additionalButtonDisplayType){
+//                        CompositedIconBuilder builder = MultivalueContainerListPanel.this.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
+//                        return builder != null ? builder : super.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
+//                    }
+//
+//                    @Override
+//                    protected DisplayType getMainButtonDisplayType() {
+//                        return getNewObjectButtonDisplayType();
+//                    }
+//
+//                    @Override
+//                    protected DisplayType getAdditionalButtonDisplayType(S buttonObject) {
+//                        return getNewObjectAdditionalButtonDisplayType(buttonObject);
+//                    }
+//
+//                    @Override
+//                    protected DisplayType getDefaultObjectButtonDisplayType() {
+//                        return getNewObjectButtonDisplayType();
+//                    }
+//                };
+//        newObjectIcon.add(AttributeModifier.append("class", "btn-group btn-margin-right"));
+//        newObjectIcon.add(new VisibleEnableBehaviour() {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public boolean isVisible() {
+//                return enableActionNewObject();
+//            }
+//
+//            @Override
+//            public boolean isEnabled() {
+//                return isNewObjectButtonEnabled();
+//            }
+//        });
+////        newObjectIcon.add(AttributeModifier.append("class", createStyleClassModelForNewObjectIcon()));
+//        return newObjectIcon;
+//    }
 
     protected boolean isNewObjectButtonEnabled(){
         return true;

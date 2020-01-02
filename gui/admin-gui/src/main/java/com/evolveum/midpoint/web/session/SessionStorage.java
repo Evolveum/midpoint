@@ -27,11 +27,6 @@ public class SessionStorage implements Serializable, DebugDumpable {
    private static final long serialVersionUID = 1L;
 
     public static final String KEY_CONFIGURATION = "configuration";
-    public static final String KEY_USERS = "users";
-    public static final String KEY_REPORTS = "reports";
-    public static final String KEY_RESOURCES = "resources";
-    public static final String KEY_ROLES = "roles";
-    public static final String KEY_SERVICES = "services";
     public static final String KEY_ROLE_MEMBERS = "roleMembers";
     public static final String KEY_ROLE_CATALOG = "roleCatalog";
     public static final String KEY_AUDIT_LOG = "auditLog";
@@ -96,13 +91,6 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return (ConfigurationStorage)pageStorageMap.get(KEY_CONFIGURATION);
     }
 
-    public UsersStorage getUsers() {
-        if (pageStorageMap.get(KEY_USERS) == null) {
-            pageStorageMap.put(KEY_USERS, new UsersStorage());
-        }
-        return (UsersStorage)pageStorageMap.get(KEY_USERS);
-    }
-
     public OrgStructurePanelStorage getOrgStructurePanelStorage() {
         if (pageStorageMap.get(KEY_ORG_STRUCTURE_PANEL_STORAGE) == null) {
             pageStorageMap.put(KEY_ORG_STRUCTURE_PANEL_STORAGE, new OrgStructurePanelStorage());
@@ -117,19 +105,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return (ObjectListStorage) pageStorageMap.get(key);
     }
 
-    public ResourcesStorage getResources() {
-        if (pageStorageMap.get(KEY_RESOURCES) == null) {
-            pageStorageMap.put(KEY_RESOURCES, new ResourcesStorage());
-        }
-        return (ResourcesStorage)pageStorageMap.get(KEY_RESOURCES);
-    }
 
-    public RolesStorage getRoles() {
-        if (pageStorageMap.get(KEY_ROLES) == null) {
-            pageStorageMap.put(KEY_ROLES, new RolesStorage());
-        }
-        return (RolesStorage)pageStorageMap.get(KEY_ROLES);
-    }
 
     public RoleCatalogStorage getRoleCatalog() {
         if (pageStorageMap.get(KEY_ROLE_CATALOG) == null) {
@@ -159,13 +135,6 @@ public class SessionStorage implements Serializable, DebugDumpable {
         pageStorageMap.put(KEY_USER_HISTORY_AUDIT_LOG, storage);
     }
 
-
-    public ServicesStorage getServices() {
-        if (pageStorageMap.get(KEY_SERVICES) == null) {
-            pageStorageMap.put(KEY_SERVICES, new ServicesStorage());
-        }
-        return (ServicesStorage)pageStorageMap.get(KEY_SERVICES);
-    }
 
     public ResourceContentStorage getResourceContentStorage(ShadowKindType kind, String searchMode) {
         String key = getContentStorageKey(kind, searchMode);
@@ -258,6 +227,8 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return (WorkItemsStorage)pageStorageMap.get(KEY_WORK_ITEMS);
     }
 
+
+    //TODO remove after removinf TaskDtoTablePanel
     public TasksStorage getTasks() {
         if (pageStorageMap.get(KEY_TASKS) == null) {
             pageStorageMap.put(KEY_TASKS, new TasksStorage());
@@ -279,13 +250,6 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return (CertCampaignsStorage)pageStorageMap.get(KEY_CERT_CAMPAIGNS);
     }
 
-    public ReportsStorage getReports() {
-        if (pageStorageMap.get(KEY_REPORTS) == null) {
-            pageStorageMap.put(KEY_REPORTS, new ReportsStorage());
-        }
-        return (ReportsStorage)pageStorageMap.get(KEY_REPORTS);
-    }
-
     public UserProfileStorage getUserProfile(){
         if(userProfile == null){
             userProfile = new UserProfileStorage();
@@ -298,19 +262,6 @@ public class SessionStorage implements Serializable, DebugDumpable {
         if (key.startsWith(KEY_OBJECT_LIST)) {
             pageStorage = new ObjectListStorage();
             pageStorageMap.put(key, pageStorage);
-        } else  if (KEY_USERS.equals(key)){
-            pageStorage = new UsersStorage();
-            pageStorageMap.put(KEY_USERS, pageStorage);
-
-        } else if (KEY_ROLES.equals(key)){
-            pageStorage = new RolesStorage();
-            pageStorageMap.put(KEY_ROLES, pageStorage);
-        } else if (KEY_SERVICES.equals(key)) {
-            pageStorage = new ServicesStorage();
-            pageStorageMap.put(KEY_SERVICES, pageStorage);
-        } else if (KEY_RESOURCES.equals(key)) {
-            pageStorage = new ResourcesStorage();
-            pageStorageMap.put(KEY_RESOURCES, pageStorage);
         } else if (KEY_ORG_MEMEBER_PANEL.equals(key)) {
             pageStorage = new MemberPanelStorage();
             pageStorageMap.put(KEY_ORG_MEMEBER_PANEL, pageStorage);

@@ -114,11 +114,12 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             protected void objectDetailsPerformed(AjaxRequestTarget target, F object) {
             }
 
-            @Override
-            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
-            }
+                    @Override
+                    protected boolean isCreateNewObjectEnabled() {
+                        return false;
+                    }
 
-            @Override
+                    @Override
             protected ObjectQuery createContentQuery() {
                 List<String> personaOidsList = getPersonasOidsList();
                 QueryFactory factory = FocusPersonasTabPanel.this.getPageBase().getPrismContext().queryFactory();

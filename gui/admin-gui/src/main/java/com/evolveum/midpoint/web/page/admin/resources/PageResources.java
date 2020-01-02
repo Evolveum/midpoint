@@ -103,9 +103,10 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
     }
 
     private void initSearch(String text){
-        PageStorage storage = getSessionStorage().getPageStorageMap().get(SessionStorage.KEY_RESOURCES);
+        String key= getStorageKey();
+        PageStorage storage = getSessionStorage().getPageStorageMap().get(key);
         if (storage == null) {
-            storage = getSessionStorage().initPageStorage(SessionStorage.KEY_RESOURCES);
+            storage = getSessionStorage().initPageStorage(key);
         }
         Search search = SearchFactory.createSearch(ResourceType.class, this);
         if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
@@ -115,7 +116,7 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
             searchItem.getValues().add(new SearchValue<>(text));
         }
         storage.setSearch(search);
-        getSessionStorage().getPageStorageMap().put(SessionStorage.KEY_RESOURCES, storage);
+        getSessionStorage().getPageStorageMap().put(key, storage);
     }
 
     @Override

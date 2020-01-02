@@ -69,10 +69,9 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     }
 
     private void initTable(Form mainForm) {
-        StringValue collectionNameParameter = getCollectionNameParameterValue();
+//        StringValue collectionNameParameter = getCollectionNameParameterValue();
         MainObjectListPanel<O, CompiledObjectCollectionView> userListPanel = new  MainObjectListPanel<O, CompiledObjectCollectionView>(ID_TABLE,
-                getType(), !isCollectionViewPage() ?
-                getTableId() : UserProfileStorage.TableId.COLLECTION_VIEW_TABLE, getQueryOptions(), this) {
+                getType(), getTableId(), getQueryOptions(), this) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -90,65 +89,65 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
                 PageAdminObjectList.this.objectDetailsPerformed(target, object);
             }
 
-            @Override
-            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
-                newObjectActionPerformed(target, collectionView);
-            }
+//            @Override
+//            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
+//                newObjectActionPerformed(target, collectionView);
+//            }
 
             @Override
             protected boolean isCreateNewObjectEnabled(){
                 return PageAdminObjectList.this.isCreateNewObjectEnabled();
             }
 
-            @Override
-            protected List<CompiledObjectCollectionView> getNewObjectInfluencesList(){
-                if (isCollectionViewPage()){
-                    return new ArrayList<>();
-                }
-                return getCompiledUserProfile().findAllApplicableArchetypeViews(ObjectTypes.getObjectType(getType()).getTypeQName());
-            }
+//            @Override
+//            protected List<CompiledObjectCollectionView> getNewObjectInfluencesList(){
+//                if (isCollectionViewPage()){
+//                    return new ArrayList<>();
+//                }
+//                return getCompiledUserProfile().findAllApplicableArchetypeViews(ObjectTypes.getObjectType(getType()).getTypeQName());
+//            }
 
-            @Override
-            protected DisplayType getNewObjectButtonStandardDisplayType(){
-                if (!isCollectionViewPage()){
-                    return super.getNewObjectButtonStandardDisplayType();
-                }
+//            @Override
+//            protected DisplayType getNewObjectButtonStandardDisplayType(){
+//                if (!isCollectionViewPage()){
+//                    return super.getNewObjectButtonStandardDisplayType();
+//                }
+//
+//                CompiledObjectCollectionView view = getCollectionViewObject();
+//                if (view!= null && view.getCollection() != null && view.getCollection().getCollectionRef() != null &&
+//                        ArchetypeType.COMPLEX_TYPE.equals(view.getCollection().getCollectionRef().getType())){
+//                    return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(getCollectionViewObject(), PageAdminObjectList.this);
+//                }
+//                return super.getNewObjectButtonStandardDisplayType();
+//            }
 
-                CompiledObjectCollectionView view = getCollectionViewObject();
-                if (view!= null && view.getCollection() != null && view.getCollection().getCollectionRef() != null &&
-                        ArchetypeType.COMPLEX_TYPE.equals(view.getCollection().getCollectionRef().getType())){
-                    return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(getCollectionViewObject(), PageAdminObjectList.this);
-                }
-                return super.getNewObjectButtonStandardDisplayType();
-            }
+//            @Override
+//            protected Map<IconCssStyle, IconType> getNewObjectButtonLayerIconStyleMap(){
+//                if (!isCollectionViewPage()){
+//                    return null;
+//                }
+//                Map<IconCssStyle, IconType> layerIconMap = new HashMap<>();
+//                layerIconMap.put(IconCssStyle.BOTTOM_RIGHT_STYLE, WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"));
+//                return layerIconMap;
+//            }
 
-            @Override
-            protected Map<IconCssStyle, IconType> getNewObjectButtonLayerIconStyleMap(){
-                if (!isCollectionViewPage()){
-                    return null;
-                }
-                Map<IconCssStyle, IconType> layerIconMap = new HashMap<>();
-                layerIconMap.put(IconCssStyle.BOTTOM_RIGHT_STYLE, WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"));
-                return layerIconMap;
-            }
+//            @Override
+//            protected DisplayType getNewObjectButtonAdditionalDisplayType(CompiledObjectCollectionView collectionView){
+//                return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, PageAdminObjectList.this);
+//            }
 
-            @Override
-            protected DisplayType getNewObjectButtonAdditionalDisplayType(CompiledObjectCollectionView collectionView){
-                return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, PageAdminObjectList.this);
-            }
-
-            @Override
-            protected ObjectQuery createContentQuery() {
-                ObjectQuery contentQuery = super.createContentQuery();
-                ObjectFilter usersViewFilter = getArchetypeViewFilter();
-                if (usersViewFilter != null){
-                    if (contentQuery == null) {
-                        contentQuery = PageAdminObjectList.this.getPrismContext().queryFactory().createQuery();
-                    }
-                    contentQuery.addFilter(usersViewFilter);
-                }
-                return contentQuery;
-            }
+//            @Override
+//            protected ObjectQuery createContentQuery() {
+//                ObjectQuery contentQuery = super.createContentQuery();
+//                ObjectFilter usersViewFilter = getArchetypeViewFilter();
+//                if (usersViewFilter != null){
+//                    if (contentQuery == null) {
+//                        contentQuery = PageAdminObjectList.this.getPrismContext().queryFactory().createQuery();
+//                    }
+//                    contentQuery.addFilter(usersViewFilter);
+//                }
+//                return contentQuery;
+//            }
 
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
@@ -165,16 +164,6 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
                 return PageAdminObjectList.this.createCustomOrdering(sortParam);
             }
 
-            @Override
-            protected String getTableIdKeyValue(){
-                return !isCollectionViewPage() ?
-                        super.getTableIdKeyValue() : super.getTableIdKeyValue() + "." + collectionNameParameter.toString();
-            }
-
-            @Override
-            protected String getStorageKey() {
-                return PageAdminObjectList.this.getStorageKey();
-            }
 
             protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<O>> provider){
                 PageAdminObjectList.this.setDefaultSorting(provider);
@@ -186,6 +175,11 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
                     return getCustomProvider();
                 }
                 return super.initProvider();
+            }
+
+            @Override
+            protected String getStorageKey() {
+                return super.getStorageKey();
             }
         };
 
@@ -205,60 +199,56 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
 
-    protected String getStorageKey(){
-        StringValue collectionName = getCollectionNameParameterValue();
-        String collectionNameValue = collectionName != null ? collectionName.toString() : "";
-        String key = isCollectionViewPage() ? WebComponentUtil.getObjectListPageStorageKey(collectionNameValue) :
-                WebComponentUtil.getObjectListPageStorageKey(getType().getSimpleName());
-        return key;
-    }
-
     protected boolean isCreateNewObjectEnabled(){
         return true;
     }
 
-    protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView){
-        if (collectionView == null){
-            collectionView = getCollectionViewObject();
-        }
-        ObjectReferenceType collectionViewReference = collectionView != null && collectionView.getCollection() != null ?
-                collectionView.getCollection().getCollectionRef() : null;
-        try {
-            WebComponentUtil.initNewObjectWithReference(PageAdminObjectList.this,
-                    WebComponentUtil.classToQName(getPrismContext(), getType()),
-                    collectionViewReference != null && ArchetypeType.COMPLEX_TYPE.equals(collectionViewReference.getType()) ?
-                            Arrays.asList(collectionViewReference) : null);
-        } catch (SchemaException ex){
-            getFeedbackPanel().getFeedbackMessages().error(PageAdminObjectList.this, ex.getUserFriendlyMessage());
-            target.add(getFeedbackPanel());
-        }
+    protected String getStorageKey() {
+        return null;
     }
 
-    protected ObjectFilter getArchetypeViewFilter(){
-        if (!isCollectionViewPage()){
-            return null;
-        }
-        CompiledObjectCollectionView view = getCollectionViewObject();
-        if (view == null){
-            getFeedbackMessages().add(PageAdminObjectList.this, "Unable to load collection view list", 0);
-            return null;
-        } else {
-            return view != null ? view.getFilter() : null;
-        }
-    }
+//    protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView){
+//        if (collectionView == null){
+//            collectionView = getCollectionViewObject();
+//        }
+//        ObjectReferenceType collectionViewReference = collectionView != null && collectionView.getCollection() != null ?
+//                collectionView.getCollection().getCollectionRef() : null;
+//        try {
+//            WebComponentUtil.initNewObjectWithReference(PageAdminObjectList.this,
+//                    WebComponentUtil.classToQName(getPrismContext(), getType()),
+//                    collectionViewReference != null && ArchetypeType.COMPLEX_TYPE.equals(collectionViewReference.getType()) ?
+//                            Arrays.asList(collectionViewReference) : null);
+//        } catch (SchemaException ex){
+//            getFeedbackPanel().getFeedbackMessages().error(PageAdminObjectList.this, ex.getUserFriendlyMessage());
+//            target.add(getFeedbackPanel());
+//        }
+//    }
 
-    protected CompiledObjectCollectionView getCollectionViewObject(){
-        if (!isCollectionViewPage()) {
-            return null;
-        }
-        String collectionName = getCollectionNameParameterValue().toString();
-        return getCompiledUserProfile().findObjectViewByViewName(getType(), collectionName);
-    }
+//    protected ObjectFilter getArchetypeViewFilter(){
+//        if (!isCollectionViewPage()){
+//            return null;
+//        }
+//        CompiledObjectCollectionView view = getCollectionViewObject();
+//        if (view == null){
+//            getFeedbackMessages().add(PageAdminObjectList.this, "Unable to load collection view list", 0);
+//            return null;
+//        } else {
+//            return view != null ? view.getFilter() : null;
+//        }
+//    }
 
-    protected StringValue getCollectionNameParameterValue(){
-        PageParameters parameters = getPageParameters();
-        return parameters ==  null ? null : parameters.get(PARAMETER_OBJECT_COLLECTION_NAME);
-    }
+//    protected CompiledObjectCollectionView getCollectionViewObject(){
+//        if (!isCollectionViewPage()) {
+//            return null;
+//        }
+//        String collectionName = getCollectionNameParameterValue().toString();
+//        return getCompiledUserProfile().findObjectViewByViewName(getType(), collectionName);
+//    }
+
+//    protected StringValue getCollectionNameParameterValue(){
+//        PageParameters parameters = getPageParameters();
+//        return parameters ==  null ? null : parameters.get(PARAMETER_OBJECT_COLLECTION_NAME);
+//    }
 
     protected ObjectQuery addCustomFilterToContentQuery(ObjectQuery query){
         return query;
@@ -290,8 +280,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         return (MainObjectListPanel<O, CompiledObjectCollectionView>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
-    private boolean isCollectionViewPage(){
-        StringValue collectionNameParam = getCollectionNameParameterValue();
-        return collectionNameParam != null && !collectionNameParam.isEmpty() && !collectionNameParam.toString().equals("null");
-    }
+//    private boolean isCollectionViewPage(){
+//        StringValue collectionNameParam = getCollectionNameParameterValue();
+//        return collectionNameParam != null && !collectionNameParam.isEmpty() && !collectionNameParam.toString().equals("null");
+//    }
 }
