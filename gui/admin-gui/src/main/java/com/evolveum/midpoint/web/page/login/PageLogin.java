@@ -52,7 +52,7 @@ import static org.springframework.security.saml.util.StringUtils.stripSlashes;
  */
 @PageDescriptor(urls = {
         @Url(mountUrl = "/login", matchUrlForSecurity = "/login")
-}, permitAll = true)
+}, permitAll = true, loginPage = true)
 public class PageLogin extends PageBase {
     private static final long serialVersionUID = 1L;
 

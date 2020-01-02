@@ -1186,11 +1186,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 
     protected void assertResourceCacheHitsIncrement(int expectedIncrement) {
-        assertCacheHits(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resouce cache", expectedIncrement);
+        assertCacheHits(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resource cache", expectedIncrement);
     }
 
     protected void assertResourceCacheMissesIncrement(int expectedIncrement) {
-        assertCacheMisses(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resouce cache", expectedIncrement);
+        assertCacheMisses(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resource cache", expectedIncrement);
     }
 
     protected void assertCacheHits(CachingStatistics lastStats, CachingStatistics currentStats, String desc, int expectedIncrement) {

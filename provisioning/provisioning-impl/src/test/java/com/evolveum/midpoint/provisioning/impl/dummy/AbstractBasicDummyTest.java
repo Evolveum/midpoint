@@ -346,6 +346,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertTestResourceSuccess(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
         assertSuccess(testResult);
 
+        assertResourceCacheMissesIncrement(1);
+
         PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
                 RESOURCE_DUMMY_OID, null, result);
         ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
@@ -375,11 +377,14 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
-        // One increment for availablity status, the other for schema
+        // One increment for availability status, the other for schema
         assertResourceVersionIncrement(resourceRepoAfter, 2);
 
         dummyResource.assertConnections(1);
         assertDummyConnectorInstances(1);
+
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
+        assertResourceCacheMissesIncrement(1);          // incurred in assertDummyConnectorInstances call
 
         assertResourceAfterTest();
 
@@ -403,21 +408,20 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // THEN
         assertSuccess(result);
 
-        // There may be one parse. Previous test have changed the resource version
-        // Schema for this version will not be re-parsed until getObject is tried
-        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
-        assertResourceCacheMissesIncrement(1);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertResourceCacheMissesIncrement(0);
+        assertResourceCacheHitsIncrement(1);
 
         PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         assertNotNull("No configuration container", configurationContainer);
         PrismContainerDefinition confContDef = configurationContainer.getDefinition();
         assertNotNull("No configuration container definition", confContDef);
-        PrismContainer confingurationPropertiesContainer = configurationContainer
+        PrismContainer configurationPropertiesContainer = configurationContainer
                 .findContainer(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
-        assertNotNull("No configuration properties container", confingurationPropertiesContainer);
-        PrismContainerDefinition confPropsDef = confingurationPropertiesContainer.getDefinition();
+        assertNotNull("No configuration properties container", configurationPropertiesContainer);
+        PrismContainerDefinition confPropsDef = configurationPropertiesContainer.getDefinition();
         assertNotNull("No configuration properties container definition", confPropsDef);
-        Collection<PrismProperty<?>> configurationProperties = confingurationPropertiesContainer.getValue().getItems();
+        Collection<PrismProperty<?>> configurationProperties = configurationPropertiesContainer.getValue().getItems();
         assertFalse("No configuration properties", configurationProperties.isEmpty());
         for (PrismProperty<?> confProp : configurationProperties) {
             PrismPropertyDefinition confPropDef = confProp.getDefinition();
@@ -799,7 +803,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertSuccess(testResult);
 
         // Connector is re-configured at this point. Test connection in previous test
-        // have updated resource availablility status, which have changed resource version
+        // have updated resource availability status, which have changed resource version
         // which have forced connector re-configuration. But this is quite harmless.
         // However, connector is not re-initialized. The same connector instance is reused.
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);

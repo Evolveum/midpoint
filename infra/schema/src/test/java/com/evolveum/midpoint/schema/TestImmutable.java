@@ -53,7 +53,7 @@ public class TestImmutable {
         PrismPropertyDefinition<String> displayNamePPD = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_DISPLAY_NAME);
         PrismProperty<String> displayNamePP = displayNamePPD.instantiate();
         displayNamePP.setRealValue("Big red ball");
-        displayNamePP.setImmutable(true);
+        displayNamePP.setImmutable();
 
         // THEN
         try {
@@ -69,15 +69,6 @@ public class TestImmutable {
         } catch (RuntimeException e) {
             System.out.println("Got (expected) exception of " + e);
         }
-
-        // WHEN
-        displayNamePP.setImmutable(false);
-
-        // THEN
-        displayNamePP.setRealValue("Small black cube");
-        assertEquals("Real value was not changed", "Small black cube", displayNamePP.getAnyRealValue());
-        displayNamePP.getAnyValue().setValue("Green point");
-        assertEquals("Real value was not changed", "Green point", displayNamePP.getAnyRealValue());
     }
 
     @Test
@@ -94,7 +85,7 @@ public class TestImmutable {
         Date now = new Date();
         Date yesterday = new Date(now.getTime()-86400000L);
         datePP.setRealValue(XmlTypeConverter.createXMLGregorianCalendar(now));
-        datePP.setImmutable(true);
+        datePP.setImmutable();
 
         // THEN
         try {
@@ -129,7 +120,7 @@ public class TestImmutable {
         PrismReferenceDefinition refPRD = prismContext.definitionFactory().createReferenceDefinition(new QName(SchemaConstants.NS_C, "ref"), ObjectReferenceType.COMPLEX_TYPE);
         PrismReference refPR = refPRD.instantiate();
         refPR.add(ObjectTypeUtil.createObjectRef("oid1", ObjectTypes.USER).asReferenceValue());
-        refPR.setImmutable(true);
+        refPR.setImmutable();
 
         // THEN
         try {
@@ -145,15 +136,6 @@ public class TestImmutable {
         } catch (RuntimeException e) {
             System.out.println("Got (expected) exception of " + e);
         }
-
-        // WHEN
-        refPR.setImmutable(false);
-
-        // THEN
-        refPR.replace(ObjectTypeUtil.createObjectRef("oid2", ObjectTypes.USER).asReferenceValue());
-        assertEquals("OID was not changed", "oid2", refPR.getOid());
-        refPR.getValue().setOid("oid3");
-        assertEquals("Real value was not changed", "oid3", refPR.getOid());
     }
 
     @Test
@@ -181,7 +163,7 @@ public class TestImmutable {
         businessConfiguration.setAdministrativeState(ResourceAdministrativeStateType.ENABLED);
         resource.asObjectable().setBusiness(businessConfiguration);
 
-        resource.setImmutable(true);
+        resource.setImmutable();
 
         System.out.println("Resource: " + resource.debugDump());
 

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.web.security.*;
 import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
+import com.evolveum.midpoint.web.security.module.factory.AuthModuleRegistryImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,16 +37,19 @@ import java.util.UUID;
 public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends WebSecurityConfigurerAdapter {
 
     @Autowired
+    private MidPointAccessDeniedHandler accessDeniedHandler;
+
+    @Autowired
     private SessionRegistry sessionRegistry;
 
     @Autowired
     private MidPointGuiAuthorizationEvaluator accessDecisionManager;
 
     @Autowired
-    private MidPointAccessDeniedHandler accessDeniedHandler;
+    private AuthenticationManager authenticationManager;
 
     @Autowired
-    private AuthenticationManager authenticationManager;
+    private AuthModuleRegistryImpl authRegistry;
 
 //    @Autowired
 //    private AuthenticationProvider midPointAuthenticationProvider;
@@ -86,7 +90,7 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        AnonymousAuthenticationFilter anonymousFilter = new MidpointAnonymousAuthenticationFilter(UUID.randomUUID().toString(), "anonymousUser",
+        AnonymousAuthenticationFilter anonymousFilter = new MidpointAnonymousAuthenticationFilter(authRegistry, UUID.randomUUID().toString(), "anonymousUser",
                 AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
         http.setSharedObject(AuthenticationTrustResolver.class, new MidpointAuthenticationTrustResolverImpl());
         http.authorizeRequests()

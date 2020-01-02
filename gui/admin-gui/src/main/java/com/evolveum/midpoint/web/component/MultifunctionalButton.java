@@ -83,6 +83,9 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
             }
         };
         mainButton.add(AttributeAppender.append(" data-toggle", additionalButtonsExist() ? "dropdown" : ""));
+        if(!additionalButtonsExist()){
+            mainButton.add(new VisibleBehaviour(this::isMainButtonVisible));
+        }
         add(mainButton);
 
         RepeatingView buttonsPanel = new RepeatingView(ID_BUTTON);
@@ -93,12 +96,7 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
             buttonDtos.forEach(additionalButtonObject -> {
                 DisplayType additionalButtonDisplayType = fixDisplayTypeIfNeeded(additionalButtonObject.getAdditionalButtonDisplayType()); //getAdditionalButtonDisplayType(additionalButtonObject)
                 additionalButtonObject.setAdditionalButtonDisplayType(additionalButtonDisplayType);
-                //we set default button icon class if no other is defined
-//                if (StringUtils.isEmpty(additionalButtonDisplayType.getIcon().getCssClass())){
-//                    additionalButtonDisplayType.getIcon().setCssClass(defaultObjectButtonDisplayType.getIcon().getCssClass());
-//                }
 
-//                CompositedIconBuilder additionalButtonBuilder = getAdditionalIconBuilder(additionalButtonObject, additionalButtonDisplayType);
                 AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(buttonsPanel.newChildId(), getCompositedIcon(additionalButtonObject),
                         Model.of(WebComponentUtil.getDisplayTypeTitle(additionalButtonDisplayType))) {
 
@@ -117,10 +115,6 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
             if (StringUtils.isEmpty(defaultObjectButtonDisplayType.getIcon().getCssClass())){
                 defaultObjectButtonDisplayType.getIcon().setCssClass(mainButtonDisplayType.getIcon().getCssClass());
             }
-//            CompositedIconBuilder defaultObjectButtonBuilder = new CompositedIconBuilder();
-//            defaultObjectButtonBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultObjectButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-//                .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultObjectButtonDisplayType))
-//                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
             AjaxCompositedIconButton defaultButton = new AjaxCompositedIconButton(buttonsPanel.newChildId(),
                     getAdditionalIconBuilder(defaultObjectButtonDisplayType).build(),
@@ -134,6 +128,7 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
                 }
             };
             defaultButton.add(AttributeAppender.append("class", DEFAULT_BUTTON_STYLE));
+            defaultButton.add(new VisibleBehaviour(this::isMainButtonVisible));
             buttonsPanel.add(defaultButton);
         }
     }
@@ -187,9 +182,9 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
         return !buttonDtos.isEmpty();
     }
 
-//    protected List<S> getAdditionalButtonsObjects(){
-//        return new ArrayList<>();
-//    }
+    protected boolean isMainButtonVisible(){
+        return true;
+    }
 
     protected Map<IconCssStyle, IconType> getMainButtonLayerIcons(){
         return null;

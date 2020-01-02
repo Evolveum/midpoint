@@ -274,6 +274,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
         return null;
     }
 
+
     public MultifunctionalButton getNewItemButton(String id) {
         MultifunctionalButton newObjectIcon =
                 new MultifunctionalButton(id, createNewButtonDescription()) {
@@ -282,6 +283,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
                     @Override
                     protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews) {
                         newItemPerformed(target, relationSepc);
+                    }
+
+                    @Override
+                    protected boolean isMainButtonVisible(){
+                        return getNewObjectGenericButtonVisibility();
                     }
 
                     @Override
@@ -313,6 +319,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
     }
 
     protected boolean isNewObjectButtonEnabled(){
+        return true;
+    }
+
+
+    protected boolean getNewObjectGenericButtonVisibility(){
         return true;
     }
 

@@ -159,6 +159,8 @@ public class GuiStyleConstants {
     public static final String CLASS_BUTTON_OVERLAY_PLUS = "fa fa-plus";
 
     public static final String CLASS_FILE_TEXT = "fa fa-file-text-o";
+    public static final String CLASS_FILE_EXCEL = "fa fa-file-excel-o";
+    public static final String CLASS_LOCK_STATUS = "fa fa-lock";
     public static final String CLASS_POLICY_RULES_ICON = "fa fa-balance-scale";
     public static final String CLASS_POLICY_RULES_ICON_COLORED = "fa fa-balance-scale"; //TODO
 

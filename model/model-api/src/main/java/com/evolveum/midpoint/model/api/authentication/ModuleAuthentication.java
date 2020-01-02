@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.api.authentication;
 
+import org.apache.commons.lang3.Validate;
 import org.springframework.security.core.Authentication;
 
 /**
@@ -24,8 +25,16 @@ public class ModuleAuthentication {
 
     private String prefix;
 
-    public ModuleAuthentication() {
+    private NameOfModuleType nameOfType;
+
+    public ModuleAuthentication(NameOfModuleType nameOfType) {
+        Validate.notNull(nameOfType);
+        this.nameOfType = nameOfType;
         setState(StateOfModule.LOGIN_PROCESSING);
+    }
+
+    public NameOfModuleType getNameOfModuleType() {
+        return nameOfType;
     }
 
     public String getPrefix() {
@@ -69,7 +78,7 @@ public class ModuleAuthentication {
     }
 
     public ModuleAuthentication clone() {
-        ModuleAuthentication module = new ModuleAuthentication();
+        ModuleAuthentication module = new ModuleAuthentication(getNameOfModuleType());
         clone(module);
         return module;
     }

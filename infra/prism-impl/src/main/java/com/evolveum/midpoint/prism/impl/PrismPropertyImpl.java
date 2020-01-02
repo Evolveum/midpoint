@@ -386,6 +386,11 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
     }
 
     @Override
+    public PrismProperty<T> createImmutableClone() {
+        return (PrismProperty<T>) super.createImmutableClone();
+    }
+
+    @Override
     public PrismProperty<T> cloneComplex(CloneStrategy strategy) {
         PrismPropertyImpl<T> clone = new PrismPropertyImpl<>(getElementName(), getDefinition(), prismContext);
         copyValues(strategy, clone);

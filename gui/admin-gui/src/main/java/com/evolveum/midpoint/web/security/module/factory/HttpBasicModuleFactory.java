@@ -6,12 +6,13 @@
  */
 package com.evolveum.midpoint.web.security.module.factory;
 
-import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
-import com.evolveum.midpoint.web.security.module.authentication.LoginFormModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
+import com.evolveum.midpoint.web.security.module.HttpBasicModuleWebSecurityConfig;
+import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
+import com.evolveum.midpoint.web.security.module.authentication.PasswordModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
-import com.evolveum.midpoint.web.security.module.LoginFormModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.provider.InternalPasswordProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -21,14 +22,11 @@ import org.springframework.stereotype.Component;
  * @author skublik
  */
 @Component
-public class LoginFormModuleFactory extends AbstractPasswordModuleFactory {
-
-//    @Autowired
-//    private AuthenticationProvider midPointAuthenticationProvider;
+public class HttpBasicModuleFactory extends AbstractPasswordModuleFactory {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof AuthenticationModuleLoginFormType) {
+        if (moduleType instanceof AuthenticationModuleHttpBasicType) {
             return true;
         }
         return false;
@@ -43,7 +41,7 @@ public class LoginFormModuleFactory extends AbstractPasswordModuleFactory {
 
     @Override
     protected ModuleWebSecurityConfig createModule(ModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new LoginFormModuleWebSecurityConfig(configuration));
+        return  getObjectObjectPostProcessor().postProcess(new HttpBasicModuleWebSecurityConfig(configuration));
     }
 
     @Override
@@ -57,9 +55,8 @@ public class LoginFormModuleFactory extends AbstractPasswordModuleFactory {
     }
 
     @Override
-    protected ModuleAuthentication createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
-                                                                   ModuleWebSecurityConfiguration configuration) {
-        LoginFormModuleAuthentication moduleAuthentication = new LoginFormModuleAuthentication();
+    protected ModuleAuthentication createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, ModuleWebSecurityConfiguration configuration) {
+        PasswordModuleAuthentication moduleAuthentication = new PasswordModuleAuthentication(NameOfModuleType.HTTP_BASIC);
         moduleAuthentication.setPrefix(configuration.getPrefix());
         moduleAuthentication.setCredentialName(((AbstractPasswordAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());

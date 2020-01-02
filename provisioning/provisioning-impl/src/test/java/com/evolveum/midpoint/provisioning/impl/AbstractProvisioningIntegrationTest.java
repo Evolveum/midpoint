@@ -187,7 +187,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
 
     protected void rememberConnectorInstance(PrismObject<ResourceType> resource) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
         OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName() + ".rememberConnectorInstance");
-        rememberConnectorInstance(resourceManager.getConfiguredConnectorInstanceFromCache(resource, ReadCapabilityType.class, false, result));
+        rememberConnectorInstance(resourceManager.getConfiguredConnectorInstanceFromCache(resource, ReadCapabilityType.class));
     }
 
     protected void rememberConnectorInstance(ConnectorInstance currentConnectorInstance) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
@@ -202,7 +202,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
                 + ".assertConnectorInstanceUnchanged");
         ConnectorInstance currentConfiguredConnectorInstance = resourceManager.getConfiguredConnectorInstanceFromCache(
-                resource, ReadCapabilityType.class, false, result);
+                resource, ReadCapabilityType.class);
         assertTrue("Connector instance has changed", lastConfiguredConnectorInstance == currentConfiguredConnectorInstance);
     }
 
@@ -210,7 +210,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
                 + ".rememberConnectorInstance");
         ConnectorInstance currentConfiguredConnectorInstance = resourceManager.getConfiguredConnectorInstanceFromCache(
-                resource, ReadCapabilityType.class, false, result);
+                resource, ReadCapabilityType.class);
         assertTrue("Connector instance has NOT changed", lastConfiguredConnectorInstance != currentConfiguredConnectorInstance);
         lastConfiguredConnectorInstance = currentConfiguredConnectorInstance;
     }

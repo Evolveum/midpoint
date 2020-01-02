@@ -147,6 +147,9 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
     PrismProperty<T> clone();
 
     @Override
+    PrismProperty<T> createImmutableClone();
+
+    @Override
     PrismProperty<T> cloneComplex(CloneStrategy strategy);
 
     @Override

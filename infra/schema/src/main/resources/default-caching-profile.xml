@@ -18,6 +18,8 @@
             <objectType>SystemConfigurationType</objectType>
             <objectType>ArchetypeType</objectType>
             <objectType>ObjectTemplateType</objectType>
+            <objectType>ResourceType</objectType>
+            <objectType>ConnectorType</objectType>
             <timeToVersionCheck>10</timeToVersionCheck>
         </objectTypeSettings>
     </globalRepoCache>

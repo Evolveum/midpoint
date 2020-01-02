@@ -1104,7 +1104,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // TODO: assert context
         // TODO: assert context
 
-        assertResolvedResourceRefs(modelContext);
+        // We (temporarily?) turned off resource ref resolution during preview operation.
+        // It complicated things regarding objects immutability a bit. Let the clients resolve these references themselves.
+
+        //assertResolvedResourceRefs(modelContext);
 
         // Check account in dummy resource
         assertNoDummyAccount("jack");

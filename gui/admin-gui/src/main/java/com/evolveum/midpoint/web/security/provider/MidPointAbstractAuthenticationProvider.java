@@ -97,7 +97,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         moduleAuthentication.setAuthentication(token);
     }
 
-    private ModuleAuthentication getProcessingModule(MidpointAuthentication mpAuthentication) {
+    protected ModuleAuthentication getProcessingModule(MidpointAuthentication mpAuthentication) {
         ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
         if (moduleAuthentication == null) {
             LOGGER.error("Couldn't find processing module authentication {}", mpAuthentication);
