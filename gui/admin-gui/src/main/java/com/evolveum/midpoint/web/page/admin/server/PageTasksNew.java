@@ -1,31 +1,22 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
-import static com.evolveum.midpoint.web.page.admin.server.TaskDtoTablePanel.WAIT_FOR_TASK_STOP;
-import static com.evolveum.midpoint.web.page.admin.server.TaskDtoTablePanel.*;
-
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -37,25 +28,17 @@ import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.TaskSelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
+import com.evolveum.midpoint.web.component.util.TaskSelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.time.DurationFormatUtils;
-import org.apache.lucene.queryparser.surround.query.AndQuery;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
@@ -68,8 +51,10 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @PageDescriptor(
@@ -87,8 +72,19 @@ public class PageTasksNew extends PageAdminObjectList {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(PageTasksNew.class);
 
-    private static final int REFRESH_INTERVAL = 60000;                // don't set too low to prevent refreshing open inline menus (TODO skip refresh if a menu is open)
+    private static final String DOT_CLASS = PageTasksNew.class.getName() + ".";
+    public static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTasks";
+    public static final String OPERATION_SUSPEND_TASK = DOT_CLASS + "suspendTask";
+    public static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
+    public static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
+    public static final String OPERATION_DELETE_TASKS = DOT_CLASS + "deleteTasks";
+    public static final String OPERATION_RECONCILE_WORKERS = DOT_CLASS + "reconcileWorkers";
+    public static final String OPERATION_DELETE_WORKERS_AND_WORK_STATE = DOT_CLASS + "deleteWorkersAndWorkState";
+    public static final String OPERATION_DELETE_WORK_STATE = DOT_CLASS + "deleteWorkState";
+    public static final String OPERATION_DELETE_ALL_CLOSED_TASKS = DOT_CLASS + "deleteAllClosedTasks";
+    public static final String OPERATION_SCHEDULE_TASKS = DOT_CLASS + "scheduleTasks";
 
+    public static final long WAIT_FOR_TASK_STOP = 2000L;
 
     @Override
     protected Class getType() {
@@ -120,8 +116,8 @@ public class PageTasksNew extends PageAdminObjectList {
         return (BaseSortableDataProvider) new TaskSelectableBeanProvider(PageTasksNew.this, options) {
 
             @Override
-            public TaskSelectableBean createTaskDto(PrismObject<TaskType> task, boolean subtasksLoaded, Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-                TaskSelectableBean bean = super.createTaskDto(task, subtasksLoaded, opTask, result);
+            public TaskSelectableBean createTaskDto(PrismObject<TaskType> task, Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+                TaskSelectableBean bean = super.createTaskDto(task, opTask, result);
                 bean.getMenuItems().addAll(createTasksInlineMenu(false));
                 return bean;
             }
@@ -166,7 +162,7 @@ public class PageTasksNew extends PageAdminObjectList {
     }
 
     private IColumn<TaskSelectableBean, String> createTaskCategoryColumn() {
-            return new AbstractExportableColumn<TaskSelectableBean, String>(createStringResource("pageTasks.task.category"), TaskType.F_CATEGORY.getLocalPart()) {
+            return new AbstractExportableColumn<>(createStringResource("pageTasks.task.category"), TaskType.F_CATEGORY.getLocalPart()) {
 
                 @Override
                 public void populateItem(Item<ICellPopulator<TaskSelectableBean>> item, String componentId,
@@ -186,7 +182,7 @@ public class PageTasksNew extends PageAdminObjectList {
     protected List<IColumn<TaskSelectableBean, String>> initCustomTaskColumns() {
         List<IColumn<TaskSelectableBean, String>> columns = new ArrayList<>();
 
-        columns.add(new ObjectReferenceColumn<TaskSelectableBean>(createStringResource("pageTasks.task.objectRef"), TaskSelectableBean.F_VALUE+"."+TaskType.F_OBJECT_REF.getLocalPart()){
+        columns.add(new ObjectReferenceColumn<>(createStringResource("pageTasks.task.objectRef"), TaskSelectableBean.F_VALUE+"."+TaskType.F_OBJECT_REF.getLocalPart()){
             @Override
             public IModel<ObjectReferenceType> extractDataModel(IModel<TaskSelectableBean> rowModel) {
                 TaskSelectableBean bean = rowModel.getObject();
@@ -238,7 +234,7 @@ public class PageTasksNew extends PageAdminObjectList {
                 return Model.of(displayValue);
             }
         });
-        columns.add(new AbstractExportableColumn<TaskSelectableBean, String>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
+        columns.add(new AbstractExportableColumn<>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskSelectableBean>> item, String componentId,
@@ -258,7 +254,7 @@ public class PageTasksNew extends PageAdminObjectList {
             }
         });
 
-        columns.add(new IconColumn<TaskSelectableBean>(createStringResource("pageTasks.task.status")) {
+        columns.add(new IconColumn<>(createStringResource("pageTasks.task.status"), TaskType.F_RESULT_STATUS.getLocalPart()) {
 
             @Override
             protected DisplayType getIconDisplayType(final IModel<TaskSelectableBean> rowModel) {
@@ -394,8 +390,7 @@ public class PageTasksNew extends PageAdminObjectList {
     }
 
     public EnumPropertyColumn<TaskSelectableBean> createTaskExecutionStatusColumn() {
-        //TaskType.F_EXECUTION_STATUS
-        return new EnumPropertyColumn<TaskSelectableBean>(createStringResource("pageTasks.task.execution"), TaskSelectableBean.F_VALUE + ".executionStatus") {
+        return new EnumPropertyColumn<>(createStringResource("pageTasks.task.execution"), TaskType.F_EXECUTION_STATUS.getLocalPart(), TaskSelectableBean.F_VALUE + ".executionStatus") {
 
             @Override
             protected String translate(Enum en) {
@@ -406,7 +401,7 @@ public class PageTasksNew extends PageAdminObjectList {
 
     public AbstractExportableColumn<TaskSelectableBean, String> createProgressColumn(String titleKey,
                                                                                                SerializableSupplier<Boolean> progressComputationEnabledSupplier) {
-        return new AbstractExportableColumn<TaskSelectableBean, String>(createStringResource(titleKey)) {
+        return new AbstractExportableColumn<>(createStringResource(titleKey)) {
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskSelectableBean>> cellItem, String componentId, final IModel<TaskSelectableBean> rowModel) {
@@ -803,7 +798,7 @@ public class PageTasksNew extends PageAdminObjectList {
         if (selectedTasks == null) {
             return;
         }
-        Task opTask = createSimpleTask(TaskDtoTablePanel.OPERATION_SUSPEND_TASKS);
+        Task opTask = createSimpleTask(OPERATION_SUSPEND_TASKS);
         OperationResult result = opTask.getResult();
         try {
             List<TaskType> plainTasks = selectedTasks.stream().filter(dto -> !isManageableTreeRoot(dto)).collect(Collectors.toList());
@@ -832,7 +827,7 @@ public class PageTasksNew extends PageAdminObjectList {
         if (selectedTasks == null) {
             return;
         }
-        Task opTask = createSimpleTask(TaskDtoTablePanel.OPERATION_RESUME_TASKS);
+        Task opTask = createSimpleTask(OPERATION_RESUME_TASKS);
         OperationResult result = opTask.getResult();
         try {
             List<TaskType> plainTasks = selectedTasks.stream().filter(dto -> !isManageableTreeRoot(dto)).collect(Collectors.toList());
@@ -901,7 +896,7 @@ public class PageTasksNew extends PageAdminObjectList {
         if (selectedTasks == null) {
             return;
         }
-        Task opTask = createSimpleTask(TaskDtoTablePanel.OPERATION_SCHEDULE_TASKS);
+        Task opTask = createSimpleTask(OPERATION_SCHEDULE_TASKS);
         OperationResult result = opTask.getResult();
         try {
             getTaskService().scheduleTasksNow(TaskSelectableBean.getOids(selectedTasks), opTask, result);

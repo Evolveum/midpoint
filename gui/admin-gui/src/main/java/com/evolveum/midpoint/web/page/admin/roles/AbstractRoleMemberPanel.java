@@ -234,7 +234,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
-                AbstractRoleMemberPanel.this.createFocusMemberPerformed(target, relation); //assignemntObjectRelation
+                AbstractRoleMemberPanel.this.createFocusMemberPerformed(target, relation);
             }
 
             @Override

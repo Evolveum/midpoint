@@ -18774,7 +18774,7 @@
                                </p>
                            </xsd:documentation>
                         <xsd:appinfo>
-                            <a:displayName>UserInterfaceFeatureType.identifier</a:displayName>
+                            <a:displayName>UserInterfaceFeatureType.description</a:displayName>
                         </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>

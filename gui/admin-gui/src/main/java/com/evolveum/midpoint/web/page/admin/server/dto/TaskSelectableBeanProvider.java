@@ -87,7 +87,7 @@ public class TaskSelectableBeanProvider extends BaseSortableDataProvider<TaskSel
             List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, searchOptions, operationTask, result);
             for (PrismObject<TaskType> task : tasks) {
                 try {
-                    TaskSelectableBean taskDto = createTaskDto(task, false, operationTask, result);
+                    TaskSelectableBean taskDto = createTaskDto(task, operationTask, result);
                     getAvailableData().add(taskDto);
                 } catch (Exception ex) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when getting task {} details", ex, task.getOid());
@@ -135,7 +135,7 @@ public class TaskSelectableBeanProvider extends BaseSortableDataProvider<TaskSel
         }
     }
 
-    public TaskSelectableBean createTaskDto(PrismObject<TaskType> task, boolean subtasksLoaded, Task opTask, OperationResult result)
+    public TaskSelectableBean createTaskDto(PrismObject<TaskType> task, Task opTask, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
         return new TaskSelectableBean(task.asObjectable());
