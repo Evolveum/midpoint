@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -94,7 +95,7 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
             }
 
             @Override
-            protected void newItemPerformed(AjaxRequestTarget target) {
+            protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
                 newGlobalPolicuRuleClickPerformed(target);
             }
 

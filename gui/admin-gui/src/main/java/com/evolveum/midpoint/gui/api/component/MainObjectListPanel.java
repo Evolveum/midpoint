@@ -71,7 +71,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
     private static final String ID_BUTTON = "button";
     private static final Trace LOGGER = TraceManager.getTrace(MainObjectListPanel.class);
 
-    private Boolean manualRefreshEnabled;
+//    private Boolean manualRefreshEnabled;
 
     public MainObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
         super(id, type, tableId, options);
@@ -160,10 +160,6 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         return new ButtonBar(id, ID_BUTTON_BAR, this, createToolbarButtonsList(ID_BUTTON));
     }
 
-    protected List<AssignmentObjectRelation> getRelationsDefinitions() {
-        return null;
-    }
-
     protected List<MultiFunctinalButtonDto> loadButtonDescriptions() {
         List<MultiFunctinalButtonDto> multiFunctinalButtonDtos = new ArrayList<>();
 
@@ -186,12 +182,8 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         DisplayType additionalButtonDisplayType = WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
         CompositedIconBuilder builder = getNewObjectButtonAdditionalIconBuilder(collectionView, additionalButtonDisplayType);
         if (builder == null){
-            //return super.getAdditionalIconBuilder(additionalButtonDisplayType);
             return null;
         }
-//        else {
-//            return builder;
-//        }
         return builder.build();
     }
 
@@ -199,11 +191,6 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         List<Component> buttonsList = new ArrayList<>();
         MultifunctionalButton createNewObjectButton = new MultifunctionalButton(buttonId, loadButtonDescriptions()){
             private static final long serialVersionUID = 1L;
-
-//            @Override
-//            protected List<CompiledObjectCollectionView> getAdditionalButtonsObjects(){
-//                return getNewObjectInfluencesList();
-//            }
 
             @Override
             protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionView){
@@ -227,21 +214,12 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
                 return layerIconMap;
             }
 
-//            @Override
-//            protected CompositedIconBuilder getAdditionalIconBuilder(CompiledObjectCollectionView influencingObject, DisplayType additionalButtonDisplayType){
-//
-//            }
 
             @Override
             protected DisplayType getDefaultObjectButtonDisplayType(){
                 return getNewObjectButtonSpecialDisplayType();
             }
 
-//            @Override
-//            protected DisplayType getAdditionalButtonDisplayType(CompiledObjectCollectionView buttonObject){
-//                return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(buttonObject, getPageBase());
-////                return getNewObjectButtonAdditionalDisplayType(buttonObject);
-//            }
         };
         createNewObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectEnabled()));
         createNewObjectButton.add(AttributeAppender.append("class", "btn-margin-right"));
@@ -304,6 +282,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
                 return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
             }
         });
+        buttonsList.add(exportDataLink);
 
         AjaxIconButton refreshIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
                 createStringResource("MainObjectListPanel.refresh")) {
@@ -318,7 +297,8 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
                 target.add((Component) getTable());
             }
         };
-        refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
+//        refreshIcon.add(AttributeAppender.append("class", "btn-margin-right"));
         buttonsList.add(refreshIcon);
 
         AjaxIconButton playPauseIcon = new AjaxIconButton(buttonId, getRefreshPausePlayButtonModel(),
@@ -329,14 +309,13 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
             @Override
             public void onClick(AjaxRequestTarget target) {
                 clearCache();
-                manualRefreshEnabled = !isRefreshEnabled();
+                setManualRefreshEnabled(!isRefreshEnabled());
                 target.add(getTable());
             }
         };
         playPauseIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         buttonsList.add(playPauseIcon);
 
-        buttonsList.add(exportDataLink);
         return buttonsList;
     }
 
@@ -413,10 +392,6 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         return true;
     }
 
-    protected Map<IconCssStyle, IconType> getNewObjectButtonLayerIconStyleMap(){
-        return null;
-    }
-
     protected DisplayType getNewObjectButtonSpecialDisplayType(){
         String iconCssStyle = WebComponentUtil.createDefaultBlackIcon(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
 
@@ -428,9 +403,6 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         return WebComponentUtil.createDisplayType(iconCssStyle, "", sb.toString());
     }
 
-    protected DisplayType getNewObjectButtonAdditionalDisplayType(CompiledObjectCollectionView buttonObject){
-        return null;
-    }
 
     protected CompositedIconBuilder getNewObjectButtonAdditionalIconBuilder(CompiledObjectCollectionView influencingObject, DisplayType additionalButtonDisplayType){
         return null;

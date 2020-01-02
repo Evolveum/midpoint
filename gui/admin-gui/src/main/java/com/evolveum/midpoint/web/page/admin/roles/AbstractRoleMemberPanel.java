@@ -216,19 +216,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 return WebComponentUtil.hasDetailsPage(objectClass);
             }
 
-
-
-            //            @Override
-//            protected List<AssignmentObjectRelation> getNewObjectInfluencesList() {
-//                return WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList());
-//            }
-//
-//            @Override
-//            protected DisplayType getNewObjectButtonAdditionalDisplayType(AssignmentObjectRelation relationSpec){
-//                return WebComponentUtil.getAssignmentObjectRelationDisplayType(AbstractRoleMemberPanel.this.getPageBase(), relationSpec,
-//                    "abstractRoleMemberPanel.menu.createMember");
-//            }
-
             @Override
             protected DisplayType getNewObjectButtonSpecialDisplayType(){
                 return getCreateMemberButtonDisplayType();
@@ -239,15 +226,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
                         createStringResource("abstractRoleMemberPanel.menu.createMember", "", "").getString());
             }
-
-//            @Override
-//            protected CompositedIconBuilder getNewObjectButtonAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
-//                return WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(), relationSpec,
-//                        additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green"));
-//            }
-
-
-//
 
             @Override
             protected List<MultiFunctinalButtonDto> loadButtonDescriptions() {

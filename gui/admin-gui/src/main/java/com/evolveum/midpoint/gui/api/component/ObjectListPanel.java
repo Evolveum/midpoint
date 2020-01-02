@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskSelectableBeanProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -99,6 +100,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
     private String addutionalBoxCssClasses;
 
     private Boolean manualRefreshEnabled;
+//    private static final int DEFAULT_AUTOREFRESH_INTERVAL = 60; //60seconds
 
     public Class<? extends O> getType() {
         return (Class) type.getClassDefinition();
@@ -611,13 +613,19 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     protected int getAutoRefreshInterval() {
 
-        CompiledObjectCollectionView view = getObjectCollectionView();
+       CompiledObjectCollectionView view = getObjectCollectionView();
         if (view == null) {
+//            if (BooleanUtils.isTrue(manualRefreshEnabled)) {
+//                return DEFAULT_AUTOREFRESH_INTERVAL;
+//            }
             return 0;
         }
 
         Integer autoRefreshInterval = view.getRefreshInterval();
         if (autoRefreshInterval == null) {
+//            if (BooleanUtils.isTrue(manualRefreshEnabled)) {
+//                return DEFAULT_AUTOREFRESH_INTERVAL;
+//            }
             return 0;
         }
 
@@ -852,5 +860,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     protected boolean hideFooterIfSinglePage(){
         return false;
+    }
+
+    public void setManualRefreshEnabled(Boolean manualRefreshEnabled) {
+        this.manualRefreshEnabled = manualRefreshEnabled;
     }
 }

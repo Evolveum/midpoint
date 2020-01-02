@@ -14,7 +14,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -176,34 +178,70 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                 return initBasicColumns();
             }
 
-            @Override
-            protected void newItemPerformed(AjaxRequestTarget target){
-                //todo clean up
-                newAssignmentClickPerformed(target, null);
-            }
+//            @Override
+//            protected void newItemPerformed(AjaxRequestTarget target){
+//                //todo clean up
+//                newAssignmentClickPerformed(target, null);
+//            }
 
             @Override
             protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {
                 newAssignmentClickPerformed(target, assignmentTargetRelation);
             }
 
-            @Override
-            protected List<AssignmentObjectRelation> getNewObjectInfluencesList() {
-                if (AssignmentPanel.this.getModelObject() == null){
-                    return null;
-                }
-                if (isInducement()){
-                    return null;
-                } else {
-                    return WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList());
-                }
-            }
+                    @Override
+                    protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
+                        if (AssignmentPanel.this.getModelObject() == null){
+                            return null;
+                        }
+                        if (isInducement()) {
+                            return null;
+                        }
 
-            @Override
-            protected CompositedIconBuilder getAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType) {
-                return WebComponentUtil.getAssignmentRelationIconBuilder(AssignmentPanel.this.getPageBase(), relationSpec,
-                        additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
-            }
+                        List<AssignmentObjectRelation> relations = WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList());
+                        if (relations == null) {
+                            return null;
+                        }
+
+                        List<MultiFunctinalButtonDto> buttonDtoList = new ArrayList<>();
+
+                        relations.forEach(relation -> {
+                            MultiFunctinalButtonDto buttonDto = new MultiFunctinalButtonDto();
+                            buttonDto.setAssignmentObjectRelation(relation);
+
+                            DisplayType additionalButtonDisplayType = WebComponentUtil.getAssignmentObjectRelationDisplayType(AssignmentPanel.this.getPageBase(), relation,
+                                    isInducement() ? "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle");
+                            buttonDto.setAdditionalButtonDisplayType(additionalButtonDisplayType);
+
+                            CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(AssignmentPanel.this.getPageBase(), relation,
+                                    additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
+                            CompositedIcon icon = null;
+                            if (builder != null) {
+                                icon = builder.build();
+                            }
+                            buttonDto.setCompositedIcon(icon);
+                            buttonDtoList.add(buttonDto);
+                        });
+                        return buttonDtoList;
+                    }
+
+//                    @Override
+//            protected List<AssignmentObjectRelation> getNewObjectInfluencesList() {
+//                if (AssignmentPanel.this.getModelObject() == null){
+//                    return null;
+//                }
+//                if (isInducement()){
+//                    return null;
+//                } else {
+//                    return WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList());
+//                }
+//            }
+
+//            @Override
+//            protected CompositedIconBuilder getAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType) {
+//                return WebComponentUtil.getAssignmentRelationIconBuilder(AssignmentPanel.this.getPageBase(), relationSpec,
+//                        additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
+//            }
 
             @Override
             protected DisplayType getNewObjectButtonDisplayType() {
@@ -212,11 +250,11 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                                 "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle", "", "").getString());
             }
 
-            @Override
-            protected DisplayType getNewObjectAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation) {
-                return WebComponentUtil.getAssignmentObjectRelationDisplayType(AssignmentPanel.this.getPageBase(), assignmentTargetRelation,
-                        isInducement() ? "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle");
-            }
+//            @Override
+//            protected DisplayType getNewObjectAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation) {
+//                return WebComponentUtil.getAssignmentObjectRelationDisplayType(AssignmentPanel.this.getPageBase(), assignmentTargetRelation,
+//                        isInducement() ? "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle");
+//            }
 
             @Override
             protected boolean isNewObjectButtonEnabled(){
@@ -281,8 +319,8 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     protected Fragment initCustomButtonToolbar(String contentAreaId){
         Fragment searchContainer = new Fragment(contentAreaId, ID_BUTTON_TOOLBAR_FRAGMENT, this);
 
-//        MultifunctionalButton newObjectIcon = getMultivalueContainerListPanel().getNewItemButton(ID_NEW_ITEM_BUTTON);
-//        searchContainer.add(newObjectIcon);
+        MultifunctionalButton newObjectIcon = getMultivalueContainerListPanel().getNewItemButton(ID_NEW_ITEM_BUTTON);
+        searchContainer.add(newObjectIcon);
 
         return searchContainer;
     }
