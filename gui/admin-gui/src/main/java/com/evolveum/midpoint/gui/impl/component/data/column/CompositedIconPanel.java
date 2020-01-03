@@ -56,7 +56,7 @@ public class CompositedIconPanel extends Panel {
         if(compositedIcon.hasBasicIcon()) {
             basicIcon.add(AttributeAppender.append("class", compositedIcon.getBasicIcon()));
             if (compositedIcon.hasBasicIconHtmlColor()){
-                basicIcon.add(AttributeAppender.append("style", compositedIcon.getBasicIconHtmlColor()));
+                basicIcon.add(AttributeAppender.append("style", "color:" + compositedIcon.getBasicIconHtmlColor()));
             }
         }
         layeredIcon.add(basicIcon);
