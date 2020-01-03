@@ -19,4 +19,8 @@ public class PageAdminTasks extends PageAdmin {
     public static final String AUTHORIZATION_TASKS_ALL = AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL;
     public static final String AUTH_TASKS_ALL_LABEL = "PageAdminTasks.auth.tasksAll.label";
     public static final String AUTH_TASKS_ALL_DESCRIPTION = "PageAdminTasks.auth.tasksAll.description";
+
+    public static final String AUTHORIZATION_NODES_ALL = AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL;
+    public static final String AUTH_NODES_ALL_LABEL = "PageAdminTasks.auth.tasksAll.label";
+    public static final String AUTH_NODES_ALL_DESCRIPTION = "PageAdminTasks.auth.tasksAll.description";
 }

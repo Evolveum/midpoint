@@ -401,8 +401,8 @@ public class PageUsers extends PageAdminObjectList<UserType> {
         return TableId.TABLE_USERS;
     }
 
-    private MainObjectListPanel<UserType, CompiledObjectCollectionView> getTable() {
-        return (MainObjectListPanel<UserType, CompiledObjectCollectionView>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    private MainObjectListPanel<UserType> getTable() {
+        return (MainObjectListPanel<UserType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
     private void deleteConfirmedPerformed(AjaxRequestTarget target, UserType userToDelete) {

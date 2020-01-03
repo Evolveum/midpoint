@@ -375,8 +375,8 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
         ((PageBase)getPage()).showMainPopup(dialog, target);
     }
 
-    private MainObjectListPanel<ResourceType, CompiledObjectCollectionView> getResourceTable() {
-        return (MainObjectListPanel<ResourceType, CompiledObjectCollectionView>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    private MainObjectListPanel<ResourceType> getResourceTable() {
+        return (MainObjectListPanel<ResourceType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
     /**

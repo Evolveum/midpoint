@@ -2573,7 +2573,7 @@ public final class WebComponentUtil {
     }
 
     public static <AR extends AbstractRoleType> IModel<String> createAbstractRoleConfirmationMessage(String actionName,
-            ColumnMenuAction action, MainObjectListPanel<AR, CompiledObjectCollectionView> abstractRoleTable, PageBase pageBase) {
+            ColumnMenuAction action, MainObjectListPanel<AR> abstractRoleTable, PageBase pageBase) {
         List<AR> selectedRoles =  new ArrayList<>();
         if (action.getRowModel() == null) {
             selectedRoles.addAll(abstractRoleTable.getSelectedObjects());

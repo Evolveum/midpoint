@@ -196,8 +196,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         Class type = getMemberPanelStorage() != null && getMemberPanelStorage().getType() != null ?
                 getMemberPanelStorage().getType().getClassDefinition() : ObjectType.class;
         //TODO QName defines a relation value which will be used for new member creation
-        MainObjectListPanel<ObjectType, AssignmentObjectRelation> childrenListPanel = new MainObjectListPanel<ObjectType, AssignmentObjectRelation>(
-                ID_MEMBER_TABLE, type, getTableId(getComplexTypeQName()), getSearchOptions(), pageBase) {
+        MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
+                ID_MEMBER_TABLE, type, getTableId(getComplexTypeQName()), getSearchOptions()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -207,7 +207,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected boolean isClickable(IModel<SelectableBean<ObjectType>> rowModel) {
+            protected boolean isObjectDetailsEnabled(IModel<SelectableBean<ObjectType>> rowModel) {
                 if (rowModel == null || rowModel.getObject() == null
                         || rowModel.getObject().getValue() == null) {
                     return false;
@@ -940,8 +940,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
 
-    private MainObjectListPanel<FocusType, QName> getMemberTable() {
-        return (MainObjectListPanel<FocusType, QName>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
+    private MainObjectListPanel<FocusType> getMemberTable() {
+        return (MainObjectListPanel<FocusType>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
     }
 
     protected QueryScope getQueryScope(boolean isRecompute) {

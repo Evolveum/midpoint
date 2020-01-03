@@ -62,8 +62,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     private void initTable(Form mainForm) {
 //        StringValue collectionNameParameter = getCollectionNameParameterValue();
-        MainObjectListPanel<O, CompiledObjectCollectionView> userListPanel = new  MainObjectListPanel<O, CompiledObjectCollectionView>(ID_TABLE,
-                getType(), getTableId(), getQueryOptions(), this) {
+        MainObjectListPanel<O> userListPanel = new  MainObjectListPanel<O>(ID_TABLE,
+                getType(), getTableId(), getQueryOptions()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -93,7 +93,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
 
             @Override
-            protected boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+            protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
                 return isNameColumnClickable(rowModel);
             }
 
@@ -172,8 +172,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         return (Form) get(ID_MAIN_FORM);
     }
 
-    public MainObjectListPanel<O, CompiledObjectCollectionView> getObjectListPanel() {
-        return (MainObjectListPanel<O, CompiledObjectCollectionView>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    public MainObjectListPanel<O> getObjectListPanel() {
+        return (MainObjectListPanel<O>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
 }

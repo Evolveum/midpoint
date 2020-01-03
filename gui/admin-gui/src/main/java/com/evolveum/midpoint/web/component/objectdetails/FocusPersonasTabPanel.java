@@ -60,9 +60,9 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
     }
 
     private void initLayout() {
-        MainObjectListPanel<F, CompiledObjectCollectionView> userListPanel =
-                new MainObjectListPanel<F, CompiledObjectCollectionView>(ID_PERSONAS_TABLE,
-                (Class<F>) FocusType.class, null, null, getPageBase()) {
+        MainObjectListPanel<F> userListPanel =
+                new MainObjectListPanel<F>(ID_PERSONAS_TABLE,
+                (Class<F>) FocusType.class, null, null) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -128,7 +128,7 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             }
 
             @Override
-            protected boolean isClickable(IModel<SelectableBean<F>> rowModel) {
+            protected boolean isObjectDetailsEnabled(IModel<SelectableBean<F>> rowModel) {
                 return false;
             }
         };

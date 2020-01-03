@@ -264,6 +264,8 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_TASK_ADD_QNAME = new QName(NS_AUTHORIZATION_UI, "taskAdd");
     public static final String AUTZ_UI_TASK_ADD_URL = NS_AUTHORIZATION_UI + "#taskAdd";
 
+    public static final QName AUTZ_UI_NODES_QNAME = new QName(NS_AUTHORIZATION_UI, "nodes");
+    public static final String AUTZ_UI_NODES_URL = NS_AUTHORIZATION_UI + "#nodes";
 
     //Reports
     public static final QName AUTZ_UI_REPORTS_QNAME = new QName(NS_AUTHORIZATION_UI, "reports");

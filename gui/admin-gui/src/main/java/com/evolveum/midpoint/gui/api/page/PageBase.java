@@ -1932,6 +1932,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         addMenuItem(item, "ListNew", PageTasksNew.class);
 
+        addMenuItem(item, "PageAdmin.menu.top.serverTasks.nodes", PageNodes.class);
+
         //should we support archetype view for TaskType?
 //        addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE);
         MenuItem newTaskMenu = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageTaskAdd.class, null,

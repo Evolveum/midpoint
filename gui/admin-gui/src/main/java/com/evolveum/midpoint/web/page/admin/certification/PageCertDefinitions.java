@@ -87,9 +87,9 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView> mainPanel =
-                new MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView>(
-                ID_TABLE, AccessCertificationDefinitionType.class, TableId.PAGE_CERT_DEFINITIONS_PANEL, null, this) {
+        MainObjectListPanel<AccessCertificationDefinitionType> mainPanel =
+                new MainObjectListPanel<AccessCertificationDefinitionType>(
+                ID_TABLE, AccessCertificationDefinitionType.class, TableId.PAGE_CERT_DEFINITIONS_PANEL, null) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -122,8 +122,8 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         mainForm.add(mainPanel);
     }
 
-    private MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView> getDefinitionsTable() {
-        return (MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView>)
+    private MainObjectListPanel<AccessCertificationDefinitionType> getDefinitionsTable() {
+        return (MainObjectListPanel<AccessCertificationDefinitionType>)
                 get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 

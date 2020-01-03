@@ -231,9 +231,9 @@ public abstract class ResourceContentPanel extends Panel {
         add(totals);
         initShadowStatistics(totals);
 
-        MainObjectListPanel<ShadowType, CompiledObjectCollectionView> shadowListPanel =
-                new MainObjectListPanel<ShadowType, CompiledObjectCollectionView>(ID_TABLE,
-                ShadowType.class, getTableId(), createSearchOptions(), pageBase) {
+        MainObjectListPanel<ShadowType> shadowListPanel =
+                new MainObjectListPanel<ShadowType>(ID_TABLE,
+                ShadowType.class, getTableId(), createSearchOptions()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -1018,8 +1018,8 @@ public abstract class ResourceContentPanel extends Panel {
                 .findObjectDefinitionByCompileTimeClass(FocusType.class);
     }
 
-    private MainObjectListPanel<ShadowType, CompiledObjectCollectionView> getTable() {
-        return (MainObjectListPanel<ShadowType, CompiledObjectCollectionView>) get(pageBase.createComponentPath(ID_TABLE));
+    private MainObjectListPanel<ShadowType> getTable() {
+        return (MainObjectListPanel<ShadowType>) get(pageBase.createComponentPath(ID_TABLE));
     }
 
     private void changeOwner(ShadowType selected, AjaxRequestTarget target, FocusType ownerToChange,

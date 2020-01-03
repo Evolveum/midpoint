@@ -54,7 +54,7 @@ import java.util.*;
 /**
  * @author katkav
  */
-public abstract class MainObjectListPanel<O extends ObjectType, S extends Serializable> extends ObjectListPanel<O> {
+public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectListPanel<O> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_BUTTON_BAR = "buttonBar";
@@ -64,7 +64,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
 
 //    private Boolean manualRefreshEnabled;
 
-    public MainObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
+    public MainObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id, type, tableId, options);
 
 
@@ -89,7 +89,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
 
                 @Override
                 public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
-                    return MainObjectListPanel.this.isClickable(rowModel);
+                    return MainObjectListPanel.this.isObjectDetailsEnabled(rowModel);
                 }
             };
         } else {
@@ -105,13 +105,13 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
 
                 @Override
                 public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
-                    return MainObjectListPanel.this.isClickable(rowModel);
+                    return MainObjectListPanel.this.isObjectDetailsEnabled(rowModel);
                 }
             };
         }
     }
 
-    protected boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+    protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
         return true;
     }
 
@@ -399,7 +399,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
 
         private static final long serialVersionUID = 1L;
 
-        public <O extends ObjectType, S extends Serializable> ButtonBar(String id, String markupId, MainObjectListPanel<O, S> markupProvider, List<Component> buttonsList) {
+        public <O extends ObjectType, S extends Serializable> ButtonBar(String id, String markupId, MainObjectListPanel<O> markupProvider, List<Component> buttonsList) {
             super(id, markupId, markupProvider);
 
             initLayout(buttonsList);

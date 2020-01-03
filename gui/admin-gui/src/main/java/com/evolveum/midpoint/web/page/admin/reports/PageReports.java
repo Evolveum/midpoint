@@ -78,9 +78,9 @@ public class PageReports extends PageAdmin {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel<ReportType, CompiledObjectCollectionView> table =
-                new MainObjectListPanel<ReportType, CompiledObjectCollectionView>(ID_REPORTS_TABLE, ReportType.class, UserProfileStorage.TableId.PAGE_REPORTS,
-                null, this) {
+        MainObjectListPanel<ReportType> table =
+                new MainObjectListPanel<ReportType>(ID_REPORTS_TABLE, ReportType.class, UserProfileStorage.TableId.PAGE_REPORTS,
+                null) {
 
             @Override
             protected IColumn<SelectableBean<ReportType>, String> createCheckboxColumn() {

@@ -58,8 +58,8 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
     private void initLayout() {
         setOutputMarkupId(true);
 
-        MainObjectListPanel<CaseType, CompiledObjectCollectionView> table = new MainObjectListPanel<CaseType, CompiledObjectCollectionView>(ID_CHILD_CASES_PANEL,
-                CaseType.class, UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB, Collections.emptyList(), getPageBase()) {
+        MainObjectListPanel<CaseType> table = new MainObjectListPanel<CaseType>(ID_CHILD_CASES_PANEL,
+                CaseType.class, UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB, Collections.emptyList()) {
 
 //            @Override
 //            protected IColumn<SelectableBean<CaseType>, String> createCheckboxColumn() {

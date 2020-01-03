@@ -61,7 +61,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
     }
 
     private void initLayout() {
-        MainObjectListPanel<F, String> table = new MainObjectListPanel(ID_TABLE, FocusType.class, null, null, getPageBase()) {
+        MainObjectListPanel<F> table = new MainObjectListPanel(ID_TABLE, FocusType.class, null, null) {
 
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
@@ -183,7 +183,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
     }
 
     private List<String> getSelectedObjects(F selectedObject) {
-        MainObjectListPanel<F, String> table = getTable();
+        MainObjectListPanel<F> table = getTable();
 
         if (selectedObject != null) {
             return Arrays.asList(selectedObject.getOid());
@@ -197,7 +197,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
         return null;
     }
 
-    private MainObjectListPanel<F, String> getTable() {
+    private MainObjectListPanel<F> getTable() {
         return (MainObjectListPanel) get(ID_TABLE);
     }
 }
