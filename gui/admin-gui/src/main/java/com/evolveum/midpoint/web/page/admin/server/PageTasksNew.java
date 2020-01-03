@@ -144,7 +144,6 @@ public class PageTasksNew extends PageAdmin {
                 if (query == null) {
                     query = getPrismContext().queryFactory().createQuery();
                 }
-                ;
                 query.addFilter(getPrismContext().queryFor(TaskType.class)
                         .item(TaskType.F_PARENT)
                             .isNull()
