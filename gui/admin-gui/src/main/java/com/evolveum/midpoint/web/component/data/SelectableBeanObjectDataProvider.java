@@ -18,7 +18,6 @@ import java.util.Set;
 
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.TaskSelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.Validate;
@@ -211,13 +210,8 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     }
 
     public SelectableBean<O> createDataObjectWrapper(O obj) {
-        SelectableBean<O> selectable = null;
-
-        if (obj instanceof TaskType) {
-            selectable = (SelectableBean<O>) new TaskSelectableBean((TaskType) obj);
-        } else {
-            selectable = new SelectableBeanImpl<O>(obj);
-        }
+        SelectableBean<O> selectable =  new SelectableBeanImpl<O>(obj);
+        
         if (!WebComponentUtil.isSuccessOrHandledError(obj.getFetchResult())) {
             try {
                 selectable.setResult(obj.getFetchResult());
