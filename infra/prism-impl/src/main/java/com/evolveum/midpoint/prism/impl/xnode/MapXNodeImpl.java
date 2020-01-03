@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,13 +7,7 @@
 package com.evolveum.midpoint.prism.impl.xnode;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -77,12 +71,14 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
     }
 
     public XNodeImpl put(QName key, XNodeImpl value) {
+        checkMutable();
         XNodeImpl previous = removeEntry(key);
         subnodes.add(new Entry(key, value));
         return previous;
     }
 
     public Entry putReturningEntry(QName key, XNodeImpl value, boolean doNotRemovePrevious) {
+        checkMutable();
         if (!doNotRemovePrevious) {
             removeEntry(key);
         }
@@ -92,6 +88,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
     }
 
     public XNodeImpl remove(Object key) {
+        checkMutable();
         if (!(key instanceof QName)) {
             throw new IllegalArgumentException("Key must be QName, but it is "+key);
         }
@@ -105,6 +102,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
     }
 
     public void clear() {
+        checkMutable();
         subnodes.clear();
     }
 
@@ -255,6 +253,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
     }
 
     public void merge(QName otherKey, XNode otherValue) {
+        checkMutable();
         XNodeImpl myValue = get(otherKey);
         if (myValue == null) {
             put(otherKey, otherValue);
@@ -347,6 +346,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
     }
 
     private XNodeImpl removeEntry(QName key) {
+        checkMutable();
         Iterator<Entry> iterator = subnodes.iterator();
         while (iterator.hasNext()) {
             Entry entry = iterator.next();
@@ -372,6 +372,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
     }
 
     public void qualifyKey(QName key, String newNamespace) {
+        checkMutable();
         for (Entry entry : subnodes) {
             if (key.equals(entry.getKey())) {
                 entry.qualifyKey(newNamespace);
@@ -380,6 +381,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
     }
 
     public XNodeImpl replace(QName key, XNodeImpl value) {
+        checkMutable();
         for (Entry entry : subnodes) {
             if (entry.getKey().equals(key)) {
                 XNodeImpl previous = entry.getValue();
@@ -409,18 +411,13 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
         private QName key;
         private XNodeImpl value;
 
-        Entry(QName key) {
-            super();
-            this.key = key;
-        }
-
-        Entry(QName key, XNodeImpl value) {
+        private Entry(QName key, XNodeImpl value) {
             super();
             this.key = key;
             this.value = value;
         }
 
-        public void qualifyKey(String newNamespace) {
+        private void qualifyKey(String newNamespace) {
             Validate.notNull(key, "Key is null");
             if (StringUtils.isNotEmpty(key.getNamespaceURI())) {
                 throw new IllegalStateException("Cannot qualify already qualified key: " + key);
@@ -438,6 +435,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
             return value;
         }
 
+        // TODO what about immutability?
         @Override
         public XNodeImpl setValue(XNodeImpl value) {
             this.value = value;
@@ -458,8 +456,8 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
          * in element names, see MID-1969).
          *
          * TODO: In the long run, we have to think out where exactly we want to use approximate matching of QNames.
-         * E.g. it is reasonable to use it only where "deployer input" is expected (e.g. import of data objects),
-         * not in the internals of midPoint.
+         *  E.g. it is reasonable to use it only where "deployer input" is expected (e.g. import of data objects),
+         *  not in the internals of midPoint.
          */
 
         @Override
@@ -491,6 +489,16 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
 
     @Override
     public Map<QName, ? extends XNode> asMap() {
-        return this;
+        return immutable ? Collections.unmodifiableMap(this) : this;
+    }
+
+    @Override
+    public void setImmutable() {
+        for (Entry subnode : subnodes) {
+            if (subnode.value != null) {
+                subnode.value.setImmutable();
+            }
+        }
+        super.setImmutable();
     }
 }

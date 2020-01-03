@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -51,6 +51,10 @@ public final class ItemPathHolder {
         return new ItemPathHolder(path).toItemPath();
     }
 
+    public static UniformItemPath parseFromString(String path, Map<String, String> namespaces) {
+        return new ItemPathHolder(path, namespaces).toItemPath();
+    }
+
     public static UniformItemPath parseFromElement(Element element) {
         return new ItemPathHolder(element).toItemPath();
     }
@@ -60,6 +64,10 @@ public final class ItemPathHolder {
 
     private ItemPathHolder(String xpath) {
         parse(xpath, null, null);
+    }
+
+    private ItemPathHolder(String path, Map<String, String> namespaces) {
+        parse(path, null, namespaces);
     }
 
     private ItemPathHolder(Element domElement) {

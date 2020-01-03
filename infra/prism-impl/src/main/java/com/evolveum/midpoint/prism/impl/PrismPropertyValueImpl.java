@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -620,8 +620,27 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 
     @Nullable
     @Override
-    public <T> T getRealValue() {
-        return (T) getValue();
+    public T getRealValue() {
+        return getValue();
     }
 
+    @Override
+    public void setImmutable() {
+        if (value instanceof Freezable) {
+            ((Freezable) value).setImmutable();
+        } else if (value instanceof JaxbVisitable) {
+            ((JaxbVisitable) value).accept(v -> {
+                if (v instanceof Freezable) {
+                    ((Freezable) v).setImmutable();
+                }
+            });
+        }
+        if (rawElement != null) {
+            rawElement.setImmutable();
+        }
+        if (expression != null) {
+            expression.setImmutable();
+        }
+        super.setImmutable();
+    }
 }

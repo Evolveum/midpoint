@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -24,7 +24,7 @@ import java.util.Map;
  * @author semancik
  *
  */
-public interface PrismValue extends Visitable, PathVisitable, Serializable, DebugDumpable, Revivable {      // todo ShortDumpable?
+public interface PrismValue extends Visitable, PathVisitable, Serializable, DebugDumpable, Revivable, Freezable {      // todo ShortDumpable?
 
     void setPrismContext(PrismContext prismContext);
 
