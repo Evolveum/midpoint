@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,10 +15,11 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.Map;
+import java.util.Objects;
 
 public class RootXNodeImpl extends XNodeImpl implements RootXNode {
 
-    @NotNull private QName rootElementName;
+    @NotNull private final QName rootElementName;
     private XNodeImpl subnode;
 
     public RootXNodeImpl(@NotNull QName rootElementName) {
@@ -50,11 +51,7 @@ public class RootXNodeImpl extends XNodeImpl implements RootXNode {
 
     @Override
     public boolean isExplicitTypeDeclaration() {
-        if (super.isExplicitTypeDeclaration()) {
-            return true;
-        } else {
-            return subnode != null && subnode.isExplicitTypeDeclaration();
-        }
+        return super.isExplicitTypeDeclaration() || subnode != null && subnode.isExplicitTypeDeclaration();
     }
 
     @NotNull
@@ -62,15 +59,12 @@ public class RootXNodeImpl extends XNodeImpl implements RootXNode {
         return rootElementName;
     }
 
-    public void setRootElementName(@NotNull QName rootElementName) {
-        this.rootElementName = rootElementName;
-    }
-
     public XNodeImpl getSubnode() {
         return subnode;
     }
 
     public void setSubnode(XNodeImpl subnode) {
+        checkMutable();
         this.subnode = subnode;
     }
 
@@ -81,6 +75,7 @@ public class RootXNodeImpl extends XNodeImpl implements RootXNode {
 
     @Override
     public void accept(Visitor visitor) {
+        //noinspection unchecked
         visitor.visit(this);
         if (subnode != null) {
             subnode.accept(visitor);
@@ -122,19 +117,13 @@ public class RootXNodeImpl extends XNodeImpl implements RootXNode {
 
         RootXNodeImpl rootXNode = (RootXNodeImpl) o;
 
-        if (rootElementName != null ? !rootElementName.equals(rootXNode.rootElementName) : rootXNode.rootElementName != null) {
-            return false;
-        }
-        if (subnode != null ? !subnode.equals(rootXNode.subnode) : rootXNode.subnode != null) {
-            return false;
-        }
-
-        return true;
+        return Objects.equals(rootElementName, rootXNode.rootElementName)
+                && Objects.equals(subnode, rootXNode.subnode);
     }
 
     @Override
     public int hashCode() {
-        int result = rootElementName != null ? rootElementName.hashCode() : 0;
+        int result = rootElementName.hashCode();
         result = 31 * result + (subnode != null ? subnode.hashCode() : 0);
         return result;
     }
@@ -151,5 +140,13 @@ public class RootXNodeImpl extends XNodeImpl implements RootXNode {
     @Override
     public RootXNodeImpl toRootXNode() {
         return this;
+    }
+
+    @Override
+    public void setImmutable() {
+        if (subnode != null) {
+            subnode.setImmutable();
+        }
+        super.setImmutable();
     }
 }

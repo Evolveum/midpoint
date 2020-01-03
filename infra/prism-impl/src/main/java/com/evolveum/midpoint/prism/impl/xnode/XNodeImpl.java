@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -47,6 +47,7 @@ public abstract class XNodeImpl implements XNode {
      */
     private boolean explicitTypeDeclaration = false;
 
+    protected boolean immutable = false;
 
     // These are set when parsing a file
     private File originFile;
@@ -66,6 +67,7 @@ public abstract class XNodeImpl implements XNode {
     }
 
     public void setParent(XNodeImpl parent) {
+        checkMutable();
         this.parent = parent;
     }
 
@@ -74,6 +76,7 @@ public abstract class XNodeImpl implements XNode {
     }
 
     public void setOriginFile(File originFile) {
+        checkMutable();
         this.originFile = originFile;
     }
 
@@ -82,6 +85,7 @@ public abstract class XNodeImpl implements XNode {
     }
 
     public void setOriginDescription(String originDescription) {
+        checkMutable();
         this.originDescription = originDescription;
     }
 
@@ -90,6 +94,7 @@ public abstract class XNodeImpl implements XNode {
     }
 
     public void setLineNumber(int lineNumber) {
+        checkMutable();
         this.lineNumber = lineNumber;
     }
 
@@ -98,6 +103,7 @@ public abstract class XNodeImpl implements XNode {
     }
 
     public void setComment(String comment) {
+        checkMutable();
         this.comment = comment;
     }
 
@@ -106,6 +112,7 @@ public abstract class XNodeImpl implements XNode {
     }
 
     public void setTypeQName(QName typeQName) {
+        checkMutable();
         this.typeQName = typeQName;
     }
 
@@ -114,6 +121,7 @@ public abstract class XNodeImpl implements XNode {
     }
 
     public void setElementName(QName elementName) {
+        checkMutable();
         this.elementName = elementName;
     }
 
@@ -122,6 +130,7 @@ public abstract class XNodeImpl implements XNode {
     }
 
     public void setMaxOccurs(Integer maxOccurs) {
+        checkMutable();
         this.maxOccurs = maxOccurs;
     }
 
@@ -132,6 +141,7 @@ public abstract class XNodeImpl implements XNode {
     }
 
     public void setExplicitTypeDeclaration(boolean explicitTypeDeclaration) {
+        checkMutable();
         this.explicitTypeDeclaration = explicitTypeDeclaration;
     }
 
@@ -182,6 +192,7 @@ public abstract class XNodeImpl implements XNode {
 
     // filling-in other properties (we skip parent and origin-related things)
     protected void copyCommonAttributesFrom(XNodeImpl xnode) {
+        checkMutable();
         explicitTypeDeclaration = xnode.explicitTypeDeclaration;
         setTypeQName(xnode.getTypeQName());
         setComment(xnode.getComment());
@@ -209,7 +220,7 @@ public abstract class XNodeImpl implements XNode {
         return sb.toString();
     }
 
-    // overriden in RootXNode
+    // overridden in RootXNode
     public RootXNodeImpl toRootXNode() {
         return new RootXNodeImpl(XNodeImpl.DUMMY_NAME, this);
     }
@@ -220,5 +231,16 @@ public abstract class XNodeImpl implements XNode {
 
     public final boolean isSingleEntryMap() {
         return this instanceof MapXNodeImpl && ((MapXNodeImpl) this).size() == 1;
+    }
+
+    protected void checkMutable() {
+        if (immutable) {
+            throw new IllegalStateException("Cannot modify immutable XNode: " + this);
+        }
+    }
+
+    @Override
+    public void setImmutable() {
+        immutable = true;
     }
 }

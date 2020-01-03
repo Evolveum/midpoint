@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -28,6 +28,7 @@ import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Map;
 
 /**
  * Simple implementation that converts XSD primitive types to Java (and vice
@@ -60,14 +61,14 @@ public class XmlTypeConverter {
         return datatypeFactory;
     }
 
-    @Deprecated // do NOT use from the outside of prism
+    // do NOT use from the outside of prism
     public static boolean canConvert(Class<?> clazz) {
-        return (XsdTypeMapper.getJavaToXsdMapping(clazz) != null);
+        return XsdTypeMapper.getJavaToXsdMapping(clazz) != null;
     }
 
-    @Deprecated // do NOT use from the outside of prism
+    // do NOT use from the outside of prism
     public static boolean canConvert(QName xsdType) {
-        return (XsdTypeMapper.getXsdToJavaMapping(xsdType) != null);
+        return XsdTypeMapper.getXsdToJavaMapping(xsdType) != null;
     }
 
     // TODO consider moving this to better place
@@ -368,6 +369,10 @@ public class XmlTypeConverter {
         return toJavaValue(stringContent, javaClass, false);
     }
 
+    public static <T> T toJavaValue(String stringContent, Map<String, String> namespaces, QName typeQName) {
+        return toJavaValue(stringContent, namespaces, XsdTypeMapper.getXsdToJavaMapping(typeQName));
+    }
+
     public static <T> T toJavaValue(Element xmlElement, Class<T> type) throws SchemaException {
         if (type.equals(Element.class)) {
             return (T) xmlElement;
@@ -376,16 +381,31 @@ public class XmlTypeConverter {
         } else if (PolyString.class.isAssignableFrom(type)) {
             return (T) polyStringToJava(xmlElement);
         } else {
-            String stringContent = xmlElement.getTextContent();
-            if (stringContent == null) {
-                return null;
-            }
-            T javaValue = toJavaValue(stringContent, type);
-            if (javaValue == null) {
-                throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element " + DOMUtil.getQName(xmlElement) + ")");
-            }
-            return javaValue;
+            return toJavaValuePlain(xmlElement.getTextContent(), type, " (element " + DOMUtil.getQName(xmlElement) + ")");
         }
+    }
+
+    public static <T> T toJavaValue(String textContent, Map<String, String> namespaces, Class<T> type) {
+        if (type.equals(Element.class)) {
+            throw new UnsupportedOperationException("Cannot convert text to Element: " + textContent);
+        } else if (type.equals(QName.class)) {
+            return (T) DOMUtil.getQNameValue(textContent, namespaces);
+        } else if (PolyString.class.isAssignableFrom(type)) {
+            return (T) new PolyString(textContent);
+        } else {
+            return toJavaValuePlain(textContent, type, "");
+        }
+    }
+
+    private static <T> T toJavaValuePlain(String textContent, Class<T> type, String context) {
+        if (textContent == null) {
+            return null;
+        }
+        T javaValue = toJavaValue(textContent, type);
+        if (javaValue == null) {
+            throw new IllegalArgumentException("Unknown type for conversion: " + type + context);
+        }
+        return javaValue;
     }
 
     private static <T> T toJavaValue(String stringContent, Class<T> type) {

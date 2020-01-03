@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -413,6 +413,9 @@ public class DOMUtil {
         return elements;
     }
 
+    /**
+     * Returned list contains non-null objects.
+     */
     @NotNull
     public static List<Element> listChildElements(Node node) {
         List<Element> subelements = new ArrayList<>();
@@ -448,6 +451,15 @@ public class DOMUtil {
      */
 
     public static QName resolveQName(Node domNode, String qnameStringRepresentation) {
+        return resolveQName(prefix -> findNamespace(domNode, prefix), qnameStringRepresentation);
+    }
+
+    @FunctionalInterface
+    private interface NamespaceResolver {
+        String resolve(String prefix);
+    }
+
+    public static QName resolveQName(NamespaceResolver namespaceResolver, String qnameStringRepresentation) {
         if (StringUtils.isBlank(qnameStringRepresentation)) {
             // No QName
             return null;
@@ -463,7 +475,7 @@ public class DOMUtil {
             qname = new QName(null, qnameArray[0]);
         } else {
             String namespacePrefix = qnameArray[0];
-            String namespace = findNamespace(domNode, namespacePrefix);
+            String namespace = namespaceResolver.resolve(namespacePrefix);
             if (namespace == null) {
                 QNameUtil.reportUndeclaredNamespacePrefix(namespacePrefix, qnameStringRepresentation);
                 namespacePrefix = QNameUtil.markPrefixAsUndeclared(namespacePrefix);
@@ -473,8 +485,7 @@ public class DOMUtil {
         return qname;
     }
 
-
-    public static String findNamespace(Node domNode, String prefix) {
+    private static String findNamespace(Node domNode, String prefix) {
         String ns = null;
         if (domNode != null) {
             if (prefix == null || prefix.isEmpty()) {
@@ -970,6 +981,10 @@ public class DOMUtil {
         return resolveQName(element, element.getTextContent());
     }
 
+    public static QName getQNameValue(String textContent, Map<String, String> namespaces) {
+        return resolveQName(namespaces::get, textContent);
+    }
+
     public static QName getQNameAttribute(Element element, String attributeName) {
         String attrContent = element.getAttribute(attributeName);
         if (StringUtils.isBlank(attrContent)) {
@@ -1316,13 +1331,10 @@ public class DOMUtil {
 
     public static boolean isNil(Element element) {
         String nilString = element.getAttributeNS(XSI_NIL.getNamespaceURI(), XSI_NIL.getLocalPart());
-        if (nilString == null) {
-            return false;
-        }
-        return Boolean.parseBoolean(nilString);
+        return nilString != null && Boolean.parseBoolean(nilString);
     }
 
-    public static void setNill(Element element) {
+    public static void setNil(Element element) {
         element.setAttributeNS(XSI_NIL.getNamespaceURI(), XSI_NIL.getLocalPart(), "true");
     }
 
@@ -1336,23 +1348,16 @@ public class DOMUtil {
     }
 
     public static boolean isEmpty(Element element) {
-        if (element == null) {
-            return true;
-        }
-        if (hasChildElements(element)) {
-            return false;
-        }
-        if (isNil(element)) {
-            return true;
-        }
-        return StringUtils.isBlank(element.getTextContent());
+        return element == null ||
+                !hasChildElements(element) && (isNil(element) || StringUtils.isBlank(element.getTextContent()));
+    }
+
+    public static boolean isEmpty(String textContent, Map<String, String> namespaces) {
+        return StringUtils.isBlank(textContent);
     }
 
     public static boolean isEmpty(Attr attr) {
-        if (attr == null) {
-            return true;
-        }
-        return StringUtils.isEmpty(attr.getValue());
+        return attr == null || StringUtils.isEmpty(attr.getValue());
     }
 
     public static void setAttributeValue(Element element, String name, String value) {

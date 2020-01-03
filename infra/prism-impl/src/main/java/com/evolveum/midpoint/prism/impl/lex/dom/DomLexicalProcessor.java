@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,22 +10,18 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.ParserElementSource;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.lex.LexicalUtils;
-import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.impl.xnode.*;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.codehaus.staxmate.dom.DOMConverter;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +38,6 @@ import javax.xml.stream.XMLStreamReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -218,11 +213,11 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
     }
 
     /**
-     * Parses the content of the element (the name of the provided element is ignored (unless storeElementName=true),
-     * only the content is parsed).
+     * Parses the content of the element. The name of the provided element is ignored (unless storeElementName=true),
+     * only the content is parsed.
      */
     @Nullable
-    private XNodeImpl parseElementContent(Element element, boolean storeElementName) throws SchemaException {
+    private XNodeImpl parseElementContent(@NotNull Element element, boolean storeElementName) throws SchemaException {
         if (DOMUtil.isNil(element)) {        // TODO: ok?
             return null;
         }
@@ -266,14 +261,12 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         List<Element> lastElements = null;
         for (Element childElement: DOMUtil.listChildElements(element)) {
             QName childQName = DOMUtil.getQName(childElement);
-            if (match(childQName, lastElementQName)) {
-                lastElements.add(childElement);
-            } else {
+            if (!match(childQName, lastElementQName)) {
                 parseSubElementsGroupAsMapEntry(xmap, lastElementQName, lastElements);
                 lastElementQName = childQName;
                 lastElements = new ArrayList<>();
-                lastElements.add(childElement);
             }
+            lastElements.add(childElement);
         }
         parseSubElementsGroupAsMapEntry(xmap, lastElementQName, lastElements);
         return xmap;
@@ -388,139 +381,34 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
     private ListXNodeImpl parseElementList(List<Element> elements, boolean storeElementNames) throws SchemaException {
         ListXNodeImpl xlist = new ListXNodeImpl();
         for (Element element: elements) {
-            XNodeImpl xnode = parseElementContent(element, storeElementNames);
-            xlist.add(xnode);
+            xlist.add(parseElementContent(element, storeElementNames));
         }
         return xlist;
     }
 
-    // changed from anonymous to be able to make it static (serializable independently of DomParser)
-    private static final class PrimitiveValueParser<T> implements ValueParser<T>, Serializable {
-
-        private Element element;
-
-        private PrimitiveValueParser(Element element) {
-            this.element = element;
-        }
-
-        @Override
-        public synchronized T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
-            return parsePrimitiveElementValue(element, typeName, mode);
-        }
-        @Override
-        public synchronized boolean isEmpty() {
-            return DOMUtil.isEmpty(element);
-        }
-        @Override
-        public synchronized String getStringValue() {
-            return element.getTextContent();
-        }
-        @Override
-        public synchronized Map<String, String> getPotentiallyRelevantNamespaces() {
-            return DOMUtil.getAllVisibleNamespaceDeclarations(element);
-        }
-        @Override
-        public synchronized String toString() {
-            return "ValueParser(DOMe, "+PrettyPrinter.prettyPrint(DOMUtil.getQName(element))+": "+element.getTextContent()+")";
-        }
-    }
-
-    private static final class PrimitiveAttributeParser<T> implements ValueParser<T>, Serializable {
-
-        private Attr attr;
-
-        private PrimitiveAttributeParser(Attr attr) {
-            this.attr = attr;
-        }
-
-        @Override
-        public synchronized T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
-            return parsePrimitiveAttrValue(attr, typeName, mode);
-        }
-
-        @Override
-        public synchronized boolean isEmpty() {
-            return DOMUtil.isEmpty(attr);
-        }
-
-        @Override
-        public synchronized String getStringValue() {
-            return attr.getValue();
-        }
-
-        @Override
-        public synchronized String toString() {
-            return "ValueParser(DOMa, " + PrettyPrinter.prettyPrint(DOMUtil.getQName(attr)) + ": "
-                    + attr.getTextContent() + ")";
-        }
-
-        @Override
-        public synchronized Map<String, String> getPotentiallyRelevantNamespaces() {
-            return DOMUtil.getAllVisibleNamespaceDeclarations(attr);
-        }
-    }
-
-    private <T> PrimitiveXNodeImpl<T> parsePrimitiveElement(final Element element) throws SchemaException {
+    // @pre element has no children nor application attributes
+    private <T> PrimitiveXNodeImpl<T> parsePrimitiveElement(@NotNull Element element) {
         PrimitiveXNodeImpl<T> xnode = new PrimitiveXNodeImpl<>();
-        xnode.setValueParser(new PrimitiveValueParser<>(element));
+        xnode.setValueParser(new ElementValueParser<>(element));
         return xnode;
     }
 
-    private static ItemPathType parseItemPathTypeFromElement(Element element) {
-        return new ItemPathType(ItemPathHolder.parseFromElement(element));
-    }
-
-    private static <T> T parsePrimitiveElementValue(Element element, QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
-        try {
-            if (ItemPathType.COMPLEX_TYPE.equals(typeName)) {
-                return (T) parseItemPathTypeFromElement(element);
-            } else if (DOMUtil.XSD_QNAME.equals(typeName)) {
-                return (T) DOMUtil.getQNameValue(element);
-            } else if (XmlTypeConverter.canConvert(typeName)) {
-                return (T) XmlTypeConverter.toJavaValue(element, typeName);
-            } else if (DOMUtil.XSD_ANYTYPE.equals(typeName)) {
-                return (T) element.getTextContent();                // if parsing primitive as xsd:anyType, we can safely parse it as string
-            } else {
-                throw new SchemaException("Cannot convert element '" + element + "' to " + typeName);
-            }
-        } catch (IllegalArgumentException e) {
-            return processIllegalArgumentException(element.getTextContent(), typeName, e, mode);        // primitive way of ensuring compatibility mode
-        }
-    }
-
-    private static <T> T processIllegalArgumentException(String value, QName typeName, IllegalArgumentException e, XNodeProcessorEvaluationMode mode) {
-        if (mode != XNodeProcessorEvaluationMode.COMPAT) {
+    static <T> T processIllegalArgumentException(String value, QName typeName, IllegalArgumentException e,
+            XNodeProcessorEvaluationMode mode) {
+        if (mode == XNodeProcessorEvaluationMode.COMPAT) {
+            LOGGER.warn("Value of '{}' couldn't be parsed as '{}' -- interpreting as null because of COMPAT mode set", value,
+                    typeName, e);
+            return null;
+        } else {
             throw e;
         }
-        LOGGER.warn("Value of '{}' couldn't be parsed as '{}' -- interpreting as null because of COMPAT mode set", value, typeName, e);
-        return null;
     }
 
-    private <T> PrimitiveXNodeImpl<T> parseAttributeValue(final Attr attr) {
+    private <T> PrimitiveXNodeImpl<T> parseAttributeValue(@NotNull Attr attr) {
         PrimitiveXNodeImpl<T> xnode = new PrimitiveXNodeImpl<>();
-        xnode.setValueParser(new PrimitiveAttributeParser<>(attr));
+        xnode.setValueParser(new AttributeValueParser<>(attr));
         xnode.setAttribute(true);
         return xnode;
-    }
-
-    private static <T> T parsePrimitiveAttrValue(Attr attr, QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
-        if (DOMUtil.XSD_QNAME.equals(typeName)) {
-            try {
-                return (T) DOMUtil.getQNameValue(attr);
-            } catch (IllegalArgumentException e) {
-                return processIllegalArgumentException(attr.getTextContent(), typeName, e, mode);        // primitive way of ensuring compatibility mode
-            }
-        }
-        if (XmlTypeConverter.canConvert(typeName)) {
-            String stringValue = attr.getTextContent();
-            try {
-                return XmlTypeConverter.toJavaValue(stringValue, typeName);
-            } catch (IllegalArgumentException e) {
-                return processIllegalArgumentException(attr.getTextContent(), typeName, e, mode);        // primitive way of ensuring compatibility mode
-            }
-        } else {
-            throw new SchemaException("Cannot convert attribute '"+attr+"' to "+typeName);
-        }
     }
 
     private SchemaXNodeImpl parseSchemaElement(Element schemaElement) {

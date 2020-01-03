@@ -1,6 +1,5 @@
-
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,42 +7,11 @@
 
 package com.evolveum.prism.xml.ns._public.query_3;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InvalidClassException;
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OptionalDataException;
-import java.io.Serializable;
-import java.io.StreamCorruptedException;
-import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.*;
-
-import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.ParsingContext;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.xnode.*;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -51,7 +19,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
-
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jvnet.jaxb2_commons.lang.Equals;
@@ -62,15 +29,25 @@ import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
 import org.w3c.dom.Element;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 @XmlAccessorType(XmlAccessType.NONE)        // we select getters/fields to expose via JAXB individually
 @XmlType(name = "SearchFilterType", propOrder = {       // no prop order, because we serialize this class manually
                                                         // BTW, the order is the following: description, filterClause
 })
 
-public class SearchFilterType implements Serializable, Cloneable, Equals, HashCode, DebugDumpable
+public class SearchFilterType implements Serializable, Cloneable, Equals, HashCode, DebugDumpable, Freezable, JaxbVisitable
 {
     private final static long serialVersionUID = 201303040000L;
+
+    private boolean immutable = false;
 
     @XmlElement
     protected String description;
@@ -105,7 +82,9 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         if (o == null) {
             throw new NullPointerException("Cannot create a copy of 'SearchFilterType' from 'null'.");
         }
+        this.description = o.description;
         this.filterClauseXNode = o.filterClauseXNode.clone();
+        this.immutable = false;
     }
 
     public String getDescription() {
@@ -113,7 +92,14 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     }
 
     public void setDescription(String description) {
+        checkMutable();
         this.description = description;
+    }
+
+    private void checkMutable() {
+        if (immutable) {
+            ImmutableUtil.throwImmutable(this);
+        }
     }
 
     public boolean containsFilterClause() {
@@ -121,10 +107,12 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     }
 
     public void setFilterClauseXNode(MapXNode filterClauseXNode) {
+        checkMutable();
         this.filterClauseXNode = filterClauseXNode;
     }
 
     public void setFilterClauseXNode(RootXNode filterClauseNode) {
+        checkMutable();
         if (filterClauseNode == null) {
             this.filterClauseXNode = null;
         } else {
@@ -152,13 +140,6 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         return prismContext.hacks().serializeSingleElementMapToElement(filterClauseXNode);
     }
 
-    // xnode should be correct (expecting it was just created by serializing something)
-//    public static SearchFilterType createFromSerializedXNode(XNodeImpl xnode, PrismContext prismContext) throws SchemaException {
-//        SearchFilterType filter = new SearchFilterType();
-//        filter.parseFromXNode(xnode, null, prismContext);
-//        return filter;
-//    }
-
     public static SearchFilterType createFromParsedXNode(XNode xnode, ParsingContext pc, PrismContext prismContext) throws SchemaException {
         SearchFilterType filter = new SearchFilterType();
         filter.parseFromXNode(xnode, pc, prismContext);
@@ -166,6 +147,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     }
 
     public void parseFromXNode(XNode xnode, ParsingContext pc, PrismContext prismContext) throws SchemaException {
+        checkMutable();
         if (xnode == null || xnode.isEmpty()) {
             this.filterClauseXNode = null;
             this.description = null;
@@ -238,6 +220,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         return this.hashCode(null, strategy);
     }
 
+    @SuppressWarnings("RedundantIfStatement")
     public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object object, EqualsStrategy strategy) {
         if (!(object instanceof SearchFilterType)) {
             return false;
@@ -256,396 +239,10 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         return true;
     }
 
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object object) {
         final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
         return equals(null, null, object, strategy);
-    }
-
-    /**
-     * Creates and returns a deep copy of a given object.
-     *
-     * @param o
-     *     The instance to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code o} or {@code null} if {@code o} is {@code null}.
-     */
-    @SuppressWarnings("unchecked")
-    private static Object copyOf(final Object o) {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        try {
-            if (o!= null) {
-                if (o.getClass().isPrimitive()) {
-                    return o;
-                }
-                if (o.getClass().isArray()) {
-                    return copyOfArray(o);
-                }
-                // Immutable types.
-                if (o instanceof Boolean) {
-                    return o;
-                }
-                if (o instanceof Byte) {
-                    return o;
-                }
-                if (o instanceof Character) {
-                    return o;
-                }
-                if (o instanceof Double) {
-                    return o;
-                }
-                if (o instanceof Enum) {
-                    return o;
-                }
-                if (o instanceof Float) {
-                    return o;
-                }
-                if (o instanceof Integer) {
-                    return o;
-                }
-                if (o instanceof Long) {
-                    return o;
-                }
-                if (o instanceof Short) {
-                    return o;
-                }
-                if (o instanceof String) {
-                    return o;
-                }
-                if (o instanceof BigDecimal) {
-                    return o;
-                }
-                if (o instanceof BigInteger) {
-                    return o;
-                }
-                if (o instanceof UUID) {
-                    return o;
-                }
-                if (o instanceof QName) {
-                    return o;
-                }
-                if (o instanceof Duration) {
-                    return o;
-                }
-                if (o instanceof Currency) {
-                    return o;
-                }
-                // String based types.
-                if (o instanceof File) {
-                    return new File(o.toString());
-                }
-                if (o instanceof URI) {
-                    return new URI(o.toString());
-                }
-                if (o instanceof URL) {
-                    return new URL(o.toString());
-                }
-                if (o instanceof MimeType) {
-                    return new MimeType(o.toString());
-                }
-                // Cloneable types.
-                if (o instanceof XMLGregorianCalendar) {
-                    return ((XMLGregorianCalendar) o).clone();
-                }
-                if (o instanceof Date) {
-                    return ((Date) o).clone();
-                }
-                if (o instanceof Calendar) {
-                    return ((Calendar) o).clone();
-                }
-                if (o instanceof TimeZone) {
-                    return ((TimeZone) o).clone();
-                }
-                if (o instanceof Locale) {
-                    return ((Locale) o).clone();
-                }
-                if (o instanceof Element) {
-                    return ((Element)((Element) o).cloneNode(true));
-                }
-                if (o instanceof JAXBElement) {
-                    return copyOf(((JAXBElement) o));
-                }
-                try {
-                    return o.getClass().getMethod("clone", ((Class[]) null)).invoke(o, ((Object[]) null));
-                } catch (NoSuchMethodException e) {
-                    if (o instanceof Serializable) {
-                        return copyOf(((Serializable) o));
-                    }
-                    // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                    throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-                } catch (IllegalAccessException e) {
-                    // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                    throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-                } catch (InvocationTargetException e) {
-                    // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                    throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-                } catch (SecurityException e) {
-                    // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                    throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-                } catch (IllegalArgumentException e) {
-                    // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                    throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-                } catch (ExceptionInInitializerError e) {
-                    // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                    throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-                }
-            }
-            return null;
-        } catch (URISyntaxException e) {
-            throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-        } catch (MalformedURLException e) {
-            throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-        } catch (MimeTypeParseException e) {
-            throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-        }
-    }
-
-    /**
-     * Creates and returns a deep copy of a given array.
-     *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
-     */
-    private static Object copyOfArray(final Object array) {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            if (array.getClass() == boolean[].class) {
-                return copyOf(((boolean[]) array));
-            }
-            if (array.getClass() == byte[].class) {
-                return copyOf(((byte[]) array));
-            }
-            if (array.getClass() == char[].class) {
-                return copyOf(((char[]) array));
-            }
-            if (array.getClass() == double[].class) {
-                return copyOf(((double[]) array));
-            }
-            if (array.getClass() == float[].class) {
-                return copyOf(((float[]) array));
-            }
-            if (array.getClass() == int[].class) {
-                return copyOf(((int[]) array));
-            }
-            if (array.getClass() == long[].class) {
-                return copyOf(((long[]) array));
-            }
-            if (array.getClass() == short[].class) {
-                return copyOf(((short[]) array));
-            }
-            final int len = Array.getLength(array);
-            final Object copy = Array.newInstance(array.getClass().getComponentType(), len);
-            for (int i = (len- 1); (i >= 0); i--) {
-                Array.set(copy, i, copyOf(Array.get(array, i)));
-            }
-            return copy;
-        }
-        return null;
-    }
-
-    /**
-     * Creates and returns a deep copy of a given array.
-     *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
-     */
-    private static boolean[] copyOf(final boolean[] array) {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final boolean[] copy = ((boolean[]) Array.newInstance(array.getClass().getComponentType(), array.length));
-            System.arraycopy(array, 0, copy, 0, array.length);
-            return copy;
-        }
-        return null;
-    }
-
-    /**
-     * Creates and returns a deep copy of a given array.
-     *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
-     */
-    private static byte[] copyOf(final byte[] array) {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final byte[] copy = ((byte[]) Array.newInstance(array.getClass().getComponentType(), array.length));
-            System.arraycopy(array, 0, copy, 0, array.length);
-            return copy;
-        }
-        return null;
-    }
-
-    /**
-     * Creates and returns a deep copy of a given array.
-     *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
-     */
-    private static char[] copyOf(final char[] array) {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final char[] copy = ((char[]) Array.newInstance(array.getClass().getComponentType(), array.length));
-            System.arraycopy(array, 0, copy, 0, array.length);
-            return copy;
-        }
-        return null;
-    }
-
-    /**
-     * Creates and returns a deep copy of a given array.
-     *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
-     */
-    private static double[] copyOf(final double[] array) {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final double[] copy = ((double[]) Array.newInstance(array.getClass().getComponentType(), array.length));
-            System.arraycopy(array, 0, copy, 0, array.length);
-            return copy;
-        }
-        return null;
-    }
-
-    /**
-     * Creates and returns a deep copy of a given array.
-     *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
-     */
-    private static float[] copyOf(final float[] array) {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final float[] copy = ((float[]) Array.newInstance(array.getClass().getComponentType(), array.length));
-            System.arraycopy(array, 0, copy, 0, array.length);
-            return copy;
-        }
-        return null;
-    }
-
-    /**
-     * Creates and returns a deep copy of a given array.
-     *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
-     */
-    private static int[] copyOf(final int[] array) {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final int[] copy = ((int[]) Array.newInstance(array.getClass().getComponentType(), array.length));
-            System.arraycopy(array, 0, copy, 0, array.length);
-            return copy;
-        }
-        return null;
-    }
-
-    /**
-     * Creates and returns a deep copy of a given array.
-     *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
-     */
-    private static long[] copyOf(final long[] array) {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final long[] copy = ((long[]) Array.newInstance(array.getClass().getComponentType(), array.length));
-            System.arraycopy(array, 0, copy, 0, array.length);
-            return copy;
-        }
-        return null;
-    }
-
-    /**
-     * Creates and returns a deep copy of a given array.
-     *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
-     */
-    private static short[] copyOf(final short[] array) {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final short[] copy = ((short[]) Array.newInstance(array.getClass().getComponentType(), array.length));
-            System.arraycopy(array, 0, copy, 0, array.length);
-            return copy;
-        }
-        return null;
-    }
-
-    /**
-     * Creates and returns a deep copy of a given {@code JAXBElement} instance.
-     *
-     * @param element
-     *     The instance to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code element} or {@code null} if {@code element} is {@code null}.
-     */
-    @SuppressWarnings("unchecked")
-    private static JAXBElement copyOf(final JAXBElement element) {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (element!= null) {
-            final JAXBElement copy = new JAXBElement(element.getName(), element.getDeclaredType(), element.getScope(), element.getValue());
-            copy.setNil(element.isNil());
-            copy.setValue(copyOf(copy.getValue()));
-            return copy;
-        }
-        return null;
-    }
-
-    /**
-     * Creates and returns a deep copy of a given {@code Serializable}.
-     *
-     * @param serializable
-     *     The instance to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code serializable} or {@code null} if {@code serializable} is {@code null}.
-     */
-    private static Serializable copyOf(final Serializable serializable) {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (serializable!= null) {
-            try {
-                final ByteArrayOutputStream byteArrayOutput = new ByteArrayOutputStream();
-                final ObjectOutputStream out = new ObjectOutputStream(byteArrayOutput);
-                out.writeObject(serializable);
-                out.close();
-                final ByteArrayInputStream byteArrayInput = new ByteArrayInputStream(byteArrayOutput.toByteArray());
-                final ObjectInputStream in = new ObjectInputStream(byteArrayInput);
-                final Serializable copy = ((Serializable) in.readObject());
-                in.close();
-                return copy;
-            } catch (SecurityException e) {
-                throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ serializable)+"'.")).initCause(e));
-            } catch (ClassNotFoundException e) {
-                throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ serializable)+"'.")).initCause(e));
-            } catch (InvalidClassException e) {
-                throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ serializable)+"'.")).initCause(e));
-            } catch (NotSerializableException e) {
-                throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ serializable)+"'.")).initCause(e));
-            } catch (StreamCorruptedException e) {
-                throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ serializable)+"'.")).initCause(e));
-            } catch (OptionalDataException e) {
-                throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ serializable)+"'.")).initCause(e));
-            } catch (IOException e) {
-                throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ serializable)+"'.")).initCause(e));
-            }
-        }
-        return null;
     }
 
     /**
@@ -655,6 +252,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
      * @return
      *     A deep copy of this object.
      */
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public SearchFilterType clone() {
         final SearchFilterType clone;
@@ -686,9 +284,21 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         }
         if (filterClauseXNode != null) {
             sb.append("\n");
-            DebugUtil.debugDumpWithLabel(sb, "filterClauseXNode", (DebugDumpable) filterClauseXNode, indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, "filterClauseXNode", filterClauseXNode, indent + 1);
         }
         return sb.toString();
     }
 
+    @Override
+    public void setImmutable() {
+        if (filterClauseXNode != null) {
+            filterClauseXNode.setImmutable();
+        }
+        immutable = true;
+    }
+
+    @Override
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
+    }
 }

@@ -284,6 +284,20 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
         return getRefinedSchema(resource, resource.getPrismContext());
     }
 
+    public static RefinedResourceSchema getExistingRefinedSchema(PrismObject<ResourceType> resource) {
+        Object userDataEntry = resource.getUserData(USER_DATA_KEY_REFINED_SCHEMA);
+        if (userDataEntry != null) {
+            if (userDataEntry instanceof RefinedResourceSchema) {
+                return (RefinedResourceSchema)userDataEntry;
+            } else {
+                throw new IllegalStateException("Expected RefinedResourceSchema under user data key "+USER_DATA_KEY_REFINED_SCHEMA+
+                        "in "+resource+", but got "+userDataEntry.getClass());
+            }
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Obtains refined schema for the resource.
      *
@@ -296,19 +310,14 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
             throw new SchemaException("Could not get refined schema, resource does not exist.");
         }
 
-        Object userDataEntry = resource.getUserData(USER_DATA_KEY_REFINED_SCHEMA);
-        if (userDataEntry != null) {
-            if (userDataEntry instanceof RefinedResourceSchema) {
-                return (RefinedResourceSchema)userDataEntry;
-            } else {
-                throw new IllegalStateException("Expected RefinedResourceSchema under user data key "+USER_DATA_KEY_REFINED_SCHEMA+
-                        "in "+resource+", but got "+userDataEntry.getClass());
-            }
+        RefinedResourceSchema existingRefinedSchema = getExistingRefinedSchema(resource);
+        if (existingRefinedSchema != null) {
+            return existingRefinedSchema;
         } else {
-            RefinedResourceSchema refinedSchema = parse(resource, prismContext);
             if (resource.isImmutable()) {
                 throw new IllegalStateException("Trying to set parsed schema on immutable resource: " + resource);
             }
+            RefinedResourceSchema refinedSchema = parse(resource, prismContext);
             resource.setUserData(USER_DATA_KEY_REFINED_SCHEMA, refinedSchema);
             return refinedSchema;
         }
