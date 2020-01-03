@@ -71,7 +71,7 @@ public class CompositedIconPanel extends Panel {
                 WebComponent icon = new WebComponent(listItems.newChildId());
                 icon.add(AttributeAppender.append("class", layerIcon.getCssClass()));
                 if (StringUtils.isNotEmpty(layerIcon.getColor())) {
-                    icon.add(AttributeAppender.append("style", layerIcon.getColor()));
+                    icon.add(AttributeAppender.append("style", "color: " + layerIcon.getColor()));
                 }
                 listItems.add(icon);
             }
