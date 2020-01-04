@@ -3292,21 +3292,21 @@ public final class WebComponentUtil {
 
     public static String getIconCssClass(DisplayType displayType){
         if (displayType == null || displayType.getIcon() == null){
-            return null;
+            return "";
         }
         return displayType.getIcon().getCssClass();
     }
 
     public static String getIconColor(DisplayType displayType){
         if (displayType == null || displayType.getIcon() == null){
-            return null;
+            return "";
         }
         return displayType.getIcon().getColor();
     }
 
     public static String getDisplayTypeTitle(DisplayType displayType){
         if (displayType == null || displayType.getTooltip() == null){
-            return null;
+            return "";
         }
         return displayType.getTooltip().getOrig();
     }
@@ -3382,6 +3382,8 @@ public final class WebComponentUtil {
         }
         if (LockoutStatusType.LOCKED.equals(((FocusType) obj).getActivation().getLockoutStatus())){
             icon.setCssClass(GuiStyleConstants.CLASS_LOCK_STATUS);
+        } else if (ActivationStatusType.DISABLED.equals(((FocusType) obj).getActivation().getEffectiveStatus())){
+            icon.setCssClass(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
         }
         if (icon.getCssClass() == null){
             icon.setCssClass("");
