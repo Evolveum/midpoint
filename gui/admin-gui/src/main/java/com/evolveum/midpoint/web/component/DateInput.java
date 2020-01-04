@@ -35,6 +35,7 @@ public class DateInput extends DateTimeField {
             @Override
             protected void onUpdate(AjaxRequestTarget target){
                 DateInput.this.setModelObject(computeDateTime());
+                target.add(DateInput.this);
             }
         });
     }
@@ -50,6 +51,7 @@ public class DateInput extends DateTimeField {
             @Override
             protected void onUpdate(AjaxRequestTarget target){
                 DateInput.this.setModelObject(computeDateTime());
+                target.add(DateInput.this);
             }
         });
         return dateField;
@@ -59,7 +61,7 @@ public class DateInput extends DateTimeField {
     @Override
     public void convertInput() {
         super.convertInput();
-        Date convertedDate = getConvertedInput();
+        Date convertedDate = computeDateTime();
         Date modelDate = getModelObject();
         if (convertedDate == null || modelDate == null){
             return;
@@ -86,6 +88,7 @@ public class DateInput extends DateTimeField {
             @Override
             protected void onUpdate(AjaxRequestTarget target){
                 DateInput.this.setModelObject(computeDateTime());
+                target.add(DateInput.this);
             }
         });
 
@@ -99,24 +102,26 @@ public class DateInput extends DateTimeField {
             @Override
             protected void onUpdate(AjaxRequestTarget target){
                 DateInput.this.setModelObject(computeDateTime());
+                textField.setConvertedInput(((TextField<Integer>)get(HOURS)).getConvertedInput());
+                target.add(DateInput.this);
             }
         });
         return textField;
     }
 
     public Date computeDateTime() {
-        Date dateFieldInput = getDate();
-        if (dateFieldInput == null) {
+        Date dateFieldInputValue = getDateTextField().getModelObject();
+        if (dateFieldInputValue == null) {
             return null;
         }
 
-        Integer hoursInput = getHours();
-        Integer minutesInput = getMinutes();
-        AM_PM amOrPmInput = getAmOrPm();
+        Integer hoursInput = ((TextField<Integer>)get(HOURS)).getModelObject();
+        Integer minutesInput = ((TextField<Integer>)get(MINUTES)).getModelObject();
+        AM_PM amOrPmInput = ((DropDownChoice<DateTimeField.AM_PM>)get(AM_OR_PM_CHOICE)).getModelObject();
 
         // Get year, month and day ignoring any timezone of the Date object
         Calendar cal = Calendar.getInstance();
-        cal.setTime(dateFieldInput);
+        cal.setTime(dateFieldInputValue);
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH) + 1;
         int day = cal.get(Calendar.DAY_OF_MONTH);
@@ -135,6 +140,8 @@ public class DateInput extends DateTimeField {
         }
 
         // The date will be in the server's timezone
-        return newDateInstance(date.getMillis());
+        Date convertedDateValue = newDateInstance(date.getMillis());
+        setConvertedInput(convertedDateValue);
+        return convertedDateValue;
     }
 }
