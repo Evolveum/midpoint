@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
@@ -108,7 +109,17 @@ public class LinkedReferencePanel<O extends ObjectType> extends BasePanel<Object
         nameLink.setOutputMarkupId(true);
         add(nameLink);
 
-        Label nameLinkText = new Label(ID_NAME_TEXT, Model.of(WebComponentUtil.getDisplayName(referencedObjectModel.getObject().asPrismObject())));
+        ObjectType referencedObject= referencedObjectModel.getObject();
+        ObjectReferenceType referencedObjectRef = WebComponentUtil.createObjectRef(referencedObject.getOid(), referencedObject.getName().getOrig(), WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObject.getClass()));
+        PrismReferenceValue referenceValue = getPageBase().getPrismContext().itemFactory().createReferenceValue(referencedObject.getOid(),
+                        WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObject.getClass()));
+        referenceValue.setObject(referencedObject.asPrismObject());
+        referencedObjectRef.setupReferenceValue(referenceValue);
+
+        String nameLinkTextVal = (referencedObject instanceof UserType)?WebComponentUtil.getDisplayNameAndName(referencedObjectRef):
+                WebComponentUtil.getDisplayNameOrName(referencedObjectRef);
+
+        Label nameLinkText = new Label(ID_NAME_TEXT, Model.of(nameLinkTextVal));
         nameLinkText.setOutputMarkupId(true);
         nameLink.add(nameLinkText);
 

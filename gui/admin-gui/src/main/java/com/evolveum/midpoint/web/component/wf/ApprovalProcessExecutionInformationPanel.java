@@ -212,7 +212,7 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
 
     private String getApproverLabel(String labelKey, ObjectReferenceType ref) {
         if (ref != null) {
-            return getString(labelKey) + ": " + WebComponentUtil.getDisplayName(ref);
+            return getString(labelKey) + ": " + WebComponentUtil.getDisplayNameAndName(ref);
         } else {
             return "";
         }
