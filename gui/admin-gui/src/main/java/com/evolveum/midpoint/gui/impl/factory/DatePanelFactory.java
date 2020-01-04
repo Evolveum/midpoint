@@ -10,6 +10,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -49,7 +50,8 @@ public class DatePanelFactory extends AbstractGuiComponentFactory<XMLGregorianCa
     protected Panel getPanel(PrismPropertyPanelContext<XMLGregorianCalendar> panelCtx) {
         DatePanel panel = new DatePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
 
-        DateValidator validator = WebComponentUtil.getRangeValidator(panelCtx.getForm(), SchemaConstants.PATH_ACTIVATION);
+        Form form = Form.findForm(panelCtx.getForm());
+        DateValidator validator = WebComponentUtil.getRangeValidator(form, SchemaConstants.PATH_ACTIVATION);
         if (ActivationType.F_VALID_FROM.equals(panelCtx.getDefinitionName())) {
             validator.setDateFrom((DateTimeField) panel.getBaseFormComponent());
         } else if (ActivationType.F_VALID_TO.equals(panelCtx.getDefinitionName())) {
