@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.impl.xml.XmlTypeConverterInternal;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -222,8 +223,7 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
     }
 
     @Override
-    public void accept(Visitor visitor) {
-        //noinspection unchecked
+    public void accept(Visitor<XNode> visitor) {
         visitor.visit(this);
     }
 

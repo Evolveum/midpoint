@@ -146,7 +146,7 @@ public class ListXNodeImpl extends XNodeImpl implements List<XNodeImpl>, ListXNo
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor<XNode> visitor) {
         visitor.visit(this);
         for (XNodeImpl subnode: subnodes) {
             if (subnode != null) {

@@ -18,7 +18,7 @@ import java.io.Serializable;
 /**
  *
  */
-public interface XNode extends DebugDumpable, Visitable, Cloneable, Serializable, Freezable {
+public interface XNode extends DebugDumpable, Visitable<XNode>, Cloneable, Serializable, Freezable {
 
     boolean isEmpty();
 
