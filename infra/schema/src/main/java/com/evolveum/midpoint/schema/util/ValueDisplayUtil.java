@@ -15,7 +15,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -148,7 +147,7 @@ public class ValueDisplayUtil {
                     } else if (evaluator.getValue() instanceof SearchObjectExpressionEvaluatorType){
                         SearchObjectExpressionEvaluatorType evaluatorValue = (SearchObjectExpressionEvaluatorType)evaluator.getValue();
                         if (evaluatorValue.getFilter() != null) {
-                            DebugUtil.debugDumpMapMultiLine(expressionString, evaluatorValue.getFilter().getFilterClauseXNode().asMap(),
+                            DebugUtil.debugDumpMapMultiLine(expressionString, evaluatorValue.getFilter().getFilterClauseXNode().toMap(),
                                     0, false, null);
 
                             //TODO temporary hack: removing namespace part of the QName

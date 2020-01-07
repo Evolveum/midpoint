@@ -111,29 +111,29 @@ public class QNameUtil {
         }
     }
 
-    // returns null if no change is requested
-    public static String qualifyUriIfNeeded(String uri, String namespace) {
-        if (StringUtils.isEmpty(namespace) || StringUtils.isEmpty(uri)) {
-            return null;
-        }
-        QNameInfo info = uriToQNameInfo(uri, true);
-        if (hasNamespace(info.name) || info.explicitEmptyNamespace) {
-            return null;
-        } else {
-            return qNameToUri(new QName(namespace, info.name.getLocalPart()));
-        }
-    }
+//    // returns null if no change is requested
+//    public static String qualifyUriIfNeeded(String uri, String namespace) {
+//        if (StringUtils.isEmpty(namespace) || StringUtils.isEmpty(uri)) {
+//            return null;
+//        }
+//        QNameInfo info = uriToQNameInfo(uri, true);
+//        if (hasNamespace(info.name) || info.explicitEmptyNamespace) {
+//            return null;
+//        } else {
+//            return qNameToUri(new QName(namespace, info.name.getLocalPart()));
+//        }
+//    }
 
-    @NotNull
-    public static QName setNamespaceIfMissing(@NotNull QName name, @NotNull String namespace, @Nullable String prefix) {
-        if (hasNamespace(name)) {
-            return name;
-        } else if (prefix == null) {
-            return new QName(namespace, name.getLocalPart());
-        } else {
-            return new QName(namespace, name.getLocalPart(), prefix);
-        }
-    }
+//    @NotNull
+//    public static QName setNamespaceIfMissing(@NotNull QName name, @NotNull String namespace, @Nullable String prefix) {
+//        if (hasNamespace(name)) {
+//            return name;
+//        } else if (prefix == null) {
+//            return new QName(namespace, name.getLocalPart());
+//        } else {
+//            return new QName(namespace, name.getLocalPart(), prefix);
+//        }
+//    }
 
     public static boolean matchUri(String uri1, String uri2) {
         if (java.util.Objects.equals(uri1, uri2)) {
@@ -148,7 +148,7 @@ public class QNameUtil {
     public static class QNameInfo {
         @NotNull public final QName name;
         public final boolean explicitEmptyNamespace;
-        public QNameInfo(@NotNull QName name, boolean explicitEmptyNamespace) {
+        private QNameInfo(@NotNull QName name, boolean explicitEmptyNamespace) {
             this.name = name;
             this.explicitEmptyNamespace = explicitEmptyNamespace;
         }

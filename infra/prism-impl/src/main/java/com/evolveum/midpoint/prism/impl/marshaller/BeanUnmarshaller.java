@@ -1130,13 +1130,15 @@ public class BeanUnmarshaller {
 
         String norm = map.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_NORM), DOMUtil.XSD_STRING);
 
-        PolyStringTranslationType translation = null;
-        XNodeImpl xTranslation = map.get(QNameUtil.nullNamespace(PolyString.F_TRANSLATION));
+        PolyStringTranslationType translation;
+        XNodeImpl xTranslation = map.get(PolyString.F_TRANSLATION_LOCAL_PART);
         if (xTranslation != null) {
             translation = unmarshal(xTranslation, PolyStringTranslationType.class, pc);
+        } else {
+            translation = null;
         }
 
-        XNodeImpl xLang = map.get(QNameUtil.nullNamespace(PolyString.F_LANG));
+        XNodeImpl xLang = map.get(PolyString.F_LANG_LOCAL_PART);
         Map<String,String> lang = unmarshalLang(xLang, pc);
 
         if (orig == null && translation == null && lang == null) {
