@@ -175,14 +175,13 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
     @NotNull
     public RootXNodeImpl read(Element rootElement) throws SchemaException {
         RootXNodeImpl xroot = new RootXNodeImpl(DOMUtil.getQName(rootElement));
-        extractCommonMetadata(rootElement, xroot);
+        extractCommonMetadata(rootElement, DOMUtil.resolveXsiType(rootElement), xroot);
         XNodeImpl xnode = parseElementContent(rootElement, false);
         xroot.setSubnode(xnode);
         return xroot;
     }
 
-    private void extractCommonMetadata(Element element, XNodeImpl xnode) throws SchemaException {
-        QName xsiType = DOMUtil.resolveXsiType(element);
+    private void extractCommonMetadata(Element element, QName xsiType, XNodeImpl xnode) throws SchemaException {
         if (xsiType != null) {
             xnode.setTypeQName(xsiType);
             xnode.setExplicitTypeDeclaration(true);
@@ -216,14 +215,13 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
      * Parses the content of the element. The name of the provided element is ignored (unless storeElementName=true),
      * only the content is parsed.
      */
-    @Nullable
+    @NotNull
     private XNodeImpl parseElementContent(@NotNull Element element, boolean storeElementName) throws SchemaException {
-        if (DOMUtil.isNil(element)) {        // TODO: ok?
-            return null;
-        }
         XNodeImpl node;
+
+        QName xsiType = DOMUtil.resolveXsiType(element);
         if (DOMUtil.hasChildElements(element) || DOMUtil.hasApplicationAttributes(element)) {
-            if (isList(element)) {
+            if (isList(element, xsiType)) {
                 node = parseElementContentToList(element);
             } else {
                 node = parseElementContentToMap(element);
@@ -234,7 +232,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         if (storeElementName) {
             node.setElementName(DOMUtil.getQName(element));
         }
-        extractCommonMetadata(element, node);
+        extractCommonMetadata(element, xsiType, node);
         return node;
     }
 
@@ -272,10 +270,10 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         return xmap;
     }
 
-    private boolean isList(Element element) throws SchemaException {
+    private boolean isList(Element element, QName typeName) {
         String isListAttribute = DOMUtil.getAttribute(element, new QName(DOMUtil.IS_LIST_ATTRIBUTE_NAME));
         if (StringUtils.isNotEmpty(isListAttribute)) {
-            return Boolean.valueOf(isListAttribute);
+            return Boolean.parseBoolean(isListAttribute);
         }
         // enable this after schema registry is optional (now it's mandatory)
 //        if (schemaRegistry == null) {
@@ -283,7 +281,6 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 //        }
 
         // checking parent element fitness
-        QName typeName = DOMUtil.resolveXsiType(element);
         if (typeName != null) {
             Collection<? extends ComplexTypeDefinition> definitions = schemaRegistry
                     .findTypeDefinitionsByType(typeName, ComplexTypeDefinition.class);

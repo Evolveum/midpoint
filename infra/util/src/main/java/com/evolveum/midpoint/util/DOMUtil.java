@@ -419,19 +419,25 @@ public class DOMUtil {
     @NotNull
     public static List<Element> listChildElements(Node node) {
         List<Element> subelements = new ArrayList<>();
-        NodeList childNodes = node.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node childNode = childNodes.item(i);
-            if (childNode.getNodeType() == Node.ELEMENT_NODE) {
-                subelements.add((Element) childNode);
+        Node child = node.getFirstChild();
+        while (child != null) {
+            if (child.getNodeType() == Node.ELEMENT_NODE) {
+                subelements.add((Element) child);
             }
+            child = child.getNextSibling();
         }
         return subelements;
     }
 
     public static boolean hasChildElements(Node node) {
-        List<Element> childElements = listChildElements(node);
-        return (!childElements.isEmpty());
+        Node child = node.getFirstChild();
+        while (child != null) {
+            if (child.getNodeType() == Node.ELEMENT_NODE) {
+                return true;
+            }
+            child = child.getNextSibling();
+        }
+        return false;
     }
 
     public static QName resolveQName(Element element) {
@@ -460,29 +466,31 @@ public class DOMUtil {
     }
 
     public static QName resolveQName(NamespaceResolver namespaceResolver, String qnameStringRepresentation) {
-        if (StringUtils.isBlank(qnameStringRepresentation)) {
-            // No QName
+        if (qnameStringRepresentation == null) {
             return null;
         }
-        String[] qnameArray = qnameStringRepresentation.split(":");
-        if (qnameArray.length > 2) {
-            throw new IllegalArgumentException("Unsupported format: more than one colon in Qname: "
-                    + qnameStringRepresentation);
-        }
-        QName qname;
-        if (qnameArray.length == 1 || qnameArray[1] == null || qnameArray[1].isEmpty()) {
-            // no prefix => no namespace
-            qname = new QName(null, qnameArray[0]);
-        } else {
-            String namespacePrefix = qnameArray[0];
-            String namespace = namespaceResolver.resolve(namespacePrefix);
-            if (namespace == null) {
-                QNameUtil.reportUndeclaredNamespacePrefix(namespacePrefix, qnameStringRepresentation);
-                namespacePrefix = QNameUtil.markPrefixAsUndeclared(namespacePrefix);
+        int colonIndex = qnameStringRepresentation.indexOf(':');
+        if (colonIndex < 0) {
+            if (StringUtils.isBlank(qnameStringRepresentation)) {
+                // No QName
+                return null;
+            } else {
+                // no prefix => no namespace
+                return new QName(null, qnameStringRepresentation);
             }
-            qname = new QName(namespace, qnameArray[1], namespacePrefix);
+        } else {
+            String providedNamespacePrefix = qnameStringRepresentation.substring(0, colonIndex);
+            String localPart = qnameStringRepresentation.substring(colonIndex+1);
+            String namespace = namespaceResolver.resolve(providedNamespacePrefix);
+            String namespacePrefix;
+            if (namespace != null) {
+                namespacePrefix = providedNamespacePrefix;
+            } else {
+                QNameUtil.reportUndeclaredNamespacePrefix(providedNamespacePrefix, qnameStringRepresentation);
+                namespacePrefix = QNameUtil.markPrefixAsUndeclared(providedNamespacePrefix);
+            }
+            return new QName(namespace, localPart, namespacePrefix);
         }
-        return qname;
     }
 
     private static String findNamespace(Node domNode, String prefix) {
@@ -964,17 +972,22 @@ public class DOMUtil {
     }
 
     public static QName getQName(Node node) {
-        if (node.getLocalName() == null) {
-            if (node.getNodeName() == null) {
+        String localName = node.getLocalName();
+        if (localName == null) {
+            String nodeName = node.getNodeName();
+            if (nodeName == null) {
                 return null;
             } else {
-                return new QName(null, node.getNodeName());
+                return new QName(null, nodeName);
+            }
+        } else {
+            String prefix = node.getPrefix();
+            if (prefix == null) {
+                return new QName(node.getNamespaceURI(), localName);
+            } else {
+                return new QName(node.getNamespaceURI(), localName, prefix);
             }
         }
-        if (node.getPrefix() == null) {
-            return new QName(node.getNamespaceURI(), node.getLocalName());
-        }
-        return new QName(node.getNamespaceURI(), node.getLocalName(), node.getPrefix());
     }
 
     public static QName getQNameValue(Element element) {
@@ -1322,7 +1335,7 @@ public class DOMUtil {
 
     public static QName getQNameWithoutPrefix(Node node) {
         QName qname = getQName(node);
-        return new QName(qname.getNamespaceURI(), qname.getLocalPart());
+        return qname != null ? new QName(qname.getNamespaceURI(), qname.getLocalPart()) : null;
     }
 
     public static boolean isElementName(Element element, QName name) {
@@ -1334,12 +1347,8 @@ public class DOMUtil {
         return nilString != null && Boolean.parseBoolean(nilString);
     }
 
-    public static void setNil(Element element) {
-        element.setAttributeNS(XSI_NIL.getNamespaceURI(), XSI_NIL.getLocalPart(), "true");
-    }
-
     /**
-     * Serializes the content of the element to a string (without the eclosing element tags).
+     * Serializes the content of the element to a string (without the enclosing element tags).
      */
     public static String serializeElementContent(Element element) {
         String completeXml = serializeDOMToString(element);
@@ -1349,7 +1358,7 @@ public class DOMUtil {
 
     public static boolean isEmpty(Element element) {
         return element == null ||
-                !hasChildElements(element) && (isNil(element) || StringUtils.isBlank(element.getTextContent()));
+                !hasChildElements(element) && StringUtils.isBlank(element.getTextContent());
     }
 
     public static boolean isEmpty(String textContent, Map<String, String> namespaces) {
