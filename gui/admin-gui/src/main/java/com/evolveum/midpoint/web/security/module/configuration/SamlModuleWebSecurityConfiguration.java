@@ -244,7 +244,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             throw new IllegalArgumentException("Saml configuration is null");
         }
         if (StringUtils.isBlank(stripSlashes(getPrefixOfSequence()))) {
-            throw new IllegalArgumentException("Suffix in channel of sequence  can't be null for this usecase");
+            throw new IllegalArgumentException("Suffix in channel of sequence " + getNameOfModule() + " can't be null for this usecase");
         }
     }
 

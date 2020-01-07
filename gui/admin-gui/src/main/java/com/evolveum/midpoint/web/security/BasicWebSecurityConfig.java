@@ -10,11 +10,9 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
-import com.evolveum.midpoint.web.security.filter.MidpointAuthFilter;
 import com.evolveum.midpoint.web.security.filter.MidpointRequestAttributeAuthenticationFilter;
-import com.evolveum.midpoint.web.security.filter.TranslateExeption;
 import com.evolveum.midpoint.web.security.filter.configurers.AuthFilterConfigurer;
-import com.evolveum.midpoint.web.security.module.factory.AuthModuleRegistryImpl;
+import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
 import org.jasig.cas.client.session.SingleSignOutFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +31,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.web.configurers.DefaultLoginPageConfigurer;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -169,7 +166,7 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         AnonymousAuthenticationFilter anonymousFilter = new MidpointAnonymousAuthenticationFilter(authRegistry, UUID.randomUUID().toString(), "anonymousUser",
                 AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
-        http.anonymous().authenticationFilter(anonymousFilter);
+//        http.anonymous().authenticationFilter(anonymousFilter);
 
         http.setSharedObject(AuthenticationTrustResolverImpl.class, new MidpointAuthenticationTrustResolverImpl());
         http

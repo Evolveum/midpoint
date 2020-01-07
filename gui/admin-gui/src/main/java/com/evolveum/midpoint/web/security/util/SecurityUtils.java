@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.security.util;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.*;
-import com.evolveum.midpoint.model.api.authentication.AuthModuleImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -18,14 +17,17 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.security.module.authentication.LoginFormModuleAuthentication;
+import com.evolveum.midpoint.web.security.factory.channel.AbstractChannelFactory;
+import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
-import com.evolveum.midpoint.web.security.module.factory.AuthModuleRegistryImpl;
-import com.evolveum.midpoint.web.security.module.factory.AbstractModuleFactory;
+import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
+import com.evolveum.midpoint.web.security.factory.module.AbstractModuleFactory;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.github.openjson.JSONArray;
+import com.github.openjson.JSONObject;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
@@ -67,6 +69,7 @@ public class SecurityUtils {
         Map<String, String> map = new HashMap<String, String>();
         map.put("rest", SchemaConstants.CHANNEL_REST_URI);
         map.put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI);
+        map.put("resetPassword", SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
         MY_MAP = Collections.unmodifiableMap(map);
     }
 
@@ -158,7 +161,7 @@ public class SecurityUtils {
         return (CsrfToken) httpReq.getAttribute("_csrf");
     }
 
-    public static AuthenticationSequenceType getSequence(String localePath, AuthenticationsPolicyType authenticationPolicy){
+    public static AuthenticationSequenceType getSequenceByPath(String localePath, AuthenticationsPolicyType authenticationPolicy){
         if (authenticationPolicy == null || authenticationPolicy.getSequence() == null
                 || authenticationPolicy.getSequence().isEmpty()) {
             return null;
@@ -211,6 +214,26 @@ public class SecurityUtils {
                     }
                     return sequence;
                 } else if (!useOnlyChannel && comparisonAttribute.equals(sequence.getChannel().getUrlSuffix())) {
+                    if (sequence.getModule() == null || sequence.getModule().isEmpty()){
+                        return null;
+                    }
+                    return sequence;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static AuthenticationSequenceType getSequenceByName(String name, AuthenticationsPolicyType authenticationPolicy){
+        if (authenticationPolicy == null || authenticationPolicy.getSequence() == null
+                || authenticationPolicy.getSequence().isEmpty()) {
+            return null;
+        }
+
+        Validate.notBlank(name);
+        for (AuthenticationSequenceType sequence : authenticationPolicy.getSequence()) {
+            if (sequence != null) {
+                if (name.equals(sequence.getName())) {
                     if (sequence.getModule() == null || sequence.getModule().isEmpty()){
                         return null;
                     }
@@ -324,6 +347,28 @@ public class SecurityUtils {
         request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
     }
 
+    public static AuthenticationChannel buildAuthChannel(AuthChannelRegistryImpl registry, AuthenticationSequenceType sequence) {
+        Validate.notNull(sequence);
+        String channelId = null;
+        AuthenticationSequenceChannelType channelSequence = sequence.getChannel();
+        if (channelSequence != null) {
+            channelId = channelSequence.getChannelId();
+        }
+
+        AbstractChannelFactory factory = registry.findModelFactory(channelId);
+        if (factory == null) {
+            LOGGER.error("Couldn't find factory for {}", channelId);
+            return null;
+        }
+        AuthenticationChannel channel = null;
+        try {
+            channel = factory.createAuthChannel(channelSequence);
+        } catch (Exception e) {
+            LOGGER.error("Couldn't create channel for {}", channelId);
+        }
+        return channel;
+    }
+
 //    public static ModuleAuthentication createDefaultAuthenticationModule() {
 //        LoginFormModuleAuthentication moduleAuthentication = new LoginFormModuleAuthentication();
 //        moduleAuthentication.setPrefix(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
@@ -331,4 +376,20 @@ public class SecurityUtils {
 //        moduleAuthentication.setNameOfModule(SecurityPolicyUtil.DEFAULT_MODULE_NAME);
 //        return moduleAuthentication;
 //    }
+
+    public static Map<String, String> obtainAnswers(String answers, String idParameter, String answerParameter) {
+        if (answers == null) {
+            return null;
+        }
+
+        JSONArray answersList = new JSONArray(answers);
+        Map<String, String> questionAnswers = new HashMap<String, String>();
+        for (int i = 0; i < answersList.length(); i++) {
+            JSONObject answer = answersList.getJSONObject(i);
+            String questionId = answer.getString(idParameter);
+            String questionAnswer = answer.getString(answerParameter);
+            questionAnswers.put(questionId, questionAnswer);
+        }
+        return questionAnswers;
+    }
 }

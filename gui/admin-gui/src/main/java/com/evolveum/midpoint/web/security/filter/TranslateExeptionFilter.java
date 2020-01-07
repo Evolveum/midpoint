@@ -10,7 +10,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -21,9 +20,9 @@ import java.io.IOException;
  * @author skublik
  */
 
-public class TranslateExeption extends OncePerRequestFilter {
+public class TranslateExeptionFilter extends OncePerRequestFilter {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TranslateExeption.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(TranslateExeptionFilter.class);
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.security.module;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationTrustResolverImpl;
 import com.evolveum.midpoint.web.security.RestAuthenticationEntryPoint;
-import com.evolveum.midpoint.web.security.filter.HttpBasicAuthenticationFilter;
+import com.evolveum.midpoint.web.security.SecurityQuestionsAuthenticationEntryPoint;
 import com.evolveum.midpoint.web.security.filter.HttpSecurityQuestionsAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,9 +22,9 @@ import static org.springframework.security.saml.util.StringUtils.stripEndingSlas
  * @author skublik
  */
 
-public class HttpBasicModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
+public class HttpSecurityQuestionsModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
 
-    public HttpBasicModuleWebSecurityConfig(C configuration) {
+    public HttpSecurityQuestionsModuleWebSecurityConfig(C configuration) {
         super(configuration);
     }
 
@@ -32,10 +32,10 @@ public class HttpBasicModuleWebSecurityConfig<C extends ModuleWebSecurityConfigu
     protected void configure(HttpSecurity http) throws Exception {
 
         super.configure(http);
-        RestAuthenticationEntryPoint entryPoint = getObjectPostProcessor().postProcess(new RestAuthenticationEntryPoint());
+        RestAuthenticationEntryPoint entryPoint = getObjectPostProcessor().postProcess(new SecurityQuestionsAuthenticationEntryPoint());
         http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
 
-        HttpBasicAuthenticationFilter filter = getObjectPostProcessor().postProcess(new HttpBasicAuthenticationFilter(authenticationManager(), entryPoint));
+        HttpSecurityQuestionsAuthenticationFilter filter = getObjectPostProcessor().postProcess(new HttpSecurityQuestionsAuthenticationFilter(authenticationManager(), entryPoint));
         RememberMeServices rememberMeServices = http.getSharedObject(RememberMeServices.class);
         if (rememberMeServices != null) {
             filter.setRememberMeServices(rememberMeServices);

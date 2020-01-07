@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.security.module.factory;
+package com.evolveum.midpoint.web.security.factory.module;
 
 import com.evolveum.midpoint.model.api.authentication.AuthModule;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -16,7 +16,7 @@ import com.evolveum.midpoint.web.security.module.authentication.HttpHeaderModule
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.configuration.HttpHeaderModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
-import com.evolveum.midpoint.web.security.provider.InternalPasswordProvider;
+import com.evolveum.midpoint.web.security.provider.PasswordProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModuleHttpHeaderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
@@ -56,7 +56,7 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
         }
 
         HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build((AuthenticationModuleHttpHeaderType)moduleType, prefixOfSequence);
-        configuration.addAuthenticationProvider(new InternalPasswordProvider());
+        configuration.addAuthenticationProvider(new PasswordProvider());
         ModuleWebSecurityConfig module = getObjectObjectPostProcessor().postProcess(new HttpHeaderModuleWebConfig(configuration));
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
         HttpSecurity http = module.getNewHttpSecurity();

@@ -26,7 +26,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.saml.saml2.attribute.Attribute;
 import org.springframework.security.saml.spi.DefaultSamlAuthentication;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -54,6 +56,15 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
         }
 
         moduleAuthentication.setAuthentication(originalAuthentication);
+    }
+
+    @Override
+    protected Authentication createNewAuthenticationToken(Authentication actualAuthentication, Collection newAuthorities) {
+        if (actualAuthentication instanceof PreAuthenticatedAuthenticationToken) {
+            return new PreAuthenticatedAuthenticationToken(actualAuthentication.getPrincipal(), actualAuthentication.getCredentials(), newAuthorities);
+        } else {
+            return actualAuthentication;
+        }
     }
 
     @Override

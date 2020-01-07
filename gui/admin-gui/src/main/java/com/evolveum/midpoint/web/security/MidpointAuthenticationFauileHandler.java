@@ -8,12 +8,14 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
@@ -43,9 +45,17 @@ public class MidpointAuthenticationFauileHandler extends SimpleUrlAuthentication
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
+        String urlSuffix = "/self/dashboard";
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+            if (mpAuthentication.getAuthenticationChannel() != null) {
+                if (mpAuthentication.isLast(moduleAuthentication) && mpAuthentication.getAuthenticationChannel().isDefault()) {
+                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication();
+                } else {
+                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
+                }
+            }
             moduleAuthentication.setState(StateOfModule.FAILURE);
         }
 
@@ -53,8 +63,9 @@ public class MidpointAuthenticationFauileHandler extends SimpleUrlAuthentication
 
         SavedRequest savedRequest = getRequestCache().getRequest(request, response);
 
-        if (savedRequest == null || StringUtils.isBlank(savedRequest.getRedirectUrl())) {
-            getRedirectStrategy().sendRedirect(request, response, "self/dashboard");
+        if (savedRequest == null || StringUtils.isBlank(savedRequest.getRedirectUrl())
+                || ((DefaultSavedRequest) savedRequest).getServletPath().startsWith(ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH)) {
+            getRedirectStrategy().sendRedirect(request, response, urlSuffix);
             return;
         }
 

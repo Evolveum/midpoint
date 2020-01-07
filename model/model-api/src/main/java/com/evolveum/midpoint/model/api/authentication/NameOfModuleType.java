@@ -16,6 +16,7 @@ public enum NameOfModuleType {
 
     HTTP_BASIC("Basic"),
     SECURITY_QUESTIONS("SecQ"),
+    SECURITY_QUESTIONS_FORM("SecQForm"),
 //    CLUSTER("Cluster"),
     HTTP_HEADER("HttpHeader"),
     LOGIN_FORM("LoginForm"),

@@ -10,16 +10,18 @@ import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleType;
 import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
 import com.evolveum.midpoint.model.api.authentication.StateOfModule;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 
 /**
  * @author skublik
  */
 
-public class PasswordModuleAuthentication  extends ModuleAuthentication {
+public class CredentialModuleAuthentication extends ModuleAuthentication {
 
     private String credentialName = null;
+    private Class<? extends CredentialPolicyType> credentialType;
 
-    public PasswordModuleAuthentication(NameOfModuleType nameOfType) {
+    public CredentialModuleAuthentication(NameOfModuleType nameOfType) {
         super(nameOfType);
         setType(ModuleType.LOCAL);
         setState(StateOfModule.LOGIN_PROCESSING);
@@ -33,8 +35,16 @@ public class PasswordModuleAuthentication  extends ModuleAuthentication {
         this.credentialName = credentialName;
     }
 
+    public Class<? extends CredentialPolicyType> getCredentialType() {
+        return credentialType;
+    }
+
+    public void setCredentialType(Class<? extends CredentialPolicyType> credentialType) {
+        this.credentialType = credentialType;
+    }
+
     public ModuleAuthentication clone() {
-        PasswordModuleAuthentication module = new PasswordModuleAuthentication(this.getNameOfModuleType());
+        CredentialModuleAuthentication module = new CredentialModuleAuthentication(this.getNameOfModuleType());
         module.setCredentialName(getCredentialName());
         super.clone(module);
         return module;
@@ -42,8 +52,8 @@ public class PasswordModuleAuthentication  extends ModuleAuthentication {
 
     @Override
     protected void clone(ModuleAuthentication module) {
-        if (module instanceof PasswordModuleAuthentication) {
-            ((PasswordModuleAuthentication)module).setCredentialName(getCredentialName());
+        if (module instanceof CredentialModuleAuthentication) {
+            ((CredentialModuleAuthentication)module).setCredentialName(getCredentialName());
         }
         super.clone(module);
     }

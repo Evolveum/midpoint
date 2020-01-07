@@ -13,14 +13,14 @@ import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
  * @author skublik
  */
 
-public class LoginFormModuleAuthentication extends CredentialModuleAuthentication {
+public class SecurityQuestionFormModuleAuthentication extends CredentialModuleAuthentication {
 
-    public LoginFormModuleAuthentication() {
-        super(NameOfModuleType.LOGIN_FORM);
+    public SecurityQuestionFormModuleAuthentication() {
+        super(NameOfModuleType.SECURITY_QUESTIONS_FORM);
     }
 
     public ModuleAuthentication clone() {
-        LoginFormModuleAuthentication module = new LoginFormModuleAuthentication();
+        SecurityQuestionFormModuleAuthentication module = new SecurityQuestionFormModuleAuthentication();
         super.clone(module);
         return module;
     }

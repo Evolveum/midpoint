@@ -9,9 +9,10 @@ package com.evolveum.midpoint.web.security.module;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.*;
 import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
+import com.evolveum.midpoint.web.security.filter.PreLogoutFilter;
+import com.evolveum.midpoint.web.security.filter.RedirectForLoginPagesWithAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
-import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
-import com.evolveum.midpoint.web.security.module.factory.AuthModuleRegistryImpl;
+import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,8 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.header.HeaderWriterFilter;
 
 import java.util.UUID;
 
@@ -111,6 +114,8 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
                 .servletApi();//.and()
 //                .apply(new DefaultLoginPageConfigurer<>()).and()
 //                .logout();
+
+        http.addFilterAfter(new RedirectForLoginPagesWithAuthenticationFilter(), CsrfFilter.class);
 
         http.csrf();
         if (!csrfEnabled) {

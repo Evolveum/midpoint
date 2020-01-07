@@ -23,7 +23,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
  * @author skublik
  */
 
-public class MidpointRestAuthenticationEntryPoint implements AuthenticationEntryPoint{
+public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint{
 
     @Override
     public void commence(

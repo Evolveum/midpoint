@@ -24,7 +24,7 @@ import com.evolveum.midpoint.web.page.self.PageAbstractSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-@PageDescriptor(url = "/resetPassword", action = {
+@PageDescriptor(url = PageResetPassword.URL, action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
@@ -35,6 +35,7 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
 
     private static final long serialVersionUID = 1L;
 
+    public static final String URL = "/resetPassword";
 
     public PageResetPassword() {
         // TODO Auto-generated constructor stub

@@ -9,27 +9,14 @@ package com.evolveum.midpoint.web.boot.actuator;
 
 import com.evolveum.midpoint.web.security.*;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.evolveum.midpoint.web.security.provider.InternalPasswordProvider;
+import com.evolveum.midpoint.web.security.provider.PasswordProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
-import org.springframework.context.annotation.*;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.access.AccessDeniedHandler;
 
 /**
  * @author skublik
@@ -64,7 +51,7 @@ public class ActuatorWebSecurityConfig extends WebSecurityConfigurerAdapter {
         .and()
         .formLogin().disable()
         .csrf().disable()
-        .exceptionHandling().authenticationEntryPoint(new MidpointRestAuthenticationEntryPoint())
+        .exceptionHandling().authenticationEntryPoint(new RestAuthenticationEntryPoint())
         .and()
         .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
 
@@ -77,7 +64,7 @@ public class ActuatorWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(new InternalPasswordProvider());
+        auth.authenticationProvider(new PasswordProvider());
     }
 }
 

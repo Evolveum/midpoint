@@ -733,6 +733,10 @@
             <artifactId>asm</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.openjson</groupId>
+            <artifactId>openjson</artifactId>
+        </dependency>
 
         <!-- TEST -->
 
