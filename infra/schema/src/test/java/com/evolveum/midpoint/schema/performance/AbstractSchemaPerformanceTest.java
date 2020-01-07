@@ -34,7 +34,7 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
  */
 public class AbstractSchemaPerformanceTest {
 
-    protected static final String LABEL = "v4.0devel-PCV-with-map";
+    protected static final String LABEL = "removed-xsi-nil:lowered-xsi-type-resolving:improved-qname-parsing:get-children:has-children";
 
     protected static final Trace LOGGER = TraceManager.getTrace(AbstractSchemaPerformanceTest.class);
 

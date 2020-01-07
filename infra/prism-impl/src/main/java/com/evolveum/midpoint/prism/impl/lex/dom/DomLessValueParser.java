@@ -33,27 +33,22 @@ import java.util.Map;
 class DomLessValueParser<T> implements ValueParser<T>, Serializable {
 
     private final String textContent;
-    private final boolean isNil;
     private final Map<String, String> visibleNamespaceDeclarations;
 
     DomLessValueParser(Element element) {
         textContent = element.getTextContent();
-        isNil = DOMUtil.isNil(element);
         visibleNamespaceDeclarations = Collections.unmodifiableMap(DOMUtil.getAllVisibleNamespaceDeclarations(element));
     }
 
     DomLessValueParser(Attr attribute) {
         textContent = attribute.getTextContent();
-        isNil = false;
         visibleNamespaceDeclarations = Collections.unmodifiableMap(DOMUtil.getAllVisibleNamespaceDeclarations(attribute));
     }
 
     @Override
     public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
         try {
-            if (isNil) {
-                return null;
-            } else if (ItemPathType.COMPLEX_TYPE.equals(typeName)) {
+            if (ItemPathType.COMPLEX_TYPE.equals(typeName)) {
                 //noinspection unchecked
                 return (T) new ItemPathType(ItemPathHolder.parseFromString(textContent, visibleNamespaceDeclarations));
             } else if (XmlTypeConverter.canConvert(typeName)) {
@@ -72,7 +67,7 @@ class DomLessValueParser<T> implements ValueParser<T>, Serializable {
 
     @Override
     public boolean isEmpty() {
-        return isNil || StringUtils.isBlank(textContent);
+        return StringUtils.isBlank(textContent);
     }
 
     @Override
