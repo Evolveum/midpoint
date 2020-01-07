@@ -145,8 +145,6 @@ public abstract class XNodeImpl implements XNode {
         this.explicitTypeDeclaration = explicitTypeDeclaration;
     }
 
-    public abstract void accept(Visitor visitor);
-
     @NotNull
     public XNodeImpl clone() {
         return cloneTransformKeys(null);

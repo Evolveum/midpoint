@@ -74,8 +74,7 @@ public class RootXNodeImpl extends XNodeImpl implements RootXNode {
     }
 
     @Override
-    public void accept(Visitor visitor) {
-        //noinspection unchecked
+    public void accept(Visitor<XNode> visitor) {
         visitor.visit(this);
         if (subnode != null) {
             subnode.accept(visitor);

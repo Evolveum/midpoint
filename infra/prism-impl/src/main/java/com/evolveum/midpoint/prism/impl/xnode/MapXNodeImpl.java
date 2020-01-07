@@ -129,16 +129,6 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
         }
     }
 
-    // TODO remove this method eventually
-    private XNodeImpl remove(QName key) {
-        checkMutable();
-        if (QNameUtil.isUnqualified(key) || unqualifiedSubnodeNames.contains(key.getLocalPart())) {
-            return removeByFullScan(key);
-        } else {
-            return subnodes.remove(key);
-        }
-    }
-
     private XNodeImpl removeByFullScan(QName key) {
         checkMutable();
         Iterator<Map.Entry<QName, XNodeImpl>> iterator = subnodes.entrySet().iterator();
@@ -199,7 +189,8 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
         if (!(xnode instanceof PrimitiveXNodeImpl<?>)) {
             throw new SchemaException("Expected that field "+key+" will be primitive, but it is "+xnode.getDesc());
         }
-        PrimitiveXNodeImpl<T> xprim = (PrimitiveXNodeImpl<T>)xnode;
+        //noinspection unchecked
+        PrimitiveXNodeImpl<T> xprim = (PrimitiveXNodeImpl<T>) xnode;
         return xprim.getParsedValue(typeName, null);            // TODO expected class
     }
 
@@ -237,7 +228,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor<XNode> visitor) {
         visitor.visit(this);
         for (Map.Entry<QName, XNodeImpl> subentry: subnodes.entrySet()) {
             if (subentry.getValue() != null) {
@@ -289,7 +280,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
         return sb.toString();
     }
 
-    public String dumpKeyNames() {
+    private String dumpKeyNames() {
         StringBuilder sb = new StringBuilder();
         Iterator<Map.Entry<QName, XNodeImpl>> iterator = subnodes.entrySet().iterator();
         while (iterator.hasNext()) {
