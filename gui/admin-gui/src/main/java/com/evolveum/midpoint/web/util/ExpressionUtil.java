@@ -345,20 +345,20 @@ public class ExpressionUtil {
             XNode node = raw.getXnode();
             if (node instanceof MapXNode && ((MapXNode) node).containsKey(SHADOW_REF_KEY)) {
                 XNode shadowRefNodes = ((MapXNode) node).get(SHADOW_REF_KEY);
-               if (shadowRefNodes instanceof MapXNode && shadowRefOid.equals(getShadowRefNodeOid((MapXNode) shadowRefNodes))) {
-                   prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, null);
-                   //todo don't get why while using removeEvaluatorByName no changes are saved
-//                   removeEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
-               } else if (shadowRefNodes instanceof ListXNode) {
-                   Iterator<? extends XNode> it = ((ListXNode) shadowRefNodes).asList().iterator();
-                   while (it.hasNext()) {
-                       XNode shadowRefNode = it.next();
-                       if (shadowRefNode instanceof MapXNode && shadowRefOid.equals(getShadowRefNodeOid((MapXNode) shadowRefNode))) {
-                           it.remove();
-                           break;
-                       }
-                   }
-               }
+                if (shadowRefNodes instanceof MapXNode && shadowRefOid.equals(getShadowRefNodeOid((MapXNode) shadowRefNodes))) {
+                    prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, null);
+                    //todo don't get why while using removeEvaluatorByName no changes are saved
+                    //                   removeEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
+                } else if (shadowRefNodes instanceof ListXNode) {
+                    Iterator<? extends XNode> it = ((ListXNode) shadowRefNodes).asList().iterator();
+                    while (it.hasNext()) {
+                        XNode shadowRefNode = it.next();
+                        if (shadowRefNode instanceof MapXNode && shadowRefOid.equals(getShadowRefNodeOid((MapXNode) shadowRefNode))) {
+                            it.remove();
+                            break;
+                        }
+                    }
+                }
             }
         }
         expression.getExpressionEvaluator().add(element);

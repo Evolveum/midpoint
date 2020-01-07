@@ -275,7 +275,9 @@ public class BeanMarshaller {
                         marshaled.setExplicitTypeDeclaration(true);
                     }
                 }
-                xmap.put(elementName, marshaled);
+                if (marshaled != null) {
+                    xmap.put(elementName, marshaled);
+                }
 
 //                setExplicitTypeDeclarationIfNeeded(getter, valueToMarshall, xmap, fieldTypeName);
             }

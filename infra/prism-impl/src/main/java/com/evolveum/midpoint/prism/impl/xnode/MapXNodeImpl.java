@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.prism.impl.xnode;
 
-import java.io.Serializable;
 import java.util.*;
 
 import javax.xml.namespace.QName;
@@ -20,14 +19,33 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
-public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNodeImpl> {
+public class MapXNodeImpl extends XNodeImpl implements MapXNode {
 
-    // We want to maintain ordering, hence the List
-    private List<Entry> subnodes = new ArrayList<>();
+    /**
+     * Contains all the nodes in this map - with both qualified and unqualified key names.
+     * Equivalent (qualified + unqualified) keys are stored, of course, only once. It is not
+     * specified whether it is under qualified or unqualified name.
+     *
+     * We want to maintain ordering hence the LinkedHashMap.
+     *
+     * This data structure is very similar to the one of PrismContainerValueImpl.
+     *
+     * Note that values must NOT be null.
+     */
+    private LinkedHashMap<QName, XNodeImpl> subnodes = new LinkedHashMap<>();
+
+    /**
+     * Unqualified key names. We store them because they deserve special handling if present.
+     *
+     * So: if a key is qualified AND there's no unqualified version of it present in the map, it is sufficient to
+     * work with subnodes map. But if the key is unqualified or it's qualified but its local part is present in the map
+     * without namespace, we have to do a full-scan operation.
+     */
+    private final Set<String> unqualifiedSubnodeNames = new HashSet<>();
+
+    private boolean hasDefaultNamespaceMarkers;
 
     public int size() {
         return subnodes.size();
@@ -37,95 +55,107 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
         return subnodes.isEmpty();
     }
 
-    public boolean containsKey(Object key) {
-        if (!(key instanceof QName)) {
-            throw new IllegalArgumentException("Key must be QName, but it is "+key);
-        }
-        return findEntry((QName)key) != null;
-    }
-
-    public boolean containsValue(Object value) {
-        if (!(value instanceof XNodeImpl)) {
-            throw new IllegalArgumentException("Value must be XNode, but it is "+value);
-        }
-        return findEntry((XNodeImpl)value) != null;
-    }
-
-    public XNodeImpl get(Object key) {
-        if (!(key instanceof QName)) {
-            throw new IllegalArgumentException("Key must be QName, but it is "+key);
-        }
-        Entry entry = findEntry((QName)key);
-        if (entry == null) {
-            return null;
-        }
-        return entry.getValue();
-    }
-
-    public XNodeImpl put(Map.Entry<QName, XNodeImpl> entry) {
-        return put(entry.getKey(), entry.getValue());
-    }
-
-    public XNodeImpl put(QName key, XNode value) {
-        return put(key, (XNodeImpl) value);
-    }
-
-    public XNodeImpl put(QName key, XNodeImpl value) {
-        checkMutable();
-        XNodeImpl previous = removeEntry(key);
-        subnodes.add(new Entry(key, value));
-        return previous;
-    }
-
-    public Entry putReturningEntry(QName key, XNodeImpl value, boolean doNotRemovePrevious) {
-        checkMutable();
-        if (!doNotRemovePrevious) {
-            removeEntry(key);
-        }
-        Entry e = new Entry(key, value);
-        subnodes.add(e);
-        return e;
-    }
-
-    public XNodeImpl remove(Object key) {
-        checkMutable();
-        if (!(key instanceof QName)) {
-            throw new IllegalArgumentException("Key must be QName, but it is "+key);
-        }
-        return removeEntry((QName)key);
-    }
-
-    public void putAll(Map<? extends QName, ? extends XNodeImpl> m) {
-        for (Map.Entry<?, ?> entry: m.entrySet()) {
-            put((QName)entry.getKey(), (XNodeImpl)entry.getValue());
-        }
-    }
-
-    public void clear() {
-        checkMutable();
-        subnodes.clear();
-    }
-
     @NotNull
     public Set<QName> keySet() {
-        Set<QName> keySet = new HashSet<>();
-        for (Entry entry: subnodes) {
-            keySet.add(entry.getKey());
-        }
-        return keySet;
+        return Collections.unmodifiableSet(subnodes.keySet());
     }
 
     @NotNull
-    public Collection<XNodeImpl> values() {
-        Collection<XNodeImpl> values = new ArrayList<>(subnodes.size());
-        for (Entry entry: subnodes) {
-            values.add(entry.getValue());
-        }
-        return values;
+    public Set<Map.Entry<QName, XNodeImpl>> entrySet() {
+        return Collections.unmodifiableSet(subnodes.entrySet());
     }
 
+    public boolean containsKey(QName key) {
+        return subnodes.containsKey(key) || unqualifiedSubnodeNames.contains(key.getLocalPart());
+    }
+
+    public XNodeImpl get(String key) {
+        // Unqualified "get" goes always by full scan route.
+        return getByFullScan(key);
+    }
+
+    public XNodeImpl get(QName key) {
+        // Here we assume that "get" on hash map is quote fast and that we do not mix
+        // qualified and unqualified versions very often (so we hit directly if it's there).
+        XNodeImpl directHit = subnodes.get(key);
+        if (directHit != null || (!QNameUtil.isUnqualified(key) && !unqualifiedSubnodeNames.contains(key.getLocalPart()))) {
+            return directHit;
+        } else {
+            return getByFullScan(key);
+        }
+    }
+
+    private XNodeImpl getByFullScan(QName key) {
+        for (Map.Entry<QName, XNodeImpl> entry: subnodes.entrySet()) {
+            if (QNameUtil.match(key, entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    private XNodeImpl getByFullScan(String key) {
+        for (Map.Entry<QName, XNodeImpl> entry: subnodes.entrySet()) {
+            if (entry.getKey().getLocalPart().equals(key)) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    public void put(QName key, @NotNull XNodeImpl value) {
+        checkMutable();
+        if (QNameUtil.isUnqualified(key)) {
+            removeByFullScan(key);
+            unqualifiedSubnodeNames.add(key.getLocalPart());
+        } else if (unqualifiedSubnodeNames.contains(key.getLocalPart())) {
+            removeByFullScan(key);
+        }
+        subnodes.put(key, value);
+    }
+
+    private XNodeImpl putReturningPrevious(QName key, XNodeImpl value) {
+        checkMutable();
+        boolean unqualified = QNameUtil.isUnqualified(key);
+        if (unqualified || unqualifiedSubnodeNames.contains(key.getLocalPart())) {
+            XNodeImpl previous = removeByFullScan(key);
+            subnodes.put(key, value);
+            if (unqualified) {
+                unqualifiedSubnodeNames.add(key.getLocalPart());
+            }
+            return previous;
+        } else {
+            return subnodes.put(key, value);
+        }
+    }
+
+    // TODO remove this method eventually
+    private XNodeImpl remove(QName key) {
+        checkMutable();
+        if (QNameUtil.isUnqualified(key) || unqualifiedSubnodeNames.contains(key.getLocalPart())) {
+            return removeByFullScan(key);
+        } else {
+            return subnodes.remove(key);
+        }
+    }
+
+    private XNodeImpl removeByFullScan(QName key) {
+        checkMutable();
+        Iterator<Map.Entry<QName, XNodeImpl>> iterator = subnodes.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<QName, XNodeImpl> entry = iterator.next();
+            if (QNameUtil.match(key, entry.getKey())) {
+                iterator.remove();
+                unqualifiedSubnodeNames.remove(key.getLocalPart());
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    // TODO immutability of returned Entry
     @Override
-    public java.util.Map.Entry<QName, XNodeImpl> getSingleSubEntry(String errorContext) throws SchemaException {
+    public Map.Entry<QName, XNodeImpl> getSingleSubEntry(String errorContext) throws SchemaException {
         if (isEmpty()) {
             return null;
         }
@@ -134,18 +164,18 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
             throw new SchemaException("More than one element in " + errorContext +" : "+dumpKeyNames());
         }
 
-        return subnodes.get(0);
+        return subnodes.entrySet().iterator().next();
     }
 
     @Override
     public RootXNode getSingleSubEntryAsRoot(String errorContext) throws SchemaException {
-        java.util.Map.Entry<QName, XNodeImpl> entry = getSingleSubEntry(errorContext);
+        Map.Entry<QName, XNodeImpl> entry = getSingleSubEntry(errorContext);
         return entry != null ? new RootXNodeImpl(entry.getKey(), entry.getValue()) : null;
     }
 
-    public Entry getSingleEntryThatDoesNotMatch(QName... excludedKeys) throws SchemaException {
-        Entry found = null;
-        OUTER: for (Entry subentry: subnodes) {
+    public Map.Entry<QName, XNodeImpl> getSingleEntryThatDoesNotMatch(QName... excludedKeys) throws SchemaException {
+        Map.Entry<QName, XNodeImpl> found = null;
+        OUTER: for (Map.Entry<QName, XNodeImpl> subentry: subnodes.entrySet()) {
             for (QName excludedKey: excludedKeys) {
                 if (QNameUtil.match(subentry.getKey(), excludedKey)) {
                     continue OUTER;
@@ -160,77 +190,6 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
         return found;
     }
 
-    @NotNull
-    public Set<java.util.Map.Entry<QName, XNodeImpl>> entrySet() {
-        Set<java.util.Map.Entry<QName, XNodeImpl>> entries = new Set<Map.Entry<QName, XNodeImpl>>() {
-
-            @Override
-            public int size() {
-                return subnodes.size();
-            }
-
-            @Override
-            public boolean isEmpty() {
-                return subnodes.isEmpty();
-            }
-
-            @Override
-            public boolean contains(Object o) {
-                return subnodes.contains(o);
-            }
-
-            @Override
-            public Iterator<java.util.Map.Entry<QName, XNodeImpl>> iterator() {
-                return (Iterator)subnodes.iterator();
-            }
-
-            @Override
-            public Object[] toArray() {
-                return subnodes.toArray();
-            }
-            @Override
-            public <T> T[] toArray(T[] a) {
-                return subnodes.toArray(a);
-            }
-            @Override
-            public boolean add(java.util.Map.Entry<QName, XNodeImpl> e) {
-                throw new UnsupportedOperationException();
-//                put(e.getKey(), e.getValue());
-//                return true;
-            }
-
-            @Override
-            public boolean remove(Object o) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public boolean containsAll(Collection<?> c) {
-                return subnodes.containsAll(c);
-            }
-
-            @Override
-            public boolean addAll(Collection<? extends java.util.Map.Entry<QName, XNodeImpl>> c) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public boolean retainAll(Collection<?> c) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public boolean removeAll(Collection<?> c) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public void clear() {
-                throw new UnsupportedOperationException();
-            }
-        };
-        return entries;
-    }
 
     public <T> T getParsedPrimitiveValue(QName key, QName typeName) throws SchemaException {
         XNodeImpl xnode = get(key);
@@ -244,42 +203,45 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
         return xprim.getParsedValue(typeName, null);            // TODO expected class
     }
 
-    public void merge(MapXNodeImpl other) {
-        for (java.util.Map.Entry<QName, XNodeImpl> otherEntry: other.entrySet()) {
+    public void merge(@NotNull MapXNodeImpl other) {
+        for (java.util.Map.Entry<QName, XNodeImpl> otherEntry: other.subnodes.entrySet()) {
             QName otherKey = otherEntry.getKey();
             XNodeImpl otherValue = otherEntry.getValue();
-            merge (otherKey, otherValue);
+            if (otherValue != null) {
+                merge(otherKey, otherValue);
+            }
         }
     }
 
-    public void merge(QName otherKey, XNode otherValue) {
+    public void merge(QName otherKey, @NotNull XNode otherValue) {
         checkMutable();
-        XNodeImpl myValue = get(otherKey);
-        if (myValue == null) {
-            put(otherKey, otherValue);
-        } else {
-            ListXNodeImpl myList;
-            if (myValue instanceof ListXNodeImpl) {
-                myList = (ListXNodeImpl)myValue;
+        XNodeImpl previous = putReturningPrevious(otherKey, (XNodeImpl) otherValue);
+        if (previous != null) {
+            // It seems that when parsing properly serialized XML, this branch is not used much (elements of the same name
+            // are grouped together in DomLexicalProcessor). Therefore we can afford optimistic approach: first try and if
+            // there's a problem, correct it.
+            ListXNodeImpl valueToStore;
+            if (previous instanceof ListXNodeImpl) {
+                valueToStore = (ListXNodeImpl) previous;
             } else {
-                myList = new ListXNodeImpl();
-                myList.add(myValue);
-                put(otherKey, myList);
+                valueToStore = new ListXNodeImpl();
+                valueToStore.add(previous);
             }
             if (otherValue instanceof ListXNodeImpl) {
-                myList.addAll((ListXNodeImpl)otherValue);
+                valueToStore.addAll((ListXNodeImpl) otherValue);
             } else {
-                myList.add((XNodeImpl) otherValue);
+                valueToStore.add((XNodeImpl) otherValue);
             }
+            put(otherKey, valueToStore);
         }
     }
 
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
-        for (Entry subentry: subnodes) {
-            if (subentry.value != null) {
-                subentry.value.accept(visitor);
+        for (Map.Entry<QName, XNodeImpl> subentry: subnodes.entrySet()) {
+            if (subentry.getValue() != null) {
+                subentry.getValue().accept(visitor);
             } else {
                 //throw new IllegalStateException("null value of key " + subentry.key + " in map: " + debugDump());
             }
@@ -287,17 +249,17 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
     }
 
     public boolean equals(Object o) {
-        if (!(o instanceof MapXNodeImpl)){
+        if (!(o instanceof MapXNodeImpl)) {
             return false;
         }
         MapXNodeImpl other = (MapXNodeImpl) o;
-        return MiscUtil.unorderedCollectionEquals(this.entrySet(), other.entrySet());
+        return MiscUtil.unorderedCollectionEquals(this.subnodes.entrySet(), other.subnodes.entrySet());
     }
 
     public int hashCode() {
         int result = 0xCAFEBABE;
-        for (XNodeImpl node : this.values()) {
-            if (node != null){
+        for (XNodeImpl node : subnodes.values()) {
+            if (node != null) {
                 result = result ^ node.hashCode();          // using XOR instead of multiplying and adding in order to achieve commutativity
             }
         }
@@ -307,7 +269,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        DebugUtil.debugDumpMapMultiLine(sb, this, indent, true, dumpSuffix());
+        DebugUtil.debugDumpMapMultiLine(sb, this.toMap(), indent, true, dumpSuffix());
         return sb.toString();
     }
 
@@ -320,49 +282,18 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
     public String toString() {
         StringBuilder sb = new StringBuilder("XNode(map:"+subnodes.size()+" entries)");
         sb.append("\n");
-        subnodes.forEach(entry -> {
+        subnodes.entrySet().forEach(entry -> {
             sb.append(entry.toString());
             sb.append("; \n");
         });
         return sb.toString();
     }
 
-    private Entry findEntry(QName qname) {
-        for (Entry entry: subnodes) {
-            if (QNameUtil.match(qname,entry.getKey())) {
-                return entry;
-            }
-        }
-        return null;
-    }
-
-    private Entry findEntry(XNodeImpl xnode) {
-        for (Entry entry: subnodes) {
-            if (entry.getValue().equals(xnode)) {
-                return entry;
-            }
-        }
-        return null;
-    }
-
-    private XNodeImpl removeEntry(QName key) {
-        checkMutable();
-        Iterator<Entry> iterator = subnodes.iterator();
-        while (iterator.hasNext()) {
-            Entry entry = iterator.next();
-            if (QNameUtil.match(key,entry.getKey())) {
-                iterator.remove();
-                return entry.getValue();
-            }
-        }
-        return null;
-    }
-
     public String dumpKeyNames() {
         StringBuilder sb = new StringBuilder();
-        Iterator<Entry> iterator = subnodes.iterator();
+        Iterator<Map.Entry<QName, XNodeImpl>> iterator = subnodes.entrySet().iterator();
         while (iterator.hasNext()) {
-            Entry entry = iterator.next();
+            Map.Entry<QName, XNodeImpl> entry = iterator.next();
             sb.append(PrettyPrinter.prettyPrint(entry.getKey()));
             if (iterator.hasNext()) {
                 sb.append(",");
@@ -371,25 +302,15 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
         return sb.toString();
     }
 
-    public void qualifyKey(QName key, String newNamespace) {
+    public void replace(QName key, XNodeImpl value) {
         checkMutable();
-        for (Entry entry : subnodes) {
-            if (key.equals(entry.getKey())) {
-                entry.qualifyKey(newNamespace);
-            }
-        }
-    }
-
-    public XNodeImpl replace(QName key, XNodeImpl value) {
-        checkMutable();
-        for (Entry entry : subnodes) {
+        for (Map.Entry<QName, XNodeImpl> entry : subnodes.entrySet()) {
             if (entry.getKey().equals(key)) {
-                XNodeImpl previous = entry.getValue();
                 entry.setValue(value);
-                return previous;
+                return;
             }
         }
-        return put(key, value);
+        put(key, value);
     }
 
     public RootXNodeImpl getEntryAsRoot(@NotNull QName key) {
@@ -397,89 +318,14 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
         return xnode != null ? new RootXNodeImpl(key, xnode) : null;
     }
 
-    @NotNull
-    public RootXNodeImpl getSingleEntryMapAsRoot() {
-        if (!isSingleEntryMap()) {
-            throw new IllegalStateException("Expected to be called on single-entry map");
-        }
-        QName key = keySet().iterator().next();
-        return new RootXNodeImpl(key, get(key));
-    }
-
-    private static class Entry implements Map.Entry<QName, XNodeImpl>, Serializable {
-
-        private QName key;
-        private XNodeImpl value;
-
-        private Entry(QName key, XNodeImpl value) {
-            super();
-            this.key = key;
-            this.value = value;
-        }
-
-        private void qualifyKey(String newNamespace) {
-            Validate.notNull(key, "Key is null");
-            if (StringUtils.isNotEmpty(key.getNamespaceURI())) {
-                throw new IllegalStateException("Cannot qualify already qualified key: " + key);
-            }
-            key = new QName(newNamespace, key.getLocalPart());
-        }
-
-        @Override
-        public QName getKey() {
-            return key;
-        }
-
-        @Override
-        public XNodeImpl getValue() {
-            return value;
-        }
-
-        // TODO what about immutability?
-        @Override
-        public XNodeImpl setValue(XNodeImpl value) {
-            this.value = value;
-            return value;
-        }
-
-        @Override
-        public String toString() {
-            return "E(" + key + ": " + value + ")";
-        }
-
-        /**
-         * Compares two entries of the MapXNode.
-         *
-         * It is questionable whether to compare QNames exactly or approximately (using QNameUtil.match) here.
-         * For the time being, exact comparison was chosen. The immediate reason is to enable correct
-         * processing of diff on RawTypes (e.g. to make "debug edit" to be able to change from xyz to c:xyz
-         * in element names, see MID-1969).
-         *
-         * TODO: In the long run, we have to think out where exactly we want to use approximate matching of QNames.
-         *  E.g. it is reasonable to use it only where "deployer input" is expected (e.g. import of data objects),
-         *  not in the internals of midPoint.
-         */
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Entry entry = (Entry) o;
-
-            if (key != null ? !key.equals(entry.key) : entry.key != null) return false;
-            if (value != null ? !value.equals(entry.value) : entry.value != null) return false;
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = key != null && key.getLocalPart() != null ? key.getLocalPart().hashCode() : 0;
-            result = 31 * result + (value != null ? value.hashCode() : 0);
-            return result;
-        }
-    }
+//    @NotNull
+//    public RootXNodeImpl getSingleEntryMapAsRoot() {
+//        if (!isSingleEntryMap()) {
+//            throw new IllegalStateException("Expected to be called on single-entry map");
+//        }
+//        QName key = keySet().iterator().next();
+//        return new RootXNodeImpl(key, get(key));
+//    }
 
     @NotNull
     @Override
@@ -488,17 +334,44 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
     }
 
     @Override
-    public Map<QName, ? extends XNode> asMap() {
-        return immutable ? Collections.unmodifiableMap(this) : this;
+    public Map<QName, ? extends XNode> toMap() {
+        return new HashMap<>(subnodes);
     }
 
     @Override
     public void setImmutable() {
-        for (Entry subnode : subnodes) {
-            if (subnode.value != null) {
-                subnode.value.setImmutable();
+        for (Map.Entry<QName, XNodeImpl> subnode : subnodes.entrySet()) {
+            if (subnode.getValue() != null) {
+                subnode.getValue().setImmutable();
             }
         }
         super.setImmutable();
+    }
+
+    // TODO reconsider performance of this method
+    public void replaceDefaultNamespaceMarkers(String marker, String defaultNamespace) {
+        if (hasDefaultNamespaceMarkers) {
+            // As we have no method to replace existing entry in LinkedHashMap, we need to copy all the entries,
+            // qualifying them as needed.
+            LinkedHashMap<QName, XNodeImpl> originalSubNodes = subnodes;
+            subnodes = new LinkedHashMap<>();
+            unqualifiedSubnodeNames.clear();
+            for (Map.Entry<QName, XNodeImpl> originalEntry : originalSubNodes.entrySet()) {
+                QName originalKey = originalEntry.getKey();
+                QName newKey;
+                if (marker.equals(originalKey.getNamespaceURI())) {
+                    // Note that defaultNamespace can be "", so newKey can be unqualified
+                    newKey = new QName(defaultNamespace, originalKey.getLocalPart());
+                } else {
+                    newKey = originalKey;
+                }
+                merge(newKey, originalEntry.getValue());
+            }
+            hasDefaultNamespaceMarkers = false;
+        }
+    }
+
+    public void setHasDefaultNamespaceMarkers() {
+        hasDefaultNamespaceMarkers = true;
     }
 }
