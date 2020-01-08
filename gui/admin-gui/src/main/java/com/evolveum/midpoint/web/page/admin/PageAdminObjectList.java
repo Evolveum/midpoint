@@ -141,10 +141,6 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         return true;
     }
 
-    protected String getStorageKey() {
-        return null;
-    }
-
 
     protected ObjectQuery addCustomFilterToContentQuery(ObjectQuery query){
         return query;

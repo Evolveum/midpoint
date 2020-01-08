@@ -1930,8 +1930,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         addMenuItem(item, "PageAdmin.menu.top.serverTasks.list", PageTasks.class);
 
-        addMenuItem(item, "ListNew", PageTasksNew.class);
-
         addMenuItem(item, "PageAdmin.menu.top.serverTasks.nodes", PageNodes.class);
 
         //should we support archetype view for TaskType?

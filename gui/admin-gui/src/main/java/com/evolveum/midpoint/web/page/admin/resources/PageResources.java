@@ -102,8 +102,9 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 
     }
 
+    //TODO move to je objecyListpanel
     private void initSearch(String text){
-        String key= getStorageKey();
+        String key= null;//getStorageKey();
         PageStorage storage = getSessionStorage().getPageStorageMap().get(key);
         if (storage == null) {
             storage = getSessionStorage().initPageStorage(key);

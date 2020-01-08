@@ -129,8 +129,10 @@ public class PageUsers extends PageAdminObjectList<UserType> {
         }
     }
 
+
+    // TODO: move to the page parameters
     private void initSearch(String text){
-        String storageKey = getStorageKey();
+        String storageKey = null;//getStorageKey();
         PageStorage storage = getSessionStorage().getPageStorageMap().get(storageKey);
         if (storage == null) {
             storage = getSessionStorage().initPageStorage(storageKey);
