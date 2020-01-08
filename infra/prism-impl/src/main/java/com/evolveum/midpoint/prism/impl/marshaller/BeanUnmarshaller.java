@@ -52,13 +52,16 @@ public class BeanUnmarshaller {
     private static final Trace LOGGER = TraceManager.getTrace(BeanUnmarshaller.class);
 
     @NotNull private final PrismBeanInspector inspector;
+    @NotNull private final BeanMarshaller beanMarshaller;
     @NotNull private final PrismContext prismContext;
     @NotNull private final Map<Class,PrimitiveUnmarshaller> specialPrimitiveUnmarshallers = new HashMap<>();
     @NotNull private final Map<Class,MapUnmarshaller> specialMapUnmarshallers = new HashMap<>();
 
-    public BeanUnmarshaller(@NotNull PrismContext prismContext, @NotNull PrismBeanInspector inspector) {
+    public BeanUnmarshaller(@NotNull PrismContext prismContext, @NotNull PrismBeanInspector inspector,
+            @NotNull BeanMarshaller beanMarshaller) {
         this.prismContext = prismContext;
         this.inspector = inspector;
+        this.beanMarshaller = beanMarshaller;
         createSpecialUnmarshallerMaps();
     }
 
@@ -144,8 +147,8 @@ public class BeanUnmarshaller {
 
         if (xnode instanceof PrimitiveXNodeImpl) {
             PrimitiveXNodeImpl<T> prim = (PrimitiveXNodeImpl) xnode;
-            if (XmlTypeConverter.canConvert(beanClass)) {
-                QName xsdType = XsdTypeMapper.toXsdType(beanClass);
+            QName xsdType = XsdTypeMapper.getJavaToXsdMapping(beanClass);
+            if (xsdType != null) {
                 return prim.getParsedValue(xsdType, beanClass);
             } else if (beanClass.isEnum()) {
                 return unmarshalEnumFromPrimitive(prim, beanClass, pc);
@@ -233,17 +236,13 @@ public class BeanUnmarshaller {
     }
 
     boolean canProcess(QName typeName) {
-        return getBeanMarshaller().canProcess(typeName);
+        return beanMarshaller.canProcess(typeName);
     }
 
     boolean canProcess(Class<?> clazz) {
-        return getBeanMarshaller().canProcess(clazz);
+        return beanMarshaller.canProcess(clazz);
     }
 
-    @NotNull
-    private BeanMarshaller getBeanMarshaller() {
-        return ((PrismContextImpl) getPrismContext()).getBeanMarshaller();
-    }
     //endregion
 
     @NotNull
@@ -308,7 +307,7 @@ public class BeanUnmarshaller {
                 unmarshalEntry(bean, beanClass, entry.getKey(), entry.getValue(), mapOrList, false, pc);
             }
         } else if (mapOrList.isHeterogeneousList()) {
-            QName keyQName = getBeanMarshaller().getHeterogeneousListPropertyName(beanClass);
+            QName keyQName = beanMarshaller.getHeterogeneousListPropertyName(beanClass);
             unmarshalEntry(bean, beanClass, keyQName, mapOrList, mapOrList, true, pc);
         } else {
             throw new IllegalStateException("Not a map nor heterogeneous list: " + mapOrList.debugDump());

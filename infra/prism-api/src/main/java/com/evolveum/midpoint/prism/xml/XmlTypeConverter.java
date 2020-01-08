@@ -28,7 +28,9 @@ import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Simple implementation that converts XSD primitive types to Java (and vice
@@ -381,7 +383,7 @@ public class XmlTypeConverter {
         } else if (PolyString.class.isAssignableFrom(type)) {
             return (T) polyStringToJava(xmlElement);
         } else {
-            return toJavaValuePlain(xmlElement.getTextContent(), type, " (element " + DOMUtil.getQName(xmlElement) + ")");
+            return toJavaValuePlain(xmlElement.getTextContent(), type, () -> " (element " + DOMUtil.getQName(xmlElement) + ")");
         }
     }
 
@@ -393,22 +395,22 @@ public class XmlTypeConverter {
         } else if (PolyString.class.isAssignableFrom(type)) {
             return (T) new PolyString(textContent);
         } else {
-            return toJavaValuePlain(textContent, type, "");
+            return toJavaValuePlain(textContent, type, () -> "");
         }
     }
 
-    private static <T> T toJavaValuePlain(String textContent, Class<T> type, String context) {
+    private static <T> T toJavaValuePlain(String textContent, Class<T> type, Supplier<String> contextSupplier) {
         if (textContent == null) {
             return null;
         }
         T javaValue = toJavaValue(textContent, type);
         if (javaValue == null) {
-            throw new IllegalArgumentException("Unknown type for conversion: " + type + context);
+            throw new IllegalArgumentException("Unknown type for conversion: " + type + contextSupplier.get());
         }
         return javaValue;
     }
 
-    private static <T> T toJavaValue(String stringContent, Class<T> type) {
+    public static <T> T toJavaValue(String stringContent, Class<T> type) {
         return toJavaValue(stringContent, type, false);
     }
 
@@ -450,7 +452,7 @@ public class XmlTypeConverter {
             byte[] decodedData = Base64.decodeBase64(stringContent);
             return (T) decodedData;
         } else if (type.equals(boolean.class) || Boolean.class.isAssignableFrom(type)) {
-            // TODO: maybe we will need more inteligent conversion, e.g. to trim spaces, case insensitive, etc.
+            // TODO: maybe we will need more intelligent conversion, e.g. to trim spaces, case insensitive, etc.
             return (T) Boolean.valueOf(stringContent);
         } else if (type.equals(GregorianCalendar.class)) {
             return (T) getDatatypeFactory().newXMLGregorianCalendar(stringContent).toGregorianCalendar();
@@ -477,23 +479,23 @@ public class XmlTypeConverter {
      * Parse PolyString from DOM element.
      */
     private static PolyString polyStringToJava(Element polyStringElement) throws SchemaException {
-        Element origElement = DOMUtil.getChildElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME);
+        List<Element> children = DOMUtil.listChildElements(polyStringElement);
+        Element origElement = DOMUtil.getNamedElement(children, PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME);
         if (origElement == null) {
             // Check for a special syntactic short-cut. If the there are no child elements use the text content of the
             // element as the value of orig
-            if (DOMUtil.hasChildElements(polyStringElement)) {
+            if (children.isEmpty()) {
+                String orig = polyStringElement.getTextContent();
+                return new PolyString(orig);
+            } else {
                 throw new SchemaException("Missing element "+PrismConstants.POLYSTRING_ELEMENT_ORIG_QNAME+" in polystring element "+
                         DOMUtil.getQName(polyStringElement));
             }
-            String orig = polyStringElement.getTextContent();
-            return new PolyString(orig);
+        } else {
+            String orig = origElement.getTextContent();
+            Element normElement = DOMUtil.getNamedElement(children, PrismConstants.POLYSTRING_ELEMENT_NORM_QNAME);
+            String norm = normElement != null ? normElement.getTextContent() : null;
+            return new PolyString(orig, norm);
         }
-        String orig = origElement.getTextContent();
-        String norm = null;
-        Element normElement = DOMUtil.getChildElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_NORM_QNAME);
-        if (normElement != null) {
-            norm = normElement.getTextContent();
-        }
-        return new PolyString(orig, norm);
     }
 }

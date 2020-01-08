@@ -51,7 +51,7 @@ class DomLessValueParser<T> implements ValueParser<T>, Serializable {
             if (ItemPathType.COMPLEX_TYPE.equals(typeName)) {
                 //noinspection unchecked
                 return (T) new ItemPathType(ItemPathHolder.parseFromString(textContent, visibleNamespaceDeclarations));
-            } else if (XmlTypeConverter.canConvert(typeName)) {
+            } else if (XmlTypeConverter.canConvert(typeName)) { // todo optimize redundant calls to canConvert/toJavaValue
                 //noinspection unchecked
                 return (T) XmlTypeConverter.toJavaValue(textContent, visibleNamespaceDeclarations, typeName);
             } else if (DOMUtil.XSD_ANYTYPE.equals(typeName)) {

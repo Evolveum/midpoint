@@ -10,6 +10,7 @@ package com.evolveum.midpoint.prism.impl.lex.dom;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -44,14 +45,16 @@ class ElementValueParser<T> implements ValueParser<T>, Serializable {
             if (ItemPathType.COMPLEX_TYPE.equals(typeName)) {
                 //noinspection unchecked
                 return (T) new ItemPathType(ItemPathHolder.parseFromElement(element));
-            } else if (XmlTypeConverter.canConvert(typeName)) {
-                //noinspection unchecked
-                return (T) XmlTypeConverter.toJavaValue(element, typeName);
-            } else if (DOMUtil.XSD_ANYTYPE.equals(typeName)) {
-                //noinspection unchecked
-                return (T) element.getTextContent();                // if parsing primitive as xsd:anyType, we can safely parse it as string
             } else {
-                throw new SchemaException("Cannot convert element '" + element + "' to " + typeName);
+                Class<T> clazz = XsdTypeMapper.getXsdToJavaMapping(typeName);
+                if (clazz != null) {
+                    return (T) XmlTypeConverter.toJavaValue(element, clazz);
+                } else if (DOMUtil.XSD_ANYTYPE.equals(typeName)) {
+                    //noinspection unchecked
+                    return (T) element.getTextContent();                // if parsing primitive as xsd:anyType, we can safely parse it as string
+                } else {
+                    throw new SchemaException("Cannot convert element '" + element + "' to " + typeName);
+                }
             }
         } catch (IllegalArgumentException e) {
             return DomLexicalProcessor.processIllegalArgumentException(element.getTextContent(), typeName, e, mode);        // primitive way of ensuring compatibility mode
