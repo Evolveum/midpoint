@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -55,7 +57,10 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -79,13 +84,13 @@ import java.util.stream.Collectors;
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_URL,
                         label = "PageTasks.auth.tasks.label",
                         description = "PageTasks.auth.tasks.description")})
-public class PageTasksNew extends PageAdmin {
+public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(PageTasksNew.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(TaskTablePanel.class);
 
     private static final String ID_TABLE = "table";
 
-    private static final String DOT_CLASS = PageTasksNew.class.getName() + ".";
+    private static final String DOT_CLASS = TaskTablePanel.class.getName() + ".";
     public static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTasks";
     public static final String OPERATION_SUSPEND_TASK = DOT_CLASS + "suspendTask";
     public static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
@@ -100,152 +105,37 @@ public class PageTasksNew extends PageAdmin {
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
 
-    public PageTasksNew() {
-        this(null);
-    }
-
-    public PageTasksNew(PageParameters params) {
-        super(params);
-
-        TaskTablePanel tablePanel = new TaskTablePanel(ID_TABLE, UserProfileStorage.TableId.TABLE_TASKS, createOperationOptions()) {
-
-            @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                if (query == null) {
-                    query = getPrismContext().queryFactory().createQuery();
-                }
-                query.addFilter(getPrismContext().queryFor(TaskType.class)
-                        .item(TaskType.F_PARENT)
-                        .isNull()
-                        .buildFilter());
-                return query;
-            }
-
-            @Override
-            protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
-                List<IColumn<SelectableBean<TaskType>, String>> columns = super.createColumns();
-                columns.add(2, new ObjectReferenceColumn<>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE+"."+TaskType.F_OBJECT_REF.getLocalPart()){
-                    @Override
-                    public IModel<ObjectReferenceType> extractDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                        SelectableBean<TaskType> bean = rowModel.getObject();
-                        return Model.of(bean.getValue().getObjectRef());
-
-                    }
-                });
-                columns.add(3, new PropertyColumn<>(createStringResource("pageTasks.task.executingAt"), SelectableBeanImpl.F_VALUE + "." + TaskType.F_NODE_AS_OBSERVED.getLocalPart()));
-                columns.add(4, new AbstractExportableColumn<>(createStringResource("pageTasks.task.currentRunTime")) {
-
-                    @Override
-                    public void populateItem(final Item<ICellPopulator<SelectableBean<TaskType>>> item, final String componentId,
-                                             final IModel<SelectableBean<TaskType>> rowModel) {
-
-                        DateLabelComponent dateLabel = new DateLabelComponent(componentId, new IModel<Date>() {
-
-                            @Override
-                            public Date getObject() {
-                                Date date = getCurrentRuntime(rowModel);
-                                SelectableBean<TaskType> task = rowModel.getObject();
-                                if (getRawExecutionStatus(task.getValue()) == TaskExecutionStatus.CLOSED && date != null) {
-                                    ((DateLabelComponent) item.get(componentId)).setBefore(createStringResource("pageTasks.task.closedAt").getString() + " ");
-                                } else if (date != null) {
-                                    ((DateLabelComponent) item.get(componentId))
-                                            .setBefore(WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasksNew.this));
-                                }
-                                return date;
-                            }
-                        }, WebComponentUtil.getShortDateTimeFormat(getPageBase()));
-                        item.add(dateLabel);
-                    }
-
-                    @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                        SelectableBean<TaskType> task = rowModel.getObject();
-                        Date date = getCurrentRuntime(rowModel);
-                        String displayValue = "";
-                        if (date != null) {
-                            if (getRawExecutionStatus(task.getValue()) == TaskExecutionStatus.CLOSED) {
-                                displayValue =
-                                        createStringResource("pageTasks.task.closedAt").getString() +
-                                                WebComponentUtil.getShortDateTimeFormattedValue(date, getPageBase());
-                            } else {
-                                displayValue = WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasksNew.this);
-                            }
-                        }
-                        return Model.of(displayValue);
-                    }
-                });
-                columns.add(5, new AbstractExportableColumn<>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,
-                                             final IModel<SelectableBean<TaskType>> rowModel) {
-                        item.add(new Label(componentId, new IModel<Object>() {
-
-                            @Override
-                            public Object getObject() {
-                                return createScheduledToRunAgain(rowModel);
-                            }
-                        }));
-                    }
-
-                    @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                        return Model.of(createScheduledToRunAgain(rowModel));
-                    }
-                });
-                return columns;
-            }
-
-        };
-        add(tablePanel);
-//        initLayout();
+    public TaskTablePanel(String id, UserProfileStorage.TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options) {
+        super(id, TaskType.class, tableId, options);
     }
 
 
+    @Override
+    protected void objectDetailsPerformed(AjaxRequestTarget target, TaskType object) {
+        taskDetailsPerformed(target, object.getOid());
+    }
 
-    private void initLayout() {
-        MainObjectListPanel<TaskType> table = new MainObjectListPanel<>(ID_TABLE, TaskType.class, UserProfileStorage.TableId.TABLE_TASKS, createOperationOptions()) {
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, TaskType object) {
-                taskDetailsPerformed(target, object.getOid());
-            }
+    @Override
+    protected boolean isObjectDetailsEnabled(IModel<SelectableBean<TaskType>> rowModel) {
+        return rowModel.getObject().getValue().getOid() != null;
+    }
 
-            @Override
-            protected boolean isObjectDetailsEnabled(IModel<SelectableBean<TaskType>> rowModel) {
-                return rowModel.getObject().getValue().getOid() != null;
-            }
+    @Override
+    protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
+        return initTaskColumns();
+    }
 
-            @Override
-            protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
-                return initTaskColumns();
-            }
+    @Override
+    protected List<InlineMenuItem> createInlineMenu() {
+        return createTasksInlineMenu(true);
+    }
 
-            @Override
-            protected List<InlineMenuItem> createInlineMenu() {
-                return createTasksInlineMenu(true);
-            }
-
-            @Override
-            protected List<Component> createToolbarButtonsList(String buttonId){
-                List<Component> buttonsList = super.createToolbarButtonsList(buttonId);
-                AjaxIconButton synchronizeTasks = createSynchronizeTasksButton(buttonId);
-                buttonsList.add(synchronizeTasks);
-                return buttonsList;
-            }
-
-            @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                if (query == null) {
-                    query = getPrismContext().queryFactory().createQuery();
-                }
-                query.addFilter(getPrismContext().queryFor(TaskType.class)
-                        .item(TaskType.F_PARENT)
-                            .isNull()
-                        .buildFilter());
-                return query;
-            }
-        };
-        add(table);
+    @Override
+    protected List<Component> createToolbarButtonsList(String buttonId) {
+        List<Component> buttonsList = super.createToolbarButtonsList(buttonId);
+        AjaxIconButton synchronizeTasks = createSynchronizeTasksButton(buttonId);
+        buttonsList.add(synchronizeTasks);
+        return buttonsList;
     }
 
     private AjaxIconButton createSynchronizeTasksButton(String buttonId) {
@@ -259,6 +149,30 @@ public class PageTasksNew extends PageAdmin {
         };
         synchronize.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
         return synchronize;
+    }
+
+    private Task createSimpleTask(String taskName) {
+        return getPageBase().createSimpleTask(taskName);
+    }
+
+    private TaskService getTaskService() {
+        return getPageBase().getTaskService();
+    }
+
+    private TaskManager getTaskManager() {
+        return getPageBase().getTaskManager();
+    }
+
+    private void showResult(OperationResult result) {
+        getPageBase().showResult(result);
+    }
+
+    private WebMarkupContainer getFeedbackPanel() {
+        return getPageBase().getFeedbackPanel();
+    }
+
+    private void navigateToNext(Class<? extends WebPage> page, PageParameters parameters) {
+        getPageBase().navigateToNext(page, parameters);
     }
 
     private void synchronizeTasksPerformed(AjaxRequestTarget target) {
@@ -280,7 +194,7 @@ public class PageTasksNew extends PageAdmin {
         showResult(result);
 
         // refresh feedback and table
-        getTable().refreshTable(TaskType.class, target);
+        refreshTable(TaskType.class, target);
         target.add(getTable());
     }
 
@@ -314,97 +228,32 @@ public class PageTasksNew extends PageAdmin {
     }
 
     private IColumn<SelectableBean<TaskType>, String> createTaskCategoryColumn() {
-            return new AbstractExportableColumn<>(createStringResource("pageTasks.task.category"), TaskType.F_CATEGORY.getLocalPart()) {
-
-                @Override
-                public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,
-                                         final IModel<SelectableBean<TaskType>> rowModel) {
-                    item.add(new Label(componentId,
-                            WebComponentUtil.createCategoryNameModel(PageTasksNew.this, new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + TaskDto.F_CATEGORY))));
-                }
-
-                @Override
-                public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                    return WebComponentUtil.createCategoryNameModel(PageTasksNew.this, new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + TaskDto.F_CATEGORY));
-                }
-            };
-
-    }
-
-    protected List<IColumn<SelectableBean<TaskType>, String>> initCustomTaskColumns() {
-        List<IColumn<SelectableBean<TaskType>, String>> columns = new ArrayList<>();
-
-        columns.add(new ObjectReferenceColumn<>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE+"."+TaskType.F_OBJECT_REF.getLocalPart()){
-            @Override
-            public IModel<ObjectReferenceType> extractDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                SelectableBean<TaskType> bean = rowModel.getObject();
-                return Model.of(bean.getValue().getObjectRef());
-
-            }
-        });
-        columns.add(createTaskExecutionStatusColumn());
-        columns.add(new PropertyColumn<>(createStringResource("pageTasks.task.executingAt"), SelectableBeanImpl.F_VALUE + "." + TaskType.F_NODE_AS_OBSERVED.getLocalPart()));
-        columns.add(createProgressColumn("pageTasks.task.progress", this::isProgressComputationEnabled));
-        columns.add(new AbstractExportableColumn<>(createStringResource("pageTasks.task.currentRunTime")) {
-
-            @Override
-            public void populateItem(final Item<ICellPopulator<SelectableBean<TaskType>>> item, final String componentId,
-                                     final IModel<SelectableBean<TaskType>> rowModel) {
-
-                DateLabelComponent dateLabel = new DateLabelComponent(componentId, new IModel<Date>() {
-
-                    @Override
-                    public Date getObject() {
-                        Date date = getCurrentRuntime(rowModel);
-                        SelectableBean<TaskType> task = rowModel.getObject();
-                        if (getRawExecutionStatus(task.getValue()) == TaskExecutionStatus.CLOSED && date != null) {
-                            ((DateLabelComponent) item.get(componentId)).setBefore(createStringResource("pageTasks.task.closedAt").getString() + " ");
-                        } else if (date != null) {
-                            ((DateLabelComponent) item.get(componentId))
-                                    .setBefore(WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasksNew.this));
-                        }
-                        return date;
-                    }
-                }, WebComponentUtil.getShortDateTimeFormat(PageTasksNew.this));
-                item.add(dateLabel);
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                SelectableBean<TaskType> task = rowModel.getObject();
-                Date date = getCurrentRuntime(rowModel);
-                String displayValue = "";
-                if (date != null) {
-                    if (getRawExecutionStatus(task.getValue()) == TaskExecutionStatus.CLOSED) {
-                        displayValue =
-                                createStringResource("pageTasks.task.closedAt").getString() +
-                                        WebComponentUtil.getShortDateTimeFormattedValue(date, PageTasksNew.this);
-                    } else {
-                        displayValue = WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasksNew.this);
-                    }
-                }
-                return Model.of(displayValue);
-            }
-        });
-        columns.add(new AbstractExportableColumn<>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
+        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.category"), TaskType.F_CATEGORY.getLocalPart()) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,
                                      final IModel<SelectableBean<TaskType>> rowModel) {
-                item.add(new Label(componentId, new IModel<Object>() {
-
-                    @Override
-                    public Object getObject() {
-                        return createScheduledToRunAgain(rowModel);
-                    }
-                }));
+                item.add(new Label(componentId,
+                        WebComponentUtil.createCategoryNameModel(TaskTablePanel.this, new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + TaskDto.F_CATEGORY))));
             }
 
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                return Model.of(createScheduledToRunAgain(rowModel));
+                return WebComponentUtil.createCategoryNameModel(TaskTablePanel.this, new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + TaskDto.F_CATEGORY));
             }
-        });
+        };
+
+    }
+
+
+
+    protected List<IColumn<SelectableBean<TaskType>, String>> initCustomTaskColumns() {
+        List<IColumn<SelectableBean<TaskType>, String>> columns = new ArrayList<>();
+
+
+        columns.add(createTaskExecutionStatusColumn());
+
+        columns.add(createProgressColumn("pageTasks.task.progress", this::isProgressComputationEnabled));
 
         columns.add(new IconColumn<>(createStringResource("pageTasks.task.status"), TaskType.F_RESULT_STATUS.getLocalPart()) {
 
@@ -546,7 +395,7 @@ public class PageTasksNew extends PageAdmin {
 
             @Override
             protected String translate(Enum en) {
-                return PageTasksNew.this.createStringResource(en).getString();
+                return TaskTablePanel.this.createStringResource(en).getString();
             }
         };
     }
@@ -702,7 +551,7 @@ public class PageTasksNew extends PageAdmin {
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.suspendAction").getString();
-                return PageTasksNew.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
         });
         items.add(new ButtonInlineMenuItem(createStringResource("pageTasks.button.resumeTask")) {
@@ -728,7 +577,7 @@ public class PageTasksNew extends PageAdmin {
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.resumeAction").getString();
-                return PageTasksNew.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
         });
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.scheduleTask")) {
@@ -749,7 +598,7 @@ public class PageTasksNew extends PageAdmin {
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.runNowAction").getString();
-                return PageTasksNew.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
         });
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteTask")) {
@@ -770,7 +619,7 @@ public class PageTasksNew extends PageAdmin {
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.deleteAction").getString();
-                return PageTasksNew.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
 
             @Override
@@ -796,7 +645,7 @@ public class PageTasksNew extends PageAdmin {
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.reconcileWorkersAction").getString();
-                return PageTasksNew.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
 
             @Override
@@ -804,7 +653,7 @@ public class PageTasksNew extends PageAdmin {
                 return false;
             }
         };
-        reconcileWorkers.setVisibilityChecker(PageTasksNew::isCoordinator);
+        reconcileWorkers.setVisibilityChecker(TaskTablePanel::isCoordinator);
         items.add(reconcileWorkers);
 
         InlineMenuItem suspendRootOnly = new InlineMenuItem(createStringResource("pageTasks.button.suspendRootOnly")) {
@@ -825,7 +674,7 @@ public class PageTasksNew extends PageAdmin {
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.suspendAction").getString();
-                return PageTasksNew.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
 
             @Override
@@ -833,7 +682,7 @@ public class PageTasksNew extends PageAdmin {
                 return false;
             }
         };
-        suspendRootOnly.setVisibilityChecker(PageTasksNew::isManageableTreeRoot);
+        suspendRootOnly.setVisibilityChecker(TaskTablePanel::isManageableTreeRoot);
         items.add(suspendRootOnly);
 
         InlineMenuItem resumeRootOnly = new InlineMenuItem(createStringResource("pageTasks.button.resumeRootOnly")) {
@@ -854,7 +703,7 @@ public class PageTasksNew extends PageAdmin {
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.resumeAction").getString();
-                return PageTasksNew.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
 
             @Override
@@ -862,7 +711,7 @@ public class PageTasksNew extends PageAdmin {
                 return false;
             }
         };
-        resumeRootOnly.setVisibilityChecker(PageTasksNew::isManageableTreeRoot);
+        resumeRootOnly.setVisibilityChecker(TaskTablePanel::isManageableTreeRoot);
         items.add(resumeRootOnly);
 
         InlineMenuItem deleteWorkStateAndWorkers = new InlineMenuItem(createStringResource("pageTasks.button.deleteWorkersAndWorkState")) {
@@ -883,7 +732,7 @@ public class PageTasksNew extends PageAdmin {
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.deleteWorkersAndWorkState").getString();
-                return PageTasksNew.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
 
             @Override
@@ -891,7 +740,7 @@ public class PageTasksNew extends PageAdmin {
                 return false;
             }
         };
-        deleteWorkStateAndWorkers.setVisibilityChecker(PageTasksNew::isManageableTreeRoot);
+        deleteWorkStateAndWorkers.setVisibilityChecker(TaskTablePanel::isManageableTreeRoot);
         items.add(deleteWorkStateAndWorkers);
 
         InlineMenuItem deleteWorkState = new InlineMenuItem(createStringResource("pageTasks.button.deleteWorkState")) {
@@ -912,7 +761,7 @@ public class PageTasksNew extends PageAdmin {
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.deleteWorkState").getString();
-                return PageTasksNew.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
         };
         items.add(deleteWorkState);
@@ -971,7 +820,7 @@ public class PageTasksNew extends PageAdmin {
         showResult(result);
 
         //refresh feedback and table
-        getTable().refreshTable(TaskType.class, target);
+        refreshTable(TaskType.class, target);
     }
 
     private void resumeTasksPerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {
@@ -998,7 +847,7 @@ public class PageTasksNew extends PageAdmin {
         showResult(result);
 
         //refresh feedback and table
-        getTable().refreshTable(TaskType.class, target);
+        refreshTable(TaskType.class, target);
     }
 
     private boolean suspendPlainTasks(List<TaskType> plainTasks, OperationResult result, Task opTask)
@@ -1029,7 +878,7 @@ public class PageTasksNew extends PageAdmin {
         if (selectedTask != null) {
             selectedTasks.add(selectedTask.getObject().getValue());
         } else {
-            selectedTasks = getTable().getSelectedObjects();
+            selectedTasks = getSelectedObjects();
         }
 
         if (selectedTasks.isEmpty()) {
@@ -1062,7 +911,7 @@ public class PageTasksNew extends PageAdmin {
         showResult(result);
 
         //refresh feedback and table
-        getTable().refreshTable(TaskType.class, target);
+        refreshTable(TaskType.class, target);
 
     }
 
@@ -1092,7 +941,7 @@ public class PageTasksNew extends PageAdmin {
 //        provider.clearCache();
 
         // refresh feedback and table
-        getTable().refreshTable(TaskType.class, target);
+        refreshTable(TaskType.class, target);
 //        refreshTable(target);
     }
 
@@ -1112,7 +961,7 @@ public class PageTasksNew extends PageAdmin {
         }
         showResult(result);
 
-        getTable().refreshTable(TaskType.class, target);
+        refreshTable(TaskType.class, target);
     }
 
     private void suspendRootOnly(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
@@ -1128,7 +977,7 @@ public class PageTasksNew extends PageAdmin {
         }
         showResult(result);
 
-        getTable().refreshTable(TaskType.class, target);
+        refreshTable(TaskType.class, target);
     }
 
     private void resumeRootOnly(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
@@ -1143,7 +992,7 @@ public class PageTasksNew extends PageAdmin {
         }
         showResult(result);
 
-        getTable().refreshTable(TaskType.class, target);
+        refreshTable(TaskType.class, target);
     }
 
     private void deleteWorkersAndWorkState(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
@@ -1159,7 +1008,7 @@ public class PageTasksNew extends PageAdmin {
         }
         showResult(result);
 
-        getTable().refreshTable(TaskType.class, target);
+        refreshTable(TaskType.class, target);
     }
 
     private void deleteWorkState(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
@@ -1175,7 +1024,7 @@ public class PageTasksNew extends PageAdmin {
         }
         showResult(result);
 
-        getTable().refreshTable(TaskType.class, target);
+        refreshTable(TaskType.class, target);
     }
 
     private void deleteAllClosedTasksConfirmedPerformed(AjaxRequestTarget target) {
@@ -1248,9 +1097,9 @@ public class PageTasksNew extends PageAdmin {
         return null;
     }
 
-    private MainObjectListPanel<TaskType> getTable() {
-        return (MainObjectListPanel<TaskType>) get(ID_TABLE);
-    }
+//    private MainObjectListPanel<TaskType> getTable() {
+//        return (MainObjectListPanel<TaskType>) get(ID_TABLE);
+//    }
 
     public static List<String> getOids(List<TaskType> taskDtoList) {
         List<String> retval = new ArrayList<>();
