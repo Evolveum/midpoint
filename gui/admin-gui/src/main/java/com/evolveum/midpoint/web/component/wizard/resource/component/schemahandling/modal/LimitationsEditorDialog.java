@@ -400,7 +400,8 @@ public class LimitationsEditorDialog extends ModalWindow{
             outputList.add(dto.prepareDtoForSave());
         }
 
-        inputModel.setObject(outputList);
+        inputModel.getObject().clear();
+        inputModel.getObject().addAll(outputList);
         close(target);
     }
 

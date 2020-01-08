@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
@@ -1989,8 +1990,9 @@ public final class WebComponentUtil {
             }
         }
 
-        String additionalStyle = getIconEnabledDisabled(object);
-        if (additionalStyle == null) {
+        String additionalStyle = "";
+//                getIconEnabledDisabled(object);
+//        if (additionalStyle == null) {
             // Set manager and end-user icon only as a last resort. All other
             // colors have priority.
             if (isManager) {
@@ -2000,7 +2002,7 @@ public final class WebComponentUtil {
             } else {
                 additionalStyle = GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
             }
-        }
+//        }
         return GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + additionalStyle;
     }
 
@@ -2012,15 +2014,19 @@ public final class WebComponentUtil {
             }
         }
 
-        return getIconEnabledDisabled(object, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON);
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON);
     }
 
     public static String createOrgIcon(PrismObject<OrgType> object) {
-        return getIconEnabledDisabled(object, GuiStyleConstants.CLASS_OBJECT_ORG_ICON);
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_ORG_ICON);
     }
 
     public static String createServiceIcon(PrismObject<ServiceType> object) {
-        return getIconEnabledDisabled(object, GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON);
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON);
+    }
+
+    private static <AHT extends AssignmentHolderType> String getObjectNormalIconStyle(String baseIcon){
+        return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
     }
 
     private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object,
@@ -3286,21 +3292,21 @@ public final class WebComponentUtil {
 
     public static String getIconCssClass(DisplayType displayType){
         if (displayType == null || displayType.getIcon() == null){
-            return null;
+            return "";
         }
         return displayType.getIcon().getCssClass();
     }
 
     public static String getIconColor(DisplayType displayType){
         if (displayType == null || displayType.getIcon() == null){
-            return null;
+            return "";
         }
         return displayType.getIcon().getColor();
     }
 
     public static String getDisplayTypeTitle(DisplayType displayType){
         if (displayType == null || displayType.getTooltip() == null){
-            return null;
+            return "";
         }
         return displayType.getTooltip().getOrig();
     }
@@ -3313,21 +3319,77 @@ public final class WebComponentUtil {
             return ((ArchetypeType)obj).getArchetypePolicy().getDisplay();
         }
         DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(obj, pageBase);
-        if (displayType != null){
-            String disabledStyle = "";
-            if (obj instanceof FocusType) {
-                disabledStyle = WebComponentUtil.getIconEnabledDisabled(((FocusType)obj).asPrismObject());
-                if (displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass()) &&
-                        disabledStyle != null){
-                    displayType.getIcon().setCssClass(displayType.getIcon().getCssClass() + " " + disabledStyle);
-                    displayType.getIcon().setColor("");
-                }
-            }
-        } else {
-            displayType = WebComponentUtil.createDisplayType(ColumnUtils.getIconColumnValue(obj, result),
+//        if (displayType != null){
+//            String disabledStyle = "";
+//            if (obj instanceof FocusType) {
+//                disabledStyle = WebComponentUtil.getIconEnabledDisabled(((FocusType)obj).asPrismObject());
+//                if (displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass()) &&
+//                        disabledStyle != null){
+//                    displayType.getIcon().setCssClass(displayType.getIcon().getCssClass() + " " + disabledStyle);
+//                    displayType.getIcon().setColor("");
+//                }
+//            }
+//        } else {
+        if (displayType == null){
+            displayType = WebComponentUtil.createDisplayType(createDefaultIcon(obj.asPrismObject()),
                     "", ColumnUtils.getIconColumnTitle(obj, result));
         }
         return displayType;
+    }
+
+    public static <O extends ObjectType> CompositedIcon createCompositeIconForObject(O obj, OperationResult result, PageBase pageBase){
+        DisplayType basicIconDisplayType = getDisplayTypeForObject(obj, result, pageBase);
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
+        if (basicIconDisplayType == null){
+            return new CompositedIconBuilder().build();
+        }
+        IconType lifecycleStateIcon = getIconForLifecycleState(obj);
+        IconType activationStatusIcon = getIconForActivationStatus(obj);
+
+        String iconColor = getIconColor(basicIconDisplayType);
+
+        CompositedIcon compositedIconForObject = iconBuilder.setBasicIcon(
+                getIconCssClass(basicIconDisplayType), IconCssStyle.IN_ROW_STYLE)
+                .appendColorHtmlValue(StringUtils.isNotEmpty(iconColor) ? iconColor : "")
+                .appendLayerIcon(lifecycleStateIcon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE)
+                .appendLayerIcon(activationStatusIcon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE)
+                .build();
+
+        return compositedIconForObject;
+    }
+
+    public static <O extends ObjectType> IconType getIconForLifecycleState(O obj){
+        IconType icon = new IconType();
+        if (obj == null){
+            icon.setCssClass("");
+            return icon;
+        }
+        if (SchemaConstants.LIFECYCLE_ARCHIVED.equals(obj.getLifecycleState())){
+            icon.setCssClass(GuiStyleConstants.CLASS_FILE_EXCEL);
+        }
+        if (icon.getCssClass() == null){
+            icon.setCssClass("");
+        }
+        icon.setColor("blue");
+        return icon;
+    }
+
+    public static <O extends ObjectType> IconType getIconForActivationStatus(O obj){
+        IconType icon = new IconType();
+        if (obj == null || !(obj instanceof FocusType) || ((FocusType) obj).getActivation() == null){
+            icon.setCssClass("");
+            return icon;
+        }
+        if (LockoutStatusType.LOCKED.equals(((FocusType) obj).getActivation().getLockoutStatus())){
+            icon.setCssClass(GuiStyleConstants.CLASS_LOCK_STATUS);
+        } else if (ActivationStatusType.DISABLED.equals(((FocusType) obj).getActivation().getEffectiveStatus())){
+            icon.setCssClass(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
+        }
+        if (icon.getCssClass() == null){
+            icon.setCssClass("");
+        }
+        icon.setColor("red");
+        return icon;
     }
 
     public static DisplayType createDisplayType(String iconCssClass){
