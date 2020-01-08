@@ -24,6 +24,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.codehaus.staxmate.dom.DOMConverter;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
@@ -174,9 +175,12 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
     @NotNull
     public RootXNodeImpl read(Element rootElement) throws SchemaException {
-        RootXNodeImpl xroot = new RootXNodeImpl(DOMUtil.getQName(rootElement));
-        extractCommonMetadata(rootElement, DOMUtil.resolveXsiType(rootElement), xroot);
-        XNodeImpl xnode = parseElementContent(rootElement, false);
+        QName rootElementName = DOMUtil.getQName(rootElement);
+        QName rootElementXsiType = DOMUtil.resolveXsiType(rootElement);
+
+        RootXNodeImpl xroot = new RootXNodeImpl(rootElementName);
+        extractCommonMetadata(rootElement, rootElementXsiType, xroot);
+        XNodeImpl xnode = parseElementContent(rootElement, rootElementName, false);
         xroot.setSubnode(xnode);
         return xroot;
     }
@@ -212,16 +216,19 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
     }
 
     /**
-     * Parses the content of the element. The name of the provided element is ignored (unless storeElementName=true),
-     * only the content is parsed.
+     * Parses the content of the element.
+     *
+     * @param knownElementName Pre-fetched element name. Might be null (this is expected if storeElementName is true).
      */
     @NotNull
-    private XNodeImpl parseElementContent(@NotNull Element element, boolean storeElementName) throws SchemaException {
+    private XNodeImpl parseElementContent(@NotNull Element element, QName knownElementName, boolean storeElementName) throws SchemaException {
         XNodeImpl node;
 
         QName xsiType = DOMUtil.resolveXsiType(element);
+        QName elementName = knownElementName != null ? knownElementName : DOMUtil.getQName(element);
+
         if (DOMUtil.hasChildElements(element) || DOMUtil.hasApplicationAttributes(element)) {
-            if (isList(element, xsiType)) {
+            if (isList(element, elementName, xsiType)) {
                 node = parseElementContentToList(element);
             } else {
                 node = parseElementContentToMap(element);
@@ -230,7 +237,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
             node = parsePrimitiveElement(element);
         }
         if (storeElementName) {
-            node.setElementName(DOMUtil.getQName(element));
+            node.setElementName(elementName);
         }
         extractCommonMetadata(element, xsiType, node);
         return node;
@@ -241,7 +248,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         if (DOMUtil.hasApplicationAttributes(element)) {
             throw new SchemaException("List should have no application attributes: " + element);
         }
-        return parseElementList(DOMUtil.listChildElements(element), true);
+        return parseElementList(DOMUtil.listChildElements(element), null, true);
     }
 
     private MapXNodeImpl parseElementContentToMap(Element element) throws SchemaException {
@@ -270,7 +277,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         return xmap;
     }
 
-    private boolean isList(Element element, QName xsiType) {
+    private boolean isList(@NotNull Element element, @NotNull QName elementName, @Nullable QName xsiType) {
         String isListAttribute = DOMUtil.getAttribute(element, new QName(DOMUtil.IS_LIST_ATTRIBUTE_NAME));
         if (StringUtils.isNotEmpty(isListAttribute)) {
             return Boolean.parseBoolean(isListAttribute);
@@ -280,34 +287,9 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 //            return false;
 //        }
 
-        // checking parent element fitness
-        if (xsiType != null) {
-            Collection<? extends ComplexTypeDefinition> definitions = schemaRegistry
-                    .findTypeDefinitionsByType(xsiType, ComplexTypeDefinition.class);
-            if (definitions.isEmpty()) {
-                return false;    // to be safe (we support this heuristic only for known types)
-            }
-            if (QNameUtil.hasNamespace(xsiType)) {
-                assert definitions.size() <= 1;
-                return definitions.iterator().next().isListMarker();
-            } else {
-                if (definitions.stream().allMatch(ComplexTypeDefinition::isListMarker)) {
-                    // great -- we are very probably OK -- so let's continue
-                } else {
-                    return false;    // sorry, there's a possibility of failure
-                }
-            }
-        } else {    // typeName == null
-            Collection<? extends ComplexTypeDefinition> definitions =
-                    schemaRegistry.findTypeDefinitionsByElementName(DOMUtil.getQName(element), ComplexTypeDefinition.class);
-            // TODO - or allMatch here? - allMatch would mean that if there's an extension (or resource item) with a name
-            // of e.g. formItems, pipeline, sequence, ... - it would not be recognizable as list=true anymore. That's why
-            // we will use anyMatch here.
-            if (definitions.stream().anyMatch(ComplexTypeDefinition::isListMarker)) {
-                // we are very hopefully OK -- so let's continue
-            } else {
-                return false;
-            }
+        SchemaRegistry.IsList fromSchema = schemaRegistry.isList(xsiType, elementName);
+        if (fromSchema != SchemaRegistry.IsList.MAYBE) {
+            return fromSchema == SchemaRegistry.IsList.YES;
         }
 
         // checking the content
@@ -365,22 +347,27 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
                 throw new SchemaException("Too many schema elements");
             }
         } else if (elements.size() == 1) {
-            xsub = parseElementContent(elements.get(0), false);
+            xsub = parseElementContent(elements.get(0), elementName, false);
         } else {
-            xsub = parseElementList(elements, false);
+            xsub = parseElementList(elements, elementName, false);
         }
         xmap.merge(elementName, xsub);
     }
 
     /**
-     * Parses elements that should form the list (either they have the same element name, or they are
-     * stored as a sub-elements of "list" parent element).
+     * Parses elements that should form the list.
+     *
+     * Either they have the same element name, or they are stored as a sub-elements of "list" parent element.
      */
     @NotNull
-    private ListXNodeImpl parseElementList(List<Element> elements, boolean storeElementNames) throws SchemaException {
+    @Contract("!null, null, false -> fail")
+    private ListXNodeImpl parseElementList(List<Element> elements, QName elementName, boolean storeElementNames) throws SchemaException {
+        if (!storeElementNames && elementName == null) {
+            throw new IllegalArgumentException("When !storeElementNames the element name must be specified");
+        }
         ListXNodeImpl xlist = new ListXNodeImpl();
         for (Element element: elements) {
-            xlist.add(parseElementContent(element, storeElementNames));
+            xlist.add(parseElementContent(element, elementName, storeElementNames));
         }
         return xlist;
     }

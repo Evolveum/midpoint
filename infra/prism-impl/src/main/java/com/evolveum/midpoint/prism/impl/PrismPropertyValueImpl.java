@@ -61,7 +61,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     @Nullable private ExpressionWrapper expression;
 
     public PrismPropertyValueImpl(T value) {
-        this(value, null, null);
+        this(value, null, null, null, null);
     }
 
     public PrismPropertyValueImpl(T value, PrismContext prismContext) {
@@ -73,7 +73,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     }
 
     public PrismPropertyValueImpl(T value, PrismContext prismContext, OriginType type, Objectable source, ExpressionWrapper expression) {
-        super(type, source);
+        super(prismContext, type, source, null);
         if (value instanceof PrismPropertyValue) {
             throw new IllegalArgumentException("Probably problem somewhere, encapsulating property " +
                     "value object to another property value.");
@@ -247,24 +247,11 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
             // This is illegal. PolyString should be there instead.
             throw new IllegalArgumentException("PolyStringType found where PolyString should be in "+this);
         }
-        Class<? extends Object> valueClass = value.getClass();
         if (value instanceof Serializable) {
-            // This is OK
+            // This is OK (covers also primitives, SchemaDefinitionType, RawType)
             return;
         }
-        if (valueClass.isPrimitive()) {
-            // This is OK
-            return;
-        }
-        if (value instanceof SchemaDefinitionType) {
-            return;
-        }
-
-        if (value instanceof RawType) {
-            return;
-        }
-
-        throw new IllegalArgumentException("Unsupported value "+value+" ("+valueClass+") in "+this);
+        throw new IllegalArgumentException("Unsupported value "+value+" ("+value.getClass()+") in "+this);
     }
 
     @Override

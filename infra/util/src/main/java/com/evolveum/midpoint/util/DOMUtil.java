@@ -937,6 +937,15 @@ public class DOMUtil {
         return null;
     }
 
+    public static Element getNamedElement(List<Element> elements, QName qname) {
+        for (Element element : elements) {
+            if (qname.equals(getQName(element))) {
+                return element;
+            }
+        }
+        return null;
+    }
+
     public static Element getChildElement(Element element, String localPart) {
         for (Element subelement: listChildElements(element)) {
             if (subelement.getLocalName().equals(localPart)) {

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.impl.lex.dom;
 
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -41,11 +42,13 @@ class AttributeValueParser<T> implements ValueParser<T>, Serializable {
             if (DOMUtil.XSD_QNAME.equals(typeName)) {
                 //noinspection unchecked
                 return (T) DOMUtil.getQNameValue(attr);
-            } else if (XmlTypeConverter.canConvert(typeName)) {
-                String stringValue = attr.getTextContent();
-                return XmlTypeConverter.toJavaValue(stringValue, typeName);
             } else {
-                throw new SchemaException("Cannot convert attribute '"+ attr +"' to "+ typeName);
+                Class<T> clazz = XsdTypeMapper.getXsdToJavaMapping(typeName);
+                if (clazz != null) {
+                    return XmlTypeConverter.toJavaValue(attr.getTextContent(), clazz);
+                } else {
+                    throw new SchemaException("Cannot convert attribute '"+ attr +"' to "+ typeName);
+                }
             }
         } catch (IllegalArgumentException e) {
             return DomLexicalProcessor.processIllegalArgumentException(attr.getTextContent(), typeName, e, mode);        // primitive way of ensuring compatibility mode

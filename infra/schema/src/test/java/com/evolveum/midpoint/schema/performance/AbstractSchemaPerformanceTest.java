@@ -80,6 +80,8 @@ public class AbstractSchemaPerformanceTest {
         }
         resultsWriter.println();
         resultsWriter.close();
+
+        System.out.println(label + ": Average without the best and the worst = " + avg2);
         return avg;
     }
 
