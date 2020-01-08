@@ -897,7 +897,7 @@ public class ContextLoader {
         }
         // It is little bit questionable whether we need to make primary delta immutable. It makes some sense, but I am not sure.
         // Note that (as a side effect) this can make "focus new" immutable as well, in the case of ADD delta.
-        primaryDeltaToUpdate.setImmutable();
+        primaryDeltaToUpdate.freeze();
     }
 
     private <F extends ObjectType> void loadProjectionContextsSync(LensContext<F> context, Task task, OperationResult result) throws SchemaException,

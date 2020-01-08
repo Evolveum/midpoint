@@ -425,8 +425,8 @@ public class DummyReferenceImpl implements PrismReference {
         return realReference.isImmutable();
     }
 
-    public void setImmutable() {
-        realReference.setImmutable();
+    public void freeze() {
+        realReference.freeze();
     }
 
     public void checkImmutability() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,10 +12,8 @@ import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
-import java.io.IOException;
 import java.util.Map;
 
 public class JsonNullValueParser<T> implements ValueParser<T> {
@@ -52,7 +50,8 @@ public class JsonNullValueParser<T> implements ValueParser<T> {
         return null;                // TODO implement
     }
 
-    Element asDomElement() throws IOException {
-        return null;
+    @Override
+    public ValueParser<T> freeze() {
+        return this;
     }
 }

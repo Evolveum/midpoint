@@ -53,7 +53,7 @@ public class TestImmutable {
         PrismPropertyDefinition<String> displayNamePPD = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_DISPLAY_NAME);
         PrismProperty<String> displayNamePP = displayNamePPD.instantiate();
         displayNamePP.setRealValue("Big red ball");
-        displayNamePP.setImmutable();
+        displayNamePP.freeze();
 
         // THEN
         try {
@@ -85,7 +85,7 @@ public class TestImmutable {
         Date now = new Date();
         Date yesterday = new Date(now.getTime()-86400000L);
         datePP.setRealValue(XmlTypeConverter.createXMLGregorianCalendar(now));
-        datePP.setImmutable();
+        datePP.freeze();
 
         // THEN
         try {
@@ -120,7 +120,7 @@ public class TestImmutable {
         PrismReferenceDefinition refPRD = prismContext.definitionFactory().createReferenceDefinition(new QName(SchemaConstants.NS_C, "ref"), ObjectReferenceType.COMPLEX_TYPE);
         PrismReference refPR = refPRD.instantiate();
         refPR.add(ObjectTypeUtil.createObjectRef("oid1", ObjectTypes.USER).asReferenceValue());
-        refPR.setImmutable();
+        refPR.freeze();
 
         // THEN
         try {
@@ -163,7 +163,7 @@ public class TestImmutable {
         businessConfiguration.setAdministrativeState(ResourceAdministrativeStateType.ENABLED);
         resource.asObjectable().setBusiness(businessConfiguration);
 
-        resource.setImmutable();
+        resource.freeze();
 
         System.out.println("Resource: " + resource.debugDump());
 

@@ -34,7 +34,7 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
  */
 public class AbstractSchemaPerformanceTest {
 
-    protected static final String LABEL = "v4.0devel-PCV-with-map";
+    protected static final String LABEL = "new-mapxnode";
 
     protected static final Trace LOGGER = TraceManager.getTrace(AbstractSchemaPerformanceTest.class);
 
@@ -80,6 +80,8 @@ public class AbstractSchemaPerformanceTest {
         }
         resultsWriter.println();
         resultsWriter.close();
+
+        System.out.println(label + ": Average without the best and the worst = " + avg2);
         return avg;
     }
 

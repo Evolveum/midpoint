@@ -1,16 +1,12 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.xnode;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
@@ -53,11 +49,13 @@ public class ListXNodeImpl extends XNodeImpl implements List<XNodeImpl>, ListXNo
 
     @Override
     public boolean add(XNodeImpl e) {
+        checkMutable();
         return subnodes.add(e);
     }
 
     @Override
     public boolean remove(Object o) {
+        checkMutable();
         return subnodes.remove(o);
     }
 
@@ -68,26 +66,31 @@ public class ListXNodeImpl extends XNodeImpl implements List<XNodeImpl>, ListXNo
 
     @Override
     public boolean addAll(Collection<? extends XNodeImpl> c) {
+        checkMutable();
         return subnodes.addAll(c);
     }
 
     @Override
     public boolean addAll(int index, Collection<? extends XNodeImpl> c) {
+        checkMutable();
         return subnodes.addAll(index, c);
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
+        checkMutable();
         return subnodes.removeAll(c);
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
+        checkMutable();
         return subnodes.retainAll(c);
     }
 
     @Override
     public void clear() {
+        checkMutable();
         subnodes.clear();
     }
 
@@ -98,16 +101,19 @@ public class ListXNodeImpl extends XNodeImpl implements List<XNodeImpl>, ListXNo
 
     @Override
     public XNodeImpl set(int index, XNodeImpl element) {
+        checkMutable();
         return subnodes.set(index, element);
     }
 
     @Override
     public void add(int index, XNodeImpl element) {
+        checkMutable();
         subnodes.add(index, element);
     }
 
     @Override
     public XNodeImpl remove(int index) {
+        checkMutable();
         return subnodes.remove(index);
     }
 
@@ -121,23 +127,26 @@ public class ListXNodeImpl extends XNodeImpl implements List<XNodeImpl>, ListXNo
         return subnodes.lastIndexOf(o);
     }
 
+    // TODO what about immutability?
     @Override
     public ListIterator<XNodeImpl> listIterator() {
         return subnodes.listIterator();
     }
 
+    // TODO what about immutability?
     @Override
     public ListIterator<XNodeImpl> listIterator(int index) {
         return subnodes.listIterator(index);
     }
 
+    // TODO what about immutability?
     @Override
     public List<XNodeImpl> subList(int fromIndex, int toIndex) {
         return subnodes.subList(fromIndex, toIndex);
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor<XNode> visitor) {
         visitor.visit(this);
         for (XNodeImpl subnode: subnodes) {
             if (subnode != null) {
@@ -189,6 +198,14 @@ public class ListXNodeImpl extends XNodeImpl implements List<XNodeImpl>, ListXNo
 
     @Override
     public List<? extends XNode> asList() {
-        return this;
+        return immutable ? Collections.unmodifiableList(this) : this;
+    }
+
+    @Override
+    public void freeze() {
+        for (XNodeImpl subnode : subnodes) {
+            subnode.freeze();
+        }
+        super.freeze();
     }
 }
