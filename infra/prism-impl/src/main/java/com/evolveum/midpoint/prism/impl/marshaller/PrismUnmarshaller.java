@@ -413,11 +413,10 @@ public class PrismUnmarshaller {
                 realValue = valueT;
             }
             PrismUtil.recomputeRealValue(realValue, prismContext);
-            // I think we can skip checking whether value is allowed. This check currently deals with enum values (other types do not have allowed values set); and these were already checked!
-//            if (!isValueAllowed(realValue, definition)) {
-//                pc.warnOrThrow(LOGGER, "Unknown (not allowed) value of type " + typeName + ". Value: " + realValue + ". Allowed values: " + definition.getAllowedValues());
-//                return null;
-//            }
+            if (!isValueAllowed(realValue, definition)) {
+                pc.warnOrThrow(LOGGER, "Unknown (not allowed) value of type " + typeName + ". Value: " + realValue + ". Allowed values: " + definition.getAllowedValues());
+                return null;
+            }
             if (realValue == null) {
                 // Be careful here. Expression element can be legal sub-element of complex properties.
                 // Therefore parse expression only if there is no legal value.
@@ -444,27 +443,19 @@ public class PrismUnmarshaller {
         return prismContext.itemFactory().createPropertyValue(node);
     }
 
-    // TODO decide what to do with this method
-    private <T> boolean isValueAllowed(T realValue, PrismPropertyDefinition<T> definition) throws SchemaException {
-        if (definition == null || CollectionUtils.isEmpty(definition.getAllowedValues())) {
-            return true;
-        }
-        if (realValue == null) {
-            return true;        // TODO: ok?
-        }
-        String serializedForm;
+    private <T> boolean isValueAllowed(T realValue, PrismPropertyDefinition<T> definition) {
         if (realValue instanceof Enum) {
-            PrimitiveXNodeImpl<String> prim = (PrimitiveXNodeImpl<String>) getBeanMarshaller().marshall(realValue);
-            serializedForm = prim.getValue();
+            // Statically-defined enums have been already treated. Unless someone overrides the static schema,
+            // reducing the set of allowed values. But let's declared this feature as "not supported yet")
+            return true;
+        } else if (definition == null || CollectionUtils.isEmpty(definition.getAllowedValues())) {
+            return true;
+        } else if (realValue == null) {
+            return true;        // TODO: ok?
         } else {
-            serializedForm = null;
+            return definition.getAllowedValues().stream()
+                    .anyMatch(displayableValue -> realValue.equals(displayableValue.getValue()));
         }
-
-        return definition.getAllowedValues().stream()
-                .anyMatch(displayableValue ->
-                        realValue.equals(displayableValue.getValue())
-                        || serializedForm != null && serializedForm.equals(displayableValue.getValue())
-                );
     }
 
     @NotNull
