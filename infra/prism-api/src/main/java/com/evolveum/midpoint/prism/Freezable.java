@@ -12,5 +12,5 @@ package com.evolveum.midpoint.prism;
  */
 public interface Freezable {
 
-    void setImmutable();
+    void freeze();
 }

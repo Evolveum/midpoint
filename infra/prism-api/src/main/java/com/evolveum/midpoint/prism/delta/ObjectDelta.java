@@ -36,7 +36,7 @@ import java.util.List;
  * @author Radovan Semancik
  * @see PropertyDelta
  */
-public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visitable, PathVisitable, Serializable {
+public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visitable, PathVisitable, Serializable, Freezable {
 
     void accept(Visitor visitor, boolean includeOldValues);
 
@@ -369,6 +369,4 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
     void clear();
 
     boolean isImmutable();
-
-    void setImmutable();
 }

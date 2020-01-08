@@ -612,22 +612,22 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     }
 
     @Override
-    public void setImmutable() {
+    public void freeze() {
         if (value instanceof Freezable) {
-            ((Freezable) value).setImmutable();
+            ((Freezable) value).freeze();
         } else if (value instanceof JaxbVisitable) {
             ((JaxbVisitable) value).accept(v -> {
                 if (v instanceof Freezable) {
-                    ((Freezable) v).setImmutable();
+                    ((Freezable) v).freeze();
                 }
             });
         }
         if (rawElement != null) {
-            rawElement.setImmutable();
+            rawElement.freeze();
         }
         if (expression != null) {
-            expression.setImmutable();
+            expression.freeze();
         }
-        super.setImmutable();
+        super.freeze();
     }
 }

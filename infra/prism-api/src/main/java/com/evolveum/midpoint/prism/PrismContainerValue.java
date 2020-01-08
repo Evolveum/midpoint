@@ -339,9 +339,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
     }
 
     @Override
-    void setImmutable();
-
-    @Override
     Class<?> getRealClass();
 
     @NotNull

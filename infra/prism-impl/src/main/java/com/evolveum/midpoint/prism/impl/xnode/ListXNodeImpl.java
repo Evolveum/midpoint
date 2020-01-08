@@ -202,10 +202,10 @@ public class ListXNodeImpl extends XNodeImpl implements List<XNodeImpl>, ListXNo
     }
 
     @Override
-    public void setImmutable() {
+    public void freeze() {
         for (XNodeImpl subnode : subnodes) {
-            subnode.setImmutable();
+            subnode.freeze();
         }
-        super.setImmutable();
+        super.freeze();
     }
 }

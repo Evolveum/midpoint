@@ -57,9 +57,9 @@ public class ExpressionWrapper implements Cloneable, Serializable, Freezable {
     }
 
     @Override
-    public void setImmutable() {
+    public void freeze() {
         if (expression instanceof Freezable) {
-            ((Freezable) expression).setImmutable();
+            ((Freezable) expression).freeze();
         }
     }
 }

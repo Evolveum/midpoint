@@ -290,9 +290,9 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     }
 
     @Override
-    public void setImmutable() {
+    public void freeze() {
         if (filterClauseXNode != null) {
-            filterClauseXNode.setImmutable();
+            filterClauseXNode.freeze();
         }
         immutable = true;
     }
