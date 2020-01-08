@@ -492,8 +492,8 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
         return realProperty.isImmutable();
     }
 
-    public void setImmutable() {
-        realProperty.setImmutable();
+    public void freeze() {
+        realProperty.freeze();
     }
 
     public void checkImmutability() {

@@ -132,7 +132,7 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 
     boolean isImmutable();
 
-    void setImmutable();
+    void freeze();
 
     @Nullable
     Class<?> getRealClass();

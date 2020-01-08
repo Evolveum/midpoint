@@ -33,7 +33,7 @@ import java.util.function.Function;
  * @author Radovan Semancik
  */
 public interface Item<V extends PrismValue, D extends ItemDefinition> extends Itemable, DebugDumpable, Visitable, PathVisitable,
-        ParentVisitable, Serializable, Revivable {
+        ParentVisitable, Serializable, Revivable, Freezable {
 
     /**
      * Returns applicable definition.
@@ -542,8 +542,6 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     boolean isOperational();
 
     boolean isImmutable();
-
-    void setImmutable();
 
     void checkImmutability();
 

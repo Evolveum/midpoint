@@ -238,7 +238,7 @@ public abstract class XNodeImpl implements XNode {
     }
 
     @Override
-    public void setImmutable() {
+    public void freeze() {
         immutable = true;
     }
 }

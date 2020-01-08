@@ -1826,7 +1826,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
     }
 
     @Override
-    public void setImmutable() {
+    public void freeze() {
         // TODO make this object really immutable (by freezing the collections and the values in them)
         this.immutable = true;
     }

@@ -932,9 +932,9 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
         return immutable;
     }
 
-    public void setImmutable() {
+    public void freeze() {
         for (V value : getValues()) {
-            value.setImmutable();
+            value.freeze();
         }
         this.immutable = true;
     }
@@ -965,7 +965,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
     public Item<V,D> createImmutableClone() {
         Item<V,D> clone = clone();
-        clone.setImmutable();
+        clone.freeze();
         return clone;
     }
 

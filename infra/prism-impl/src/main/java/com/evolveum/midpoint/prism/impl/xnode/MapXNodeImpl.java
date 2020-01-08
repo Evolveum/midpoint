@@ -330,13 +330,13 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
     }
 
     @Override
-    public void setImmutable() {
+    public void freeze() {
         for (Map.Entry<QName, XNodeImpl> subnode : subnodes.entrySet()) {
             if (subnode.getValue() != null) {
-                subnode.getValue().setImmutable();
+                subnode.getValue().freeze();
             }
         }
-        super.setImmutable();
+        super.freeze();
     }
 
     // TODO reconsider performance of this method

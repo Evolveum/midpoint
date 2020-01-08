@@ -586,8 +586,8 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
         return realContainer.isImmutable();
     }
 
-    public void setImmutable() {
-        realContainer.setImmutable();
+    public void freeze() {
+        realContainer.freeze();
     }
 
     public void checkImmutability() {

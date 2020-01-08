@@ -80,7 +80,7 @@ public class TestParseObjectTemplate {
 
         // WHEN
         PrismObject<ObjectTemplateType> template = prismContext.parseObject(OBJECT_TEMPLATE_FILE);
-        template.setImmutable();    // this is necessary in order to eliminate thread-unsafe DOM value parsers
+        template.freeze();    // this is necessary in order to eliminate thread-unsafe DOM value parsers
         MappingType mapping = template.asObjectable().getMapping().stream()
                 .filter(m -> "Access role assignment".equals(m.getName()))
                 .findAny().orElse(null);
