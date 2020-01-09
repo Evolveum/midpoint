@@ -445,11 +445,18 @@ public class ContextLoader {
 
     private <O extends ObjectType> void setPrimaryDeltaOldValue(LensElementContext<O> ctx) {
         if (ctx.getPrimaryDelta() != null && ctx.getObjectOld() != null && ctx.isModify()) {
+            boolean freezeAfterChange;
             if (ctx.getPrimaryDelta().isImmutable()) {
                 ctx.setPrimaryDelta(ctx.getPrimaryDelta().clone());
+                freezeAfterChange = true;
+            } else {
+                freezeAfterChange = false;
             }
             for (ItemDelta<?,?> itemDelta: ctx.getPrimaryDelta().getModifications()) {
                 LensUtil.setDeltaOldValue(ctx, itemDelta);
+            }
+            if (freezeAfterChange) {
+                ctx.getPrimaryDelta().freeze();
             }
         }
     }

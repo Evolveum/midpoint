@@ -141,7 +141,8 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
 
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             getPage().showResult(result);
-            throw new RestartResponseException(PageError.class);
+            return 0;
+//            throw new RestartResponseException(PageError.class);
         }
 
         LOGGER.trace("end::internalSize(): {}", count);

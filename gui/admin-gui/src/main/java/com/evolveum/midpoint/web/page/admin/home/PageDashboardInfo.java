@@ -7,16 +7,15 @@
 package com.evolveum.midpoint.web.page.admin.home;
 
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.Arrays;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.component.IRequestablePage;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -25,15 +24,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.box.BasicInfoBoxPanel;
-import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
-import com.evolveum.midpoint.web.component.box.InfoBoxType;
-import com.evolveum.midpoint.web.component.box.SmallInfoBoxPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.DashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.SystemInfoPanel;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;

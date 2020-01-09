@@ -26,6 +26,10 @@ public abstract class IconColumn<T> extends AbstractColumn<T, String> {//impleme
         super(displayModel);
     }
 
+    public IconColumn(IModel<String> displayModel, String sortProperty) {
+        super(displayModel, sortProperty);
+    }
+
     @Override
     public String getCssClass() {
         IModel<String> display = getDisplayModel();
@@ -35,6 +39,7 @@ public abstract class IconColumn<T> extends AbstractColumn<T, String> {//impleme
 
         return "icon";
     }
+
 
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, IModel<T> rowModel) {

@@ -112,7 +112,11 @@ public class SearchFactory {
                 ItemPath.create(TaskType.F_TASK_IDENTIFIER),
                 ItemPath.create(TaskType.F_NODE),
                 ItemPath.create(TaskType.F_CATEGORY),
-                ItemPath.create(TaskType.F_RESULT_STATUS)
+                ItemPath.create(TaskType.F_RESULT_STATUS),
+                ItemPath.create(TaskType.F_EXECUTION_STATUS),
+                ItemPath.create(TaskType.F_HANDLER_URI),
+                ItemPath.create(TaskType.F_OBJECT_REF)
+
         ));
 
         SEARCHABLE_OBJECTS.put(AssignmentType.class, Arrays.asList(

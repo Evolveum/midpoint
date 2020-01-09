@@ -61,7 +61,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
@@ -240,7 +240,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
                 @Override
                 public InlineMenuItemAction initAction() {
-                    return new ColumnMenuAction<SelectableBean<OrgType>>() {
+                    return new ColumnMenuAction<SelectableBeanImpl<OrgType>>() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -258,7 +258,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
                 @Override
                 public InlineMenuItemAction initAction() {
-                    return new ColumnMenuAction<SelectableBean<OrgType>>() {
+                    return new ColumnMenuAction<SelectableBeanImpl<OrgType>>() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -276,7 +276,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<OrgType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<OrgType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -299,7 +299,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<OrgType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<OrgType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -321,7 +321,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<OrgType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<OrgType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -343,7 +343,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<OrgType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<OrgType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -365,7 +365,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<OrgType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<OrgType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -490,14 +490,14 @@ public class TreeTablePanel extends BasePanel<String> {
 
     private void moveRootPerformed(final TreeSelectableBean<OrgType> root, AjaxRequestTarget target) {
 
-        final SelectableBean<OrgType> orgToMove = root;
+        final SelectableBeanImpl<OrgType> orgToMove = root;
 
         OrgTreeAssignablePanel orgAssignablePanel = new OrgTreeAssignablePanel(
                 parentPage.getMainPopupBodyId(), false) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
+            protected void onItemSelect(SelectableBeanImpl<OrgType> selected, AjaxRequestTarget target) {
                 moveConfirmPerformed(orgToMove, selected, target);
             }
 
@@ -512,8 +512,8 @@ public class TreeTablePanel extends BasePanel<String> {
 
     }
 
-    private void moveConfirmPerformed(SelectableBean<OrgType> orgToMove, SelectableBean<OrgType> selected,
-            AjaxRequestTarget target) {
+    private void moveConfirmPerformed(SelectableBeanImpl<OrgType> orgToMove, SelectableBeanImpl<OrgType> selected,
+                                      AjaxRequestTarget target) {
         getPageBase().hideMainPopup(target);
 
         Task task = getPageBase().createSimpleTask(OPERATION_MOVE_OBJECT);
@@ -568,7 +568,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
     }
 
-    private void makeRootPerformed(SelectableBean<OrgType> newRoot, AjaxRequestTarget target) {
+    private void makeRootPerformed(SelectableBeanImpl<OrgType> newRoot, AjaxRequestTarget target) {
         Task task = getPageBase().createSimpleTask(OPERATION_MOVE_OBJECT);
         OperationResult result = new OperationResult(OPERATION_MOVE_OBJECT);
 
@@ -606,7 +606,7 @@ public class TreeTablePanel extends BasePanel<String> {
         setResponsePage(PageOrgTree.class);
     }
 
-    private void recomputeRootPerformed(SelectableBean<OrgType> root, AjaxRequestTarget target) {
+    private void recomputeRootPerformed(SelectableBeanImpl<OrgType> root, AjaxRequestTarget target) {
         if (root == null) {
             root = getTreePanel().getRootFromProvider();
         }
@@ -614,7 +614,7 @@ public class TreeTablePanel extends BasePanel<String> {
         recomputePerformed(root, target);
     }
 
-    private void recomputePerformed(SelectableBean<OrgType> orgToRecompute, AjaxRequestTarget target) {
+    private void recomputePerformed(SelectableBeanImpl<OrgType> orgToRecompute, AjaxRequestTarget target) {
 
         Task task = getPageBase().createSimpleTask(OPERATION_RECOMPUTE);
         OperationResult result = new OperationResult(OPERATION_RECOMPUTE);
@@ -640,7 +640,7 @@ public class TreeTablePanel extends BasePanel<String> {
         getTreePanel().refreshTabbedPanel(target);
     }
 
-    private void deleteNodePerformed(final SelectableBean<OrgType> orgToDelete, AjaxRequestTarget target) {
+    private void deleteNodePerformed(final SelectableBeanImpl<OrgType> orgToDelete, AjaxRequestTarget target) {
 
         ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
                 new IModel<String>() {
@@ -671,7 +671,7 @@ public class TreeTablePanel extends BasePanel<String> {
         getPageBase().showMainPopup(confirmationPanel, target);
     }
 
-    private boolean hasChildren(SelectableBean<OrgType> orgToDelete) {
+    private boolean hasChildren(SelectableBeanImpl<OrgType> orgToDelete) {
         ObjectQuery query = getPageBase().getPrismContext().queryFor(ObjectType.class)
                 .isChildOf(orgToDelete.getValue().getOid())            // TODO what if orgToDelete.getValue()==null
                 .build();
@@ -690,7 +690,7 @@ public class TreeTablePanel extends BasePanel<String> {
     }
 
 
-    private void deleteNodeConfirmedPerformed(SelectableBean<OrgType> orgToDelete, AjaxRequestTarget target) {
+    private void deleteNodeConfirmedPerformed(SelectableBeanImpl<OrgType> orgToDelete, AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
 
         PageBase page = getPageBase();
@@ -727,7 +727,7 @@ public class TreeTablePanel extends BasePanel<String> {
         throw new RestartResponseException(getPage().getClass());
     }
 
-    private void editRootPerformed(SelectableBean<OrgType> root, AjaxRequestTarget target) {
+    private void editRootPerformed(SelectableBeanImpl<OrgType> root, AjaxRequestTarget target) {
         if (root == null) {
             root = getTreePanel().getRootFromProvider();
         }

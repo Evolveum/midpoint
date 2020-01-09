@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -29,8 +32,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * Created by honchar.
@@ -155,18 +158,23 @@ public class DashboardSearchPanel extends BasePanel<T> {
 
     private void performSearch(String text) {
 
+        PageParameters params = null;
+        if (StringUtils.isNotBlank(text)) {
+            params = new PageParameters();
+            params.add(PageBase.PARAMETER_SEARCH_BY_NAME, text);
+        }
         switch (selectedSearchType) {
             case USERS:
-                setResponsePage(new PageUsers(text));
+                setResponsePage(PageUsers.class, params);
                 break;
             case RESOURCES:
-                setResponsePage(new PageResources(text));
+                setResponsePage(PageResources.class, params);
                 break;
             case TASKS:
-                setResponsePage(new PageTasks(text));
+                setResponsePage(PageTasks.class, params);
                 break;
             default:
-                setResponsePage(new PageUsers(text));
+                setResponsePage(PageUsers.class, params);
         }
 
     }

@@ -54,7 +54,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -390,11 +389,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         } catch (Exception ex) {
             result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
-            try {
-                wrapper = factory.createObjectWrapper(object, itemStatus, context);
-            } catch (SchemaException e) {
-                throw new SystemException(e.getMessage(), e);
-            }
+            showResult(result, false);
+            throw new RestartResponseException(getRestartResponsePage());
         }
 
         showResult(result, false);

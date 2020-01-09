@@ -6,17 +6,35 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.io.Serializable;
-import java.util.*;
-
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,28 +48,13 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * @author katkav
  */
-public abstract class MainObjectListPanel<O extends ObjectType, S extends Serializable> extends ObjectListPanel<O> {
+public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectListPanel<O> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_BUTTON_BAR = "buttonBar";
@@ -59,8 +62,12 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
     private static final String ID_BUTTON = "button";
     private static final Trace LOGGER = TraceManager.getTrace(MainObjectListPanel.class);
 
-    public MainObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
+//    private Boolean manualRefreshEnabled;
+
+    public MainObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id, type, tableId, options);
+
+
     }
 
     @Override
@@ -82,7 +89,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
 
                 @Override
                 public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
-                    return MainObjectListPanel.this.isClickable(rowModel);
+                    return MainObjectListPanel.this.isObjectDetailsEnabled(rowModel);
                 }
             };
         } else {
@@ -98,38 +105,83 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
 
                 @Override
                 public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
-                    return MainObjectListPanel.this.isClickable(rowModel);
+                    return MainObjectListPanel.this.isObjectDetailsEnabled(rowModel);
                 }
             };
         }
     }
 
-    protected boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+    protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
         return true;
     }
 
     protected abstract void objectDetailsPerformed(AjaxRequestTarget target, O object);
 
-    protected void newObjectPerformed(AjaxRequestTarget target, S collectionView){}
+    protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView){
+        if (collectionView == null){
+            collectionView = getObjectCollectionView();
+        }
+
+        List<ObjectReferenceType> archetypeRef = getReferencesList(collectionView);
+        try {
+            WebComponentUtil.initNewObjectWithReference(getPageBase(),
+                    WebComponentUtil.classToQName(getPrismContext(), getType()),
+                    archetypeRef);
+        } catch (SchemaException ex){
+            getPageBase().getFeedbackMessages().error(MainObjectListPanel.this, ex.getUserFriendlyMessage());
+            target.add(getPageBase().getFeedbackPanel());
+        }
+    }
+
+    private List<ObjectReferenceType> getReferencesList(CompiledObjectCollectionView collectionView) {
+        if (!isArchetypedCollectionView(collectionView)) {
+            return null;
+        }
+
+        ObjectReferenceType ref =  collectionView.getCollection().getCollectionRef();
+        return Arrays.asList(ref);
+    }
 
     @Override
     protected WebMarkupContainer createTableButtonToolbar(String id) {
         return new ButtonBar(id, ID_BUTTON_BAR, this, createToolbarButtonsList(ID_BUTTON));
     }
 
+    protected List<MultiFunctinalButtonDto> loadButtonDescriptions() {
+        List<MultiFunctinalButtonDto> multiFunctinalButtonDtos = new ArrayList<>();
+
+        Collection<CompiledObjectCollectionView> compiledObjectCollectionViews = getNewObjectInfluencesList();
+
+        if (CollectionUtils.isNotEmpty(compiledObjectCollectionViews)) {
+            compiledObjectCollectionViews.forEach(collection -> {
+                MultiFunctinalButtonDto buttonDesc = new MultiFunctinalButtonDto();
+                buttonDesc.setCompositedIcon(createCompositedIcon(collection));
+                buttonDesc.setAdditionalButtonDisplayType(collection.getDisplay());
+                buttonDesc.setCollectionView(collection);
+                multiFunctinalButtonDtos.add(buttonDesc);
+            });
+        }
+
+        return multiFunctinalButtonDtos;
+    }
+
+    private CompositedIcon createCompositedIcon(CompiledObjectCollectionView collectionView) {
+        DisplayType additionalButtonDisplayType = WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
+        CompositedIconBuilder builder = getNewObjectButtonAdditionalIconBuilder(collectionView, additionalButtonDisplayType);
+        if (builder == null){
+            return null;
+        }
+        return builder.build();
+    }
+
     protected List<Component> createToolbarButtonsList(String buttonId){
         List<Component> buttonsList = new ArrayList<>();
-        MultifunctionalButton<S> createNewObjectButton = new MultifunctionalButton<S>(buttonId){
+        MultifunctionalButton createNewObjectButton = new MultifunctionalButton(buttonId, loadButtonDescriptions()){
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<S> getAdditionalButtonsObjects(){
-                return getNewObjectInfluencesList();
-            }
-
-            @Override
-            protected void buttonClickPerformed(AjaxRequestTarget target, S influencingObject){
-                newObjectPerformed(target, influencingObject);
+            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionView){
+                newObjectPerformed(target, relationSpec, collectionView);
             }
 
             @Override
@@ -137,51 +189,28 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
                 return getNewObjectButtonStandardDisplayType();
             }
 
-            @Override
-            protected Map<IconCssStyle, IconType> getMainButtonLayerIcons(){
-                return getNewObjectButtonLayerIconStyleMap();
-            }
+
 
             @Override
-            protected CompositedIconBuilder getAdditionalIconBuilder(S influencingObject, DisplayType additionalButtonDisplayType){
-                CompositedIconBuilder builder = MainObjectListPanel.this.getNewObjectButtonAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
-                if (builder == null){
-                    return super.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
-                } else {
-                    return builder;
+            protected Map<IconCssStyle, IconType> getMainButtonLayerIcons(){
+                if (!isCollectionViewPanel()){
+                    return null;
                 }
+                Map<IconCssStyle, IconType> layerIconMap = new HashMap<>();
+                layerIconMap.put(IconCssStyle.BOTTOM_RIGHT_STYLE, WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"));
+                return layerIconMap;
             }
+
 
             @Override
             protected DisplayType getDefaultObjectButtonDisplayType(){
                 return getNewObjectButtonSpecialDisplayType();
             }
 
-            @Override
-            protected DisplayType getAdditionalButtonDisplayType(S buttonObject){
-                return getNewObjectButtonAdditionalDisplayType(buttonObject);
-            }
         };
         createNewObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectEnabled()));
         createNewObjectButton.add(AttributeAppender.append("class", "btn-margin-right"));
         buttonsList.add(createNewObjectButton);
-
-
-        AjaxIconButton refreshIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
-                createStringResource("MainObjectListPanel.refresh")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                clearCache();
-                refreshTable((Class<O>) getType(), target);
-
-                target.add((Component) getTable());
-            }
-        };
-        refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-        buttonsList.add(refreshIcon);
 
         AjaxIconButton importObject = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_UPLOAD),
                 createStringResource("MainObjectListPanel.import")) {
@@ -240,9 +269,51 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
                 return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
             }
         });
-
         buttonsList.add(exportDataLink);
+
+        AjaxIconButton refreshIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
+                createStringResource("MainObjectListPanel.refresh")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                clearCache();
+                refreshTable((Class<O>) getType(), target);
+
+                target.add((Component) getTable());
+            }
+        };
+        refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
+//        refreshIcon.add(AttributeAppender.append("class", "btn-margin-right"));
+        buttonsList.add(refreshIcon);
+
+        AjaxIconButton playPauseIcon = new AjaxIconButton(buttonId, getRefreshPausePlayButtonModel(),
+                createStringResource("MainObjectListPanel.refresh.enabled", isRefreshEnabled())) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                clearCache();
+                setManualRefreshEnabled(!isRefreshEnabled());
+                target.add(getTable());
+            }
+        };
+        playPauseIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        buttonsList.add(playPauseIcon);
+
         return buttonsList;
+    }
+
+    private IModel<String> getRefreshPausePlayButtonModel() {
+        return () -> {
+            if (isRefreshEnabled()) {
+                return GuiStyleConstants.CLASS_PAUSE;
+            }
+
+            return GuiStyleConstants.CLASS_PLAY;
+        };
     }
 
     private boolean isRawOrNoFetchOption(Collection<SelectorOptions<GetOperationOptions>> options){
@@ -262,11 +333,22 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         return true;
     }
 
-    protected List<S> getNewObjectInfluencesList(){
-        return new ArrayList<>();
+    protected List<CompiledObjectCollectionView> getNewObjectInfluencesList(){
+        if (isCollectionViewPanel()){
+            return new ArrayList<>();
+        }
+        return getAllApplicableArchetypeViews();
     }
 
     protected DisplayType getNewObjectButtonStandardDisplayType(){
+        if (isCollectionViewPanel()) {
+
+            CompiledObjectCollectionView view = getObjectCollectionView();
+            if (isArchetypedCollectionView(view)) {
+                return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(view, getPageBase());
+            }
+        }
+
         StringBuilder sb = new StringBuilder();
         sb.append(createStringResource("MainObjectListPanel.newObject").getString());
         sb.append(" ");
@@ -275,8 +357,26 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
                 sb.toString());
     }
 
-    protected Map<IconCssStyle, IconType> getNewObjectButtonLayerIconStyleMap(){
-        return null;
+    private boolean isArchetypedCollectionView(CompiledObjectCollectionView view) {
+        if (view == null) {
+            return false;
+        }
+
+        CollectionRefSpecificationType collectionRefSpecificationType = view.getCollection();
+        if (collectionRefSpecificationType == null) {
+            return false;
+        }
+
+        ObjectReferenceType collectionRef = collectionRefSpecificationType.getCollectionRef();
+        if (collectionRef == null) {
+            return false;
+        }
+
+        if (!QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRef.getType())) {
+            return false;
+        }
+
+        return true;
     }
 
     protected DisplayType getNewObjectButtonSpecialDisplayType(){
@@ -290,11 +390,8 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         return WebComponentUtil.createDisplayType(iconCssStyle, "", sb.toString());
     }
 
-    protected DisplayType getNewObjectButtonAdditionalDisplayType(S buttonObject){
-        return null;
-    }
 
-    protected CompositedIconBuilder getNewObjectButtonAdditionalIconBuilder(S influencingObject, DisplayType additionalButtonDisplayType){
+    protected CompositedIconBuilder getNewObjectButtonAdditionalIconBuilder(CompiledObjectCollectionView influencingObject, DisplayType additionalButtonDisplayType){
         return null;
     }
 
@@ -302,7 +399,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
 
         private static final long serialVersionUID = 1L;
 
-        public <O extends ObjectType, S extends Serializable> ButtonBar(String id, String markupId, MainObjectListPanel<O, S> markupProvider, List<Component> buttonsList) {
+        public <O extends ObjectType, S extends Serializable> ButtonBar(String id, String markupId, MainObjectListPanel<O> markupProvider, List<Component> buttonsList) {
             super(id, markupId, markupProvider);
 
             initLayout(buttonsList);
@@ -318,4 +415,6 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
             add(buttonsView);
         }
     }
+
+
 }
