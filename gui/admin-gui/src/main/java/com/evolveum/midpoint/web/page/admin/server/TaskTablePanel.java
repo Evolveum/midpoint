@@ -83,8 +83,6 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskTablePanel.class);
 
-    private static final String ID_TABLE = "table";
-
     private static final String DOT_CLASS = TaskTablePanel.class.getName() + ".";
     public static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTasks";
     public static final String OPERATION_SUSPEND_TASK = DOT_CLASS + "suspendTask";
@@ -240,15 +238,13 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     }
 
-
-
     protected List<IColumn<SelectableBean<TaskType>, String>> initCustomTaskColumns() {
         List<IColumn<SelectableBean<TaskType>, String>> columns = new ArrayList<>();
 
 
         columns.add(createTaskExecutionStatusColumn());
 
-        columns.add(createProgressColumn("pageTasks.task.progress", this::isProgressComputationEnabled));
+        columns.add(createProgressColumn("pageTasks.task.progress"));
 
         columns.add(new IconColumn<>(createStringResource("pageTasks.task.status"), TaskType.F_RESULT_STATUS.getLocalPart()) {
 
@@ -279,113 +275,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     }
 
-    private Date getCurrentRuntime(IModel<SelectableBean<TaskType>> taskModel) {
-        TaskType task = taskModel.getObject().getValue();
-
-        if (getRawExecutionStatus(task) == TaskExecutionStatus.CLOSED) {
-
-            Long time = getCompletionTimestamp(task);
-            if (time == null) {
-                return null;
-            }
-            return new Date(time);
-
-        }
-        return null;
-    }
-
-    public Long getCompletionTimestamp(TaskType taskType) {
-        return xgc2long(taskType.getCompletionTimestamp());
-    }
-
-    private String createScheduledToRunAgain(IModel<SelectableBean<TaskType>> taskModel) {
-        TaskType task = taskModel.getObject().getValue();
-        boolean runnable = getRawExecutionStatus(task) == TaskExecutionStatus.RUNNABLE;
-        Long scheduledAfter = getScheduledToStartAgain(taskModel.getObject());
-        Long retryAfter = runnable ? getRetryAfter(task) : null;
-
-        if (scheduledAfter == null) {
-            if (retryAfter == null || retryAfter <= 0) {
-                return "";
-            }
-        } else if (scheduledAfter == TaskDto.NOW) { // TODO what about retryTime?
-            return getString(runnable ? "pageTasks.now" : "pageTasks.nowForNotRunningTasks");
-        } else if (scheduledAfter == TaskDto.RUNS_CONTINUALLY) {    // retryTime is probably null here
-            return getString("pageTasks.runsContinually");
-        } else if (scheduledAfter == TaskDto.ALREADY_PASSED && retryAfter == null) {
-            return getString(runnable ? "pageTasks.alreadyPassed" : "pageTasks.alreadyPassedForNotRunningTasks");
-        }
-
-        long displayTime;
-        boolean displayAsRetry;
-        if (retryAfter != null && retryAfter > 0 && (scheduledAfter == null || scheduledAfter < 0
-                || retryAfter < scheduledAfter)) {
-            displayTime = retryAfter;
-            displayAsRetry = true;
-        } else {
-            displayTime = scheduledAfter;
-            displayAsRetry = false;
-        }
-
-        String key;
-        if (runnable) {
-            key = displayAsRetry ? "pageTasks.retryIn" : "pageTasks.in";
-        } else {
-            key = "pageTasks.inForNotRunningTasks";
-        }
-
-        return PageBase.createStringResourceStatic(this, key, DurationFormatUtils.formatDurationWords(displayTime, true, true))
-                .getString();
-    }
-
-    public static final long RUNS_CONTINUALLY = -1L;
-    public static final long ALREADY_PASSED = -2L;
-    public static final long NOW = 0L;
-
-    public Long getScheduledToStartAgain(SelectableBean<TaskType> taskBean) {
-        long current = System.currentTimeMillis();
-
-        if (getExecution(taskBean.getValue()) == TaskDtoExecutionStatus.RUNNING) {
-
-            if (TaskRecurrenceType.RECURRING != taskBean.getValue().getRecurrence()) {
-                return null;
-            } else if (TaskBindingType.TIGHT == taskBean.getValue().getBinding()) {
-                return RUNS_CONTINUALLY;             // runs continually; todo provide some information also in this case
-            }
-        }
-
-        Long nextRunStartTimeLong = getNextRunStartTimeLong(taskBean.getValue());
-        if (nextRunStartTimeLong == null || nextRunStartTimeLong == 0) {
-            return null;
-        }
-
-        if (nextRunStartTimeLong > current + 1000) {
-            return nextRunStartTimeLong - System.currentTimeMillis();
-        } else if (nextRunStartTimeLong < current - 60000) {
-            return ALREADY_PASSED;
-        } else {
-            return NOW;
-        }
-    }
-
-    public Long getRetryAfter(TaskType taskType) {
-        Long retryAt = getNextRetryTimeLong(taskType);
-        return retryAt != null ? retryAt - System.currentTimeMillis() : null;
-    }
-
-    public Long getNextRetryTimeLong(TaskType taskType) {
-        return xgc2long(taskType.getNextRetryTimestamp());
-    }
-
-    public Long getNextRunStartTimeLong(TaskType taskType) {
-        return xgc2long(taskType.getNextRunStartTimestamp());
-    }
-
-    public TaskDtoExecutionStatus getExecution(TaskType taskType) {
-        return TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
-    }
-
-    public EnumPropertyColumn<SelectableBean<TaskType>> createTaskExecutionStatusColumn() {
+    private EnumPropertyColumn<SelectableBean<TaskType>> createTaskExecutionStatusColumn() {
         return new EnumPropertyColumn<>(createStringResource("pageTasks.task.execution"), TaskType.F_EXECUTION_STATUS.getLocalPart(), SelectableBeanImpl.F_VALUE + ".executionStatus") {
 
             @Override
@@ -395,16 +285,14 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         };
     }
 
-    public AbstractExportableColumn<SelectableBean<TaskType>, String> createProgressColumn(String titleKey,
-                                                                                               SerializableSupplier<Boolean> progressComputationEnabledSupplier) {
+    private AbstractExportableColumn<SelectableBean<TaskType>, String> createProgressColumn(String titleKey) {
         return new AbstractExportableColumn<>(createStringResource(titleKey)) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, final IModel<SelectableBean<TaskType>> rowModel) {
                 if (!TaskTypeUtil.isPartitionedMaster(rowModel.getObject().getValue())) {
                     cellItem.add(new Label(componentId,
-                            (IModel<Object>) () -> getProgressDescription(rowModel.getObject(),
-                                    progressComputationEnabledSupplier.get())));
+                            (IModel<Object>) () -> getProgressDescription(rowModel.getObject())));
                 } else {
                     cellItem.add(new LinkPanel(componentId, createStringResource("PageTasks.show.child.progress")) {
 
@@ -421,45 +309,37 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                return Model.of(getProgressDescription(rowModel.getObject(),
-                        progressComputationEnabledSupplier.get()));
+                return Model.of(getProgressDescription(rowModel.getObject()));
             }
         };
     }
 
-    public String getProgressDescription(SelectableBean<TaskType> task, boolean alwaysCompute) {
+    private String getProgressDescription(SelectableBean<TaskType> task) {
         Long stalledSince = getStalledSince(task.getValue());
         if (stalledSince != null) {
-            return getString("pageTasks.stalledSince", new Date(stalledSince).toLocaleString(), getRealProgressDescription(task, alwaysCompute));
+            return getString("pageTasks.stalledSince", new Date(stalledSince).toLocaleString(), getRealProgressDescription(task));
         } else {
-            return getRealProgressDescription(task, alwaysCompute);
+            return getRealProgressDescription(task);
         }
     }
 
-    private String getRealProgressDescription(SelectableBean<TaskType> task, boolean alwaysCompute) {
-        if (TaskTypeUtil.isPartitionedMaster(task.getValue())) {
-            return "N/A";//getPartitionedTaskProgressDescription(task, alwaysCompute);
-        } else if (isWorkStateHolder(task)) {
+    private String getRealProgressDescription(SelectableBean<TaskType> task) {
+        if (isWorkStateHolder(task)) {
             return getBucketedTaskProgressDescription(task.getValue());
         } else {
             return getPlainTaskProgressDescription(task.getValue());
         }
     }
 
-    //TODO why?
-    public TaskExecutionStatus getRawExecutionStatus(TaskType taskType) {
-        return TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
-    }
-
-    public boolean isWorkStateHolder(SelectableBean<TaskType> taskType) {
+    private boolean isWorkStateHolder(SelectableBean<TaskType> taskType) {
         return (TaskTypeUtil.isCoordinator(taskType.getValue()) || hasBuckets(taskType.getValue())) && !isCoordinatedWorker(taskType.getValue());
     }
 
-    public boolean isCoordinatedWorker(TaskType taskType) {
+    private boolean isCoordinatedWorker(TaskType taskType) {
         return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.WORKER;
     }
 
-    public boolean hasBuckets(TaskType taskType) {
+    private boolean hasBuckets(TaskType taskType) {
         if (taskType.getWorkState() == null) {
             return false;
         }
@@ -511,15 +391,13 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
     }
 
-    public Long getStalledSince(TaskType taskType) {
+    private Long getStalledSince(TaskType taskType) {
         return xgc2long(taskType.getStalledSince());
     }
 
     private Long xgc2long(XMLGregorianCalendar gc) {
         return gc != null ? XmlTypeConverter.toMillis(gc) : null;
     }
-
-
 
     private List<InlineMenuItem> createTasksInlineMenu(boolean isHeader) {
         List<InlineMenuItem> items = new ArrayList<>();
@@ -1078,10 +956,6 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         return TaskTypeUtil.isCoordinator(taskType) || TaskTypeUtil.isPartitionedMaster(taskType);
     }
 
-    protected boolean isProgressComputationEnabled() {
-        return true;//searchModel.getObject().isShowProgress();
-    }
-
     private static SelectableBean<TaskType> getDto(IModel<?> rowModel, boolean isHeader) {
         if (rowModel != null && !isHeader) {
             Object object = rowModel.getObject();
@@ -1091,10 +965,6 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
         return null;
     }
-
-//    private MainObjectListPanel<TaskType> getTable() {
-//        return (MainObjectListPanel<TaskType>) get(ID_TABLE);
-//    }
 
     public static List<String> getOids(List<TaskType> taskDtoList) {
         List<String> retval = new ArrayList<>();
