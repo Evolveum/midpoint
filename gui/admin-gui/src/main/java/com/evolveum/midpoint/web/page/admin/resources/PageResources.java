@@ -91,9 +91,6 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 
     public PageResources(PageParameters params) {
         super();
-//        if (StringUtils.isNotEmpty(searchText)){
-//            initSearch(searchText);
-//        }
     }
 
     protected void initLayout(){
@@ -101,24 +98,6 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
         getObjectListPanel().setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES);
 
     }
-
-    //TODO move to je objecyListpanel
-//    private void initSearch(String text){
-//        String key= null;//getStorageKey();
-//        PageStorage storage = getSessionStorage().getPageStorageMap().get(key);
-//        if (storage == null) {
-//            storage = getSessionStorage().initPageStorage(key);
-//        }
-//        Search search = SearchFactory.createSearch(ResourceType.class, this);
-//        if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
-//            search.setFullText(text);
-//        } else if (search.getItems() != null && search.getItems().size() > 0){
-//            SearchItem searchItem = search.getItems().get(0);
-//            searchItem.getValues().add(new SearchValue<>(text));
-//        }
-//        storage.setSearch(search);
-//        getSessionStorage().getPageStorageMap().put(key, storage);
-//    }
 
     @Override
     protected List<InlineMenuItem> createRowActions() {

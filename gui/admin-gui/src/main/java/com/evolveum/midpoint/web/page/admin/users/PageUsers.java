@@ -116,38 +116,14 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 
     public PageUsers(PageParameters params) {
         super(params);
-        executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
+        executeOptionsModel = new LoadableModel<>(false) {
 
             @Override
             protected ExecuteChangeOptionsDto load() {
                 return ExecuteChangeOptionsDto.createFromSystemConfiguration();
             }
         };
-
-//        if (StringUtils.isNotEmpty(text)){
-//            initSearch(text);
-//        }
     }
-
-
-//    // TODO: move to the page parameters
-//    private void initSearch(String text){
-//        String storageKey = null;//getStorageKey();
-//        PageStorage storage = getSessionStorage().getPageStorageMap().get(storageKey);
-//        if (storage == null) {
-//            storage = getSessionStorage().initPageStorage(storageKey);
-//        }
-//        Search search = SearchFactory.createSearch(UserType.class, this);
-//        if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
-//            search.setFullText(text);
-//        } else if (search.getItems() != null && search.getItems().size() > 0){
-//            SearchItem searchItem = search.getItems().get(0);
-//            searchItem.getValues().add(new SearchValue<>(text));
-//        }
-//        storage.setSearch(search);
-//        getSessionStorage().getPageStorageMap().put(storageKey, storage);
-//
-//    }
 
     @Override
     protected List<IColumn<SelectableBean<UserType>, String>> initColumns() {
