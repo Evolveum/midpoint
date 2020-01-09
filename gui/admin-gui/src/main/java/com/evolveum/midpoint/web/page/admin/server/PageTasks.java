@@ -112,7 +112,7 @@ public class PageTasks extends PageAdmin {
             }
         });
         columns.add(3, new PropertyColumn<>(createStringResource("pageTasks.task.executingAt"), SelectableBeanImpl.F_VALUE + "." + TaskType.F_NODE_AS_OBSERVED.getLocalPart()));
-        columns.add(4, new AbstractExportableColumn<>(createStringResource("pageTasks.task.currentRunTime")) {
+        columns.add(4, new AbstractExportableColumn<>(createStringResource("pageTasks.task.currentRunTime"), TaskType.F_COMPLETION_TIMESTAMP.getLocalPart()) {
 
             @Override
             public void populateItem(final Item<ICellPopulator<SelectableBean<TaskType>>> item, final String componentId,

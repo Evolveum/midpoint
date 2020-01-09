@@ -190,21 +190,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         refreshTable(TaskType.class, target);
         target.add(getTable());
     }
-
-    private Collection<SelectorOptions<GetOperationOptions>> createOperationOptions() {
-        List<QName> propertiesToGet = new ArrayList<>();
-        propertiesToGet.add(TaskType.F_NODE_AS_OBSERVED);
-        propertiesToGet.add(TaskType.F_NEXT_RUN_START_TIMESTAMP);
-        propertiesToGet.add(TaskType.F_NEXT_RETRY_TIMESTAMP);
-
-        GetOperationOptionsBuilder getOperationOptionsBuilder = getSchemaHelper().getOperationOptionsBuilder();
-        getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
-        Collection<SelectorOptions<GetOperationOptions>> searchOptions = getOperationOptionsBuilder
-                .items(propertiesToGet.toArray(new Object[0])).retrieve()
-                .build();
-        return searchOptions;
-    }
-
+    
     private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
