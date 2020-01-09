@@ -17,7 +17,6 @@ import com.evolveum.midpoint.web.page.admin.orgs.MidpointNestedTree;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
-import org.apache.wicket.extensions.markup.html.repeater.tree.TableTree;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -35,7 +34,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
@@ -135,7 +134,7 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
     }
 
     protected ObjectQuery createOrgChildQuery() {
-        SelectableBean<OrgType> dto = selected.getObject();
+        SelectableBeanImpl<OrgType> dto = selected.getObject();
         String oid = dto != null && dto.getValue() != null ? dto.getValue().getOid() : getModel().getObject();
 
         BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));

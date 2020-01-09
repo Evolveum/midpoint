@@ -10,6 +10,7 @@ import java.util.HashMap;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;

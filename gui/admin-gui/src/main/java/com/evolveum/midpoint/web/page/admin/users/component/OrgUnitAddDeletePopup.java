@@ -13,7 +13,7 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -77,7 +77,7 @@ public class OrgUnitAddDeletePopup extends ModalWindow{
     }
 
     public void initLayout(WebMarkupContainer content){
-        List<IColumn<SelectableBean<ObjectType>, String>> columns = initColumns();
+        List<IColumn<SelectableBeanImpl<ObjectType>, String>> columns = initColumns();
 
         ObjectDataProvider provider = new ObjectDataProvider(getPageBase(), OrgType.class);
         provider.setQuery(getDataProviderQuery());
@@ -108,16 +108,16 @@ public class OrgUnitAddDeletePopup extends ModalWindow{
 
     }
 
-    private List<IColumn<SelectableBean<ObjectType>, String>> initColumns(){
-        List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
+    private List<IColumn<SelectableBeanImpl<ObjectType>, String>> initColumns(){
+        List<IColumn<SelectableBeanImpl<ObjectType>, String>> columns = new ArrayList<>();
 
         IColumn column = new CheckBoxHeaderColumn<OrgType>();
         columns.add(column);
 
-        column = new LinkColumn<SelectableBean<OrgType>>(createStringResource("orgUnitAddDeletePopup.column.name"), getSortableProperty(), "value.name"){
+        column = new LinkColumn<SelectableBeanImpl<OrgType>>(createStringResource("orgUnitAddDeletePopup.column.name"), getSortableProperty(), "value.name"){
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBeanImpl<OrgType>> rowModel){
                 OrgType org = rowModel.getObject().getValue();
                 chooseOperationPerformed(target, org);
             }

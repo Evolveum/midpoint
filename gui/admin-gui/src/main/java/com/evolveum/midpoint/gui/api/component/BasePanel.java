@@ -45,10 +45,10 @@ public class BasePanel<T> extends Panel {// extends Serializable> extends Panel 
         super(id);
     }
 
-    public BasePanel(String id, T object) {
-        super(id);
+//    public BasePanel(String id, T object) {
+//        super(id);
 //        this.model = Model.of(object);
-    }
+//    }
 
     public BasePanel(String id, IModel<T> model) {
         super(id);

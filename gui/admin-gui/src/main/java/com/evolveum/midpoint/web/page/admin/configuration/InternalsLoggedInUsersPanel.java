@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -60,7 +61,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
     }
 
     private void initLayout() {
-        MainObjectListPanel<F, String> table = new MainObjectListPanel(ID_TABLE, FocusType.class, null, null, getPageBase()) {
+        MainObjectListPanel<F> table = new MainObjectListPanel(ID_TABLE, FocusType.class, null, null) {
 
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
@@ -91,7 +92,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
 
                     @Override
                     protected SelectableBean<F> createObjectWrapper(UserSessionManagementType principal) {
-                        SelectableBean<F> user = new SelectableBean<F>((F) principal.getUser());
+                        SelectableBeanImpl<F> user = new SelectableBeanImpl<>((F) principal.getUser());
                         user.setActiveSessions(principal.getActiveSessions());
                         user.setNodes(principal.getNode());
                         return user;
@@ -182,7 +183,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
     }
 
     private List<String> getSelectedObjects(F selectedObject) {
-        MainObjectListPanel<F, String> table = getTable();
+        MainObjectListPanel<F> table = getTable();
 
         if (selectedObject != null) {
             return Arrays.asList(selectedObject.getOid());
@@ -196,7 +197,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
         return null;
     }
 
-    private MainObjectListPanel<F, String> getTable() {
+    private MainObjectListPanel<F> getTable() {
         return (MainObjectListPanel) get(ID_TABLE);
     }
 }

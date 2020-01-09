@@ -21,8 +21,8 @@ import java.io.Serializable;
  * @author mederly
  */
 @FunctionalInterface
-public interface FocusListComponent<F extends FocusType, S extends Serializable> {
+public interface FocusListComponent<F extends FocusType> {
 
-    MainObjectListPanel<F, S> getObjectListPanel();
+    MainObjectListPanel<F> getObjectListPanel();
 
 }

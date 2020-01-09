@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -31,7 +32,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -59,9 +60,9 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
     }
 
     private void initLayout() {
-        MainObjectListPanel<F, CompiledObjectCollectionView> userListPanel =
-                new MainObjectListPanel<F, CompiledObjectCollectionView>(ID_PERSONAS_TABLE,
-                (Class<F>) FocusType.class, null, null, getPageBase()) {
+        MainObjectListPanel<F> userListPanel =
+                new MainObjectListPanel<F>(ID_PERSONAS_TABLE,
+                (Class<F>) FocusType.class, null, null) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -87,7 +88,7 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
 
                     @Override
                     public InlineMenuItemAction initAction() {
-                        return new ColumnMenuAction<SelectableBean<F>>() {
+                        return new ColumnMenuAction<SelectableBeanImpl<F>>() {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -113,11 +114,12 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             protected void objectDetailsPerformed(AjaxRequestTarget target, F object) {
             }
 
-            @Override
-            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
-            }
+                    @Override
+                    protected boolean isCreateNewObjectEnabled() {
+                        return false;
+                    }
 
-            @Override
+                    @Override
             protected ObjectQuery createContentQuery() {
                 List<String> personaOidsList = getPersonasOidsList();
                 QueryFactory factory = FocusPersonasTabPanel.this.getPageBase().getPrismContext().queryFactory();
@@ -126,7 +128,7 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             }
 
             @Override
-            protected boolean isClickable(IModel<SelectableBean<F>> rowModel) {
+            protected boolean isObjectDetailsEnabled(IModel<SelectableBean<F>> rowModel) {
                 return false;
             }
         };

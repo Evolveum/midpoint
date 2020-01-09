@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -113,37 +114,15 @@ public class PageUsers extends PageAdminObjectList<UserType> {
         this(null);
     }
 
-    public PageUsers(final String text) {
-        super();
-        executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
+    public PageUsers(PageParameters params) {
+        super(params);
+        executeOptionsModel = new LoadableModel<>(false) {
 
             @Override
             protected ExecuteChangeOptionsDto load() {
                 return ExecuteChangeOptionsDto.createFromSystemConfiguration();
             }
         };
-
-        if (StringUtils.isNotEmpty(text)){
-            initSearch(text);
-        }
-    }
-
-    private void initSearch(String text){
-        String storageKey = getStorageKey();
-        PageStorage storage = getSessionStorage().getPageStorageMap().get(storageKey);
-        if (storage == null) {
-            storage = getSessionStorage().initPageStorage(storageKey);
-        }
-        Search search = SearchFactory.createSearch(UserType.class, this);
-        if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
-            search.setFullText(text);
-        } else if (search.getItems() != null && search.getItems().size() > 0){
-            SearchItem searchItem = search.getItems().get(0);
-            searchItem.getValues().add(new SearchValue<>(text));
-        }
-        storage.setSearch(search);
-        getSessionStorage().getPageStorageMap().put(storageKey, storage);
-
     }
 
     @Override
@@ -152,19 +131,19 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 
         IColumn<SelectableBean<UserType>, String> column = new PolyStringPropertyColumn(
                 createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
-                SelectableBean.F_VALUE + ".givenName");
+                SelectableBeanImpl.F_VALUE + ".givenName");
         columns.add(column);
 
         column = new PolyStringPropertyColumn(createStringResource("UserType.familyName"),
-                UserType.F_FAMILY_NAME.getLocalPart(), SelectableBean.F_VALUE + ".familyName");
+                UserType.F_FAMILY_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".familyName");
         columns.add(column);
 
         column = new PolyStringPropertyColumn(createStringResource("UserType.fullName"),
-                UserType.F_FULL_NAME.getLocalPart(), SelectableBean.F_VALUE + ".fullName");
+                UserType.F_FULL_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".fullName");
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("UserType.emailAddress"), null,
-                SelectableBean.F_VALUE + ".emailAddress");
+                SelectableBeanImpl.F_VALUE + ".emailAddress");
         columns.add(column);
 
         column = new AbstractExportableColumn<SelectableBean<UserType>, String>(
@@ -400,8 +379,8 @@ public class PageUsers extends PageAdminObjectList<UserType> {
         return TableId.TABLE_USERS;
     }
 
-    private MainObjectListPanel<UserType, CompiledObjectCollectionView> getTable() {
-        return (MainObjectListPanel<UserType, CompiledObjectCollectionView>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    private MainObjectListPanel<UserType> getTable() {
+        return (MainObjectListPanel<UserType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
     private void deleteConfirmedPerformed(AjaxRequestTarget target, UserType userToDelete) {

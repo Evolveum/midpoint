@@ -16,7 +16,7 @@ import org.apache.wicket.extensions.markup.html.repeater.tree.content.Folder;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
@@ -68,7 +68,7 @@ public class SelectableFolderContent extends Folder<TreeSelectableBean<OrgType>>
 
     @Override
     protected boolean isSelected() {
-        SelectableBean<OrgType> dto = getModelObject();
+        SelectableBeanImpl<OrgType> dto = getModelObject();
         return dto.equals(selected.getObject());
     }
 

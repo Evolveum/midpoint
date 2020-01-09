@@ -173,21 +173,21 @@ public class CompiledUserProfile implements DebugDumpable, Serializable {
         return findAllApplicableObjectCollectionViews(ObjectTypes.getObjectType(compileTimeClass).getTypeQName());
     }
 
-    public <O extends ObjectType> CompiledObjectCollectionView findObjectViewByViewName(Class<O> compileTimeClass, String viewName){
-        if (compileTimeClass == null || StringUtils.isEmpty(viewName)){
-            return null;
-        }
-        List<CompiledObjectCollectionView> objectViews = findAllApplicableObjectCollectionViews(compileTimeClass);
-        if (objectViews == null) {
-            return null;
-        }
-        for (CompiledObjectCollectionView view : objectViews){
-            if (viewName.equals(view.getViewIdentifier())){
-                return view;
-            }
-        }
-        return null;
-    }
+//    public <O extends ObjectType> CompiledObjectCollectionView findObjectViewByViewName(Class<O> compileTimeClass, String viewName){
+//        if (compileTimeClass == null || StringUtils.isEmpty(viewName)){
+//            return null;
+//        }
+//        List<CompiledObjectCollectionView> objectViews = findAllApplicableObjectCollectionViews(compileTimeClass);
+//        if (objectViews == null) {
+//            return null;
+//        }
+//        for (CompiledObjectCollectionView view : objectViews){
+//            if (viewName.equals(view.getViewIdentifier())){
+//                return view;
+//            }
+//        }
+//        return null;
+//    }
 
     /**
      * Default list view setting should never be needed publicly. Always check setting for specific

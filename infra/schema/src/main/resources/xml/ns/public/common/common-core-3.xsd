@@ -18774,7 +18774,7 @@
                                </p>
                            </xsd:documentation>
                         <xsd:appinfo>
-                            <a:displayName>UserInterfaceFeatureType.identifier</a:displayName>
+                            <a:displayName>UserInterfaceFeatureType.description</a:displayName>
                         </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
@@ -23373,6 +23373,20 @@
                             </xsd:documentation>
                                <xsd:appinfo>
                                 <a:displayName>GuiObjectListViewType.disableCounting</a:displayName>
+                               </xsd:appinfo>
+                           </xsd:annotation>
+                       </xsd:element>
+                       <xsd:element name="refreshInterval" type="xsd:int" minOccurs="0">
+                           <xsd:annotation>
+                               <xsd:documentation>
+                                   Configures the possibility of autorefreshing the table. If nothing is set,
+                                   refresh is not supported. Is set, table is automatically refresh after given
+                                   interval. The interval is specified in seconds.
+
+                                   e.g refreshInterval=5 means autorefreshing table each 5 seconds.
+                               </xsd:documentation>
+                               <xsd:appinfo>
+                                   <a:displayName>GuiObjectListViewType.refreshInterval</a:displayName>
                                </xsd:appinfo>
                            </xsd:annotation>
                        </xsd:element>

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -267,13 +268,13 @@ public class ColumnUtils {
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("UserType.givenName", UserType.F_GIVEN_NAME.getLocalPart(),
-                        SelectableBean.F_VALUE + ".givenName", false, true),
+                        SelectableBeanImpl.F_VALUE + ".givenName", false, true),
                 new ColumnTypeDto<String>("UserType.familyName", UserType.F_FAMILY_NAME.getLocalPart(),
-                        SelectableBean.F_VALUE + ".familyName", false, true),
+                        SelectableBeanImpl.F_VALUE + ".familyName", false, true),
                 new ColumnTypeDto<String>("UserType.fullName", UserType.F_FULL_NAME.getLocalPart(),
-                        SelectableBean.F_VALUE + ".fullName", false, true),
+                        SelectableBeanImpl.F_VALUE + ".fullName", false, true),
                 new ColumnTypeDto<String>("UserType.emailAddress", UserType.F_EMAIL_ADDRESS.getLocalPart(),
-                        SelectableBean.F_VALUE + ".emailAddress", false)
+                        SelectableBeanImpl.F_VALUE + ".emailAddress", false)
 
         );
         columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
@@ -351,7 +352,7 @@ public class ColumnUtils {
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("TaskType.executionStatus", TaskType.F_EXECUTION_STATUS.getLocalPart(),
-                        SelectableBean.F_VALUE + ".executionStatus", false));
+                        SelectableBeanImpl.F_VALUE + ".executionStatus", false));
         columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
 
         return columns;
@@ -401,12 +402,12 @@ public class ColumnUtils {
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("AbstractRoleType.displayName",
                         sortByDisplayName,
-                        SelectableBean.F_VALUE + ".displayName", false, true),
+                        SelectableBeanImpl.F_VALUE + ".displayName", false, true),
                 new ColumnTypeDto<String>("AbstractRoleType.description",
                         null,
-                        SelectableBean.F_VALUE + ".description", false),
+                        SelectableBeanImpl.F_VALUE + ".description", false),
                 new ColumnTypeDto<String>("AbstractRoleType.identifier", sortByIdentifer,
-                        SelectableBean.F_VALUE + ".identifier", false)
+                        SelectableBeanImpl.F_VALUE + ".identifier", false)
 
         );
         List<IColumn<SelectableBean<T>, String>> columns = createColumns(columnsDefs);
@@ -443,7 +444,7 @@ public class ColumnUtils {
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("AbstractRoleType.description", null,
-                        SelectableBean.F_VALUE + ".description", false)
+                        SelectableBeanImpl.F_VALUE + ".description", false)
 
         );
 

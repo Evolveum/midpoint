@@ -52,6 +52,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     private ObjectFilter filter;
     private ObjectFilter domainFilter;
     private Integer displayOrder;
+    private Integer refreshInterval;
 
     // Only used to construct "default" view definition. May be not needed later on.
     public CompiledObjectCollectionView() {
@@ -203,6 +204,14 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 
     private boolean isAllObjectsView() {
         return collection == null;
+    }
+
+    public void setRefreshInterval(Integer refreshInterval) {
+        this.refreshInterval = refreshInterval;
+    }
+
+    public Integer getRefreshInterval() {
+        return refreshInterval;
     }
 
     @Override

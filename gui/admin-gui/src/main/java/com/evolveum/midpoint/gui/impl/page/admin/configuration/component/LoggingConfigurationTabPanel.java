@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -146,7 +147,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
             }
 
             @Override
-            protected void newItemPerformed(AjaxRequestTarget target) {
+            protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
                 PrismContainerValue<ClassLoggerConfigurationType> newLogger = loggerModel.getObject().getItem().createNewValue();
                 PrismContainerValueWrapper<ClassLoggerConfigurationType> newLoggerWrapper = getLoggersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newLogger, loggerModel.getObject(), target);
                 loggerEditPerformed(target, Model.of(newLoggerWrapper), null);
@@ -208,7 +209,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
             }
 
             @Override
-            protected void newItemPerformed(AjaxRequestTarget target) {
+            protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
                 newAppendersClickPerformed(target);
             }
 
@@ -259,7 +260,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 
                     @Override
                     protected void onSubmit(AjaxRequestTarget target) {
-                        newItemPerformed(target);
+                        newItemPerformed(target, null);
                     }
                 };
 

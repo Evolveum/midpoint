@@ -10,7 +10,6 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
