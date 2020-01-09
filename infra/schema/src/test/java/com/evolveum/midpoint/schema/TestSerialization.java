@@ -7,8 +7,7 @@
 package com.evolveum.midpoint.schema;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.*;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -207,6 +206,9 @@ public class TestSerialization {
 
         ObjectDelta<O> diff = parsedObject.diff(deserializedObject);
         assertTrue("Something changed in serialization of "+parsedObject+" (PrismObject): "+diff, diff.isEmpty());
+
+        ItemDefinition nameDef = deserializedObject.getDefinition().findLocalItemDefinition(ObjectType.F_NAME);
+        assertNotNull("No 'name' definition in deserialized object", nameDef);
     }
 
     private <O extends ObjectType> void serializationRoundTripObjectType(O parsedObject) throws Exception {

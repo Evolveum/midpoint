@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,6 +13,7 @@ import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Freezable;
 import com.evolveum.midpoint.prism.impl.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -21,9 +22,8 @@ import com.evolveum.midpoint.prism.impl.xml.XmlTypeConverterInternal;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, PrimitiveXNode<T> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PrimitiveXNodeImpl.class);
+    //private static final Trace LOGGER = TraceManager.getTrace(PrimitiveXNodeImpl.class);
 
     /*
      * Invariants:
@@ -63,15 +63,6 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
         this.value = value;
     }
 
-    private void parseValue(@NotNull QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
-        Validate.notNull(typeName, "Cannot parse primitive XNode without knowing its type");
-        if (valueParser != null) {
-            value = valueParser.parse(typeName, mode);
-            // Necessary. It marks that the value is parsed. It also frees some memory.
-            valueParser = null;
-        }
-    }
-
     public T getValue() {
         return value;
     }
@@ -88,11 +79,18 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
 
     // @post: return value is type-compliant with expectedClass (if both are non-null)
     public T getParsedValue(@NotNull QName typeName, @Nullable Class<T> expectedClass, XNodeProcessorEvaluationMode mode) throws SchemaException {
-        if (!isParsed()) {
-            parseValue(typeName, mode);
+        T parsedValue;
+        if (isParsed()) {
+            parsedValue = value;
+        } else {
+            parsedValue = valueParser.parse(typeName, mode);
+            if (!immutable) {
+                value = parsedValue;
+                valueParser = null;     // Necessary. It marks that the value is parsed. It also frees some memory.
+            }
         }
         if (JavaTypeConverter.isTypeCompliant(value, expectedClass)) {
-            return value;
+            return parsedValue;
         } else {
             throw new SchemaException("Expected " + expectedClass + " but got " + value.getClass() + " instead. Value is " + value);
         }
@@ -104,11 +102,13 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
 
     public void setValueParser(ValueParser<T> valueParser) {
         Validate.notNull(valueParser, "Value parser cannot be null");
+        checkMutable();
         this.valueParser = valueParser;
         this.value = null;
     }
 
     public void setValue(T value, QName typeQName) {
+        checkMutable();
         if (value != null) {
             if (typeQName == null) {
                 // last desperate attempt to determine type name from the value type
@@ -135,20 +135,16 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
     }
 
     public void setAttribute(boolean isAttribute) {
+        checkMutable();
         this.isAttribute = isAttribute;
     }
 
     public boolean isEmpty() {
-        if (!isParsed()) {
+        if (isParsed()) {
+            return value == null || value instanceof String && StringUtils.isBlank((String) value);
+        } else {
             return valueParser.isEmpty();
         }
-        if (value == null) {
-            return true;
-        }
-        if (value instanceof String) {
-            return StringUtils.isBlank((String)value);
-        }
-        return false;
     }
 
     /**
@@ -227,7 +223,7 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor<XNode> visitor) {
         visitor.visit(this);
     }
 
@@ -296,8 +292,6 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
      * the xnode's string value for any 'prefix:' substrings. I'm afraid it is all we can do for now.
      *
      * THIS METHOD SHOULD BE CALLED ONLY ON EITHER UNPARSED OR EMPTY NODES.
-     *
-     * @return
      */
     public Map<String, String> getRelevantNamespaceDeclarations() {
         Map<String,String> retval = new HashMap<>();
@@ -369,19 +363,30 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
         return objectToHash != null ? objectToHash.hashCode() : 0;
     }
 
-    PrimitiveXNodeImpl cloneInternal() {
+    PrimitiveXNodeImpl<T> cloneInternal() {
 
-        PrimitiveXNodeImpl clone;
+        PrimitiveXNodeImpl<T> clone;
         if (value != null) {
             // if we are parsed, things are much simpler
-            clone = new PrimitiveXNodeImpl(CloneUtil.clone(getValue()));
+            clone = new PrimitiveXNodeImpl<>(CloneUtil.clone(getValue()));
         } else {
-            clone = new PrimitiveXNodeImpl();
+            clone = new PrimitiveXNodeImpl<>();
             clone.valueParser = valueParser;            // for the time being we simply don't clone the valueParser
         }
 
         clone.isAttribute = this.isAttribute;
         clone.copyCommonAttributesFrom(this);
         return clone;
+    }
+
+    @Override
+    public void freeze() {
+        if (value instanceof Freezable) {
+            ((Freezable) value).freeze();
+        }
+        if (valueParser != null) {
+            valueParser = valueParser.freeze();
+        }
+        super.freeze();
     }
 }

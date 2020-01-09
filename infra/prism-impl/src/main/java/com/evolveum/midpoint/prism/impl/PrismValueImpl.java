@@ -222,7 +222,7 @@ public abstract class PrismValueImpl implements PrismValue {
     @Override
     public PrismValue createImmutableClone() {
         PrismValue clone = clone();
-        clone.setImmutable();
+        clone.freeze();
         return clone;
     }
 
@@ -337,7 +337,7 @@ public abstract class PrismValueImpl implements PrismValue {
         return immutable;
     }
 
-    public void setImmutable() {
+    public void freeze() {
         this.immutable = true;
     }
 

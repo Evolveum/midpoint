@@ -450,11 +450,11 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
     }
 
     @Override
-    public void setImmutable() {
+    public void freeze() {
         if (!this.immutable && values.isEmpty()) {
             createNewValue();
         }
-        super.setImmutable();
+        super.freeze();
     }
 
     public PrismObject<O> cloneIfImmutable() {

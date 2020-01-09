@@ -71,7 +71,7 @@ public class PrismUtilInternal {
             return xmap;
         }
         RootXNode xroot = xnodeSerializer.serializeAnyData(expressionObject, expressionWrapper.getElementName());
-        if (xroot == null) {
+        if (xroot == null || xroot.getSubnode() == null) {
             return xmap;
         }
         xmap.merge(expressionWrapper.getElementName(), xroot.getSubnode());

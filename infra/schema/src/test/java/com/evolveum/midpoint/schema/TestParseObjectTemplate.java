@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -80,6 +80,7 @@ public class TestParseObjectTemplate {
 
         // WHEN
         PrismObject<ObjectTemplateType> template = prismContext.parseObject(OBJECT_TEMPLATE_FILE);
+        template.freeze();    // this is necessary in order to eliminate thread-unsafe DOM value parsers
         MappingType mapping = template.asObjectable().getMapping().stream()
                 .filter(m -> "Access role assignment".equals(m.getName()))
                 .findAny().orElse(null);
@@ -115,6 +116,8 @@ public class TestParseObjectTemplate {
 
         assertEquals("Wrong # of errors", 0, errors.get());
         // TODO some asserts on correct parsing maybe
+
+        System.out.println("Frozen object:\n" + template.debugDump());
     }
 
     @Test
