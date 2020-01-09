@@ -15,6 +15,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -617,7 +619,7 @@ public class PageTaskAdd extends PageAdminTasks {
         List<TaskAddResourcesDto> resourceList = new ArrayList<>();
 
         try {
-            resources = getModelService().searchObjects(ResourceType.class, null, null, task, result);
+            resources = getModelService().searchObjects(ResourceType.class, null, GetOperationOptions.createNoFetchCollection(), task, result);
             result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError(getString("PageTaskAdd.message.createResourceList.fatalError"), ex);
