@@ -48,8 +48,6 @@ public class SearchItem<T extends Serializable> implements Serializable {
     private boolean fixed;
     private boolean editWhenVisible;
 
-//    public SearchItem(Search search, ItemPath path, ItemDefinition definition, List<QName> allowedRelations) {
-
     public SearchItem(Search search, ItemPath path, ItemDefinition definition, List<QName> allowedRelations) {
         Validate.notNull(path, "Item path must not be null.");
         Validate.notNull(definition, "Item definition must not be null.");

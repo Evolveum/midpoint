@@ -114,8 +114,8 @@ public class PageUsers extends PageAdminObjectList<UserType> {
         this(null);
     }
 
-    public PageUsers(final String text) {
-        super();
+    public PageUsers(PageParameters params) {
+        super(params);
         executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
 
             @Override
@@ -124,30 +124,30 @@ public class PageUsers extends PageAdminObjectList<UserType> {
             }
         };
 
-        if (StringUtils.isNotEmpty(text)){
-            initSearch(text);
-        }
+//        if (StringUtils.isNotEmpty(text)){
+//            initSearch(text);
+//        }
     }
 
 
-    // TODO: move to the page parameters
-    private void initSearch(String text){
-        String storageKey = null;//getStorageKey();
-        PageStorage storage = getSessionStorage().getPageStorageMap().get(storageKey);
-        if (storage == null) {
-            storage = getSessionStorage().initPageStorage(storageKey);
-        }
-        Search search = SearchFactory.createSearch(UserType.class, this);
-        if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
-            search.setFullText(text);
-        } else if (search.getItems() != null && search.getItems().size() > 0){
-            SearchItem searchItem = search.getItems().get(0);
-            searchItem.getValues().add(new SearchValue<>(text));
-        }
-        storage.setSearch(search);
-        getSessionStorage().getPageStorageMap().put(storageKey, storage);
-
-    }
+//    // TODO: move to the page parameters
+//    private void initSearch(String text){
+//        String storageKey = null;//getStorageKey();
+//        PageStorage storage = getSessionStorage().getPageStorageMap().get(storageKey);
+//        if (storage == null) {
+//            storage = getSessionStorage().initPageStorage(storageKey);
+//        }
+//        Search search = SearchFactory.createSearch(UserType.class, this);
+//        if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
+//            search.setFullText(text);
+//        } else if (search.getItems() != null && search.getItems().size() > 0){
+//            SearchItem searchItem = search.getItems().get(0);
+//            searchItem.getValues().add(new SearchValue<>(text));
+//        }
+//        storage.setSearch(search);
+//        getSessionStorage().getPageStorageMap().put(storageKey, storage);
+//
+//    }
 
     @Override
     protected List<IColumn<SelectableBean<UserType>, String>> initColumns() {

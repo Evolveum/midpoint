@@ -177,10 +177,49 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                 if (search == null) {
                     search = createSearch();
                 }
+
+                String searchByName = getSearchByNameParameterValue();
+                if (searchByName != null) {
+                    for (SearchItem item : search.getItems()) {
+                        if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
+                            item.setValues(Collections.singletonList(new SearchValue(searchByName)));
+                        }
+                    }
+                }
                 return search;
             }
         };
     }
+
+    private String getSearchByNameParameterValue() {
+        PageParameters parameters = getPageBase().getPageParameters();
+        if (parameters == null) {
+            return null;
+        }
+        StringValue value = parameters.get(PageBase.PARAMETER_SEARCH_BY_NAME);
+        if (value == null) {
+            return null;
+        }
+
+        return value.toString();
+    }
+
+//    private void initSearch(String text){
+//        String key= null;//getStorageKey();
+//        PageStorage storage = getSessionStorage().getPageStorageMap().get(key);
+//        if (storage == null) {
+//            storage = getSessionStorage().initPageStorage(key);
+//        }
+//        Search search = SearchFactory.createSearch(ResourceType.class, this);
+//        if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
+//            search.setFullText(text);
+//        } else if (search.getItems() != null && search.getItems().size() > 0){
+//            SearchItem searchItem = search.getItems().get(0);
+//            searchItem.getValues().add(new SearchValue<>(text));
+//        }
+//        storage.setSearch(search);
+//        getSessionStorage().getPageStorageMap().put(key, storage);
+//    }
 
     protected Search createSearch() {
         return SearchFactory.createSearch(type.getClassDefinition(), getPageBase());

@@ -111,26 +111,26 @@ public class PageTasks extends PageAdmin {
     public static final long WAIT_FOR_TASK_STOP = 2000L;
 
     public PageTasks() {
-        this(null, null);
+        this(null);
     }
 
-    public PageTasks(final String text) {
-        this(null, text);
+//    public PageTasks(final String text) {
+//        this(null, text);
+//
+//        if (StringUtils.isNotEmpty(text)){
+//            initSearch(text);
+//        }
+//    }
 
-        if (StringUtils.isNotEmpty(text)){
-            initSearch(text);
-        }
-    }
+//    public PageTasks(PageParameters params) {
+//        this(params, null);
+//    }
+//
+//    private void initSearch(String text){
+//
+//    }
 
     public PageTasks(PageParameters params) {
-        this(params, null);
-    }
-
-    private void initSearch(String text){
-
-    }
-
-    public PageTasks(PageParameters params, String searchText) {
         super(params);
 
         TaskTablePanel tablePanel = new TaskTablePanel(ID_TABLE, UserProfileStorage.TableId.TABLE_TASKS, createOperationOptions()) {
