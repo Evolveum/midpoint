@@ -68,6 +68,8 @@ public class NodeRegistrar {
     private ClusterManager clusterManager;
     private long lastDiscovery;
 
+    private volatile NodeOperationalStatusType operationalStatus = NodeOperationalStatusType.STARTING;
+
     private static final long DISCOVERY_RETRY = 10000L;
 
     /**
@@ -82,7 +84,7 @@ public class NodeRegistrar {
     private String discoveredUrlScheme;
     private Integer discoveredHttpPort;
 
-    public NodeRegistrar(TaskManagerQuartzImpl taskManager, ClusterManager clusterManager) {
+    NodeRegistrar(TaskManagerQuartzImpl taskManager, ClusterManager clusterManager) {
         Validate.notNull(taskManager);
         Validate.notNull(clusterManager);
 
@@ -197,6 +199,7 @@ public class NodeRegistrar {
         node.setJmxPort(configuration.getJmxPort());
         node.setClustered(configuration.isClustered());
         node.setRunning(true);
+        node.setOperationalStatus(operationalStatus);
         node.setLastCheckInTime(currentTime);
         node.setBuild(getBuildInformation());
         node.setTaskExecutionLimitations(computeTaskExecutionLimitations(
@@ -321,8 +324,10 @@ public class NodeRegistrar {
         String nodeOid = getLocalNodeObjectOid();
         LOGGER.trace("Registering this node shutdown (name {}, oid {})", taskManager.getNodeId(), nodeOid);
         try {
+            setLocalNodeOperationalStatus(NodeOperationalStatusType.DOWN);
             List<ItemDelta<?, ?>> modifications = getPrismContext().deltaFor(NodeType.class)
                     .item(NodeType.F_RUNNING).replace(false)
+                    .item(NodeType.F_OPERATIONAL_STATUS).replace(operationalStatus)
                     .item(NodeType.F_LAST_CHECK_IN_TIME).replace(getCurrentTime())
                     .asItemDeltas();
             getRepositoryService().modifyObject(NodeType.class, nodeOid, modifications, result);
@@ -338,7 +343,7 @@ public class NodeRegistrar {
     }
 
     /**
-     * Updates registration of this node (runs periodically within ClusterManager thread).
+     * Updates registration of this node (runs periodically within ClusterManager thread and on system startup).
      */
     void updateNodeObject(OperationResult result) {
         String nodeOid = getLocalNodeObjectOid();
@@ -355,6 +360,7 @@ public class NodeRegistrar {
                     .item(NodeType.F_IP_ADDRESS).replaceRealValues(getMyIpAddresses())
                     .item(NodeType.F_LAST_CHECK_IN_TIME).replace(currentTime)
                     .item(NodeType.F_RUNNING).replace(true)
+                    .item(NodeType.F_OPERATIONAL_STATUS).replace(operationalStatus)
                     .asItemDeltas();
             if (shouldRenewSecret(cachedLocalNodeObject.asObjectable())) {
                 LOGGER.info("Renewing node secret for the current node");
@@ -458,7 +464,7 @@ public class NodeRegistrar {
         List<PrismObject<NodeType>> allNodes = clusterManager.getAllNodes(result);
         for (PrismObject<NodeType> nodePrism : allNodes) {
             NodeType n = nodePrism.asObjectable();
-            if (isCheckingIn(n)) {
+            if (isUpAndAlive(n)) {
                 if (n.isClustered()) {
                     clustered.add(n.getNodeIdentifier());
                 } else {
@@ -481,8 +487,12 @@ public class NodeRegistrar {
 
     }
 
+    boolean isUpAndAlive(NodeType n) {
+        return n.getOperationalStatus() == NodeOperationalStatusType.UP && isCheckingIn(n);
+    }
+
     boolean isCheckingIn(NodeType n) {
-        return !Boolean.FALSE.equals(n.isRunning()) && n.getLastCheckInTime() != null &&
+        return n.getOperationalStatus() != NodeOperationalStatusType.DOWN && n.getLastCheckInTime() != null &&
                 System.currentTimeMillis() - n.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
                         <= taskManager.getConfiguration().getNodeTimeout() * 1000L;
     }
@@ -677,7 +687,7 @@ public class NodeRegistrar {
 
         PrismObject<NodeType> nodePrism = clusterManager.getNode(nodeOid, result);
 
-        if (isCheckingIn(nodePrism.asObjectable())) {
+        if (isUpAndAlive(nodePrism.asObjectable())) {
             result.recordFatalError("Node " + nodeOid + " cannot be deleted, because it is currently up.");
         } else {
             try {
@@ -687,5 +697,15 @@ public class NodeRegistrar {
                 throw new SystemException("Unexpected ObjectNotFoundException when deleting a node", e);
             }
         }
+    }
+
+    private void setLocalNodeOperationalStatus(NodeOperationalStatusType newState) {
+        LOGGER.debug("Setting local node operational state to {}", newState);
+        operationalStatus = newState;
+    }
+
+    void registerNodeUp(OperationResult result) {
+        setLocalNodeOperationalStatus(NodeOperationalStatusType.UP);
+        updateNodeObject(result);
     }
 }
