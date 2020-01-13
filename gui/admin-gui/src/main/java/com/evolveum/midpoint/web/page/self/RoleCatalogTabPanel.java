@@ -8,7 +8,7 @@ package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
@@ -105,7 +105,7 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
         return (OrgTreePanel) get(ID_TREE_PANEL_CONTAINER).get(ID_TREE_PANEL);
     }
 
-    private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
+    private void selectTreeItemPerformed(SelectableBeanImpl<OrgType> selected, AjaxRequestTarget target) {
         final OrgType selectedOrg = selected.getValue();
         if (selectedOrg == null) {
             return;

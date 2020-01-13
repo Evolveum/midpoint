@@ -880,15 +880,15 @@ public class TestLdapComplex extends AbstractLdapTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
 
-        PolyString descriptioShadowAttribute = assertShadow(shadow, "Jack's shadow after read")
+        PolyString descriptionShadowAttribute = (PolyString) assertShadow(shadow, "Jack's shadow after read")
             .attributes()
                 .attribute(LDAP_ATTRIBUTE_DESCRIPTION)
                     .assertIncomplete()
                     .singleValue()
                         .getPrismValue().getRealValue();
 
-        assertTrue("Unexpected value of description attribute from shadow: "+descriptioShadowAttribute,
-                USER_JACK_FULL_NAME_CAPTAIN.equals(descriptioShadowAttribute.getOrig()) || USER_JACK_BLAHBLAH.equals(descriptioShadowAttribute.getOrig()));
+        assertTrue("Unexpected value of description attribute from shadow: "+descriptionShadowAttribute,
+                USER_JACK_FULL_NAME_CAPTAIN.equals(descriptionShadowAttribute.getOrig()) || USER_JACK_BLAHBLAH.equals(descriptionShadowAttribute.getOrig()));
 
         accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
         display("Ruined LDAP entry after", accountEntry);

@@ -445,11 +445,18 @@ public class ContextLoader {
 
     private <O extends ObjectType> void setPrimaryDeltaOldValue(LensElementContext<O> ctx) {
         if (ctx.getPrimaryDelta() != null && ctx.getObjectOld() != null && ctx.isModify()) {
+            boolean freezeAfterChange;
             if (ctx.getPrimaryDelta().isImmutable()) {
                 ctx.setPrimaryDelta(ctx.getPrimaryDelta().clone());
+                freezeAfterChange = true;
+            } else {
+                freezeAfterChange = false;
             }
             for (ItemDelta<?,?> itemDelta: ctx.getPrimaryDelta().getModifications()) {
                 LensUtil.setDeltaOldValue(ctx, itemDelta);
+            }
+            if (freezeAfterChange) {
+                ctx.getPrimaryDelta().freeze();
             }
         }
     }
@@ -897,7 +904,7 @@ public class ContextLoader {
         }
         // It is little bit questionable whether we need to make primary delta immutable. It makes some sense, but I am not sure.
         // Note that (as a side effect) this can make "focus new" immutable as well, in the case of ADD delta.
-        primaryDeltaToUpdate.setImmutable();
+        primaryDeltaToUpdate.freeze();
     }
 
     private <F extends ObjectType> void loadProjectionContextsSync(LensContext<F> context, Task task, OperationResult result) throws SchemaException,

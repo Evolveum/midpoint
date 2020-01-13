@@ -711,7 +711,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
             Class<I> type, ID itemDefinition, boolean immutable) throws SchemaException {
         I newItem = createDetachedNewItemInternal(name, type, itemDefinition);
         if (immutable) {
-            newItem.setImmutable();
+            newItem.freeze();
         }
         return newItem;
     }
@@ -1531,7 +1531,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     @Override
-    public void setImmutable() {
+    public void freeze() {
         // Before freezing this PCV we should initialize it (if needed).
         // We assume that this object is NOT shared at this moment.
         if (getComplexTypeDefinition() != null && getComplexTypeDefinition().getCompileTimeClass() != null) {
@@ -1542,9 +1542,9 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
         // And now let's freeze it; from the bottom up.
         for (Item item : items.values()) {
-            item.setImmutable();
+            item.freeze();
         }
-        super.setImmutable();
+        super.freeze();
     }
 
     @Override

@@ -31,8 +31,9 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class BeanMarshaller {
+public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(BeanMarshaller.class);
 
@@ -41,6 +42,8 @@ public class BeanMarshaller {
     @NotNull private final PrismBeanInspector inspector;
     @NotNull private final PrismContext prismContext;
     @NotNull private final Map<Class,Marshaller> specialMarshallers = new HashMap<>();
+
+    @NotNull private final Map<QName, Boolean> canProcessCache = new ConcurrentHashMap<>();
 
     @FunctionalInterface
     private interface Marshaller {
@@ -62,6 +65,12 @@ public class BeanMarshaller {
         this.prismContext = prismContext;
         this.inspector = inspector;
         createSpecialMarshallerMap();
+        getSchemaRegistry().registerInvalidationListener(this);
+    }
+
+    @Override
+    public void invalidate() {
+        canProcessCache.clear();
     }
 
     @Nullable
@@ -275,7 +284,9 @@ public class BeanMarshaller {
                         marshaled.setExplicitTypeDeclaration(true);
                     }
                 }
-                xmap.put(elementName, marshaled);
+                if (marshaled != null) {
+                    xmap.put(elementName, marshaled);
+                }
 
 //                setExplicitTypeDeclarationIfNeeded(getter, valueToMarshall, xmap, fieldTypeName);
             }
@@ -589,7 +600,18 @@ public class BeanMarshaller {
         return prismContext.getSchemaRegistry();
     }
 
-    public boolean canProcess(QName typeName) {
+    boolean canProcess(QName typeName) {
+        Boolean cached = canProcessCache.get(typeName);
+        if (cached != null) {
+            return cached;
+        } else {
+            boolean computed = computeCanProcess(typeName);
+            canProcessCache.put(typeName, computed);
+            return computed;
+        }
+    }
+
+    private boolean computeCanProcess(QName typeName) {
         Class<Object> clazz = getSchemaRegistry().determineClassForType(typeName);
         if (clazz != null && canProcess(clazz)) {
             return true;

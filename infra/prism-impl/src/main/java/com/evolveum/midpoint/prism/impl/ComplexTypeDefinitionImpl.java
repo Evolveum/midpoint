@@ -10,14 +10,10 @@ package com.evolveum.midpoint.prism.impl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
-import com.evolveum.midpoint.util.QNameUtil;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -34,7 +30,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 
     private static final Trace LOGGER = TraceManager.getTrace(ComplexTypeDefinitionImpl.class);
 
-    private static final long serialVersionUID = 2655797837209175037L;
+    private static final long serialVersionUID = -9142629126376258513L;
     @NotNull private final List<ItemDefinition> itemDefinitions = new ArrayList<>();
     private boolean referenceMarker;
     private boolean containerMarker;
@@ -45,6 +41,10 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 
     private String defaultNamespace;
     @NotNull private List<String> ignoredNamespaces = new ArrayList<>();
+
+    // ugly hack, just to see the performance effect
+    @NotNull private final TransientCache<QName, Object> cachedLocalDefinitionQueries = new TransientCache<>();
+    private static final Object NO_DEFINITION = new Object();
 
     // temporary/experimental - to avoid trimming "standard" definitions
     // we reset this flag when cloning
@@ -76,6 +76,11 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     @Override
     public void add(ItemDefinition<?> definition) {
         itemDefinitions.add(definition);
+        invalidateCaches();
+    }
+
+    private void invalidateCaches() {
+        cachedLocalDefinitionQueries.invalidate();
     }
 
     @Override
@@ -160,7 +165,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     //region Creating definitions
     public PrismPropertyDefinitionImpl createPropertyDefinition(QName name, QName typeName) {
         PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(name, typeName, prismContext);
-        itemDefinitions.add(propDef);
+        add(propDef);
         return propDef;
     }
 
@@ -169,7 +174,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     // TODO: maybe create entirely new concept of property reference?
     public PrismPropertyDefinition createPropertyDefinition(QName name) {
         PrismPropertyDefinition propDef = new PrismPropertyDefinitionImpl(name, null, prismContext);
-        itemDefinitions.add(propDef);
+        add(propDef);
         return propDef;
     }
 
@@ -187,8 +192,24 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 
     //region Finding definitions
 
+    @Override
+    public <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name) {
+        Object cached = cachedLocalDefinitionQueries.get(name);
+        if (cached == NO_DEFINITION) {
+            return null;
+        } else if (cached != null) {
+            //noinspection unchecked
+            return (ID) cached;
+        } else {
+            //noinspection unchecked
+            ID found = (ID) findLocalItemDefinition(name, ItemDefinition.class, false);
+            cachedLocalDefinitionQueries.put(name, found != null ? found : NO_DEFINITION);
+            return found;
+        }
+    }
+
     // TODO deduplicate w.r.t. findNamedItemDefinition
-    // but beware, consider only local definitions!
+    //  but beware, consider only local definitions!
     @Override
     public <T extends ItemDefinition> T findLocalItemDefinition(@NotNull QName name, @NotNull Class<T> clazz, boolean caseInsensitive) {
         for (ItemDefinition def : getDefinitions()) {
@@ -370,6 +391,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 
     @Override
     public void replaceDefinition(QName itemName, ItemDefinition newDefinition) {
+        invalidateCaches();
         for (int i=0; i<itemDefinitions.size(); i++) {
             ItemDefinition itemDef = itemDefinitions.get(i);
             if (itemDef.getItemName().equals(itemName)) {

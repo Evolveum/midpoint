@@ -77,14 +77,14 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<F>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<F>>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         if (getRowModel() == null) {
                             updateActivationPerformed(target, true, null);
                         } else {
-                            SelectableBean<F> rowDto = getRowModel().getObject();
+                            SelectableBeanImpl<F> rowDto = getRowModel().getObject();
                             updateActivationPerformed(target, true, rowDto.getValue());
                         }
                     }
@@ -109,14 +109,14 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<F>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<F>>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         if (getRowModel() == null){
                             updateActivationPerformed(target, false, null);
                         } else {
-                            SelectableBean<F> rowDto = getRowModel().getObject();
+                            SelectableBeanImpl<F> rowDto = getRowModel().getObject();
                             updateActivationPerformed(target, false, rowDto.getValue());
                         }
                     }
@@ -136,14 +136,14 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<F>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<F>>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         if (getRowModel() == null){
                             reconcilePerformed(target, null);
                         } else {
-                            SelectableBean<F> rowDto = getRowModel().getObject();
+                            SelectableBeanImpl<F> rowDto = getRowModel().getObject();
                             reconcilePerformed(target, rowDto.getValue());
                         }
                     }
@@ -168,14 +168,14 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<F>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<F>>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         if (getRowModel() == null) {
                             deleteConfirmedPerformed(target, null);
                         } else {
-                            SelectableBean<F> rowDto = getRowModel().getObject();
+                            SelectableBeanImpl<F> rowDto = getRowModel().getObject();
                             deleteConfirmedPerformed(target, rowDto.getValue());
                         }
                     }

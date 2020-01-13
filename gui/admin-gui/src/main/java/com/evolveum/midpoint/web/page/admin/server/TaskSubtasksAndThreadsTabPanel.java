@@ -13,6 +13,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -36,7 +41,6 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.WorkerThreadDto;
-import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -67,6 +71,9 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
         setOutputMarkupId(true);
     }
 
+    private String createTaskKindExpression() {
+        return SelectableBeanImpl.F_VALUE + "." + TaskType.F_WORK_MANAGEMENT.getLocalPart() + "." + TaskWorkManagementType.F_TASK_KIND.getLocalPart();
+    }
     private void initLayout(final IModel<TaskDto> taskDtoModel) {
 
         WebMarkupContainer threadsConfigurationPanel = new WebMarkupContainer(ID_THREADS_CONFIGURATION_PANEL);
@@ -99,7 +106,36 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
         Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
         subtasksLabel.add(hiddenWhenEditingOrNoSubtasks);
         add(subtasksLabel);
-        SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<>(taskDtoModel, TaskDto.F_SUBTASKS), parentPage.getWorkflowManager().isEnabled());
+
+        TaskTablePanel subtasksPanel = new TaskTablePanel(ID_SUBTASKS_PANEL, UserProfileStorage.TableId.TABLE_SUBTASKS, null) {
+            @Override
+            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+
+                if (query == null) {
+                    query = getPrismContext().queryFactory().createQuery();
+                }
+                query.addFilter(getPrismContext().queryFor(TaskType.class)
+                        .item(TaskType.F_PARENT)
+                        .eq(taskDtoModel.getObject().getIdentifier())
+                        .buildFilter());
+
+                return query;
+            }
+
+            @Override
+            protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
+                List<IColumn<SelectableBean<TaskType>, String>> columns = super.createColumns();
+                columns.add(2, new EnumPropertyColumn(createStringResource("SubtasksPanel.label.kind"), createTaskKindExpression()) {
+
+                    @Override
+                    protected String translate(Enum en) {
+                        return createStringResource(en).getString();
+                    }
+                });
+                return columns;
+            }
+        };
+
         subtasksPanel.add(hiddenWhenEditingOrNoSubtasks);
         add(subtasksPanel);
 

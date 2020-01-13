@@ -12,6 +12,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -181,7 +182,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
             }
 
             @Override
-            protected void newItemPerformed(AjaxRequestTarget target) {
+            protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
                 List<QName> supportedTypes = new ArrayList<>(1);
                 supportedTypes.add(ResourceType.COMPLEX_TYPE);
                 PageBase pageBase = FocusProjectionsTabPanel.this.getPageBase();

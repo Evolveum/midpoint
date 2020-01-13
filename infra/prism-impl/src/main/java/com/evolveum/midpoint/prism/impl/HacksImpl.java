@@ -58,7 +58,7 @@ public class HacksImpl implements Hacks, XNodeMutator {
 
     @Override
     public void putToMapXNode(MapXNode map, QName key, XNode value) {
-        ((MapXNodeImpl) map).put(key, value);
+        ((MapXNodeImpl) map).put(key, (XNodeImpl) value);
     }
 
     @Override

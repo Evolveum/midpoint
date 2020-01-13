@@ -10,7 +10,9 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -47,5 +49,25 @@ public class TaskTypeUtil {
 
     public static void addSubtask(TaskType parent, TaskType child, PrismContext prismContext) {
         parent.getSubtaskRef().add(ObjectTypeUtil.createObjectRefWithFullObject(child, prismContext));
+    }
+
+    //moved from GUI
+    public static boolean isCoordinator(TaskType taskType) {
+        TaskWorkManagementType workMngType = taskType.getWorkManagement();
+        if (taskType.getWorkManagement() == null) {
+            return false;
+        }
+
+        return TaskKindType.COORDINATOR == workMngType.getTaskKind();
+
+    }
+
+    public static boolean isPartitionedMaster(TaskType taskType) {
+        TaskWorkManagementType workMngType = taskType.getWorkManagement();
+        if (taskType.getWorkManagement() == null) {
+            return false;
+        }
+
+        return TaskKindType.PARTITIONED_MASTER == workMngType.getTaskKind();
     }
 }

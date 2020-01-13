@@ -62,7 +62,7 @@ public class ListDataProvider2<W extends Serializable, T extends Serializable>
     }
 
     protected W createObjectWrapper(T object) {
-        return (W) new SelectableBean<>(object);
+        return (W) new SelectableBeanImpl<>(object);
     }
 
     @Override

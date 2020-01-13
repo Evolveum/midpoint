@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -259,17 +262,27 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
     }
 
     protected WebMarkupContainer initButtonToolbar(String id) {
-        return getNewItemButton(id);
+//        return getNewItemButton(id);
+        return new WebMarkupContainer(id);
+    }
+//
+//    private List<MultiFunctinalButtonDto> loadButtonDescriptions() {
+//        getNewObjectInfluencesList();
+//    }
+
+    protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
+        return null;
     }
 
-    public MultifunctionalButton<S> getNewItemButton(String id) {
-        MultifunctionalButton<S> newObjectIcon =
-                new MultifunctionalButton<S>(id) {
+
+    public MultifunctionalButton getNewItemButton(String id) {
+        MultifunctionalButton newObjectIcon =
+                new MultifunctionalButton(id, createNewButtonDescription()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected List<S> getAdditionalButtonsObjects() {
-                        return getNewObjectInfluencesList();
+                    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews) {
+                        newItemPerformed(target, relationSepc);
                     }
 
                     @Override
@@ -278,29 +291,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
                     }
 
                     @Override
-                    protected void buttonClickPerformed(AjaxRequestTarget target, S influencingObject) {
-                        List<S> additionalButtonObjects = getNewObjectInfluencesList();
-                        if (influencingObject == null && (additionalButtonObjects == null || additionalButtonObjects.size() == 0)) {
-                            newItemPerformed(target);
-                        } else {
-                            newItemPerformed(target, influencingObject);
-                        }
-                    }
-
-                    @Override
-                    protected CompositedIconBuilder getAdditionalIconBuilder(S influencingObject, DisplayType additionalButtonDisplayType){
-                        CompositedIconBuilder builder = MultivalueContainerListPanel.this.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
-                        return builder != null ? builder : super.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
-                    }
-
-                    @Override
                     protected DisplayType getMainButtonDisplayType() {
                         return getNewObjectButtonDisplayType();
-                    }
-
-                    @Override
-                    protected DisplayType getAdditionalButtonDisplayType(S buttonObject) {
-                        return getNewObjectAdditionalButtonDisplayType(buttonObject);
                     }
 
                     @Override
@@ -330,25 +322,16 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
         return true;
     }
 
-    protected List<S> getNewObjectInfluencesList(){
-        return new ArrayList<>();
-    }
 
     protected boolean getNewObjectGenericButtonVisibility(){
         return true;
     }
 
-    protected CompositedIconBuilder getAdditionalIconBuilder(S additionalButtonObject, DisplayType additionalButtonDisplayType){
-        return null;
-    }
 
     protected DisplayType getNewObjectButtonDisplayType(){
         return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
     }
 
-    protected DisplayType getNewObjectAdditionalButtonDisplayType(S buttonObject){
-        return null;
-    }
 
     protected WebMarkupContainer initSearch(String headerId) {
         SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
@@ -419,9 +402,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 
     protected abstract List<IColumn<PrismContainerValueWrapper<C>, String>> createColumns();
 
-    protected void newItemPerformed(AjaxRequestTarget target){}
+//    protected void newItemPerformed(AjaxRequestTarget target){}
 
-    protected void newItemPerformed(AjaxRequestTarget target, S influencingObject){}
+    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation influencingObject){}
 
     public BoxedTablePanel<PrismContainerValueWrapper<C>> getItemTable() {
         return (BoxedTablePanel<PrismContainerValueWrapper<C>>) get(createComponentPath(ID_ITEMS, ID_ITEMS_TABLE));

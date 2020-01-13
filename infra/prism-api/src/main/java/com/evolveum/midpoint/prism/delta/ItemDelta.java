@@ -27,7 +27,7 @@ import java.util.function.Function;
  * @author Radovan Semancik
  *
  */
-public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extends Itemable, DebugDumpable, Visitable, PathVisitable, Foreachable<V>, Serializable {
+public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extends Itemable, DebugDumpable, Visitable, PathVisitable, Foreachable<V>, Serializable, Freezable {
 
     ItemName getElementName();
 
@@ -353,7 +353,4 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
     void setOriginTypeRecursive(OriginType originType);
 
     boolean isImmutable();
-
-    void setImmutable();
-
 }

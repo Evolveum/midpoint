@@ -1842,7 +1842,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
     private <T extends ObjectType> PrismObject<T> prepareObjectToCache(PrismObject<T> object, boolean readOnly) {
         PrismObject<T> objectToCache;
         if (readOnly) {
-            object.setImmutable();
+            object.freeze();
             objectToCache = object;
         } else {
             // We are going to return the object (as mutable), so we must store a clone

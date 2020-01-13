@@ -26,7 +26,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.Component;
@@ -57,8 +57,8 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
 
     public List<T> getSelectedData() {
         for (Serializable s : super.getAvailableData()){
-            if (s instanceof SelectableBean) {
-                SelectableBean<T> selectable = (SelectableBean<T>) s;
+            if (s instanceof SelectableBeanImpl) {
+                SelectableBeanImpl<T> selectable = (SelectableBeanImpl<T>) s;
                 if (selectable.isSelected() && selectable.getValue() != null) {
                     selected.add(selectable.getValue());
                 }
@@ -81,8 +81,8 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
         LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
 
         for (W available : getAvailableData()){
-            if (available instanceof SelectableBean){
-                SelectableBean<T> selectableBean = (SelectableBean<T>) available;
+            if (available instanceof SelectableBeanImpl){
+                SelectableBeanImpl<T> selectableBean = (SelectableBeanImpl<T>) available;
                 if (selectableBean.isSelected() && selectableBean.getValue() != null) {
                     selected.add(selectableBean.getValue());
                 }
@@ -90,8 +90,8 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
         }
 
         for (W available : getAvailableData()) {
-            if (available instanceof SelectableBean) {
-                SelectableBean<T> selectableBean = (SelectableBean<T>) available;
+            if (available instanceof SelectableBeanImpl) {
+                SelectableBeanImpl<T> selectableBean = (SelectableBeanImpl<T>) available;
                 if (!selectableBean.isSelected()) {
                     if (selected.contains(selectableBean.getValue())) {
                         selected.remove(selectableBean.getValue());
@@ -152,7 +152,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
     }
 
     public W createDataObjectWrapper(PrismObject<T> obj) {
-        SelectableBean<T> selectable = new SelectableBean<>(obj.asObjectable());
+        SelectableBeanImpl<T> selectable = new SelectableBeanImpl<>(obj.asObjectable());
         if (selected.contains(obj.asObjectable())){
             selectable.setSelected(true);
         }

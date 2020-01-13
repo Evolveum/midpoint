@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -32,14 +33,12 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -67,10 +66,8 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.page.admin.reports.component.DownloadButtonPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -335,14 +332,14 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ReportOutputType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ReportOutputType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         ReportOutputType report = null;
                         if (getRowModel() != null) {
-                            SelectableBean<ReportOutputType> rowDto = getRowModel().getObject();
+                            SelectableBeanImpl<ReportOutputType> rowDto = getRowModel().getObject();
                             report = rowDto.getValue();
                         }
                         deleteSelectedPerformed(target, ReportDeleteDialogDto.Operation.DELETE_SELECTED, report);
@@ -361,12 +358,12 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ReportOutputType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ReportOutputType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        SelectableBean<ReportOutputType> rowDto = getRowModel().getObject();
+                        SelectableBeanImpl<ReportOutputType> rowDto = getRowModel().getObject();
                         currentReport = rowDto.getValue();
                         downloadPerformed(target, rowDto.getValue(), ajaxDownloadBehavior);
                     }

@@ -11,9 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.OrgStructurePanelStorage;
-import com.evolveum.midpoint.web.session.UsersStorage;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;

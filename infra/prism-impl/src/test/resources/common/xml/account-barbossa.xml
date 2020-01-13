@@ -5,7 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!-- This is still "account" and not "shadow". This is testing schema, not the real midPoitn schema. -->
+<!-- This is still "account" and not "shadow". This is testing schema, not the real midPoint schema. -->
 <account xmlns="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
          oid="94a0ee25-262f-4c49-ad5c-567418a5f5f3">

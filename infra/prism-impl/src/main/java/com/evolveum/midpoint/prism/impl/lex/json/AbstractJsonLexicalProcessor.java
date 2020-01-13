@@ -49,6 +49,8 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
     private static final String PROP_ELEMENT = "@element";
     private static final String PROP_VALUE = "@value";
 
+    private static final String DEFAULT_NAMESPACE_MARKER = "##DEFAULT-NAMESPACE##";
+
     @NotNull protected final SchemaRegistry schemaRegistry;
 
     AbstractJsonLexicalProcessor(@NotNull SchemaRegistry schemaRegistry) {
@@ -119,21 +121,24 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 
     protected abstract JsonParser createJacksonParser(InputStream stream) throws SchemaException, IOException;
 
-    class JsonParsingContext {
+    static class JsonParsingContext {
         @NotNull final JsonParser parser;
-        @NotNull final ParsingContext prismParsingContext;
+        @NotNull private final ParsingContext prismParsingContext;
+
+        // TODO consider getting rid of these IdentityHashMaps by support default namespace marking and resolution
+        //  directly in XNode structures (like it was done for Map XNode keys recently).
+
         // Definitions of namespaces ('@ns') within maps; to be applied after parsing.
-        @NotNull final IdentityHashMap<MapXNodeImpl, String> defaultNamespaces = new IdentityHashMap<>();
-        // Entries that should be skipped when filling-in default namespaces - those that are explicitly set with no-NS ('#name').
+        @NotNull private final IdentityHashMap<MapXNodeImpl, String> defaultNamespaces = new IdentityHashMap<>();
+        // Elements that should be skipped when filling-in default namespaces - those that are explicitly set with no-NS ('#name').
         // (Values for these entries are not important. Only key presence is relevant.)
-        @NotNull final IdentityHashMap<Entry<QName, XNodeImpl>, Object> noNamespaceEntries = new IdentityHashMap<>();
-        @NotNull final IdentityHashMap<XNodeImpl, Object> noNamespaceElementNames = new IdentityHashMap<>();
-        JsonParsingContext(@NotNull JsonParser parser, @NotNull ParsingContext prismParsingContext) {
+        @NotNull private final IdentityHashMap<XNodeImpl, Object> noNamespaceElementNames = new IdentityHashMap<>();
+        private JsonParsingContext(@NotNull JsonParser parser, @NotNull ParsingContext prismParsingContext) {
             this.parser = parser;
             this.prismParsingContext = prismParsingContext;
         }
 
-        JsonParsingContext createChildContext() {
+        private JsonParsingContext createChildContext() {
             return new JsonParsingContext(parser, prismParsingContext);
         }
     }
@@ -224,16 +229,10 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
     private void processDefaultNamespaces(XNodeImpl xnode, String parentDefault, JsonParsingContext ctx) {
         if (xnode instanceof MapXNodeImpl) {
             MapXNodeImpl map = (MapXNodeImpl) xnode;
-            final String currentDefault = ctx.defaultNamespaces.getOrDefault(map, parentDefault);
+            String currentDefault = ctx.defaultNamespaces.getOrDefault(map, parentDefault);
+            map.replaceDefaultNamespaceMarkers(DEFAULT_NAMESPACE_MARKER, currentDefault);
             for (Entry<QName, XNodeImpl> entry : map.entrySet()) {
-                QName fieldName = entry.getKey();
-                XNodeImpl subnode = entry.getValue();
-                if (StringUtils.isNotEmpty(currentDefault)
-                        && StringUtils.isEmpty(fieldName.getNamespaceURI())
-                        && !ctx.noNamespaceEntries.containsKey(entry)) {
-                    map.qualifyKey(fieldName, currentDefault);
-                }
-                processDefaultNamespaces(subnode, currentDefault, ctx);
+                processDefaultNamespaces(entry.getValue(), currentDefault, ctx);
             }
             qualifyElementNameIfNeeded(map, currentDefault, ctx);
         } else {
@@ -401,12 +400,16 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
                         wrappedValue = valueXNode;
                     }
                 } else {
-                    // We must NOT remove previous values because of potential unqualified value conflict (see MID-5326).
-                    // TODO However, we should do something to deduplicate keys in maps - probably. (Current behavior is that their values are being merged.)
-                    Map.Entry<QName, XNodeImpl> entry = map.putReturningEntry(currentFieldNameInfo.name, valueXNode, true);
-                    if (currentFieldNameInfo.explicitEmptyNamespace) {
-                        ctx.noNamespaceEntries.put(entry, null);
+                    // Beware of potential unqualified value conflict (see MID-5326).
+                    // Therefore we use special "default-namespace" marker that is dealt with later.
+                    QName key;
+                    if (currentFieldNameInfo.explicitEmptyNamespace || QNameUtil.isQualified(currentFieldNameInfo.name)) {
+                        key = currentFieldNameInfo.name;
+                    } else {
+                        key = new QName(DEFAULT_NAMESPACE_MARKER, currentFieldNameInfo.name.getLocalPart());
+                        map.setHasDefaultNamespaceMarkers();
                     }
+                    map.put(key, valueXNode);
                 }
                 currentFieldNameInfo = null;
             }

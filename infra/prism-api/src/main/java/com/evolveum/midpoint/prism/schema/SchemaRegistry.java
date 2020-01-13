@@ -31,6 +31,8 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 
     DynamicNamespacePrefixMapper getNamespacePrefixMapper();
 
+    void registerInvalidationListener(InvalidationListener listener);
+
     PrismContext getPrismContext();
 
     String getDefaultNamespace();
@@ -49,7 +51,7 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 
     ItemDefinition locateItemDefinition(@NotNull QName itemName,
             @Nullable ComplexTypeDefinition complexTypeDefinition,
-            @Nullable Function<QName, ItemDefinition> dynamicDefinitionResolver) throws SchemaException;
+            @Nullable Function<QName, ItemDefinition> dynamicDefinitionResolver);
 
     // TODO fix this temporary and inefficient implementation
     QName resolveUnqualifiedTypeName(QName type) throws SchemaException;
@@ -120,7 +122,7 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
     @Deprecated
     ItemDefinition resolveGlobalItemDefinition(QName elementQName, PrismContainerDefinition<?> containerDefinition) throws SchemaException;
 
-    ItemDefinition resolveGlobalItemDefinition(QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition) throws SchemaException;
+    ItemDefinition resolveGlobalItemDefinition(QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition);
 
     @Deprecated // use methods from PrismContext
     <T extends Objectable> PrismObject<T> instantiate(Class<T> compileTimeClass) throws SchemaException;
@@ -134,16 +136,27 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
     <ID extends ItemDefinition> ID selectMoreSpecific(ID def1, ID def2)
             throws SchemaException;
 
-    // throws SchemaException if not comparable
     QName selectMoreSpecific(QName type1, QName type2) throws SchemaException;
-
-    boolean areComparable(QName type1, QName type2) throws SchemaException;
 
     boolean isContainer(QName typeName);
 
     // TODO move to GlobalSchemaRegistry
     @NotNull
     <TD extends TypeDefinition> Collection<TD> findTypeDefinitionsByElementName(@NotNull QName name, @NotNull Class<TD> clazz);
+
+    enum IsList {
+        YES, NO, MAYBE
+    }
+
+    /**
+     * Checks whether element with given (declared) xsi:type and name can be a heterogeneous list.
+     *
+     * @return YES if it is a list,
+     *         NO if it's not,
+     *         MAYBE if it probably is a list but some further content-based checks are needed
+     */
+    @NotNull
+    IsList isList(@Nullable QName xsiType, @NotNull QName elementName);
 
     enum ComparisonResult {
         EQUAL,                    // types are equal
@@ -167,4 +180,8 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
     QName unifyTypes(QName type1, QName type2);
 
     ItemDefinition<?> createAdHocDefinition(QName elementName, QName typeName, int minOccurs, int maxOccurs);
+
+    interface InvalidationListener {
+        void invalidate();
+    }
 }

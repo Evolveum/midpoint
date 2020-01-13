@@ -21,9 +21,9 @@ import java.util.Set;
  */
 public interface MapXNode extends XNode, Serializable, DebugDumpable {
 
-    boolean containsKey(Object key);
-    boolean containsValue(Object value);
-    XNode get(Object key);
+    boolean containsKey(QName key);
+
+    XNode get(QName key);
 
     boolean isEmpty();
 
@@ -32,6 +32,9 @@ public interface MapXNode extends XNode, Serializable, DebugDumpable {
 
     int size();
 
+    /**
+     * @return Immutable set of keys.
+     */
     Set<QName> keySet();
 
     RootXNode getEntryAsRoot(@NotNull QName key);
@@ -40,6 +43,8 @@ public interface MapXNode extends XNode, Serializable, DebugDumpable {
 
     RootXNode getSingleSubEntryAsRoot(String errorContext) throws SchemaException;
 
-    // EXPERIMENTAL
-    Map<QName, ? extends XNode> asMap();
+    /**
+     * @return Shallow clone of the node in the form of a map.
+     */
+    Map<QName, ? extends XNode> toMap();
 }
