@@ -7,9 +7,13 @@
 package com.evolveum.midpoint.model.common;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,16 +27,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Component that can efficiently determine archetypes for objects.
@@ -60,14 +54,40 @@ public class ArchetypeManager {
         if (!assignmentHolder.canRepresent(AssignmentHolderType.class)) {
             return null;
         }
-        List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType)assignmentHolder.asObjectable()).getArchetypeRef();
+
+        List<ObjectReferenceType> archetypeAssignmentsRef = determineArchetypesFromAssignments(assignmentHolder.asObjectable());
+
+        if (CollectionUtils.isNotEmpty(archetypeAssignmentsRef)) {
+            if (archetypeAssignmentsRef.size() > 1) {
+                throw new SchemaException("Only a single archetype for an object is supported: "+assignmentHolder);
+            }
+        }
+
+        List<ObjectReferenceType> archetypeRefs = assignmentHolder.asObjectable().getArchetypeRef();
         if (archetypeRefs == null || archetypeRefs.isEmpty()) {
             return null;
         }
         if (archetypeRefs.size() > 1) {
             throw new SchemaException("Only a single archetype for an object is supported: "+assignmentHolder);
         }
+
+        //check also assignments
+
         return archetypeRefs.get(0);
+    }
+
+    private <O extends AssignmentHolderType> List<ObjectReferenceType> determineArchetypesFromAssignments(O assignmentHolder) {
+        List<AssignmentType> assignments = assignmentHolder.getAssignment();
+        return assignments.stream()
+                .filter(a -> {
+                    ObjectReferenceType target = a.getTargetRef();
+                    if (target == null) {
+                        return false;
+                    }
+                    return QNameUtil.match(ArchetypeType.COMPLEX_TYPE, target.getType());
+                })
+                .map(archetypeAssignment -> archetypeAssignment.getTargetRef())
+                .collect(Collectors.toList());
     }
 
     public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
