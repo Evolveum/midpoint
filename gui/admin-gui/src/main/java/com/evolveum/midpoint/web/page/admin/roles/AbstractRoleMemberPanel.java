@@ -343,7 +343,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 AvailableRelationDto avariableRelations = new AvailableRelationDto(relations, getSupportedRelations().getDefaultRelation());
                 List<QName> objectTypes = relation != null && !CollectionUtils.isEmpty(relation.getObjectTypes()) ?
                         relation.getObjectTypes() : null;
-                assignMembers(target, avariableRelations, objectTypes, relation == null);
+                List<ObjectReferenceType> archetypeRefList = relation != null && !CollectionUtils.isEmpty(relation.getArchetypeRefs()) ?
+                        relation.getArchetypeRefs() : null;
+                assignMembers(target, avariableRelations, objectTypes, archetypeRefList, relation == null);
             }
 
             @Override
@@ -567,9 +569,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     protected void assignMembers(AjaxRequestTarget target, AvailableRelationDto availableRelationList,
-                                 List<QName> objectTypes, boolean isOrgTreePanelVisible) {
+                                 List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
         MemberOperationsHelper.assignMembers(getPageBase(), getModelObject(), target, availableRelationList,
-                objectTypes, isOrgTreePanelVisible);
+                objectTypes, archetypeRefList, isOrgTreePanelVisible);
     }
 
     private void unassignMembersPerformed(AjaxRequestTarget target) {

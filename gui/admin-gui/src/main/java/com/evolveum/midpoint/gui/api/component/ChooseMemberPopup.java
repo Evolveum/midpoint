@@ -127,6 +127,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     protected List<ITab> createAssignmentTabs() {
         List<ITab> tabs = new ArrayList<>();
         List<QName> objectTypes = getAvailableObjectTypes();
+        List<ObjectReferenceType> archetypeRefList = getArchetypeRefList();
         tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.USER"),
                 new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(UserType.COMPLEX_TYPE))) {
 
@@ -134,7 +135,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MemberPopupTabPanel<UserType>(panelId, availableRelationList){
+                return new MemberPopupTabPanel<UserType>(panelId, availableRelationList, archetypeRefList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -167,7 +168,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MemberPopupTabPanel<RoleType>(panelId, availableRelationList){
+                return new MemberPopupTabPanel<RoleType>(panelId, availableRelationList, archetypeRefList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -201,7 +202,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel<OrgType>(panelId, availableRelationList){
+                        return new MemberPopupTabPanel<OrgType>(panelId, availableRelationList, archetypeRefList){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -242,7 +243,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new OrgTreeMemberPopupTabPanel(panelId, availableRelationList){
+                return new OrgTreeMemberPopupTabPanel(panelId, availableRelationList, archetypeRefList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -277,7 +278,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel<ServiceType>(panelId, availableRelationList){
+                        return new MemberPopupTabPanel<ServiceType>(panelId, availableRelationList, archetypeRefList){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -308,6 +309,10 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     }
 
     protected List<QName> getAvailableObjectTypes(){
+        return null;
+    }
+
+    protected List<ObjectReferenceType> getArchetypeRefList(){
         return null;
     }
 
