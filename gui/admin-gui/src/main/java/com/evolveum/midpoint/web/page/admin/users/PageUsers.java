@@ -116,7 +116,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 
     public PageUsers(PageParameters params) {
         super(params);
-        executeOptionsModel = new LoadableModel<>(false) {
+        executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
 
             @Override
             protected ExecuteChangeOptionsDto load() {

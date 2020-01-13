@@ -103,7 +103,7 @@ public class PageTasks extends PageAdmin {
     }
 
     private Collection<? extends IColumn<SelectableBean<TaskType>, String>> addCustomColumns(List<IColumn<SelectableBean<TaskType>, String>> columns) {
-        columns.add(2, new ObjectReferenceColumn<>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE+"."+TaskType.F_OBJECT_REF.getLocalPart()){
+        columns.add(2, new ObjectReferenceColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE+"."+TaskType.F_OBJECT_REF.getLocalPart()){
             @Override
             public IModel<ObjectReferenceType> extractDataModel(IModel<SelectableBean<TaskType>> rowModel) {
                 SelectableBean<TaskType> bean = rowModel.getObject();
@@ -112,7 +112,7 @@ public class PageTasks extends PageAdmin {
             }
         });
         columns.add(3, new PropertyColumn<>(createStringResource("pageTasks.task.executingAt"), SelectableBeanImpl.F_VALUE + "." + TaskType.F_NODE_AS_OBSERVED.getLocalPart()));
-        columns.add(4, new AbstractExportableColumn<>(createStringResource("pageTasks.task.currentRunTime"), TaskType.F_COMPLETION_TIMESTAMP.getLocalPart()) {
+        columns.add(4, new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.currentRunTime"), TaskType.F_COMPLETION_TIMESTAMP.getLocalPart()) {
 
             @Override
             public void populateItem(final Item<ICellPopulator<SelectableBean<TaskType>>> item, final String componentId,
@@ -153,7 +153,7 @@ public class PageTasks extends PageAdmin {
                 return Model.of(displayValue);
             }
         });
-        columns.add(5, new AbstractExportableColumn<>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
+        columns.add(5, new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,

@@ -207,7 +207,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private IColumn<SelectableBean<TaskType>, String> createTaskCategoryColumn() {
-        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.category"), TaskType.F_CATEGORY.getLocalPart()) {
+        return new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.category"), TaskType.F_CATEGORY.getLocalPart()) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,
@@ -232,7 +232,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
         columns.add(createProgressColumn("pageTasks.task.progress"));
 
-        columns.add(new IconColumn<>(createStringResource("pageTasks.task.status"), TaskType.F_RESULT_STATUS.getLocalPart()) {
+        columns.add(new IconColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.status"), TaskType.F_RESULT_STATUS.getLocalPart()) {
 
             @Override
             protected DisplayType getIconDisplayType(final IModel<SelectableBean<TaskType>> rowModel) {
@@ -262,7 +262,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private EnumPropertyColumn<SelectableBean<TaskType>> createTaskExecutionStatusColumn() {
-        return new EnumPropertyColumn<>(createStringResource("pageTasks.task.execution"), TaskType.F_EXECUTION_STATUS.getLocalPart(), SelectableBeanImpl.F_VALUE + ".executionStatus") {
+        return new EnumPropertyColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.execution"), TaskType.F_EXECUTION_STATUS.getLocalPart(), SelectableBeanImpl.F_VALUE + ".executionStatus") {
 
             @Override
             protected String translate(Enum en) {
@@ -272,7 +272,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createProgressColumn(String titleKey) {
-        return new AbstractExportableColumn<>(createStringResource(titleKey)) {
+        return new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource(titleKey)) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, final IModel<SelectableBean<TaskType>> rowModel) {
