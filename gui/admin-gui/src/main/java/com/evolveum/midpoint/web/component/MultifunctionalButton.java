@@ -179,7 +179,7 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
     }
 
     private boolean additionalButtonsExist() {
-        return !buttonDtos.isEmpty();
+        return CollectionUtils.isNotEmpty(buttonDtos);
     }
 
     protected boolean isMainButtonVisible(){

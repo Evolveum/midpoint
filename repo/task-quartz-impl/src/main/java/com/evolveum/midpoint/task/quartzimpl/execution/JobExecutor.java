@@ -264,7 +264,8 @@ public class JobExecutor implements InterruptableJob {
                             NodeType remoteNode = nodes.get(0).asObjectable();
                             if (taskManagerImpl.isCheckingIn(remoteNode)) {
                                 LOGGER.error(
-                                        "Current task {} seems to be already running at node {} that is alive. We will NOT start it here.",
+                                        "Current task {} seems to be already running at node {} that is alive or starting."
+                                                + " We will NOT start it here.",
                                         task, remoteNode.getNodeIdentifier());
                                 // We should probably contact the remote node and check if the task is really running there.
                                 // But let's keep things simple for the time being.

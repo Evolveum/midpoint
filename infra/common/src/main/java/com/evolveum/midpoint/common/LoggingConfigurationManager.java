@@ -94,7 +94,7 @@ public class LoggingConfigurationManager {
         }
 
         InputStream cis = new ByteArrayInputStream(configXml.getBytes());
-        LOGGER.info("Resetting current logging configuration");
+        LOGGER.debug("Resetting current logging configuration");
         lc.getStatusManager().clear();
         //Set all loggers to error
         for (Logger l : lc.getLoggerList()) {
@@ -107,7 +107,7 @@ public class LoggingConfigurationManager {
         lc.setName("MidPoint");
         try {
             configurator.doConfigure(cis);
-            LOGGER.info("New logging configuration applied");
+            LOGGER.debug("New logging configuration applied");
         } catch (JoranException | NumberFormatException e) {
             System.out.println("Error during applying logging configuration: " + e.getMessage());
             LOGGER.error("Error during applying logging configuration: " + e.getMessage(), e);

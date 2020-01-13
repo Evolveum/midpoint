@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStatusType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -116,8 +117,9 @@ public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvalua
         List<PrismObject<NodeType>> matchingNodes = new ArrayList<>();
         for (PrismObject<NodeType> node : knownNodes) {
             NodeType actualNode = node.asObjectable();
-            if (Boolean.FALSE.equals(actualNode.isRunning())) {
-                LOGGER.trace("Skipping {} because it has running=FALSE", actualNode);
+            if (actualNode.getOperationalStatus() == NodeOperationalStatusType.DOWN) {
+                // Note that we consider nodes that are STARTING as eligible for authentication (they can issue REST calls)
+                LOGGER.trace("Skipping {} because it has operationalState=DOWN", actualNode);
             } else if (remoteName != null && remoteName.equalsIgnoreCase(actualNode.getHostname())) {
                 LOGGER.trace("The node {} was recognized as a known node (remote host name {} matched).",
                         actualNode.getName(), actualNode.getHostname());

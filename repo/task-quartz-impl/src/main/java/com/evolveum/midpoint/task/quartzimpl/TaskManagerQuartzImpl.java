@@ -59,7 +59,9 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -113,6 +115,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @Autowired private Protector protector;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private Tracer tracer;
+    @Autowired private CacheDispatcher cacheDispatcher;
 
     private GlobalTracingOverride globalTracingOverride;
 
@@ -230,7 +233,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
         // if running in test mode, the postInit will not be executed... so we have to start scheduler here
         if (configuration.isTestMode()) {
-            postInit(result);
+            startSchedulerIfNeeded(result);
         }
     }
 
@@ -241,13 +244,22 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
     @Override
     public void postInit(OperationResult parentResult) {
+        // nothing to do here
+    }
 
-        OperationResult result = parentResult.createSubresult(DOT_IMPL_CLASS + "postInit");
+    @Override
+    @EventListener(ApplicationReadyEvent.class)
+    public void onSystemStarted() {
+        OperationResult result = new OperationResult(DOT_IMPL_CLASS + "onSystemStarted");
 
-        if (!configuration.isTestMode()) {
-            clusterManager.startClusterManagerThread();
-        }
+        clusterManager.registerNodeUp(result);
+        cacheDispatcher.dispatchInvalidation(null, null, false, null);
 
+        clusterManager.startClusterManagerThread();
+        startSchedulerIfNeeded(result);
+    }
+
+    private void startSchedulerIfNeeded(OperationResult result) {
         if (configuration.isSchedulerInitiallyStopped()) {
             LOGGER.info("Scheduler was not started because of system configuration 'schedulerInitiallyStopped' setting. You can start it manually if needed.");
         } else if (midpointConfiguration.isSafeMode()) {
@@ -258,8 +270,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
                 throw new SystemException("Quartz task scheduler couldn't be started.");
             }
         }
-
-        result.computeStatus();
     }
 
     @PreDestroy
@@ -2613,6 +2623,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             boundary.add(positiveDuration.negate());
             return new TimeBoundary(positiveDuration, boundary);
         }
+    }
+
+    @Override
+    public boolean isUpAndAlive(NodeType node) {
+        return clusterManager.isUpAndAlive(node);
     }
 
     @Override
