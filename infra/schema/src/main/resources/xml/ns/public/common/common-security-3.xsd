@@ -182,7 +182,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AbstractPasswordAuthenticationModuleType" abstract="true">
+    <xsd:complexType name="AbstractCredentialAuthenticationModuleType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
                 <p>
@@ -215,6 +215,25 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <!-- TODO: Security questions validation policy: how many questions to present, how many need to be answered successfuly, randomize order, etc. -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AbstractPasswordAuthenticationModuleType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common definition for all authentication modules that use password.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCredentialAuthenticationModuleType">
+                <xsd:sequence>
                     <xsd:element name="acceptEmptyPassword" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -377,13 +396,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="signMetadata" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        When true generated metadata will be signed using XML Signature using certificate with alias of signing key.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+<!--            <xsd:element name="signMetadata" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">-->
+<!--                <xsd:annotation>-->
+<!--                    <xsd:documentation>-->
+<!--                        When true generated metadata will be signed using XML Signature using certificate with alias of signing key.-->
+<!--                    </xsd:documentation>-->
+<!--                </xsd:annotation>-->
+<!--            </xsd:element>-->
             <xsd:element name="signRequests" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -737,14 +756,14 @@
                 <xsd:element name="xml" type="xsd:base64Binary">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Metadata encrypted by base64.
+                            Xml of metadata encrypted by base64.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="pathToFile" type="xsd:string">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Path to file, which contains metadata.
+                            Path to xml file, which contains metadata.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -830,18 +849,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+            <xsd:extension base="tns:AbstractCredentialAuthenticationModuleType">
                 <xsd:sequence>
-                    <xsd:element name="credentialName" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Name of credential definition that should be used when validating password.
-                                This must point to a valid credential definition
-                                in the "credential" section of a security policy.
-                                If not specified then default password definition is used.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                     <!-- TODO: Security questions validation policy: how many questions to present, how many need to be answered successfuly, randomize order, etc. -->
                 </xsd:sequence>
             </xsd:extension>
@@ -984,10 +993,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="urlSuffix" type="xsd:string" minOccurs="0">
+            <xsd:element name="urlSuffix" type="xsd:string" minOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        URL suffix that can be used to select this authentication sequence specifically.
+                        URL suffix that can be used to select this authentication sequence specifically. URL suffix can't contains slash '/'.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1223,6 +1232,16 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Free form description of the credential reset method (administrator comment).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="authenticationSequenceName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defined authentication sequence, which will be use for reset credential.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.1</a:since>

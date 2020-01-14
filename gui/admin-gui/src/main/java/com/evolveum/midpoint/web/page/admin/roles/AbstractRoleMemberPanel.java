@@ -381,6 +381,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(), relation,
                     additionalDispayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
             CompositedIcon icon = builder.build();
+            buttonDto.setAdditionalButtonDisplayType(additionalDispayType);
             buttonDto.setCompositedIcon(icon);
             additionalAssignmentButtons.add(buttonDto);
         });

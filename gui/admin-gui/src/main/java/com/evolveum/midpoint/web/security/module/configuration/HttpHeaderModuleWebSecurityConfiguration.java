@@ -12,7 +12,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModule
  * @author skublik
  */
 
-public class HttpHeaderModuleWebSecurityConfiguration extends ModuleWebSecurityConfigurationImpl {
+public class HttpHeaderModuleWebSecurityConfiguration extends LoginFormModuleWebSecurityConfiguration {
 
     private String principalRequestHeader;
 

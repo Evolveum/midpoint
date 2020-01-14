@@ -13,6 +13,8 @@ import org.apache.wicket.markup.html.basic.Label;
 @PageDescriptor(url = "/resetpasswordsuccess", permitAll = true)
 public class PageShowPassword extends PageBase {
 
+    public final static String URL = "/resetpasswordsuccess";
+
     public PageShowPassword() {
         add(new Label("pass", getSession().getAttribute("pwdReset")));
         getSession().removeAttribute("pwdReset");

@@ -4,15 +4,17 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.security.module.factory;
+package com.evolveum.midpoint.web.security.factory.module;
 
-import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
-import com.evolveum.midpoint.web.security.module.authentication.LoginFormModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
+import com.evolveum.midpoint.web.security.module.HttpBasicModuleWebSecurityConfig;
+import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
+import com.evolveum.midpoint.web.security.module.authentication.CredentialModuleAuthentication;
+import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
-import com.evolveum.midpoint.web.security.module.LoginFormModuleWebSecurityConfig;
-import com.evolveum.midpoint.web.security.provider.InternalPasswordProvider;
+import com.evolveum.midpoint.web.security.provider.PasswordProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.stereotype.Component;
@@ -21,14 +23,11 @@ import org.springframework.stereotype.Component;
  * @author skublik
  */
 @Component
-public class LoginFormModuleFactory extends AbstractPasswordModuleFactory {
-
-//    @Autowired
-//    private AuthenticationProvider midPointAuthenticationProvider;
+public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<ModuleWebSecurityConfiguration> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof AuthenticationModuleLoginFormType) {
+        if (moduleType instanceof AuthenticationModuleHttpBasicType) {
             return true;
         }
         return false;
@@ -43,12 +42,12 @@ public class LoginFormModuleFactory extends AbstractPasswordModuleFactory {
 
     @Override
     protected ModuleWebSecurityConfig createModule(ModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new LoginFormModuleWebSecurityConfig(configuration));
+        return  getObjectObjectPostProcessor().postProcess(new HttpBasicModuleWebSecurityConfig(configuration));
     }
 
     @Override
     protected AuthenticationProvider createProvider(CredentialPolicyType usedPolicy) {
-        return new InternalPasswordProvider();
+        return new PasswordProvider();
     }
 
     @Override
@@ -57,11 +56,11 @@ public class LoginFormModuleFactory extends AbstractPasswordModuleFactory {
     }
 
     @Override
-    protected ModuleAuthentication createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
-                                                                   ModuleWebSecurityConfiguration configuration) {
-        LoginFormModuleAuthentication moduleAuthentication = new LoginFormModuleAuthentication();
+    protected ModuleAuthentication createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, ModuleWebSecurityConfiguration configuration) {
+        HttpModuleAuthentication moduleAuthentication = new HttpModuleAuthentication(NameOfModuleType.HTTP_BASIC);
         moduleAuthentication.setPrefix(configuration.getPrefix());
         moduleAuthentication.setCredentialName(((AbstractPasswordAuthenticationModuleType)moduleType).getCredentialName());
+        moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
         return moduleAuthentication;
     }

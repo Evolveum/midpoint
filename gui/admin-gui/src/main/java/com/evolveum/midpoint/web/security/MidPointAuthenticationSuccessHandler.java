@@ -66,10 +66,14 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws ServletException, IOException {
 
+        String urlSuffix = "/self/dashboard";
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
+            if (mpAuthentication.getAuthenticationChannel() != null) {
+                urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication();
+            }
         }
 
         if (WebModelServiceUtils.isPostAuthenticationEnabled(taskManager, modelInteractionService)) {
@@ -86,7 +90,7 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
 
         SavedRequest savedRequest = requestCache.getRequest(request, response);
         if (savedRequest != null && savedRequest.getRedirectUrl().contains(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/")) {
-            String target = savedRequest.getRedirectUrl().substring(0, savedRequest.getRedirectUrl().indexOf(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/")) + "/self/dashboard";
+            String target = savedRequest.getRedirectUrl().substring(0, savedRequest.getRedirectUrl().indexOf(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/")) + urlSuffix;
             getRedirectStrategy().sendRedirect(request, response, target);
             return;
         }

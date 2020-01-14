@@ -8,8 +8,6 @@ package com.evolveum.midpoint.web.security.provider;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -17,73 +15,95 @@ import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.module.authentication.PasswordModuleAuthentication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import org.apache.commons.lang3.StringUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
  * @author skublik
  */
 
-public abstract class PasswordProvider extends MidPointAbstractAuthenticationProvider<PasswordAuthenticationContext> {
+public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthenticationContext> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PasswordProvider.class);
 
-    private String nameOfCredential;
+    @Autowired
+    private transient AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
 
-    public PasswordProvider(String nameOfCredential) {
-        this.nameOfCredential = nameOfCredential;
+    @Override
+    protected AuthenticationEvaluator<PasswordAuthenticationContext> getEvaluator() {
+        return passwordAuthenticationEvaluator;
     }
 
-    public String getNameOfCredential() {
-        return nameOfCredential;
-    }
+    @Override
+    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment) throws AuthenticationException {
+        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof MidPointUserProfilePrincipal) {
+            return authentication;
+        }
+        String enteredUsername = (String) authentication.getPrincipal();
+        LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
-    public boolean supports(Class<?> authenticationClass, Authentication authentication) {
-        if (!(authentication instanceof MidpointAuthentication)) {
-            return supports(authenticationClass);
-        }
-        MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-        ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
-        if (mpAuthentication == null || moduleAuthentication == null || moduleAuthentication.getAuthentication() == null) {
-            return false;
-        }
-        if (moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken) {
-            return true; // hack for specific situation when user is anonymous, but accessDecisionManager resolve it
-        }
+        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
 
-        if (moduleAuthentication instanceof PasswordModuleAuthentication) {
-            String moduleCredentialName = ((PasswordModuleAuthentication) moduleAuthentication).getCredentialName();
-            if (StringUtils.isNotBlank(getNameOfCredential()) && StringUtils.isNotBlank(moduleCredentialName)
-                && !getNameOfCredential().equals(moduleCredentialName)) {
-                return false;
+        try {
+            Authentication token;
+            if (authentication instanceof UsernamePasswordAuthenticationToken) {
+                String enteredPassword = (String) authentication.getCredentials();
+                token = getEvaluator().authenticate(connEnv, new PasswordAuthenticationContext(enteredUsername, enteredPassword, requireAssignment));
+            } else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
+                token = getEvaluator().authenticateUserPreAuthenticated(connEnv, new PreAuthenticationContext(enteredUsername, requireAssignment));
+            } else {
+                LOGGER.error("Unsupported authentication {}", authentication);
+                throw new AuthenticationServiceException("web.security.provider.unavailable");
             }
+
+            MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();
+
+            LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
+                    authentication.getClass().getSimpleName(), principal.getAuthorities());
+            return token;
+
+        } catch (AuthenticationException e) {
+            LOGGER.info("Authentication failed for {}: {}", enteredUsername, e.getMessage());
+            throw e;
+        }
+    }
+
+    @Override
+    protected Authentication createNewAuthenticationToken(Authentication actualAuthentication, Collection<? extends GrantedAuthority> newAuthorities) {
+        if (actualAuthentication instanceof UsernamePasswordAuthenticationToken) {
+            return new UsernamePasswordAuthenticationToken(actualAuthentication.getPrincipal(), actualAuthentication.getCredentials(), newAuthorities);
+        } else if (actualAuthentication instanceof PreAuthenticatedAuthenticationToken) {
+            return new PreAuthenticatedAuthenticationToken(actualAuthentication.getPrincipal(), actualAuthentication.getCredentials(), newAuthorities);
+        } else {
+            return actualAuthentication;
+        }
+    }
+
+    @Override
+    public boolean supports(Class<?> authentication) {
+        if (UsernamePasswordAuthenticationToken.class.equals(authentication)) {
+            return true;
+        }
+        if (PreAuthenticatedAuthenticationToken.class.equals(authentication)) {
+            return true;
         }
 
-        return supports(moduleAuthentication.getAuthentication().getClass());
+        return false;
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((getEvaluator() == null) ? 0 : getEvaluator().hashCode())
-                + ((getNameOfCredential() == null) ? 0 : getNameOfCredential().hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj);
+    public Class getTypeOfCredential() {
+        return PasswordCredentialsPolicyType.class;
     }
 
 }

@@ -976,6 +976,30 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
     }
 
+    @Test
+    public void test300jackAssignArchetypeRaw() throws Exception {
+        final String TEST_NAME = "test300jackAssignArchetypeRaw";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        try {
+            assignArchetype(USER_JACK_OID, ARCHETYPE_CONTRACTOR_OID, task, result);
+        } catch (SchemaException e) {
+            // expected
+        }
+
+        assertUserAfter(USER_JACK_OID).assignments()
+                .by()
+                    .targetOid(ARCHETYPE_CONTRACTOR_OID)
+                    .targetType(ArchetypeType.COMPLEX_TYPE)
+                    .assertNone();
+    }
+
     // TODO: object template in archetype
     // TODO: correct application of object template for new object (not yet stored)
 

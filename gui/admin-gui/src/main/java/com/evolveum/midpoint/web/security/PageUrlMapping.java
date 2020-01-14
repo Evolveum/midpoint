@@ -90,6 +90,10 @@ public enum PageUrlMapping {
     ACTUATOR_METRICS("/actuator/metrics/**", new DisplayableValue[]{
             new AuthorizationActionValue(AUTZ_ACTUATOR_METRICS_URL,
                     "ActuatorEndpoint.authActuator.metrics.label", "ActuatorEndpoint.authActuator.metrics.description")
+    }),
+    REST("/ws/rest/**", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_REST_ALL_URL,
+                    "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")
     });
 
     private String url;

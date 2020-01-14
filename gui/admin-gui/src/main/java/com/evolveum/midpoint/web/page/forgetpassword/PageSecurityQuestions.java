@@ -63,7 +63,7 @@ import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 
-@PageDescriptor(url = "/securityquestions", permitAll = true)
+@PageDescriptor(url = "/securityquestionsold", permitAll = true)
 public class PageSecurityQuestions extends PageBase {
     private static final long serialVersionUID = 1L;
 

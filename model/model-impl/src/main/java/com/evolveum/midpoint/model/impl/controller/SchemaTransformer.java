@@ -43,7 +43,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -52,7 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -203,14 +201,17 @@ public class SchemaTransformer {
             }
         }
 
-        ObjectTemplateType objectTemplateType;
-        try {
-            objectTemplateType = determineObjectTemplate(object, AuthorizationPhaseType.REQUEST, result);
-        } catch (ConfigurationException | ObjectNotFoundException e) {
-            result.recordFatalError(e);
-            throw e;
+        // we do not need to process object template when processing REQUEST in RAW mode.
+        if (!GetOperationOptions.isRaw(rootOptions)) {
+            ObjectTemplateType objectTemplateType;
+            try {
+                objectTemplateType = determineObjectTemplate(object, AuthorizationPhaseType.REQUEST, result);
+            } catch (ConfigurationException | SchemaException | ObjectNotFoundException e) {
+                result.recordFatalError(e);
+                throw e;
+            }
+            applyObjectTemplateToObject(object, objectTemplateType, result);
         }
-        applyObjectTemplateToObject(object, objectTemplateType, result);
 
         if (CollectionUtils.isNotEmpty(options)) {
             Map<DefinitionProcessingOption, Collection<UniformItemPath>> definitionProcessing = SelectorOptions.extractOptionValues(options, (o) -> o.getDefinitionProcessing(), prismContext);
