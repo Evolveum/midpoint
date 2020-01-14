@@ -22,6 +22,8 @@ import java.io.IOException;
 
 public class MidpointUsernamePasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
+    private boolean postOnly = true;
+
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -35,5 +37,15 @@ public class MidpointUsernamePasswordAuthenticationFilter extends UsernamePasswo
         getRememberMeServices().loginFail(request, response);
 
         getFailureHandler().onAuthenticationFailure(request, response, failed);
+    }
+
+    @Override
+    public void setPostOnly(boolean postOnly) {
+        this.postOnly = postOnly;
+        super.setPostOnly(postOnly);
+    }
+
+    public boolean isPostOnly() {
+        return postOnly;
     }
 }

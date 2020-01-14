@@ -7,15 +7,13 @@
 package com.evolveum.midpoint.web.security.module.authentication;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleType;
 import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
-import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 
 /**
  * @author skublik
  */
 
-public class LoginFormModuleAuthentication extends PasswordModuleAuthentication {
+public class LoginFormModuleAuthentication extends CredentialModuleAuthentication {
 
     public LoginFormModuleAuthentication() {
         super(NameOfModuleType.LOGIN_FORM);

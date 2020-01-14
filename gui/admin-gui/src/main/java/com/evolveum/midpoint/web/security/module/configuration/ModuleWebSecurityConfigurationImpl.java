@@ -69,19 +69,19 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
     }
 
     public String getPrefix() {
-        if (getPrefixOfSequence() == null || StringUtils.isBlank(stripSlashes(getPrefixOfSequence()))) {
-            return DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + DEFAULT_PREFIX_FOR_DEFAULT_MODULE + stripSlashes(getNameOfModule()) + "/";
-        }
+//        if (getPrefixOfSequence() == null || StringUtils.isBlank(stripSlashes(getPrefixOfSequence()))) {
+//            return DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + DEFAULT_PREFIX_FOR_DEFAULT_MODULE + stripSlashes(getNameOfModule()) + "/";
+//        }
         return DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/" + stripSlashes(getPrefixOfSequence()) + "/" + stripSlashes(getNameOfModule() + "/");
     }
 
-    public static ModuleWebSecurityConfigurationImpl build(AbstractAuthenticationModuleType module, String prefixOfSequence){
+    public static <T extends ModuleWebSecurityConfiguration> T build(AbstractAuthenticationModuleType module, String prefixOfSequence){
         ModuleWebSecurityConfigurationImpl configuration = build(new ModuleWebSecurityConfigurationImpl(), module, prefixOfSequence);
         configuration.validate();
-        return configuration;
+        return (T) configuration;
     }
 
-    protected static ModuleWebSecurityConfigurationImpl build(ModuleWebSecurityConfigurationImpl configuration, AbstractAuthenticationModuleType module,
+    protected static <T extends ModuleWebSecurityConfiguration> T build(T configuration, AbstractAuthenticationModuleType module,
                                                               String prefixOfSequence){
         configuration.setNameOfModule(module.getName());
         configuration.setPrefixOfSequence(prefixOfSequence);
@@ -92,6 +92,10 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
     protected void validate(){
         if (StringUtils.isBlank(stripSlashes(getNameOfModule()))) {
             throw new IllegalArgumentException("NameOfModule is blank");
+        }
+
+        if (StringUtils.isBlank(getPrefixOfSequence()) || StringUtils.isBlank(stripSlashes(getPrefixOfSequence()))) {
+            throw new IllegalArgumentException("Suffix in channel of sequence " + getNameOfModule() + " can't be null for this usecase");
         }
     }
 

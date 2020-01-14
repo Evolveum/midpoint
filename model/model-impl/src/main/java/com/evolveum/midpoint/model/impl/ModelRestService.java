@@ -6,10 +6,15 @@
  */
 package com.evolveum.midpoint.model.impl;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.common.rest.Converter;
 import com.evolveum.midpoint.common.rest.ConverterInterface;
@@ -28,8 +33,12 @@ import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -49,8 +58,11 @@ import org.apache.commons.lang.Validate;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -122,6 +134,9 @@ public class ModelRestService {
 
     @Autowired private CacheDispatcher cacheDispatcher;
 
+    @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired private AuditService auditService;
+
     private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
 
     private static final long WAIT_FOR_TASK_STOP = 2000L;
@@ -138,7 +153,7 @@ public class ModelRestService {
             @PathParam("oid") String oid, PolicyItemsDefinitionType policyItemsDefinition,
             @Context MessageContext mc) {
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_GENERATE_VALUE);
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
@@ -152,7 +167,7 @@ public class ModelRestService {
             response = RestServiceUtil.handleException(parentResult, ex);
         }
 
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
 
     }
@@ -164,11 +179,11 @@ public class ModelRestService {
     public Response generateValue(PolicyItemsDefinitionType policyItemsDefinition,
             @Context MessageContext mc) {
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_GENERATE_VALUE_RPC);
 
         Response response = generateValue(null, policyItemsDefinition, task, parentResult);
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
 
         return response;
     }
@@ -201,20 +216,20 @@ public class ModelRestService {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
     public Response validateValue(@PathParam("type") String type, @PathParam("oid") String oid, PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_VALIDATE_VALUE);
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         Response response;
         try {
             PrismObject<? extends ObjectType> object = model.getObject(clazz, oid, null, task, parentResult);
-            response = validateValue(object, policyItemsDefinition, task, parentResult);
+            response = validateValue(object, mc.getHttpServletRequest(), policyItemsDefinition, task, parentResult);
         } catch (Exception ex) {
             parentResult.computeStatus();
             response = RestServiceUtil.handleException(parentResult, ex);
         }
 
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -224,27 +239,27 @@ public class ModelRestService {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
     public Response validateValue(PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_VALIDATE_VALUE);
 
-        Response response = validateValue(null, policyItemsDefinition, task, parentResult);
-        finishRequest(task);
+        Response response = validateValue(null, mc.getHttpServletRequest(), policyItemsDefinition, task, parentResult);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
 
     }
 
-    private <O extends ObjectType> Response validateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult) {
+    private <O extends ObjectType> Response validateValue(PrismObject<O> object, HttpServletRequest httpRequest, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult) {
         Response response;
         if (policyItemsDefinition == null) {
             response = createBadPolicyItemsDefinitionResponse("Policy items definition must not be null", parentResult);
-            finishRequest(task);
+            finishRequest(task, httpRequest);
             return response;
 
         }
 
         if (CollectionUtils.isEmpty(policyItemsDefinition.getPolicyItemDefinition())) {
             response = createBadPolicyItemsDefinitionResponse("No definitions for items", parentResult);
-            finishRequest(task);
+            finishRequest(task, httpRequest);
             return response;
         }
 
@@ -281,7 +296,7 @@ public class ModelRestService {
     public Response getValuePolicyForUser(@PathParam("id") String oid, @Context MessageContext mc) {
         LOGGER.debug("getValuePolicyForUser start");
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
 
         Response response;
@@ -302,7 +317,7 @@ public class ModelRestService {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
 
         LOGGER.debug("getValuePolicyForUser finish");
 
@@ -320,7 +335,7 @@ public class ModelRestService {
             @Context MessageContext mc){
         LOGGER.debug("model rest service for get operation start");
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
@@ -357,7 +372,7 @@ public class ModelRestService {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -367,7 +382,7 @@ public class ModelRestService {
     public Response getSelf(@Context MessageContext mc){
         LOGGER.debug("model rest service for get operation start");
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_SELF);
 
         Response response;
@@ -384,7 +399,7 @@ public class ModelRestService {
             response = RestServiceUtil.handleException(parentResult, e);
         }
 
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -397,12 +412,12 @@ public class ModelRestService {
             @Context UriInfo uriInfo, @Context MessageContext mc) {
         LOGGER.debug("model rest service for add operation start");
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_ADD_OBJECT);
 
         Class clazz = ObjectTypes.getClassFromRestType(type);
         if (!object.getCompileTimeClass().equals(clazz)){
-            finishRequest(task);
+            finishRequest(task, mc.getHttpServletRequest());
             parentResult.recordFatalError("Request to add object of type "
                     + object.getCompileTimeClass().getSimpleName() + " to the collection of " + type);
             return RestServiceUtil.createErrorResponseBuilder(Status.BAD_REQUEST, parentResult).build();
@@ -438,7 +453,7 @@ public class ModelRestService {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -449,7 +464,7 @@ public class ModelRestService {
             @QueryParam("include") List<String> include, @QueryParam("exclude") List<String> exclude,
             @QueryParam("resolveNames") List<String> resolveNames,
             @Context UriInfo uriInfo, @Context MessageContext mc) {
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_SEARCH_OBJECTS);
 
         //noinspection unchecked
@@ -473,7 +488,7 @@ public class ModelRestService {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -513,12 +528,12 @@ public class ModelRestService {
 
         LOGGER.debug("model rest service for add operation start");
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_ADD_OBJECT);
 
         Class clazz = ObjectTypes.getClassFromRestType(type);
         if (!object.getCompileTimeClass().equals(clazz)){
-            finishRequest(task);
+            finishRequest(task, mc.getHttpServletRequest());
             parentResult.recordFatalError("Request to add object of type "
                     + object.getCompileTimeClass().getSimpleName()
                     + " to the collection of " + type);
@@ -549,7 +564,7 @@ public class ModelRestService {
         parentResult.computeStatus();
 //        Response response = RestServiceUtil.createResultHeaders(builder, parentResult).build();
 
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -561,7 +576,7 @@ public class ModelRestService {
 
         LOGGER.debug("model rest service for delete operation start");
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_DELETE_OBJECT);
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
@@ -570,7 +585,7 @@ public class ModelRestService {
             if (clazz.isAssignableFrom(TaskType.class)) {
                 taskService.suspendAndDeleteTask(id, WAIT_FOR_TASK_STOP, true, task, parentResult);
                 parentResult.computeStatus();
-                finishRequest(task);
+                finishRequest(task, mc.getHttpServletRequest());
                 if (parentResult.isSuccess()) {
                     return Response.noContent().build();
                 }
@@ -586,7 +601,7 @@ public class ModelRestService {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -606,7 +621,7 @@ public class ModelRestService {
 
         LOGGER.debug("model rest service for modify operation start");
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_MODIFY_OBJECT);
 
         Class clazz = ObjectTypes.getClassFromRestType(type);
@@ -623,7 +638,7 @@ public class ModelRestService {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -635,7 +650,7 @@ public class ModelRestService {
         LOGGER.debug("model rest service for notify change operation start");
         Validate.notNull(changeDescription, "Chnage description must not be null");
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_NOTIFY_CHANGE);
 
         Response response;
@@ -656,7 +671,7 @@ public class ModelRestService {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -667,7 +682,7 @@ public class ModelRestService {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
     public Response findShadowOwner(@PathParam("oid") String shadowOid, @Context MessageContext mc){
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_FIND_SHADOW_OWNER);
 
         Response response;
@@ -680,7 +695,7 @@ public class ModelRestService {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -690,7 +705,7 @@ public class ModelRestService {
     public Response importShadow(@PathParam("oid") String shadowOid, @Context MessageContext mc, @Context UriInfo uriInfo) {
         LOGGER.debug("model rest service for import shadow from resource operation start");
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_IMPORT_SHADOW_FROM_RESOURCE);
 
         Response response;
@@ -703,7 +718,7 @@ public class ModelRestService {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -718,7 +733,7 @@ public class ModelRestService {
             @QueryParam("resolveNames") List<String> resolveNames,
             @Context MessageContext mc) {
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_SEARCH_OBJECTS);
 
         Class clazz = ObjectTypes.getClassFromRestType(type);
@@ -742,7 +757,7 @@ public class ModelRestService {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -757,7 +772,7 @@ public class ModelRestService {
             @Context MessageContext mc, @Context UriInfo uriInfo) {
         LOGGER.debug("model rest service for import from resource operation start");
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_IMPORT_FROM_RESOURCE);
 
         QName objClass = new QName(MidPointConstants.NS_RI, objectClass);
@@ -773,7 +788,7 @@ public class ModelRestService {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -783,7 +798,7 @@ public class ModelRestService {
     public Response testResource(@PathParam("resourceOid") String resourceOid, @Context MessageContext mc) {
         LOGGER.debug("model rest service for test resource operation start");
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_TEST_RESOURCE);
 
         Response response;
@@ -800,7 +815,7 @@ public class ModelRestService {
             parentResult.getSubresults().add(testResult);
         }
 
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -808,7 +823,7 @@ public class ModelRestService {
     @Path("/tasks/{oid}/suspend")
     public Response suspendTask(@PathParam("oid") String taskOid, @Context MessageContext mc) {
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_TASK);
 
         Response response;
@@ -820,7 +835,7 @@ public class ModelRestService {
             response = RestServiceUtil.handleException(parentResult, ex);
         }
 
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -828,7 +843,7 @@ public class ModelRestService {
 //    @Path("tasks/{oid}/suspend")
 //    public Response suspendAndDeleteTask(@PathParam("oid") String taskOid, @Context MessageContext mc) {
 //
-//        Task task = RestServiceUtil.initRequest(mc);
+//        Task task = initRequest(mc);
 //        OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_AND_DELETE_TASKS);
 //
 //        Response response;
@@ -846,7 +861,7 @@ public class ModelRestService {
 //            response = RestServiceUtil.handleException(parentResult, ex);
 //        }
 //
-//        finishRequest(task);
+//        finishRequest(task, mc.getHttpServletRequest());
 //        return response;
 //    }
 
@@ -854,7 +869,7 @@ public class ModelRestService {
     @Path("/tasks/{oid}/resume")
     public Response resumeTask(@PathParam("oid") String taskOid, @Context MessageContext mc) {
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_RESUME_TASK);
 
         Response response;
@@ -866,7 +881,7 @@ public class ModelRestService {
             response = RestServiceUtil.handleException(parentResult, ex);
         }
 
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -875,7 +890,7 @@ public class ModelRestService {
     @Path("tasks/{oid}/run")
     public Response scheduleTaskNow(@PathParam("oid") String taskOid, @Context MessageContext mc) {
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_SCHEDULE_TASK_NOW);
 
         Response response;
@@ -887,7 +902,7 @@ public class ModelRestService {
             response = RestServiceUtil.handleException(parentResult, ex);
         }
 
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -909,7 +924,7 @@ public class ModelRestService {
     public Response executeScript(@Converter(ExecuteScriptConverter.class) ExecuteScriptType command,
             @QueryParam("asynchronous") Boolean asynchronous, @Context UriInfo uriInfo, @Context MessageContext mc) {
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult result = task.getResult().createSubresult(OPERATION_EXECUTE_SCRIPT);
 
         Response response;
@@ -933,7 +948,7 @@ public class ModelRestService {
             response = RestServiceUtil.handleExceptionNoLog(result, ex);
         }
         result.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -947,7 +962,7 @@ public class ModelRestService {
             @QueryParam("ignoreItems") List<String> restIgnoreItems,
             @Context MessageContext mc) {
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult result = task.getResult().createSubresult(OPERATION_COMPARE);
 
         Response response;
@@ -970,7 +985,7 @@ public class ModelRestService {
         }
 
         result.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -979,7 +994,7 @@ public class ModelRestService {
     @Produces({"text/plain"})
     public Response getLogFileSize(@Context MessageContext mc) {
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult result = task.getResult().createSubresult(OPERATION_GET_LOG_FILE_SIZE);
 
         Response response;
@@ -995,7 +1010,7 @@ public class ModelRestService {
         }
 
         result.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -1004,7 +1019,7 @@ public class ModelRestService {
     @Produces({"text/plain"})
     public Response getLog(@QueryParam("fromPosition") Long fromPosition, @QueryParam("maxSize") Long maxSize, @Context MessageContext mc) {
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult result = task.getResult().createSubresult(OPERATION_GET_LOG_FILE_CONTENT);
 
         Response response;
@@ -1025,7 +1040,7 @@ public class ModelRestService {
         }
 
         result.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -1034,7 +1049,7 @@ public class ModelRestService {
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
     public Response executeCredentialReset(@PathParam("oid") String oid, ExecuteCredentialResetRequestType executeCredentialResetRequest, @Context MessageContext mc) {
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult result = task.getResult().createSubresult(OPERATION_EXECUTE_CREDENTIAL_RESET);
 
         Response response;
@@ -1048,7 +1063,7 @@ public class ModelRestService {
         }
 
         result.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
 
 
@@ -1059,7 +1074,7 @@ public class ModelRestService {
     @Produces({"text/plain"})
     public Response getThreadsDump(@Context MessageContext mc) {
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult result = task.getResult().createSubresult(OPERATION_GET_THREADS_DUMP);
 
         Response response;
@@ -1071,7 +1086,7 @@ public class ModelRestService {
             response = RestServiceUtil.handleExceptionNoLog(result, ex);
         }
         result.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -1080,7 +1095,7 @@ public class ModelRestService {
     @Produces({"text/plain"})
     public Response getRunningTasksThreadsDump(@Context MessageContext mc) {
 
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult result = task.getResult().createSubresult(OPERATION_GET_RUNNING_TASKS_THREADS_DUMP);
 
         Response response;
@@ -1092,7 +1107,7 @@ public class ModelRestService {
             response = RestServiceUtil.handleExceptionNoLog(result, ex);
         }
         result.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -1100,8 +1115,7 @@ public class ModelRestService {
     @Path("/tasks/{oid}/threads")
     @Produces({"text/plain"})
     public Response getTaskThreadsDump(@PathParam("oid") String oid, @Context MessageContext mc) {
-
-        Task task = RestServiceUtil.initRequest(mc);
+        Task task = initRequest(mc);
         OperationResult result = task.getResult().createSubresult(OPERATION_GET_TASK_THREADS_DUMP);
 
         Response response;
@@ -1113,7 +1127,7 @@ public class ModelRestService {
             response = RestServiceUtil.handleExceptionNoLog(result, ex);
         }
         result.computeStatus();
-        finishRequest(task);
+        finishRequest(task, mc.getHttpServletRequest());
         return response;
     }
 
@@ -1155,8 +1169,66 @@ public class ModelRestService {
 //        model.synchronizeTasks(parentResult);
 //    }
 
-    private void finishRequest(Task task) {
-        RestServiceUtil.finishRequest(task, securityHelper);
+    private void finishRequest(Task task, HttpServletRequest request) {
+        if (isExperimentalEnabled()) {
+            auditEvent(request);
+            SecurityContextHolder.getContext().setAuthentication(null);
+        } else {
+            RestServiceUtil.finishRequest(task, securityHelper);
+        }
+    }
+
+    private Task initRequest(MessageContext mc) {
+        Task task;
+        if (isExperimentalEnabled()) {
+            task = RestServiceUtil.initRequest(taskManager);
+        } else {
+            task = RestServiceUtil.initRequest(mc);
+        } 
+        return task;
+    }
+
+    private boolean isExperimentalEnabled() {
+        boolean isExperimentalEnabled = false;
+        try {
+            isExperimentalEnabled = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(
+                    systemObjectCache.getSystemConfiguration(new OperationResult("Load System Config")).asObjectable());
+        } catch (SchemaException e) {
+            LOGGER.error("Coulnd't load system configuration", e);
+        }
+        return isExperimentalEnabled;
+    }
+
+    public void auditEvent(HttpServletRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+        String name = null;
+        if (principal instanceof MidPointPrincipal) {
+            name = ((MidPointPrincipal) principal).getUsername();
+        } else if (principal != null){
+            return;
+        }
+        PrismObject<UserType> user = principal!= null ? ((MidPointPrincipal)principal).getUser().asPrismObject() : null;
+
+        Task task = taskManager.createTaskInstance();
+        task.setOwner(user);
+        task.setChannel(SchemaConstants.CHANNEL_REST_URI);
+
+        AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
+        record.setInitiator(user);
+        record.setParameter(name);
+
+        record.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        record.setTimestamp(System.currentTimeMillis());
+        record.setOutcome(OperationResultStatus.SUCCESS);
+
+        // probably not needed, as audit service would take care of it; but it doesn't hurt so let's keep it here
+        record.setHostIdentifier(request.getLocalName());
+        record.setRemoteHostAddress(request.getLocalAddr());
+        record.setNodeIdentifier(taskManager.getNodeId());
+        record.setSessionIdentifier(request.getRequestedSessionId());
+
+        auditService.audit(record, task);
     }
 
 }

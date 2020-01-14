@@ -21,9 +21,11 @@ import javax.xml.namespace.QName;
 public class SecurityPolicyUtil {
 
     public static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_USER_URI;
-    public static final QName DEFAULT_CHANNEL_QNAME = SchemaConstants.CHANNEL_USER_QNAME;
     public static final String DEFAULT_MODULE_NAME = "loginForm";
     public static final String DEFAULT_SEQUENCE_NAME = "admin-gui-default";
+    public static final String HTTP_BASIC_MODULE_NAME = "htpBasic";
+    public static final String REST_SEQUENCE_NAME = "rest-default";
+    public static final String ACTUATOR_SEQUENCE_NAME = "actuator-default";
 
     public static AbstractAuthenticationPolicyType getAuthenticationPolicy(String authPolicyName,
             SecurityPolicyType securityPolicy) throws SchemaException {
@@ -184,9 +186,13 @@ public class SecurityPolicyUtil {
         AuthenticationModuleLoginFormType loginForm = new AuthenticationModuleLoginFormType();
         loginForm.name(DEFAULT_MODULE_NAME);
         modules.loginForm(loginForm);
+        AuthenticationModuleHttpBasicType httpBasic = new AuthenticationModuleHttpBasicType();
+        httpBasic.name(HTTP_BASIC_MODULE_NAME);
+        modules.httpBasic(httpBasic);
         authenticationPolicy.setModules(modules);
-        AuthenticationSequenceType sequence = createDefaultSequence();
-        authenticationPolicy.sequence(sequence);
+        authenticationPolicy.sequence(createDefaultSequence());
+        authenticationPolicy.sequence(createRestSequence());
+        authenticationPolicy.sequence(createActuatorSequence());
         return authenticationPolicy;
     }
 
@@ -196,10 +202,42 @@ public class SecurityPolicyUtil {
         AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
         channel.setDefault(true);
         channel.channelId(DEFAULT_CHANNEL);
-        channel.setUrlSuffix("default");
+        channel.setUrlSuffix("gui-default");
         sequence.channel(channel);
         AuthenticationSequenceModuleType module = new AuthenticationSequenceModuleType();
         module.name(DEFAULT_MODULE_NAME);
+        module.order(1);
+        module.necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT);
+        sequence.module(module);
+        return sequence;
+    }
+
+    public static AuthenticationSequenceType createRestSequence() {
+        AuthenticationSequenceType sequence = new AuthenticationSequenceType();
+        sequence.name(REST_SEQUENCE_NAME);
+        AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
+        channel.setDefault(true);
+        channel.channelId(SchemaConstants.CHANNEL_REST_URI);
+        channel.setUrlSuffix("rest-default");
+        sequence.channel(channel);
+        AuthenticationSequenceModuleType module = new AuthenticationSequenceModuleType();
+        module.name(HTTP_BASIC_MODULE_NAME);
+        module.order(1);
+        module.necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT);
+        sequence.module(module);
+        return sequence;
+    }
+
+    public static AuthenticationSequenceType createActuatorSequence() {
+        AuthenticationSequenceType sequence = new AuthenticationSequenceType();
+        sequence.name(ACTUATOR_SEQUENCE_NAME);
+        AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
+        channel.setDefault(true);
+        channel.channelId(SchemaConstants.CHANNEL_ACTUATOR_URI);
+        channel.setUrlSuffix("actuator-default");
+        sequence.channel(channel);
+        AuthenticationSequenceModuleType module = new AuthenticationSequenceModuleType();
+        module.name(HTTP_BASIC_MODULE_NAME);
         module.order(1);
         module.necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT);
         sequence.module(module);

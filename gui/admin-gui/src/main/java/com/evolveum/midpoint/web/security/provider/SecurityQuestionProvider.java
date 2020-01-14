@@ -8,45 +8,41 @@ package com.evolveum.midpoint.web.security.provider;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
-import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
+import com.evolveum.midpoint.model.api.context.SecurityQuestionsAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.module.authentication.SecurityQuestionsAuthenticationToken;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author skublik
  */
 
-public class InternalPasswordProvider extends PasswordProvider {
+public class SecurityQuestionProvider extends AbstractCredentialProvider<SecurityQuestionsAuthenticationContext> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(InternalPasswordProvider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SecurityQuestionProvider.class);
 
     @Autowired
-    private transient AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
-
-    public InternalPasswordProvider() {
-        this(null);
-    }
-
-    public InternalPasswordProvider(String nameOfCredential) {
-        super(nameOfCredential);
-    }
+    private transient AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> questionAuthenticationEvaluator;
 
     @Override
-    protected AuthenticationEvaluator<PasswordAuthenticationContext> getEvaluator() {
-        return passwordAuthenticationEvaluator;
+    protected AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> getEvaluator() {
+        return questionAuthenticationEvaluator;
     }
 
     @Override
@@ -61,11 +57,9 @@ public class InternalPasswordProvider extends PasswordProvider {
 
         try {
             Authentication token;
-            if (authentication instanceof UsernamePasswordAuthenticationToken) {
-                String enteredPassword = (String) authentication.getCredentials();
-                token = getEvaluator().authenticate(connEnv, new PasswordAuthenticationContext(enteredUsername, enteredPassword, requireAssignment));
-            } else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
-                token = passwordAuthenticationEvaluator.authenticateUserPreAuthenticated(connEnv, new PreAuthenticationContext(enteredUsername, requireAssignment));
+            if (authentication instanceof SecurityQuestionsAuthenticationToken) {
+                Map<String, String> answers = (Map<String, String>) authentication.getCredentials();
+                token = getEvaluator().authenticate(connEnv, new SecurityQuestionsAuthenticationContext(enteredUsername, answers));
             } else {
                 LOGGER.error("Unsupported authentication {}", authentication);
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
@@ -84,14 +78,26 @@ public class InternalPasswordProvider extends PasswordProvider {
     }
 
     @Override
-    public boolean supports(Class<?> authentication) {
-        if (UsernamePasswordAuthenticationToken.class.equals(authentication)) {
-            return true;
+    protected Authentication createNewAuthenticationToken(Authentication actualAuthentication, Collection<? extends GrantedAuthority> newAuthorities) {
+        if (actualAuthentication instanceof UsernamePasswordAuthenticationToken) {
+            return new UsernamePasswordAuthenticationToken(actualAuthentication.getPrincipal(), actualAuthentication.getCredentials(), newAuthorities);
+        } else {
+            return actualAuthentication;
         }
-        if (PreAuthenticatedAuthenticationToken.class.equals(authentication)) {
+    }
+
+    @Override
+    public boolean supports(Class<?> authentication) {
+        if (SecurityQuestionsAuthenticationToken.class.equals(authentication)) {
             return true;
         }
 
         return false;
     }
+
+    @Override
+    public Class getTypeOfCredential() {
+        return SecurityQuestionsCredentialsPolicyType.class;
+    }
+
 }

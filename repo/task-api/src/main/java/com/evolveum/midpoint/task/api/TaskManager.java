@@ -663,8 +663,9 @@ public interface TaskManager {
      * is completely up. REST endpoints are not yet functional at that time. This means that some of the cache invalidation
      * messages could be lost, and the other nodes could get error messages in the meanwhile.
      *
-     * TODO Unfortunately, REST endpoints are not initialized even when this event is emitted. There's a few seconds before
-     *   they are really available. This has to be resolved somehow.
+     * Unfortunately, REST endpoints are not initialized even when this event is emitted. There's a few seconds before
+     * they are really available. So the real action can be delayed by setting "nodeStartupDelay" configuration parameter.
+     * (This is a temporary solution until something better is found.)
      */
     @EventListener(ApplicationReadyEvent.class)
     void onSystemStarted();

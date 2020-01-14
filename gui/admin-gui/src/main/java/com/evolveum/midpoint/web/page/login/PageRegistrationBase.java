@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
@@ -99,6 +101,19 @@ public class PageRegistrationBase extends PageBase {
     }
 
     private SecurityPolicyType resolveSecurityPolicy() {
+        SecurityPolicyType securityPolicy = resolveSecurityPolicy(null);
+
+        if (securityPolicy == null) {
+            LOGGER.error("No security policy defined.");
+            getSession()
+                    .error(createStringResource("PageSelfRegistration.securityPolicy.notFound").getString());
+            throw new RestartResponseException(PageLogin.class);
+        }
+
+        return securityPolicy;
+    }
+
+    protected SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user) {
         SecurityPolicyType securityPolicy = runPrivileged(new Producer<SecurityPolicyType>() {
             private static final long serialVersionUID = 1L;
 
@@ -110,7 +125,7 @@ public class PageRegistrationBase extends PageBase {
                 OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
 
                 try {
-                    return getModelInteractionService().getSecurityPolicy(null, task, result);
+                    return getModelInteractionService().getSecurityPolicy(user, task, result);
                 } catch (CommonException e) {
                     LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
                     return null;
@@ -119,13 +134,6 @@ public class PageRegistrationBase extends PageBase {
             }
 
         });
-
-        if (securityPolicy == null) {
-            LOGGER.error("No security policy defined.");
-            getSession()
-                    .error(createStringResource("PageSelfRegistration.securityPolicy.notFound").getString());
-            throw new RestartResponseException(PageLogin.class);
-        }
 
         return securityPolicy;
 

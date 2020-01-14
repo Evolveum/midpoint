@@ -50,16 +50,22 @@ public class MidpointSamlAuthenticationResponseFilter extends SamlAuthentication
             if (RequestState.SENDED.equals(moduleAuthentication.getRequestState())) {
                 sendedRequest = true;
             }
-        }
-        boolean requiresAuthentication = requiresAuthentication((HttpServletRequest) req, (HttpServletResponse) res);
+            boolean requiresAuthentication = requiresAuthentication((HttpServletRequest) req, (HttpServletResponse) res);
 
-        if (!requiresAuthentication && sendedRequest) {
-            AuthenticationServiceException exception = new AuthenticationServiceException("web.security.flexAuth.saml.not.response");
-            unsuccessfulAuthentication((HttpServletRequest) req, (HttpServletResponse) res, exception);
-            return;
+            if (!requiresAuthentication && sendedRequest) {
+                AuthenticationServiceException exception = new AuthenticationServiceException("web.security.flexAuth.saml.not.response");
+                unsuccessfulAuthentication((HttpServletRequest) req, (HttpServletResponse) res, exception);
+                return;
+            } else {
+                if (requiresAuthentication && sendedRequest) {
+                    moduleAuthentication.setRequestState(RequestState.RECEIVED);
+                }
+                super.doFilter(req, res, chain);
+            }
         } else {
-            super.doFilter(req, res, chain);
+            throw new AuthenticationServiceException("Unsupported type of Authentication");
         }
+
     }
 
     @Override

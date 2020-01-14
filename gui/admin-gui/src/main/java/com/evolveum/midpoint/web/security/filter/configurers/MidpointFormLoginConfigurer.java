@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.security.filter.configurers;
 import com.evolveum.midpoint.web.security.filter.MidpointUsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
 import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.ForwardAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.ForwardAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -23,8 +24,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 public class MidpointFormLoginConfigurer<H extends HttpSecurityBuilder<H>> extends
         AbstractAuthenticationFilterConfigurer<H, MidpointFormLoginConfigurer<H>, UsernamePasswordAuthenticationFilter> {
 
-    public MidpointFormLoginConfigurer() {
-        super(new MidpointUsernamePasswordAuthenticationFilter(), null);
+    public MidpointFormLoginConfigurer(UsernamePasswordAuthenticationFilter filter) {
+        super(filter, null);
         usernameParameter("username");
         passwordParameter("password");
     }
