@@ -55,13 +55,13 @@ public class ItemPathResolver {
     /**
      * Resolves item path by creating a sequence of resolution states and preparing joins that are used to access JPA properties.
      * @param itemDefinition Definition for the (final) item pointed to. Optional - necessary only for extension items.
-     * @param singletonOnly Means no collections are allowed (used for right-side path resolution and order criteria).
+     * @param reuseMultivaluedJoins Creation of new joins for multivalued properties is forbidden.
      */
     public HqlDataInstance resolveItemPath(ItemPath relativePath, ItemDefinition itemDefinition,
                                            String currentHqlPath, JpaEntityDefinition baseEntityDefinition,
-                                           boolean singletonOnly) throws QueryException {
-        HqlDataInstance baseDataInstance = new HqlDataInstance(currentHqlPath, baseEntityDefinition, null);
-        return resolveItemPath(relativePath, itemDefinition, baseDataInstance, singletonOnly);
+                                           boolean reuseMultivaluedJoins) throws QueryException {
+        HqlDataInstance<?> baseDataInstance = new HqlDataInstance<>(currentHqlPath, baseEntityDefinition, null);
+        return resolveItemPath(relativePath, itemDefinition, baseDataInstance, reuseMultivaluedJoins);
     }
 
     public HqlDataInstance resolveItemPath(ItemPath relativePath, ItemDefinition itemDefinition,
@@ -83,12 +83,22 @@ public class ItemPathResolver {
         return currentState.getHqlDataInstance();
     }
 
-    String addJoin(JpaLinkDefinition joinedItemDefinition, String currentHqlPath) throws QueryException {
+    String reuseOrAddJoin(JpaLinkDefinition<?> joinedItemDefinition, String currentHqlPath, boolean reuseMultivaluedJoins) throws QueryException {
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
         String joinedItemJpaName = joinedItemDefinition.getJpaName();
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
         String joinedItemAlias;
-        if (!joinedItemDefinition.isMultivalued()) {
+        if (joinedItemDefinition.isMultivalued()) {
+            if (reuseMultivaluedJoins) {
+                String existingAlias = findExistingAlias(hibernateQuery, joinedItemDefinition, joinedItemFullPath);
+                if (existingAlias != null) {
+                    return existingAlias;
+                } else {
+                    // TODO better explanation
+                    throw new QueryException("Couldn't reuse existing join for " + joinedItemDefinition + " in the context of " + currentHqlPath);
+                }
+            }
+        } else {
             /*
              * Let's check if we were already here i.e. if we had already created this join.
              * This is to avoid useless creation of redundant joins for singleton items.
@@ -105,17 +115,9 @@ public class ItemPathResolver {
              * left join x.ent e
              * And, therefore we would not be looking for u.abc.(...).xyz.ent.
              */
-
-            JoinSpecification existingJoin = hibernateQuery.getPrimaryEntity().findJoinFor(joinedItemFullPath);
-            if (existingJoin != null) {
-                // but let's check the condition as well
-                String existingAlias = existingJoin.getAlias();
-                // we have to create condition for existing alias, to be matched to existing condition
-                Condition conditionForExistingAlias = createJoinCondition(existingAlias, joinedItemDefinition, hibernateQuery);
-                if (ObjectUtils.equals(conditionForExistingAlias, existingJoin.getCondition())) {
-                    LOGGER.trace("Reusing alias '{}' for joined path '{}'", existingAlias, joinedItemFullPath);
-                    return existingAlias;
-                }
+            String existingAlias = findExistingAlias(hibernateQuery, joinedItemDefinition, joinedItemFullPath);
+            if (existingAlias != null) {
+                return existingAlias;
             }
         }
         joinedItemAlias = hibernateQuery.createAlias(joinedItemDefinition);
@@ -124,7 +126,22 @@ public class ItemPathResolver {
         return joinedItemAlias;
     }
 
-    public String addTextInfoJoin(String currentHqlPath) throws QueryException {
+    private String findExistingAlias(RootHibernateQuery hibernateQuery,
+            JpaLinkDefinition<?> joinedItemDefinition, String joinedItemFullPath) throws QueryException {
+        for (JoinSpecification existingJoin : hibernateQuery.getPrimaryEntity().getJoinsFor(joinedItemFullPath)) {
+            // but let's check the condition as well
+            String existingAlias = existingJoin.getAlias();
+            // we have to create condition for existing alias, to be matched to existing condition
+            Condition conditionForExistingAlias = createJoinCondition(existingAlias, joinedItemDefinition, hibernateQuery);
+            if (ObjectUtils.equals(conditionForExistingAlias, existingJoin.getCondition())) {
+                LOGGER.trace("Reusing alias '{}' for joined path '{}'", existingAlias, joinedItemFullPath);
+                return existingAlias;
+            }
+        }
+        return null;
+    }
+
+    public String addTextInfoJoin(String currentHqlPath) {
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
         String joinedItemJpaName = RObject.F_TEXT_INFO_ITEMS;
         String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
@@ -176,16 +193,17 @@ public class ItemPathResolver {
      * to simple types and enum values.
      */
     private Object createQueryParamValue(VirtualQueryParam param) throws QueryException {
-        Class type = param.type();
+        Class<?> type = param.type();
         String value = param.value();
 
         try {
             if (type.isPrimitive()) {
-                return type.getMethod("valueOf", new Class[]{String.class}).invoke(null, new Object[]{value});
+                return type.getMethod("valueOf", new Class[]{String.class}).invoke(null, value);
             }
 
             if (type.isEnum()) {
-                return Enum.valueOf(type, value);
+                //noinspection unchecked
+                return Enum.valueOf((Class<Enum>) type, value);
             }
         } catch (NoSuchMethodException|IllegalAccessException|InvocationTargetException |RuntimeException ex) {
             throw new QueryException("Couldn't transform virtual query parameter '"
@@ -204,7 +222,6 @@ public class ItemPathResolver {
      * @param path Path to be found (non-empty!)
      * @param itemDefinition Definition of target property, required/used only for "any" properties
      * @param clazz Kind of definition to be looked for
-     * @param prismContext
      * @return Entity type definition + item definition, or null if nothing was found
      */
     public <T extends JpaDataNodeDefinition>
