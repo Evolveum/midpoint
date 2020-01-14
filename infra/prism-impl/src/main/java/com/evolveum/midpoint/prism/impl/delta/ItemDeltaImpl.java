@@ -898,7 +898,6 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
     }
 
     public boolean isRedundant(PrismObject<? extends Objectable> object, Comparator<V> comparator, boolean assumeMissingItems) {
-        //noinspection unchecked
         Item<V,D> currentItem = object.findItem(getPath());
         if (currentItem == null) {
             if (valuesToReplace != null) {
@@ -939,7 +938,6 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
             }
         }
     }
-
 
     public void validateValues(ItemDeltaValidator<V> validator) throws SchemaException {
         validateValues(validator, getEstimatedOldValues());
@@ -1833,8 +1831,9 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
     }
 
     @Override
-    public void setImmutable(boolean immutable) {
-        this.immutable = immutable;
+    public void freeze() {
+        // TODO make this object really immutable (by freezing the collections and the values in them)
+        this.immutable = true;
     }
 
     protected void checkMutability() {

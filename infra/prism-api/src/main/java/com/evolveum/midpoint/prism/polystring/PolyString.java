@@ -46,7 +46,9 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
     public static final ItemName F_ORIG = new ItemName(PrismConstants.NS_TYPES, "orig");
     public static final ItemName F_NORM = new ItemName(PrismConstants.NS_TYPES, "norm");
     public static final ItemName F_TRANSLATION = new ItemName(PrismConstants.NS_TYPES, "translation");
+    public static final String F_TRANSLATION_LOCAL_PART = F_TRANSLATION.getLocalPart();
     public static final ItemName F_LANG = new ItemName(PrismConstants.NS_TYPES, "lang");
+    public static final String F_LANG_LOCAL_PART = F_LANG.getLocalPart();
 
     private String orig;
     private String norm = null;

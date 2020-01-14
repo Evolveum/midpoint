@@ -50,7 +50,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
 
-    private static final Collection<SystemConfigurationChangeListener> LISTENERS = new HashSet<>();
+    private final Collection<SystemConfigurationChangeListener> listeners = new HashSet<>();
 
     private String lastVersionApplied = null;
 
@@ -108,7 +108,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
     }
 
     private void notifyListeners(SystemConfigurationType configuration) {
-        for (SystemConfigurationChangeListener listener : LISTENERS) {
+        for (SystemConfigurationChangeListener listener : listeners) {
             try {
                 listener.update(configuration);
             } catch (Throwable t) {
@@ -211,8 +211,8 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 
     @Override
     public synchronized void registerListener(SystemConfigurationChangeListener listener) {
-        if (!LISTENERS.contains(listener)) {
-            LISTENERS.add(listener);
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
         } else {
             LOGGER.warn("Attempt to register already-registered listener: {}", listener);
         }
@@ -220,8 +220,8 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 
     @Override
     public synchronized void unregisterListener(SystemConfigurationChangeListener listener) {
-        if (LISTENERS.contains(listener)) {
-            LISTENERS.remove(listener);
+        if (listeners.contains(listener)) {
+            listeners.remove(listener);
         } else {
             LOGGER.warn("Attempt to unregister a listener that was not registered: {}", listener);
         }

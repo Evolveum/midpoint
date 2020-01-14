@@ -248,38 +248,28 @@ public class VariablesUtil {
         if (value instanceof Containerable) {
             PrismContainerValue<?> pcv = ((Containerable) value).asPrismContainerValue();
             if (!pcv.isImmutable()) {
-                PrismContainerValue clone = pcv.clone();
-                Containerable containerableClone = clone.asContainerable();
-                clone.setImmutable(true);       // must be called after first asContainerable on clone
-                return (T) containerableClone;
+                return (T) pcv.createImmutableClone().asContainerable();
             } else {
                 return value;
             }
         } else if (value instanceof Referencable) {
             PrismReferenceValue prv = ((Referencable) value).asReferenceValue();
             if (!prv.isImmutable()) {
-                PrismReferenceValue clone = prv.clone();
-                Referencable referencableClone = clone.asReferencable();
-                clone.setImmutable(true);       // must be called after first asReferencable on clone
-                return (T) referencableClone;
+                return (T) prv.createImmutableClone().asReferencable();
             } else {
                 return value;
             }
         } else if (value instanceof PrismValue) {
             PrismValue pval = (PrismValue) value;
             if (!pval.isImmutable()) {
-                PrismValue clone = pval.clone();
-                clone.setImmutable(true);
-                return (T) clone;
+                return (T) pval.createImmutableClone();
             } else {
                 return (T) pval;
             }
         } else if (value instanceof Item) {
             Item item = (Item) value;
             if (!item.isImmutable()) {
-                Item clone = item.clone();
-                clone.setImmutable(true);
-                return (T) clone;
+                return (T) item.createImmutableClone();
             } else {
                 return (T) item;
             }

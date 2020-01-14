@@ -183,7 +183,7 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
             ConsistencyCheckScope scope);
 
     @Override
-    void setImmutable(boolean immutable);
+    void freeze();
 
     PrismObject<O> cloneIfImmutable();
 

@@ -39,10 +39,17 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
 
     private PageBase pageBase;
     private AvailableRelationDto supportedRelationList = new AvailableRelationDto();
+    private List<ObjectReferenceType> archetypeReferenceList = new ArrayList<>();
 
     public MemberPopupTabPanel(String id, AvailableRelationDto supportedRelationList){
         super(id);
         this.supportedRelationList = supportedRelationList;
+    }
+
+    public MemberPopupTabPanel(String id, AvailableRelationDto supportedRelationList, List<ObjectReferenceType> archetypeReferenceList) {
+        super(id);
+        this.supportedRelationList = supportedRelationList;
+        this.archetypeReferenceList = archetypeReferenceList;
     }
 
     @Override
@@ -95,6 +102,11 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     }
 
     protected abstract AbstractRoleType getAbstractRoleTypeObject();
+
+    @Override
+    protected List<ObjectReferenceType> getArchetypeRefList() {
+        return archetypeReferenceList;
+    }
 
     public QName getRelationValue(){
         RelationDropDownChoicePanel relationPanel = getRelationDropDown();

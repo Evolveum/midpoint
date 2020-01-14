@@ -219,6 +219,13 @@ public abstract class PrismValueImpl implements PrismValue {
      */
     public abstract PrismValue clone();
 
+    @Override
+    public PrismValue createImmutableClone() {
+        PrismValue clone = clone();
+        clone.freeze();
+        return clone;
+    }
+
     /**
      * Complex clone with different cloning strategies.
      * @see CloneStrategy
@@ -330,8 +337,8 @@ public abstract class PrismValueImpl implements PrismValue {
         return immutable;
     }
 
-    public void setImmutable(boolean immutable) {
-        this.immutable = immutable;
+    public void freeze() {
+        this.immutable = true;
     }
 
     protected void checkMutability() {

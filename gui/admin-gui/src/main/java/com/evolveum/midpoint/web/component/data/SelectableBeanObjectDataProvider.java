@@ -17,7 +17,9 @@ import java.util.Map;
 import java.util.Set;
 
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 
@@ -34,7 +36,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +81,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
     public SelectableBeanObjectDataProvider(Component component, Class<? extends O> type, Set<? extends O> selected ) {
-        super(component, true, true);
+        super(component, false, true);
 
         Validate.notNull(type);
         if (selected != null) {
@@ -201,14 +203,15 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
         // Also do NOT re-throw not redirect to to error page. That will break the page.
         // Just return a SelectableBean that indicates the error.
         List<SelectableBean<O>> errorList = new ArrayList<>(1);
-        SelectableBean<O> bean = new SelectableBean<>();
+        SelectableBean<O> bean = new SelectableBeanImpl<>();
         bean.setResult(result);
         errorList.add(bean);
         return errorList.iterator();
     }
 
     public SelectableBean<O> createDataObjectWrapper(O obj) {
-        SelectableBean<O> selectable = new SelectableBean<>(obj);
+        SelectableBean<O> selectable =  new SelectableBeanImpl<O>(obj);
+        
         if (!WebComponentUtil.isSuccessOrHandledError(obj.getFetchResult())) {
             try {
                 selectable.setResult(obj.getFetchResult());

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -33,7 +34,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
@@ -47,8 +47,6 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
-import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -77,7 +75,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -86,13 +83,12 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.ObjectLinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel.Operation;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
@@ -178,7 +174,6 @@ public abstract class ResourceContentPanel extends Panel {
             return null;
         }
         return refinedSchema.getRefinedDefinition(getKind(), getIntent());
-
     }
 
     public RefinedObjectClassDefinition getDefinitionByObjectClass() throws SchemaException {
@@ -236,9 +231,9 @@ public abstract class ResourceContentPanel extends Panel {
         add(totals);
         initShadowStatistics(totals);
 
-        MainObjectListPanel<ShadowType, CompiledObjectCollectionView> shadowListPanel =
-                new MainObjectListPanel<ShadowType, CompiledObjectCollectionView>(ID_TABLE,
-                ShadowType.class, getTableId(), createSearchOptions(), pageBase) {
+        MainObjectListPanel<ShadowType> shadowListPanel =
+                new MainObjectListPanel<ShadowType>(ID_TABLE,
+                ShadowType.class, getTableId(), createSearchOptions()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -558,9 +553,9 @@ public abstract class ResourceContentPanel extends Panel {
 
         List<ColumnTypeDto<String>> columnDefs = Arrays.asList(
                 new ColumnTypeDto<String>("ShadowType.synchronizationSituation",
-                        SelectableBean.F_VALUE + ".synchronizationSituation",
+                        SelectableBeanImpl.F_VALUE + ".synchronizationSituation",
                         ShadowType.F_SYNCHRONIZATION_SITUATION.getLocalPart()),
-                new ColumnTypeDto<String>("ShadowType.intent", SelectableBean.F_VALUE + ".intent",
+                new ColumnTypeDto<String>("ShadowType.intent", SelectableBeanImpl.F_VALUE + ".intent",
                         ShadowType.F_INTENT.getLocalPart()));
 
         List<IColumn<SelectableBean<ShadowType>, String>> columns = new ArrayList<>();
@@ -630,7 +625,7 @@ public abstract class ResourceContentPanel extends Panel {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
                                      String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
-                cellItem.add(new PendingOperationPanel(componentId, new PropertyModel<List<PendingOperationType>>(rowModel, SelectableBean.F_VALUE + "." + ShadowType.F_PENDING_OPERATION.getLocalPart())));
+                cellItem.add(new PendingOperationPanel(componentId, new PropertyModel<List<PendingOperationType>>(rowModel, SelectableBeanImpl.F_VALUE + "." + ShadowType.F_PENDING_OPERATION.getLocalPart())));
             }
         });
         return columns;
@@ -715,7 +710,7 @@ public abstract class ResourceContentPanel extends Panel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ShadowType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ShadowType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -723,7 +718,7 @@ public abstract class ResourceContentPanel extends Panel {
                         if (getRowModel() == null){
                             updateResourceObjectStatusPerformed(null, target, true);
                         } else {
-                            SelectableBean<ShadowType> shadow = getRowModel().getObject();
+                            SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
                             updateResourceObjectStatusPerformed(shadow.getValue(), target, true);
                         }
                     }
@@ -736,7 +731,7 @@ public abstract class ResourceContentPanel extends Panel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ShadowType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ShadowType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -744,7 +739,7 @@ public abstract class ResourceContentPanel extends Panel {
                         if (getRowModel() == null){
                             updateResourceObjectStatusPerformed(null, target, false);
                         } else {
-                            SelectableBean<ShadowType> shadow = getRowModel().getObject();
+                            SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
                             updateResourceObjectStatusPerformed(shadow.getValue(), target, false);
                         }
                     }
@@ -757,7 +752,7 @@ public abstract class ResourceContentPanel extends Panel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ShadowType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ShadowType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -765,7 +760,7 @@ public abstract class ResourceContentPanel extends Panel {
                         if (getRowModel() == null){
                             deleteResourceObjectPerformed(null, target);
                         } else {
-                            SelectableBean<ShadowType> shadow = getRowModel().getObject();
+                            SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
                             deleteResourceObjectPerformed(shadow.getValue(), target);
                         }
                     }
@@ -780,7 +775,7 @@ public abstract class ResourceContentPanel extends Panel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ShadowType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ShadowType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -788,7 +783,7 @@ public abstract class ResourceContentPanel extends Panel {
                         if (getRowModel() == null){
                             importResourceObject(null, target);
                         } else {
-                            SelectableBean<ShadowType> shadow = getRowModel().getObject();
+                            SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
                             importResourceObject(shadow.getValue(), target);
                         }
                     }
@@ -808,7 +803,7 @@ public abstract class ResourceContentPanel extends Panel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ShadowType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ShadowType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -816,7 +811,7 @@ public abstract class ResourceContentPanel extends Panel {
                         if (getRowModel() == null){
                             changeOwner(null, target, null, Operation.REMOVE);
                         } else {
-                            SelectableBean<ShadowType> shadow = getRowModel().getObject();
+                            SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
                             changeOwner(shadow.getValue(), target, null, Operation.REMOVE);
                         }
                     }
@@ -829,12 +824,12 @@ public abstract class ResourceContentPanel extends Panel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ShadowType>>() {
+                return new ColumnMenuAction<SelectableBeanImpl<ShadowType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
-                        final SelectableBean<ShadowType> shadow = getRowModel().getObject();
+                        final SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
                         ObjectBrowserPanel<FocusType> browser = new ObjectBrowserPanel<FocusType>(
                                 pageBase.getMainPopupBodyId(), UserType.class,
                                 WebComponentUtil.createFocusTypeList(), false, pageBase) {
@@ -1023,8 +1018,8 @@ public abstract class ResourceContentPanel extends Panel {
                 .findObjectDefinitionByCompileTimeClass(FocusType.class);
     }
 
-    private MainObjectListPanel<ShadowType, CompiledObjectCollectionView> getTable() {
-        return (MainObjectListPanel<ShadowType, CompiledObjectCollectionView>) get(pageBase.createComponentPath(ID_TABLE));
+    private MainObjectListPanel<ShadowType> getTable() {
+        return (MainObjectListPanel<ShadowType>) get(pageBase.createComponentPath(ID_TABLE));
     }
 
     private void changeOwner(ShadowType selected, AjaxRequestTarget target, FocusType ownerToChange,

@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.xml.namespace.QName;
@@ -114,6 +113,11 @@ public class DummyReferenceImpl implements PrismReference {
 
     public PrismReference clone() {
         return realReference.clone();
+    }
+
+    @Override
+    public PrismReference createImmutableClone() {
+        return realReference.createImmutableClone();
     }
 
     public ItemName getElementName() {
@@ -421,20 +425,12 @@ public class DummyReferenceImpl implements PrismReference {
         return realReference.isImmutable();
     }
 
-    public void setImmutable(boolean immutable) {
-        realReference.setImmutable(immutable);
+    public void freeze() {
+        realReference.freeze();
     }
 
     public void checkImmutability() {
         realReference.checkImmutability();
-    }
-
-    public void modifyUnfrozen(Runnable mutator) {
-        realReference.modifyUnfrozen(mutator);
-    }
-
-    public void modifyUnfrozen(Consumer<Item<PrismReferenceValue, PrismReferenceDefinition>> mutator) {
-        realReference.modifyUnfrozen(mutator);
     }
 
     @NotNull

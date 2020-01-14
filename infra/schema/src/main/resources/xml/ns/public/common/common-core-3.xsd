@@ -2106,12 +2106,32 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="operationalStatus" type="tns:NodeOperationalStatusType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Basic node operational state: whether it is up (e.g. should be accepting REST/JMX queries),
+                                or it is down (known to be turned off or just not checking-in for a longer time), or starting.
+                                Does NOT indicate anything about the scheduler status.
+
+                                Supersedes "running" property.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="running" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Whether this node is running, i.e. it can be queried via JMX.
                                 (This does not necessarily mean that the scheduler thread and task threads are running!)
+
+                                DEPRECATED. Replaced by operationalState.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.1</a:deprecatedSince>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="clustered" type="xsd:boolean" minOccurs="0">
@@ -2250,10 +2270,65 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:simpleType name="NodeOperationalStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Basic node operational state: whether it is up (e.g. accepting REST/JMX queries),
+                or it is down (known to be turned off or just not checking-in for a longer time), or starting.
+                Does NOT indicate anything about the scheduler status.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="up">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node is up and should respond to REST/JMX queries.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UP"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="down">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node is down. Either it was turned off or it has not checked in for a longer time.
+                        There's no point in trying to contact it via REST or JMX.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DOWN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="down">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node is down. Either it was turned off or it has not checked in for a longer time.
+                        There's no point in trying to contact it via REST or JMX.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DOWN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="starting">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node is starting. It is expected it will be alive soon but should not be contacted via REST/JMX yet.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STARTING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:simpleType name="NodeExecutionStatusType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Node status from the user's point of view.
+                TODO decide what to do with this data type.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -2290,6 +2365,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NOT_CHECKING_IN"/>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="starting">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node is starting. It is expected it will be alive soon but should not be contacted via REST/JMX yet.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STARTING"/>
                         <a:since>4.1</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -14730,13 +14816,13 @@
                             The profile mostly specifies restrictions for execution of expressions
                             and scripts. This applies to expressions in archetyped objects.
                             Please note that no expression execution restriction means that all evaluators
-                            and scripting langages are allowed and there are no restrictions for evaluation
+                            and scripting languages are allowed and there are no restrictions for evaluation
                             of expressions.
                         </p>
                         <p>
                             Implementation note: implementation of those restriction in midPoint 4.0 is very
                             limited. There is no guarantee that this will work for archetypes at all.
-                            The only supported option in 4.0 is application of the restricitons to reports
+                            The only supported option in 4.0 is application of the restrictions to reports
                             (ReportType) and only if it is configured in global system configuration.
                         </p>
                     </xsd:documentation>
@@ -14760,8 +14846,66 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="assignmentRelationApproach" type="tns:AssignmentRelationApproachType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Configures overall assignmentRelation approach for archetypes objects. This essentially means
+                            that is allows or disables the use of "generic" assignments for archetyped objects.
+                            If the generic assignments are allowed (open approach), the archetyped object can be a holder
+                            of any assignment that targets any assignable type with any relation
+                            (Note: this is still subject to authorizations).
+                            Which essentially means that if this property is set to "open" then GUI will show
+                            "assign" button that can be used at add any assignment type.
+                            If this property is set to "closed" then GUI will not render that button. In that case
+                            only those assignments that are explicitly allowed by assignmentRelation statements are possible.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                        <a:displayName>ArchetypePolicyType.assignmentRelationApproach</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:simpleType name="AssignmentRelationApproachType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Overall assignmentRelation approach for archetypes objects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="open">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Open assignmentRelation approach. Assignments with any target and relation (generic assignments)
+                        are allowed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OPEN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="closed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Closed assignmentRelation approach. Assignments with any target and relation (generic assignments)
+                        are not allowed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLOSED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
 
     <xsd:complexType name="ArchetypeAdminGuiConfigurationType">
         <xsd:annotation>
@@ -18716,7 +18860,7 @@
                                </p>
                            </xsd:documentation>
                         <xsd:appinfo>
-                            <a:displayName>UserInterfaceFeatureType.identifier</a:displayName>
+                            <a:displayName>UserInterfaceFeatureType.description</a:displayName>
                         </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
@@ -23315,6 +23459,20 @@
                             </xsd:documentation>
                                <xsd:appinfo>
                                 <a:displayName>GuiObjectListViewType.disableCounting</a:displayName>
+                               </xsd:appinfo>
+                           </xsd:annotation>
+                       </xsd:element>
+                       <xsd:element name="refreshInterval" type="xsd:int" minOccurs="0">
+                           <xsd:annotation>
+                               <xsd:documentation>
+                                   Configures the possibility of autorefreshing the table. If nothing is set,
+                                   refresh is not supported. Is set, table is automatically refresh after given
+                                   interval. The interval is specified in seconds.
+
+                                   e.g refreshInterval=5 means autorefreshing table each 5 seconds.
+                               </xsd:documentation>
+                               <xsd:appinfo>
+                                   <a:displayName>GuiObjectListViewType.refreshInterval</a:displayName>
                                </xsd:appinfo>
                            </xsd:annotation>
                        </xsd:element>

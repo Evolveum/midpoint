@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.*;
@@ -79,7 +81,7 @@ import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
@@ -92,6 +94,7 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
@@ -215,6 +218,7 @@ public final class WebComponentUtil {
     static{
         createNewObjectPageMap = new HashMap<>();
         createNewObjectPageMap.put(ResourceType.class, PageResourceWizard.class);
+        createNewObjectPageMap.put(TaskType.class, PageTaskAdd.class);
     }
 
     // only pages that support 'advanced search' are currently listed here (TODO: generalize)
@@ -226,17 +230,6 @@ public final class WebComponentUtil {
         objectListPageMap.put(RoleType.class, PageRoles.class);
         objectListPageMap.put(ServiceType.class, PageServices.class);
         objectListPageMap.put(ResourceType.class, PageResources.class);
-    }
-
-    private static Map<Class<?>, String> storageKeyMap;
-
-    static {
-        storageKeyMap = new HashMap<>();
-        storageKeyMap.put(PageUsers.class, SessionStorage.KEY_USERS);
-        storageKeyMap.put(PageResources.class, SessionStorage.KEY_RESOURCES);
-        storageKeyMap.put(PageReports.class, SessionStorage.KEY_REPORTS);
-        storageKeyMap.put(PageRoles.class, SessionStorage.KEY_ROLES);
-        storageKeyMap.put(PageServices.class, SessionStorage.KEY_SERVICES);
     }
 
     private static Map<TableId, String> storageTableIdMap;
@@ -1989,8 +1982,9 @@ public final class WebComponentUtil {
             }
         }
 
-        String additionalStyle = getIconEnabledDisabled(object);
-        if (additionalStyle == null) {
+        String additionalStyle = "";
+//                getIconEnabledDisabled(object);
+//        if (additionalStyle == null) {
             // Set manager and end-user icon only as a last resort. All other
             // colors have priority.
             if (isManager) {
@@ -2000,7 +1994,7 @@ public final class WebComponentUtil {
             } else {
                 additionalStyle = GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
             }
-        }
+//        }
         return GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + additionalStyle;
     }
 
@@ -2012,15 +2006,19 @@ public final class WebComponentUtil {
             }
         }
 
-        return getIconEnabledDisabled(object, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON);
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON);
     }
 
     public static String createOrgIcon(PrismObject<OrgType> object) {
-        return getIconEnabledDisabled(object, GuiStyleConstants.CLASS_OBJECT_ORG_ICON);
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_ORG_ICON);
     }
 
     public static String createServiceIcon(PrismObject<ServiceType> object) {
-        return getIconEnabledDisabled(object, GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON);
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON);
+    }
+
+    private static <AHT extends AssignmentHolderType> String getObjectNormalIconStyle(String baseIcon){
+        return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
     }
 
     private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object,
@@ -2302,7 +2300,9 @@ public final class WebComponentUtil {
             if (ResourceType.class.equals(obj.getCompileTimeClass())) {
                 constructor = newObjectPageClass.getConstructor(PageParameters.class);
                 page = (PageBase) constructor.newInstance(new PageParameters());
-
+            } else if (TaskType.class.equals(obj.getCompileTimeClass())){
+                constructor = newObjectPageClass.getConstructor();
+                page = (PageBase) constructor.newInstance();
             } else {
                 constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
                 page = (PageBase) constructor.newInstance(obj, isNewObject);
@@ -2356,10 +2356,6 @@ public final class WebComponentUtil {
         return hasDetailsPage(t.getClassDefinition());
     }
 
-    public static String getStorageKeyForPage(Class<?> pageClass) {
-        return storageKeyMap.get(pageClass);
-    }
-
     public static String getStorageKeyForTableId(TableId tableId) {
         return storageTableIdMap.get(tableId);
     }
@@ -2369,7 +2365,7 @@ public final class WebComponentUtil {
     }
 
     public static Class<? extends PageBase> getNewlyCreatedObjectPage(Class<? extends ObjectType> type) {
-        if (ResourceType.class.equals(type)) {
+        if (ResourceType.class.equals(type) || TaskType.class.equals(type)) {
             return createNewObjectPageMap.get(type);
         } else {
             return objectDetailsPageMap.get(type);
@@ -2586,12 +2582,12 @@ public final class WebComponentUtil {
     }
 
     public static <AR extends AbstractRoleType> IModel<String> createAbstractRoleConfirmationMessage(String actionName,
-            ColumnMenuAction action, MainObjectListPanel<AR, CompiledObjectCollectionView> abstractRoleTable, PageBase pageBase) {
+            ColumnMenuAction action, MainObjectListPanel<AR> abstractRoleTable, PageBase pageBase) {
         List<AR> selectedRoles =  new ArrayList<>();
         if (action.getRowModel() == null) {
             selectedRoles.addAll(abstractRoleTable.getSelectedObjects());
         } else {
-            selectedRoles.add(((SelectableBean<AR>) action.getRowModel().getObject()).getValue());
+            selectedRoles.add(((SelectableBeanImpl<AR>) action.getRowModel().getObject()).getValue());
         }
         OperationResult result = new OperationResult("Search Members");
         boolean atLeastOneWithMembers = false;
@@ -2616,7 +2612,7 @@ public final class WebComponentUtil {
                     actionName, abstractRoleTable.getSelectedObjectsCount());
         } else {
             return pageBase.createStringResource(propertyKeyPrefix + ".message.confirmationMessageForSingleObject" + members,
-                    actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
+                    actionName, ((ObjectType)((SelectableBeanImpl)action.getRowModel().getObject()).getValue()).getName());
         }
     }
 
@@ -3286,21 +3282,21 @@ public final class WebComponentUtil {
 
     public static String getIconCssClass(DisplayType displayType){
         if (displayType == null || displayType.getIcon() == null){
-            return null;
+            return "";
         }
         return displayType.getIcon().getCssClass();
     }
 
     public static String getIconColor(DisplayType displayType){
         if (displayType == null || displayType.getIcon() == null){
-            return null;
+            return "";
         }
         return displayType.getIcon().getColor();
     }
 
     public static String getDisplayTypeTitle(DisplayType displayType){
         if (displayType == null || displayType.getTooltip() == null){
-            return null;
+            return "";
         }
         return displayType.getTooltip().getOrig();
     }
@@ -3313,21 +3309,77 @@ public final class WebComponentUtil {
             return ((ArchetypeType)obj).getArchetypePolicy().getDisplay();
         }
         DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(obj, pageBase);
-        if (displayType != null){
-            String disabledStyle = "";
-            if (obj instanceof FocusType) {
-                disabledStyle = WebComponentUtil.getIconEnabledDisabled(((FocusType)obj).asPrismObject());
-                if (displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass()) &&
-                        disabledStyle != null){
-                    displayType.getIcon().setCssClass(displayType.getIcon().getCssClass() + " " + disabledStyle);
-                    displayType.getIcon().setColor("");
-                }
-            }
-        } else {
-            displayType = WebComponentUtil.createDisplayType(ColumnUtils.getIconColumnValue(obj, result),
+//        if (displayType != null){
+//            String disabledStyle = "";
+//            if (obj instanceof FocusType) {
+//                disabledStyle = WebComponentUtil.getIconEnabledDisabled(((FocusType)obj).asPrismObject());
+//                if (displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass()) &&
+//                        disabledStyle != null){
+//                    displayType.getIcon().setCssClass(displayType.getIcon().getCssClass() + " " + disabledStyle);
+//                    displayType.getIcon().setColor("");
+//                }
+//            }
+//        } else {
+        if (displayType == null){
+            displayType = WebComponentUtil.createDisplayType(createDefaultIcon(obj.asPrismObject()),
                     "", ColumnUtils.getIconColumnTitle(obj, result));
         }
         return displayType;
+    }
+
+    public static <O extends ObjectType> CompositedIcon createCompositeIconForObject(O obj, OperationResult result, PageBase pageBase){
+        DisplayType basicIconDisplayType = getDisplayTypeForObject(obj, result, pageBase);
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
+        if (basicIconDisplayType == null){
+            return new CompositedIconBuilder().build();
+        }
+        IconType lifecycleStateIcon = getIconForLifecycleState(obj);
+        IconType activationStatusIcon = getIconForActivationStatus(obj);
+
+        String iconColor = getIconColor(basicIconDisplayType);
+
+        CompositedIcon compositedIconForObject = iconBuilder.setBasicIcon(
+                getIconCssClass(basicIconDisplayType), IconCssStyle.IN_ROW_STYLE)
+                .appendColorHtmlValue(StringUtils.isNotEmpty(iconColor) ? iconColor : "")
+                .appendLayerIcon(lifecycleStateIcon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE)
+                .appendLayerIcon(activationStatusIcon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE)
+                .build();
+
+        return compositedIconForObject;
+    }
+
+    public static <O extends ObjectType> IconType getIconForLifecycleState(O obj){
+        IconType icon = new IconType();
+        if (obj == null){
+            icon.setCssClass("");
+            return icon;
+        }
+        if (SchemaConstants.LIFECYCLE_ARCHIVED.equals(obj.getLifecycleState())){
+            icon.setCssClass(GuiStyleConstants.CLASS_FILE_EXCEL);
+        }
+        if (icon.getCssClass() == null){
+            icon.setCssClass("");
+        }
+        icon.setColor("blue");
+        return icon;
+    }
+
+    public static <O extends ObjectType> IconType getIconForActivationStatus(O obj){
+        IconType icon = new IconType();
+        if (obj == null || !(obj instanceof FocusType) || ((FocusType) obj).getActivation() == null){
+            icon.setCssClass("");
+            return icon;
+        }
+        if (LockoutStatusType.LOCKED.equals(((FocusType) obj).getActivation().getLockoutStatus())){
+            icon.setCssClass(GuiStyleConstants.CLASS_LOCK_STATUS);
+        } else if (ActivationStatusType.DISABLED.equals(((FocusType) obj).getActivation().getEffectiveStatus())){
+            icon.setCssClass(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
+        }
+        if (icon.getCssClass() == null){
+            icon.setCssClass("");
+        }
+        icon.setColor("red");
+        return icon;
     }
 
     public static DisplayType createDisplayType(String iconCssClass){
@@ -4051,4 +4103,25 @@ public final class WebComponentUtil {
         return null;
     }
 
+    public static boolean isRefreshEnabled(PageBase pageBase, QName type) {
+        CompiledUserProfile cup = pageBase.getCompiledUserProfile();
+        if (cup == null) {
+            return false;
+        }
+
+       List<CompiledObjectCollectionView> views =  cup.getObjectCollectionViews();
+        if (CollectionUtils.isEmpty(views)) {
+            return false;
+        }
+
+        for (CompiledObjectCollectionView view : views) {
+            if (QNameUtil.match(type, view.getObjectType())) {
+                if (view.getRefreshInterval() != null) {
+                    return true;
+                }
+
+            }
+        }
+        return false;
+    }
 }

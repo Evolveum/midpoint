@@ -10,20 +10,8 @@ import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -31,15 +19,11 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -50,7 +34,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
@@ -144,6 +127,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     protected List<ITab> createAssignmentTabs() {
         List<ITab> tabs = new ArrayList<>();
         List<QName> objectTypes = getAvailableObjectTypes();
+        List<ObjectReferenceType> archetypeRefList = getArchetypeRefList();
         tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.USER"),
                 new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(UserType.COMPLEX_TYPE))) {
 
@@ -151,7 +135,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MemberPopupTabPanel<UserType>(panelId, availableRelationList){
+                return new MemberPopupTabPanel<UserType>(panelId, availableRelationList, archetypeRefList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -184,7 +168,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MemberPopupTabPanel<RoleType>(panelId, availableRelationList){
+                return new MemberPopupTabPanel<RoleType>(panelId, availableRelationList, archetypeRefList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -218,7 +202,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel<OrgType>(panelId, availableRelationList){
+                        return new MemberPopupTabPanel<OrgType>(panelId, availableRelationList, archetypeRefList){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -259,7 +243,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new OrgTreeMemberPopupTabPanel(panelId, availableRelationList){
+                return new OrgTreeMemberPopupTabPanel(panelId, availableRelationList, archetypeRefList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -294,7 +278,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel<ServiceType>(panelId, availableRelationList){
+                        return new MemberPopupTabPanel<ServiceType>(panelId, availableRelationList, archetypeRefList){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -325,6 +309,10 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     }
 
     protected List<QName> getAvailableObjectTypes(){
+        return null;
+    }
+
+    protected List<ObjectReferenceType> getArchetypeRefList(){
         return null;
     }
 

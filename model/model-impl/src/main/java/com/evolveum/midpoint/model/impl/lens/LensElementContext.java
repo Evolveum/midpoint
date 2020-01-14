@@ -447,6 +447,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         if (primaryDelta != null && !primaryDelta.isImmutable()) {
             primaryDelta.setOid(oid);
         }
+        // TODO What if primary delta is immutable ADD delta and objectNew was taken from it?
+        //  It would be immutable as well in that case. We will see.
         if (objectNew != null) {
             objectNew.setOid(oid);
         }
@@ -843,7 +845,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     public void finishBuild() {
         if (primaryDelta != null) {
             primaryDelta.normalize();
-            primaryDelta.setImmutable(true);
+            primaryDelta.freeze();
         }
     }
 }

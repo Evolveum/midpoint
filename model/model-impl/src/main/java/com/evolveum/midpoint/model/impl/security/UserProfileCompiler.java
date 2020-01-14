@@ -346,6 +346,7 @@ public class UserProfileCompiler {
         compileDisplayOrder(existingView, objectListViewType);
         compileSearchBox(existingView, objectListViewType);
         compileCollection(existingView, objectListViewType, task, result);
+        compileRefreshInterval(existingView, objectListViewType);
     }
 
     private void compileActions(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
@@ -435,6 +436,13 @@ public class UserProfileCompiler {
         Boolean newDisableSorting = objectListViewType.isDisableSorting();
         if (newDisableSorting != null) {
             existingView.setDisableSorting(newDisableSorting);
+        }
+    }
+
+    private void compileRefreshInterval(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+        Integer refreshInterval = objectListViewType.getRefreshInterval();
+        if (refreshInterval != null) {
+            existingView.setRefreshInterval(refreshInterval);
         }
     }
 

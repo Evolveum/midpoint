@@ -14,31 +14,33 @@ package com.evolveum.midpoint.task.api;
 public class ClusterExecutionOptions {
 
     /**
-     * Whether to try connecting to "not checking in" nodes. I.e. nodes that are not declared dead (running=false) but
-     * are not up either (last check-in was more than "nodeTimeout" ago).
+     * Whether to try connecting to nodes in "transition" states (not checking in, starting). I.e. nodes that are not considered
+     * dead but are not 100% up either. This option is typically used to convey information that is quite relevant.
      */
-    private boolean tryNodesNotCheckingIn;
+    private boolean tryNodesInTransition;
 
     /**
      * Whether to try connecting to nodes in all cases (i.e. also to nodes that are declared dead).
+     *
+     * It is typically used when connecting to specific (user-chosen) node. If it's down, we can expect relevant exception.
      */
     private boolean tryAllNodes;
 
-    public boolean isTryNodesNotCheckingIn() {
-        return tryNodesNotCheckingIn;
+    public boolean isTryNodesInTransition() {
+        return tryNodesInTransition;
     }
 
-    public void setTryNodesNotCheckingIn(boolean tryNodesNotCheckingIn) {
-        this.tryNodesNotCheckingIn = tryNodesNotCheckingIn;
+    public void setTryNodesInTransition(boolean tryNodesInTransition) {
+        this.tryNodesInTransition = tryNodesInTransition;
     }
 
-    public ClusterExecutionOptions tryNodesNotCheckingIn() {
-        setTryNodesNotCheckingIn(true);
+    public ClusterExecutionOptions tryNodesInTransition() {
+        setTryNodesInTransition(true);
         return this;
     }
 
-    public static boolean isTryNodesNotCheckingIn(ClusterExecutionOptions options) {
-        return options != null && options.isTryNodesNotCheckingIn();
+    public static boolean isTryNodesInTransition(ClusterExecutionOptions options) {
+        return options != null && options.isTryNodesInTransition();
     }
 
     public boolean isTryAllNodes() {

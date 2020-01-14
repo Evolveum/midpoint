@@ -6,15 +6,57 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
+import com.evolveum.midpoint.web.component.MultifunctionalButton;
+import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,82 +72,11 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
-import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
-import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.MultifunctionalButton;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentType>> {
 
@@ -126,6 +97,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     protected static final String OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ = DOT_CLASS + "loadAssignmentsTargetRefObject";
     protected static final String OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS = DOT_CLASS + "loadAssignmentTargetRelations";
+    protected static final String OPERATION_LOAD_ASSIGNMENT_HOLDER_SPECIFICATION = DOT_CLASS + "loadAssignmentHolderSpecification";
 
     protected int assignmentsRequestsLimit = -1;
 
@@ -146,63 +118,83 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                 new MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation>(ID_ASSIGNMENTS, getModel() != null ? getModel() : Model.of(), getTableId(),
                 getAssignmentsTabStorage()) {
 
-            private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void initPaging() {
+                        initCustomPaging();
+                    }
+
+                    @Override
+                    protected boolean enableActionNewObject() {
+                        return isNewObjectButtonVisible(getFocusObject());
+                    }
+
+                    @Override
+                    protected void cancelItemDetailsPerformed(AjaxRequestTarget target) {
+                        AssignmentPanel.this.cancelAssignmentDetailsPerformed(target);
+                    }
+
+                    @Override
+                    protected ObjectQuery createQuery() {
+                        return createObjectQuery();
+                    }
+
+                    @Override
+                    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createColumns() {
+                        if (AssignmentPanel.this.getModelObject() == null) {
+                            return new ArrayList<>();
+                        }
+                        return initBasicColumns();
+                    }
+
+                    @Override
+                    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {
+                        newAssignmentClickPerformed(target, assignmentTargetRelation);
+                    }
+
+                    @Override
+                    protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
+                        if (AssignmentPanel.this.getModelObject() == null) {
+                            return null;
+                        }
+                        if (isInducement()) {
+                            return null;
+                        }
+
+                        List<AssignmentObjectRelation> relations = getAssignmentObjectRelationList();
+//                        List<AssignmentObjectRelation> relations = WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList());
+                        if (relations == null) {
+                            return null;
+                        }
+
+                        List<MultiFunctinalButtonDto> buttonDtoList = new ArrayList<>();
+
+                        relations.forEach(relation -> {
+                            MultiFunctinalButtonDto buttonDto = new MultiFunctinalButtonDto();
+                            buttonDto.setAssignmentObjectRelation(relation);
+
+                            DisplayType additionalButtonDisplayType = WebComponentUtil.getAssignmentObjectRelationDisplayType(AssignmentPanel.this.getPageBase(), relation,
+                                    isInducement() ? "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle");
+                            buttonDto.setAdditionalButtonDisplayType(additionalButtonDisplayType);
+
+                            CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(AssignmentPanel.this.getPageBase(), relation,
+                                    additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
+                            CompositedIcon icon = null;
+                            if (builder != null) {
+                                icon = builder.build();
+                            }
+                            buttonDto.setCompositedIcon(icon);
+                            buttonDtoList.add(buttonDto);
+                        });
+                        return buttonDtoList;
+                    }
+
 
             @Override
-            protected void initPaging() {
-                initCustomPaging();
-            }
-
-            @Override
-            protected boolean enableActionNewObject() {
-                return isNewObjectButtonVisible(getFocusObject());
-            }
-
-            @Override
-            protected void cancelItemDetailsPerformed(AjaxRequestTarget target){
-                AssignmentPanel.this.cancelAssignmentDetailsPerformed(target);
-            }
-
-            @Override
-            protected ObjectQuery createQuery() {
-                return createObjectQuery();
-            }
-
-            @Override
-            protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createColumns() {
-                if (AssignmentPanel.this.getModelObject() == null){
-                    return new ArrayList<>();
-                }
-                return initBasicColumns();
-            }
-
-            @Override
-            protected void newItemPerformed(AjaxRequestTarget target){
-                //todo clean up
-                newAssignmentClickPerformed(target, null);
-            }
-
-            @Override
-            protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {
-                newAssignmentClickPerformed(target, assignmentTargetRelation);
-            }
-
-            @Override
-            protected List<AssignmentObjectRelation> getNewObjectInfluencesList() {
-                if (AssignmentPanel.this.getModelObject() == null){
-                    return null;
-                }
-                if (isInducement()){
-                    return null;
-                } else {
-                    return WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList());
-                }
-            }
-
-            @Override
-            protected CompositedIconBuilder getAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType) {
-                return WebComponentUtil.getAssignmentRelationIconBuilder(AssignmentPanel.this.getPageBase(), relationSpec,
-                        additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
+            protected boolean getNewObjectGenericButtonVisibility(){
+                AssignmentCandidatesSpecification spec = loadAssignmentHolderSpecification();
+                return spec == null || spec.isSupportGenericAssignment();
             }
 
             @Override
@@ -210,12 +202,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                 return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
                         AssignmentPanel.this.createStringResource(isInducement() ?
                                 "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle", "", "").getString());
-            }
-
-            @Override
-            protected DisplayType getNewObjectAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation) {
-                return WebComponentUtil.getAssignmentObjectRelationDisplayType(AssignmentPanel.this.getPageBase(), assignmentTargetRelation,
-                        isInducement() ? "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle");
             }
 
             @Override
@@ -276,6 +262,36 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         add(multivalueContainerListPanel);
 
         setOutputMarkupId(true);
+    }
+
+    private List<AssignmentObjectRelation> getAssignmentObjectRelationList() {
+        if (AssignmentPanel.this.getModelObject() == null){
+            return null;
+        }
+        if (isInducement()){
+            return null;
+        } else {
+            List<AssignmentObjectRelation> assignmentRelationsList =
+                    WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList());
+            if (assignmentRelationsList == null || assignmentRelationsList.isEmpty()){
+                return assignmentRelationsList;
+            }
+            QName assignmentType = getAssignmentType();
+            if (assignmentType == null){
+                return assignmentRelationsList;
+            }
+            List<AssignmentObjectRelation> assignmentRelationsListFilteredByType =
+                    new ArrayList<>();
+            assignmentRelationsList.forEach(assignmentRelation -> {
+                QName objectType = assignmentRelation.getObjectTypes() != null
+                        && !assignmentRelation.getObjectTypes().isEmpty()
+                        ? assignmentRelation.getObjectTypes().get(0) : null;
+                if (QNameUtil.match(assignmentType, objectType)){
+                    assignmentRelationsListFilteredByType.add(assignmentRelation);
+                }
+            });
+            return assignmentRelationsListFilteredByType;
+        }
     }
 
     protected Fragment initCustomButtonToolbar(String contentAreaId){
@@ -384,6 +400,20 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
         }
         return assignmentTargetRelations;
+    }
+
+    private AssignmentCandidatesSpecification loadAssignmentHolderSpecification(){
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_HOLDER_SPECIFICATION);
+        PrismObject obj = getMultivalueContainerListPanel().getFocusObject();
+        AssignmentCandidatesSpecification spec = null;
+        try {
+            spec = getPageBase().getModelInteractionService()
+                    .determineAssignmentHolderSpecification(obj, result);
+        } catch (SchemaException | ConfigurationException ex){
+            result.recordPartialError(ex.getLocalizedMessage());
+            LOGGER.error("Couldn't load assignment holder specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
+        }
+        return spec;
     }
 
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {

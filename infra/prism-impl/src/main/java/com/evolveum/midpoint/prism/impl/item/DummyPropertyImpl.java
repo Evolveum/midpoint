@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.xml.namespace.QName;
@@ -210,6 +209,11 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
 
     public PrismProperty<T> clone() {
         return realProperty.clone();
+    }
+
+    @Override
+    public PrismProperty<T> createImmutableClone() {
+        return realProperty.createImmutableClone();
     }
 
     public PrismProperty<T> cloneComplex(CloneStrategy strategy) {
@@ -494,20 +498,12 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
         return realProperty.isImmutable();
     }
 
-    public void setImmutable(boolean immutable) {
-        realProperty.setImmutable(immutable);
+    public void freeze() {
+        realProperty.freeze();
     }
 
     public void checkImmutability() {
         realProperty.checkImmutability();
-    }
-
-    public void modifyUnfrozen(Runnable mutator) {
-        realProperty.modifyUnfrozen(mutator);
-    }
-
-    public void modifyUnfrozen(Consumer<Item<PrismPropertyValue<T>, PrismPropertyDefinition<T>>> mutator) {
-        realProperty.modifyUnfrozen(mutator);
     }
 
     @NotNull

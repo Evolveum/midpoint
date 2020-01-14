@@ -24,7 +24,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 public class AssignmentCandidatesSpecification implements DebugDumpable, Serializable {
     private static final long serialVersionUID = 1L;
 
-    private boolean supportGenericAssignment;
+    private boolean supportGenericAssignment = true;
     private List<AssignmentObjectRelation> assignmentObjectRelations;
 
     // TODO: add properties from RoleSelectionSpecification here

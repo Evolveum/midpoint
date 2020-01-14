@@ -115,6 +115,9 @@ public class LensUtil {
         RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
         RefinedObjectClassDefinition rObjClassDef = refinedSchema.getRefinedDefinition(kind, intent);
         if (rObjClassDef == null) {
+            LOGGER.error("No projection definition for kind={}, intent={} in {}", kind, intent, resource);
+            LOGGER.error("Diagnostic output follows:\n\nResource:\n{}\n\nRefined resource schema:\n{}",
+                    resource.asPrismObject().debugDump(), refinedSchema.debugDump());
             throw new SchemaException("No projection definition for kind="+kind+" intent="+intent+" in "+resource);
         }
         return rObjClassDef.getIntent();

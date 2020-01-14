@@ -53,7 +53,6 @@ import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -445,17 +444,19 @@ public class ContextLoader {
     }
 
     private <O extends ObjectType> void setPrimaryDeltaOldValue(LensElementContext<O> ctx) {
-
         if (ctx.getPrimaryDelta() != null && ctx.getObjectOld() != null && ctx.isModify()) {
-            boolean immutable = ctx.getPrimaryDelta().isImmutable();
-            if (immutable) {
-                ctx.getPrimaryDelta().setImmutable(false);
+            boolean freezeAfterChange;
+            if (ctx.getPrimaryDelta().isImmutable()) {
+                ctx.setPrimaryDelta(ctx.getPrimaryDelta().clone());
+                freezeAfterChange = true;
+            } else {
+                freezeAfterChange = false;
             }
             for (ItemDelta<?,?> itemDelta: ctx.getPrimaryDelta().getModifications()) {
                 LensUtil.setDeltaOldValue(ctx, itemDelta);
             }
-            if (immutable) {
-                ctx.getPrimaryDelta().setImmutable(true);
+            if (freezeAfterChange) {
+                ctx.getPrimaryDelta().freeze();
             }
         }
     }
@@ -609,7 +610,7 @@ public class ContextLoader {
 
         if (consistencyChecks) context.checkConsistence();
 
-        loadLinkRefsFromDelta(context, userCurrent, focusContext.getPrimaryDelta(), task, result);
+        loadLinkRefsFromDelta(context, userCurrent, focusContext, task, result);
         LOGGER.trace("loadLinkRefsFromDelta done");
 
         if (consistencyChecks) context.checkConsistence();
@@ -704,9 +705,11 @@ public class ContextLoader {
     }
 
     private <F extends FocusType> void loadLinkRefsFromDelta(LensContext<F> context, PrismObject<F> focus,
-            ObjectDelta<F> focusPrimaryDelta, Task task, OperationResult result) throws SchemaException,
+            LensFocusContext<F> focusContext, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+
+        ObjectDelta<F> focusPrimaryDelta = focusContext.getPrimaryDelta();
         if (focusPrimaryDelta == null) {
             return;
         }
@@ -886,15 +889,22 @@ public class ContextLoader {
         // (it they survive the policy)
         // We need to make sure this happens on the real primary user delta
 
-        // TODO: review: not sure about this
-        focusPrimaryDelta.setImmutable(false);
-        if (focusPrimaryDelta.getChangeType() == ChangeType.ADD) {
-            focusPrimaryDelta.getObjectToAdd().removeReference(FocusType.F_LINK_REF);
-        } else if (focusPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
-            focusPrimaryDelta.removeReferenceModification(FocusType.F_LINK_REF);
+        ObjectDelta<F> primaryDeltaToUpdate;
+        if (focusPrimaryDelta.isImmutable()) {
+            primaryDeltaToUpdate = focusPrimaryDelta.clone();
+            focusContext.setPrimaryDelta(primaryDeltaToUpdate);
+        } else {
+            primaryDeltaToUpdate = focusPrimaryDelta;
         }
-        focusPrimaryDelta.setImmutable(true);
 
+        if (primaryDeltaToUpdate.getChangeType() == ChangeType.ADD) {
+            primaryDeltaToUpdate.getObjectToAdd().removeReference(FocusType.F_LINK_REF);
+        } else if (primaryDeltaToUpdate.getChangeType() == ChangeType.MODIFY) {
+            primaryDeltaToUpdate.removeReferenceModification(FocusType.F_LINK_REF);
+        }
+        // It is little bit questionable whether we need to make primary delta immutable. It makes some sense, but I am not sure.
+        // Note that (as a side effect) this can make "focus new" immutable as well, in the case of ADD delta.
+        primaryDeltaToUpdate.freeze();
     }
 
     private <F extends ObjectType> void loadProjectionContextsSync(LensContext<F> context, Task task, OperationResult result) throws SchemaException,

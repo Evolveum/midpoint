@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Evolveum and contributors
+ * Copyright (c) 2014-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -44,4 +44,9 @@ public interface ValueParser<T> {
      * @return May return null if not supported or no namespace declarations are present.
      */
     Map<String,String> getPotentiallyRelevantNamespaces();
+
+    /**
+     * @return Frozen version of this parser.
+     */
+    ValueParser<T> freeze();
 }

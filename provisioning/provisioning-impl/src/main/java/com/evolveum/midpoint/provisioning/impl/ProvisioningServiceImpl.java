@@ -151,99 +151,113 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         result.addParam(OperationResult.PARAM_TYPE, type);
         result.addArbitraryObjectCollectionAsParam("options", options);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+        boolean exceptionRecorded = false;
+        try {
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            PrismObject<T> resultingObject;
 
-        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        PrismObject<T> resultingObject;
-
-        if (ResourceType.class.isAssignableFrom(type)) {
-            if (GetOperationOptions.isRaw(rootOptions)) {
-                try {
+            if (ResourceType.class.isAssignableFrom(type)) {
+                if (GetOperationOptions.isRaw(rootOptions)) {
                     resultingObject = (PrismObject<T>) cacheRepositoryService.getObject(ResourceType.class, oid, options, result);
-                } catch (ObjectNotFoundException|SchemaException ex) {
-                    // catching an exception is important because otherwise the result is UNKNOWN
-                    result.recordFatalError(ex);
-                    throw ex;
-                }
-                try {
-                    applyDefinition(resultingObject, task, result);
-                } catch (ObjectNotFoundException ex) {
-                    // this is almost OK, we use raw for debug pages, so we want
-                    // to return resource and it can be fixed
-                    result.muteLastSubresultError();
-                    ProvisioningUtil.logWarning(LOGGER, result,
-                            "Bad connector reference defined for resource:  " + ex.getMessage(), ex);
-                } catch (SchemaException ex) {
-                    result.muteLastSubresultError();
-                    ProvisioningUtil.logWarning(LOGGER, result, "Schema violation:  " + ex.getMessage(), ex);
-                } catch (ConfigurationException ex) {
-                    result.muteLastSubresultError();
-                    ProvisioningUtil.logWarning(LOGGER, result, "Configuration problem:  " + ex.getMessage(), ex);
-                }
-            } else {
-                // We need to handle resource specially. This is usually cached
-                // and we do not want to get the repository
-                // object if it is in the cache.
-
-                // Make sure that the object is complete, e.g. there is a
-                // (fresh)
-                // schema
-                try {
-                    resultingObject = (PrismObject<T>) resourceManager.getResource(oid, SelectorOptions.findRootOptions(options), task, result);
-                } catch (ObjectNotFoundException ex) {
-                    ProvisioningUtil.recordFatalError(LOGGER, result, "Resource object not found", ex);
-                    throw ex;
-                } catch (SchemaException ex) {
-                    ProvisioningUtil.recordFatalError(LOGGER, result, "Schema violation", ex);
-                    throw ex;
-                } catch (CommunicationException ex) {
-                    ProvisioningUtil.recordFatalError(LOGGER, result, "Error communicating with resource", ex);
-                    throw ex;
-                } catch (ConfigurationException ex) {
-                    ProvisioningUtil.recordFatalError(LOGGER, result, "Bad resource configuration", ex);
-                    throw ex;
-                } catch (ExpressionEvaluationException ex) {
-                    ProvisioningUtil.recordFatalError(LOGGER, result, "Expression error", ex);
-                    throw ex;
-                }
-            }
-
-        } else {
-            // Not resource
-
-            PrismObject<T> repositoryObject = getRepoObject(type, oid, options, result);
-            LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDumpLazily());
-
-            if (repositoryObject.canRepresent(ShadowType.class)) {
-                try {
-                    resultingObject = (PrismObject<T>) shadowCache.getShadow(oid,
-                            (PrismObject<ShadowType>) (repositoryObject), null, options, task, result);
-                } catch (ObjectNotFoundException e) {
-                    if (!GetOperationOptions.isAllowNotFound(rootOptions)){
-                        ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-                    } else{
+                    try {
+                        applyDefinition(resultingObject, task, result);
+                    } catch (ObjectNotFoundException ex) {
+                        // this is almost OK, we use raw for debug pages, so we want
+                        // to return resource and it can be fixed
                         result.muteLastSubresultError();
-                        result.computeStatus();
+                        ProvisioningUtil.logWarning(LOGGER, result,
+                                "Bad connector reference defined for resource:  " + ex.getMessage(), ex);
+                    } catch (SchemaException ex) {
+                        result.muteLastSubresultError();
+                        ProvisioningUtil.logWarning(LOGGER, result, "Schema violation:  " + ex.getMessage(), ex);
+                    } catch (ConfigurationException ex) {
+                        result.muteLastSubresultError();
+                        ProvisioningUtil.logWarning(LOGGER, result, "Configuration problem:  " + ex.getMessage(), ex);
                     }
-                    throw e;
-                } catch (CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
-                    ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-                    throw e;
-                } catch (EncryptionException e){
-                    ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-                    throw new SystemException(e);
-                }
-            } else {
-                resultingObject = repositoryObject;
-            }
-        }
+                } else {
+                    // We need to handle resource specially. This is usually cached and we do not want to get the repository
+                    // object if it is in the cache.
 
-        result.computeStatusIfUnknown();
-        if (!GetOperationOptions.isRaw(rootOptions)) {
-            resultingObject = resultingObject.cloneIfImmutable();
-            resultingObject.asObjectable().setFetchResult(result.createOperationResultType());
+                    // Make sure that the object is complete, e.g. there is a (fresh) schema
+                    try {
+                        resultingObject = (PrismObject<T>) resourceManager
+                                .getResource(oid, SelectorOptions.findRootOptions(options), task, result);
+                    } catch (ObjectNotFoundException ex) {
+                        ProvisioningUtil.recordFatalError(LOGGER, result, "Resource object not found", ex);
+                        exceptionRecorded = true;
+                        throw ex;
+                    } catch (SchemaException ex) {
+                        ProvisioningUtil.recordFatalError(LOGGER, result, "Schema violation", ex);
+                        exceptionRecorded = true;
+                        throw ex;
+                    } catch (CommunicationException ex) {
+                        ProvisioningUtil.recordFatalError(LOGGER, result, "Error communicating with resource", ex);
+                        exceptionRecorded = true;
+                        throw ex;
+                    } catch (ConfigurationException ex) {
+                        ProvisioningUtil.recordFatalError(LOGGER, result, "Bad resource configuration", ex);
+                        exceptionRecorded = true;
+                        throw ex;
+                    } catch (ExpressionEvaluationException ex) {
+                        ProvisioningUtil.recordFatalError(LOGGER, result, "Expression error", ex);
+                        exceptionRecorded = true;
+                        throw ex;
+                    }
+                }
+
+            } else {
+                // Not resource
+
+                PrismObject<T> repositoryObject = getRepoObject(type, oid, options, result);
+                LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDumpLazily());
+
+                if (repositoryObject.canRepresent(ShadowType.class)) {
+                    try {
+                        resultingObject = (PrismObject<T>) shadowCache.getShadow(oid,
+                                (PrismObject<ShadowType>) (repositoryObject), null, options, task, result);
+                    } catch (ObjectNotFoundException e) {
+                        if (!GetOperationOptions.isAllowNotFound(rootOptions)) {
+                            ProvisioningUtil
+                                    .recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
+                        } else {
+                            result.muteLastSubresultError();
+                            result.computeStatus();
+                        }
+                        exceptionRecorded = true;
+                        throw e;
+                    } catch (CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
+                        ProvisioningUtil
+                                .recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
+                        exceptionRecorded = true;
+                        throw e;
+                    } catch (EncryptionException e) {
+                        ProvisioningUtil
+                                .recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
+                        exceptionRecorded = true;
+                        throw new SystemException(e);
+                    }
+                } else {
+                    resultingObject = repositoryObject;
+                }
+            }
+
+            result.computeStatusIfUnknown();
+            if (!GetOperationOptions.isRaw(rootOptions)) {
+                resultingObject = resultingObject.cloneIfImmutable();
+                resultingObject.asObjectable().setFetchResult(result.createOperationResultType());
+            }
+            result.cleanupResult();
+            return resultingObject;
+        } catch (Throwable t) {
+            // We use this strange construction because in some occasions we record the exception in a custom way
+            // (e.g. using custom message). Therefore let's record the fatal error only if it was not recorded previously.
+            // An alternative would be to check if the result has a status of FATAL_ERROR already set. But there might be
+            // cases (in the future) when we want to record status other than FATAL_ERROR and still throw the exception.
+            if (!exceptionRecorded) {
+                result.recordFatalError(t);
+            }
+            throw t;
         }
-        result.cleanupResult();
-        return resultingObject;
     }
 
     @Override
@@ -516,10 +530,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         if (ResourceType.class.equals(type)) {
-
-                PrismObject<ResourceType> completeResource = resourceManager.getResource((PrismObject<ResourceType>) inObject,
-                        SelectorOptions.findRootOptions(options), task, result);
-                return (PrismObject<T>) completeResource;
+            //noinspection unchecked
+            return (PrismObject<T>) resourceManager.completeResource((PrismObject<ResourceType>) inObject,
+                    SelectorOptions.findRootOptions(options), task, result);
         } else if (ShadowType.class.equals(type)) {
             // should not happen, the shadow-related code is already in the ShadowCache
             throw new IllegalStateException("BOOOM!");
@@ -528,7 +541,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         }
         return inObject;
-
     }
 
     public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
@@ -709,7 +721,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         } else if (object.canRepresent(ResourceType.class)) {
 
-            resourceManager.deleteResource(oid, options, task, result);
+            resourceManager.deleteResource(oid, result);
 
         } else {
 

@@ -56,7 +56,7 @@ public class CompositedIconPanel extends Panel {
         if(compositedIcon.hasBasicIcon()) {
             basicIcon.add(AttributeAppender.append("class", compositedIcon.getBasicIcon()));
             if (compositedIcon.hasBasicIconHtmlColor()){
-                basicIcon.add(AttributeAppender.append("style", compositedIcon.getBasicIconHtmlColor()));
+                basicIcon.add(AttributeAppender.append("style", "color:" + compositedIcon.getBasicIconHtmlColor()));
             }
         }
         layeredIcon.add(basicIcon);
@@ -71,7 +71,7 @@ public class CompositedIconPanel extends Panel {
                 WebComponent icon = new WebComponent(listItems.newChildId());
                 icon.add(AttributeAppender.append("class", layerIcon.getCssClass()));
                 if (StringUtils.isNotEmpty(layerIcon.getColor())) {
-                    icon.add(AttributeAppender.append("style", layerIcon.getColor()));
+                    icon.add(AttributeAppender.append("style", "color: " + layerIcon.getColor()));
                 }
                 listItems.add(icon);
             }

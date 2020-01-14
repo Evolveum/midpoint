@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2019 Evolveum and contributors
+/*
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -24,12 +24,15 @@ import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+/**
+ * TODO what about thread safety?
+ */
 public class JsonValueParser<T> implements ValueParser<T> {
 
     @NotNull private final JsonParser parser;
     private JsonNode node;
 
-    public JsonValueParser(@NotNull JsonParser parser, JsonNode node) {
+    JsonValueParser(@NotNull JsonParser parser, JsonNode node) {
         this.parser = parser;
         this.node = node;
     }
@@ -74,6 +77,11 @@ public class JsonValueParser<T> implements ValueParser<T> {
     @Override
     public Map<String, String> getPotentiallyRelevantNamespaces() {
         return null;                // TODO implement
+    }
+
+    @Override
+    public ValueParser<T> freeze() {
+        return this;        // TODO implement
     }
 
     Element asDomElement() throws IOException {

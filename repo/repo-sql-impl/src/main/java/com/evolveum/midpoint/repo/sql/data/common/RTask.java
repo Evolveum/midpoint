@@ -202,6 +202,7 @@ public class RTask extends RObject<TaskType> implements OperationResultFull {
         return taskIdentifier;
     }
 
+    @JaxbName(localPart = "resultStatus")
     @Enumerated(EnumType.ORDINAL)
     public ROperationResultStatus getStatus() {
         return status;

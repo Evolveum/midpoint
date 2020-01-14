@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.SchemaXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
@@ -272,7 +273,7 @@ public class DomLexicalWriter {
 
         // typeName != null after this point
 
-        if (StringUtils.isBlank(typeQName.getNamespaceURI())) {
+        if (QNameUtil.isUnqualified(typeQName)) {
             typeQName = XsdTypeMapper.determineQNameWithNs(typeQName);
         }
 

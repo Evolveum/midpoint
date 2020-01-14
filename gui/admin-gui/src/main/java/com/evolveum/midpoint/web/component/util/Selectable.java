@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.util;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+
 import java.io.Serializable;
 
 /**
@@ -19,6 +21,7 @@ public abstract class Selectable<S> implements Serializable {
     public static final String F_SELECTED = "selected";
 
     private boolean selected;
+    private OperationResult result;
 
     public boolean isSelected() {
         return selected;
@@ -31,4 +34,5 @@ public abstract class Selectable<S> implements Serializable {
     public S getValue() {
         return (S) this;
     }
+
 }

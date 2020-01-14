@@ -382,16 +382,14 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
     }
 
     @Override
-    public void setImmutable(boolean immutable) {
-        this.immutable = immutable;
+    public void freeze() {
         if (objectToAdd != null) {
-            objectToAdd.setImmutable(immutable);
+            objectToAdd.freeze();
         }
-        if (modifications != null) {
-            for (ItemDelta<?, ?> modification : modifications) {
-                modification.setImmutable(immutable);
-            }
+        for (ItemDelta<?, ?> modification : modifications) {
+            modification.freeze();
         }
+        this.immutable = true;
     }
 
     protected void checkMutability() {

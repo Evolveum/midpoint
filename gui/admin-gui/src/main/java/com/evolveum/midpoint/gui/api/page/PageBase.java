@@ -110,10 +110,7 @@ import com.evolveum.midpoint.web.page.admin.reports.*;
 import com.evolveum.midpoint.web.page.admin.resources.*;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
+import com.evolveum.midpoint.web.page.admin.server.*;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.*;
@@ -236,6 +233,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
     public static final String PARAMETER_OBJECT_COLLECTION_TYPE_OID = "collectionOid";
     public static final String PARAMETER_OBJECT_COLLECTION_NAME = "collectionName";
+    public static final String PARAMETER_SEARCH_BY_NAME = "name";
 
     private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
 
@@ -1270,8 +1268,40 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected IModel<String> createPageTitleModel() {
-        String key = getClass().getSimpleName() + ".title";
-        return createStringResource(key);
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                String pageTitleKey = null;
+                List<SideBarMenuItem> sideMenuItems = getSideBarMenuPanel() != null && getSideBarMenuPanel().isVisible()
+                        ? getSideBarMenuPanel().getModelObject() : null;
+                if (sideMenuItems != null){
+                    for (SideBarMenuItem sideBarMenuItem : sideMenuItems){
+                        List<MainMenuItem> mainMenuItems = sideBarMenuItem.getItems();
+                        if (mainMenuItems != null){
+                            for (MainMenuItem mainMenuItem : mainMenuItems){
+                                if (mainMenuItem.isMenuActive(PageBase.this)){
+                                    pageTitleKey = mainMenuItem.getNameModel().getObject();
+                                    break;
+                                }
+                                List<MenuItem> menuItems = mainMenuItem.getItems();
+                                if (menuItems != null){
+                                    for (MenuItem menuItem : menuItems){
+                                        if (menuItem.isMenuActive(PageBase.this)){
+                                            pageTitleKey = menuItem.getNameModel().getObject();
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (StringUtils.isEmpty(pageTitleKey)) {
+                    pageTitleKey = PageBase.this.getClass().getSimpleName() + ".title";
+                }
+                return createStringResource(pageTitleKey).getString();
+            }
+        };
     }
 
     public IModel<String> getPageTitleModel() {
@@ -1900,6 +1930,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 createStringResource("PageAdmin.menu.top.serverTasks"), null);
 
         addMenuItem(item, "PageAdmin.menu.top.serverTasks.list", PageTasks.class);
+
+        addMenuItem(item, "PageAdmin.menu.top.serverTasks.nodes", PageNodes.class);
+
         //should we support archetype view for TaskType?
 //        addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE);
         MenuItem newTaskMenu = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageTaskAdd.class, null,
@@ -2729,4 +2762,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return clock;
     }
 
+    private SideBarMenuPanel getSideBarMenuPanel(){
+        return (SideBarMenuPanel) get(ID_SIDEBAR_MENU);
+    }
 }

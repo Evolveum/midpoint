@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -85,9 +87,9 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView> mainPanel =
-                new MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView>(
-                ID_TABLE, AccessCertificationDefinitionType.class, TableId.PAGE_CERT_DEFINITIONS_PANEL, null, this) {
+        MainObjectListPanel<AccessCertificationDefinitionType> mainPanel =
+                new MainObjectListPanel<AccessCertificationDefinitionType>(
+                ID_TABLE, AccessCertificationDefinitionType.class, TableId.PAGE_CERT_DEFINITIONS_PANEL, null) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -111,7 +113,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
             }
 
             @Override
-            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
+            protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
                 navigateToNext(PageCertDefinition.class);
             }
         };
@@ -120,8 +122,8 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         mainForm.add(mainPanel);
     }
 
-    private MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView> getDefinitionsTable() {
-        return (MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView>)
+    private MainObjectListPanel<AccessCertificationDefinitionType> getDefinitionsTable() {
+        return (MainObjectListPanel<AccessCertificationDefinitionType>)
                 get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 

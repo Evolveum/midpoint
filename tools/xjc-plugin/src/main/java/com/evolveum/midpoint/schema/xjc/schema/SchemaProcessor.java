@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -2120,16 +2120,21 @@ public class SchemaProcessor implements Processor {
         acceptMethod.annotate(Override.class);
         JVar visitor = acceptMethod.param(JaxbVisitor.class, "visitor");
         JBlock body = acceptMethod.body();
-        JInvocation visitInvocation = body.invoke(visitor, METHOD_VISIT);
-        visitInvocation.arg(JExpr._this());
+
+        if (classOutline.getSuperClass() != null) {
+            JInvocation superInvocation = body.invoke(JExpr._super(), METHOD_ACCEPT);
+            superInvocation.arg(visitor);
+        } else {
+            JInvocation visitInvocation = body.invoke(visitor, METHOD_VISIT);
+            visitInvocation.arg(JExpr._this());
+        }
 
         for (JFieldVar fieldVar : impl.fields().values()) {
-            if ((fieldVar.mods().getValue() & (JMod.STATIC|JMod.FINAL)) != 0) {
-                continue;
+            if ((fieldVar.mods().getValue() & (JMod.STATIC | JMod.FINAL)) == 0) {
+                JInvocation invocation = body.staticInvoke(CLASS_MAP.get(PrismForJAXBUtil.class), METHOD_PRISM_UTIL_ACCEPT);
+                invocation.arg(fieldVar);
+                invocation.arg(visitor);
             }
-            JInvocation invocation = body.staticInvoke(CLASS_MAP.get(PrismForJAXBUtil.class), METHOD_PRISM_UTIL_ACCEPT);
-            invocation.arg(fieldVar);
-            invocation.arg(visitor);
         }
     }
 

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 import org.quartz.*;
@@ -59,10 +60,14 @@ public class RemoteNodesManager {
         OperationResult result = parentResult.createSubresult(RemoteNodesManager.class.getName() + ".addNodeStatusFromRemoteNode");
         result.addParam("node", nodeBean.getNodeIdentifier());
         try {
-            if (Boolean.FALSE.equals(nodeBean.isRunning())) {
+            if (nodeBean.getOperationalStatus() == NodeOperationalStatusType.DOWN) {
                 nodeBean.setExecutionStatus(NodeExecutionStatusType.DOWN);
                 clusterInfo.addNodeInfo(nodeBean);
                 result.recordStatus(OperationResultStatus.SUCCESS, "Node is down");
+            } else if (nodeBean.getOperationalStatus() == NodeOperationalStatusType.STARTING) {
+                nodeBean.setExecutionStatus(NodeExecutionStatusType.STARTING);
+                clusterInfo.addNodeInfo(nodeBean);
+                result.recordStatus(OperationResultStatus.SUCCESS, "Node is starting");
             } else if (!taskManager.getClusterManager().isCheckingIn(nodeBean)) {
                 nodeBean.setExecutionStatus(NodeExecutionStatusType.NOT_CHECKING_IN);
                 clusterInfo.addNodeInfo(nodeBean);

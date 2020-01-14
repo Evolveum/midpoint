@@ -128,20 +128,16 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
 
-        boolean immutable = configuration.isImmutable();
-        try {
-            if (immutable) {
-                configuration.setImmutable(false);
-            }
-            configuration.applyDefinition(getConfigurationContainerDefinition());
-        } finally {
-            if (immutable) {
-                configuration.setImmutable(true);
-            }
+        PrismContainerValue<?> mutableConfiguration;
+        if (configuration.isImmutable()) {
+            mutableConfiguration = configuration.clone();
+        } else {
+            mutableConfiguration = configuration;
         }
 
-        setConnectorConfiguration(configuration);
-        applyConfigurationToConfigurationClass(configuration);
+        mutableConfiguration.applyDefinition(getConfigurationContainerDefinition());
+        setConnectorConfiguration(mutableConfiguration);
+        applyConfigurationToConfigurationClass(mutableConfiguration);
 
         // TODO: transform configuration in a subclass
 

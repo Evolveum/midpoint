@@ -1091,7 +1091,7 @@ public class AssignmentProcessor {
     }
 
     public <F extends ObjectType> void processMembershipAndDelegatedRefs(LensContext<F> context,
-            OperationResult result) throws SchemaException, PolicyViolationException {
+            OperationResult result) throws SchemaException, PolicyViolationException, ConfigurationException {
         LensFocusContext<F> focusContext = context.getFocusContext();
         if (focusContext == null || !AssignmentHolderType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
             return;
@@ -1112,6 +1112,10 @@ public class AssignmentProcessor {
                 addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
                 addReferences(shouldBeArchetypeRefs, evalAssignment.getArchetypeRefVals());
             }
+        }
+
+        if (shouldBeArchetypeRefs.size() > 1) {
+            throw new ConfigurationException("Only single archetype supported. Attemting to add " + shouldBeArchetypeRefs.size() + ": " + shouldBeArchetypeRefs);
         }
 
         setReferences(focusContext, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF, shouldBeRoleRefs);

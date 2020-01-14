@@ -1188,11 +1188,10 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
             sb.append(",default");
         }
         if (_this.getKind() != null) {
-            sb.append(" ").append(_this.getKind().value());
+            sb.append(",kind=").append(_this.getKind().value());
         }
-        sb.append(",");
         if (_this.getIntent() != null) {
-            sb.append("intent=").append(_this.getIntent());
+            sb.append(",intent=").append(_this.getIntent());
         }
         if (layer != null) {
             sb.append(",layer=").append(layer);
