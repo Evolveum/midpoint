@@ -8,6 +8,9 @@ package com.evolveum.midpoint.web.security.provider;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -15,14 +18,16 @@ import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.module.authentication.ClusterAuthenticationToken;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
+import org.apache.catalina.Cluster;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import java.util.Collection;
@@ -32,20 +37,20 @@ import java.util.List;
  * @author skublik
  */
 
-public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthenticationContext> {
+public class ClusterProvider extends MidPointAbstractAuthenticationProvider {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PasswordProvider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ClusterProvider.class);
 
     @Autowired
-    private transient AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
+    private NodeAuthenticationEvaluator nodeAuthenticator;
 
     @Override
     protected AuthenticationEvaluator<PasswordAuthenticationContext> getEvaluator() {
-        return passwordAuthenticationEvaluator;
+        return null;
     }
 
     @Override
-    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment) throws AuthenticationException {
+    protected Authentication internalAuthentication(Authentication authentication, List requireAssignment) throws AuthenticationException {
         if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof MidPointUserProfilePrincipal) {
             return authentication;
         }
@@ -56,11 +61,13 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
 
         try {
             Authentication token;
-            if (authentication instanceof UsernamePasswordAuthenticationToken) {
+            if (authentication instanceof ClusterAuthenticationToken) {
                 String enteredPassword = (String) authentication.getCredentials();
-                token = getEvaluator().authenticate(connEnv, new PasswordAuthenticationContext(enteredUsername, enteredPassword, requireAssignment));
-            } else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
-                token = getEvaluator().authenticateUserPreAuthenticated(connEnv, new PreAuthenticationContext(enteredUsername, requireAssignment));
+                if (!nodeAuthenticator.authenticate(null, enteredUsername, enteredPassword, "?")) {
+                    throw new AuthenticationServiceException("web.security.flexAuth.cluster.auth.null");
+                } else {
+                    token = SecurityContextHolder.getContext().getAuthentication();
+                }
             } else {
                 LOGGER.error("Unsupported authentication {}", authentication);
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
@@ -79,22 +86,23 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
     }
 
     @Override
-    protected Authentication createNewAuthenticationToken(Authentication actualAuthentication, Collection<? extends GrantedAuthority> newAuthorities) {
-        if (actualAuthentication instanceof UsernamePasswordAuthenticationToken) {
-            return new UsernamePasswordAuthenticationToken(actualAuthentication.getPrincipal(), actualAuthentication.getCredentials(), newAuthorities);
-        } else if (actualAuthentication instanceof PreAuthenticatedAuthenticationToken) {
-            return new PreAuthenticatedAuthenticationToken(actualAuthentication.getPrincipal(), actualAuthentication.getCredentials(), newAuthorities);
+    protected Authentication createNewAuthenticationToken(Authentication actualAuthentication, Collection newAuthorities) {
+        if (actualAuthentication instanceof ClusterAuthenticationToken) {
+            return new ClusterAuthenticationToken(actualAuthentication.getPrincipal(), actualAuthentication.getCredentials(), newAuthorities);
         } else {
             return actualAuthentication;
         }
     }
 
+    protected void writeAutentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication, ModuleAuthentication moduleAuthentication, Authentication token) {
+        mpAuthentication.setPrincipal(token.getPrincipal());
+        mpAuthentication.setCredential(token.getCredentials());
+        moduleAuthentication.setAuthentication(token);
+    }
+
     @Override
     public boolean supports(Class<?> authentication) {
-        if (UsernamePasswordAuthenticationToken.class.equals(authentication)) {
-            return true;
-        }
-        if (PreAuthenticatedAuthenticationToken.class.equals(authentication)) {
+        if (ClusterAuthenticationToken.class.equals(authentication)) {
             return true;
         }
 
@@ -102,8 +110,15 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
     }
 
     @Override
-    public Class getTypeOfCredential() {
-        return PasswordCredentialsPolicyType.class;
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((nodeAuthenticator == null) ? 0 : nodeAuthenticator.hashCode());
+        return result;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
 }

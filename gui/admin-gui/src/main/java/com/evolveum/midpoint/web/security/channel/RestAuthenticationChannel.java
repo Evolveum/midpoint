@@ -6,55 +6,55 @@
  */
 package com.evolveum.midpoint.web.security.channel;
 
-import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.forgetpassword.PageResetPassword;
-import com.evolveum.midpoint.web.page.forgetpassword.PageShowPassword;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author skublik
  */
 
-public class ResetPasswordAuthenticationChannel extends AuthenticationChannelImpl {
+public class RestAuthenticationChannel extends AuthenticationChannelImpl {
 
 
-    public ResetPasswordAuthenticationChannel(AuthenticationSequenceChannelType channel) {
+    public RestAuthenticationChannel(AuthenticationSequenceChannelType channel) {
         super(channel);
     }
 
     public String getChannelId() {
-        return SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI;
-    }
-
-    public String getPathAfterUnsuccessfulAuthentication() {
-        return PageResetPassword.URL;
+        return SchemaConstants.CHANNEL_REST_URI;
     }
 
     public String getPathAfterSuccessfulAuthentication() {
-        return PageShowPassword.URL;
+        return "/ws/rest/self";
     }
 
     public Collection<? extends GrantedAuthority> resolveAuthorities(Collection<? extends GrantedAuthority> authorities) {
         ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
         for (GrantedAuthority authority : authorities) {
-            if (AuthorizationConstants.AUTZ_ALL_URL.equals(authority.getAuthority())) {
-                newAuthorities.add(new SimpleGrantedAuthority(PageResetPassword.AUTH_SELF_ALL_URI));
-                newAuthorities.add(new SimpleGrantedAuthority(AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL));
+            List<String> authoritiesString = new ArrayList<String>();
+            if (authority instanceof Authorization) {
+                authoritiesString = ((Authorization)authority).getAction();
+            } else {
+                authoritiesString.add(authority.getAuthority());
             }
-            if (PageResetPassword.AUTH_SELF_ALL_URI.equals(authority.getAuthority())) {
-                newAuthorities.add(authority);
-            }
-            if (AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL.equals(authority.getAuthority())) {
-                newAuthorities.add(authority);
+            if (authoritiesString != null) {
+                for (String authorityString : authoritiesString) {
+                    if (authorityString.startsWith(AuthorizationConstants.NS_AUTHORIZATION_REST)) {
+                        newAuthorities.add(authority);
+                    }
+                }
+                if (authoritiesString.contains(AuthorizationConstants.AUTZ_ALL_URL)) {
+                    newAuthorities.add(authority);
+                }
             }
         }
         return newAuthorities;

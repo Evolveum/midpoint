@@ -23,7 +23,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
  * @author skublik
  */
 
-public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint{
+public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint{
 
     @Override
     public void commence(
@@ -52,5 +52,8 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint{
             }
         }
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        response.getWriter().write(" test error ");
+        response.getWriter().flush();
+        response.getWriter().close();
     }
 }

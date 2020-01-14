@@ -51,7 +51,7 @@ public class ActuatorWebSecurityConfig extends WebSecurityConfigurerAdapter {
         .and()
         .formLogin().disable()
         .csrf().disable()
-        .exceptionHandling().authenticationEntryPoint(new RestAuthenticationEntryPoint())
+        .exceptionHandling().authenticationEntryPoint(new HttpAuthenticationEntryPoint())
         .and()
         .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
 

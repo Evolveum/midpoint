@@ -49,6 +49,10 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
         return AuthenticationChannel.DEFAULT_POST_AUTHENTICATION_URL;
     }
 
+    public String getPathAfterUnsuccessfulAuthentication() {
+        return getPathAfterSuccessfulAuthentication();
+    }
+
     @Override
     public String getPathDuringProccessing() {
         String suffix = this.channel.getUrlSuffix();

@@ -63,6 +63,7 @@ import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
 
@@ -192,7 +193,20 @@ public class PageSecurityQuestions extends PageRegistrationBase {
         questionsView.setOutputMarkupId(true);
         questionsContainer.add(questionsView);
 
-        questionsContainer.add(createBackButton(ID_BACK_2_BUTTON));
+        AjaxButton back = new AjaxButton(ID_BACK_2_BUTTON) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showedQuestions = false;
+                questionsModel.setObject(new ArrayList<SecurityQuestionDto>());
+                getHiddenUsername().getModel().setObject(null);
+                getHiddenAnswer().getModel().setObject(null);
+                target.add(getMainForm());
+            }
+        };
+        questionsContainer.add(back);
     }
 
     private String generateAnswer() {
@@ -332,15 +346,16 @@ public class PageSecurityQuestions extends PageRegistrationBase {
 
     private List<SecurityQuestionDto> createUsersSecurityQuestionsList(PrismObject<UserType> user) {
 
-//        SecurityQuestionsCredentialsType credentialsPolicyType = user.asObjectable().getCredentials()
-//                .getSecurityQuestions();
-//        if (credentialsPolicyType == null) {
-//            String key = "web.security.flexAuth.unsupported.auth.type";
-//            error(getString(key));
-//            throw new RestartResponseException(PageError.class);
-//            return null;
-//        }
-//        List<SecurityQuestionAnswerType> secQuestAnsList = credentialsPolicyType.getQuestionAnswer();
+        SecurityQuestionsCredentialsType credentialsPolicyType = user.asObjectable().getCredentials()
+                .getSecurityQuestions();
+        if (credentialsPolicyType == null || credentialsPolicyType.getQuestionAnswer() == null
+                || credentialsPolicyType.getQuestionAnswer().isEmpty()) {
+            String key = "web.security.flexAuth.any.security.questions";
+            error(getString(key));
+            LOGGER.error(key);
+            throw new RestartResponseException(PageSecurityQuestions.class);
+        }
+        List<SecurityQuestionAnswerType> secQuestAnsList = credentialsPolicyType.getQuestionAnswer();
 
         SecurityPolicyType securityPolicy = resolveSecurityPolicy(user);
         LOGGER.trace("Found security policy: {}", securityPolicy);
@@ -363,12 +378,27 @@ public class PageSecurityQuestions extends PageRegistrationBase {
         List<SecurityQuestionDefinitionType> questionList = secQuestionsPolicy != null ? secQuestionsPolicy.getQuestion() : new ArrayList<SecurityQuestionDefinitionType>();
 
         List<SecurityQuestionDto> questionsDto = new ArrayList<SecurityQuestionDto>();
+        int questionNumber = secQuestionsPolicy != null ? secQuestionsPolicy.getQuestionNumber() : 1;
         for (SecurityQuestionDefinitionType question : questionList) {
             if (Boolean.TRUE.equals(question.isEnabled())) {
-                SecurityQuestionDto questionDto = new SecurityQuestionDto(question.getIdentifier());
-                questionDto.setQuestionText(question.getQuestionText());
-                questionsDto.add(questionDto);
+                for (SecurityQuestionAnswerType userAnswer : secQuestAnsList) {
+                    if (question.getIdentifier().equals(userAnswer.getQuestionIdentifier())) {
+                        SecurityQuestionDto questionDto = new SecurityQuestionDto(question.getIdentifier());
+                        questionDto.setQuestionText(question.getQuestionText());
+                        questionsDto.add(questionDto);
+                        break;
+                    }
+                }
             }
+            if (questionNumber == questionsDto.size()) {
+                break;
+            }
+        }
+        if (questionsDto.size() < questionNumber) {
+            String key = "pageForgetPassword.message.ContactAdminQuestionsNotSetEnough";
+            error(getString(key));
+            LOGGER.error(key);
+            throw new RestartResponseException(PageSecurityQuestions.class);
         }
 
         return questionsDto;

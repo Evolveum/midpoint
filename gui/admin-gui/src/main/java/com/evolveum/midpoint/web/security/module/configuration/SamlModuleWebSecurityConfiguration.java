@@ -81,7 +81,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         AuthenticationModuleSaml2ServiceProviderType serviceProviderType = modelType.getServiceProvider();
         LocalServiceProviderConfiguration serviceProvider = new LocalServiceProviderConfiguration();
         serviceProvider.setEntityId(serviceProviderType.getEntityId())
-                .setSignMetadata(Boolean.TRUE.equals(serviceProviderType.isSignMetadata()))
+                .setSignMetadata(Boolean.TRUE.equals(serviceProviderType.isSignRequests()))
                 .setSignRequests(Boolean.TRUE.equals(serviceProviderType.isSignRequests()))
                 .setWantAssertionsSigned(Boolean.TRUE.equals(serviceProviderType.isWantAssertionsSigned()))
                 .setSingleLogoutEnabled(Boolean.TRUE.equals(serviceProviderType.isSingleLogoutEnabled()))
@@ -98,22 +98,28 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             serviceProvider.setDefaultSigningAlgorithm(AlgorithmMethod.fromUrn(serviceProviderType.getDefaultSigningAlgorithm().value()));
         }
         AuthenticationModuleSaml2KeyType keysType = serviceProviderType.getKeys();
-        RotatingKeys key = new RotatingKeys();
-        AuthenticationModuleSaml2SimpleKeyType activeKeyType = keysType.getActive();
-        try {
-            key.setActive(createSimpleKey(activeKeyType));
-        } catch (EncryptionException e) {
-            LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + activeKeyType);
-        }
+//        if (keysType != null) {
+            RotatingKeys key = new RotatingKeys();
+            AuthenticationModuleSaml2SimpleKeyType activeKeyType = keysType.getActive();
+//            if (activeKeyType != null) {
+                try {
+                    key.setActive(createSimpleKey(activeKeyType));
+                } catch (EncryptionException e) {
+                    LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + activeKeyType);
+                }
+//            }
 
-        for (AuthenticationModuleSaml2SimpleKeyType standByKey : keysType.getStandBy()) {
-            try {
-                key.getStandBy().add(createSimpleKey(standByKey));
-            } catch (EncryptionException e) {
-                LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + standByKey);
-            }
-        }
-        serviceProvider.setKeys(key);
+//            if (keysType.getStandBy() != null && !keysType.getStandBy().isEmpty()) {
+                for (AuthenticationModuleSaml2SimpleKeyType standByKey : keysType.getStandBy()) {
+                    try {
+                        key.getStandBy().add(createSimpleKey(standByKey));
+                    } catch (EncryptionException e) {
+                        LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + standByKey);
+                    }
+                }
+//            }
+            serviceProvider.setKeys(key);
+//        }
 
         List<ExternalIdentityProviderConfiguration> providers = new ArrayList<ExternalIdentityProviderConfiguration>();
         List<AuthenticationModuleSaml2ProviderType> providersType = serviceProviderType.getProvider();
@@ -243,10 +249,5 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         if (getSamlConfiguration() == null) {
             throw new IllegalArgumentException("Saml configuration is null");
         }
-        if (StringUtils.isBlank(stripSlashes(getPrefixOfSequence()))) {
-            throw new IllegalArgumentException("Suffix in channel of sequence " + getNameOfModule() + " can't be null for this usecase");
-        }
     }
-
-
 }

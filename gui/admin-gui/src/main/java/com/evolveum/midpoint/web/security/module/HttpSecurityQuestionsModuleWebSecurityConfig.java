@@ -6,12 +6,19 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationTrustResolverImpl;
-import com.evolveum.midpoint.web.security.RestAuthenticationEntryPoint;
-import com.evolveum.midpoint.web.security.SecurityQuestionsAuthenticationEntryPoint;
+import com.evolveum.midpoint.web.security.HttpAuthenticationEntryPoint;
+import com.evolveum.midpoint.web.security.HttpSecurityQuestionsAuthenticationEntryPoint;
+import com.evolveum.midpoint.web.security.MidpointHttpAuthorizationEvaluator;
 import com.evolveum.midpoint.web.security.filter.HttpSecurityQuestionsAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -24,6 +31,18 @@ import static org.springframework.security.saml.util.StringUtils.stripEndingSlas
 
 public class HttpSecurityQuestionsModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
 
+    @Autowired
+    private ModelService model;
+
+    @Autowired
+    private SecurityEnforcer securityEnforcer;
+
+    @Autowired
+    private SecurityContextManager securityContextManager;
+
+    @Autowired
+    private TaskManager taskManager;
+
     public HttpSecurityQuestionsModuleWebSecurityConfig(C configuration) {
         super(configuration);
     }
@@ -32,8 +51,10 @@ public class HttpSecurityQuestionsModuleWebSecurityConfig<C extends ModuleWebSec
     protected void configure(HttpSecurity http) throws Exception {
 
         super.configure(http);
-        RestAuthenticationEntryPoint entryPoint = getObjectPostProcessor().postProcess(new SecurityQuestionsAuthenticationEntryPoint());
+        HttpAuthenticationEntryPoint entryPoint = getObjectPostProcessor().postProcess(new HttpSecurityQuestionsAuthenticationEntryPoint());
         http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
+
+        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, model));
 
         HttpSecurityQuestionsAuthenticationFilter filter = getObjectPostProcessor().postProcess(new HttpSecurityQuestionsAuthenticationFilter(authenticationManager(), entryPoint));
         RememberMeServices rememberMeServices = http.getSharedObject(RememberMeServices.class);
@@ -43,7 +64,7 @@ public class HttpSecurityQuestionsModuleWebSecurityConfig<C extends ModuleWebSec
         http.addFilterAt(filter, BasicAuthenticationFilter.class);
         http.formLogin().disable()
                 .csrf().disable();
-        http.apply(new MidpointExceptionHandlingConfigurer())
+        getOrApply(http, new MidpointExceptionHandlingConfigurer())
                 .authenticationEntryPoint(entryPoint)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
                 //.and()

@@ -6,19 +6,16 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.web.security.MidpointAuthenticationTrustResolverImpl;
 import com.evolveum.midpoint.web.security.HttpAuthenticationEntryPoint;
-import com.evolveum.midpoint.web.security.MidpointHttpAuthorizationEvaluator;
-import com.evolveum.midpoint.web.security.filter.HttpBasicAuthenticationFilter;
+import com.evolveum.midpoint.web.security.MidpointAllowAllAuthorizationEvaluator;
+import com.evolveum.midpoint.web.security.MidpointAuthenticationTrustResolverImpl;
+import com.evolveum.midpoint.web.security.filter.HttpClusterAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -29,10 +26,7 @@ import static org.springframework.security.saml.util.StringUtils.stripEndingSlas
  * @author skublik
  */
 
-public class HttpBasicModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
-
-    @Autowired
-    private ModelService model;
+public class HttpClusterModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
 
     @Autowired
     private SecurityEnforcer securityEnforcer;
@@ -43,7 +37,7 @@ public class HttpBasicModuleWebSecurityConfig<C extends ModuleWebSecurityConfigu
     @Autowired
     private TaskManager taskManager;
 
-    public HttpBasicModuleWebSecurityConfig(C configuration) {
+    public HttpClusterModuleWebSecurityConfig(C configuration) {
         super(configuration);
     }
 
@@ -54,20 +48,18 @@ public class HttpBasicModuleWebSecurityConfig<C extends ModuleWebSecurityConfigu
         HttpAuthenticationEntryPoint entryPoint = getObjectPostProcessor().postProcess(new HttpAuthenticationEntryPoint());
         http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
 
-        HttpBasicAuthenticationFilter filter = getObjectPostProcessor().postProcess(new HttpBasicAuthenticationFilter(authenticationManager(), entryPoint));
+        HttpClusterAuthenticationFilter filter = getObjectPostProcessor().postProcess(new HttpClusterAuthenticationFilter(authenticationManager(), entryPoint));
         RememberMeServices rememberMeServices = http.getSharedObject(RememberMeServices.class);
         if (rememberMeServices != null) {
             filter.setRememberMeServices(rememberMeServices);
         }
-        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, model));
+        http.authorizeRequests().accessDecisionManager(new MidpointAllowAllAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager));
         http.addFilterAt(filter, BasicAuthenticationFilter.class);
         http.formLogin().disable()
                 .csrf().disable();
         getOrApply(http, new MidpointExceptionHandlingConfigurer())
                 .authenticationEntryPoint(entryPoint)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
-                //.and()
-                //.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
     }
 
 }

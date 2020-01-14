@@ -13,4 +13,6 @@ public class GuiConstants {
     public static final String NS_UI_PREFIX = SchemaConstants.NS_MIDPOINT_PUBLIC_PREFIX + "ui/";
     public static final String NS_UI_FEATURE = NS_UI_PREFIX + "feature";
 
+    public static final String DEFAULT_PATH_AFTER_LOGIN = "/self/dashboard";
+    public static final String DEFAULT_PATH_AFTER_LOGOUT = "/";
 }

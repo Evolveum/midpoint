@@ -22,6 +22,8 @@ public interface AuthenticationChannel {
 
     public String getPathAfterSuccessfulAuthentication();
 
+    public String getPathAfterUnsuccessfulAuthentication();
+
     public String getPathDuringProccessing();
 
     public boolean isDefault();

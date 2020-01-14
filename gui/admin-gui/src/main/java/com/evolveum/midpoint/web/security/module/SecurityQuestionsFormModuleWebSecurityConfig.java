@@ -39,20 +39,19 @@ public class SecurityQuestionsFormModuleWebSecurityConfig<C extends LoginFormMod
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
-        http.apply(new MidpointFormLoginConfigurer(new SecurityQuestionsAuthenticationFilter()))
+        getOrApply(http, new MidpointFormLoginConfigurer(new SecurityQuestionsAuthenticationFilter()))
                 .loginPage("/securityquestions")
-                .failureUrl("/")
                 .loginProcessingUrl(stripEndingSlases(getPrefix()) + "/spring_security_login")
                 .failureHandler(new MidpointAuthenticationFauileHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
                         new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix()))).permitAll();
-        http.apply(new MidpointExceptionHandlingConfigurer())
+        getOrApply(http, new MidpointExceptionHandlingConfigurer())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/securityquestions"));
 
         http.logout().clearAuthentication(true)
                 .logoutUrl(stripEndingSlases(getPrefix()) +"/logout")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
-                .logoutSuccessHandler(createLogoutHandler("/"));
+                .logoutSuccessHandler(createLogoutHandler());
     }
 }

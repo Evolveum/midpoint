@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.security;
 
+import com.evolveum.midpoint.gui.api.GuiConstants;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
@@ -45,13 +46,13 @@ public class MidpointAuthenticationFauileHandler extends SimpleUrlAuthentication
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        String urlSuffix = "/self/dashboard";
+        String urlSuffix = GuiConstants.DEFAULT_PATH_AFTER_LOGIN;
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (mpAuthentication.getAuthenticationChannel() != null) {
                 if (mpAuthentication.isLast(moduleAuthentication) && mpAuthentication.getAuthenticationChannel().isDefault()) {
-                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication();
+                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterUnsuccessfulAuthentication();
                 } else {
                     urlSuffix = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
                 }

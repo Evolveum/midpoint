@@ -13,7 +13,11 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 
+import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.security.api.RestAuthenticationMethod;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,6 +37,9 @@ import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 /**
  * @author Katka Valalikova
@@ -53,6 +60,9 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
     @Autowired private NodeAuthenticationEvaluator nodeAuthenticator;
     @Autowired private TaskManager taskManager;
 
+    @Autowired
+    private SystemObjectCache systemObjectCache;
+
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response) throws IOException {
         // nothing to do
@@ -61,6 +71,19 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 
     @Override
     public void filter(ContainerRequestContext requestCtx) throws IOException {
+
+        boolean isExperimentalEnabled = false;
+        try {
+            isExperimentalEnabled = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(
+                    systemObjectCache.getSystemConfiguration(new OperationResult("Load System Config")).asObjectable());
+        } catch (SchemaException e) {
+            LOGGER.error("Coulnd't load system configuration", e);
+        }
+        if (isExperimentalEnabled) {
+            //used flexible authentication
+            return;
+        }
+
         Message m = JAXRSUtils.getCurrentMessage();
 
         AuthorizationPolicy policy = (AuthorizationPolicy) m.get(AuthorizationPolicy.class);

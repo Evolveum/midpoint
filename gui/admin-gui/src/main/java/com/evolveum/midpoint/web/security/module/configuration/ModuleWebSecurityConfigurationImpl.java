@@ -69,9 +69,9 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
     }
 
     public String getPrefix() {
-        if (getPrefixOfSequence() == null || StringUtils.isBlank(stripSlashes(getPrefixOfSequence()))) {
-            return DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + DEFAULT_PREFIX_FOR_DEFAULT_MODULE + stripSlashes(getNameOfModule()) + "/";
-        }
+//        if (getPrefixOfSequence() == null || StringUtils.isBlank(stripSlashes(getPrefixOfSequence()))) {
+//            return DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + DEFAULT_PREFIX_FOR_DEFAULT_MODULE + stripSlashes(getNameOfModule()) + "/";
+//        }
         return DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/" + stripSlashes(getPrefixOfSequence()) + "/" + stripSlashes(getNameOfModule() + "/");
     }
 
@@ -92,6 +92,10 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
     protected void validate(){
         if (StringUtils.isBlank(stripSlashes(getNameOfModule()))) {
             throw new IllegalArgumentException("NameOfModule is blank");
+        }
+
+        if (StringUtils.isBlank(getPrefixOfSequence()) || StringUtils.isBlank(stripSlashes(getPrefixOfSequence()))) {
+            throw new IllegalArgumentException("Suffix in channel of sequence " + getNameOfModule() + " can't be null for this usecase");
         }
     }
 

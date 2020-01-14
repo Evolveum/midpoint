@@ -27,16 +27,4 @@ public class LoginFormModuleWebSecurityConfiguration extends ModuleWebSecurityCo
         configuration.validate();
         return (T) configuration;
     }
-
-    protected void validate(){
-        if (StringUtils.isBlank(stripSlashes(getNameOfModule()))) {
-            throw new IllegalArgumentException("NameOfModule is blank");
-        }
-
-        if (StringUtils.isBlank(stripSlashes(getPrefixOfSequence()))) {
-            throw new IllegalArgumentException("Suffix in channel of sequence " + getNameOfModule() + " can't be null for this usecase");
-        }
-    }
-
-
 }

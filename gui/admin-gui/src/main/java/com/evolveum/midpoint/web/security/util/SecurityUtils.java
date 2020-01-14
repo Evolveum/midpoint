@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.security.util;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -19,6 +20,8 @@ import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.security.factory.channel.AbstractChannelFactory;
 import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
+import com.evolveum.midpoint.web.security.factory.module.HttpClusterModuleFactory;
+import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.web.security.factory.module.AbstractModuleFactory;
@@ -28,6 +31,7 @@ import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
@@ -42,6 +46,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.context.ContextLoader;
+import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
@@ -57,6 +63,7 @@ import static org.springframework.security.saml.util.StringUtils.stripStartingSl
 public class SecurityUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SecurityUtils.class);
+    private static final String PROXY_USER_OID_HEADER = "Switch-To-Principal";
 
     public static MidPointUserProfilePrincipal getPrincipalUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -67,7 +74,7 @@ public class SecurityUtils {
     private static final Map<String, String> MY_MAP;
     static {
         Map<String, String> map = new HashMap<String, String>();
-        map.put("rest", SchemaConstants.CHANNEL_REST_URI);
+        map.put("ws/rest", SchemaConstants.CHANNEL_REST_URI);
         map.put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI);
         map.put("resetPassword", SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
         MY_MAP = Collections.unmodifiableMap(map);
@@ -161,29 +168,35 @@ public class SecurityUtils {
         return (CsrfToken) httpReq.getAttribute("_csrf");
     }
 
-    public static AuthenticationSequenceType getSequenceByPath(String localePath, AuthenticationsPolicyType authenticationPolicy){
+    public static AuthenticationSequenceType getSequenceByPath(HttpServletRequest httpRequest, AuthenticationsPolicyType authenticationPolicy){
+        String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         if (authenticationPolicy == null || authenticationPolicy.getSequence() == null
                 || authenticationPolicy.getSequence().isEmpty()) {
             return null;
         }
         String[] partsOfLocalPath = stripStartingSlashes(localePath).split("/");
 
-        if (partsOfLocalPath.length < 2) {
-            String usedChannel;
-            if (partsOfLocalPath.length == 1 && MY_MAP.containsKey(partsOfLocalPath[0])) {
-                usedChannel = MY_MAP.get(partsOfLocalPath[0]);
-            } else {
-                usedChannel = SecurityPolicyUtil.DEFAULT_CHANNEL;
-            }
-
-            AuthenticationSequenceType sequence = searchSequence(usedChannel, true, authenticationPolicy);
-            return sequence;
+        AuthenticationSequenceType specificSequence =  getSpecificSequence(httpRequest);
+        if (specificSequence != null) {
+            return specificSequence;
         }
-        if (partsOfLocalPath[0].equals(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE)) {
-            if (partsOfLocalPath[1].equals("default")) {
-                AuthenticationSequenceType sequence = searchSequence(SecurityPolicyUtil.DEFAULT_CHANNEL, true, authenticationPolicy);
-                return  sequence;
-            }
+
+//        if (partsOfLocalPath.length < 2) {
+//            String usedChannel;
+//            if (partsOfLocalPath.length == 1 && MY_MAP.containsKey(partsOfLocalPath[0])) {
+//                usedChannel = MY_MAP.get(partsOfLocalPath[0]);
+//            } else {
+//                usedChannel = SecurityPolicyUtil.DEFAULT_CHANNEL;
+//            }
+//
+//            AuthenticationSequenceType sequence = searchSequence(usedChannel, true, authenticationPolicy);
+//            return sequence;
+//        }
+        if (partsOfLocalPath.length >= 2 && partsOfLocalPath[0].equals(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE)) {
+//            if (partsOfLocalPath[1].equals("default")) {
+//                AuthenticationSequenceType sequence = searchSequence(SecurityPolicyUtil.DEFAULT_CHANNEL, true, authenticationPolicy);
+//                return  sequence;
+//            }
             AuthenticationSequenceType sequence = searchSequence(partsOfLocalPath[1], false, authenticationPolicy);
             if (sequence == null) {
                 LOGGER.debug("Couldn't find sequence by preffix {}, so try default channel", partsOfLocalPath[1]);
@@ -191,16 +204,41 @@ public class SecurityUtils {
             }
             return sequence;
         }
-        String usedChannel;
-        if (MY_MAP.containsKey(partsOfLocalPath[0])) {
-            usedChannel = MY_MAP.get(partsOfLocalPath[0]);
-        } else {
+        String usedChannel = findChannelByPath(localePath);
+
+        if (usedChannel == null) {
             usedChannel = SecurityPolicyUtil.DEFAULT_CHANNEL;
         }
 
         AuthenticationSequenceType sequence = searchSequence(usedChannel, true, authenticationPolicy);
         return sequence;
 
+    }
+
+    private static String findChannelByPath(String localePath) {
+        for (String prefix : MY_MAP.keySet()) {
+            if (stripStartingSlashes(localePath).startsWith(prefix)) {
+                return MY_MAP.get(prefix);
+            }
+        }
+        return null;
+    }
+
+    private static AuthenticationSequenceType getSpecificSequence(HttpServletRequest httpRequest) {
+        String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
+        String channel = findChannelByPath(localePath);
+        if (MY_MAP.get("ws/rest").equals(channel)) {
+            String header = httpRequest.getHeader("Authorization");
+            String type = header.split(" ")[0];
+            if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
+                AuthenticationSequenceType sequence = new AuthenticationSequenceType();
+                sequence.setName(NameOfModuleType.CLUSTER.getName());
+                AuthenticationSequenceChannelType seqChannel = new AuthenticationSequenceChannelType();
+                seqChannel.setUrlSuffix(NameOfModuleType.CLUSTER.getName().toLowerCase());
+                return sequence;
+            }
+        }
+        return null;
     }
 
     private static AuthenticationSequenceType searchSequence(String comparisonAttribute, boolean useOnlyChannel, AuthenticationsPolicyType authenticationPolicy) {
@@ -245,13 +283,19 @@ public class SecurityUtils {
     }
 
     public static List<AuthModule> buildModuleFilters(AuthModuleRegistryImpl authRegistry, AuthenticationSequenceType sequence,
-                                                          ServletRequest request, AuthenticationModulesType authenticationModulesType,
+                                                      HttpServletRequest request, AuthenticationModulesType authenticationModulesType,
                                                           CredentialsPolicyType credentialPolicy, Map<Class<? extends Object>, Object> sharedObjects) {
         Validate.notNull(authRegistry);
         Validate.notEmpty(sequence.getModule());
+
+        List<AuthModule> specificModules = getSpecificModuleFilter(sequence.getChannel().getUrlSuffix(), request,
+                sharedObjects, authenticationModulesType, credentialPolicy);
+        if (specificModules != null) {
+            return specificModules;
+        }
+
         List<AuthenticationSequenceModuleType> sequenceModules = SecurityPolicyUtil.getSortedModules(sequence);
         List<AuthModule> authModules = new ArrayList<AuthModule>();
-
         sequenceModules.forEach(sequenceModule -> {
             try {
                 AbstractAuthenticationModuleType module = getModuleByName(sequenceModule.getName(), authenticationModulesType);
@@ -267,6 +311,32 @@ public class SecurityUtils {
             return null;
         }
         return authModules;
+    }
+
+    private static List<AuthModule> getSpecificModuleFilter(String urlSuffix, HttpServletRequest httpRequest, Map<Class<?>, Object> sharedObjects,
+                                                            AuthenticationModulesType authenticationModulesType, CredentialsPolicyType credentialPolicy) {
+        String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
+        String channel = findChannelByPath(localePath);
+        if (MY_MAP.get("ws/rest").equals(channel)) {
+            String header = httpRequest.getHeader("Authorization");
+            String type = header.split(" ")[0];
+            if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
+                List<AuthModule> authModules = new ArrayList<AuthModule>();
+                WebApplicationContext context = ContextLoader.getCurrentWebApplicationContext();
+                HttpClusterModuleFactory factory = context.getBean(HttpClusterModuleFactory.class);
+                AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType(){};
+                module.setName(NameOfModuleType.CLUSTER.getName().toLowerCase() + "-module");
+                try {
+                    authModules.add(factory.createModuleFilter(module, urlSuffix, httpRequest,
+                            sharedObjects, authenticationModulesType, credentialPolicy));
+                } catch (Exception e) {
+                    LOGGER.error("Couldn't create module for cluster authentication");
+                    return null;
+                }
+                return authModules;
+            }
+        }
+        return null;
     }
 
     private static AbstractAuthenticationModuleType getModuleByName(String name, AuthenticationModulesType authenticationModulesType){
@@ -391,5 +461,18 @@ public class SecurityUtils {
             questionAnswers.put(questionId, questionAnswer);
         }
         return questionAnswers;
+    }
+
+    public static void resolveProxyUserOidHeader(HttpServletRequest request) {
+        String proxyUserOid = request.getHeader(PROXY_USER_OID_HEADER);
+
+        Authentication actualAuth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (proxyUserOid != null && actualAuth instanceof MidpointAuthentication) {
+            ModuleAuthentication moduleAuth = ((MidpointAuthentication) actualAuth).getProcessingModuleAuthentication();
+            if (moduleAuth != null && moduleAuth instanceof HttpModuleAuthentication) {
+                ((HttpModuleAuthentication) moduleAuth).setProxyUserOid(proxyUserOid);
+            }
+        }
     }
 }

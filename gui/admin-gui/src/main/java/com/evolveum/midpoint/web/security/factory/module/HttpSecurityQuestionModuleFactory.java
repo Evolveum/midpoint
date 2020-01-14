@@ -13,6 +13,7 @@ import com.evolveum.midpoint.web.security.module.HttpBasicModuleWebSecurityConfi
 import com.evolveum.midpoint.web.security.module.HttpSecurityQuestionsModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.authentication.CredentialModuleAuthentication;
+import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.web.security.provider.PasswordProvider;
 import com.evolveum.midpoint.web.security.provider.SecurityQuestionProvider;
@@ -58,7 +59,7 @@ public class HttpSecurityQuestionModuleFactory extends AbstractCredentialModuleF
 
     @Override
     protected ModuleAuthentication createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, ModuleWebSecurityConfiguration configuration) {
-        CredentialModuleAuthentication moduleAuthentication = new CredentialModuleAuthentication(NameOfModuleType.SECURITY_QUESTIONS);
+        HttpModuleAuthentication moduleAuthentication = new HttpModuleAuthentication(NameOfModuleType.SECURITY_QUESTIONS);
         moduleAuthentication.setPrefix(configuration.getPrefix());
         moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());

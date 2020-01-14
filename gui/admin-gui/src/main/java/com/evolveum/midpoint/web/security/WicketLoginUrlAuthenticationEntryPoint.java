@@ -36,8 +36,6 @@ public class WicketLoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticati
             return;
         }
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         String url = buildRedirectUrlToLoginPage(request, response, authException);
 
         WicketRedirectStrategy strategy = new WicketRedirectStrategy();

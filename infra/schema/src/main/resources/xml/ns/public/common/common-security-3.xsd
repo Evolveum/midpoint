@@ -386,13 +386,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="signMetadata" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        When true generated metadata will be signed using XML Signature using certificate with alias of signing key.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+<!--            <xsd:element name="signMetadata" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">-->
+<!--                <xsd:annotation>-->
+<!--                    <xsd:documentation>-->
+<!--                        When true generated metadata will be signed using XML Signature using certificate with alias of signing key.-->
+<!--                    </xsd:documentation>-->
+<!--                </xsd:annotation>-->
+<!--            </xsd:element>-->
             <xsd:element name="signRequests" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -746,14 +746,14 @@
                 <xsd:element name="xml" type="xsd:base64Binary">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Metadata encrypted by base64.
+                            Xml of metadata encrypted by base64.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="pathToFile" type="xsd:string">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Path to file, which contains metadata.
+                            Path to xml file, which contains metadata.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -983,10 +983,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="urlSuffix" type="xsd:string" minOccurs="0">
+            <xsd:element name="urlSuffix" type="xsd:string" minOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        URL suffix that can be used to select this authentication sequence specifically.
+                        URL suffix that can be used to select this authentication sequence specifically. URL suffix can't contains slash '/'.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

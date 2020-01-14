@@ -66,21 +66,20 @@ public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecuri
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
-        http.apply(new MidpointFormLoginConfigurer(new MidpointUsernamePasswordAuthenticationFilter()))
+        getOrApply(http, new MidpointFormLoginConfigurer(new MidpointUsernamePasswordAuthenticationFilter()))
                 .loginPage("/login")
-                .failureUrl("/")
                 .loginProcessingUrl(stripEndingSlases(getPrefix()) + "/spring_security_login")
                 .failureHandler(new MidpointAuthenticationFauileHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
                         new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix()))).permitAll();
-        http.apply(new MidpointExceptionHandlingConfigurer())
+        getOrApply(http, new MidpointExceptionHandlingConfigurer())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/login"));
 
         http.logout().clearAuthentication(true)
                 .logoutUrl(stripEndingSlases(getPrefix()) +"/logout")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
-                .logoutSuccessHandler(createLogoutHandler("/"));
+                .logoutSuccessHandler(createLogoutHandler());
 
         if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("cas"))) {
             http.addFilterAt(casFilter, CasAuthenticationFilter.class);

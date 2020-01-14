@@ -9,17 +9,12 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
-import com.evolveum.midpoint.model.api.context.SecurityQuestionsAuthenticationContext;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.security.api.RestAuthenticationMethod;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -30,31 +25,20 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.filter.HttpSecurityQuestionsAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.MidpointAuthFilter;
 import com.evolveum.midpoint.web.security.filter.SecurityQuestionsAuthenticationFilter;
-import com.evolveum.midpoint.web.security.util.SecurityQuestionDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.MissingNode;
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
 
@@ -62,7 +46,7 @@ import java.util.*;
  * @author skublik
  */
 
-public class SecurityQuestionsAuthenticationEntryPoint extends RestAuthenticationEntryPoint{
+public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthenticationEntryPoint {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(MidpointAuthFilter.class);
 

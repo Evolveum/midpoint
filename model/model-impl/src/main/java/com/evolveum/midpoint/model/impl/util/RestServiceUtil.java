@@ -16,6 +16,9 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import com.evolveum.midpoint.model.impl.ModelRestService;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -43,6 +46,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author mederly (only copied existing code)
@@ -168,6 +173,13 @@ public class RestServiceUtil {
     public static Task initRequest(MessageContext mc) {
         // No need to audit login. it was already audited during authentication
         return (Task) mc.get(MESSAGE_PROPERTY_TASK_NAME);
+    }
+
+    public static Task initRequest(TaskManager taskManager) {
+        // No need to audit login. it was already audited during authentication
+        Task task = taskManager.createTaskInstance(ModelRestService.OPERATION_REST_SERVICE);
+        task.setChannel(SchemaConstants.CHANNEL_REST_URI);
+        return task;
     }
 
     public static void finishRequest(Task task, SecurityHelper securityHelper) {

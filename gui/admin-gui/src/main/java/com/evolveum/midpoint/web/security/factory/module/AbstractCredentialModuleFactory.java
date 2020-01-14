@@ -71,17 +71,19 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
             credentialPolicies.addAll(credentialsPolicy.getNonce());
 
             for (CredentialPolicyType processedPolicy : credentialPolicies) {
-                if (StringUtils.isNotBlank(credentialName)) {
-                    if (credentialName.equals(processedPolicy.getName())) {
+                if (processedPolicy != null) {
+                    if (StringUtils.isNotBlank(credentialName)) {
+                        if (credentialName.equals(processedPolicy.getName())) {
+                            usedPolicy = processedPolicy;
+                        }
+                    } else if (processedPolicy.getClass().isAssignableFrom(supportedClass())) {
                         usedPolicy = processedPolicy;
                     }
-                } else if (processedPolicy.getClass().isAssignableFrom(supportedClass())) {
-                    usedPolicy = processedPolicy;
                 }
             }
-//        if (usedPolicy == null && PasswordCredentialsPolicyType.class.equals(supportedClass())) {
-//            return getObjectObjectPostProcessor().postProcess(createProvider(null));
-//        }
+        if (usedPolicy == null && PasswordCredentialsPolicyType.class.equals(supportedClass())) {
+            return getObjectObjectPostProcessor().postProcess(createProvider(null));
+        }
         if (usedPolicy == null) {
             String message = StringUtils.isBlank(credentialName) ? ("Couldn't find credentialfor module " + moduleType) : ("Couldn't find credential with name " + credentialName);
             IllegalArgumentException e = new IllegalArgumentException(message);
