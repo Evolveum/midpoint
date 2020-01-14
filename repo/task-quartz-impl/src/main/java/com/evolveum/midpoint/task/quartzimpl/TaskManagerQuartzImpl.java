@@ -310,7 +310,23 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @Override
     @EventListener(ApplicationReadyEvent.class)
     public void onSystemStarted() {
-        OperationResult result = new OperationResult(DOT_IMPL_CLASS + "onSystemStarted");
+        int delay = configuration.getNodeStartupDelay();
+        if (delay > 0) {
+            new Thread(() -> {
+                try {
+                    Thread.sleep(delay * 1000L);
+                    switchFromStartingToUpState();
+                } catch (InterruptedException e) {
+                    LOGGER.warn("Got InterruptedException while waiting to switch to UP state; skipping the switch.");
+                }
+            }, "Delayed Starting to Up state transition").start();
+        } else {
+            switchFromStartingToUpState();
+        }
+    }
+
+    private void switchFromStartingToUpState() {
+        OperationResult result = new OperationResult(DOT_IMPL_CLASS + "switchFromStartingToUpState");
 
         clusterManager.registerNodeUp(result);
         cacheDispatcher.dispatchInvalidation(null, null, false, null);
