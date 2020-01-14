@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,8 +104,17 @@ public class ClusterManager {
         return nodeRegistrar.verifyNodeObject(result);
     }
 
+    public boolean isUpAndAlive(NodeType nodeType) {
+        return nodeRegistrar.isUpAndAlive(nodeType);
+    }
+
     public boolean isCheckingIn(NodeType nodeType) {
         return nodeRegistrar.isCheckingIn(nodeType);
+    }
+
+    public void registerNodeUp(OperationResult result) {
+        LOGGER.info("Registering the node as started");
+        nodeRegistrar.registerNodeUp(result);
     }
 
     class ClusterManagerThread extends Thread {
@@ -129,7 +139,7 @@ public class ClusterManager {
                     // these checks are separate in order to prevent a failure in one method blocking execution of others
                     try {
                         NodeType node = checkClusterConfiguration(result);                              // if error, the scheduler will be stopped
-                        if (updateNodeExecutionLimitations) {
+                        if (updateNodeExecutionLimitations && node != null) {
                             taskManager.getExecutionManager().setLocalExecutionLimitations(node);    // we want to set limitations ONLY if the cluster configuration passes (i.e. node object is not inadvertently overwritten)
                         }
                         nodeRegistrar.updateNodeObject(result);    // however, we want to update repo even in that case
@@ -185,15 +195,21 @@ public class ClusterManager {
                 .searchObjects(NodeType.class, null, null, result);
         for (PrismObject<NodeType> nodeObject : nodes) {
             NodeType node = nodeObject.asObjectable();
-            if (isRemoteNode(node) && shouldBeMarkedAsDown(node)) {
-                LOGGER.warn("Node {} is down, marking it as such", node);
-                List<ItemDelta<?, ?>> modifications = taskManager.getPrismContext().deltaFor(NodeType.class)
-                        .item(NodeType.F_RUNNING).replace(false)
-                        .asItemDeltas();
-                try {
-                    getRepositoryService().modifyObject(NodeType.class, node.getOid(), modifications, result);
-                } catch (ObjectNotFoundException | ObjectAlreadyExistsException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't mark node {} as down", e, node);
+            if (isRemoteNode(node)) {
+                if (shouldBeMarkedAsDown(node)) {
+                    LOGGER.warn("Node {} is down, marking it as such", node);
+                    List<ItemDelta<?, ?>> modifications = taskManager.getPrismContext().deltaFor(NodeType.class)
+                            .item(NodeType.F_RUNNING).replace(false)
+                            .item(NodeType.F_OPERATIONAL_STATUS).replace(NodeOperationalStatusType.DOWN)
+                            .asItemDeltas();
+                    try {
+                        getRepositoryService().modifyObject(NodeType.class, node.getOid(), modifications, result);
+                    } catch (ObjectNotFoundException | ObjectAlreadyExistsException e) {
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't mark node {} as down", e, node);
+                    }
+                } else if (startingForTooLong(node)) {
+                    LOGGER.warn("Node {} is starting for too long. Last check-in time = {}", node, node.getLastCheckInTime());
+                    // TODO should we mark this node as down?
                 }
             }
         }
@@ -204,9 +220,15 @@ public class ClusterManager {
     }
 
     private boolean shouldBeMarkedAsDown(NodeType node) {
-        return !Boolean.FALSE.equals(node.isRunning()) && (node.getLastCheckInTime() == null ||
+        return node.getOperationalStatus() == NodeOperationalStatusType.UP && (node.getLastCheckInTime() == null ||
                 System.currentTimeMillis() - node.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
                         > taskManager.getConfiguration().getNodeAlivenessTimeout() * 1000L);
+    }
+
+    private boolean startingForTooLong(NodeType node) {
+        return node.getOperationalStatus() == NodeOperationalStatusType.STARTING && (node.getLastCheckInTime() == null ||
+                System.currentTimeMillis() - node.getLastCheckInTime().toGregorianCalendar().getTimeInMillis()
+                        > taskManager.getConfiguration().getNodeStartupTimeout() * 1000L);
     }
 
     public void stopClusterManagerThread(long waitTime, OperationResult parentResult) {
