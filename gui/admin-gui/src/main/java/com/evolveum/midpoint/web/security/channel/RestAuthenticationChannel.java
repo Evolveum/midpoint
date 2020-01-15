@@ -42,20 +42,29 @@ public class RestAuthenticationChannel extends AuthenticationChannelImpl {
         for (GrantedAuthority authority : authorities) {
             List<String> authoritiesString = new ArrayList<String>();
             if (authority instanceof Authorization) {
-                authoritiesString = ((Authorization)authority).getAction();
-            } else {
-                authoritiesString.add(authority.getAuthority());
-            }
-            if (authoritiesString != null) {
+                Authorization clone = ((Authorization) authority).clone();
+                authoritiesString = clone.getAction();
+                List<String> newAction = new ArrayList<String>();
                 for (String authorityString : authoritiesString) {
-                    if (authorityString.startsWith(AuthorizationConstants.NS_AUTHORIZATION_REST)) {
-                        newAuthorities.add(authority);
+                    if (authorityString.startsWith(AuthorizationConstants.NS_AUTHORIZATION_REST)
+                    || authorityString.equals(AuthorizationConstants.AUTZ_ALL_URL)) {
+                        newAction.add(authorityString);
                     }
                 }
-                if (authoritiesString.contains(AuthorizationConstants.AUTZ_ALL_URL)) {
+                if (!newAction.isEmpty()) {
+                    clone.getAction().clear();
+                    clone.getAction().addAll(newAction);
+                    newAuthorities.add(clone);
+                }
+            } else {
+                if (authority.getAuthority().startsWith(AuthorizationConstants.NS_AUTHORIZATION_REST)) {
+                    newAuthorities.add(authority);
+                }
+                if (authority.getAuthority().equals(AuthorizationConstants.AUTZ_ALL_URL)) {
                     newAuthorities.add(authority);
                 }
             }
+
         }
         return newAuthorities;
     }

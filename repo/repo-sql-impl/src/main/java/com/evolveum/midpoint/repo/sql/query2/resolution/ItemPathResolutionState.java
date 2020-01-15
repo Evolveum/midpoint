@@ -39,7 +39,7 @@ public class ItemPathResolutionState implements DebugDumpable {
 
     final private ItemPathResolver itemPathResolver;                // provides auxiliary functionality
 
-    public ItemPathResolutionState(ItemPath pathToResolve, HqlDataInstance hqlDataInstance, ItemPathResolver itemPathResolver) {
+    ItemPathResolutionState(ItemPath pathToResolve, HqlDataInstance hqlDataInstance, ItemPathResolver itemPathResolver) {
         Validate.notNull(pathToResolve, "pathToResolve");
         Validate.notNull(hqlDataInstance, "hqlDataInstance");
         Validate.notNull(itemPathResolver, "itemPathResolver");
@@ -49,20 +49,8 @@ public class ItemPathResolutionState implements DebugDumpable {
         this.itemPathResolver = itemPathResolver;
     }
 
-    public ItemPath getRemainingItemPath() {
-        return remainingItemPath;
-    }
-
-    public HqlDataInstance getHqlDataInstance() {
+    HqlDataInstance getHqlDataInstance() {
         return hqlDataInstance;
-    }
-
-    public JpaLinkDefinition getLastTransition() {
-        return lastTransition;
-    }
-
-    public ItemPathResolver getItemPathResolver() {
-        return itemPathResolver;
     }
 
     public boolean isFinal() {
@@ -76,10 +64,10 @@ public class ItemPathResolutionState implements DebugDumpable {
      * Precondition: adequate transition exists
      *
      * @param itemDefinition Target item definition (used/required only for "any" properties)
-     * @param singletonOnly Collections are forbidden
+     * @param reuseMultivaluedJoins Creation of new joins for multivalued properties is forbidden. This is needed e.g. for order-by clauses.
      * @return destination state - always not null
      */
-    public ItemPathResolutionState nextState(ItemDefinition itemDefinition, boolean singletonOnly, PrismContext prismContext) throws QueryException {
+    public ItemPathResolutionState nextState(ItemDefinition itemDefinition, boolean reuseMultivaluedJoins, PrismContext prismContext) throws QueryException {
 
         // special case - ".." when having previous state means returning to that state
         // used e.g. for Exists (some-path, some-conditions AND Equals(../xxx, yyy))
@@ -98,17 +86,16 @@ public class ItemPathResolutionState implements DebugDumpable {
             throw new IllegalStateException("Couldn't find '" + remainingItemPath + "' in " + hqlDataInstance.getJpaDefinition() +", looks like item can't be used in search.");
         }
         JpaLinkDefinition linkDefinition = result.getLinkDefinition();
-        String newHqlPath = hqlDataInstance.getHqlPath();
+        String newHqlPath;
         if (linkDefinition.hasJpaRepresentation()) {
-            if (singletonOnly && linkDefinition.isMultivalued()) {
-                throw new QueryException("Collections are not allowable for right-side paths nor for dereferencing");     // TODO better message + context
-            }
             if (!linkDefinition.isEmbedded() || linkDefinition.isMultivalued()) {
-                LOGGER.trace("Adding join for '{}' to context", linkDefinition);
-                newHqlPath = itemPathResolver.addJoin(linkDefinition, hqlDataInstance.getHqlPath());
+                LOGGER.trace("Reusing or adding join for '{}' to context", linkDefinition);
+                newHqlPath = itemPathResolver.reuseOrAddJoin(linkDefinition, hqlDataInstance.getHqlPath(), reuseMultivaluedJoins);
             } else {
-                newHqlPath += "." + linkDefinition.getJpaName();
+                newHqlPath = hqlDataInstance.getHqlPath() + "." + linkDefinition.getJpaName();
             }
+        } else {
+            newHqlPath = hqlDataInstance.getHqlPath();
         }
         HqlDataInstance<?> parentDataInstance;
         if (!remainingItemPath.startsWithParent()) {
@@ -128,7 +115,7 @@ public class ItemPathResolutionState implements DebugDumpable {
         return debugDump(0);
     }
 
-    public String debugDumpNoParent() {
+    String debugDumpNoParent() {
         return debugDump(0, false);
     }
 
