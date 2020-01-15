@@ -7,6 +7,7 @@ package com.evolveum.midpoint.testing.conntest;
  */
 
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.LDAP_CONNECTOR_TYPE;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
@@ -319,6 +320,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     protected QName getAssociationGroupName() {
         return new QName(MidPointConstants.NS_RI, "group");
     }
+
+    protected String getLdapConnectorClassName() { return LDAP_CONNECTOR_TYPE; }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -1032,8 +1035,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertEquals("unexpected number of stats", 1, stats.size());
-        ConnectorOperationalStatus stat = stats.get(0);
+        ConnectorOperationalStatus stat = findLdapConnectorStat(stats);
+        assertNotNull("No stat for LDAP connector", stat);
 
         assertEquals("Unexpected number of LDAP connector instances", expectedConnectorInstances,
                 stat.getPoolStatusNumIdle() + stat.getPoolStatusNumActive());
@@ -1048,6 +1051,14 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         }
     }
 
+    private ConnectorOperationalStatus findLdapConnectorStat(List<ConnectorOperationalStatus> stats) {
+        for (ConnectorOperationalStatus stat: stats) {
+            if (stat.getConnectorClassName().equals(getLdapConnectorClassName())) {
+                return stat;
+            }
+        }
+        return null;
+    }
 
     protected int getNumberOfFdsPerLdapConnectorInstance() {
         return 7;
