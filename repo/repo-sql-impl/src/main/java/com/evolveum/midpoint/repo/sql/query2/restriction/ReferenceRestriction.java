@@ -68,10 +68,9 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         Set<QName> relations = new HashSet<>();
         Set<QName> targetTypes = new HashSet<>();
         for (PrismReferenceValue value : values) {
-            if (value.getOid() == null) {
-                throw new QueryException("Null OID is not allowed in the reference query. Use empty reference list if needed.");
+            if (value.getOid() != null) {
+                oids.add(value.getOid());
             }
-            oids.add(value.getOid());
             if (value.getRelation() == null) {
                 relations.add(context.getPrismContext().getDefaultRelation());
             } else {
@@ -121,7 +120,9 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         }
 
         AndCondition conjunction = hibernateQuery.createAnd();
-        conjunction.add(hibernateQuery.createEqOrInOrNull(hqlDataInstance.getHqlPath() + "." + TARGET_OID_HQL_PROPERTY, oids));
+        if (CollectionUtils.isNotEmpty(oids)) {
+            conjunction.add(hibernateQuery.createEqOrInOrNull(hqlDataInstance.getHqlPath() + "." + TARGET_OID_HQL_PROPERTY, oids));
+        }
 
         List<String> relationsToTest = getRelationsToTest(relation, getContext());
         if (!relationsToTest.isEmpty()) {
