@@ -83,7 +83,7 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
         return getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .block()
                 .item(AssignmentType.F_TARGET_REF)
-                .ref(SchemaConstants.ORG_CONSENT)
+                .refRelation(SchemaConstants.ORG_CONSENT)
                 .endBlock()
                 .build();
     }

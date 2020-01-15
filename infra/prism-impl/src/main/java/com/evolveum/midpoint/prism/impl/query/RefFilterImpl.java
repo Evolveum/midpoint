@@ -24,10 +24,9 @@ import java.util.Objects;
 public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismReferenceDefinition> implements RefFilter {
     private static final long serialVersionUID = 1L;
 
-    // these are currently supported only by built-in match(..) method; e.g. the repo query interpreter simply ignores them
-    private boolean oidNullAsAny = false;
-    private boolean targetTypeNullAsAny = true;         // "true" to be consistent with the repo implementation
-    private boolean relationNullAsAny = false;          // currently not supported at all
+    private boolean oidNullAsAny = true;                // "false" is not supported by repo
+    private boolean targetTypeNullAsAny = true;         // "true" to be consistent with the repo implementation; "false" is ignored by repo
+    private boolean relationNullAsAny = false;          // currently ignored
 
     public RefFilterImpl(@NotNull ItemPath fullPath, @Nullable PrismReferenceDefinition definition,
             @Nullable List<PrismReferenceValue> values, @Nullable ExpressionWrapper expression) {
@@ -141,4 +140,18 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
         this.relationNullAsAny = relationNullAsAny;
     }
 
+    @Override
+    public boolean isOidNullAsAny() {
+        return oidNullAsAny;
+    }
+
+    @Override
+    public boolean isTargetTypeNullAsAny() {
+        return targetTypeNullAsAny;
+    }
+
+    @Override
+    public boolean isRelationNullAsAny() {
+        return relationNullAsAny;
+    }
 }

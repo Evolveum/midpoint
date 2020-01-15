@@ -40,6 +40,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+
 /**
  * @author semancik
  *
@@ -818,5 +821,9 @@ public class MiscUtil {
                 return null;
             }
         }
+    }
+
+    public static Set<String> singletonOrEmptySet(String value) {
+        return value != null ? singleton(value) : emptySet();
     }
 }

@@ -1133,6 +1133,87 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test0146QueryUserAccountRefByType() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(UserType.F_LINK_REF).refType(ShadowType.COMPLEX_TYPE)
+                    .build();
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "    left join u.linkRef l\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    l.relation in (:relation) and\n"
+                    + "    l.type = :type\n"
+                    + "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test0147QueryUserAccountRefByRelation() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(UserType.F_LINK_REF).refRelation(prismContext.getDefaultRelation())
+                    .build();
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "    left join u.linkRef l\n"
+                    + "where\n"
+                    + "  l.relation in (:relation)\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test0148QueryUserAccountRefComplex() throws Exception {
+        Session session = open();
+        try {
+            PrismReferenceValue value1 = prismContext.itemFactory().createReferenceValue(null, ShadowType.COMPLEX_TYPE);
+            PrismReferenceValue value2 = prismContext.itemFactory().createReferenceValue("abcdef", ShadowType.COMPLEX_TYPE);
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(UserType.F_LINK_REF).ref(value1, value2)
+                    .build();
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "    left join u.linkRef l\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    (\n"
+                    + "      l.relation in (:relation) and\n"
+                    + "      l.type = :type\n"
+                    + "    ) or\n"
+                    + "    (\n"
+                    + "      l.targetOid = :targetOid and\n"
+                    + "      l.relation in (:relation2) and\n"
+                    + "      l.type = :type2\n"
+                    + "    )\n"
+                    + "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
     public void test0150QueryUserAssignmentTargetRef() throws Exception {
         Session session = open();
         try {
