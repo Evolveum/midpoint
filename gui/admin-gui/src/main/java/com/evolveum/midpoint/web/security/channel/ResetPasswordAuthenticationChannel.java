@@ -19,6 +19,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author skublik
@@ -46,16 +47,42 @@ public class ResetPasswordAuthenticationChannel extends AuthenticationChannelImp
     public Collection<? extends GrantedAuthority> resolveAuthorities(Collection<? extends GrantedAuthority> authorities) {
         ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
         for (GrantedAuthority authority : authorities) {
-            if (AuthorizationConstants.AUTZ_ALL_URL.equals(authority.getAuthority())) {
-                newAuthorities.add(new SimpleGrantedAuthority(PageResetPassword.AUTH_SELF_ALL_URI));
-                newAuthorities.add(new SimpleGrantedAuthority(AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL));
+            List<String> authoritiesString = new ArrayList<String>();
+            if (authority instanceof Authorization) {
+                Authorization clone = ((Authorization) authority).clone();
+                authoritiesString = clone.getAction();
+                List<String> newAction = new ArrayList<String>();
+                for (String authorityString : authoritiesString) {
+                    if (AuthorizationConstants.AUTZ_ALL_URL.equals(authorityString)) {
+                        authoritiesString.remove(authorityString);
+                        newAction.add(PageResetPassword.AUTH_SELF_ALL_URI);
+                        newAction.add(AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL);
+                    }
+                    if (authority.getAuthority().startsWith(AuthorizationConstants.NS_AUTHORIZATION_REST)) {
+                        newAction.add(AuthorizationConstants.NS_AUTHORIZATION_REST);
+                    }
+                    if (authority.getAuthority().equals(AuthorizationConstants.AUTZ_ALL_URL)) {
+                        newAction.add(AuthorizationConstants.AUTZ_ALL_URL);
+                    }
+                }
+                if (!newAction.isEmpty()) {
+                    clone.getAction().clear();
+                    clone.getAction().addAll(newAction);
+                    newAuthorities.add(clone);
+                }
+            } else {
+                if (AuthorizationConstants.AUTZ_ALL_URL.equals(authority.getAuthority())) {
+                    newAuthorities.add(new SimpleGrantedAuthority(PageResetPassword.AUTH_SELF_ALL_URI));
+                    newAuthorities.add(new SimpleGrantedAuthority(AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL));
+                }
+                if (PageResetPassword.AUTH_SELF_ALL_URI.equals(authority.getAuthority())) {
+                    newAuthorities.add(authority);
+                }
+                if (AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL.equals(authority.getAuthority())) {
+                    newAuthorities.add(authority);
+                }
             }
-            if (PageResetPassword.AUTH_SELF_ALL_URI.equals(authority.getAuthority())) {
-                newAuthorities.add(authority);
-            }
-            if (AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL.equals(authority.getAuthority())) {
-                newAuthorities.add(authority);
-            }
+
         }
         return newAuthorities;
     }

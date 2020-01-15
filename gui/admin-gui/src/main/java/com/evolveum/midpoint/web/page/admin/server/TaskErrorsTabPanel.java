@@ -91,7 +91,7 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
                 if (sortParam != null && sortParam.getProperty() != null) {
                     OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
                     ItemPath ordering = null;
-                    if (sortParam.getProperty().equals("timestamp")) {
+                    if (sortParam.getProperty().equals(TaskErrorDto.F_ERROR_TIMESTAMP)) {
                         ordering = ItemPath.create("operationExecution", "timestamp");
                     } else {
                         ordering = ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty()));
@@ -124,7 +124,7 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
             }
         });
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.status"), TaskErrorDto.F_STATUS));
-        columns.add(new AbstractColumn<TaskErrorDto, String>(createStringResource("pageTaskEdit.taskErros.timestamp")){
+        columns.add(new AbstractColumn<TaskErrorDto, String>(createStringResource("pageTaskEdit.taskErros.timestamp"), TaskErrorDto.F_ERROR_TIMESTAMP){
             private static final long serialVersionUID = 1L;
 
             @Override

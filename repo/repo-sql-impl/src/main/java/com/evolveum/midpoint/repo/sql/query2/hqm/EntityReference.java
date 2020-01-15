@@ -10,7 +10,9 @@ package com.evolveum.midpoint.repo.sql.query2.hqm;
 import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Specifies an entity that is to be used in the query (its name and its alias),
@@ -33,7 +35,7 @@ public class EntityReference {
      */
     private List<JoinSpecification> joins = new ArrayList<>();
 
-    public EntityReference(String alias, String name) {
+    EntityReference(String alias, String name) {
         Validate.notEmpty(alias);
         Validate.notEmpty(name);
 
@@ -57,7 +59,7 @@ public class EntityReference {
         this.name = name;
     }
 
-    public List<JoinSpecification> getJoins() {
+    List<JoinSpecification> getJoins() {
         return joins;
     }
 
@@ -75,7 +77,7 @@ public class EntityReference {
 
     }
 
-    public boolean containsAlias(String alias) {
+    boolean containsAlias(String alias) {
         if (this.alias.equals(alias)) {
             return true;
         }
@@ -87,12 +89,9 @@ public class EntityReference {
         return false;
     }
 
-    public JoinSpecification findJoinFor(String path) {
-        for (JoinSpecification join : joins) {
-            if (path.equals(join.getPath())) {
-                return join;
-            }
-        }
-        return null;
+    public Collection<JoinSpecification> getJoinsFor(String path) {
+        return joins.stream()
+                .filter(join -> path.equals(join.getPath()))
+                .collect(Collectors.toList());
     }
 }

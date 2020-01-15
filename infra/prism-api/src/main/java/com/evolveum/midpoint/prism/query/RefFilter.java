@@ -24,4 +24,9 @@ public interface RefFilter extends ValueFilter<PrismReferenceValue, PrismReferen
 
     void setRelationNullAsAny(boolean relationNullAsAny);
 
+    boolean isOidNullAsAny();
+
+    boolean isTargetTypeNullAsAny();
+
+    boolean isRelationNullAsAny();
 }

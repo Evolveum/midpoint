@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.query.builder;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.RefFilter;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -39,12 +40,15 @@ public interface S_ConditionEntry {
     S_MatchingRuleEntry contains(Object value);
     S_MatchingRuleEntry containsPoly(String orig, String norm);
     S_MatchingRuleEntry containsPoly(String orig);
-    S_AtomicFilterExit ref(QName... relations);                 // TODO is this supported by repo query interpreter?
+    S_AtomicFilterExit refRelation(QName... relations);
+    S_AtomicFilterExit refType(QName... targetTypeName);
     S_AtomicFilterExit ref(PrismReferenceValue... value);
     S_AtomicFilterExit ref(Collection<PrismReferenceValue> values);
-    S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullTypeAsAny);      // beware, 'nullTypeAsAny' is supported only by built-in match(..) method
-    S_AtomicFilterExit ref(String... oid);
-    S_AtomicFilterExit ref(String oid, QName targetTypeName);
+    S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullTypeAsAny);                          // beware, nullTypeAsAny=false is supported only by built-in match(..) method
+    S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullOidAsAny, boolean nullTypeAsAny);    // beware, nullTypeAsAny=false and nullOidAsAny=false are supported only by built-in match(..) method
+    S_AtomicFilterExit ref(RefFilter filter);
+    S_AtomicFilterExit ref(String... oid);          // TODO define semantics for oid == null
+    S_AtomicFilterExit ref(String oid, QName targetTypeName);       // TODO define semantics for oid == null
     S_AtomicFilterExit isNull();
 
 }

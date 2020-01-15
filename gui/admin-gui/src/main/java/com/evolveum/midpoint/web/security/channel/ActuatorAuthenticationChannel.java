@@ -7,12 +7,14 @@
 package com.evolveum.midpoint.web.security.channel;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author skublik
@@ -36,14 +38,32 @@ public class ActuatorAuthenticationChannel extends AuthenticationChannelImpl {
     public Collection<? extends GrantedAuthority> resolveAuthorities(Collection<? extends GrantedAuthority> authorities) {
         ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
         for (GrantedAuthority authority : authorities) {
-            if (authority != null && authority.getAuthority() != null
-            && authority.getAuthority().startsWith(AuthorizationConstants.NS_AUTHORIZATION_ACTUATOR)) {
-                newAuthorities.add(authority);
+            List<String> authoritiesString = new ArrayList<String>();
+            if (authority instanceof Authorization) {
+                Authorization clone = ((Authorization) authority).clone();
+                authoritiesString = clone.getAction();
+                List<String> newAction = new ArrayList<String>();
+                for (String authorityString : authoritiesString) {
+                    if (authorityString.startsWith(AuthorizationConstants.NS_AUTHORIZATION_ACTUATOR)
+                            || authorityString.equals(AuthorizationConstants.AUTZ_ALL_URL)) {
+                        newAction.add(authorityString);
+                    }
+                }
+                if (!newAction.isEmpty()) {
+                    clone.getAction().clear();
+                    clone.getAction().addAll(newAction);
+                    newAuthorities.add(clone);
+                }
+            } else {
+                if (authority.getAuthority().startsWith(AuthorizationConstants.NS_AUTHORIZATION_ACTUATOR)) {
+                    newAuthorities.add(authority);
+                }
+                if (authority.getAuthority().equals(AuthorizationConstants.AUTZ_ALL_URL)) {
+                    newAuthorities.add(authority);
+                }
             }
-            if (AuthorizationConstants.AUTZ_ALL_URL.equals(authority.getAuthority())) {
-                newAuthorities.add(authority);
-            }
+
         }
-        return authorities;
+        return newAuthorities;
     }
 }

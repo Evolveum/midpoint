@@ -521,18 +521,18 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     @Override
     public void trimTo(@NotNull Collection<ItemPath> paths) {
         if (shared) {
-            // TODO switch this to warning before releasing this code (3.6.1 or 3.7)
-            throw new IllegalStateException("Couldn't trim shared definition: " + this);
-        }
-        for (Iterator<ItemDefinition> iterator = itemDefinitions.iterator(); iterator.hasNext(); ) {
-            ItemDefinition<?> itemDef = iterator.next();
-            ItemPath itemPath = itemDef.getItemName();
-            if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(paths, itemPath)) {
-                iterator.remove();
-            } else if (itemDef instanceof PrismContainerDefinition) {
-                PrismContainerDefinition<?> itemPcd = (PrismContainerDefinition<?>) itemDef;
-                if (itemPcd.getComplexTypeDefinition() != null) {
-                    itemPcd.getComplexTypeDefinition().trimTo(ItemPathCollectionsUtil.remainder(paths, itemPath, false));
+            LOGGER.warn("Couldn't trim shared definition: {}. The definition will not be trimmed.", this);
+        } else {
+            for (Iterator<ItemDefinition> iterator = itemDefinitions.iterator(); iterator.hasNext(); ) {
+                ItemDefinition<?> itemDef = iterator.next();
+                ItemPath itemPath = itemDef.getItemName();
+                if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(paths, itemPath)) {
+                    iterator.remove();
+                } else if (itemDef instanceof PrismContainerDefinition) {
+                    PrismContainerDefinition<?> itemPcd = (PrismContainerDefinition<?>) itemDef;
+                    if (itemPcd.getComplexTypeDefinition() != null) {
+                        itemPcd.getComplexTypeDefinition().trimTo(ItemPathCollectionsUtil.remainder(paths, itemPath, false));
+                    }
                 }
             }
         }

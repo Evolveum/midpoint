@@ -215,19 +215,26 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     }
 
     @Override
-    public S_AtomicFilterExit ref(QName... relations) {
+    public S_AtomicFilterExit refRelation(QName... relations) {
         List<PrismReferenceValue> values = new ArrayList<>();
         for (QName relation : relations) {
             PrismReferenceValue ref = new PrismReferenceValueImpl();
             ref.setRelation(relation);
             values.add(ref);
         }
-        RefFilter filter = RefFilterImpl.createReferenceEqual(itemPath, referenceDefinition, values);
-        filter.setOidNullAsAny(true);
-        filter.setTargetTypeNullAsAny(true);
-        return new R_AtomicFilter(this, filter);
+        return ref(values);
     }
 
+    @Override
+    public S_AtomicFilterExit refType(QName... targetTypeNames) {
+        List<PrismReferenceValue> values = new ArrayList<>();
+        for (QName targetTypeName : targetTypeNames) {
+            PrismReferenceValue ref = new PrismReferenceValueImpl();
+            ref.setTargetType(targetTypeName);
+            values.add(ref);
+        }
+        return ref(values);
+    }
 
     @Override
     public S_AtomicFilterExit ref(PrismReferenceValue... values) {
@@ -240,28 +247,40 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_AtomicFilterExit ref(Collection<PrismReferenceValue> values) {
-        return ref(values, true);
+        return ref(values, true, true);
     }
 
     @Override
     public S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullTypeAsAny) {
+        return ref(values, true, nullTypeAsAny);
+    }
+
+    @Override
+    public S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullOidAsAny, boolean nullTypeAsAny) {
         RefFilter filter = RefFilterImpl.createReferenceEqual(itemPath, referenceDefinition, values);
+        filter.setOidNullAsAny(nullOidAsAny);
         filter.setTargetTypeNullAsAny(nullTypeAsAny);
+        return ref(filter);
+    }
+
+    @Override
+    public S_AtomicFilterExit ref(RefFilter filter) {
         return new R_AtomicFilter(this, filter);
     }
 
     @Override
     public S_AtomicFilterExit ref(String... oids) {
+        // TODO reconsider oid == null case
         if (oids.length == 1 && oids[0] == null) {
             return ref(Collections.emptyList());
         } else {
-            // when OIDs are specified, we allow any type
-            return ref(Arrays.stream(oids).map(oid -> new PrismReferenceValueImpl(oid)).collect(Collectors.toList()), true);
+            return ref(Arrays.stream(oids).map(oid -> new PrismReferenceValueImpl(oid)).collect(Collectors.toList()));
         }
     }
 
     @Override
     public S_AtomicFilterExit ref(String oid, QName targetTypeName) {
+        // TODO reconsider oid == null case
         if (oid != null) {
             return ref(new PrismReferenceValueImpl(oid, targetTypeName));
         } else {
