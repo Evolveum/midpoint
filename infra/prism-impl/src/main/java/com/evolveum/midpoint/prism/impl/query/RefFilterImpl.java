@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismReferenceDefinition> implements RefFilter {
     private static final long serialVersionUID = 1L;
@@ -41,7 +42,6 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
         return new RefFilterImpl(path, definition, null, expression);
     }
 
-    @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public RefFilterImpl clone() {
         return new RefFilterImpl(getFullPath(), getDefinition(), getClonedValues(), getExpression());
@@ -116,7 +116,7 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
     }
 
     private boolean matchOid(String filterOid, String objectOid) {
-        return oidNullAsAny && filterOid == null || objectOid != null && objectOid.equals(filterOid);
+        return oidNullAsAny && filterOid == null || Objects.equals(objectOid, filterOid);
     }
 
     private boolean matchTargetType(QName filterType, QName objectType) {
