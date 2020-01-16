@@ -148,12 +148,16 @@ public class SchemaStep extends WizardStep {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                XmlEditorPanel xmlEditorPanel = new XmlEditorPanel(panelId, createXmlEditorModel());
-                // quick fix: now changes from XmlEditorPanel are not saved anyhow
-                //(e.g. by clicking Finish button in wizard). For now,
-                //panel is made disabled for editing
-                AceEditor aceEditor = (AceEditor) xmlEditorPanel.get(ID_ACE_EDITOR);
-                aceEditor.setReadonly(true);
+                XmlEditorPanel xmlEditorPanel = new XmlEditorPanel(panelId, createXmlEditorModel()) {
+
+                    // quick fix: now changes from XmlEditorPanel are not saved anyhow
+                    //(e.g. by clicking Finish button in wizard). For now,
+                    @Override
+                    protected boolean isEditEnabled() {
+                        return false;
+                    }
+                };
+
                 return xmlEditorPanel;
             }
         };
