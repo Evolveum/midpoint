@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -21,21 +22,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_UP_DOWN_TAG = "upDownTag";
-    private IModel<ResourceType> model;
-
     public ResourceSummaryPanel(String id, IModel<ResourceType> model, ModelServiceLocator serviceLocator) {
         super(id, ResourceType.class, model, serviceLocator);
     }
 
-//    @Override
-//    protected void onBeforeRender() {
-//        super.onBeforeRender();
-//    }
-
     @Override
     protected List<SummaryTag<ResourceType>> getSummaryTagComponentList(){
-        boolean down = ResourceTypeUtil.isDown(getModelObject());
+        AvailabilityStatusType availability = ResourceTypeUtil.getLastAvailabilityStatus(getModelObject());
 
         List<SummaryTag<ResourceType>> summaryTagList = new ArrayList<>();
 
@@ -44,12 +37,24 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 
             @Override
             protected void initialize(ResourceType object) {
-                if (!down) {
-                    setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
-                    setLabel(getString("ResourceSummaryPanel.UP"));
-                } else {
-                    setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE);
-                    setLabel(getString("ResourceSummaryPanel.DOWN"));
+                if (availability== null) {
+                    setIconCssClass(GuiStyleConstants.CLASS_ICON_RESOURCE_UNKNOWN);
+                    setLabel(getString("ResourceSummaryPanel.UNKNOWN"));
+                    return;
+                }
+                setLabel(getString(ResourceSummaryPanel.this.getString(availability)));
+                switch(availability) {
+                    case UP:
+                        setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
+                        break;
+                    case DOWN:
+                        setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE);
+                        break;
+                    case BROKEN:
+                        setIconCssClass(GuiStyleConstants.CLASS_ICON_RESOURCE_BROKEN);
+                        break;
+
+
                 }
             }
         };
