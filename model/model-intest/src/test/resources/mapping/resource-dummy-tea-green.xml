@@ -106,7 +106,25 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
             <attribute>
                 <ref>ri:drink</ref>
                 <displayName>Drink</displayName>
-                <tolerant>false</tolerant>
+<!--                <tolerant>false</tolerant>-->
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                input.getBytes("UTF-8")
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>$focus/jpegPhoto</path>
+                    </target>
+                    <condition>
+                        <script>
+                            <code>input != null</code>
+                        </script>
+                    </condition>
+                </inbound>
             </attribute>
             <attribute>
                 <ref>ri:proof</ref>

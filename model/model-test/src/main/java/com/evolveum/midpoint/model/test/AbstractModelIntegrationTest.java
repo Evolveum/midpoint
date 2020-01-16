@@ -3172,6 +3172,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         display(message + ": Operational stats", stats);
     }
 
+    protected void assertJpegPhoto(Class<? extends FocusType> clazz, String oid, byte[] expectedValue, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        PrismObject<? extends FocusType> object = repositoryService
+                .getObject(clazz, oid, schemaHelper.getOperationOptionsBuilder().retrieve().build(), result);
+        byte[] actualValue = object.asObjectable().getJpegPhoto();
+        if (expectedValue == null) {
+            if (actualValue != null) {
+                fail("Photo present even if it should not be: " + Arrays.toString(actualValue));
+            }
+        } else {
+            assertNotNull("No photo", actualValue);
+            if (!Arrays.equals(actualValue, expectedValue)) {
+                fail("Photo is different than expected.\nExpected = " + Arrays.toString(expectedValue)
+                        + "\nActual value = " + Arrays.toString(actualValue));
+            }
+        }
+    }
+
     private class TaskFinishChecker implements Checker {
         private final String taskOid;
         private final OperationResult waitResult;
