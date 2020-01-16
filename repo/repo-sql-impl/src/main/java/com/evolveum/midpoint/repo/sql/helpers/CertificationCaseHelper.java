@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
@@ -68,13 +70,12 @@ public class CertificationCaseHelper {
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private GeneralHelper generalHelper;
-    @Autowired private NameResolutionHelper nameResolutionHelper;
     @Autowired private ObjectRetriever objectRetriever;
     @Autowired private RepositoryService repositoryService;
     @Autowired private ExtItemDictionary extItemDictionary;
     @Autowired private BaseHelper baseHelper;
 
-    public void addCertificationCampaignCases(Session session, RObject object, boolean deleteBeforeAdd) {
+    void addCertificationCampaignCases(Session session, RObject object, boolean deleteBeforeAdd) {
         if (!(object instanceof RAccessCertificationCampaign)) {
             return;
         }
@@ -91,7 +92,8 @@ public class CertificationCaseHelper {
         }
     }
 
-    public void addCertificationCampaignCases(Session session, String campaignOid, Collection<PrismContainerValue> values, int currentId, List<Long> affectedIds) throws DtoTranslationException {
+    private void addCertificationCampaignCases(Session session, String campaignOid, Collection<PrismContainerValue> values,
+            int currentId, List<Long> affectedIds) throws DtoTranslationException {
         for (PrismContainerValue value : values) {
             AccessCertificationCaseType caseType = new AccessCertificationCaseType();
             caseType.setupContainerValue(value);
@@ -116,7 +118,7 @@ public class CertificationCaseHelper {
         return new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary, baseHelper.getConfiguration());
     }
 
-    public void deleteCertificationCampaignCases(Session session, String oid) {
+    void deleteCertificationCampaignCases(Session session, String oid) {
         // TODO couldn't this cascading be done by hibernate itself?
 //        Query deleteReferences = session.getNamedQuery("delete.campaignCasesReferences");
 //        deleteReferences.setParameter("oid", oid);
@@ -135,8 +137,8 @@ public class CertificationCaseHelper {
         deleteCases.executeUpdate();
     }
 
-    public <T extends ObjectType> Collection<? extends ItemDelta> filterCampaignCaseModifications(Class<T> type,
-                                                                                                  Collection<? extends ItemDelta> modifications) {
+    <T extends ObjectType> Collection<? extends ItemDelta> filterCampaignCaseModifications(Class<T> type,
+            Collection<? extends ItemDelta> modifications) {
         Collection<ItemDelta> caseDelta = new ArrayList<>();
         if (!AccessCertificationCampaignType.class.equals(type)) {
             return caseDelta;
@@ -159,7 +161,7 @@ public class CertificationCaseHelper {
         return caseDelta;
     }
 
-    public <T extends ObjectType> void updateCampaignCases(Session session, String campaignOid,
+    <T extends ObjectType> void updateCampaignCases(Session session, String campaignOid,
             Collection<? extends ItemDelta> modifications, RepoModifyOptions modifyOptions) throws SchemaException, ObjectNotFoundException, DtoTranslationException {
         if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
             return;
@@ -171,7 +173,7 @@ public class CertificationCaseHelper {
         updateCasesContent(session, campaignOid, modifications, casesAddedOrDeleted, modifyOptions);
     }
 
-    protected List<Long> addOrDeleteCases(Session session, String campaignOid, Collection<? extends ItemDelta> modifications) throws SchemaException, DtoTranslationException {
+    private List<Long> addOrDeleteCases(Session session, String campaignOid, Collection<? extends ItemDelta> modifications) throws SchemaException, DtoTranslationException {
         boolean replacePresent = false;
         List<Long> affectedIds = new ArrayList<>();
         for (ItemDelta delta : modifications) {
@@ -384,9 +386,8 @@ public class CertificationCaseHelper {
     }
 
     // adds cases to campaign if requested by options
-    public <T extends ObjectType> void updateLoadedCampaign(PrismObject<T> object,
-                                                            Collection<SelectorOptions<GetOperationOptions>> options,
-                                                            Session session) throws SchemaException {
+    <T extends ObjectType> void updateLoadedCampaign(PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options,
+            Session session) throws SchemaException {
         if (!SelectorOptions.hasToLoadPath(AccessCertificationCampaignType.F_CASE, options)) {
             return;
         }
@@ -402,16 +403,21 @@ public class CertificationCaseHelper {
         // TODO fetch only XML representation
         @SuppressWarnings({"raw", "unchecked"})
         List<RAccessCertificationCase> cases = query.list();
-        if (cases == null || cases.isEmpty()) {
-            return;
-        }
-
-        AccessCertificationCampaignType campaign = (AccessCertificationCampaignType) object.asObjectable();
-        List<AccessCertificationCaseType> jaxbCases = campaign.getCase();
-        for (RAccessCertificationCase rCase : cases) {
-            AccessCertificationCaseType jaxbCase = rCase.toJAXB(prismContext);
-            jaxbCases.add(jaxbCase);
+        if (CollectionUtils.isNotEmpty(cases)) {
+            AccessCertificationCampaignType campaign = (AccessCertificationCampaignType) object.asObjectable();
+            List<AccessCertificationCaseType> jaxbCases = campaign.getCase();
+            for (RAccessCertificationCase rCase : cases) {
+                AccessCertificationCaseType jaxbCase = rCase.toJAXB(prismContext);
+                jaxbCases.add(jaxbCase);
+            }
+            PrismContainer<AccessCertificationCaseType> caseContainer = object.findContainer(AccessCertificationCampaignType.F_CASE);
+            caseContainer.setIncomplete(false);
+        } else {
+            PrismContainer<AccessCertificationCaseType> caseContainer = object.findContainer(AccessCertificationCampaignType.F_CASE);
+            if (caseContainer != null) {
+                caseContainer.clear();      // just in case
+                caseContainer.setIncomplete(false);
+            }
         }
     }
-
 }

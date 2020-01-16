@@ -30,9 +30,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.evolveum.midpoint.schema.TestConstants.*;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.*;
 
 /**
  *
@@ -103,7 +101,10 @@ public class TestParseUserPolyString extends AbstractObjectParserTest<UserType> 
         assertEquals("Wrong # of assignments", 0, jackReparsed.asObjectable().getAssignment().size());
         assertEquals("Wrong # of links", 0, jackReparsed.asObjectable().getLinkRef().size());
         assertNotNull("ext:stringType is not present", jackReparsed.getExtensionContainerValue().find(new ItemName("stringType")));
-        assertNull("ext:hidden is present", jackReparsed.getExtensionContainerValue().find(new ItemName("hidden")));
+        PrismProperty<String> hiddenProperty = jackReparsed.getExtensionContainerValue().findProperty(new ItemName("hidden"));
+        assertNotNull("ext:hidden is missing", hiddenProperty);
+        assertEquals("ext:hidden has wrong # of values", 0, hiddenProperty.size());
+        assertTrue("ext:hidden is not incomplete", hiddenProperty.isIncomplete());
     }
 
     private void processParsingsPCV(SerializingFunction<PrismContainerValue<UserType>> serializer, String serId)

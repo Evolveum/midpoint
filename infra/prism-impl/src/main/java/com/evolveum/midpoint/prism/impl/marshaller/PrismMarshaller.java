@@ -203,13 +203,13 @@ public class PrismMarshaller {
             Collection<? extends QName> itemsToSkip) throws SchemaException {
         XNodeImpl xnode;
         if (definition == null && typeName == null && itemValue instanceof PrismPropertyValue) {
-            checkItemsToSkip(itemValue, itemsToSkip);
+            warnIfItemsToSkip(itemValue, itemsToSkip);
             return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
         } else if (itemValue instanceof PrismReferenceValue) {
-            checkItemsToSkip(itemValue, itemsToSkip);
+            warnIfItemsToSkip(itemValue, itemsToSkip);
             xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition, ctx);
         } else if (itemValue instanceof PrismPropertyValue<?>) {
-            checkItemsToSkip(itemValue, itemsToSkip);
+            warnIfItemsToSkip(itemValue, itemsToSkip);
             xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition) definition, typeName);
         } else if (itemValue instanceof PrismContainerValue<?>) {
             xnode = marshalContainerValue((PrismContainerValue<?>)itemValue, (PrismContainerDefinition) definition, ctx, itemsToSkip);
@@ -225,7 +225,7 @@ public class PrismMarshaller {
         return xnode;
     }
 
-    private void checkItemsToSkip(@NotNull PrismValue itemValue, Collection<? extends QName> itemsToSkip) {
+    private void warnIfItemsToSkip(@NotNull PrismValue itemValue, Collection<? extends QName> itemsToSkip) {
         if (CollectionUtils.isNotEmpty(itemsToSkip)) {
             LOGGER.warn("Trying to skip marshalling items {} where not applicable: {}", itemsToSkip, itemValue);
         }
@@ -311,11 +311,14 @@ public class PrismMarshaller {
                 ItemName elementName = itemDef.getItemName();
                 Item<?,?> item = containerVal.findItem(elementName);
                 if (item != null) {
-                    if (!shouldSkipItem(itemsToSkip, elementName, itemDef, ctx)) {
-                        XNodeImpl xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx, null);
-                        xmap.put(elementName, xsubnode);
-                        marshaledItems.add(elementName);
+                    XNodeImpl xsubnode;
+                    if (shouldSkipItem(itemsToSkip, elementName, itemDef, ctx) && !item.hasNoValues()) {
+                        xsubnode = new IncompleteMarkerXNodeImpl();
+                    } else {
+                        xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx, null);
                     }
+                    xmap.put(elementName, xsubnode);
+                    marshaledItems.add(elementName);
                 }
             }
         }
@@ -323,11 +326,15 @@ public class PrismMarshaller {
         // E.g. in run-time schema. Therefore we must also iterate over items and not just item definitions.
         for (Item<?,?> item : containerVal.getItems()) {
             QName elementName = item.getElementName();
-            if (marshaledItems.contains(elementName) || shouldSkipItem(itemsToSkip, elementName, item.getDefinition(), ctx)) {
-                continue;
+            if (!marshaledItems.contains(elementName)) {
+                XNodeImpl xsubnode;
+                if (shouldSkipItem(itemsToSkip, elementName, item.getDefinition(), ctx) && !item.hasNoValues()) {
+                    xsubnode = new IncompleteMarkerXNodeImpl();
+                } else {
+                    xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx, null);
+                }
+                xmap.put(elementName, xsubnode);
             }
-            XNodeImpl xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx, null);
-            xmap.put(elementName, xsubnode);
         }
     }
 
@@ -527,7 +534,6 @@ public class PrismMarshaller {
         return beanMarshaller.getPrismContext().getSchemaRegistry();
     }
 
-    @SuppressWarnings("deprecation")
     private void addTypeDefinitionIfNeeded(@NotNull QName itemName, QName typeName, @NotNull XNodeImpl valueNode) {
         if (valueNode.getTypeQName() != null && valueNode.isExplicitTypeDeclaration()) {
             return; // already set

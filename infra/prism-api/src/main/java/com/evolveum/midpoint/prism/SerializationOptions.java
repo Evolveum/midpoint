@@ -15,7 +15,12 @@ public class SerializationOptions implements Cloneable {
     private boolean serializeCompositeObjects;
     private boolean serializeReferenceNames;
     private boolean serializeReferenceNamesForNullOids;
+
+    /**
+     * Should we skip index-only items? Their values will be omitted and they will be marked as incomplete.
+     */
     private boolean skipIndexOnly;
+
     private ItemNameQualificationStrategy itemNameQualificationStrategy;
 
     /**
