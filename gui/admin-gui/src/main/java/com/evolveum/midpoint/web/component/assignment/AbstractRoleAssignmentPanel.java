@@ -149,7 +149,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                 .getAllRelationsFor(RelationKindType.DELEGATION);
         ObjectFilter deputyFilter = getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .item(AssignmentType.F_TARGET_REF)
-                .ref(delegationRelations.toArray(new QName[0]))
+                .refRelation(delegationRelations.toArray(new QName[0]))
                 .buildFilter();
 
         QName targetType = getAssignmentType();

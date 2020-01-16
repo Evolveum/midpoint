@@ -162,11 +162,16 @@ public class GuiStyleConstants {
 
     public static final String CLASS_FILE_TEXT = "fa fa-file-text-o";
     public static final String CLASS_FILE_EXCEL = "fa fa-file-excel-o";
+    public static final String CLASS_FILE_BLACK_FILLED = "fa fa-file";
+    public static final String CLASS_FILE_WHITE_FILLED = "fa fa-file-o";
+    public static final String CLASS_FILE_ARCHIVE = "fa fa-file-archive-o";
     public static final String CLASS_LOCK_STATUS = "fa fa-lock";
     public static final String CLASS_POLICY_RULES_ICON = "fa fa-balance-scale";
     public static final String CLASS_POLICY_RULES_ICON_COLORED = "fa fa-balance-scale"; //TODO
 
     public static final String CLASS_VALUE_POLICY_ICON = "fa fa-asterisk";
+    public static final String CLASS_ARCHIVE = "fa fa-archive";
+    public static final String CLASS_BAN = "fa fa-ban";
 
     public static final String CLASS_SYSTEM_CONFIGURATION_ICON = "fa fa-cog";
     public static final String CLASS_SYSTEM_CONFIGURATION_ICON_COLORED = CLASS_SYSTEM_CONFIGURATION_ICON + " object-shadow-color";

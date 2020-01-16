@@ -19,14 +19,14 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismReferenceDefinition> implements RefFilter {
     private static final long serialVersionUID = 1L;
 
-    // these are currently supported only by built-in match(..) method; e.g. the repo query interpreter simply ignores them
-    private boolean oidNullAsAny = false;
-    private boolean targetTypeNullAsAny = true;         // "true" to be consistent with the repo implementation
-    private boolean relationNullAsAny = false;          // currently not supported at all
+    private boolean oidNullAsAny = true;                // "false" is not supported by repo
+    private boolean targetTypeNullAsAny = true;         // "true" to be consistent with the repo implementation; "false" is ignored by repo
+    private boolean relationNullAsAny = false;          // currently ignored
 
     public RefFilterImpl(@NotNull ItemPath fullPath, @Nullable PrismReferenceDefinition definition,
             @Nullable List<PrismReferenceValue> values, @Nullable ExpressionWrapper expression) {
@@ -41,7 +41,6 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
         return new RefFilterImpl(path, definition, null, expression);
     }
 
-    @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public RefFilterImpl clone() {
         return new RefFilterImpl(getFullPath(), getDefinition(), getClonedValues(), getExpression());
@@ -116,7 +115,7 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
     }
 
     private boolean matchOid(String filterOid, String objectOid) {
-        return oidNullAsAny && filterOid == null || objectOid != null && objectOid.equals(filterOid);
+        return oidNullAsAny && filterOid == null || Objects.equals(objectOid, filterOid);
     }
 
     private boolean matchTargetType(QName filterType, QName objectType) {
@@ -141,4 +140,18 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
         this.relationNullAsAny = relationNullAsAny;
     }
 
+    @Override
+    public boolean isOidNullAsAny() {
+        return oidNullAsAny;
+    }
+
+    @Override
+    public boolean isTargetTypeNullAsAny() {
+        return targetTypeNullAsAny;
+    }
+
+    @Override
+    public boolean isRelationNullAsAny() {
+        return relationNullAsAny;
+    }
 }

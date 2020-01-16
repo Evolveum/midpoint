@@ -10,6 +10,7 @@ package com.evolveum.midpoint.init;
 import java.io.File;
 import java.util.Arrays;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.Validate;
@@ -126,6 +127,7 @@ public class PostInitialDataImport extends DataImport {
             LOGGER.info("Starting post-initial import of file {}.", file.getName());
             ImportOptionsType options = new ImportOptionsType();
             options.overwrite(true);
+            options.setModelExecutionOptions(new ModelExecuteOptionsType().raw(false));
             model.importObjectsFromFile(file, options, task, result);
             result.recordSuccess();
             return true;

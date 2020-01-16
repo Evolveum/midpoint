@@ -44,7 +44,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
-import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -379,7 +378,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         ObjectQuery query = getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .not()
                 .item(AssignmentType.F_TARGET_REF)
-                .ref(delegationRelations.toArray(new QName[0]))
+                .refRelation(delegationRelations.toArray(new QName[0]))
                 .build();
         query.addFilter(getPrismContext().queryFactory().createNot(archetypeFilter));
         return query;
