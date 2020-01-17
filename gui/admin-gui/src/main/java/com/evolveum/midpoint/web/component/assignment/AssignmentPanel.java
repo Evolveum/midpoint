@@ -155,6 +155,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
                     @Override
                     protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
+                        List<MultiFunctinalButtonDto> buttonDtoList = new ArrayList<>();
                         if (AssignmentPanel.this.getModelObject() == null) {
                             return null;
                         }
@@ -168,7 +169,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                             return null;
                         }
 
-                        List<MultiFunctinalButtonDto> buttonDtoList = new ArrayList<>();
 
                         relations.forEach(relation -> {
                             MultiFunctinalButtonDto buttonDto = new MultiFunctinalButtonDto();
