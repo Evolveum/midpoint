@@ -106,8 +106,12 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
             <attribute>
                 <ref>ri:drink</ref>
                 <displayName>Drink</displayName>
+                <exclusiveStrong>false</exclusiveStrong>
 <!--                <tolerant>false</tolerant>-->
                 <inbound>
+                    <name>Badge Photo Mapping</name>
+                    <authoritative>true</authoritative>
+                    <exclusive>false</exclusive>
                     <strength>strong</strength>
                     <expression>
                         <script>
