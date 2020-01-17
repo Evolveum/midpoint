@@ -251,19 +251,19 @@ public class PrettyPrinter {
         if (value == null) {
             return "null";
         }
-        String out = null;
         if (value instanceof JAXBElement) {
             Object elementValue = ((JAXBElement)value).getValue();
-            out = tryPrettyPrint(elementValue);
-            if (out != null) {
-                return ("JAXBElement("+((JAXBElement)value).getName()+","+out+")");
+            String attempt = tryPrettyPrint(elementValue);
+            if (attempt != null) {
+                return ("JAXBElement("+((JAXBElement)value).getName()+","+attempt+")");
             }
         }
-        out = tryPrettyPrint(value);
-        if (out == null) {
-            out = value.toString();
+        String attempt = tryPrettyPrint(value);
+        if (attempt != null) {
+            return attempt;
+        } else {
+            return value.toString();
         }
-        return out;
     }
 
     private static String tryPrettyPrint(Object value) {

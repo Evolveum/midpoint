@@ -17,6 +17,7 @@ import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -77,20 +78,26 @@ public class MappingEvaluator {
     @Autowired private CredentialsProcessor credentialsProcessor;
     @Autowired private ContextLoader contextLoader;
     @Autowired private PrismContext prismContext;
+    @Autowired private ObjectResolver objectResolver;
 
     public PrismContext getPrismContext() {
         return prismContext;
     }
 
-    public static final List<String> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
+    static final List<String> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
 
-    public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
-            MappingImpl<V,D> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+    public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(MappingImpl<V,D> mapping,
+            LensContext<F> lensContext, Task task, OperationResult parentResult)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
         evaluateMapping(mapping, lensContext, null, task, parentResult);
     }
 
-    public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
-            MappingImpl<V,D> mapping, LensContext<F> lensContext, LensProjectionContext projContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+    public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(MappingImpl<V,D> mapping,
+            LensContext<F> lensContext, LensProjectionContext projContext, Task task, OperationResult parentResult)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
+
         ExpressionEnvironment<F,V,D> env = new ExpressionEnvironment<>();
         env.setLensContext(lensContext);
         env.setProjectionContext(projContext);
@@ -98,6 +105,7 @@ public class MappingEvaluator {
         env.setCurrentResult(parentResult);
         env.setCurrentTask(task);
         ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
+
         ObjectType originObject = mapping.getOriginObject();
         String objectOid, objectName, objectTypeName;
         if (originObject != null) {
@@ -108,6 +116,7 @@ public class MappingEvaluator {
             objectOid = objectName = objectTypeName = null;
         }
         String mappingName = mapping.getItemName() != null ? mapping.getItemName().getLocalPart() : null;
+
         long start = System.currentTimeMillis();
         try {
             task.recordState("Started evaluation of mapping " + mapping.getMappingContextDescription() + ".");
@@ -681,6 +690,7 @@ public class MappingEvaluator {
                 .originalTargetValues(targetValues)
                 .originType(OriginType.USER_POLICY)
                 .originObject(originObject)
+                .objectResolver(objectResolver)
                 .valuePolicyResolver(stringPolicyResolver)
                 .rootNode(focusOdo)
                 .now(now);
