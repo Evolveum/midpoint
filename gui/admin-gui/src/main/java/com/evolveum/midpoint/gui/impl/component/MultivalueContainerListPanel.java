@@ -287,7 +287,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
                     }
 
                     @Override
-                    protected boolean isMainButtonVisible(){
+                    protected boolean isDefaultButtonVisible(){
                         return getNewObjectGenericButtonVisibility();
                     }
 
