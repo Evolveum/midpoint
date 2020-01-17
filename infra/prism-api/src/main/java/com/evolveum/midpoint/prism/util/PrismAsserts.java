@@ -1241,9 +1241,17 @@ public class PrismAsserts {
         }
     }
 
-    public static void assertIncomplete(PrismObject<?> object, ItemPath itemPath) {
+    @SuppressWarnings("UnusedReturnValue")
+    public static Item<?, ?> assertEmptyAndIncomplete(PrismObject<?> object, ItemPath itemPath) {
+        Item<?, ?> item = assertIncomplete(object, itemPath);
+        assertTrue(itemPath + " has values in " + object + ": " + item, item.hasNoValues());
+        return item;
+    }
+
+    public static Item<?, ?> assertIncomplete(PrismObject<?> object, ItemPath itemPath) {
         Item<?, ?> item = object.findItem(itemPath);
         assertNotNull("No " + itemPath + " in " + object, item);
         assertTrue(itemPath + " is not incomplete in " + object, item.isIncomplete());
+        return item;
     }
 }
