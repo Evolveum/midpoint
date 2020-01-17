@@ -14,6 +14,8 @@ import java.io.IOException;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -76,12 +78,16 @@ public class TestMappingTime {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         assertNullTriple(outputTriple);
         assertNextRecompute(mapping, TIME_MAPPING_DISABLED_PLUS_1D);
+    }
+
+    private Task createTask() {
+        return new NullTaskImpl();
     }
 
     @Test
@@ -104,7 +110,7 @@ public class TestMappingTime {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -135,7 +141,7 @@ public class TestMappingTime {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -165,7 +171,7 @@ public class TestMappingTime {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = mapping.getOutputTriple();
@@ -195,7 +201,7 @@ public class TestMappingTime {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = mapping.getOutputTriple();
@@ -231,7 +237,7 @@ public class TestMappingTime {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = mapping.getOutputTriple();
@@ -271,7 +277,7 @@ public class TestMappingTime {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = mapping.getOutputTriple();
@@ -310,7 +316,7 @@ public class TestMappingTime {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = mapping.getOutputTriple();

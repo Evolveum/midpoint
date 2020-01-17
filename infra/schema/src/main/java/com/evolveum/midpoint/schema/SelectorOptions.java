@@ -181,7 +181,8 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
             ItemPath.create(AccessCertificationCampaignType.F_CASE)));
 
     private static final Set<Class<?>> OBJECTS_NOT_RETURNED_FULLY_BY_DEFAULT = new HashSet<>(Arrays.asList(
-            UserType.class, FocusType.class, AssignmentHolderType.class, ObjectType.class,
+            UserType.class, RoleType.class, OrgType.class, ServiceType.class, AbstractRoleType.class,
+            FocusType.class, AssignmentHolderType.class, ObjectType.class,
             TaskType.class, LookupTableType.class, AccessCertificationCampaignType.class,
             ShadowType.class            // because of index-only attributes
     ));

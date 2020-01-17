@@ -49,13 +49,13 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
     private D definition;
     private ItemPath resolvePath = ItemPath.EMPTY_PATH;
 
-    // Residual path is a temporary solution to Structured attriebutes in 3.x and 4.x.
+    // Residual path is a temporary solution to Structured attributes in 3.x and 4.x.
     // It should disappear in 5.x.
     private ItemPath residualPath = null;
 
     // The deltas in sub-items. E.g. if this object represents "ContainerDeltaContainer"
     // this property contains property deltas that may exist inside the container.
-    Collection<? extends ItemDelta<?,?>> subItemDeltas;
+    private Collection<? extends ItemDelta<?,?>> subItemDeltas;
 
     // For clone and ObjectDeltaObject
     protected ItemDeltaItem() { }

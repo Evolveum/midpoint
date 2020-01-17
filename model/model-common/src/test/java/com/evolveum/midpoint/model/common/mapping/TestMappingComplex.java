@@ -60,7 +60,7 @@ public class TestMappingComplex extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -91,7 +91,7 @@ public class TestMappingComplex extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -118,7 +118,7 @@ public class TestMappingComplex extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -148,7 +148,7 @@ public class TestMappingComplex extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -173,7 +173,7 @@ public class TestMappingComplex extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -197,7 +197,7 @@ public class TestMappingComplex extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();

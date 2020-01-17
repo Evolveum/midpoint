@@ -397,7 +397,7 @@ public class TestExpression extends AbstractModelCommonTest {
         variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, "001",
                 TestUtil.createPrimitivePropertyDefinition(prismContext, ExpressionConstants.VAR_ITERATION_TOKEN, PrimitiveType.STRING));
 
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, TEST_NAME, null);
+        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, TEST_NAME, createTask());
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple =
@@ -445,7 +445,7 @@ public class TestExpression extends AbstractModelCommonTest {
             ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext,
             OperationResult result)
                     throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Expression<V,D> expression = expressionFactory.makeExpression(expressionType, outputDefinition , getExpressionProfile(),
+        Expression<V,D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, getExpressionProfile(),
                 expressionContext.getContextDescription(), expressionContext.getTask(), result);
         LOGGER.debug("Starting evaluation of expression: {}", expression);
         return expression.evaluate(expressionContext, result);

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.common;
 
 import java.io.File;
 
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.test.util.TestUtil;
 
 /**
@@ -33,4 +35,7 @@ public class AbstractModelCommonTest {
         TestUtil.displayThen(TEST_NAME);
     }
 
+    protected Task createTask() {
+        return new NullTaskImpl();
+    }
 }

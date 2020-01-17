@@ -7,19 +7,17 @@
 package com.evolveum.midpoint.test.asserter;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
-import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -261,7 +259,14 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
     }
 
     public UserAsserter<RA> assertJpegPhoto() {
-        assertNotNull("Missing jpegPhoto in "+desc(), getObject().asObjectable().getJpegPhoto());
+        PrismProperty<Object> photoProperty = getObject().findProperty(UserType.F_JPEG_PHOTO);
+        assertTrue("Missing jpegPhoto in "+desc(), photoProperty != null &&
+                        (photoProperty.isIncomplete() || photoProperty.size() == 1 && photoProperty.getRealValue() != null));
+        return this;
+    }
+
+    public UserAsserter<RA> assertJpegPhoto(byte[] expected) {
+        assertEquals("Wrong jpegPhoto in "+desc(), expected, getObject().asObjectable().getJpegPhoto());
         return this;
     }
 
