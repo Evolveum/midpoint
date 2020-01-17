@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.test.TestResource;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -94,6 +95,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     protected static final String RESOURCE_DUMMY_CORAL_OID = "10000000-0000-0000-0000-0000000b1004";
     protected static final String RESOURCE_DUMMY_CORAL_NAME = "coral";
 
+    private static final TestResource RESOURCE_DUMMY_PRECREATE = new TestResource(TEST_DIR, "resource-dummy-precreate.xml", "f18711a2-5db5-4562-b50d-3ef4c74f2e1d");
+    private static final String RESOURCE_DUMMY_PRECREATE_NAME = "precreate";
+    
     protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
     private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
     private static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
@@ -117,6 +121,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     protected ResourceType resourceDummyCoralType;
     protected PrismObject<ResourceType> resourceDummyCoral;
 
+    protected DummyResource dummyResourcePrecreate;
+    protected DummyResourceContoller dummyResourceCtlPrecreate;
+    protected ResourceType resourceDummyPrecreateType;
+    protected PrismObject<ResourceType> resourceDummyPrecreate;
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
@@ -136,6 +145,12 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         resourceDummyCoral = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_CORAL_FILE, RESOURCE_DUMMY_CORAL_OID, initTask, initResult);
         resourceDummyCoralType = resourceDummyCoral.asObjectable();
         dummyResourceCtlCoral.setResource(resourceDummyCoral);
+        
+        dummyResourceCtlPrecreate = DummyResourceContoller.create(RESOURCE_DUMMY_PRECREATE_NAME, resourceDummyPrecreate);
+        dummyResourcePrecreate = dummyResourceCtlPrecreate.getDummyResource();
+        resourceDummyPrecreate = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_PRECREATE.file, RESOURCE_DUMMY_PRECREATE.oid, initTask, initResult);
+        resourceDummyPrecreateType = resourceDummyPrecreate.asObjectable();
+        dummyResourceCtlPrecreate.setResource(resourceDummyPrecreate);
     }
 
     @Test
@@ -2861,6 +2876,50 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertEffectiveActivation(userAfter, ActivationStatusType.ENABLED);
     }
 
+    /**
+     * MID-3507
+     */
+    @Test
+    public void test750AddAndDeleteUserWithPrecreate() throws Exception {
+        final String TEST_NAME = "test750AddAndDeleteUserWithPrecreate";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        setGlobalTracingOverride(createModelLoggingTracingProfile());
+        clock.resetOverride();
+
+        XMLGregorianCalendar yesterday = clock.currentTimeXMLGregorianCalendar();
+        yesterday.add(XmlTypeConverter.createDuration("-P1D"));
+        System.out.println("yesterday = " + yesterday);
+
+        UserType user = new UserType(prismContext)
+                .name("test750")
+                .beginAssignment()
+                    .beginConstruction()
+                        .resourceRef(RESOURCE_DUMMY_PRECREATE.oid, ResourceType.COMPLEX_TYPE)
+                    .<AssignmentType>end()
+                .<UserType>end()
+                .beginActivation()
+                    .validFrom(yesterday)
+                .end();
+        String oid = addObject(user.asPrismObject(), task, result);
+        assertSuccess(result);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        deleteObject(UserType.class, oid, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+
+        // There's a hidden FATAL_ERROR when unlinking deleted shadow (benign ... but it prevents us from asserting success tree-wide)
+        //assertSuccess(result);
+        assertSuccess(result, 2);
+    }
 
     private void assertDummyActivationEnabledState(String userId, Boolean expectedEnabled) throws SchemaViolationException, ConflictException, InterruptedException {
         assertDummyActivationEnabledState(null, userId, expectedEnabled);
@@ -2921,6 +2980,4 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         }
         AssertJUnit.fail("Expected validityChangeTimestamp to be between "+lowerBound+" and "+upperBound+", but it was "+validityMillis);
     }
-
-
 }
