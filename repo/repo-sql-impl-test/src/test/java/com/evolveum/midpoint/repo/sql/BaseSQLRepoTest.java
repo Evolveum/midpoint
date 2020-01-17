@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
@@ -27,10 +28,7 @@ import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -43,6 +41,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +60,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -82,6 +82,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     static final ItemName EXT_HIDDEN2 = new ItemName(NS_EXT, "hidden2");
     static final ItemName EXT_HIDDEN3 = new ItemName(NS_EXT, "hidden3");
     static final ItemName EXT_VISIBLE = new ItemName(NS_EXT, "visible");
+    static final ItemName EXT_VISIBLE_SINGLE = new ItemName(NS_EXT, "visibleSingle");
 
     static final ItemName EXT_LOOT = new ItemName(NS_EXT, "loot");
     static final ItemName EXT_WEAPON = new ItemName(NS_EXT, "weapon");
@@ -107,6 +108,8 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     @Autowired protected TestQueryListener queryListener;
 
     private static Set<Class> initializedClasses = new HashSet<>();
+
+    protected boolean verbose = false;
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -313,5 +316,18 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
                 .map(RAExtString::getValue)
                 .collect(Collectors.toSet());
         assertEquals("Wrong values of assignment extension item " + item.getName(), new HashSet<>(Arrays.asList(expectedValues)), realValues);
+    }
+
+    protected void assertSearch(ItemName item, String value, int expectedCount, OperationResult result) throws SchemaException {
+        ObjectQuery query = getPrismContext().queryFor(UserType.class)
+                .item(UserType.F_EXTENSION, item)
+                .eq(value)
+                .build();
+        SearchResultList<PrismObject<UserType>> found = repositoryService
+                .searchObjects(UserType.class, query, null, result);
+        if (verbose) {
+            PrismTestUtil.display("Found", found);
+        }
+        assertEquals("Wrong # of objects found", expectedCount, found.size());
     }
 }
