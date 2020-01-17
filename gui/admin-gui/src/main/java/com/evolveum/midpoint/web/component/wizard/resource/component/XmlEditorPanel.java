@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -32,6 +33,11 @@ public class XmlEditorPanel extends BasePanel<String> {
 
     protected void initLayout() {
         AceEditor editor = new AceEditor(ID_ACE_EDITOR, getModel());
+        editor.setReadonly(!isEditEnabled());
         add(editor);
+    }
+
+    protected boolean isEditEnabled() {
+        return true;
     }
 }

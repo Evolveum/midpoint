@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.ParsingContextImpl;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.lex.LexicalUtils;
 import com.evolveum.midpoint.prism.impl.lex.json.yaml.MidpointYAMLGenerator;
@@ -21,10 +22,10 @@ import com.evolveum.midpoint.prism.impl.xnode.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xnode.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.fasterxml.jackson.core.*;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -45,9 +46,15 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
     private static final Trace LOGGER = TraceManager.getTrace(AbstractJsonLexicalProcessor.class);
 
     private static final String PROP_NAMESPACE = "@ns";
+    private static final QName PROP_NAMESPACE_QNAME = new QName(PROP_NAMESPACE);
     private static final String PROP_TYPE = "@type";
+    private static final QName PROP_TYPE_QNAME = new QName(PROP_TYPE);
+    private static final String PROP_INCOMPLETE = "@incomplete";
+    private static final QName PROP_INCOMPLETE_QNAME = new QName(PROP_INCOMPLETE);
     private static final String PROP_ELEMENT = "@element";
+    private static final QName PROP_ELEMENT_QNAME = new QName(PROP_ELEMENT);
     private static final String PROP_VALUE = "@value";
+    private static final QName PROP_VALUE_QNAME = new QName(PROP_VALUE);
 
     private static final String DEFAULT_NAMESPACE_MARKER = "##DEFAULT-NAMESPACE##";
 
@@ -89,16 +96,26 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
             return parseFromStart(parser, parsingContext, null);
         } finally {
             if (source.closeStreamAfterParsing()) {
-                IOUtils.closeQuietly(is);
+                closeQuietly(is);
+            }
+        }
+    }
+
+    private void closeQuietly(InputStream is) {
+        if (is != null) {
+            try {
+                is.close();
+            } catch (IOException e) {
+                LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't close the input stream", e);
             }
         }
     }
 
     private static final class IterativeParsingContext {
-        final RootXNodeHandler handler;
-        boolean dataSent;                      // true if we really found the list of objects and sent it out
-        String defaultNamespace;               // default namespace, if present
-        boolean abortProcessing;               // used when handler returns 'do not continue'
+        private final RootXNodeHandler handler;
+        private boolean dataSent;                      // true if we really found the list of objects and sent it out
+        private String defaultNamespace;               // default namespace, if present
+        private boolean abortProcessing;               // used when handler returns 'do not continue'
 
         private IterativeParsingContext(RootXNodeHandler handler) {
             this.handler = handler;
@@ -114,7 +131,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
             parseFromStart(parser, parsingContext, handler);
         } finally {
             if (source.closeStreamAfterParsing()) {
-                IOUtils.closeQuietly(is);
+                closeQuietly(is);
             }
         }
     }
@@ -123,7 +140,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 
     static class JsonParsingContext {
         @NotNull final JsonParser parser;
-        @NotNull private final ParsingContext prismParsingContext;
+        @NotNull private final ParsingContextImpl prismParsingContext;
 
         // TODO consider getting rid of these IdentityHashMaps by support default namespace marking and resolution
         //  directly in XNode structures (like it was done for Map XNode keys recently).
@@ -133,7 +150,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
         // Elements that should be skipped when filling-in default namespaces - those that are explicitly set with no-NS ('#name').
         // (Values for these entries are not important. Only key presence is relevant.)
         @NotNull private final IdentityHashMap<XNodeImpl, Object> noNamespaceElementNames = new IdentityHashMap<>();
-        private JsonParsingContext(@NotNull JsonParser parser, @NotNull ParsingContext prismParsingContext) {
+        private JsonParsingContext(@NotNull JsonParser parser, @NotNull ParsingContextImpl prismParsingContext) {
             this.parser = parser;
             this.prismParsingContext = prismParsingContext;
         }
@@ -155,7 +172,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
                 throw new SchemaException("Nothing to parse: the input is empty.");
             }
             do {
-                ctx = new JsonParsingContext(parser, parsingContext);
+                ctx = new JsonParsingContext(parser, (ParsingContextImpl) parsingContext);
                 IterativeParsingContext ipc = handler != null ? new IterativeParsingContext(handler) : null;
                 XNodeImpl xnode = parseValue(ctx, ipc);
                 if (ipc != null && ipc.dataSent) {
@@ -313,7 +330,9 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
     }
 
     /**
-     * Normally returns a MapXNode. However, JSON primitives/lists can be simulated by two-member object (@type + @value); in these cases we return respective XNode.
+     * Normally returns a MapXNode. However, there are exceptions:
+     * - JSON primitives/lists can be simulated by two-member object (@type + @value); in these cases we return respective XNode.
+     * - Incomplete marker i.e. { "@incomplete" : "true" } should be interpreted as IncompleteMarkerXNode.
      */
     @NotNull
     private XNodeImpl parseJsonObject(JsonParsingContext ctx, IterativeParsingContext ipc) throws SchemaException, IOException {
@@ -331,7 +350,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
         XNodeImpl wrappedValue = null;
         boolean defaultNamespaceDefined = false;
         QNameUtil.QNameInfo currentFieldNameInfo = null;
-
+        Boolean incomplete = null;
         for (;;) {
             if (ipc != null && ipc.abortProcessing) {
                 break;
@@ -398,6 +417,17 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
                             ctx.prismParsingContext.warnOrThrow(LOGGER, "Value ('" + PROP_VALUE + "') defined more than once at " + getPositionSuffix(ctx));
                         }
                         wrappedValue = valueXNode;
+                    } else if (isIncompleteDeclaration(currentFieldNameInfo.name)) {
+                        if (incomplete != null) {
+                            ctx.prismParsingContext.warnOrThrow(LOGGER, "Duplicate @incomplete marker found with the value: " + valueXNode);
+                        } else if (valueXNode instanceof PrimitiveXNodeImpl) {
+                            //noinspection unchecked
+                            Boolean value = ((PrimitiveXNodeImpl<Boolean>) valueXNode)
+                                    .getParsedValue(DOMUtil.XSD_BOOLEAN, Boolean.class, ctx.prismParsingContext.getEvaluationMode());
+                            incomplete = Boolean.TRUE.equals(value);
+                        } else {
+                            ctx.prismParsingContext.warnOrThrow(LOGGER, "@incomplete marker found with incompatible value: " + valueXNode);
+                        }
                     }
                 } else {
                     // Beware of potential unqualified value conflict (see MID-5326).
@@ -414,17 +444,23 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
                 currentFieldNameInfo = null;
             }
         }
-        // Return either map or primitive value (in case of @type/@value)
+        // Return either map or primitive value (in case of @type/@value) or incomplete xnode
+        int haveRegular = !map.isEmpty() ? 1 : 0;
+        int haveWrapped = wrappedValue != null ? 1 : 0;
+        int haveIncomplete = Boolean.TRUE.equals(incomplete) ? 1 : 0;
         XNodeImpl rv;
-        if (wrappedValue != null) {
-            if (!map.isEmpty()) {
-                ctx.prismParsingContext.warnOrThrow(LOGGER, "Both '" + PROP_VALUE + "' and regular content present at " + getPositionSuffix(ctx));
-                rv = map;
-            } else {
-                rv = wrappedValue;
-            }
-        } else {
+        if (haveRegular + haveWrapped + haveIncomplete > 1) {
+            ctx.prismParsingContext.warnOrThrow(LOGGER, "More than one of '" + PROP_VALUE + "', '" + PROP_INCOMPLETE
+                    + "' and regular content present at " + getPositionSuffix(ctx));
             rv = map;
+        } else {
+            if (haveIncomplete > 0) {
+                rv = new IncompleteMarkerXNodeImpl();
+            } else if (haveWrapped > 0) {
+                rv = wrappedValue;
+            } else {
+                rv = map;   // map can be empty here
+            }
         }
         if (typeName != null) {
             if (wrappedValue != null && wrappedValue.getTypeQName() != null && !wrappedValue.getTypeQName().equals(typeName)) {
@@ -469,25 +505,30 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 
     private boolean isSpecial(QName fieldName) {
         return isTypeDeclaration(fieldName)
+                || isIncompleteDeclaration(fieldName)
                 || isElementDeclaration(fieldName)
                 || isNamespaceDeclaration(fieldName)
                 || isValue(fieldName);
     }
 
     private boolean isTypeDeclaration(QName fieldName) {
-        return new QName(PROP_TYPE).equals(fieldName);
+        return PROP_TYPE_QNAME.equals(fieldName);
+    }
+
+    private boolean isIncompleteDeclaration(QName fieldName) {
+        return PROP_INCOMPLETE_QNAME.equals(fieldName);
     }
 
     private boolean isElementDeclaration(QName fieldName) {
-        return new QName(PROP_ELEMENT).equals(fieldName);
+        return PROP_ELEMENT_QNAME.equals(fieldName);
     }
 
     private boolean isNamespaceDeclaration(QName fieldName) {
-        return new QName(PROP_NAMESPACE).equals(fieldName);
+        return PROP_NAMESPACE_QNAME.equals(fieldName);
     }
 
     private boolean isValue(QName fieldName) {
-        return new QName(PROP_VALUE).equals(fieldName);
+        return PROP_VALUE_QNAME.equals(fieldName);
     }
 
     private String getPositionSuffix(JsonParsingContext ctx) {
@@ -552,7 +593,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
         return primitive;
     }
 
-    private <T> PrimitiveXNodeImpl<T> parseToEmptyPrimitive() throws IOException, SchemaException {
+    private <T> PrimitiveXNodeImpl<T> parseToEmptyPrimitive() {
         PrimitiveXNodeImpl<T> primitive = new PrimitiveXNodeImpl<>();
         primitive.setValueParser(new JsonNullValueParser<>());
         return primitive;
@@ -704,6 +745,11 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
             serializeFromPrimitive((PrimitiveXNodeImpl<?>) xnode, ctx);
         } else if (xnode instanceof SchemaXNodeImpl) {
             serializeFromSchema((SchemaXNodeImpl) xnode, ctx);
+        } else if (xnode instanceof IncompleteMarkerXNodeImpl) {
+            ctx.generator.writeStartObject();
+            ctx.generator.writeFieldName(PROP_INCOMPLETE);
+            ctx.generator.writeBoolean(true);
+            ctx.generator.writeEndObject();
         } else {
             throw new UnsupportedOperationException("Cannot serialize from " + xnode);
         }
@@ -862,7 +908,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
         }
     }
 
-    protected QName getExplicitType(XNodeImpl xnode) {
+    private QName getExplicitType(XNodeImpl xnode) {
         return xnode.isExplicitTypeDeclaration() ? xnode.getTypeQName() : null;
     }
 

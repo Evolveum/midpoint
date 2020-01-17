@@ -1016,7 +1016,7 @@ public class PrismAsserts {
         assertPathEquivalent("Wrong filter path", path, filter.getFullPath());
     }
 
-    // Local version of JUnit assers to avoid pulling JUnit dependecy to main
+    // Local version of JUnit asserts to avoid pulling JUnit dependency to main
 
     static void assertNotNull(String string, Object object) {
         assert object != null : string;
@@ -1241,4 +1241,9 @@ public class PrismAsserts {
         }
     }
 
+    public static void assertIncomplete(PrismObject<?> object, ItemPath itemPath) {
+        Item<?, ?> item = object.findItem(itemPath);
+        assertNotNull("No " + itemPath + " in " + object, item);
+        assertTrue(itemPath + " is not incomplete in " + object, item.isIncomplete());
+    }
 }

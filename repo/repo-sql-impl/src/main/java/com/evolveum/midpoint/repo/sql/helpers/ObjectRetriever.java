@@ -54,6 +54,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.ArrayUtils.getLength;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -540,16 +541,17 @@ public class ObjectRetriever {
             throw e;
         }
         attachDiagDataIfRequested(prismObject, fullObject, options);
-        if (FocusType.class.isAssignableFrom(prismObject.getCompileTimeClass())) {
+        if (prismObject.getCompileTimeClass() != null && FocusType.class.isAssignableFrom(prismObject.getCompileTimeClass())) {
             if (SelectorOptions.hasToLoadPath(FocusType.F_JPEG_PHOTO, options)) {
-                //todo improve, use user.hasPhoto flag and take options into account [lazyman]
-                //this is called only when options contains INCLUDE user/jpegPhoto
                 Query query = session.getNamedQuery("get.focusPhoto");
                 query.setParameter("oid", prismObject.getOid());
                 byte[] photo = (byte[]) query.uniqueResult();
                 if (photo != null) {
-                    PrismProperty property = prismObject.findOrCreateProperty(FocusType.F_JPEG_PHOTO);
-                    property.setRealValue(photo);
+                    PrismProperty<byte[]> photoProperty = prismObject.findOrCreateProperty(FocusType.F_JPEG_PHOTO);
+                    photoProperty.setRealValue(photo);
+                    photoProperty.setIncomplete(false);
+                } else {
+                    setPropertyNullAndComplete(prismObject, FocusType.F_JPEG_PHOTO);
                 }
             }
         } else if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
@@ -580,19 +582,15 @@ public class ObjectRetriever {
                     String xmlResult = RUtil.getXmlFromByteArray(opResult, true);
                     OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
 
-                    PrismProperty property = prismObject.findOrCreateProperty(TaskType.F_RESULT);
-                    property.setRealValue(resultType);  //OperationResult.createOperationResult(resultType)
+                    PrismProperty<OperationResultType> resultProperty = prismObject.findOrCreateProperty(TaskType.F_RESULT);
+                    resultProperty.setRealValue(resultType);
+                    resultProperty.setIncomplete(false);
 
                     prismObject.setPropertyRealValue(TaskType.F_RESULT_STATUS, resultType.getStatus());
+                } else {
+                    setPropertyNullAndComplete(prismObject, TaskType.F_RESULT);
                 }
             }
-//            else {
-//                Query<ROperationResultStatus> query = session.getNamedQuery("get.taskStatus");
-//                query.setParameter("oid", prismObject.getOid());
-//
-//                ROperationResultStatus status = query.uniqueResult();
-//                prismObject.setPropertyRealValue(TaskType.F_RESULT_STATUS, (status != null ? status.getSchemaValue() : null));
-//            }
         }
         if (getConfiguration().isEnableIndexOnlyItems()) {
             loadIndexOnlyItemsIfNeeded(prismObject, options, raw, session);
@@ -608,7 +606,14 @@ public class ObjectRetriever {
         return prismObject;
     }
 
-    // TODO add support for index-only attributes here
+    private <T extends ObjectType> void setPropertyNullAndComplete(PrismObject<T> prismObject, ItemPath path) {
+        PrismProperty<?> photoProperty = prismObject.findProperty(path);
+        if (photoProperty != null) {
+            photoProperty.setRealValue(null);
+            photoProperty.setIncomplete(false);
+        }
+    }
+
     private <T extends ObjectType> void loadIndexOnlyItemsIfNeeded(PrismObject<T> prismObject,
             Collection<SelectorOptions<GetOperationOptions>> options, boolean raw, Session session) throws SchemaException {
         List<SelectorOptions<GetOperationOptions>> retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
@@ -641,16 +646,25 @@ public class ObjectRetriever {
                                     item.addRealValue(value.getValue());
                                 }
                             }
-                            prismObject.getOrCreateExtension().getValue().add(item);
+                            PrismContainerValue<?> extensionPcv = prismObject.getOrCreateExtension().getValue();
+                            extensionPcv.removeProperty(itemDefinition.getItemName());      // temporary hack
+                            extensionPcv.add(item);
                         } else {
                             throw new UnsupportedOperationException(
                                     "Non-property index-only items are not supported: " + itemDefinition);
+                        }
+                    } else {
+                        // this is to remove "incomplete" flag and/or any obsolete information
+                        PrismContainerValue<?> extensionPcv = prismObject.getExtensionContainerValue();
+                        if (extensionPcv != null) {
+                            extensionPcv.removeProperty(itemDefinition.getItemName());
                         }
                     }
                 }
             }
         }
         // todo what about extension items that are not part of object extension definition?
+        //  we should utilize 'incomplete' flag
 
         // attributes
         Class<T> compileTimeClass = prismObject.getCompileTimeClass();
@@ -681,8 +695,11 @@ public class ObjectRetriever {
             Collection<? extends ROExtValue<?>> dbCollection, boolean raw) throws SchemaException {
         PrismContainer<Containerable> attributeContainer = shadowObject.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
         // Hack: let's ignore values of attributes that already exist in this container
-        Collection<QName> existingAttributeNames = attributeContainer.getValue().getItemNames();
-        LOGGER.trace("existingAttributeNames = {}", existingAttributeNames);
+        Set<QName> existingCompleteAttributeNames = attributeContainer.getValue().getItems().stream()
+                .filter(item -> !item.isIncomplete())
+                .map(Item::getElementName)
+                .collect(Collectors.toSet());
+        LOGGER.trace("existingAttributeNames = {}", existingCompleteAttributeNames);
         for (ROExtValue<?> rValue : dbCollection) {
             if (rValue.getOwnerType() == RObjectExtensionType.ATTRIBUTES) {
                 LOGGER.trace("- processing {}", rValue);
@@ -692,7 +709,7 @@ public class ObjectRetriever {
                             rValue.getItemId(), rValue, shadowObject);
                 } else {
                     ItemName extItemName = RUtil.stringToQName(extItem.getName());
-                    if (!QNameUtil.matchAny(extItemName, existingAttributeNames)) {
+                    if (!QNameUtil.matchAny(extItemName, existingCompleteAttributeNames)) {
                         PrismProperty attribute = attributeContainer.findProperty(extItemName);
                         if (attribute == null) {
                             if (raw) {
@@ -705,6 +722,7 @@ public class ObjectRetriever {
                         }
                         //noinspection unchecked
                         attribute.addRealValue(rValue.getValue());      // no polystring nor reference is expected here
+                        attribute.setIncomplete(false);
                     }
                 }
             }

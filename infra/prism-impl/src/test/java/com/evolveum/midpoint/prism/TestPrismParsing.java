@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -82,7 +82,7 @@ public abstract class TestPrismParsing {
         System.out.println(user.debugDump());
         assertNotNull(user);
 
-        assertUserJack(user, true);
+        assertUserJack(user, true, true);
     }
 
     @Test
@@ -100,7 +100,7 @@ public abstract class TestPrismParsing {
         System.out.println(user.debugDump());
         assertNotNull(user);
 
-        assertUserJack(user, true);
+        assertUserJack(user, true, false);
     }
 
     @Test
@@ -119,7 +119,7 @@ public abstract class TestPrismParsing {
         System.out.println(user.debugDump());
         assertNotNull(user);
 
-        assertUserJack(user, true, false);
+        assertUserJack(user, true, false, false);
     }
 
     @Test
@@ -138,7 +138,7 @@ public abstract class TestPrismParsing {
         System.out.println(user.debugDump());
         assertNotNull(user);
 
-        assertUserAdhoc(user, true);
+        assertUserAdhoc(user, true, false);
     }
 
     @Test
@@ -146,7 +146,7 @@ public abstract class TestPrismParsing {
         final String TEST_NAME = "test200RoundTrip";
         displayTestTitle(TEST_NAME);
 
-        roundTrip(getFile(USER_JACK_FILE_BASENAME), true);
+        roundTrip(getFile(USER_JACK_FILE_BASENAME), true, true);
     }
 
     @Test
@@ -154,7 +154,7 @@ public abstract class TestPrismParsing {
         final String TEST_NAME = "test210RoundTripNoNs";
         displayTestTitle(TEST_NAME);
 
-        roundTrip(getFile(USER_JACK_NO_NS_BASENAME), true);
+        roundTrip(getFile(USER_JACK_NO_NS_BASENAME), true, false);
     }
 
     @Test
@@ -162,11 +162,10 @@ public abstract class TestPrismParsing {
         final String TEST_NAME = "test220RoundTripObject";
         displayTestTitle(TEST_NAME);
 
-        roundTrip(getFile(USER_JACK_OBJECT_BASENAME), false);
+        roundTrip(getFile(USER_JACK_OBJECT_BASENAME), false, false);
     }
 
-
-    private void roundTrip(File file, boolean expectFullPolyName) throws SchemaException, SAXException, IOException {
+    private void roundTrip(File file, boolean expectFullPolyName, boolean withIncomplete) throws SchemaException, SAXException, IOException {
 
         // GIVEN
         PrismContext prismContext = constructInitializedPrismContext();
@@ -177,7 +176,7 @@ public abstract class TestPrismParsing {
         assertNotNull(originalUser);
 
         // precondition
-        assertUserJack(originalUser, true, expectFullPolyName);
+        assertUserJack(originalUser, true, expectFullPolyName, withIncomplete);
 
         // WHEN
         // We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
@@ -196,7 +195,7 @@ public abstract class TestPrismParsing {
         System.out.println(parsedUser.debugDump());
         assertNotNull(parsedUser);
 
-        assertUserJack(parsedUser, true, expectFullPolyName);
+        assertUserJack(parsedUser, true, expectFullPolyName, withIncomplete);
 
         ObjectDelta<UserType> diff = DiffUtil.diff(originalUser, parsedUser);
         System.out.println("Diff:");
@@ -226,7 +225,7 @@ public abstract class TestPrismParsing {
         assertNotNull(originalUser);
 
         // precondition
-        assertUserAdhoc(originalUser, true);
+        assertUserAdhoc(originalUser, true, false);
 
         // WHEN
         // We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
@@ -245,7 +244,7 @@ public abstract class TestPrismParsing {
         System.out.println(parsedUser.debugDump());
         assertNotNull(parsedUser);
 
-        assertUserAdhoc(parsedUser, true);
+        assertUserAdhoc(parsedUser, true, false);
 
         assertTrue("Users not equal", originalUser.equals(parsedUser));
     }
@@ -438,9 +437,9 @@ public abstract class TestPrismParsing {
     }
 
 
-    protected void assertUserAdhoc(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
+    protected void assertUserAdhoc(PrismObject<UserType> user, boolean expectRawInConstructions, boolean withIncomplete) throws SchemaException {
         user.checkConsistence();
-        assertUserJackContent(user, expectRawInConstructions, true);
+        assertUserJackContent(user, expectRawInConstructions, true, withIncomplete);
         assertUserExtensionAdhoc(user);
         assertVisitor(user, 58);
     }
@@ -470,7 +469,11 @@ public abstract class TestPrismParsing {
         user.checkConsistence();
         user.assertDefinitions("test");
         assertUserWillExtension(user);
-        assertVisitor(user,55);
+        assertVisitor(user, 56);
+        PrismProperty<Object> passwordProperty = user.findProperty(UserType.F_PASSWORD);
+        assertNotNull("No password property", passwordProperty);
+        assertEquals("Wrong # of password values", 0, passwordProperty.getValues().size());
+        assertTrue("Password is not incomplete", passwordProperty.isIncomplete());
     }
 
     private void assertUserWillExtension(PrismObject<UserType> user) {

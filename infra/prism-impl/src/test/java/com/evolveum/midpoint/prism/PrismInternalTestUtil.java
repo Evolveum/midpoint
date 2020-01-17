@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -291,15 +291,15 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         PrismTestUtil.displayTestTitle(testName);
     }
 
-    public static void assertUserJack(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
-        assertUserJack(user, expectRawInConstructions, true);
+    public static void assertUserJack(PrismObject<UserType> user, boolean expectRawInConstructions, boolean withIncomplete) throws SchemaException {
+        assertUserJack(user, expectRawInConstructions, true, withIncomplete);
     }
 
-    public static void assertUserJack(PrismObject<UserType> user, boolean expectRawInConstructions, boolean expectFullPolyName) throws SchemaException {
+    public static void assertUserJack(PrismObject<UserType> user, boolean expectRawInConstructions, boolean expectFullPolyName, boolean withIncomplete) throws SchemaException {
         user.checkConsistence();
         user.assertDefinitions("test");
-        assertUserJackContent(user, expectRawInConstructions, expectFullPolyName);
-        assertUserJackExtension(user);
+        assertUserJackContent(user, expectRawInConstructions, expectFullPolyName, withIncomplete);
+        assertUserJackExtension(user, withIncomplete);
         assertVisitor(user, 71);
 
         assertPathVisitor(user, UserType.F_ASSIGNMENT, true, 9);
@@ -317,7 +317,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 //                NameItemPathSegment.WILDCARD), false, 5);
     }
 
-    public static void assertUserJackContent(PrismObject<UserType> user, boolean expectRawInConstructions, boolean expectFullPolyName) throws SchemaException {
+    public static void assertUserJackContent(PrismObject<UserType> user, boolean expectRawInConstructions,
+            boolean expectFullPolyName, boolean withIncomplete) throws SchemaException {
         PrismContext prismContext = user.getPrismContext();
         assertEquals("Wrong oid", USER_JACK_OID, user.getOid());
         assertEquals("Wrong version", "42", user.getVersion());
@@ -372,6 +373,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         ItemName descriptionName = new ItemName(NS_FOO,"description");
         ItemName accountConstructionName = new ItemName(NS_FOO,"accountConstruction");
         PrismContainer<AssignmentType> assContainer = user.findContainer(assName);
+        if (withIncomplete) {
+            assertTrue("Assignment is not incomplete", assContainer.isIncomplete());
+        }
         assertEquals("Wrong assignement values", 2, assContainer.getValues().size());
         PrismProperty<String> a2DescProperty = assContainer.getValue(USER_ASSIGNMENT_2_ID).findProperty(descriptionName);
         assertEquals("Wrong assigment 2 description", "Assignment 2", a2DescProperty.getValue().getValue());
@@ -406,6 +410,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         assertEquals("Wrong value #2", "Nobody", prismUserValue2.findProperty(new ItemName(NS_FOO, "fullName")).getRealValue());
 
         PrismReference accountRef = user.findReference(USER_ACCOUNTREF_QNAME);
+        if (withIncomplete) {
+            assertTrue("accountRef is not incomplete", accountRef.isIncomplete());
+        }
         assertNotNull("Reference "+USER_ACCOUNTREF_QNAME+" not found", accountRef);
         assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());
         PrismAsserts.assertReferenceValue(accountRef, "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111");
@@ -455,7 +462,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         assertEquals("Wrong lang in polystring for key "+key, expectedValue, lang.get(key));
     }
 
-    private static void assertUserJackExtension(PrismObject<UserType> user) throws SchemaException {
+    private static void assertUserJackExtension(PrismObject<UserType> user, boolean withIncomplete) throws SchemaException {
         PrismContext prismContext = user.getPrismContext();
         PrismContainer<?> extension = user.getExtension();
         assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
@@ -490,7 +497,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         PrismPropertyDefinition multiPropertyDef = multi.getDefinition();
         PrismAsserts.assertDefinitionTypeLoose(multiPropertyDef, EXTENSION_MULTI_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
         assertNull("'Indexed' attribute on 'multi' property is not null", multiPropertyDef.isIndexed());
-
+        if (withIncomplete) {
+            assertTrue("Extension multi is not incomplete", multi.isIncomplete());
+        }
     }
 
     public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
