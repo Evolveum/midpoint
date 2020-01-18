@@ -33,8 +33,10 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.LDIFException;
@@ -89,23 +91,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaGenerationConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -141,6 +126,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 public class TestOpenDj extends AbstractOpenDjTest {
 
     protected static final String USER_JACK_FULL_NAME = "Jack Sparrow";
+    private static final File FILE_MODIFY_ASSOCIATION_REPLACE = new File(TEST_DIR, "account-modify-association.xml");
 
     private static final String[] JACK_FULL_NAME_LANG_EN_SK = {
             "en", "Jack Sparrow",
@@ -2531,6 +2517,60 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         assertShadows(19);
     }
+
+    @Test
+    public void test403modifyMorganReplaceAssociation() throws Exception {
+        final String TEST_NAME = "test403modifyMorganReplaceAssociation";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        ObjectModificationType modification = prismContext.parserFor(FILE_MODIFY_ASSOCIATION_REPLACE).parseRealValue(ObjectModificationType.class);
+        ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(modification, ShadowType.class, prismContext);
+        try {
+            provisioningService.modifyObject(ShadowType.class, ACCOUNT_MORGAN_OID, delta.getModifications(), null, null, task, result);
+            assertNotReached();
+        } catch (SchemaException e) {
+            //expected exception because replace delta is not supported for association
+        }
+
+        // THEN
+        displayThen(TEST_NAME);
+
+        assertRepoShadow(ACCOUNT_MORGAN_OID)
+                .assertName(ACCOUNT_MORGAN_DN);
+
+        ShadowAsserter<Void> provisioningShadowAsserter = assertShadowProvisioning(ACCOUNT_MORGAN_OID)
+                .assertName(ACCOUNT_MORGAN_DN)
+                .associations()
+                    .assertSize(1)
+                    .association(ASSOCIATION_GROUP_NAME)
+                    .assertShadowOids(GROUP_SWASHBUCKLERS_OID)
+                    .end()
+                .end();
+
+        String uid = provisioningShadowAsserter
+                .attributes()
+                .getValue(getPrimaryIdentifierQName());
+        assertNotNull(uid);
+
+        Entry accountEntry = openDJController.searchAndAssertByEntryUuid(uid);
+        display("LDAP account", accountEntry);
+        assertNotNull("No LDAP account entry");
+        String accountDn = accountEntry.getDN().toString();
+        assertEquals("Wrong account DN", ACCOUNT_MORGAN_DN, accountDn);
+
+        Entry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN);
+        display("LDAP group", groupEntry);
+        assertNotNull("No LDAP group entry");
+        openDJController.assertUniqueMember(groupEntry, accountDn);
+
+        assertShadows(19);
+    }
+
 
     @Test
     public void test405GetGroupSwashbucklers() throws Exception {
