@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.sql.util;
+package com.evolveum.midpoint.task.api.test;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -20,123 +20,132 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-import static java.util.Collections.*;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 
 /**
+ * DO NOT USE in production code. This is only for testing purposes: provides a no-op implementation of Task interface
+ * to be used when task-quartz-impl is not available.
+ *
+ * TODO move to src/main/test tree.
+ * 
  * @author lazyman
  */
-public class SimpleTaskAdapter implements Task {
+public class NullTaskImpl implements Task {
 
     @Override
     public void addDependent(String taskIdentifier) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isAsynchronous() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public TaskExecutionStatus getExecutionStatus() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void makeWaiting() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void makeRunnable() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setInitialExecutionStatus(TaskExecutionStatus value) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public TaskPersistenceStatus getPersistenceStatus() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isTransient() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isPersistent() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public TaskRecurrence getRecurrenceStatus() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isSingle() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isRecurring() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public ScheduleType getSchedule() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public TaskBinding getBinding() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isTightlyBound() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isLooselyBound() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setBinding(TaskBinding value) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setBindingImmediate(TaskBinding value, OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String getHandlerUri() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setHandlerUri(String value) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setHandlerUriImmediate(String value, OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public UriStack getOtherHandlersUriStack() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -151,7 +160,7 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void setOwner(PrismObject<UserType> owner) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -161,12 +170,12 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void setChannel(String channelUri) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setChannelImmediate(String channelUri, OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -193,67 +202,67 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public ObjectReferenceType getObjectRefOrClone() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setObjectRef(ObjectReferenceType objectRef) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setObjectRef(String oid, QName type) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setObjectTransient(PrismObject object) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String getObjectOid() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public OperationResult getResult() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setResultTransient(OperationResult result) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setResult(OperationResult result) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setResultImmediate(OperationResult result, OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Long getLastRunStartTimestamp() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Long getLastRunFinishTimestamp() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Long getNextRunStartTime(OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -263,87 +272,87 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void setName(PolyStringType value) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setName(String value) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setNameImmediate(PolyStringType value, OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItemOrClone(ItemName propertyName) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public <C extends Containerable> void setExtensionContainer(PrismContainer<C> item) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setExtensionReference(PrismReference reference) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setExtensionProperty(PrismProperty<?> property) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void addExtensionProperty(PrismProperty<?> property) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public <T> void setExtensionPropertyValue(QName propertyName, T value) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public <T> void setExtensionPropertyValueTransient(QName propertyName, T value) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public <T extends Containerable> void setExtensionContainerValue(QName containerName, T value) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setExtensionItem(Item item) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void modifyExtension(ItemDelta itemDelta) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public long getProgress() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setProgress(Long value) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setProgressImmediate(Long progress, OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -353,64 +362,64 @@ public class SimpleTaskAdapter implements Task {
     @NotNull
     @Override
     public PrismObject<TaskType> getUpdatedOrClonedTaskObject() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @NotNull
     @Override
     public PrismObject<TaskType> getUpdatedTaskObject() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @NotNull
     @Override
     public PrismObject<TaskType> getClonedTaskObject() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void refresh(OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String debugDump() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String debugDump(int indent) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void flushPendingModifications(OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String getCategory() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void makeRecurringSimple(int interval) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void makeRecurringCron(String cronLikeSpecification) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void makeSingle() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String getNode() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -420,22 +429,22 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public OperationResultStatusType getResultStatus() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public ThreadStopActionType getThreadStopAction() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isResilient() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setCategory(String category) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -481,159 +490,159 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void setDescriptionImmediate(String value, OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setDescription(String value) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String getDescription() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void deleteExtensionProperty(PrismProperty<?> property) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setThreadStopAction(ThreadStopActionType value) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void makeRecurring(ScheduleType schedule) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void makeSingle(ScheduleType schedule) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Task createSubtask() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String getParent() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding,
                                Collection<ItemDelta<?,?>> extensionDeltas) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, ItemDelta<?,?> delta) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void finishHandler(OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @NotNull
     @Override
     public List<Task> listSubtasks(boolean persistentOnly, OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public List<Task> listPrerequisiteTasks(OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void startWaitingForTasksImmediate(OperationResult result) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public List<String> getDependents() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void deleteDependent(String value) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public List<Task> listDependents(OperationResult result) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Task getParentTask(OperationResult result) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public TaskWaitingReason getWaitingReason() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isClosed() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void makeWaiting(TaskWaitingReason reason) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void makeWaiting(TaskWaitingReason reason, TaskUnpauseActionType unpauseAction) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void pushWaitForTasksHandlerUri() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Long getCompletionTimestamp() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void setObjectRefImmediate(ObjectReferenceType value, OperationResult parentResult) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void addExtensionReference(PrismReference reference) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public List<Task> listSubtasksDeeply(boolean persistentOnly, OperationResult result) {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Collection<ItemDelta<?,?>> getPendingModifications() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public PolicyRuleType getPolicyRule() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException();
     }
 
 

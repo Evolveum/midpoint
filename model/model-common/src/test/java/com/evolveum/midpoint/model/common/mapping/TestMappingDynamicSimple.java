@@ -618,7 +618,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult("testScriptExtraVariablesRef");
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
@@ -647,7 +647,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
@@ -711,7 +711,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -743,7 +743,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -773,7 +773,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -933,7 +933,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -961,7 +961,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -985,7 +985,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -1020,7 +1020,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1060,7 +1060,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1099,7 +1099,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         displayWhen(TEST_NAME);
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         outputTriple.checkConsistence();
@@ -1121,7 +1121,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN (1)
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN (1)
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
@@ -1135,7 +1135,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         mapping = evaluator.createMapping("mapping-generate.xml", TEST_NAME, stringPolicy, "employeeNumber", null);
 
         // WHEN (2)
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN (2)
         outputTriple = mapping.getOutputTriple();
@@ -1194,7 +1194,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN (1)
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN (1)
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
@@ -1211,7 +1211,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         mapping = evaluator.createMapping(mappingFileName, TEST_NAME, stringPolicy, "employeeNumber", null);
 
         // WHEN (2)
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN (2)
         outputTriple = mapping.getOutputTriple();
@@ -1284,7 +1284,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN (1)
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN (1)
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
@@ -1307,7 +1307,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 .build();
 
         // WHEN (2)
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN (2)
         outputTriple = mapping.getOutputTriple();
@@ -1332,7 +1332,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<ProtectedStringType>> outputTriple = mapping.getOutputTriple();

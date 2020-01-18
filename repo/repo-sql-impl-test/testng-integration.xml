@@ -46,6 +46,8 @@
             <class name="com.evolveum.midpoint.repo.sql.ExtensionTest"/>
             <class name="com.evolveum.midpoint.repo.sql.ExtensionTestNoFetchDeletion"/>
             <class name="com.evolveum.midpoint.repo.sql.ExtensionTestSafeInsertionAndDeletion"/>
+            <class name="com.evolveum.midpoint.repo.sql.UserPhotoTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.OrgPhotoTest"/>
         </classes>
     </test>
     <test name="Concurrency Tests" parallel="false" preserve-order="true" verbose="10" enabled="false">        <!-- enabled only for dbtest -->

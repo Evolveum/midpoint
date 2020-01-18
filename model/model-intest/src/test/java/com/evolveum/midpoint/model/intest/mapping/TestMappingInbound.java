@@ -11,8 +11,10 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -39,6 +41,7 @@ import java.nio.charset.StandardCharsets;
 
 import javax.xml.namespace.QName;
 
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -268,6 +271,43 @@ public class TestMappingInbound extends AbstractMappingTest {
         display("Account mancomb", accountMancomb);
 
         assertJpegPhoto(UserType.class, userMancomb.getOid(), "beer".getBytes(StandardCharsets.UTF_8), result);
+
+        notificationManager.setDisabled(true);
+    }
+
+    /**
+     * MID-5912 (changing the photo directly on service object; with reconcile)
+     */
+    @Test
+    public void test140ModifyMancombPhotoInRepo() throws Exception {
+        final String TEST_NAME = "test140ModifyMancombPhotoInRepo";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        /// WHEN
+        displayWhen(TEST_NAME);
+
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNotNull("User mancomb has disappeared", userMancomb);
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_JPEG_PHOTO).replaceRealValues(singleton("cherry".getBytes(StandardCharsets.UTF_8)))
+                .asObjectDelta(userMancomb.getOid());
+        executeChanges(delta, ModelExecuteOptions.createReconcile(), task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+
+        assertSuccess(result);
+
+        PrismObject<UserType> userMancombAfter = repositoryService.getObject(UserType.class, userMancomb.getOid(),
+                schemaHelper.getOperationOptionsBuilder().retrieve().build(), result);
+        display("user mancomb after", userMancombAfter);
+
+        //assertJpegPhoto(UserType.class, userMancomb.getOid(), "beer".getBytes(StandardCharsets.UTF_8), result);
 
         notificationManager.setDisabled(true);
     }

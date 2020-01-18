@@ -77,12 +77,14 @@ public class MappingFactory {
                 .expressionFactory(expressionFactory)
                 .securityContextManager(securityContextManager)
                 .variables(new ExpressionVariables())
+                .objectResolver(objectResolver)
                 .profiling(profiling);
     }
 
     public <V extends PrismValue, D extends ItemDefinition> MappingImpl.Builder<V, D> createMappingBuilder(MappingType mappingType, String shortDesc) {
         return this.<V,D>createMappingBuilder().mappingType(mappingType)
-                .contextDescription(shortDesc);
+                .contextDescription(shortDesc)
+                .objectResolver(objectResolver);
     }
 
 }

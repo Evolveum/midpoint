@@ -98,11 +98,9 @@ public interface DeltaSetTriple<T> extends DebugDumpable, ShortDumpable, Seriali
 
     Stream<T> stream();
 
-    @SuppressWarnings("unchecked")
     @NotNull
     Collection<T> getNonNegativeValues();
 
-    @SuppressWarnings("unchecked")
     @NotNull
     Collection<T> getNonPositiveValues();
 

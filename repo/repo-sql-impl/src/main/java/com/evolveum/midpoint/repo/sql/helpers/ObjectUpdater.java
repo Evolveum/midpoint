@@ -95,8 +95,8 @@ public class ObjectUpdater {
             boolean noFetchExtensionValueInsertionForbidden, OperationResult result) throws ObjectAlreadyExistsException,
             SchemaException {
 
-        LOGGER_PERFORMANCE.debug("> add object {}, oid={}, overwrite={}",
-                object.getCompileTimeClass().getSimpleName(), object.getOid(), options.isOverwrite());
+        String classSimpleName = object.getCompileTimeClass() != null ? object.getCompileTimeClass().getSimpleName() : "(unknown class)";
+        LOGGER_PERFORMANCE.debug("> add object {}, oid={}, overwrite={}", classSimpleName, object.getOid(), options.isOverwrite());
 
         String oid = null;
         Session session = null;
@@ -106,9 +106,7 @@ public class ObjectUpdater {
         // or it is org. and by the import we do not know it so it will be trying to delete non-existing object
         String originalOid = object.getOid();
         try {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Object\n{}", object.debugDump());
-            }
+            LOGGER.trace("Object\n{}", object.debugDumpLazily());
             ObjectTypeUtil.normalizeAllRelations(object, relationRegistry);
 
             LOGGER.trace("Translating JAXB to data type.");
@@ -130,7 +128,7 @@ public class ObjectUpdater {
             }
             session.getTransaction().commit();
 
-            LOGGER.trace("Saved object '{}' with oid '{}'", object.getCompileTimeClass().getSimpleName(), oid);
+            LOGGER.trace("Saved object '{}' with oid '{}'", classSimpleName, oid);
 
             object.setOid(oid);
         } catch (PersistenceException ex) {
@@ -236,8 +234,7 @@ public class ObjectUpdater {
         return Collections.singletonList(delta);
     }
 
-    public <T extends ObjectType> void updateFullObject(RObject object, PrismObject<T> savedObject)
-            throws DtoTranslationException, SchemaException {
+    <T extends ObjectType> void updateFullObject(RObject object, PrismObject<T> savedObject) throws SchemaException {
         LOGGER.trace("Updating full object xml column start.");
         savedObject.setVersion(Integer.toString(object.getVersion()));
 

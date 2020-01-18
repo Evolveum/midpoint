@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism.foo;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -65,7 +66,8 @@ import javax.xml.bind.annotation.XmlType;
     "multiActivationCopy",
     "singleConstruction",
     "multiConstruction",
-    "multiConstructionCopy"
+    "multiConstructionCopy",
+    "password"
 })
 public class UserType
     extends ObjectType
@@ -89,6 +91,7 @@ public class UserType
     public final static ItemName F_SINGLE_CONSTRUCTION = new ItemName(NS_FOO, "singleConstruction");
     public final static ItemName F_MULTI_CONSTRUCTION = new ItemName(NS_FOO, "multiConstruction");
     public final static ItemName F_MULTI_CONSTRUCTION_COPY = new ItemName(NS_FOO, "multiConstructionCopy");
+    public final static ItemName F_PASSWORD = new ItemName(NS_FOO, "password");
 
     private final static long serialVersionUID = 201202081233L;
     @XmlElement(required = true)
@@ -107,6 +110,7 @@ public class UserType
     protected AccountConstructionType singleConstruction;
     protected List<AccountConstructionType> multiConstruction;
     protected List<AccountConstructionType> multiConstructionCopy;
+    protected ProtectedStringType password;
 
     @XmlElement(name = "special")
     protected String specialWithInternalizedName;               // internal name here differs from the one in serialized form
@@ -343,5 +347,13 @@ public class UserType
 
     public void setMultiConstructionCopy(List<AccountConstructionType> multiConstructionCopy) {
         this.multiConstructionCopy = multiConstructionCopy;
+    }
+
+    public ProtectedStringType getPassword() {
+        return password;
+    }
+
+    public void setPassword(ProtectedStringType password) {
+        this.password = password;
     }
 }

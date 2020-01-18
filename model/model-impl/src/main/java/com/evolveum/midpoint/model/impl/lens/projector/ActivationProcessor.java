@@ -534,29 +534,16 @@ public class ActivationProcessor {
             return builder;
         });
 
-        final MutableBoolean output = new MutableBoolean(false);
-        params.setProcessor((mappingOutputPath,outputStruct) -> {
+        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> aggregatedOutputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
+
+        params.setProcessor((mappingOutputPath, outputStruct) -> {
+            // This is a very primitive implementation of output processing.
+            // Maybe we should somehow use the default processing in MappingEvaluator, but it's quite complex
+            // and therefore we should perhaps wait for general mapping cleanup (MID-3847).
             PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = outputStruct.getOutputTriple();
-            if (outputTriple == null) {
-                // The "default existence mapping"
-                output.setValue(legal);
-                return false;
+            if (outputTriple != null) {
+                aggregatedOutputTriple.merge(outputTriple);
             }
-
-            Collection<PrismPropertyValue<Boolean>> nonNegativeValues = outputTriple.getNonNegativeValues();
-
-            // MID-3507: this is probably the bug. The processor is executed after every mapping.
-            // The processing will die on the error if one mapping returns a value and the other mapping returns null
-            // (e.g. because the condition is false). This should be fixed.
-            if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
-                throw new ExpressionEvaluationException("Activation existence expression resulted in null or empty value for projection " + projCtxDesc);
-            }
-            if (nonNegativeValues.size() > 1) {
-                throw new ExpressionEvaluationException("Activation existence expression resulted in too many values ("+nonNegativeValues.size()+") for projection " + projCtxDesc);
-            }
-
-            output.setValue(nonNegativeValues.iterator().next().getValue());
-
             return false;
         });
 
@@ -566,8 +553,27 @@ public class ActivationProcessor {
         params.setTargetItemDefinition(shadowExistenceTargetDef);
         mappingEvaluator.evaluateMappingSetProjection(params, task, result);
 
-        return (boolean) output.getValue();
+        boolean output;
+        if (aggregatedOutputTriple.isEmpty()) {
+            output = legal;     // the default
+        } else {
+            Collection<PrismPropertyValue<Boolean>> nonNegativeValues = aggregatedOutputTriple.getNonNegativeValues();
+            if (nonNegativeValues.isEmpty()) {
+                throw new ExpressionEvaluationException("Activation existence expression resulted in no values for projection " + projCtxDesc);
+            } else if (nonNegativeValues.size() > 1) {
+                throw new ExpressionEvaluationException("Activation existence expression resulted in too many values ("+nonNegativeValues.size()+") for projection " + projCtxDesc + ": " + nonNegativeValues);
+            } else {
+                PrismPropertyValue<Boolean> value = nonNegativeValues.iterator().next();
+                if (value != null && value.getRealValue() != null) {
+                    output = value.getRealValue();
+                } else {
+                    // TODO could this even occur?
+                    throw new ExpressionEvaluationException("Activation existence expression resulted in null value for projection " + projCtxDesc);
+                }
+            }
+        }
 
+        return output;
     }
 
     private <T, F extends FocusType> void evaluateActivationMapping(final LensContext<F> context,

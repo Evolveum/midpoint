@@ -233,6 +233,10 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
             } else {
                 node = parseElementContentToMap(element);
             }
+        } else if (DOMUtil.isMarkedAsIncomplete(element)) {
+            // Note that it is of no use to check for "incomplete" on non-leaf elements. In XML the incomplete attribute
+            // must be attached to an empty element.
+            node = new IncompleteMarkerXNodeImpl();
         } else {
             node = parsePrimitiveElement(element);
         }
@@ -278,7 +282,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
     }
 
     private boolean isList(@NotNull Element element, @NotNull QName elementName, @Nullable QName xsiType) {
-        String isListAttribute = DOMUtil.getAttribute(element, new QName(DOMUtil.IS_LIST_ATTRIBUTE_NAME));
+        String isListAttribute = DOMUtil.getAttribute(element, DOMUtil.IS_LIST_ATTRIBUTE_NAME);
         if (StringUtils.isNotEmpty(isListAttribute)) {
             return Boolean.parseBoolean(isListAttribute);
         }
