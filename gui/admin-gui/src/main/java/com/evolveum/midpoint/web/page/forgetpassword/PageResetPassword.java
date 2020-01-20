@@ -87,7 +87,7 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
         target.add(getFeedbackPanel());
 //        get(ID_MAIN_FORM).setVisible(false);
 
-
+//        success(getString("PageShowPassword.success")); //TODO uncomment when remove old mechanism
     }
 
     @Override

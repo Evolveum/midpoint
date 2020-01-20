@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schrodinger.page.login;
 
 import com.codeborne.selenide.Condition;
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.apache.commons.lang3.Validate;
 import org.openqa.selenium.By;
@@ -18,7 +19,7 @@ import static com.codeborne.selenide.Selenide.$;
  * @author skublik
  */
 
-public class LoginPage{
+public class LoginPage extends BasicPage {
 
     public LoginPage changeLanguage(String countryCode) {
         Validate.notNull(countryCode, "Country code must not be null");

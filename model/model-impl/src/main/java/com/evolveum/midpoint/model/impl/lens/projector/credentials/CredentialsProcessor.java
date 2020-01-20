@@ -182,7 +182,7 @@ public class CredentialsProcessor {
             LOGGER.trace("Credential {} should be encrypted, nothing to do", credentialName);
             return;
         } else if (storageType == CredentialsStorageTypeType.HASHING) {
-            LOGGER.trace("Hashing credential", credentialName);
+            LOGGER.trace("Hashing credential: {}", credentialName);
             if (delta.isAdd()) {
                 PrismProperty<ProtectedStringType> prop = delta.getObjectToAdd().findProperty(valuePropertyPath);
                 if (prop != null) {
@@ -219,7 +219,7 @@ public class CredentialsProcessor {
                 }
             }
         } else if (storageType == CredentialsStorageTypeType.NONE) {
-            LOGGER.trace("Removing credential", credentialName);
+            LOGGER.trace("Removing credential: {}", credentialName);
             if (delta.isAdd()) {
                 delta.getObjectToAdd().removeProperty(valuePropertyPath);
             } else {

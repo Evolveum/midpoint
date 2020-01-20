@@ -63,7 +63,7 @@ public class UploadDownloadPanel extends InputPanel {
                 try {
                     input.add(new String (IOUtils.toByteArray(getStream())));
                 } catch (IOException e) {
-                    LOGGER.error("Unable to define file content type, ", e.getLocalizedMessage());
+                    LOGGER.error("Unable to define file content type: {}", e.getLocalizedMessage());
                 }
                 return input.toArray(new String[input.size()]);
             }
@@ -108,7 +108,7 @@ public class UploadDownloadPanel extends InputPanel {
                         setContentType(newContentType);
                     }
                 } catch (IOException ex){
-                    LOGGER.error("Unable to define download file content type, ", ex.getLocalizedMessage());
+                    LOGGER.error("Unable to define download file content type: {}", ex.getLocalizedMessage());
                 }
                 return is;
             }

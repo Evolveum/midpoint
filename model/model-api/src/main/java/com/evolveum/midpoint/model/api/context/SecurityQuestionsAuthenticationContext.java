@@ -6,8 +6,10 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
 
 public class SecurityQuestionsAuthenticationContext extends AbstractAuthenticationContext{
@@ -17,7 +19,11 @@ public class SecurityQuestionsAuthenticationContext extends AbstractAuthenticati
 
 
     public SecurityQuestionsAuthenticationContext(String username, Map<String, String> questionAnswerMap) {
-        super(username);
+        this(username, questionAnswerMap, null);
+    }
+
+    public SecurityQuestionsAuthenticationContext(String username, Map<String, String> questionAnswerMap, List<ObjectReferenceType> requireAssignment) {
+        super(username, requireAssignment);
         this.questionAnswerMap = questionAnswerMap;
     }
 

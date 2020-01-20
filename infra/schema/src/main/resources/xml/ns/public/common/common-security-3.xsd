@@ -928,7 +928,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="channel" type="tns:AuthenticationSequenceChannelType" minOccurs="0">
+            <xsd:element name="channel" type="tns:AuthenticationSequenceChannelType" minOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Specification of channel for authentication sequence.

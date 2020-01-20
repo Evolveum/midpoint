@@ -341,7 +341,7 @@ class EntitlementConverter {
         Map<QName, PropertyModificationOperation> operationsMap = new HashMap<>();
 
         if (CollectionUtils.isNotEmpty(itemDelta.getValuesToReplace())) {
-            LOGGER.error("Replace delta not supported for association, modifications {},\n provisioning context: ", itemDelta, ctx);
+            LOGGER.error("Replace delta not supported for association, modifications {},\n provisioning context: {}", itemDelta, ctx);
             throw new SchemaException("Cannot perform replace delta for association, replace values: " + itemDelta.getValuesToReplace());
         }
         collectEntitlementToAttrsDelta(ctx, operationsMap, itemDelta.getValuesToAdd(), ModificationType.ADD);

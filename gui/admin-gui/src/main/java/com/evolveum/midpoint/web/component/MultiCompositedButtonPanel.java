@@ -108,8 +108,7 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<MultiFun
     protected CompositedIconBuilder getAdditionalIconBuilder(DisplayType additionalButtonDisplayType){
         CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
-                .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
+                .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType));
         return builder;
     }
 

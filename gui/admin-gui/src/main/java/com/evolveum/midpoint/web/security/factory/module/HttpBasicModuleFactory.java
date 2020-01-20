@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.web.security.factory.module;
 
+import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
 import com.evolveum.midpoint.web.security.module.HttpBasicModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
-import com.evolveum.midpoint.web.security.module.authentication.CredentialModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.web.security.provider.PasswordProvider;
@@ -34,7 +34,7 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<Modu
     }
 
     @Override
-    protected ModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence) {
+    protected ModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType,prefixOfSequence);
         configuration.setPrefixOfSequence(prefixOfSequence);
         return configuration;

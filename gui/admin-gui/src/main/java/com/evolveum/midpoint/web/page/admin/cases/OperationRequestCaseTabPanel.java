@@ -73,7 +73,7 @@ public class OperationRequestCaseTabPanel extends AbstractObjectTabPanel<CaseTyp
                              pageBase.getModelInteractionService(), pageBase.getPrismContext(), task, result);
                     return sceneDtoList;
                 } catch (Exception ex){
-                    LOGGER.error("Couldn't prepare delta visualization, ", ex.getLocalizedMessage());
+                    LOGGER.error("Couldn't prepare delta visualization: {}", ex.getLocalizedMessage());
                 }
                 return null;
             }
