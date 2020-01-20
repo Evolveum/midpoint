@@ -162,6 +162,15 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 
     private boolean validateCaptcha(AjaxRequestTarget target) {
         CaptchaPanel captcha = getCaptcha();
+        String value = System.getProperty("midpoint.schrodinger");
+        if (value != null){
+            Boolean isSchrodingerTesting = Boolean.valueOf(value);
+            if (Boolean.TRUE.equals(isSchrodingerTesting)){
+                LOGGER.trace("Skipping CAPTCHA Validation, because system variable (midpoint.schrodinget) for schrodinger testing is TRUE");
+                return true;
+            }
+        }
+
 
         if (captcha.getRandomText() == null) {
             String message = createStringResource("PageSelfRegistration.captcha.validation.failed")

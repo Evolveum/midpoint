@@ -9,8 +9,10 @@
 <user oid="fb0f945e-f7f7-4ea2-9494-1848cd6ed4ad"
       xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>enabled_user</name>
+    <emailAddress>enabled_user@evolveum.com</emailAddress>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000008" relation="org:default" type="c:RoleType">
             <!-- End user -->
@@ -26,8 +28,18 @@
 
     <credentials>
         <password>
-            <value>5ecr3t</value>
+            <value>
+                <t:clearValue>5ecr3t</t:clearValue>
+            </value>
         </password>
+        <securityQuestions>
+            <questionAnswer>
+                <questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</questionIdentifier>
+                <questionAnswer>
+                    <t:clearValue>10</t:clearValue>
+                </questionAnswer>
+            </questionAnswer>
+        </securityQuestions>
     </credentials>
 
 </user>

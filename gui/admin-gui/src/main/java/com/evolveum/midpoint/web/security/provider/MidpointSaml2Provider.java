@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.web.security.provider;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -67,8 +69,7 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
         }
     }
 
-    @Override
-    protected Authentication internalAuthentication(Authentication authentication, List requireAssignment) throws AuthenticationException {
+    protected Authentication internalAuthentication(Authentication authentication, List requireAssignment, AuthenticationChannel channel) throws AuthenticationException {
         ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
 
         try {
@@ -93,7 +94,11 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
                     }
                 }
                 Validate.notBlank(enteredUsername);
-                token = authenticationEvaluator.authenticateUserPreAuthenticated(connEnv, new PreAuthenticationContext(enteredUsername, requireAssignment));
+                PreAuthenticationContext authContext = new PreAuthenticationContext(enteredUsername, requireAssignment);
+                if (channel != null) {
+                    authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
+                }
+                token = authenticationEvaluator.authenticateUserPreAuthenticated(connEnv, authContext);
             } else {
                 LOGGER.error("Unsupported authentication {}", authentication);
                 throw new AuthenticationServiceException("web.security.provider.unavailable");

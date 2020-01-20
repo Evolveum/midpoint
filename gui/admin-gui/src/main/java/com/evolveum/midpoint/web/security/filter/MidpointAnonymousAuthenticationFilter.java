@@ -7,15 +7,18 @@
 package com.evolveum.midpoint.web.security.filter;
 
 import com.evolveum.midpoint.model.api.authentication.AuthModule;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.core.Authentication;
@@ -44,10 +47,13 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
 
     private AuthModuleRegistryImpl authRegistry;
 
+    private AuthChannelRegistryImpl authChannelRegistry;
+
     private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
     private String key;
 
-    public MidpointAnonymousAuthenticationFilter(AuthModuleRegistryImpl authRegistry, String key, Object principal, List<GrantedAuthority> authorities) {
+    public MidpointAnonymousAuthenticationFilter(AuthModuleRegistryImpl authRegistry, AuthChannelRegistryImpl authChannelRegistry,
+                                                 String key, Object principal, List<GrantedAuthority> authorities) {
         super(key, principal, authorities);
         this.key = key;
         this.authRegistry = authRegistry;
@@ -90,8 +96,9 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
         MidpointAuthentication authentication = new MidpointAuthentication(SecurityPolicyUtil.createDefaultSequence());
         AuthenticationsPolicyType authenticationsPolicy = SecurityPolicyUtil.createDefaultAuthenticationPolicy();
         AuthenticationSequenceType sequence = SecurityPolicyUtil.createDefaultSequence();
+        AuthenticationChannel authenticationChannel = SecurityUtils.buildAuthChannel(authChannelRegistry, sequence);
         List<AuthModule> authModules = SecurityUtils.buildModuleFilters(authRegistry, sequence, request, authenticationsPolicy.getModules(),
-                null, new HashMap<Class<? extends Object>, Object>());
+                null, new HashMap<Class<? extends Object>, Object>(), authenticationChannel);
         authentication.setAuthModules(authModules);
         ModuleAuthentication module = authModules.get(0).getBaseModuleAuthentication();
         module.setAuthentication(auth);

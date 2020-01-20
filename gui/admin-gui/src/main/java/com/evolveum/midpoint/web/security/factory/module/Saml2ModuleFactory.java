@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.security.factory.module;
 
 import com.evolveum.midpoint.model.api.authentication.AuthModule;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -63,7 +64,7 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
 
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, ServletRequest request,
-                                         Map<Class<? extends Object>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy) throws Exception {
+                                         Map<Class<? extends Object>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
         if (!(moduleType instanceof AuthenticationModuleSaml2Type)) {
             LOGGER.error("This factory support only AuthenticationModuleSaml2Type, but modelType is " + moduleType);
             return null;
