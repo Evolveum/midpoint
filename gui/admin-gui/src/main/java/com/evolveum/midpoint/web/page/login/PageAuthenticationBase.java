@@ -10,21 +10,37 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
 import com.evolveum.midpoint.web.page.forgetpassword.ResetPolicyDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-public class PageAuthenticationBase extends PageBase {
+import java.util.ArrayList;
+import java.util.List;
+
+public abstract class PageAuthenticationBase extends PageBase {
 
     private static final long serialVersionUID = 1L;
     private static final String DOT_CLASS = PageAuthenticationBase.class.getName() + ".";
@@ -33,6 +49,9 @@ public class PageAuthenticationBase extends PageBase {
     protected static final String OPERATION_LOAD_DYNAMIC_FORM = DOT_CLASS + "loadDynamicForm";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAuthenticationBase.class);
+
+    protected static final String ID_DYNAMIC_LAYOUT = "dynamicLayout";
+    protected static final String ID_DYNAMIC_FORM = "dynamicForm";
 
     @SpringBean(name = "nonceAuthenticationEvaluator")
     private AuthenticationEvaluator<NonceAuthenticationContext> authenticationEvaluator;
@@ -134,7 +153,6 @@ public class PageAuthenticationBase extends PageBase {
         });
 
         return securityPolicy;
-
     }
 
     public SelfRegistrationDto getSelfRegistrationConfiguration() {
@@ -168,4 +186,136 @@ public class PageAuthenticationBase extends PageBase {
         return authenticationEvaluator;
     }
 
+    protected void initDynamicLayout(final org.apache.wicket.markup.html.form.Form<?> mainForm, PageBase parentPage) {
+        WebMarkupContainer dynamicLayout = new WebMarkupContainer(ID_DYNAMIC_LAYOUT);
+        dynamicLayout.setOutputMarkupId(true);
+        mainForm.add(dynamicLayout);
+
+        dynamicLayout.add(new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return isDynamicForm();
+            }
+        });
+
+        DynamicFormPanel<UserType> searchAttributesForm = runPrivileged(
+                () -> {
+                    ObjectReferenceType formRef = getResetPasswordPolicy().getFormRef();
+                    if (formRef == null) {
+                        return null;
+                    }
+                    Task task = createAnonymousTask(OPERATION_LOAD_DYNAMIC_FORM);
+                    return new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM, UserType.COMPLEX_TYPE,
+                            formRef.getOid(), mainForm, task, parentPage, true);
+                });
+
+        if (searchAttributesForm != null) {
+            dynamicLayout.add(searchAttributesForm);
+        }
+    }
+
+    protected boolean isDynamicForm() {
+        return getResetPasswordPolicy().getFormRef() != null;
+    }
+
+    protected void cancelPerformed() {
+        setResponsePage(getMidpointApplication().getHomePage());
+    }
+
+    protected AjaxButton createBackButton(String id){
+        AjaxButton back = new AjaxButton(id) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                cancelPerformed();
+            }
+        };
+        return back;
+    }
+
+    protected UserType searchUser() {
+        ObjectQuery query = null;
+
+        if (isDynamicForm()) {
+            query = createDynamicFormQuery();
+        } else {
+            query = createStaticFormQuery();
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Searching for user with query:\n{}", query.debugDump(1));
+        }
+
+        return searchUserPrivileged(query);
+
+    }
+
+    protected abstract ObjectQuery createStaticFormQuery();
+
+    protected UserType searchUserPrivileged(ObjectQuery query) {
+        UserType userType = runPrivileged(new Producer<UserType>() {
+
+            @Override
+            public UserType run() {
+
+                Task task = createAnonymousTask("load user");
+                OperationResult result = new OperationResult("search user");
+
+                SearchResultList<PrismObject<UserType>> users;
+                try {
+                    users = getModelService().searchObjects(UserType.class, query, null, task, result);
+                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+                        | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                    LoggingUtils.logException(LOGGER, "failed to search user", e);
+                    return null;
+                }
+
+                if ((users == null) || (users.isEmpty())) {
+                    LOGGER.trace("Empty user list in ForgetPassword");
+                    return null;
+                }
+
+                if (users.size() > 1) {
+                    LOGGER.trace("Problem while seeking for user");
+                    return null;
+                }
+
+                UserType user = users.iterator().next().asObjectable();
+                LOGGER.trace("User found for ForgetPassword: {}", user);
+
+                return user;
+            }
+
+        });
+        return userType;
+    }
+
+    protected ObjectQuery createDynamicFormQuery() {
+        DynamicFormPanel<UserType> userDynamicPanel = getDynamicForm();
+        List<ItemPath> filledItems = userDynamicPanel.getChangedItems();
+        PrismObject<UserType> user;
+        try {
+            user = userDynamicPanel.getObject();
+        } catch (SchemaException e1) {
+            getSession().error(getString("pageForgetPassword.message.usernotfound"));
+            throw new RestartResponseException(PageForgotPassword.class);
+        }
+
+        List<EqualFilter> filters = new ArrayList<>();
+        QueryFactory queryFactory = getPrismContext().queryFactory();
+        for (ItemPath path : filledItems) {
+            PrismProperty property = user.findProperty(path);
+            EqualFilter filter = queryFactory.createEqual(path, property.getDefinition(), null);
+            filter.setValue(property.getAnyValue().clone());
+            filters.add(filter);
+        }
+        return queryFactory.createQuery(queryFactory.createAnd((List) filters));
+    }
+
+    protected abstract DynamicFormPanel<UserType> getDynamicForm();
 }

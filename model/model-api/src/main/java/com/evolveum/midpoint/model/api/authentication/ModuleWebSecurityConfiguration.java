@@ -40,4 +40,6 @@ public interface ModuleWebSecurityConfiguration {
 
     public String getPrefix();
 
+    public String getSpecificLoginUrl();
+
 }

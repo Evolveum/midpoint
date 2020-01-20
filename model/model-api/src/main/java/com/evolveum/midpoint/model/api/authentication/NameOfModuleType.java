@@ -20,7 +20,8 @@ public enum NameOfModuleType {
     CLUSTER("Cluster"),
     HTTP_HEADER("HttpHeader"),
     LOGIN_FORM("LoginForm"),
-    SAML_2("Saml2");
+    SAML_2("Saml2"),
+    MAIL_NONCE("MailNonce");
 
 
     private String name;

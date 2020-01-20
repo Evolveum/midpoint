@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.factory.module;
 
+import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
@@ -33,7 +34,7 @@ public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleF
     }
 
     @Override
-    protected ModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence) {
+    protected ModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
         ModuleWebSecurityConfigurationImpl configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
         configuration.setPrefixOfSequence(prefixOfSequence);
         return configuration;

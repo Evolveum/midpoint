@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.security.channel;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 import org.apache.commons.lang3.StringUtils;
@@ -64,7 +65,21 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
         return Boolean.TRUE.equals(this.channel.isDefault());
     }
 
-    public Collection<? extends GrantedAuthority> resolveAuthorities(Collection<? extends GrantedAuthority> authorities) {
+    public Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities) {
         return authorities;
+    }
+
+    @Override
+    public void postSuccessAuthenticationProcessing() {
+    }
+
+    @Override
+    public String getSpecificLoginUrl() {
+        return null;
+    }
+
+    @Override
+    public boolean isSupportActivationByChannel() {
+        return true;
     }
 }

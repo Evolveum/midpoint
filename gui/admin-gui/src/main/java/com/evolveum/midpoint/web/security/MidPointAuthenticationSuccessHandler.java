@@ -9,11 +9,13 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.model.api.authentication.StateOfModule;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -67,24 +69,19 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
             throws ServletException, IOException {
 
         String urlSuffix = "/self/dashboard";
+        String authenticatedChannel = null;
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
             if (mpAuthentication.getAuthenticationChannel() != null) {
-                urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication();
-            }
-        }
-
-        if (WebModelServiceUtils.isPostAuthenticationEnabled(taskManager, modelInteractionService)) {
-            String requestUrl = request.getRequestURL().toString();
-            String contextPath = request.getContextPath();
-            if (requestUrl.contains("spring_security_login")) {
-                String target = requestUrl.substring(0, requestUrl.indexOf(contextPath));
-                target = target + contextPath + "self/postAuthentication";
-//                        String target = requestUrl.replace("spring_security_login", "self/postAuthentication");
-                getRedirectStrategy().sendRedirect(request, response, target);
-                return;
+                authenticatedChannel = mpAuthentication.getAuthenticationChannel().getChannelId();
+                if (mpAuthentication.isAuthenticated()) {
+                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication();
+                    mpAuthentication.getAuthenticationChannel().postSuccessAuthenticationProcessing();
+                } else {
+                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
+                }
             }
         }
 
@@ -93,6 +90,25 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
             String target = savedRequest.getRedirectUrl().substring(0, savedRequest.getRedirectUrl().indexOf(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/")) + urlSuffix;
             getRedirectStrategy().sendRedirect(request, response, target);
             return;
+        }
+        if (savedRequest != null && authenticatedChannel != null) {
+            int startIndex = savedRequest.getRedirectUrl().indexOf(request.getContextPath()) + request.getContextPath().length();
+            int endIndex = savedRequest.getRedirectUrl().length()-1;
+            String channelSavedRequest = null;
+            if ((startIndex < endIndex)) {
+                String localePath = savedRequest.getRedirectUrl().substring(startIndex, endIndex);
+                channelSavedRequest = SecurityUtils.findChannelByPath(localePath);
+            }
+            if (channelSavedRequest == null) {
+                channelSavedRequest = SecurityPolicyUtil.DEFAULT_CHANNEL;
+            }
+            if (!(channelSavedRequest.equals(authenticatedChannel))) {
+                getRedirectStrategy().sendRedirect(request, response, urlSuffix);
+                return;
+            }
+
+        } else {
+            setDefaultTargetUrl(urlSuffix);
         }
         super.onAuthenticationSuccess(request, response, authentication);
     }

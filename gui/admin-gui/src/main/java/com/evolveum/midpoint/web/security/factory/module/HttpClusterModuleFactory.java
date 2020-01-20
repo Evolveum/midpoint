@@ -9,13 +9,10 @@ package com.evolveum.midpoint.web.security.factory.module;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.module.HttpBasicModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.HttpClusterModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
-import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.web.security.provider.ClusterProvider;
-import com.evolveum.midpoint.web.security.provider.PasswordProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -41,7 +38,7 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory {
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence,
                                          ServletRequest request, Map<Class<? extends Object>, Object> sharedObjects,
-                                         AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy) throws Exception {
+                                         AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
 
         ModuleWebSecurityConfiguration configuration = createConfiguration(moduleType, prefixOfSequence);
 

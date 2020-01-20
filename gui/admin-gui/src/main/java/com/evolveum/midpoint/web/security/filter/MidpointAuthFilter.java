@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.model.api.authentication.AuthModule;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.model.api.authentication.StateOfModule;
+import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -16,7 +14,6 @@ import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationTrustResolverImpl;
 import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
@@ -148,22 +145,25 @@ public class MidpointAuthFilter extends GenericFilterBean {
             sequence = SecurityUtils.getSequenceByPath(httpRequest, authenticationsPolicy);
         }
 
+        if (mpAuthentication != null && !mpAuthentication.getSequence().equals(sequence) && mpAuthentication.isAuthenticated()
+                 && ((sequence != null && sequence.getChannel() != null
+                && mpAuthentication.getAuthenticationChannel().getChannelId().equals(sequence.getChannel().getChannelId()))
+        || mpAuthentication.getAuthenticationChannel().getChannelId().equals(SecurityUtils.findChannelByRequest(httpRequest)))) {
+            sequence = mpAuthentication.getSequence();
+        }
+
         if (sequence == null) {
             throw new IllegalArgumentException("Couldn't find sequence for URI '" + httpRequest.getRequestURI() + "' in authentication of Security Policy with oid " + authPolicy.getOid());
         }
 
-        if (mpAuthentication != null && !sequence.equals(mpAuthentication.getSequence()) && mpAuthentication.isAuthenticated()
-                && mpAuthentication.getAuthenticationChannel() != null && sequence.getChannel() != null
-                && mpAuthentication.getAuthenticationChannel().getChannelId().equals(sequence.getChannel().getChannelId())) {
-            sequence = mpAuthentication.getSequence();
-        }
+        AuthenticationChannel authenticationChannel = SecurityUtils.buildAuthChannel(authChannelRegistry, sequence);
 
         List<AuthModule> authModules;
         //change sequence of authentication during another sequence
         if (mpAuthentication == null || !sequence.equals(mpAuthentication.getSequence())) {
             SecurityContextHolder.getContext().setAuthentication(null);
             authModules = SecurityUtils.buildModuleFilters(authModuleRegistry, sequence, httpRequest, authenticationsPolicy.getModules(),
-                    credentialsPolicy, sharedObjects);
+                    credentialsPolicy, sharedObjects, authenticationChannel);
         } else {
             //authenticated request
             if (mpAuthentication != null && mpAuthentication.isAuthenticated()) {
@@ -216,12 +216,11 @@ public class MidpointAuthFilter extends GenericFilterBean {
         }
 
         if (mpAuthentication.getAuthenticationChannel() == null) {
-            mpAuthentication.setAuthenticationChannel(SecurityUtils.buildAuthChannel(authChannelRegistry, mpAuthentication.getSequence()));
+            mpAuthentication.setAuthenticationChannel(authenticationChannel);
         }
 
         MidpointAuthFilter.VirtualFilterChain vfc = new MidpointAuthFilter.VirtualFilterChain(httpRequest, chain, authModules.get(indexOfProcessingModule).getSecurityFilterChain().getFilters());
         vfc.doFilter(httpRequest, response);
-
     }
 
     private void processingOfAuthenticatedRequest(MidpointAuthentication mpAuthentication, ServletRequest httpRequest, ServletResponse response, FilterChain chain) throws IOException, ServletException {
