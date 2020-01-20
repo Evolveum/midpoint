@@ -332,7 +332,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                         try {
                             mergeConfiguration = getModelInteractionService().getMergeConfiguration(result);
                         } catch (ObjectNotFoundException | SchemaException ex){
-                            LOGGER.error("Couldn't load merge configuration, ", ex.getLocalizedMessage());
+                            LOGGER.error("Couldn't load merge configuration: {}", ex.getLocalizedMessage());
                             result.recomputeStatus();
                             getFeedbackMessages().error(PageUsers.this, ex.getLocalizedMessage());
                             target.add(getFeedbackPanel());

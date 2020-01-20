@@ -176,7 +176,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
     public void setDelayProcessor(long delay) {
         setProcessor((task, bucket, i) -> {
             if (delay > 0) {
-                LOGGER.info("Sleeping for {} ms; task = {}", task);
+                LOGGER.info("Sleeping for {} ms; task = {}", delay, task);
                 try {
                     Thread.sleep(delay);
                 } catch (InterruptedException e) {

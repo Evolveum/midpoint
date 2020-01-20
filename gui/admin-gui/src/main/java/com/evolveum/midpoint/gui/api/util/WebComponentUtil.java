@@ -3161,7 +3161,7 @@ public final class WebComponentUtil {
                 return associationDefinitions;
             }
         } catch (Exception ex) {
-            LOGGER.error("Association for {}/{} not supported by resource {}", kind, intent, resource, ex.getLocalizedMessage());
+            LOGGER.error("Association for {}/{} not supported by resource {}: {}", kind, intent, resource, ex.getLocalizedMessage());
         }
         return associationDefinitions;
     }
@@ -3273,7 +3273,7 @@ public final class WebComponentUtil {
             spec = locator.getModelInteractionService().determineArchetypePolicy((PrismObject<? extends AssignmentHolderType>) object, result);
         } catch (SchemaException | ConfigurationException ex){
             result.recordPartialError(ex.getLocalizedMessage());
-            LOGGER.error("Cannot load ArchetypeInteractionSpecification for object ", object, ex.getLocalizedMessage());
+            LOGGER.error("Cannot load ArchetypeInteractionSpecification for object {}: {}", object, ex.getLocalizedMessage());
         }
         return spec;
     }
@@ -3851,7 +3851,7 @@ public final class WebComponentUtil {
                     pageBase.getPrismContext(), pageBase.getModelInteractionService(), objectRef, task, result);
             return new SceneDto(deltasScene);
         } catch (SchemaException | ExpressionEvaluationException ex){
-            LOGGER.error("Unable to create delta visualization for case  " + caseObject.getName(), ex.getLocalizedMessage());
+            LOGGER.error("Unable to create delta visualization for case {}: {}", caseObject, ex.getLocalizedMessage(), ex);
         }
         return null;
     }
