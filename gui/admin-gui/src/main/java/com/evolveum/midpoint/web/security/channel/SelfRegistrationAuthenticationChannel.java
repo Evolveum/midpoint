@@ -57,8 +57,8 @@ public class SelfRegistrationAuthenticationChannel extends AuthenticationChannel
 //    private SecurityContextManager securityContextManager;
 //    private ModelService modelService;
 
-    public SelfRegistrationAuthenticationChannel() {
-
+    public SelfRegistrationAuthenticationChannel(AuthenticationSequenceChannelType channel) {
+        super(channel);
     }
 
     public String getChannelId() {
