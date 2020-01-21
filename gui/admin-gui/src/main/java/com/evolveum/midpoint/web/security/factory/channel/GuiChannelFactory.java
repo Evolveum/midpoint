@@ -35,7 +35,7 @@ public class GuiChannelFactory extends AbstractChannelFactory {
 
     @Override
     public AuthenticationChannel createAuthChannel(AuthenticationSequenceChannelType channel) throws Exception {
-        return new GuiAuthenticationChannel(taskManager, modelInteractionService);
+        return new GuiAuthenticationChannel(channel, taskManager, modelInteractionService);
     }
 
     @Override

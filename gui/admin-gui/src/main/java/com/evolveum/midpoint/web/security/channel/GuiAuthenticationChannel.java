@@ -33,7 +33,8 @@ public class GuiAuthenticationChannel extends AuthenticationChannelImpl {
     private TaskManager taskManager;
     private ModelInteractionService modelInteractionService;
 
-    public GuiAuthenticationChannel(TaskManager taskManager, ModelInteractionService modelInteractionService) {
+    public GuiAuthenticationChannel(AuthenticationSequenceChannelType channel, TaskManager taskManager, ModelInteractionService modelInteractionService) {
+        super(channel);
         this.taskManager = taskManager;
         this.modelInteractionService = modelInteractionService;
     }
@@ -46,7 +47,7 @@ public class GuiAuthenticationChannel extends AuthenticationChannelImpl {
         if (WebModelServiceUtils.isPostAuthenticationEnabled(taskManager, modelInteractionService)) {
                 return "/self/postAuthentication";
         }
-        
+
         return super.getPathAfterSuccessfulAuthentication();
     }
 

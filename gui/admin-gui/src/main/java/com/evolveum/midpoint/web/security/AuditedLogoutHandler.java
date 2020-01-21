@@ -65,7 +65,7 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws IOException, ServletException {
 
-        String targetUrl;
+        String targetUrl = null;
         if (useDefaultUrl()) {
             targetUrl = getDefaultTargetUrl();
         } else {
@@ -74,7 +74,6 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
 
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (mpAuthentication.getAuthenticationChannel() != null) {
                 targetUrl = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
             }
