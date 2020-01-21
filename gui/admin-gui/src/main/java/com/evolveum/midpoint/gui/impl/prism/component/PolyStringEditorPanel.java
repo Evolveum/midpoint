@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.component;
 
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -135,8 +137,8 @@ public class PolyStringEditorPanel extends InputPanel {
         origValueWithButton.setOutputMarkupId(true);
         originValueContainer.add(origValueWithButton);
 
-        //todo better to create PolyStringWrapper ? how to create new value?
-        TextPanel<String> origValuePanel = new TextPanel<String>(ID_ORIG_VALUE, new IModel<String>() {
+        InputPanel origValuePanel;
+        IModel<String> origValueModel = new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -160,7 +162,22 @@ public class PolyStringEditorPanel extends InputPanel {
             public void detach() {
 
             }
-        }, String.class, false);
+        };
+        LookupTableType predefinedValues = getPredefinedValues();
+        if (predefinedValues == null) {
+            origValuePanel = new TextPanel<String>(ID_ORIG_VALUE, origValueModel, String.class, false);
+        } else {
+            origValuePanel = new AutoCompleteTextPanel<String>(ID_ORIG_VALUE, origValueModel, String.class,
+                    hasValueEnumerationRef(), predefinedValues) {
+
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public Iterator<String> getIterator(String input) {
+                    return getPredefinedValuesIterator(input);
+                }
+            };
+        }
         origValuePanel.setOutputMarkupId(true);
         origValuePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         origValueWithButton.add(origValuePanel);
@@ -407,8 +424,8 @@ public class PolyStringEditorPanel extends InputPanel {
         });
     }
 
-    private TextPanel<PolyString> getOrigValuePanel(){
-        return (TextPanel<PolyString>) get(ID_ORIGIN_VALUE_CONTAINER).get(ID_ORIG_VALUE_WITH_BUTTON).get(ID_ORIG_VALUE);
+    private InputPanel getOrigValuePanel(){
+        return (InputPanel) get(ID_ORIGIN_VALUE_CONTAINER).get(ID_ORIG_VALUE_WITH_BUTTON).get(ID_ORIG_VALUE);
     }
 
     //todo refactor with PolyStringWrapper
@@ -478,5 +495,17 @@ public class PolyStringEditorPanel extends InputPanel {
 
     private PolyString getModelObject(){
         return model == null ? null : model.getObject();
+    }
+
+    protected LookupTableType getPredefinedValues(){
+        return null;
+    }
+
+    protected boolean hasValueEnumerationRef(){
+        return false;
+    }
+
+    protected Iterator<String> getPredefinedValuesIterator(String input) {
+        return null;
     }
 }
