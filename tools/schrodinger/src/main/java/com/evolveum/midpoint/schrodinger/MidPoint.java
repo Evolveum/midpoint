@@ -105,4 +105,8 @@ public class MidPoint {
 
         return this.username;
     }
+
+    public String getBaseUrl() {
+        return baseUrl;
+    }
 }

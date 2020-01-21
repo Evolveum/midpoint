@@ -249,7 +249,7 @@ public class TestObjectQuery {
     public void testRefRelationNegative() throws Exception {
         PrismObject<UserType> user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
-                .item(UserType.F_ACCOUNT_REF).ref(new QName("a-relation"))
+                .item(UserType.F_ACCOUNT_REF).refRelation(new QName("a-relation"))
                 .buildFilter();
         boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
         AssertJUnit.assertFalse("filter matches object, but it should not", match);

@@ -38,7 +38,7 @@ public abstract class XNodeImpl implements XNode {
     public static final QName DUMMY_NAME = new QName(null, "dummy");
 
     // Common fields
-    protected XNodeImpl parent;
+    protected XNodeImpl parent;         // currently unused
 
     /**
      * If set to true that the element came from the explicit type definition

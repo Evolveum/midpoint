@@ -521,7 +521,12 @@ public class InboundProcessor {
 
     private void resolveEntitlement(PrismContainerValue<ShadowAssociationType> value, LensProjectionContext projContext, ExpressionVariables variables) {
         LOGGER.trace("Producing value {} ", value);
-        PrismObject<ShadowType> entitlement = projContext.getEntitlementMap().get(value.findReference(ShadowAssociationType.F_SHADOW_REF).getOid());
+        PrismReference entitlementRef = value.findReference(ShadowAssociationType.F_SHADOW_REF);
+        if (entitlementRef == null) {
+            LOGGER.trace("No shadow ref for {}. Skipping resolving entitlement", value);
+            return;
+        }
+        PrismObject<ShadowType> entitlement = projContext.getEntitlementMap().get(entitlementRef.getOid());
         LOGGER.trace("Resolved entitlement {}", entitlement);
         variables.put(ExpressionConstants.VAR_ENTITLEMENT, entitlement, entitlement.getDefinition());
     }

@@ -8,24 +8,41 @@
 package com.evolveum.midpoint.web.security.util;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.*;
-import com.evolveum.midpoint.model.api.authentication.AuthModuleImpl;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.security.module.authentication.LoginFormModuleAuthentication;
+import com.evolveum.midpoint.web.security.factory.channel.AbstractChannelFactory;
+import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
+import com.evolveum.midpoint.web.security.factory.module.HttpClusterModuleFactory;
+import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
-import com.evolveum.midpoint.web.security.module.factory.AuthModuleRegistryImpl;
-import com.evolveum.midpoint.web.security.module.factory.AbstractModuleFactory;
+import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
+import com.evolveum.midpoint.web.security.factory.module.AbstractModuleFactory;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.github.openjson.JSONArray;
+import com.github.openjson.JSONObject;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
@@ -40,8 +57,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.context.ContextLoader;
+import org.springframework.web.context.WebApplicationContext;
 
-import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.*;
@@ -55,6 +73,7 @@ import static org.springframework.security.saml.util.StringUtils.stripStartingSl
 public class SecurityUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SecurityUtils.class);
+    private static final String PROXY_USER_OID_HEADER = "Switch-To-Principal";
 
     public static MidPointUserProfilePrincipal getPrincipalUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -65,8 +84,10 @@ public class SecurityUtils {
     private static final Map<String, String> MY_MAP;
     static {
         Map<String, String> map = new HashMap<String, String>();
-        map.put("rest", SchemaConstants.CHANNEL_REST_URI);
+        map.put("ws/rest", SchemaConstants.CHANNEL_REST_URI);
         map.put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI);
+        map.put("resetPassword", SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
+        map.put("registration", SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
         MY_MAP = Collections.unmodifiableMap(map);
     }
 
@@ -158,29 +179,35 @@ public class SecurityUtils {
         return (CsrfToken) httpReq.getAttribute("_csrf");
     }
 
-    public static AuthenticationSequenceType getSequence(String localePath, AuthenticationsPolicyType authenticationPolicy){
+    public static AuthenticationSequenceType getSequenceByPath(HttpServletRequest httpRequest, AuthenticationsPolicyType authenticationPolicy){
+        String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         if (authenticationPolicy == null || authenticationPolicy.getSequence() == null
                 || authenticationPolicy.getSequence().isEmpty()) {
             return null;
         }
         String[] partsOfLocalPath = stripStartingSlashes(localePath).split("/");
 
-        if (partsOfLocalPath.length < 2) {
-            String usedChannel;
-            if (partsOfLocalPath.length == 1 && MY_MAP.containsKey(partsOfLocalPath[0])) {
-                usedChannel = MY_MAP.get(partsOfLocalPath[0]);
-            } else {
-                usedChannel = SecurityPolicyUtil.DEFAULT_CHANNEL;
-            }
-
-            AuthenticationSequenceType sequence = searchSequence(usedChannel, true, authenticationPolicy);
-            return sequence;
+        AuthenticationSequenceType specificSequence =  getSpecificSequence(httpRequest);
+        if (specificSequence != null) {
+            return specificSequence;
         }
-        if (partsOfLocalPath[0].equals(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE)) {
-            if (partsOfLocalPath[1].equals("default")) {
-                AuthenticationSequenceType sequence = searchSequence(SecurityPolicyUtil.DEFAULT_CHANNEL, true, authenticationPolicy);
-                return  sequence;
-            }
+
+//        if (partsOfLocalPath.length < 2) {
+//            String usedChannel;
+//            if (partsOfLocalPath.length == 1 && MY_MAP.containsKey(partsOfLocalPath[0])) {
+//                usedChannel = MY_MAP.get(partsOfLocalPath[0]);
+//            } else {
+//                usedChannel = SecurityPolicyUtil.DEFAULT_CHANNEL;
+//            }
+//
+//            AuthenticationSequenceType sequence = searchSequence(usedChannel, true, authenticationPolicy);
+//            return sequence;
+//        }
+        if (partsOfLocalPath.length >= 2 && partsOfLocalPath[0].equals(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE)) {
+//            if (partsOfLocalPath[1].equals("default")) {
+//                AuthenticationSequenceType sequence = searchSequence(SecurityPolicyUtil.DEFAULT_CHANNEL, true, authenticationPolicy);
+//                return  sequence;
+//            }
             AuthenticationSequenceType sequence = searchSequence(partsOfLocalPath[1], false, authenticationPolicy);
             if (sequence == null) {
                 LOGGER.debug("Couldn't find sequence by preffix {}, so try default channel", partsOfLocalPath[1]);
@@ -188,16 +215,46 @@ public class SecurityUtils {
             }
             return sequence;
         }
-        String usedChannel;
-        if (MY_MAP.containsKey(partsOfLocalPath[0])) {
-            usedChannel = MY_MAP.get(partsOfLocalPath[0]);
-        } else {
+        String usedChannel = findChannelByPath(localePath);
+
+        if (usedChannel == null) {
             usedChannel = SecurityPolicyUtil.DEFAULT_CHANNEL;
         }
 
         AuthenticationSequenceType sequence = searchSequence(usedChannel, true, authenticationPolicy);
         return sequence;
 
+    }
+
+    public static String findChannelByPath(String localePath) {
+        for (String prefix : MY_MAP.keySet()) {
+            if (stripStartingSlashes(localePath).startsWith(prefix)) {
+                return MY_MAP.get(prefix);
+            }
+        }
+        return null;
+    }
+
+    public static String findChannelByRequest(HttpServletRequest httpRequest) {
+        String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
+        return findChannelByPath(localePath);
+    }
+
+    private static AuthenticationSequenceType getSpecificSequence(HttpServletRequest httpRequest) {
+        String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
+        String channel = findChannelByPath(localePath);
+        if (MY_MAP.get("ws/rest").equals(channel)) {
+            String header = httpRequest.getHeader("Authorization");
+            String type = header.split(" ")[0];
+            if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
+                AuthenticationSequenceType sequence = new AuthenticationSequenceType();
+                sequence.setName(NameOfModuleType.CLUSTER.getName());
+                AuthenticationSequenceChannelType seqChannel = new AuthenticationSequenceChannelType();
+                seqChannel.setUrlSuffix(NameOfModuleType.CLUSTER.getName().toLowerCase());
+                return sequence;
+            }
+        }
+        return null;
     }
 
     private static AuthenticationSequenceType searchSequence(String comparisonAttribute, boolean useOnlyChannel, AuthenticationsPolicyType authenticationPolicy) {
@@ -221,20 +278,47 @@ public class SecurityUtils {
         return null;
     }
 
+    public static AuthenticationSequenceType getSequenceByName(String name, AuthenticationsPolicyType authenticationPolicy){
+        if (authenticationPolicy == null || authenticationPolicy.getSequence() == null
+                || authenticationPolicy.getSequence().isEmpty()) {
+            return null;
+        }
+
+        Validate.notBlank(name);
+        for (AuthenticationSequenceType sequence : authenticationPolicy.getSequence()) {
+            if (sequence != null) {
+                if (name.equals(sequence.getName())) {
+                    if (sequence.getModule() == null || sequence.getModule().isEmpty()){
+                        return null;
+                    }
+                    return sequence;
+                }
+            }
+        }
+        return null;
+    }
+
     public static List<AuthModule> buildModuleFilters(AuthModuleRegistryImpl authRegistry, AuthenticationSequenceType sequence,
-                                                          ServletRequest request, AuthenticationModulesType authenticationModulesType,
-                                                          CredentialsPolicyType credentialPolicy, Map<Class<? extends Object>, Object> sharedObjects) {
+                                                      HttpServletRequest request, AuthenticationModulesType authenticationModulesType,
+                                                      CredentialsPolicyType credentialPolicy, Map<Class<? extends Object>, Object> sharedObjects,
+                                                      AuthenticationChannel authenticationChannel) {
         Validate.notNull(authRegistry);
         Validate.notEmpty(sequence.getModule());
+
+        List<AuthModule> specificModules = getSpecificModuleFilter(sequence.getChannel().getUrlSuffix(), request,
+                sharedObjects, authenticationModulesType, credentialPolicy);
+        if (specificModules != null) {
+            return specificModules;
+        }
+
         List<AuthenticationSequenceModuleType> sequenceModules = SecurityPolicyUtil.getSortedModules(sequence);
         List<AuthModule> authModules = new ArrayList<AuthModule>();
-
         sequenceModules.forEach(sequenceModule -> {
             try {
                 AbstractAuthenticationModuleType module = getModuleByName(sequenceModule.getName(), authenticationModulesType);
                 AbstractModuleFactory moduleFactory = authRegistry.findModelFactory(module);
                 AuthModule authModule = moduleFactory.createModuleFilter(module, sequence.getChannel().getUrlSuffix(), request,
-                        sharedObjects, authenticationModulesType, credentialPolicy);
+                        sharedObjects, authenticationModulesType, credentialPolicy, authenticationChannel);
                 authModules.add(authModule);
             } catch (Exception e) {
                 LOGGER.error("Couldn't build filter for module moduleFactory", e);
@@ -244,6 +328,32 @@ public class SecurityUtils {
             return null;
         }
         return authModules;
+    }
+
+    private static List<AuthModule> getSpecificModuleFilter(String urlSuffix, HttpServletRequest httpRequest, Map<Class<?>, Object> sharedObjects,
+                                                            AuthenticationModulesType authenticationModulesType, CredentialsPolicyType credentialPolicy) {
+        String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
+        String channel = findChannelByPath(localePath);
+        if (MY_MAP.get("ws/rest").equals(channel)) {
+            String header = httpRequest.getHeader("Authorization");
+            String type = header.split(" ")[0];
+            if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
+                List<AuthModule> authModules = new ArrayList<AuthModule>();
+                WebApplicationContext context = ContextLoader.getCurrentWebApplicationContext();
+                HttpClusterModuleFactory factory = context.getBean(HttpClusterModuleFactory.class);
+                AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType(){};
+                module.setName(NameOfModuleType.CLUSTER.getName().toLowerCase() + "-module");
+                try {
+                    authModules.add(factory.createModuleFilter(module, urlSuffix, httpRequest,
+                            sharedObjects, authenticationModulesType, credentialPolicy, null));
+                } catch (Exception e) {
+                    LOGGER.error("Couldn't create module for cluster authentication");
+                    return null;
+                }
+                return authModules;
+            }
+        }
+        return null;
     }
 
     private static AbstractAuthenticationModuleType getModuleByName(String name, AuthenticationModulesType authenticationModulesType){
@@ -324,6 +434,28 @@ public class SecurityUtils {
         request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
     }
 
+    public static AuthenticationChannel buildAuthChannel(AuthChannelRegistryImpl registry, AuthenticationSequenceType sequence) {
+        Validate.notNull(sequence);
+        String channelId = null;
+        AuthenticationSequenceChannelType channelSequence = sequence.getChannel();
+        if (channelSequence != null) {
+            channelId = channelSequence.getChannelId();
+        }
+
+        AbstractChannelFactory factory = registry.findModelFactory(channelId);
+        if (factory == null) {
+            LOGGER.error("Couldn't find factory for {}", channelId);
+            return null;
+        }
+        AuthenticationChannel channel = null;
+        try {
+            channel = factory.createAuthChannel(channelSequence);
+        } catch (Exception e) {
+            LOGGER.error("Couldn't create channel for {}", channelId);
+        }
+        return channel;
+    }
+
 //    public static ModuleAuthentication createDefaultAuthenticationModule() {
 //        LoginFormModuleAuthentication moduleAuthentication = new LoginFormModuleAuthentication();
 //        moduleAuthentication.setPrefix(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
@@ -331,4 +463,105 @@ public class SecurityUtils {
 //        moduleAuthentication.setNameOfModule(SecurityPolicyUtil.DEFAULT_MODULE_NAME);
 //        return moduleAuthentication;
 //    }
+
+    public static Map<String, String> obtainAnswers(String answers, String idParameter, String answerParameter) {
+        if (answers == null) {
+            return null;
+        }
+
+        JSONArray answersList = new JSONArray(answers);
+        Map<String, String> questionAnswers = new HashMap<String, String>();
+        for (int i = 0; i < answersList.length(); i++) {
+            JSONObject answer = answersList.getJSONObject(i);
+            String questionId = answer.getString(idParameter);
+            String questionAnswer = answer.getString(answerParameter);
+            questionAnswers.put(questionId, questionAnswer);
+        }
+        return questionAnswers;
+    }
+
+    public static void resolveProxyUserOidHeader(HttpServletRequest request) {
+        String proxyUserOid = request.getHeader(PROXY_USER_OID_HEADER);
+
+        Authentication actualAuth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (proxyUserOid != null && actualAuth instanceof MidpointAuthentication) {
+            ModuleAuthentication moduleAuth = ((MidpointAuthentication) actualAuth).getProcessingModuleAuthentication();
+            if (moduleAuth != null && moduleAuth instanceof HttpModuleAuthentication) {
+                ((HttpModuleAuthentication) moduleAuth).setProxyUserOid(proxyUserOid);
+            }
+        }
+    }
+
+    private static Task createAnonymousTask(String operation, TaskManager manager) {
+        Task task = manager.createTaskInstance(operation);
+        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        return task;
+    }
+
+    public static UserType searchUserPrivileged(String username, SecurityContextManager securityContextManager, TaskManager manager,
+                                            ModelService modelService, PrismContext prismContext) {
+        UserType userType = securityContextManager.runPrivileged(new Producer<UserType>() {
+            ObjectQuery query = prismContext.queryFor(UserType.class).item(UserType.F_NAME)
+                    .eqPoly(username).matchingNorm().build();
+
+            @Override
+            public UserType run() {
+
+                Task task = createAnonymousTask("load user", manager);
+                OperationResult result = new OperationResult("search user");
+
+                SearchResultList<PrismObject<UserType>> users;
+                try {
+                    users = modelService.searchObjects(UserType.class, query, null, task, result);
+                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+                        | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                    LoggingUtils.logException(LOGGER, "failed to search user", e);
+                    return null;
+                }
+
+                if ((users == null) || (users.isEmpty())) {
+                    LOGGER.trace("Empty user list in ForgetPassword");
+                    return null;
+                }
+
+                if (users.size() > 1) {
+                    LOGGER.trace("Problem while seeking for user");
+                    return null;
+                }
+
+                UserType user = users.iterator().next().asObjectable();
+                LOGGER.trace("User found for ForgetPassword: {}", user);
+
+                return user;
+            }
+
+        });
+        return userType;
+    }
+
+    public static  SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user, SecurityContextManager securityContextManager, TaskManager manager,
+                                                       ModelInteractionService modelInteractionService) {
+        SecurityPolicyType securityPolicy = securityContextManager.runPrivileged(new Producer<SecurityPolicyType>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public SecurityPolicyType run() {
+
+                Task task = createAnonymousTask("get security policy", manager);
+                OperationResult result = new OperationResult("get security policy");
+
+                try {
+                    return modelInteractionService.getSecurityPolicy(user, task, result);
+                } catch (CommonException e) {
+                    LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
+                    return null;
+                }
+
+            }
+
+        });
+
+        return securityPolicy;
+    }
 }

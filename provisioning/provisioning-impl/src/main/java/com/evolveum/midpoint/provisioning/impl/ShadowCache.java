@@ -990,7 +990,7 @@ public class ShadowCache {
                         shadowManager.recordModifyResult(ctx, repoShadow, modifications, opState, now, parentResult);
                         return repoShadow.getOid();
                     } else {
-                        LOGGER.info("Shadow exists: ", repoShadow.debugDump());
+                        LOGGER.trace("Shadow exists: {}", repoShadow.debugDump());
                     }
 
                     AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncReturnValue =

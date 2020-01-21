@@ -115,7 +115,7 @@ public class CaseTests extends TestBase {
     @Test (dependsOnMethods = {"test110isCaseCreated"})
     public void test120approveCaseAction() {
         AllRequestsPage allRequestsPage = basicPage.listAllRequests();
-        allRequestsPage
+        ChildrenCaseTable childrenCaseTable = allRequestsPage
                 .table()
                 .search()
                 .byName()
@@ -124,7 +124,12 @@ public class CaseTests extends TestBase {
                 .and()
                 .clickByPartialName(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME)
                 .selectTabChildren()
-                .table()
+                .table();
+        childrenCaseTable.search()
+                .byName()
+                .inputValue(ASSIGNING_ROLE_CASE_NAME + CASE_CREATION_TEST_USER_NAME)
+                .updateSearch();
+        childrenCaseTable
                 .clickByPartialName(ASSIGNING_ROLE_CASE_NAME + CASE_CREATION_TEST_USER_NAME)
                 .selectTabWorkitems()
                 .table()
@@ -155,7 +160,7 @@ public class CaseTests extends TestBase {
         createUserAndAssignRoleWithApprovement(REJECT_WORKITEM_TEST_USER_NAME);
 
         AllRequestsPage allRequestsPage = basicPage.listAllRequests();
-        allRequestsPage
+        ChildrenCaseTable childrenCaseTable = allRequestsPage
                 .table()
                 .search()
                 .byName()
@@ -164,8 +169,12 @@ public class CaseTests extends TestBase {
                 .and()
                 .clickByPartialName(REQUEST_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME)
                 .selectTabChildren()
-                .table()
-                .clickByPartialName(ASSIGNING_ROLE_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME)
+                .table();
+        childrenCaseTable.search()
+                .byName()
+                .inputValue(ASSIGNING_ROLE_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME)
+                .updateSearch();
+        childrenCaseTable.clickByPartialName(ASSIGNING_ROLE_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME)
                 .selectTabWorkitems()
                 .table()
                 .clickByName(ASSIGNING_ROLE_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME)
@@ -205,7 +214,7 @@ public class CaseTests extends TestBase {
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
 
         AllRequestsPage allRequestsPage = basicPage.listAllRequests();
-        WorkitemDetailsPanel<CasePage> workitemDetailsPanel = allRequestsPage
+        ChildrenCaseTable childrenCaseTable = allRequestsPage
                 .table()
                 .search()
                 .byName()
@@ -214,7 +223,12 @@ public class CaseTests extends TestBase {
                 .and()
                 .clickByPartialName(REQUEST_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
                 .selectTabChildren()
-                .table()
+                .table();
+        childrenCaseTable.search()
+                .byName()
+                .inputValue(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                .updateSearch();
+        WorkitemDetailsPanel<CasePage> workitemDetailsPanel = childrenCaseTable
                 .clickByPartialName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
                 .selectTabWorkitems()
                 .table()

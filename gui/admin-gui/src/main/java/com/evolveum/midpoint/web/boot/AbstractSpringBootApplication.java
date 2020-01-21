@@ -89,7 +89,7 @@ import ro.isdc.wro.http.WroFilter;
         WebMvcMetricsAutoConfiguration.class,
         MetricsEndpointAutoConfiguration.class
 })
-public abstract class AbstractSpringBootApplication extends SpringBootServletInitializer{
+public abstract class AbstractSpringBootApplication extends SpringBootServletInitializer {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
 

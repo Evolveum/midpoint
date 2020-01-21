@@ -6,17 +6,22 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationTrustResolverImpl;
-import com.evolveum.midpoint.web.security.MidpointRestAuthenticationEntryPoint;
+import com.evolveum.midpoint.web.security.HttpAuthenticationEntryPoint;
+import com.evolveum.midpoint.web.security.MidpointHttpAuthorizationEvaluator;
+import com.evolveum.midpoint.web.security.filter.HttpBasicAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
-import com.evolveum.midpoint.web.security.provider.InternalPasswordProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import static org.springframework.security.saml.util.StringUtils.stripEndingSlases;
 
@@ -26,6 +31,18 @@ import static org.springframework.security.saml.util.StringUtils.stripEndingSlas
 
 public class HttpBasicModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
 
+    @Autowired
+    private ModelService model;
+
+    @Autowired
+    private SecurityEnforcer securityEnforcer;
+
+    @Autowired
+    private SecurityContextManager securityContextManager;
+
+    @Autowired
+    private TaskManager taskManager;
+
     public HttpBasicModuleWebSecurityConfig(C configuration) {
         super(configuration);
     }
@@ -34,18 +51,23 @@ public class HttpBasicModuleWebSecurityConfig<C extends ModuleWebSecurityConfigu
     protected void configure(HttpSecurity http) throws Exception {
 
         super.configure(http);
-        MidpointRestAuthenticationEntryPoint entryPoint = new MidpointRestAuthenticationEntryPoint();
+        HttpAuthenticationEntryPoint entryPoint = getObjectPostProcessor().postProcess(new HttpAuthenticationEntryPoint());
         http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
 
-        http.httpBasic().authenticationEntryPoint(entryPoint)
-                .and()
-                .formLogin().disable()
+        HttpBasicAuthenticationFilter filter = getObjectPostProcessor().postProcess(new HttpBasicAuthenticationFilter(authenticationManager(), entryPoint));
+        RememberMeServices rememberMeServices = http.getSharedObject(RememberMeServices.class);
+        if (rememberMeServices != null) {
+            filter.setRememberMeServices(rememberMeServices);
+        }
+        http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, model));
+        http.addFilterAt(filter, BasicAuthenticationFilter.class);
+        http.formLogin().disable()
                 .csrf().disable();
-        http.apply(new MidpointExceptionHandlingConfigurer())
+        getOrApply(http, new MidpointExceptionHandlingConfigurer())
                 .authenticationEntryPoint(entryPoint)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
                 //.and()
                 //.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
-
     }
+
 }

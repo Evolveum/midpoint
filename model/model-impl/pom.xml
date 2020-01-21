@@ -350,12 +350,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint</groupId>
-            <artifactId>midpoint-localization</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl-test</artifactId>
             <version>4.1-SNAPSHOT</version>
@@ -441,6 +435,11 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-aop</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
     <build>

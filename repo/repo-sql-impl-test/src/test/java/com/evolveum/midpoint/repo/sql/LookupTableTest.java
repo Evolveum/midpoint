@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
@@ -39,8 +41,7 @@ import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType.F_ROW;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
@@ -339,11 +340,40 @@ public class LookupTableTest extends BaseSQLRepoTest {
         assertTrue(result.isSuccess());
     }
 
-    private void checkTable(String tableOid, PrismObject<LookupTableType> expectedObject, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void checkTable(String tableOid, PrismObject<LookupTableType> expectedTableFull, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        PrismObject<LookupTableType> actualTableFull = getTableFull(tableOid, result);
+        expectedTableFull.setOid(tableOid);
+        PrismAsserts.assertEquivalent("Table is not as expected", expectedTableFull, actualTableFull);
+
+        checkIncompleteFlag(tableOid, expectedTableFull, actualTableFull, result);
+    }
+
+    private void checkIncompleteFlag(String tableOid, PrismObject<LookupTableType> expectedTableFull,
+            PrismObject<LookupTableType> actualTableFull, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        boolean expectsRows = expectedTableFull.asObjectable().getRow().isEmpty();
+        PrismContainer<Containerable> rowContainerFull = actualTableFull.findContainer(F_ROW);
+        if (rowContainerFull != null) {
+            assertFalse("table.row is marked as incomplete", rowContainerFull.isIncomplete());
+        }
+
+        PrismObject<LookupTableType> tablePlain = getTablePlain(tableOid, result);
+        if (expectsRows) {
+            PrismContainer<Containerable> rowContainerPlain = tablePlain.findContainer(F_ROW);
+            assertNotNull("No table.row", rowContainerPlain);
+            assertTrue("table.row is NOT marked as incomplete", rowContainerPlain.isIncomplete());
+        }
+    }
+
+    private PrismObject<LookupTableType> getTableFull(String tableOid, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
         SelectorOptions<GetOperationOptions> retrieve = SelectorOptions.create(prismContext.toUniformPath(F_ROW), GetOperationOptions.createRetrieve(INCLUDE));
-        PrismObject<LookupTableType> table = repositoryService.getObject(LookupTableType.class, tableOid, Arrays.asList(retrieve), result);
-        expectedObject.setOid(tableOid);
-        PrismAsserts.assertEquivalent("Table is not as expected", expectedObject, table);
+        return repositoryService.getObject(LookupTableType.class, tableOid,
+                Collections.singletonList(retrieve), result);
+    }
+
+    private PrismObject<LookupTableType> getTablePlain(String tableOid, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        return repositoryService.getObject(LookupTableType.class, tableOid,null, result);
     }
 
     protected void executeAndCheckModification(List<ItemDelta<?,?>> modifications, OperationResult result, int versionDelta,
@@ -375,12 +405,8 @@ public class LookupTableTest extends BaseSQLRepoTest {
 
         // remove keys that will be replaced
         if (replacedKeys != null) {
-            Iterator<LookupTableRowType> iterator = expectedObject.asObjectable().getRow().iterator();
-            while (iterator.hasNext()) {
-                if (replacedKeys.contains(iterator.next().getKey())) {
-                    iterator.remove();
-                }
-            }
+            expectedObject.asObjectable().getRow()
+                    .removeIf(row -> replacedKeys.contains(row.getKey()));
         }
 
         if (modifications != null) {
@@ -406,6 +432,8 @@ public class LookupTableTest extends BaseSQLRepoTest {
         PrismAsserts.assertEquivalent("Table is not as expected", expectedObject, actualObject);
 
         AssertJUnit.assertEquals("Incorrect version", expectedVersion, Integer.parseInt(actualObject.getVersion()));
+
+        checkIncompleteFlag(oid, expectedObject, actualObject, result);
     }
 
     private void checkCurrentTimestamp(LookupTableRowType row) {

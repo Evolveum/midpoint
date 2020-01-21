@@ -31,6 +31,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 
 /**
  * <p>Task Manager Interface.</p>
@@ -647,9 +649,26 @@ public interface TaskManager {
     // ==================================================== Miscellaneous methods
 
     /**
-     * Post initialization, e.g. starts the actual scheduling of tasks on this node.
+     * Currently not used.
      */
     void postInit(OperationResult result);
+
+    /**
+     * Called when the whole application is initialized.
+     *
+     * Here we make this node a real cluster member: We set the operational state to UP, enabling receiving cache invalidation
+     * events (among other effects). We also invalidate local caches - to begin with a clean slate - and start the scheduler.
+     *
+     * The postInit mechanism cannot be used for this purpose. The reason is that it is invoked shortly before the application
+     * is completely up. REST endpoints are not yet functional at that time. This means that some of the cache invalidation
+     * messages could be lost, and the other nodes could get error messages in the meanwhile.
+     *
+     * Unfortunately, REST endpoints are not initialized even when this event is emitted. There's a few seconds before
+     * they are really available. So the real action can be delayed by setting "nodeStartupDelay" configuration parameter.
+     * (This is a temporary solution until something better is found.)
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    void onSystemStarted();
 
     /**
      * Synchronizes information in midPoint repository and task scheduling database.
@@ -769,8 +788,13 @@ public interface TaskManager {
     void removeGlobalTracingOverride();
 
     /**
-     * @return true if we consider this node to be "up" (alive). This is determined by looking at "running" state (should not
-     * be false) and last check-in information (should not be more than nodeTimeout ago).
+     * @return true if we consider this node to be "up" (alive). This is determined by looking at operational state
+     * (should be UP) and last check-in information (should not be more than nodeTimeout ago).
+     */
+    boolean isUpAndAlive(NodeType node);
+
+    /**
+     * @return true if this node has recently checked in. It might be starting or up.
      */
     boolean isCheckingIn(NodeType node);
 }

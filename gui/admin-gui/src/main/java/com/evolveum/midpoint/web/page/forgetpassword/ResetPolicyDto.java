@@ -54,6 +54,8 @@ public class ResetPolicyDto implements Serializable {
             return;
         }
 
+
+
         MailResetPolicyType mailResetPolicy = securityPolicyType.getCredentialsReset().getMailReset();
         if (mailResetPolicy != null) {
             this.resetMethod = ResetMethod.MAIL;

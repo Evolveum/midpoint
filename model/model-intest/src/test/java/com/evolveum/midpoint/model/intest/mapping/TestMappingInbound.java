@@ -11,8 +11,10 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -22,15 +24,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -40,9 +37,11 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.nio.charset.StandardCharsets;
 
 import javax.xml.namespace.QName;
 
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -158,6 +157,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
         account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME, LOCKER_BIG_SECRET); // MID-5197
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
 
         /// WHEN
         displayWhen(TEST_NAME);
@@ -176,7 +176,8 @@ public class TestMappingInbound extends AbstractMappingTest {
                 accountMancomb.asObjectable().getResourceRef().getOid());
         assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED, null);
 
-        mancombLocker = assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
+        UserAsserter<Void> mancombUserAsserter = assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        mancombLocker = mancombUserAsserter
             .links()
                 .single()
                     .assertOid(accountMancomb.getOid())
@@ -191,9 +192,123 @@ public class TestMappingInbound extends AbstractMappingTest {
                             .assertCompareCleartext(LOCKER_BIG_SECRET)
                             .getProtectedString();
 
+        assertJpegPhoto(UserType.class, mancombUserAsserter.getOid(), "water".getBytes(StandardCharsets.UTF_8), result);
 //        assertUsers(6);
 
         // notifications
+        notificationManager.setDisabled(true);
+    }
+
+    /**
+     * MID-5912
+     */
+    @Test
+    public void test120ModifyMancombPhotoSource() throws Exception {
+        final String TEST_NAME = "test120ModifyMancombPhotoSource";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        /// WHEN
+        displayWhen(TEST_NAME);
+
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME)
+                .getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNotNull("No mancomb account", account);
+        account.removeAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
+        account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+
+        waitForSyncTaskNextRun();
+
+        // THEN
+        displayThen(TEST_NAME);
+
+        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
+        display("Account mancomb", accountMancomb);
+
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNotNull("User mancomb has disappeared", userMancomb);
+        assertJpegPhoto(UserType.class, userMancomb.getOid(), "rum".getBytes(StandardCharsets.UTF_8), result);
+
+        notificationManager.setDisabled(true);
+    }
+
+    /**
+     * MID-5912 (reconcile without livesync task)
+     */
+    @Test
+    public void test130ModifyMancombPhotoSourceAndReconcile() throws Exception {
+        final String TEST_NAME = "test130ModifyMancombPhotoSourceAndReconcile";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        /// WHEN
+        displayWhen(TEST_NAME);
+
+        // stop the task to avoid interference with the reconciliations
+        suspendTask(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
+
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME)
+                .getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNotNull("No mancomb account", account);
+        account.removeAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
+        account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "beer");
+
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNotNull("User mancomb has disappeared", userMancomb);
+
+        reconcileUser(userMancomb.getOid(), task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+
+        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
+        display("Account mancomb", accountMancomb);
+
+        assertJpegPhoto(UserType.class, userMancomb.getOid(), "beer".getBytes(StandardCharsets.UTF_8), result);
+
+        notificationManager.setDisabled(true);
+    }
+
+    /**
+     * MID-5912 (changing the photo directly on service object; with reconcile)
+     */
+    @Test
+    public void test140ModifyMancombPhotoInRepo() throws Exception {
+        final String TEST_NAME = "test140ModifyMancombPhotoInRepo";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        /// WHEN
+        displayWhen(TEST_NAME);
+
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        assertNotNull("User mancomb has disappeared", userMancomb);
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_JPEG_PHOTO).replaceRealValues(singleton("cherry".getBytes(StandardCharsets.UTF_8)))
+                .asObjectDelta(userMancomb.getOid());
+        executeChanges(delta, ModelExecuteOptions.createReconcile(), task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+
+        assertSuccess(result);
+
+        PrismObject<UserType> userMancombAfter = repositoryService.getObject(UserType.class, userMancomb.getOid(),
+                schemaHelper.getOperationOptionsBuilder().retrieve().build(), result);
+        display("user mancomb after", userMancombAfter);
+
+        //assertJpegPhoto(UserType.class, userMancomb.getOid(), "beer".getBytes(StandardCharsets.UTF_8), result);
+
         notificationManager.setDisabled(true);
     }
 
@@ -275,6 +390,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         display("Dummy (tea green) resource", getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).debugDump());
 
         // Make sure we have steady state
+        waitForTaskResume(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 20000);
         waitForSyncTaskNextRun();
 
         // THEN

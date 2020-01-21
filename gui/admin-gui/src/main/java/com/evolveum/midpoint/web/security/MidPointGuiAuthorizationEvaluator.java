@@ -223,9 +223,12 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         }
         MidPointPrincipal principal = (MidPointPrincipal)principalObject;
 
-
         Task task = taskManager.createTaskInstance(MidPointGuiAuthorizationEvaluator.class.getName() + ".decide");
 
+        decideInternal(principal, requiredActions, authentication, object, task);
+    }
+
+    protected void decideInternal(MidPointPrincipal principal, List<String> requiredActions, Authentication authentication, Object object, Task task) {
 
         AccessDecision decision;
         try {

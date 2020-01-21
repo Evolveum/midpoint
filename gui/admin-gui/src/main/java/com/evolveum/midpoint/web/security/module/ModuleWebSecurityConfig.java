@@ -7,26 +7,36 @@
 package com.evolveum.midpoint.web.security.module;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.security.*;
+import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
+import com.evolveum.midpoint.web.security.filter.PreLogoutFilter;
+import com.evolveum.midpoint.web.security.filter.RedirectForLoginPagesWithAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
-import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
-import com.evolveum.midpoint.web.security.module.factory.AuthModuleRegistryImpl;
+import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.header.HeaderWriterFilter;
 
 import java.util.UUID;
 
@@ -50,6 +60,9 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
 
     @Autowired
     private AuthModuleRegistryImpl authRegistry;
+
+    @Autowired
+    AuthChannelRegistryImpl authChannelRegistry;
 
 //    @Autowired
 //    private AuthenticationProvider midPointAuthenticationProvider;
@@ -90,27 +103,21 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        AnonymousAuthenticationFilter anonymousFilter = new MidpointAnonymousAuthenticationFilter(authRegistry, UUID.randomUUID().toString(), "anonymousUser",
+        AnonymousAuthenticationFilter anonymousFilter = new MidpointAnonymousAuthenticationFilter(authRegistry, authChannelRegistry, UUID.randomUUID().toString(), "anonymousUser",
                 AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
         http.setSharedObject(AuthenticationTrustResolver.class, new MidpointAuthenticationTrustResolverImpl());
         http.authorizeRequests()
                 .accessDecisionManager(accessDecisionManager)
                 .anyRequest().fullyAuthenticated();
-        http.apply(new MidpointExceptionHandlingConfigurer())
+        getOrApply(http, new MidpointExceptionHandlingConfigurer())
                 .accessDeniedHandler(accessDeniedHandler)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
-        http
-//                .csrf().and()
-//                .addFilter(new WebAsyncManagerIntegrationFilter())
-//                .apply(new ExceptionHandlingConfigurer<>() {}).and()
-                .headers().and()
-//                .sessionManagement().and()
-//                .securityContext().and()
+        http.headers().and()
                 .requestCache().and()
                 .anonymous().authenticationFilter(anonymousFilter).and()
-                .servletApi();//.and()
-//                .apply(new DefaultLoginPageConfigurer<>()).and()
-//                .logout();
+                .servletApi();
+
+        http.addFilterAfter(new RedirectForLoginPagesWithAuthenticationFilter(), CsrfFilter.class);
 
         http.csrf();
         if (!csrfEnabled) {
@@ -152,6 +159,10 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
         }
     }
 
+    protected LogoutSuccessHandler createLogoutHandler() {
+        return createLogoutHandler(null);
+    }
+
     protected LogoutSuccessHandler createLogoutHandler(String defaultSuccessLogoutURL) {
         AuditedLogoutHandler handler = objectPostProcessor.postProcess(new AuditedLogoutHandler());
         if (StringUtils.isNotBlank(defaultSuccessLogoutURL)
@@ -160,6 +171,11 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
             handler.setDefaultTargetUrl(defaultSuccessLogoutURL);
         }
         return handler;
+    }
+
+    protected  <C extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity>> C getOrApply(HttpSecurity http, C configurer) throws Exception {
+        C existingConfig = (C) http.getConfigurer(configurer.getClass());
+        return existingConfig != null ? existingConfig : http.apply(configurer);
     }
 
 }

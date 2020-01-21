@@ -31,6 +31,8 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
 
     private AuthenticationSequenceType sequence;
 
+    private AuthenticationChannel authenticationChannel;
+
     private List<ModuleAuthentication> authentications = new ArrayList<ModuleAuthentication>();
 
     private List<AuthModule> authModules;
@@ -57,6 +59,14 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
 
     public AuthenticationSequenceType getSequence() {
         return sequence;
+    }
+
+    public AuthenticationChannel getAuthenticationChannel() {
+        return authenticationChannel;
+    }
+
+    public void setAuthenticationChannel(AuthenticationChannel authenticationChannel) {
+        this.authenticationChannel = authenticationChannel;
     }
 
     public List<ModuleAuthentication> getAuthentications() {
@@ -173,7 +183,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
 
     public int getIndexOfModule(ModuleAuthentication authentication){
         Validate.notNull(authentication);
-        return getAuthentications().indexOf(authentication);
+
+        for (int i = 0; i < getModules().size(); i++) {
+            if (getModules().get(i).getName().equals(authentication.getNameOfModule())) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public ModuleAuthentication getProcessingModuleAuthentication() {
@@ -217,12 +233,26 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
         if (processingModule == null) {
             return parallelProcesingModules;
         }
+
+        if (actualIndex > 0) {
+            for (int i = actualIndex - 1; i >= 0; i--) {
+                if (getModules().get(i) != null
+                        && processingModuleType.getOrder() == getModules().get(i).getOrder()) {
+                    parallelProcesingModules.add(getAuthModules().get(i).getBaseModuleAuthentication());
+                } else {
+                    break;
+                }
+            }
+        }
         parallelProcesingModules.add(processingModule);
         for (int i = actualIndex + 1; i < getModules().size(); i++) {
             if (getModules().get(i) != null
-                    && processingModuleType.getOrder() == getModules().get(i).getOrder())
+                    && processingModuleType.getOrder() == getModules().get(i).getOrder()) {
                 parallelProcesingModules.add(getAuthModules().get(i).getBaseModuleAuthentication());
+            }
         }
+
+
 
         return parallelProcesingModules;
     }
@@ -232,34 +262,47 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
         if (header == null){
             return actualIndex;
         }
-        int delim = header.indexOf(" ");
 
-        if (delim == -1) {
-            throw new IllegalArgumentException("Invalid authentication header, value of header don't contains delimiter ' '."
-                    + " Please use form 'Authorization: <type> <credentials>'");
-        }
         String type = header.split(" ")[0];
         List<ModuleAuthentication> parallelProcesingModules = getParallelProcessingModules(actualIndex);
         int resolvedIndex = -1;
         for (ModuleAuthentication parallelProcesingModule : parallelProcesingModules) {
+            int usedIndex = getAuthentications().indexOf(parallelProcesingModule);
             if (parallelProcesingModule.getNameOfModuleType().getName().toLowerCase().equals(type.toLowerCase())
             && resolvedIndex == -1) {
                 parallelProcesingModule.setState(StateOfModule.LOGIN_PROCESSING);
-                resolvedIndex = actualIndex;
+                if (usedIndex != -1) {
+                    resolvedIndex = usedIndex;
+                } else {
+                    resolvedIndex = getAuthentications().size();
+                }
             } else {
                 parallelProcesingModule.setState(StateOfModule.FAILURE);
             }
-            if (getAuthentications().size() > actualIndex){
-                getAuthentications().set(actualIndex, parallelProcesingModule);
-            } else {
+            if (usedIndex == -1) {
                 getAuthentications().add(parallelProcesingModule);
+            } else {
+                getAuthentications().set(usedIndex, parallelProcesingModule);
             }
-            actualIndex++;
         }
         if (resolvedIndex == -1){
             throw new IllegalArgumentException("Couldn't find module with type '" + type + "' in sequence '"
                     + getSequence().getName() + "'");
         }
         return resolvedIndex;
+    }
+
+    public boolean isLast(ModuleAuthentication moduleAuthentication){
+        if (getAuthentications().isEmpty()) {
+            return false;
+        }
+        int index = getIndexOfModule(moduleAuthentication);
+        if (index == -1) {
+            return false;
+        }
+        if (index == getModules().size()-1) {
+            return true;
+        }
+        return getModules().get(index).getOrder().equals(getModules().get(getModules().size()-1).getOrder());
     }
 }

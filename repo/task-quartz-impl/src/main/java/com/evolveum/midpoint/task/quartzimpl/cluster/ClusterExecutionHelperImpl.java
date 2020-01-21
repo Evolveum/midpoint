@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.cxf.common.util.Base64Utility;
@@ -116,10 +117,10 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
         String nodeIdentifier = node.getNodeIdentifier();
         result.addParam("node", nodeIdentifier);
 
-        boolean dead = Boolean.FALSE.equals(node.isRunning());
-        boolean isCheckingIn = taskManager.isCheckingIn(node);
-        if (isCheckingIn || ClusterExecutionOptions.isTryAllNodes(options) ||
-                !dead && ClusterExecutionOptions.isTryNodesNotCheckingIn(options)) {
+        boolean isDead = node.getOperationalStatus() == NodeOperationalStatusType.DOWN;
+        boolean isUpAndAlive = taskManager.isUpAndAlive(node);
+        if (isUpAndAlive || ClusterExecutionOptions.isTryAllNodes(options) ||
+                !isDead && ClusterExecutionOptions.isTryNodesInTransition(options)) {
             try {
                 WebClient client = createClient(node, context);
                 if (client == null) {
@@ -134,7 +135,8 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
             }
         } else {
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Node " + nodeIdentifier +
-                    " is not running (isRunning = " + node.isRunning() + ", last check in time = " + node.getLastCheckInTime());
+                    " is not running (operational state = " + node.getOperationalStatus() +
+                    ", last check in time = " + node.getLastCheckInTime());
         }
     }
 

@@ -43,7 +43,7 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MultiTypesMemberPopupTabPanel<O>(panelId, availableRelationList){
+                return new MultiTypesMemberPopupTabPanel<O>(panelId, availableRelationList, getArchetypeRefList()){
                     private static final long serialVersionUID = 1L;
 
                     @Override

@@ -136,13 +136,6 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
             @Override
             protected List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> postSearch(
                     List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> items) {
-//                for (int i = 0; i < items.size(); i++) {
-//                    PrismContainerValueWrapper<ClassLoggerConfigurationType> logger = items.get(i);
-//                    if (MidPointConstants.PROFILING_LOGGER_NAME.equals(((ClassLoggerConfigurationType)logger.getRealValue()).getPackage())) {
-//                        items.remove(logger);
-//                        continue;
-//                    }
-//                }
                 return items;
             }
 

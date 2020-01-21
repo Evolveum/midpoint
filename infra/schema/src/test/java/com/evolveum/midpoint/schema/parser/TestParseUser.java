@@ -7,8 +7,7 @@
 package com.evolveum.midpoint.schema.parser;
 
 import static com.evolveum.midpoint.schema.TestConstants.*;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -99,6 +98,9 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
         assertEquals("Wrong # of org units", 0, jackReparsed.asObjectable().getOrganizationalUnit().size());
         assertEquals("Wrong # of assignments", 0, jackReparsed.asObjectable().getAssignment().size());
         assertEquals("Wrong # of links", 0, jackReparsed.asObjectable().getLinkRef().size());
+        PrismAsserts.assertIncomplete(jackReparsed, UserType.F_ORGANIZATIONAL_UNIT);
+        PrismAsserts.assertIncomplete(jackReparsed, UserType.F_LINK_REF);
+        PrismAsserts.assertIncomplete(jackReparsed, UserType.F_ASSIGNMENT);
     }
 
     private void processParsingsPCV(SerializingFunction<PrismContainerValue<UserType>> serializer, String serId) throws Exception {

@@ -6,14 +6,14 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
-import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationFauileHandler;
+import com.evolveum.midpoint.web.security.filter.MidpointUsernamePasswordAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointFormLoginConfigurer;
 import com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.web.security.AuditedLogoutHandler;
-import com.evolveum.midpoint.web.security.MidPointAccessDeniedHandler;
 import com.evolveum.midpoint.web.security.WicketLoginUrlAuthenticationEntryPoint;
+import com.evolveum.midpoint.web.security.module.configuration.LoginFormModuleWebSecurityConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.cas.web.CasAuthenticationFilter;
@@ -30,7 +30,7 @@ import static org.springframework.security.saml.util.StringUtils.stripEndingSlas
  * @author skublik
  */
 
-public class LoginFormModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
+public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
 
     @Autowired
     private AuditedLogoutHandler auditedLogoutHandler;
@@ -66,21 +66,20 @@ public class LoginFormModuleWebSecurityConfig<C extends ModuleWebSecurityConfigu
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
-        http.apply(new MidpointFormLoginConfigurer())
+        getOrApply(http, new MidpointFormLoginConfigurer(new MidpointUsernamePasswordAuthenticationFilter()))
                 .loginPage("/login")
-                .failureUrl("/")
                 .loginProcessingUrl(stripEndingSlases(getPrefix()) + "/spring_security_login")
                 .failureHandler(new MidpointAuthenticationFauileHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
                         new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix()))).permitAll();
-        http.apply(new MidpointExceptionHandlingConfigurer())
+        getOrApply(http, new MidpointExceptionHandlingConfigurer())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/login"));
 
         http.logout().clearAuthentication(true)
                 .logoutUrl(stripEndingSlases(getPrefix()) +"/logout")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
-                .logoutSuccessHandler(createLogoutHandler("/"));
+                .logoutSuccessHandler(createLogoutHandler());
 
         if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("cas"))) {
             http.addFilterAt(casFilter, CasAuthenticationFilter.class);

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.api.authentication;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.core.Authentication;
 
+import java.util.Objects;
+
 /**
  * @author skublik
  */
@@ -91,4 +93,19 @@ public class ModuleAuthentication {
         module.setPrefix(this.getPrefix());
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ModuleAuthentication that = (ModuleAuthentication) o;
+        return  Objects.equals(nameOfModule, that.nameOfModule) &&
+                type == that.type &&
+                Objects.equals(prefix, that.prefix) &&
+                nameOfType == that.nameOfType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(nameOfModule, type, prefix, nameOfType);
+    }
 }

@@ -42,8 +42,8 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
 
     private ObjectTypes defaultObjectType = ObjectTypes.OBJECT_COLLECTION;
 
-    public MultiTypesMemberPopupTabPanel(String id, AvailableRelationDto supportedRelationsList){
-        super(id, supportedRelationsList);
+    public MultiTypesMemberPopupTabPanel(String id, AvailableRelationDto supportedRelationsList, List<ObjectReferenceType> archetypeReferenceList){
+        super(id, supportedRelationsList, archetypeReferenceList);
     }
 
     @Override

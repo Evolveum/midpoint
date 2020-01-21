@@ -2106,12 +2106,32 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="operationalStatus" type="tns:NodeOperationalStatusType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Basic node operational state: whether it is up (e.g. should be accepting REST/JMX queries),
+                                or it is down (known to be turned off or just not checking-in for a longer time), or starting.
+                                Does NOT indicate anything about the scheduler status.
+
+                                Supersedes "running" property.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="running" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Whether this node is running, i.e. it can be queried via JMX.
                                 (This does not necessarily mean that the scheduler thread and task threads are running!)
+
+                                DEPRECATED. Replaced by operationalState.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.1</a:deprecatedSince>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="clustered" type="xsd:boolean" minOccurs="0">
@@ -2250,10 +2270,65 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:simpleType name="NodeOperationalStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Basic node operational state: whether it is up (e.g. accepting REST/JMX queries),
+                or it is down (known to be turned off or just not checking-in for a longer time), or starting.
+                Does NOT indicate anything about the scheduler status.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="up">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node is up and should respond to REST/JMX queries.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UP"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="down">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node is down. Either it was turned off or it has not checked in for a longer time.
+                        There's no point in trying to contact it via REST or JMX.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DOWN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="down">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node is down. Either it was turned off or it has not checked in for a longer time.
+                        There's no point in trying to contact it via REST or JMX.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DOWN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="starting">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node is starting. It is expected it will be alive soon but should not be contacted via REST/JMX yet.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STARTING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:simpleType name="NodeExecutionStatusType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Node status from the user's point of view.
+                TODO decide what to do with this data type.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -2290,6 +2365,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NOT_CHECKING_IN"/>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="starting">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node is starting. It is expected it will be alive soon but should not be contacted via REST/JMX yet.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STARTING"/>
                         <a:since>4.1</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>

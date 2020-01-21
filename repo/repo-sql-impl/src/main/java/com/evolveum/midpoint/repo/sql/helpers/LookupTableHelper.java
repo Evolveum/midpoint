@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -29,9 +30,8 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -188,9 +188,9 @@ public class LookupTableHelper {
         return null;
     }
 
-    public <T extends ObjectType> void updateLoadedLookupTable(PrismObject<T> object,
-                                                               Collection<SelectorOptions<GetOperationOptions>> options,
-                                                               Session session) throws SchemaException {
+    <T extends ObjectType> void updateLoadedLookupTable(PrismObject<T> object,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Session session) throws SchemaException {
         if (!SelectorOptions.hasToLoadPath(LookupTableType.F_ROW, options)) {
             return;
         }
@@ -211,16 +211,23 @@ public class LookupTableHelper {
             }
         }
 
+        //noinspection unchecked
         List<RLookupTableRow> rows = query.list();
-        if (rows == null || rows.isEmpty()) {
-            return;
-        }
-
-        LookupTableType lookup = (LookupTableType) object.asObjectable();
-        List<LookupTableRowType> jaxbRows = lookup.getRow();
-        for (RLookupTableRow row : rows) {
-            LookupTableRowType jaxbRow = row.toJAXB(prismContext);
-            jaxbRows.add(jaxbRow);
+        if (CollectionUtils.isNotEmpty(rows)) {
+            LookupTableType lookup = (LookupTableType) object.asObjectable();
+            List<LookupTableRowType> jaxbRows = lookup.getRow();
+            for (RLookupTableRow row : rows) {
+                LookupTableRowType jaxbRow = row.toJAXB(prismContext);
+                jaxbRows.add(jaxbRow);
+            }
+            PrismContainer<LookupTableRowType> rowContainer = object.findContainer(LookupTableType.F_ROW);
+            rowContainer.setIncomplete(false);
+        } else {
+            PrismContainer<LookupTableRowType> rowContainer = object.findContainer(LookupTableType.F_ROW);
+            if (rowContainer != null) {
+                rowContainer.clear();      // just in case
+                rowContainer.setIncomplete(false);
+            }
         }
     }
 

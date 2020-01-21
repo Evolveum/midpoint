@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.xml.sax.SAXException;
@@ -279,7 +280,7 @@ public class MappingTestEvaluator {
             throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
         MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyPath, null);
         OperationResult opResult = new OperationResult(testName);
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(new NullTaskImpl(), opResult);
         assertResult(opResult);
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
         if (outputTriple != null) {
@@ -293,7 +294,7 @@ public class MappingTestEvaluator {
             throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
         MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, null);
         OperationResult opResult = new OperationResult(testName);
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(new NullTaskImpl(), opResult);
         assertResult(opResult);
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
         if (outputTriple != null) {
@@ -307,7 +308,7 @@ public class MappingTestEvaluator {
             throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
         MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, null);
         OperationResult opResult = new OperationResult(testName);
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(new NullTaskImpl(), opResult);
         assertResult(opResult);
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
         if (outputTriple != null) {
@@ -339,7 +340,7 @@ public class MappingTestEvaluator {
                         valuesToAdd);
         MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyPath, userDelta);
         OperationResult opResult = new OperationResult(testName);
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(new NullTaskImpl(), opResult);
         assertResult(opResult);
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
         if (outputTriple != null) {
@@ -356,7 +357,7 @@ public class MappingTestEvaluator {
                         valuesToAdd);
         MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
         OperationResult opResult = new OperationResult(testName);
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(new NullTaskImpl(), opResult);
         assertResult(opResult);
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
         if (outputTriple != null) {
@@ -373,7 +374,7 @@ public class MappingTestEvaluator {
                         valuesToReplace);
         MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
         OperationResult opResult = new OperationResult(testName);
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(new NullTaskImpl(), opResult);
         assertResult(opResult);
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
         if (outputTriple != null) {
@@ -390,7 +391,7 @@ public class MappingTestEvaluator {
                         valuesToReplace);
         MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
         OperationResult opResult = new OperationResult(testName);
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(new NullTaskImpl(), opResult);
         assertResult(opResult);
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
         if (outputTriple != null) {
@@ -408,7 +409,7 @@ public class MappingTestEvaluator {
         MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
         OperationResult opResult = new OperationResult(testName);
 
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(new NullTaskImpl(), opResult);
         assertResult(opResult);
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
         if (outputTriple != null) {
@@ -425,7 +426,7 @@ public class MappingTestEvaluator {
                         valuesToReplace);
         MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
         OperationResult opResult = new OperationResult(testName);
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(new NullTaskImpl(), opResult);
         assertResult(opResult);
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
         if (outputTriple != null) {

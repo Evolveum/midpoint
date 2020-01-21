@@ -46,7 +46,7 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
 
         localUserProfileService.terminateLocalSessions(terminateSessionEvent);
 
-        // We try to invoke this call also on nodes that are not checking in (but not declared dead). It is quite important
+        // We try to invoke this call also on nodes that are in transition. It is quite important
         // that terminate session is executed on as wide scale as realistically possible.
         clusterExecutionHelper.execute((client, result1) -> {
             client.path(ClusterRestService.EVENT_TERMINATE_SESSION);
@@ -54,7 +54,7 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
             LOGGER.info("Remote-node user session termination finished with status {}, {}",
                     response.getStatusInfo().getStatusCode(), response.getStatusInfo().getReasonPhrase());
             response.close();
-        }, new ClusterExecutionOptions().tryNodesNotCheckingIn(), "session termination", result);
+        }, new ClusterExecutionOptions().tryNodesInTransition(), "session termination", result);
     }
 
     @Override
@@ -66,7 +66,7 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
         Map<String, UserSessionManagementType> usersMap = loggedUsers.stream()
                 .collect(Collectors.toMap(key -> key.getUser().getOid(), value -> value));
 
-        // We try to invoke this call also on nodes that are not checking in (but not declared dead). We want to get
+        // We try to invoke this call also on nodes that are in transition. We want to get
         // information as complete as realistically possible.
         clusterExecutionHelper.execute((client, result1) -> {
             client.path(UserProfileService.EVENT_LIST_USER_SESSION);
@@ -88,7 +88,7 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
                 }
             }
             response.close();
-        }, new ClusterExecutionOptions().tryNodesNotCheckingIn(), " list principals from remote nodes ", result);
+        }, new ClusterExecutionOptions().tryNodesInTransition(), " list principals from remote nodes ", result);
 
         return new ArrayList<>(usersMap.values());
     }

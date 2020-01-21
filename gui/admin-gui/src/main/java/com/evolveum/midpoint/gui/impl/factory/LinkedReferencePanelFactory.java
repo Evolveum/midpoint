@@ -58,7 +58,7 @@ public class LinkedReferencePanelFactory implements GuiComponentFactory<PrismRef
                         ((PrismReferenceWrapperImpl) wrapper).getValue();
                 valueWrapper.setLink(true);
             } catch (SchemaException e){
-                LOGGER.warn("Unable to set isLink status for PrismReferenceValueWrapper, ", e.getLocalizedMessage());
+                LOGGER.warn("Unable to set isLink status for PrismReferenceValueWrapper: {}", e.getLocalizedMessage());
             }
         }
         return match;

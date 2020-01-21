@@ -735,24 +735,25 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
     }
 
     public void refreshTable(Class<O> newTypeClass, AjaxRequestTarget target) {
-//        ObjectTypes newType = newTypeClass != null ? ObjectTypes.getObjectType(newTypeClass) : null;
-//
-//        BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
-//        provider.setQuery(getQuery());
-//        if (newType != null && provider instanceof SelectableBeanObjectDataProvider) {
-//            ((SelectableBeanObjectDataProvider<O>) provider).setType(newTypeClass);
-//        }
-
         BoxedTablePanel<SelectableBean<O>> table = getTable();
+        if (!getType().equals(newTypeClass)) {
+            ObjectTypes newType = newTypeClass != null ? ObjectTypes.getObjectType(newTypeClass) : null;
 
-//        ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
-//        if (newType != null && !this.type.equals(newType)) {
-//            this.type = newType;
-//            resetSearchModel();
-//            table.setCurrentPage(null);
-//        } else {
-//            saveSearchModel(getCurrentTablePaging());
-//        }
+            BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
+            provider.setQuery(getQuery());
+            if (newType != null && provider instanceof SelectableBeanObjectDataProvider) {
+                ((SelectableBeanObjectDataProvider<O>) provider).setType(newTypeClass);
+            }
+
+            ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
+            if (newType != null && !this.type.equals(newType)) {
+                this.type = newType;
+                resetSearchModel();
+                table.setCurrentPage(null);
+            } else {
+                saveSearchModel(getCurrentTablePaging());
+            }
+        }
 
         target.add((Component) table);
         target.add(getPageBase().getFeedbackPanel());

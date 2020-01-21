@@ -54,8 +54,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_OUTPUT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
@@ -684,13 +683,26 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         LOGGER.trace("Expected object = \n{}", expectedObject.debugDump());
 
-        PrismObject<AccessCertificationCampaignType> campaign = getFullCampaign(campaignOid, result);
+        boolean casesExpected = !expectedObject.asObjectable().getCase().isEmpty();
 
-        LOGGER.trace("Actual object from repo = \n{}", campaign.debugDump());
+        PrismObject<AccessCertificationCampaignType> campaignFull = getFullCampaign(campaignOid, result);
+        PrismContainer<AccessCertificationCaseType> caseContainerFull = campaignFull.findContainer(F_CASE);
+        if (caseContainerFull != null) {
+            assertFalse("campaign.case is marked as incomplete", caseContainerFull.isIncomplete());
+        }
 
-        PrismAsserts.assertEquivalent("Campaign is not as expected", expectedObject, campaign);
+        LOGGER.trace("Actual object from repo = \n{}", campaignFull.debugDump());
+
+        PrismAsserts.assertEquivalent("Campaign is not as expected", expectedObject, campaignFull);
         if (expectedVersion != null) {
-            AssertJUnit.assertEquals("Incorrect version", (int) expectedVersion, Integer.parseInt(campaign.getVersion()));
+            AssertJUnit.assertEquals("Incorrect version", (int) expectedVersion, Integer.parseInt(campaignFull.getVersion()));
+        }
+
+        PrismObject<AccessCertificationCampaignType> campaignPlain = getCampaignPlain(campaignOid, result);
+        if (casesExpected) {
+            PrismContainer<AccessCertificationCaseType> caseContainerPlain = campaignPlain.findContainer(F_CASE);
+            assertNotNull("campaign.case is not present", caseContainerPlain);
+            assertTrue("campaign.case is NOT marked as incomplete", caseContainerPlain.isIncomplete());
         }
     }
 
@@ -699,6 +711,10 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_CASE).retrieve()
                 .build();
         return repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, options, result);
+    }
+
+    private PrismObject<AccessCertificationCampaignType> getCampaignPlain(String campaignOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        return repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, null, result);
     }
 
     private PrismObject<AccessCertificationCampaignType> getFullCampaign(String oid) throws ObjectNotFoundException, SchemaException {

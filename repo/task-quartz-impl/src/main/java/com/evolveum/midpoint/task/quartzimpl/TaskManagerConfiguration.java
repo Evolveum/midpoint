@@ -62,9 +62,12 @@ public class TaskManagerConfiguration {
     @Deprecated private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
     private static final String QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "quartzNodeRegistrationInterval";
     private static final String NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "nodeRegistrationInterval";
-    private static final String NODE_ALIVENESS_CHECK_INTERVAL = "nodeAlivenessCheckInterval";
-    private static final String NODE_ALIVENESS_TIMEOUT = "nodeAlivenessTimeout";
+    private static final String NODE_ALIVENESS_CHECK_INTERVAL_CONFIG_ENTRY = "nodeAlivenessCheckInterval";
+    private static final String NODE_ALIVENESS_TIMEOUT_CONFIG_ENTRY = "nodeAlivenessTimeout";
+    private static final String NODE_STARTUP_TIMEOUT_CONFIG_ENTRY = "nodeStartupTimeout";
     private static final String NODE_TIMEOUT_CONFIG_ENTRY = "nodeTimeout";
+    private static final String NODE_STARTUP_DELAY_CONFIG_ENTRY = "nodeStartupDelay";
+
     private static final String CHECK_FOR_TASK_CONCURRENT_EXECUTION_CONFIG_ENTRY = "checkForTaskConcurrentExecution";
     private static final String USE_JMX_CONFIG_ENTRY = "useJmx";
     @Deprecated private static final String JMX_USERNAME_CONFIG_ENTRY = "jmxUsername";
@@ -101,8 +104,10 @@ public class TaskManagerConfiguration {
     private static final int QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT = 120;
-    private static final int NODE_ALIVENESS_TIMEOUT_DEFAULT = 900;              // node should be down for 900 seconds before declaring as dead in the repository -- this is to avoid marking node as down during its own startup
+    private static final int NODE_ALIVENESS_TIMEOUT_DEFAULT = 900;              // node should be down for 900 seconds before declaring as dead in the repository
+    private static final int NODE_STARTUP_TIMEOUT_DEFAULT = 900;              // node should be not checking in for 900 seconds before reporting it as starting too long
     private static final int NODE_TIMEOUT_DEFAULT = 30;
+    private static final int NODE_STARTUP_DELAY_DEFAULT = 0;
     private static final boolean CHECK_FOR_TASK_CONCURRENT_EXECUTION_DEFAULT = false;
     private static final boolean USE_JMX_DEFAULT = false;
     @Deprecated private static final String JMX_USERNAME_DEFAULT = "midpoint";
@@ -135,7 +140,9 @@ public class TaskManagerConfiguration {
     private int nodeRegistrationCycleTime;                  // How often should node register itself in repository
     private int nodeTimeout;                                // After what time should be node considered (temporarily) down.
     private int nodeAlivenessTimeout;                       // After what time should be node considered (permanently) down and recorded as such in the repository.
+    private int nodeStartupTimeout;                         // After what time the node start-up is considered to be "too long".
     private int nodeAlivenessCheckInterval;                 // How often to check for down nodes.
+    private int nodeStartupDelay;                           // # of seconds after which we declare the node as started and announce it as a part of the cluster
     private boolean checkForTaskConcurrentExecution;
     private UseThreadInterrupt useThreadInterrupt;
     private int waitingTasksCheckInterval;
@@ -228,7 +235,12 @@ public class TaskManagerConfiguration {
             WORK_ALLOCATION_INITIAL_DELAY_ENTRY,
             WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_ENTRY,
             WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY,
-            TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY
+            TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY,
+            CHECK_FOR_TASK_CONCURRENT_EXECUTION_CONFIG_ENTRY,
+            NODE_ALIVENESS_TIMEOUT_CONFIG_ENTRY,
+            NODE_STARTUP_TIMEOUT_CONFIG_ENTRY,
+            NODE_STARTUP_DELAY_CONFIG_ENTRY,
+            NODE_ALIVENESS_CHECK_INTERVAL_CONFIG_ENTRY
     );
 
     void checkAllowedKeys(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
@@ -310,9 +322,11 @@ public class TaskManagerConfiguration {
 
         quartzNodeRegistrationCycleTime = c.getInt(QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
         nodeRegistrationCycleTime = c.getInt(NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
-        nodeAlivenessCheckInterval = c.getInt(NODE_ALIVENESS_CHECK_INTERVAL, NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT);
-        nodeAlivenessTimeout = c.getInt(NODE_ALIVENESS_TIMEOUT, NODE_ALIVENESS_TIMEOUT_DEFAULT);
+        nodeAlivenessCheckInterval = c.getInt(NODE_ALIVENESS_CHECK_INTERVAL_CONFIG_ENTRY, NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT);
+        nodeAlivenessTimeout = c.getInt(NODE_ALIVENESS_TIMEOUT_CONFIG_ENTRY, NODE_ALIVENESS_TIMEOUT_DEFAULT);
+        nodeStartupTimeout = c.getInt(NODE_STARTUP_TIMEOUT_CONFIG_ENTRY, NODE_STARTUP_TIMEOUT_DEFAULT);
         nodeTimeout = c.getInt(NODE_TIMEOUT_CONFIG_ENTRY, NODE_TIMEOUT_DEFAULT);
+        nodeStartupDelay = c.getInt(NODE_STARTUP_DELAY_CONFIG_ENTRY, NODE_STARTUP_DELAY_DEFAULT);
         checkForTaskConcurrentExecution = c.getBoolean(CHECK_FOR_TASK_CONCURRENT_EXECUTION_CONFIG_ENTRY, CHECK_FOR_TASK_CONCURRENT_EXECUTION_DEFAULT);
 
         useJmx = c.getBoolean(USE_JMX_CONFIG_ENTRY, USE_JMX_DEFAULT);
@@ -587,8 +601,16 @@ public class TaskManagerConfiguration {
         return nodeAlivenessTimeout;
     }
 
+    public int getNodeStartupTimeout() {
+        return nodeStartupTimeout;
+    }
+
     public int getNodeRegistrationCycleTime() {
         return nodeRegistrationCycleTime;
+    }
+
+    public int getNodeStartupDelay() {
+        return nodeStartupDelay;
     }
 
     public int getNodeAlivenessCheckInterval() {

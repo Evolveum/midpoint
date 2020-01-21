@@ -1133,6 +1133,87 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test0146QueryUserAccountRefByType() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(UserType.F_LINK_REF).refType(ShadowType.COMPLEX_TYPE)
+                    .build();
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "    left join u.linkRef l\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    l.relation in (:relation) and\n"
+                    + "    l.type = :type\n"
+                    + "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test0147QueryUserAccountRefByRelation() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(UserType.F_LINK_REF).refRelation(prismContext.getDefaultRelation())
+                    .build();
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "    left join u.linkRef l\n"
+                    + "where\n"
+                    + "  l.relation in (:relation)\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test0148QueryUserAccountRefComplex() throws Exception {
+        Session session = open();
+        try {
+            PrismReferenceValue value1 = prismContext.itemFactory().createReferenceValue(null, ShadowType.COMPLEX_TYPE);
+            PrismReferenceValue value2 = prismContext.itemFactory().createReferenceValue("abcdef", ShadowType.COMPLEX_TYPE);
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(UserType.F_LINK_REF).ref(value1, value2)
+                    .build();
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "    left join u.linkRef l\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    (\n"
+                    + "      l.relation in (:relation) and\n"
+                    + "      l.type = :type\n"
+                    + "    ) or\n"
+                    + "    (\n"
+                    + "      l.targetOid = :targetOid and\n"
+                    + "      l.relation in (:relation2) and\n"
+                    + "      l.type = :type2\n"
+                    + "    )\n"
+                    + "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
     public void test0150QueryUserAssignmentTargetRef() throws Exception {
         Session session = open();
         try {
@@ -4133,7 +4214,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
-                    .item(ObjectType.F_OPERATION_EXECUTION, OperationExecutionType.F_STATUS)
+                    .item(F_OPERATION_EXECUTION, OperationExecutionType.F_STATUS)
                             .eq(OperationResultStatusType.FATAL_ERROR)
                     .build();
             String real = getInterpretedQuery2(session, ShadowType.class, query);
@@ -4152,11 +4233,36 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test1182OperationFatalErrorTimestampSort() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = prismContext.queryFor(ObjectType.class)
+                    .item(F_OPERATION_EXECUTION, OperationExecutionType.F_STATUS)
+                            .eq(OperationResultStatusType.FATAL_ERROR)
+                    .desc(F_OPERATION_EXECUTION, OperationExecutionType.F_TIMESTAMP)
+                    .build();
+            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String expected = "select\n"
+                    + "  s.oid,\n"
+                    + "  s.fullObject\n"
+                    + "from\n"
+                    + "  RShadow s\n"
+                    + "    left join s.operationExecutions o\n"
+                    + "where\n"
+                    + "  o.status = :status\n"
+                    + "order by o.timestamp desc";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
     public void test1190OperationSuccessForGivenTask() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
-                    .exists(ObjectType.F_OPERATION_EXECUTION)
+                    .exists(F_OPERATION_EXECUTION)
                     .block()
                         .item(OperationExecutionType.F_TASK_REF).ref("oid1")
                         .and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.SUCCESS)
@@ -4188,7 +4294,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
-                    .exists(ObjectType.F_OPERATION_EXECUTION)
+                    .exists(F_OPERATION_EXECUTION)
                     .block()
                         .item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR)
                         .and().item(OperationExecutionType.F_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
@@ -4824,7 +4930,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery q = prismContext.queryFor(ObjectType.class)
-                    .exists(ObjectType.F_OPERATION_EXECUTION)
+                    .exists(F_OPERATION_EXECUTION)
                     .block()
                     .item(OperationExecutionType.F_TASK_REF).ref("00000000-0000-0000-0000-000000000006")
                     .and()

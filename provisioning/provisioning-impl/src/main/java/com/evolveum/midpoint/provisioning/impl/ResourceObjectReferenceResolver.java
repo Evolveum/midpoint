@@ -190,6 +190,7 @@ public class ResourceObjectReferenceResolver {
             // TODO: we should attempt resource search here
             throw new ObjectNotFoundException("No repository shadow for "+secondaryIdentifiers+", cannot resolve identifiers");
         }
+        shadowCache.applyDefinition(repoShadow, result);
         PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer == null) {
             throw new SchemaException("No attributes in "+repoShadow+", cannot resolve identifiers "+secondaryIdentifiers);

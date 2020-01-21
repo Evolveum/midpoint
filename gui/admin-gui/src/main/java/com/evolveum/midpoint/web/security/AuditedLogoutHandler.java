@@ -11,15 +11,23 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.gui.api.GuiConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.filter.MidpointAuthFilter;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
@@ -34,16 +42,49 @@ import java.io.IOException;
  */
 public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
 
+    private static final transient Trace LOGGER = TraceManager.getTrace(AuditedLogoutHandler.class);
+
     @Autowired
     private TaskManager taskManager;
     @Autowired
     private AuditService auditService;
 
+    boolean useDefaultUrl = false;
+
+    private boolean useDefaultUrl() {
+        return useDefaultUrl;
+    }
+
+    @Override
+    public void setDefaultTargetUrl(String defaultTargetUrl) {
+        super.setDefaultTargetUrl(defaultTargetUrl);
+        this.useDefaultUrl = true;
+    }
+
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws IOException, ServletException {
 
-        super.onLogoutSuccess(request, response, authentication);
+        String targetUrl;
+        if (useDefaultUrl()) {
+            targetUrl = getDefaultTargetUrl();
+        } else {
+            targetUrl = GuiConstants.DEFAULT_PATH_AFTER_LOGOUT;
+        }
+
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+            if (mpAuthentication.getAuthenticationChannel() != null) {
+                targetUrl = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
+            }
+        }
+
+        if (response.isCommitted()) {
+            LOGGER.debug("Response has already been committed. Unable to redirect to " + targetUrl);
+        } else {
+            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        }
 
         auditEvent(request, authentication);
     }

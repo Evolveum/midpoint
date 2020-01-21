@@ -179,8 +179,10 @@ public class ReportServiceImpl implements ReportService {
         // SelectorOptions(GetOperationOptions.createResolveNames()));
         GetOperationOptions getOptions = GetOperationOptions.createResolveNames();
         if (ShadowType.class.isAssignableFrom(clazz) && securityEnforcer.isAuthorized(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
+            LOGGER.trace("Setting searching in raw mode.");
             getOptions.setRaw(Boolean.TRUE);        // shadows in non-raw mode require specifying resource OID and kind (at least) - todo research this further
         } else {
+            LOGGER.trace("Setting searching in noFetch mode. Shadows in non-raw mode require specifying resource OID and objectClass (kind) at least.");
             getOptions.setNoFetch(Boolean.TRUE);
         }
         options = SelectorOptions.createCollection(getOptions);

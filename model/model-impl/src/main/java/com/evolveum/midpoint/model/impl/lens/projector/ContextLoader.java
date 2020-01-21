@@ -688,7 +688,7 @@ public class ContextLoader {
                 projectionContext.setExists(ShadowUtil.isExists(shadow.asObjectable()));
                 if (ShadowUtil.isDead(shadow.asObjectable())) {
                     projectionContext.markTombstone();
-                    LOGGER.trace("Loading dead shadow {} for projection", shadow, projectionContext.getHumanReadableName());
+                    LOGGER.trace("Loading dead shadow {} for projection {}.", shadow, projectionContext.getHumanReadableName());
                     continue;
                 }
             }

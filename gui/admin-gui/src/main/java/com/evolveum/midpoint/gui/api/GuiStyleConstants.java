@@ -111,6 +111,8 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_NO_OBJECTS = "fa fa-times";
     public static final String CLASS_ICON_ACTIVATION_ACTIVE = "fa fa-check";
     public static final String CLASS_ICON_ACTIVATION_INACTIVE = "fa fa-times";
+    public static final String CLASS_ICON_RESOURCE_BROKEN = "fa fa-exclamation";
+    public static final String CLASS_ICON_RESOURCE_UNKNOWN = "fa fa-question";
     public static final String CLASS_ICON_ASSIGNMENTS = "fa fa-bank";
     public static final String CLASS_SHADOW_ICON_REQUEST = "fa fa-pencil-square-o";
     public static final String CLASS_ICON_TACHOMETER = "fa fa-tachometer";
@@ -160,11 +162,16 @@ public class GuiStyleConstants {
 
     public static final String CLASS_FILE_TEXT = "fa fa-file-text-o";
     public static final String CLASS_FILE_EXCEL = "fa fa-file-excel-o";
+    public static final String CLASS_FILE_BLACK_FILLED = "fa fa-file";
+    public static final String CLASS_FILE_WHITE_FILLED = "fa fa-file-o";
+    public static final String CLASS_FILE_ARCHIVE = "fa fa-file-archive-o";
     public static final String CLASS_LOCK_STATUS = "fa fa-lock";
     public static final String CLASS_POLICY_RULES_ICON = "fa fa-balance-scale";
     public static final String CLASS_POLICY_RULES_ICON_COLORED = "fa fa-balance-scale"; //TODO
 
     public static final String CLASS_VALUE_POLICY_ICON = "fa fa-asterisk";
+    public static final String CLASS_ARCHIVE = "fa fa-archive";
+    public static final String CLASS_BAN = "fa fa-ban";
 
     public static final String CLASS_SYSTEM_CONFIGURATION_ICON = "fa fa-cog";
     public static final String CLASS_SYSTEM_CONFIGURATION_ICON_COLORED = CLASS_SYSTEM_CONFIGURATION_ICON + " object-shadow-color";

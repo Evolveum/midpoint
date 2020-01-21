@@ -144,7 +144,7 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
             getModelObject().getValues().add(newExpressionValueWrapper);
             getModelObject().getItem().setRealValue(newExpressionValue);
         } catch (SchemaException ex){
-            LOGGER.error("Unable to create new expression value, ", ex.getLocalizedMessage());
+            LOGGER.error("Unable to create new expression value: {}", ex.getLocalizedMessage());
         }
 
         target.add(ExpressionPropertyPanel.this);

@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.boot;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.impl.factory.TextAreaPanelFactory;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.catalina.Context;
@@ -45,6 +46,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -80,7 +83,7 @@ import java.util.List;
 })
 @Profile("!test")
 @SpringBootConfiguration
-@ComponentScan(basePackages = {"com.evolveum.midpoint.web.security.module.factory","com.evolveum.midpoint.gui","com.evolveum.midpoint.gui.api"}, basePackageClasses = {TextAreaPanelFactory.class, GuiComponentRegistryImpl.class})
+@ComponentScan(basePackages = {"com.evolveum.midpoint.web.security.factory","com.evolveum.midpoint.gui","com.evolveum.midpoint.gui.api"}, basePackageClasses = {TextAreaPanelFactory.class, GuiComponentRegistryImpl.class})
 @EnableScheduling
 public class MidPointSpringApplication extends AbstractSpringBootApplication {
 
@@ -89,39 +92,39 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
     private static ConfigurableApplicationContext applicationContext = null;
     private Context tomcatContext;
 
-     public static void main(String[] args) {
-            System.out.println("ClassPath: "+ System.getProperty("java.class.path"));
+    public static void main(String[] args) {
+        System.out.println("ClassPath: "+ System.getProperty("java.class.path"));
 
-            System.setProperty("xml.catalog.className", "com.evolveum.midpoint.prism.impl.schema.CatalogImpl");
-            String mode = args != null && args.length > 0 ? args[0] : null;
+        System.setProperty("xml.catalog.className", "com.evolveum.midpoint.prism.impl.schema.CatalogImpl");
+        String mode = args != null && args.length > 0 ? args[0] : null;
 
-            if(LOGGER.isDebugEnabled()){
-                LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
-                        " Application mode:" + mode + " context:" + applicationContext);
-            }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
+                    " Application mode:" + mode + " context:" + applicationContext);
+        }
 
-            if (applicationContext != null && mode != null && "stop".equals(mode)) {
-                System.exit(SpringApplication.exit(applicationContext, new ExitCodeGenerator() {
+        if (applicationContext != null && mode != null && "stop".equals(mode)) {
+            System.exit(SpringApplication.exit(applicationContext, new ExitCodeGenerator() {
 
-                    @Override
-                    public int getExitCode() {
+                @Override
+                public int getExitCode() {
 
-                        return 0;
-                    }
-                }));
-
-            } else {
-
-                applicationContext = configureApplication(new SpringApplicationBuilder()).run(args);
-
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
-                                 " Application started context:" + applicationContext);
+                    return 0;
                 }
+            }));
 
+        } else {
+
+            applicationContext = configureApplication(new SpringApplicationBuilder()).run(args);
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
+                        " Application started context:" + applicationContext);
             }
 
         }
+
+    }
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {

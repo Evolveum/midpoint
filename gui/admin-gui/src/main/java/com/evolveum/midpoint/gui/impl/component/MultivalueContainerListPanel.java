@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
 import org.apache.wicket.AttributeModifier;
@@ -262,22 +263,17 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
     }
 
     protected WebMarkupContainer initButtonToolbar(String id) {
-//        return getNewItemButton(id);
-        return new WebMarkupContainer(id);
+        return getNewItemButton(id);
     }
-//
-//    private List<MultiFunctinalButtonDto> loadButtonDescriptions() {
-//        getNewObjectInfluencesList();
-//    }
-
+    
     protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
         return null;
     }
 
 
-    public MultifunctionalButton getNewItemButton(String id) {
-        MultifunctionalButton newObjectIcon =
-                new MultifunctionalButton(id, createNewButtonDescription()) {
+    public MultiCompositedButtonPanel getNewItemButton(String id) {
+        MultiCompositedButtonPanel newObjectIcon =
+                new MultiCompositedButtonPanel(id, createNewButtonDescription()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -286,7 +282,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
                     }
 
                     @Override
-                    protected boolean isMainButtonVisible(){
+                    protected boolean isDefaultButtonVisible(){
                         return getNewObjectGenericButtonVisibility();
                     }
 

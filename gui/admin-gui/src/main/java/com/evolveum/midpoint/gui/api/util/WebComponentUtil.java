@@ -87,7 +87,6 @@ import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
-import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
@@ -120,7 +119,6 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import net.sf.cglib.core.Local;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -1367,7 +1365,7 @@ public final class WebComponentUtil {
             return null;
         }
         String displayName = getDisplayName(ref, translate);
-        return displayName != null ? displayName : getName(ref);
+        return StringUtils.isNotEmpty(displayName) ? displayName : getName(ref,translate);
     }
 
     // <display-name> (<name>) OR simply <name> if there's no display name
@@ -3163,7 +3161,7 @@ public final class WebComponentUtil {
                 return associationDefinitions;
             }
         } catch (Exception ex) {
-            LOGGER.error("Association for {}/{} not supported by resource {}", kind, intent, resource, ex.getLocalizedMessage());
+            LOGGER.error("Association for {}/{} not supported by resource {}: {}", kind, intent, resource, ex.getLocalizedMessage());
         }
         return associationDefinitions;
     }
@@ -3275,7 +3273,7 @@ public final class WebComponentUtil {
             spec = locator.getModelInteractionService().determineArchetypePolicy((PrismObject<? extends AssignmentHolderType>) object, result);
         } catch (SchemaException | ConfigurationException ex){
             result.recordPartialError(ex.getLocalizedMessage());
-            LOGGER.error("Cannot load ArchetypeInteractionSpecification for object ", object, ex.getLocalizedMessage());
+            LOGGER.error("Cannot load ArchetypeInteractionSpecification for object {}: {}", object, ex.getLocalizedMessage());
         }
         return spec;
     }
@@ -3335,17 +3333,41 @@ public final class WebComponentUtil {
         }
         IconType lifecycleStateIcon = getIconForLifecycleState(obj);
         IconType activationStatusIcon = getIconForActivationStatus(obj);
+        StringBuilder title = new StringBuilder(basicIconDisplayType.getTooltip() != null ? basicIconDisplayType.getTooltip().getOrig() : "");
 
+        if (StringUtils.isNotEmpty(lifecycleStateIcon.getCssClass())){
+            if (title.length() > 0){
+                title.append("\n");
+            }
+            title.append(pageBase.createStringResource("ObjectType.lifecycleState").getString())
+                    .append(": ")
+                    .append(obj.getLifecycleState());
+        }
+        if (StringUtils.isNotEmpty(activationStatusIcon.getCssClass()) && obj instanceof FocusType
+                && ((FocusType)obj).getActivation() != null){
+            if (title.length() > 0){
+                title.append("\n");
+            }
+            String lockedStatus = LockoutStatusType.LOCKED.equals(((FocusType)obj).getActivation().getLockoutStatus()) ?
+                    ((FocusType)obj).getActivation().getLockoutStatus().value() : "";
+            String effectiveStatus = ((FocusType)obj).getActivation().getEffectiveStatus() != null ?
+                    ((FocusType)obj).getActivation().getEffectiveStatus().value() : "";
+            title.append(pageBase.createStringResource("CapabilitiesType.activationStatus").getString())
+                    .append(": ")
+                    .append(StringUtils.isNotEmpty(lockedStatus) ? lockedStatus : effectiveStatus);
+        }
         String iconColor = getIconColor(basicIconDisplayType);
 
-        CompositedIcon compositedIconForObject = iconBuilder.setBasicIcon(
+        CompositedIconBuilder builder = iconBuilder.setBasicIcon(
                 getIconCssClass(basicIconDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(StringUtils.isNotEmpty(iconColor) ? iconColor : "")
                 .appendLayerIcon(lifecycleStateIcon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE)
-                .appendLayerIcon(activationStatusIcon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE)
-                .build();
+                .appendLayerIcon(activationStatusIcon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
 
-        return compositedIconForObject;
+        if (StringUtils.isNotEmpty(title.toString())){
+            builder.setTitle(title.toString());
+        }
+        return builder.build();
     }
 
     public static <O extends ObjectType> IconType getIconForLifecycleState(O obj){
@@ -3356,6 +3378,10 @@ public final class WebComponentUtil {
         }
         if (SchemaConstants.LIFECYCLE_ARCHIVED.equals(obj.getLifecycleState())){
             icon.setCssClass(GuiStyleConstants.CLASS_FILE_EXCEL);
+        } else if (SchemaConstants.LIFECYCLE_DRAFT.equals(obj.getLifecycleState())){
+            icon.setCssClass(GuiStyleConstants.CLASS_FILE_BLACK_FILLED);
+        } else if (SchemaConstants.LIFECYCLE_PROPOSED.equals(obj.getLifecycleState())){
+            icon.setCssClass(GuiStyleConstants.CLASS_FILE_WHITE_FILLED);
         }
         if (icon.getCssClass() == null){
             icon.setCssClass("");
@@ -3373,7 +3399,11 @@ public final class WebComponentUtil {
         if (LockoutStatusType.LOCKED.equals(((FocusType) obj).getActivation().getLockoutStatus())){
             icon.setCssClass(GuiStyleConstants.CLASS_LOCK_STATUS);
         } else if (ActivationStatusType.DISABLED.equals(((FocusType) obj).getActivation().getEffectiveStatus())){
+            icon.setCssClass(GuiStyleConstants.CLASS_BAN);
+        } else if (ActivationStatusType.ARCHIVED.equals(((FocusType) obj).getActivation().getEffectiveStatus())){
             icon.setCssClass(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
+        } else if (!ActivationStatusType.ENABLED.equals(((FocusType) obj).getActivation().getEffectiveStatus())){
+            icon.setCssClass(GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM);
         }
         if (icon.getCssClass() == null){
             icon.setCssClass("");
@@ -3821,7 +3851,7 @@ public final class WebComponentUtil {
                     pageBase.getPrismContext(), pageBase.getModelInteractionService(), objectRef, task, result);
             return new SceneDto(deltasScene);
         } catch (SchemaException | ExpressionEvaluationException ex){
-            LOGGER.error("Unable to create delta visualization for case  " + caseObject.getName(), ex.getLocalizedMessage());
+            LOGGER.error("Unable to create delta visualization for case {}: {}", caseObject, ex.getLocalizedMessage(), ex);
         }
         return null;
     }

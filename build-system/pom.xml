@@ -1273,6 +1273,11 @@
                 <artifactId>prettytime</artifactId>
                 <version>4.0.0.Final</version>
             </dependency>
+            <dependency>
+                <groupId>com.github.openjson</groupId>
+                <artifactId>openjson</artifactId>
+                <version>1.0.10</version>
+            </dependency>
 
             <!-- webjars -->
             <dependency>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectModification
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+    <oid>c0c010c0-d34d-b44f-f11d-333222444566</oid>
+    <itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>association</t:path>
+        <t:value>
+            <c:name>group</c:name>
+            <c:identifiers>
+                <ri:dn xsi:type="xsd:string">cn=anygroup,ou=groups,dc=example,dc=com</ri:dn>
+            </c:identifiers>
+        </t:value>
+    </itemDelta>
+</objectModification>

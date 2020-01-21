@@ -16,10 +16,12 @@ public enum NameOfModuleType {
 
     HTTP_BASIC("Basic"),
     SECURITY_QUESTIONS("SecQ"),
-//    CLUSTER("Cluster"),
+    SECURITY_QUESTIONS_FORM("SecQForm"),
+    CLUSTER("Cluster"),
     HTTP_HEADER("HttpHeader"),
     LOGIN_FORM("LoginForm"),
-    SAML_2("Saml2");
+    SAML_2("Saml2"),
+    MAIL_NONCE("MailNonce");
 
 
     private String name;

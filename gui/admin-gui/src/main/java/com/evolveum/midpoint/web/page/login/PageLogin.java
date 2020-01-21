@@ -8,7 +8,9 @@
 package com.evolveum.midpoint.web.page.login;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -23,11 +25,12 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -79,46 +82,63 @@ public class PageLogin extends PageBase {
         add(form);
 
         BookmarkablePageLink<String> link = new BookmarkablePageLink<>(ID_FORGET_PASSWORD, PageForgotPassword.class);
+        OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
+        SecurityPolicyType securityPolicy = null;
+        try {
+            securityPolicy = getModelInteractionService().getSecurityPolicy(null, null, parentResult);
+        } catch (CommonException e) {
+            LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
+        }
+        SecurityPolicyType finalSecurityPolicy = securityPolicy;
         link.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
-                OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
 
-                SecurityPolicyType securityPolicy = null;
-                try {
-                    securityPolicy = getModelInteractionService().getSecurityPolicy(null, null, parentResult);
-                } catch (CommonException e) {
-                    LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
-                }
-
-                if (securityPolicy == null) {
+                if (finalSecurityPolicy == null) {
                     return false;
                 }
 
-                CredentialsPolicyType creds = securityPolicy.getCredentials();
+                CredentialsPolicyType creds = finalSecurityPolicy.getCredentials();
 
                 // TODO: Not entirely correct. This means we have reset somehow configured, but not necessarily enabled.
                 if (creds != null
                         && ((creds.getSecurityQuestions() != null
-                        && creds.getSecurityQuestions().getQuestionNumber() != null) || (securityPolicy.getCredentialsReset() != null))) {
+                        && creds.getSecurityQuestions().getQuestionNumber() != null) || (finalSecurityPolicy.getCredentialsReset() != null))) {
                     return true;
                 }
 
                 return false;
             }
         });
+        if (securityPolicy != null && securityPolicy.getCredentialsReset() != null
+            && StringUtils.isNotBlank(securityPolicy.getCredentialsReset().getAuthenticationSequenceName())) {
+            AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
+            if (sequence == null) {
+                throw new IllegalArgumentException("Couldn't find sequence with name " + securityPolicy.getCredentialsReset().getAuthenticationSequenceName());
+            }
+            if (sequence.getChannel() == null || StringUtils.isBlank(sequence.getChannel().getUrlSuffix())) {
+                throw new IllegalArgumentException("Sequence with name " + securityPolicy.getCredentialsReset().getAuthenticationSequenceName() + " doesn't contain urlSuffix");
+            }
+            link.add(AttributeModifier.replace("href", new IModel<String>() {
+                @Override
+                public String getObject() {
+                    return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
+                }
+            }));
+        }
         form.add(link);
 
-        AjaxLink<String> registration = new AjaxLink<String>(ID_SELF_REGISTRATION) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                setResponsePage(PageSelfRegistration.class);
-            }
-        };
+//        AjaxLink<String> registration = new AjaxLink<String>(ID_SELF_REGISTRATION) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                setResponsePage(PageSelfRegistration.class);
+//            }
+//        };
+        BookmarkablePageLink<String> registration = new BookmarkablePageLink<>(ID_SELF_REGISTRATION, PageSelfRegistration.class);
         registration.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -148,6 +168,19 @@ public class PageLogin extends PageBase {
                 return linkIsVisible;
             }
         });
+        if (securityPolicy != null && securityPolicy.getRegistration() != null && securityPolicy.getRegistration().getSelfRegistration() != null
+                && StringUtils.isNotBlank(securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName())) {
+            AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName(),
+                    securityPolicy.getAuthentication());
+            if (sequence != null) {
+                registration.add(AttributeModifier.replace("href", new IModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
+                    }
+                }));
+            }
+        }
         form.add(registration);
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);

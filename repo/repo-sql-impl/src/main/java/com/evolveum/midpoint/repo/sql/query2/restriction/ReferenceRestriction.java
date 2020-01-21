@@ -67,11 +67,20 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         Set<String> oids = new HashSet<>();
         Set<QName> relations = new HashSet<>();
         Set<QName> targetTypes = new HashSet<>();
+        boolean valuesWithWildcardOid = false;
+        boolean valuesWithSpecifiedOid = false;
         for (PrismReferenceValue value : values) {
-            if (value.getOid() == null) {
-                throw new QueryException("Null OID is not allowed in the reference query. Use empty reference list if needed.");
+            if (value.getOid() != null) {
+                oids.add(value.getOid());
+                valuesWithSpecifiedOid = true;
+            } else {
+                if (filter.isOidNullAsAny()) {
+                    valuesWithWildcardOid = true;
+                } else {
+                    throw new QueryException("Null OID is not allowed in the reference query. "
+                            + "If you'd like to search for missing reference, use empty list of values.");
+                }
             }
-            oids.add(value.getOid());
             if (value.getRelation() == null) {
                 relations.add(context.getPrismContext().getDefaultRelation());
             } else {
@@ -82,14 +91,16 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
             targetTypes.add(qualifyTypeName(value.getTargetType()));
         }
 
-        if (relations.size() > 1 || targetTypes.size() > 1) {
-            // we must use 'OR' clause
+        if (valuesWithWildcardOid && valuesWithSpecifiedOid || relations.size() > 1 || targetTypes.size() > 1) {
+            // We must use 'OR' clause
             OrCondition rootOr = hibernateQuery.createOr();
             values.forEach(prv -> rootOr
-                    .add(createRefCondition(hibernateQuery, Collections.singleton(prv.getOid()), prv.getRelation(), prv.getTargetType())));
+                    .add(createRefCondition(hibernateQuery,
+                            MiscUtil.singletonOrEmptySet(prv.getOid()), prv.getRelation(), prv.getTargetType())));
             return rootOr;
         } else {
-            return createRefCondition(hibernateQuery, oids, MiscUtil.extractSingleton(relations), MiscUtil.extractSingleton(targetTypes));
+            return createRefCondition(hibernateQuery, oids,
+                    MiscUtil.extractSingleton(relations), MiscUtil.extractSingleton(targetTypes));
         }
     }
 
@@ -121,7 +132,9 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         }
 
         AndCondition conjunction = hibernateQuery.createAnd();
-        conjunction.add(hibernateQuery.createEqOrInOrNull(hqlDataInstance.getHqlPath() + "." + TARGET_OID_HQL_PROPERTY, oids));
+        if (CollectionUtils.isNotEmpty(oids)) {
+            conjunction.add(hibernateQuery.createEqOrInOrNull(hqlDataInstance.getHqlPath() + "." + TARGET_OID_HQL_PROPERTY, oids));
+        }
 
         List<String> relationsToTest = getRelationsToTest(relation, getContext());
         if (!relationsToTest.isEmpty()) {

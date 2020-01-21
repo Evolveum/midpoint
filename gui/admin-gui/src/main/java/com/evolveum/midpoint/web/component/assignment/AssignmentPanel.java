@@ -42,8 +42,8 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
-import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -155,6 +155,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
                     @Override
                     protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
+                        List<MultiFunctinalButtonDto> buttonDtoList = new ArrayList<>();
                         if (AssignmentPanel.this.getModelObject() == null) {
                             return null;
                         }
@@ -168,7 +169,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                             return null;
                         }
 
-                        List<MultiFunctinalButtonDto> buttonDtoList = new ArrayList<>();
 
                         relations.forEach(relation -> {
                             MultiFunctinalButtonDto buttonDto = new MultiFunctinalButtonDto();
@@ -297,7 +297,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     protected Fragment initCustomButtonToolbar(String contentAreaId){
         Fragment searchContainer = new Fragment(contentAreaId, ID_BUTTON_TOOLBAR_FRAGMENT, this);
 
-        MultifunctionalButton newObjectIcon = getMultivalueContainerListPanel().getNewItemButton(ID_NEW_ITEM_BUTTON);
+        MultiCompositedButtonPanel newObjectIcon = getMultivalueContainerListPanel().getNewItemButton(ID_NEW_ITEM_BUTTON);
         searchContainer.add(newObjectIcon);
 
         return searchContainer;
@@ -378,7 +378,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         ObjectQuery query = getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .not()
                 .item(AssignmentType.F_TARGET_REF)
-                .ref(delegationRelations.toArray(new QName[0]))
+                .refRelation(delegationRelations.toArray(new QName[0]))
                 .build();
         query.addFilter(getPrismContext().queryFactory().createNot(archetypeFilter));
         return query;

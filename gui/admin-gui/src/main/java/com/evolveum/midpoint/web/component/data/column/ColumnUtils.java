@@ -695,7 +695,7 @@ public class ColumnUtils {
                                     return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef(), AbstractRoleType.F_DISPLAY_NAME, pageBase,
                                             pageBase.getClass().getSimpleName() + "." + "loadCaseObjectRefName");
                                 } catch (Exception ex) {
-                                    LOGGER.error("Unable find the object for reference: ", caseModelObject.getObjectRef());
+                                    LOGGER.error("Unable find the object for reference: {}", caseModelObject.getObjectRef());
                                 }
                             }
                         }

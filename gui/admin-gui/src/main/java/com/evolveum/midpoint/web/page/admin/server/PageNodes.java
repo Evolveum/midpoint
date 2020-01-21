@@ -82,7 +82,7 @@ public class PageNodes extends PageAdmin {
 
 
     private void initLayout() {
-        MainObjectListPanel<NodeType> table = new MainObjectListPanel<>(ID_TABLE, NodeType.class, UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL, null) {
+        MainObjectListPanel<NodeType> table = new MainObjectListPanel<NodeType>(ID_TABLE, NodeType.class, UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL, null) {
 
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, NodeType object) {
@@ -202,7 +202,7 @@ public class PageNodes extends PageAdmin {
     private List<IColumn<SelectableBean<NodeType>, String>> initNodeColumns() {
         List<IColumn<SelectableBean<NodeType>, String>> columns = new ArrayList<>();
 
-        columns.add(new EnumPropertyColumn<>(createStringResource("pageTasks.node.executionStatus"),
+        columns.add(new EnumPropertyColumn<SelectableBean<NodeType>>(createStringResource("pageTasks.node.executionStatus"),
                 SelectableBeanImpl.F_VALUE + "." + NodeType.F_EXECUTION_STATUS) {
 
             @Override
@@ -211,7 +211,7 @@ public class PageNodes extends PageAdmin {
             }
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("pageTasks.node.contact")) {
+        columns.add(new AbstractColumn<SelectableBean<NodeType>, String>(createStringResource("pageTasks.node.contact")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<NodeType>>> item, String componentId, IModel<SelectableBean<NodeType>> rowModel) {
@@ -219,7 +219,7 @@ public class PageNodes extends PageAdmin {
             }
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("pageTasks.node.lastCheckInTime")) {
+        columns.add(new AbstractColumn<SelectableBean<NodeType>, String>(createStringResource("pageTasks.node.lastCheckInTime")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<NodeType>>> item, String componentId,
@@ -230,7 +230,7 @@ public class PageNodes extends PageAdmin {
         CheckBoxColumn<SelectableBean<NodeType>> check = new CheckBoxColumn<>(createStringResource("pageTasks.node.clustered"), SelectableBeanImpl.F_VALUE + "." + NodeType.F_CLUSTERED);
         check.setEnabled(false);
         columns.add(check);
-        columns.add(new AbstractColumn<>(createStringResource("pageTasks.node.statusMessage")) {
+        columns.add(new AbstractColumn<SelectableBean<NodeType>, String>(createStringResource("pageTasks.node.statusMessage")) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<NodeType>>> item, String componentId, IModel<SelectableBean<NodeType>> rowModel) {
                 String statusMessage;
