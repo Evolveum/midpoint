@@ -159,13 +159,13 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         }
 
         if (ItemStatus.ADDED == context.getObjectStatus() && !def.canAdd()) {
-            LOGGER.trace("Skipping creating wrapper for {}, becasue ADD operation is not supported");
+            LOGGER.trace("Skipping creating wrapper for {}, because ADD operation is not supported.", def);
             return false;
         }
 
         if (ItemStatus.NOT_CHANGED == context.getObjectStatus()) {
             if (!def.canRead()) {
-                LOGGER.trace("Skipping creating wrapper for {}, because read operation is not supported");
+                LOGGER.trace("Skipping creating wrapper for {}, because read operation is not supported.", def);
                 return false;
             }
 
@@ -195,7 +195,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
         if (ItemStatus.NOT_CHANGED == objectStatus) {
             if (!itemWrapper.canModify()) {
-                LOGGER.trace("Setting {} as readonly because authZ said so");
+                LOGGER.trace("Setting {} as readonly because authZ said so.", itemWrapper);
                 return true;
             }
         }

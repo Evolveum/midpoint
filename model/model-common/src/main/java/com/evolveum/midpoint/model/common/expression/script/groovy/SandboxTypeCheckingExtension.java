@@ -99,7 +99,7 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
         String contextDescription = context.getContextDescription();
 
         if (!isDynamic(vexp)) {
-            LOGGER.error("Unresolved script variable {} because it is not dynamic, in {}", contextDescription);
+            LOGGER.error("Unresolved script variable {} because it is not dynamic, in {}", variableName, contextDescription);
             return false;
         }
 
@@ -135,7 +135,7 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
             }
         }
 
-        LOGGER.error("Unresolved script variable {} because no declaration for it cannot be found in {}", contextDescription);
+        LOGGER.error("Unresolved script variable {} because no declaration for it cannot be found in {}", variableName, contextDescription);
         return false;
     }
 }

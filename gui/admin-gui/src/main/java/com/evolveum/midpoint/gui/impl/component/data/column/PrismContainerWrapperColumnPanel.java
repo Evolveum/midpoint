@@ -111,7 +111,7 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
         try {
             lifecycle = assignmentModel.findProperty(AssignmentType.F_LIFECYCLE_STATE);
         } catch (SchemaException e) {
-            LOGGER.error("Cannot find lifecycle property: ", e.getMessage(), e);
+            LOGGER.error("Cannot find lifecycle property: {}", e.getMessage(), e);
         }
 
         String lifecycleState = getLifecycleState(lifecycle);

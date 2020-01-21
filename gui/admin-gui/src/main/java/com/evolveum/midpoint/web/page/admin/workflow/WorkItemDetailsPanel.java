@@ -295,7 +295,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
             boolean isAuthorizedToClaim = getPageBase().getWorkflowManager().isCurrentUserAuthorizedToClaim(getModelObject());
             return isAuthorizedToSubmit || isAuthorizedToClaim || isAuthorizedToDelegate;
         } catch (Exception ex){
-            LOGGER.error("Unable to check user authorization for workitem actions, ", ex.getLocalizedMessage());
+            LOGGER.error("Unable to check user authorization for workitem actions: {}", ex.getLocalizedMessage());
         }
         return false;
     }

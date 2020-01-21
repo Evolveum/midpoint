@@ -88,7 +88,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                 PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(resourceRef, getPageBase(), loadResourceTask, result);
                 result.computeStatusIfUnknown();
                 if (!result.isAcceptable()) {
-                    LOGGER.error("Cannot find resource referenced from construction. {}", construction, result.getMessage());
+                    LOGGER.error("Cannot find resource {} referenced from construction {}.", construction, result.getMessage());
                     result.recordPartialError("Could not find resource referenced from construction.");
                     return null;
                 }
@@ -175,7 +175,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                                         });
                                     });
                                 } catch (SchemaException ex){
-                                    LOGGER.error("Couldn't remove association value, ", ex.getLocalizedMessage());
+                                    LOGGER.error("Couldn't remove association value: {}", ex.getLocalizedMessage());
                                 }
                                 super.removeValuePerformed(target, item);
                             }
@@ -289,7 +289,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                     ExpressionUtil.addShadowRefEvaluatorValue(newAssociationExpression, object.getOid(),
                             getPageBase().getPrismContext());
                 } catch (SchemaException ex){
-                    LOGGER.error("Couldn't find association container, ", ex.getLocalizedMessage());
+                    LOGGER.error("Couldn't find association container: {}", ex.getLocalizedMessage());
                 }
                 target.add(ConstructionAssociationPanel.this);
             }
