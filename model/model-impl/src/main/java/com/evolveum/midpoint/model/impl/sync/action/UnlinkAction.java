@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -21,7 +21,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * @author semancik
- *
  */
 public class UnlinkAction implements Action {
 

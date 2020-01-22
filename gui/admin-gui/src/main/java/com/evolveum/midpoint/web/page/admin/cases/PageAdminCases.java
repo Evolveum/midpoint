@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.cases;
 
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-
-import javax.xml.namespace.QName;
 
 /**
  * Created by acope on 9/14/17.

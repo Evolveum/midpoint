@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -7,21 +7,17 @@
 package com.evolveum.midpoint.test.asserter;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import org.testng.AssertJUnit;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author semancik
- *
  */
 public class OperationResultRepoSearchAsserter<RA> extends AbstractAsserter<RA> {
 
@@ -33,7 +29,7 @@ public class OperationResultRepoSearchAsserter<RA> extends AbstractAsserter<RA> 
         this.result = result;
     }
 
-    public static final OperationResultRepoSearchAsserter<Void> forResult(OperationResult result) {
+    public static OperationResultRepoSearchAsserter<Void> forResult(OperationResult result) {
         return new OperationResultRepoSearchAsserter(result, null, null);
     }
 

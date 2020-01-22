@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -12,7 +12,6 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.shadowmanager.ShadowManager;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -61,7 +60,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabili
 
 /**
  * @author semancik
- *
  */
 @Component
 public class ResourceObjectReferenceResolver {

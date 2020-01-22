@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2017 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -8,10 +8,8 @@ package com.evolveum.midpoint.common.refinery;
 
 import javax.xml.namespace.QName;
 
-
 /**
  * @author semancik
- *
  */
 class RefinedObjectClassDefinitionKey {
     private QName typeName;
