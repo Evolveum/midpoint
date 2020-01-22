@@ -62,13 +62,12 @@ public class SchemaTest {
         SchemaExport export = new SchemaExport();
         export.setOutputFile(fileName);
         export.setDelimiter(";");
-//        export.setFormat(true);
         export.execute(EnumSet.of(TargetType.SCRIPT), SchemaExport.Action.CREATE, metadata.buildMetadata());
     }
 
     private void addAnnotatedClasses(String packageName, MetadataSources metadata) {
-        Set<Class> classes = ClassPathUtil.listClasses(packageName);
-        for (Class clazz : classes) {
+        Set<Class<?>> classes = ClassPathUtil.listClasses(packageName);
+        for (Class<?> clazz : classes) {
             metadata.addAnnotatedClass(clazz);
         }
     }
