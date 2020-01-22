@@ -69,10 +69,14 @@ public class PolyStringEditorPanel extends InputPanel {
     private boolean showFullData = false;
     private final StringBuilder currentlySelectedLang = new StringBuilder();
     IModel<PolyString> model;
+    private LookupTableType predefinedValuesLookupTable;
+    private boolean hasValueEnumerationRef;
 
-    public PolyStringEditorPanel(String id, IModel<PolyString> model){
+    public PolyStringEditorPanel(String id, IModel<PolyString> model, LookupTableType predefinedValuesLookupTable, boolean hasValueEnumerationRef){
         super(id);
         this.model = model;
+        this.predefinedValuesLookupTable = predefinedValuesLookupTable;
+        this.hasValueEnumerationRef = hasValueEnumerationRef;
     }
 
     @Override
@@ -163,18 +167,17 @@ public class PolyStringEditorPanel extends InputPanel {
 
             }
         };
-        LookupTableType predefinedValues = getPredefinedValues();
-        if (predefinedValues == null) {
+        if (predefinedValuesLookupTable == null) {
             origValuePanel = new TextPanel<String>(ID_ORIG_VALUE, origValueModel, String.class, false);
         } else {
             origValuePanel = new AutoCompleteTextPanel<String>(ID_ORIG_VALUE, origValueModel, String.class,
-                    hasValueEnumerationRef(), predefinedValues) {
+                    hasValueEnumerationRef, predefinedValuesLookupTable) {
 
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 public Iterator<String> getIterator(String input) {
-                    return getPredefinedValuesIterator(input);
+                    return getPredefinedValuesIterator(input).iterator();
                 }
             };
         }
@@ -497,15 +500,8 @@ public class PolyStringEditorPanel extends InputPanel {
         return model == null ? null : model.getObject();
     }
 
-    protected LookupTableType getPredefinedValues(){
-        return null;
-    }
-
-    protected boolean hasValueEnumerationRef(){
-        return false;
-    }
-
-    protected Iterator<String> getPredefinedValuesIterator(String input) {
-        return null;
+    private List<String> getPredefinedValuesIterator(String input) {
+        return WebComponentUtil.prepareAutoCompleteList(predefinedValuesLookupTable, input,
+                ((PageBase)getPage()).getLocalizationService());
     }
 }

@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import org.apache.commons.lang3.StringUtils;
@@ -50,55 +51,6 @@ public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFact
     protected abstract Panel getPanel(PrismPropertyPanelContext<T> panelCtx);
 
     protected List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable, LocalizationService localizationService) {
-        List<String> values = new ArrayList<>();
-
-        if (lookupTable == null) {
-            return values;
-        }
-
-        List<LookupTableRowType> rows = lookupTable.getRow();
-
-        if (input == null || input.isEmpty()) {
-            for (LookupTableRowType row : rows) {
-
-                PolyString polystring = null;
-                if (row.getLabel() != null) {
-                    polystring = setTranslateToPolystring(row);
-                }
-                values.add(localizationService.translate(polystring));
-            }
-        } else {
-            for (LookupTableRowType row : rows) {
-                if (row.getLabel() == null) {
-                    continue;
-                }
-                PolyString polystring = setTranslateToPolystring(row);
-                String rowLabel = localizationService.translate(polystring);
-                if (rowLabel != null && rowLabel.toLowerCase().contains(input.toLowerCase())) {
-                    values.add(rowLabel);
-                }
-            }
-        }
-        return values;
-    }
-
-    private PolyString setTranslateToPolystring(LookupTableRowType row){
-        PolyString polystring = row.getLabel().toPolyString();
-        if (StringUtils.isNotBlank(polystring.getOrig())) {
-            if (polystring.getTranslation() == null) {
-                PolyStringTranslationType translation = new PolyStringTranslationType();
-                translation.setKey(polystring.getOrig());
-                if (StringUtils.isBlank(translation.getFallback())) {
-                    translation.setFallback(polystring.getOrig());
-                }
-                polystring.setTranslation(translation);
-            } else if (StringUtils.isNotBlank(polystring.getTranslation().getKey())) {
-                polystring.getTranslation().setKey(polystring.getOrig());
-                if (StringUtils.isBlank(polystring.getTranslation().getFallback())) {
-                    polystring.getTranslation().setFallback(polystring.getOrig());
-                }
-            }
-        }
-        return polystring;
+        return WebComponentUtil.prepareAutoCompleteList(lookupTable, input, localizationService);
     }
 }
