@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -11,7 +11,6 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;

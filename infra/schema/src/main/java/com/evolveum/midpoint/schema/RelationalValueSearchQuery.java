@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -15,7 +15,6 @@ import java.util.Objects;
 
 /**
  * @author semancik
- *
  */
 public class RelationalValueSearchQuery implements Serializable {
     private QName column;

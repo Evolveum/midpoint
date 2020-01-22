@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -8,7 +8,6 @@ package com.evolveum.midpoint;
 
 import com.evolveum.midpoint.repo.api.CacheInvalidationDetails;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.TerminateSessionEventType;
-import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -7,8 +7,6 @@
 package com.evolveum.midpoint.prism.impl.lex.json.yaml;
 
 import java.io.Reader;
-
-//import org.yaml.snakeyaml.events.CollectionStartEvent;
 
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.io.IOContext;
@@ -22,30 +20,4 @@ public class MidpointYAMLParser extends YAMLParser {
         super(ctxt, br, parserFeatures, csvFeatures, codec, reader);
         // TODO Auto-generated constructor stub
     }
-
-//      @Override
-//        public String getTypeId() throws IOException, JsonGenerationException
-//        {
-//          String tag = null;
-//            if (_lastEvent instanceof CollectionStartEvent) {
-//                tag = ((CollectionStartEvent) _lastEvent).getTag();
-//            } else if (_lastEvent instanceof ScalarEvent){
-//                tag = ((ScalarEvent) _lastEvent).getTag();
-//            }
-//
-//
-//                if (tag != null) {
-//                    /* 04-Aug-2013, tatu: Looks like YAML parser's expose these in...
-//                     *   somewhat exotic ways sometimes. So let's prepare to peel off
-//                     *   some wrappings:
-//                     */
-//                    while (tag.startsWith("!")) {
-//                        tag = tag.substring(1);
-//                    }
-//                    return tag;
-//                }
-//
-//            return null;
-//        }
-
 }

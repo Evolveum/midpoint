@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -10,10 +10,8 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
-
 /**
  * @author semancik
- *
  */
 public class PrismPropertyValueSetAsserter<T,RA>
         extends PrismValueSetAsserter<PrismPropertyValue<T>, PrismPropertyValueAsserter<T, PrismPropertyValueSetAsserter<T,RA>>, RA> {

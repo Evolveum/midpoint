@@ -4,10 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
-/**
- *
- */
 package com.evolveum.midpoint.schema.util;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -37,7 +33,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author Radovan Semancik
- *
  */
 public class XsdTypeConverterTest {
 

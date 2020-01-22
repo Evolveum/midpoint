@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016-2017 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -18,7 +18,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 /**
  * @author semancik
  * @author katkav
- *
  */
 public class ServiceSummaryPanel extends FocusSummaryPanel<ServiceType> {
     private static final long serialVersionUID = -5457446213855746564L;

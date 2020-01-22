@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -11,9 +11,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.*;
@@ -23,7 +21,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.testng.AssertJUnit;
 
@@ -31,9 +28,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.testng.AssertJUnit.*;
+
 /**
  * @author semancik
- *
  */
 public class WrapperTestUtil {
 
