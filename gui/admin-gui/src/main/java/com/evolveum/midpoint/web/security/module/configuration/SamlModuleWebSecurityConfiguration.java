@@ -98,18 +98,18 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             serviceProvider.setDefaultSigningAlgorithm(AlgorithmMethod.fromUrn(serviceProviderType.getDefaultSigningAlgorithm().value()));
         }
         AuthenticationModuleSaml2KeyType keysType = serviceProviderType.getKeys();
-//        if (keysType != null) {
-            RotatingKeys key = new RotatingKeys();
+        RotatingKeys key = new RotatingKeys();
+        if (keysType != null) {
             AuthenticationModuleSaml2SimpleKeyType activeKeyType = keysType.getActive();
-//            if (activeKeyType != null) {
+            if (activeKeyType != null) {
                 try {
                     key.setActive(createSimpleKey(activeKeyType));
                 } catch (EncryptionException e) {
                     LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + activeKeyType);
                 }
-//            }
+            }
 
-//            if (keysType.getStandBy() != null && !keysType.getStandBy().isEmpty()) {
+            if (keysType.getStandBy() != null && !keysType.getStandBy().isEmpty()) {
                 for (AuthenticationModuleSaml2SimpleKeyType standByKey : keysType.getStandBy()) {
                     try {
                         key.getStandBy().add(createSimpleKey(standByKey));
@@ -117,9 +117,9 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                         LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + standByKey);
                     }
                 }
-//            }
-            serviceProvider.setKeys(key);
-//        }
+            }
+        }
+        serviceProvider.setKeys(key);
 
         List<ExternalIdentityProviderConfiguration> providers = new ArrayList<ExternalIdentityProviderConfiguration>();
         List<AuthenticationModuleSaml2ProviderType> providersType = serviceProviderType.getProvider();
