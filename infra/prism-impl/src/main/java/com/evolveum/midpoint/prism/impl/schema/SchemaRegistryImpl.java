@@ -637,7 +637,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
     private Map<QName, Class<?>> createXsdTypeMap(Package pkg) {
         Map<QName, Class<?>> map = new HashMap<>();
-        for (Class clazz: ClassPathUtil.listClasses(pkg)) {
+        for (Class<?> clazz: ClassPathUtil.listClasses(pkg)) {
             QName typeName = JAXBUtil.getTypeQName(clazz);
             if (typeName != null) {
                 map.put(typeName, clazz);

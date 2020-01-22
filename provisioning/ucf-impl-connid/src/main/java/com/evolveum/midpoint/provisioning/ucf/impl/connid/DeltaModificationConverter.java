@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeDelta;
 import org.identityconnectors.framework.common.objects.AttributeDeltaBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
