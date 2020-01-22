@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -86,14 +87,13 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
             if (object instanceof PrismObject) {
                 xml = serializer.serialize((PrismObject<?>) object);
             } else if (object instanceof OperationResult) {
-//                OperationResultType operationResultType = ((OperationResult) object).createOperationResultType();
                 Function<LocalizableMessage, String> resolveKeys = msg -> localizationService.translate(msg, Locale.US);
                 OperationResultType operationResultType = ((OperationResult) object).createOperationResultType(resolveKeys);
                 xml = serializer.serializeAnyData(operationResultType, fakeQName);
             } else {
                 xml = serializer.serializeAnyData(object, fakeQName);
             }
-            entityStream.write(xml.getBytes("utf-8"));
+            entityStream.write(xml.getBytes(StandardCharsets.UTF_8));
         } catch (SchemaException | RuntimeException e) {
             LoggingUtils.logException(LOGGER, "Couldn't marshal element to string: {}", e, object);
         }

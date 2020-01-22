@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -848,7 +849,7 @@ public class OpenDJController extends AbstractResourceController {
     }
 
     public Entry addEntry(String ldif) throws IOException, LDIFException {
-        LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(ldif, "utf-8"));
+        LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(ldif, StandardCharsets.UTF_8));
         LDIFReader ldifReader = new LDIFReader(importConfig);
         Entry ldifEntry = ldifReader.readEntry();
         addEntry(ldifEntry);
@@ -892,7 +893,7 @@ public class OpenDJController extends AbstractResourceController {
     }
 
     public ChangeRecordEntry executeLdifChange(String ldif) throws IOException, LDIFException {
-        InputStream ldifInputStream = IOUtils.toInputStream(ldif, "UTF-8");
+        InputStream ldifInputStream = IOUtils.toInputStream(ldif, StandardCharsets.UTF_8);
         LDIFImportConfig importConfig = new LDIFImportConfig(ldifInputStream);
         LDIFReader ldifReader = new LDIFReader(importConfig);
         ChangeRecordEntry entry = ldifReader.readChangeRecord(false);

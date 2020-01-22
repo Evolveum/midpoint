@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -137,7 +138,7 @@ public class PageEvaluateMapping extends PageAdminConfiguration {
                 InputStream is = PageEvaluateMapping.class.getResourceAsStream(name);
                 if (is != null) {
                     try {
-                        return IOUtils.toString(is, "UTF-8");
+                        return IOUtils.toString(is, StandardCharsets.UTF_8);
                     } catch (IOException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't read sample from resource {}", e, name);
                     } finally {
