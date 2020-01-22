@@ -821,6 +821,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             protected void onValueChanged(AjaxRequestTarget target){
                 refreshAll(target);
             }
+
+            @Override
+            protected String getNullValidDisplayValue(){
+                return getString("RelationTypes.ANY");
+            }
         };
         form.add(relationSelector);
 
