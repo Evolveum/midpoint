@@ -71,7 +71,14 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
         }
         DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, Model.of(defaultRelation), new ListModel<>(supportedRelations), getRenderer(),
                 getRelationLabelModel(), "relationDropDownChoicePanel.tooltip.relation", true, "col-md-4",
-                getRelationLabelModel() == null || StringUtils.isEmpty(getRelationLabelModel().getObject()) ? "" : "col-md-8", !allowNull);
+                getRelationLabelModel() == null || StringUtils.isEmpty(getRelationLabelModel().getObject()) ? "" : "col-md-8", !allowNull){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getNullValidDisplayValue(){
+                return RelationDropDownChoicePanel.this.getNullValidDisplayValue();
+            }
+        };
         input.getInput().add(new EnableBehaviour(() -> isRelationDropDownEnabled()));
         input.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         input.getInput().add(new OnChangeAjaxBehavior() {
@@ -141,5 +148,9 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
         } else {
             return relationValue;
         }
+    }
+
+    protected String getNullValidDisplayValue(){
+        return getString("DropDownChoicePanel.empty");
     }
 }
