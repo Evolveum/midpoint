@@ -10,23 +10,14 @@ import com.evolveum.icf.dummy.resource.*;
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.common.security.GuardedString.Accessor;
 import org.identityconnectors.framework.common.exceptions.*;
-import org.identityconnectors.framework.common.objects.*;
-import org.identityconnectors.framework.common.objects.filter.*;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.PoolableConnector;
-import org.identityconnectors.framework.spi.SearchResultsHandler;
 import org.identityconnectors.framework.spi.operations.*;
 
-import java.io.FileNotFoundException;
-import java.net.ConnectException;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
-import static com.evolveum.icf.dummy.connector.Utils.notNull;
 import static com.evolveum.icf.dummy.connector.Utils.notNullArgument;
 
 /**
@@ -164,12 +155,12 @@ public abstract class AbstractBaseDummyConnector implements PoolableConnector, T
         }
     }
 
-    /******************
-     * SPI Operations
-     *
-     * Implement the following operations using the contract and
-     * description found in the Javadoc for these methods.
-     ******************/
+    /////////////////////
+    // SPI Operations
+    //
+    // Implement the following operations using the contract and
+    // description found in the Javadoc for these methods.
+    /////////////////////
 
     /**
      * {@inheritDoc}
