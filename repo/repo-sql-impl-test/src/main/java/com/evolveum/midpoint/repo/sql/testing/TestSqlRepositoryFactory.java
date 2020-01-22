@@ -57,7 +57,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
                 throw new RepositoryServiceFactoryException("Config file '" + filePath + "' doesn't exist or can't be read.");
             }
 
-            Reader reader = new InputStreamReader(new FileInputStream(file), "utf-8");
+            Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8);
             properties.load(reader);
         } catch (RepositoryServiceFactoryException ex) {
             throw ex;

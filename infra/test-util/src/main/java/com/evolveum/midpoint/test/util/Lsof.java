@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -8,6 +8,7 @@ package com.evolveum.midpoint.test.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -112,11 +113,6 @@ public class Lsof implements DebugDumpable {
             }
 
             String fd = columns[3];
-            Matcher fdMatcher = fdPattern.matcher(fd);
-//            if (!fdMatcher.matches()) {
-//                LOGGER.trace("SKIP fd {}", fd);
-//                continue;
-//            }
 
             totalFds++;
 
@@ -164,11 +160,11 @@ public class Lsof implements DebugDumpable {
 
     private String execLsof(int pid) throws IOException, InterruptedException {
         Process process = null;
-        String output = null;
+        String output;
         try {
             process = Runtime.getRuntime().exec(new String[]{ "lsof", "-p", Integer.toString(pid) });
             InputStream inputStream = process.getInputStream();
-            output = IOUtils.toString(inputStream, "UTF-8");
+            output = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             int exitCode = process.waitFor();
             if (exitCode != 0) {
                 throw new IllegalStateException("Lsof process ended with error ("+exitCode+")");

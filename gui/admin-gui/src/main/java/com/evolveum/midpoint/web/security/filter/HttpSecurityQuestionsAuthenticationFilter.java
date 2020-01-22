@@ -22,6 +22,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -107,7 +108,7 @@ public class HttpSecurityQuestionsAuthenticationFilter extends HttpAuthenticatio
             throws IOException {
 
         int startIndex = NameOfModuleType.SECURITY_QUESTIONS.getName().length() + 1;
-        byte[] base64Token = header.substring(startIndex).getBytes("UTF-8");
+        byte[] base64Token = header.substring(startIndex).getBytes(StandardCharsets.UTF_8);
         byte[] decoded;
         try {
             decoded = Base64.getDecoder().decode(base64Token);

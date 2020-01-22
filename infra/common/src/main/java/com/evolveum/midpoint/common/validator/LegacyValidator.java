@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,7 +61,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class LegacyValidator {
 
     private static final Trace LOGGER = TraceManager.getTrace(LegacyValidator.class);
-    private static final String INPUT_STREAM_CHARSET = "utf-8";
+    private static final Charset INPUT_STREAM_CHARSET = StandardCharsets.UTF_8;
     private static final String OPERATION_PREFIX = LegacyValidator.class.getName() + ".";
     private static final String OPERATION_RESOURCE_NAMESPACE_CHECK = OPERATION_PREFIX + "resourceNamespaceCheck";
     private static final String OPERATION_RESOURCE_BASICS_CHECK = OPERATION_PREFIX + "objectBasicsCheck";
@@ -71,7 +73,6 @@ public class LegacyValidator {
     private boolean allowAnyType = false;
     private EventHandler handler;
     private PrismContext prismContext;
-    private Schema midPointJavaxSchema;
     private javax.xml.validation.Validator xsdValidator;
     private long progress = 0;
     private long errors = 0;
@@ -95,7 +96,7 @@ public class LegacyValidator {
             throw new IllegalStateException("No prism context set during validator initialization");
         }
         SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-        midPointJavaxSchema = schemaRegistry.getJavaxSchema();
+        Schema midPointJavaxSchema = schemaRegistry.getJavaxSchema();
         xsdValidator = midPointJavaxSchema.newValidator();
         xsdValidator.setResourceResolver(prismContext.getEntityResolver());
     }
