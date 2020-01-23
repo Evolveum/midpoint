@@ -22,6 +22,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.support.ResourceBundleMessageSource;
@@ -268,6 +269,7 @@ public class LocalizationServiceImpl implements LocalizationService {
         return null;
     }
 
+    @NotNull
     @Override
     public Locale getDefaultLocale() {
         if (overrideLocale == null) {

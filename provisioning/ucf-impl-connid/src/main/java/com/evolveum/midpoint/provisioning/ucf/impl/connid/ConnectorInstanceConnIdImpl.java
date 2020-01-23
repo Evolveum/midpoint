@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -143,7 +144,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     /**
      * Builder and holder object for parsed ConnId schema and capabilities. By using
-     * this class the ConnectorInstace always has a consistent schema, even during
+     * this class the ConnectorInstance always has a consistent schema, even during
      * reconfigure and fetch operations.
      * There is either old schema or new schema, but there is no partially-parsed schema.
      */
@@ -159,7 +160,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     ConnectorInstanceConnIdImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
             String schemaNamespace, PrismSchema connectorSchema, Protector protector,
-            PrismContext prismContext) {
+            PrismContext prismContext, LocalizationService localizationService) {
         this.cinfo = connectorInfo;
         this.connectorType = connectorType;
         this.resourceSchemaNamespace = schemaNamespace;
@@ -167,7 +168,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         this.protector = protector;
         this.prismContext = prismContext;
         connIdNameMapper = new ConnIdNameMapper(schemaNamespace);
-        connIdConvertor = new ConnIdConvertor(protector, resourceSchemaNamespace);
+        connIdConvertor = new ConnIdConvertor(protector, resourceSchemaNamespace, localizationService);
         connIdConvertor.setConnIdNameMapper(connIdNameMapper);
     }
 
