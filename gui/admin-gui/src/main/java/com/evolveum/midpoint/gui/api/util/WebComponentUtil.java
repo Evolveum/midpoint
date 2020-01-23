@@ -4154,4 +4154,9 @@ public final class WebComponentUtil {
         }
         return false;
     }
+
+    public static Long xgc2long(XMLGregorianCalendar gc) {
+        return gc != null ? XmlTypeConverter.toMillis(gc) : null;
+    }
+
 }

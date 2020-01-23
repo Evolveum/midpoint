@@ -53,7 +53,9 @@ public class ContainerOfSystemConfigurationPanel<C extends Containerable> extend
     protected void initLayout() {
 
         try {
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(wrapper -> getVisibity(wrapper.getPath())).showOnTopLevel(true);
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
+                    .visibilityHandler(wrapper -> getVisibity(wrapper.getPath()))
+                    .showOnTopLevel(true);
             Panel panel = getPageBase().initItemPanel(ID_CONTAINER, typeName, getModel(), builder.build());
 //            getModelObject().setShowOnTopLevel(true);
             add(panel);

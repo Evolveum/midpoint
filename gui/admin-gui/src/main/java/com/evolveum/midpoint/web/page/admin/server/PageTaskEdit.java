@@ -225,7 +225,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
         mainPanel.setOutputMarkupId(true);
         add(mainPanel);
 
-        summaryPanel.getRefreshPanel().startRefreshing(this, null);
+//        summaryPanel.getRefreshPanel().startRefreshing(this, null);
     }
 
     @Override
