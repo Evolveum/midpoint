@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 
@@ -18,6 +20,11 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
+
 /**
  * Created by honchar.
  */
@@ -29,6 +36,11 @@ public class PageAuditLogViewer extends PageBase {
     private static final long serialVersionUID = 1L;
     private static final String ID_PANEL = "auditLogViewerPanel";
     public PageAuditLogViewer() {
+    }
+
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
         initLayout();
     }
 
@@ -38,6 +50,7 @@ public class PageAuditLogViewer extends PageBase {
 
             @Override
             public AuditSearchDto getObject() {
+                initDefaultSearchDto();
                 return getAuditLogStorage().getSearchDto();
             }
 
@@ -80,6 +93,14 @@ public class PageAuditLogViewer extends PageBase {
         };
         panel.setOutputMarkupId(true);
         add(panel);
+    }
+
+    private void initDefaultSearchDto(){
+        XMLGregorianCalendar searchFromDate = getSessionStorage().getAuditLog().getSearchDto().getFrom();
+        if (searchFromDate == null){
+            Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            getSessionStorage().getAuditLog().getSearchDto().setFrom(MiscUtil.asXMLGregorianCalendar(todayDate));
+        }
     }
 
     private AuditLogStorage getAuditLogStorage(){
