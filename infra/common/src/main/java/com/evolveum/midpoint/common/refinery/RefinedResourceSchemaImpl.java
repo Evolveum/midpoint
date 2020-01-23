@@ -42,10 +42,10 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
     // Original resource schema is there to make parsing easier.
     // But it is also useful in some cases, e.g. we do not need to pass both refined schema and
     // original schema as a method parameter.
-    private ResourceSchema originalResourceSchema;
+    @NotNull private final ResourceSchema originalResourceSchema;
 
     // This object contains the real data of the refined schema
-    private ResourceSchema resourceSchema;
+    @NotNull private final ResourceSchema resourceSchema;
 
     private RefinedResourceSchemaImpl(@NotNull ResourceSchema originalResourceSchema) {
         this.originalResourceSchema = originalResourceSchema;
@@ -372,13 +372,13 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
                     throw new IllegalStateException("Trying to set parsed schema on immutable resource: " + resource);
                 }
                 InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
+                String namespace = ResourceTypeUtil.getResourceNamespace(resource);
                 ResourceSchemaImpl parsedSchema = ResourceSchemaImpl
-                        .parse(resourceXsdSchema, "resource schema of " + resource, prismContext);
+                        .parse(resourceXsdSchema, namespace, "resource schema of " + resource, prismContext);
                 if (parsedSchema == null) {
                     throw new IllegalStateException("Parsed schema is null: most likely an internal error");
                 }
                 resource.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema);
-                parsedSchema.setNamespace(ResourceTypeUtil.getResourceNamespace(resource));
                 return parsedSchema;
             }
         }
@@ -522,6 +522,7 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
         return resourceSchema.findDefaultObjectClassDefinition(kind);
     }
 
+    @NotNull
     @Override
     public String getNamespace() {
         return resourceSchema.getNamespace();
@@ -626,5 +627,11 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
     @Override
     public MutableResourceSchema toMutable() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void freeze() {
+        originalResourceSchema.freeze();
+        resourceSchema.freeze();
     }
 }

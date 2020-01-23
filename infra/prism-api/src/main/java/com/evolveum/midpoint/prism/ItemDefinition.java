@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 /**
  * @author mederly
  */
-public interface ItemDefinition<I extends Item> extends Definition, Visitable {
+public interface ItemDefinition<I extends Item> extends Definition {
 
     @NotNull
     ItemName getItemName();

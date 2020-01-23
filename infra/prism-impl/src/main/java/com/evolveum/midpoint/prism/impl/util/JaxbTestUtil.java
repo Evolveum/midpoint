@@ -173,44 +173,12 @@ public final class JaxbTestUtil {
 //        return complexTypeDefinition != null;
     }
 
-    public <T> Class<T> getCompileTimeClass(QName xsdType) {
-        SchemaDescription desc = getSchemaRegistry().findSchemaDescriptionByNamespace(xsdType.getNamespaceURI());
-        if (desc == null) {
-            return null;
-        }
-        Map<QName, Class<?>> map = desc.getXsdTypeTocompileTimeClassMap();
-        if (map == null) {
-            return null;
-        }
-        return (Class<T>) map.get(xsdType);
-    }
-
-    public <T> T toJavaValue(Element element, Class<T> typeClass) throws JAXBException {
-        QName type = JAXBUtil.getTypeQName(typeClass);
-        return (T) toJavaValue(element, type);
-    }
-
-    /**
-     * Used to convert property values from DOM
-     */
-    public Object toJavaValue(Element element, QName xsdType) throws JAXBException {
-        Class<?> declaredType = getCompileTimeClass(xsdType);
-        if (declaredType == null) {
-            // This may happen if the schema is runtime and there is no associated compile-time class
-            throw new SystemException("Cannot determine Java type for "+xsdType);
-        }
-        JAXBElement<?> jaxbElement = createUnmarshaller().unmarshal(element, declaredType);
-        Object object = jaxbElement.getValue();
-        return object;
-    }
-
     private Marshaller createMarshaller(Map<String, Object> jaxbProperties) throws JAXBException {
         Marshaller marshaller = context.createMarshaller();
         // set default properties
         marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
         DynamicNamespacePrefixMapper namespacePrefixMapper = ((SchemaRegistryImpl) getSchemaRegistry()).getNamespacePrefixMapper().clone();
-        namespacePrefixMapper.setAlwaysExplicit(true);
         marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", namespacePrefixMapper);
         // set custom properties
         if (jaxbProperties != null) {

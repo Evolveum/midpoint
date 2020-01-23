@@ -26,7 +26,7 @@ import java.util.function.Consumer;
  * @author semancik
  * @author mederly
  */
-public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionStore, Visitable {
+public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionStore {
 
     /**
      * Returns definitions for all inner items.

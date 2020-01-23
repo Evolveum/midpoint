@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
@@ -31,16 +32,12 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
 
     private String usualNamespacePrefix;
 
-    protected ConnectorSchemaImpl(PrismContext prismContext) {
-        super(prismContext);
-    }
-
     public ConnectorSchemaImpl(String namespace, PrismContext prismContext) {
         super(namespace, prismContext);
     }
 
     private ConnectorSchemaImpl(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
-        super(prismContext);
+        super(DOMUtil.getSchemaTargetNamespace(element), prismContext);
         parseThis(element, true, shortDesc, prismContext);
     }
 

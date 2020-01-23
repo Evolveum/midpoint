@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.prism.schema;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  *
  */
 public interface SchemaFactory {
 
-    MutablePrismSchema createPrismSchema();
-
-    MutablePrismSchema createPrismSchema(String namespace);
+    MutablePrismSchema createPrismSchema(@NotNull String namespace);
 }

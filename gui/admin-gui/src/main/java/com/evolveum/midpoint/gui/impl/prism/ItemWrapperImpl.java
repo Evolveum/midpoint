@@ -688,11 +688,11 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
         return getItemDefinition().getSchemaMigrations();
     }
 
-    @Override
-    public void accept(Visitor visitor) {
-        getItemDefinition().accept(visitor);
-    }
-
+//    @Override
+//    public void accept(Visitor visitor) {
+//        getItemDefinition().accept(visitor);
+//    }
+//
 
     @Override
     public void setReadOnly(boolean readOnly) {

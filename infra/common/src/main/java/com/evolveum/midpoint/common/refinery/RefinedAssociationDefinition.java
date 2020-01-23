@@ -8,6 +8,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Freezable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
@@ -22,13 +23,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class RefinedAssociationDefinition implements Serializable, Visitable {
+public class RefinedAssociationDefinition implements Serializable, Visitable, Freezable {
     private static final long serialVersionUID = 1L;
 
     private Map<LayerType, PropertyLimitations> limitationsMap;
 
     private ResourceObjectAssociationType resourceObjectAssociationType;
     private RefinedObjectClassDefinition associationTarget;
+
+    private boolean immutable;
 
     public RefinedAssociationDefinition(ResourceObjectAssociationType resourceObjectAssociationType) {
         super();
@@ -43,7 +46,8 @@ public class RefinedAssociationDefinition implements Serializable, Visitable {
         return associationTarget;
     }
 
-    public void setAssociationTarget(RefinedObjectClassDefinition associationTarget) {
+    void setAssociationTarget(RefinedObjectClassDefinition associationTarget) {
+        checkMutable();
         this.associationTarget = associationTarget;
     }
 
@@ -151,5 +155,16 @@ public class RefinedAssociationDefinition implements Serializable, Visitable {
 
     private void copyValues(RefinedAssociationDefinition clone) {
         clone.associationTarget = this.associationTarget;
+    }
+
+    @Override
+    public void freeze() {
+        immutable = true;
+    }
+
+    private void checkMutable() {
+        if (immutable) {
+            throw new IllegalStateException("Definition couldn't be changed because it is immutable: " + this);
+        }
     }
 }

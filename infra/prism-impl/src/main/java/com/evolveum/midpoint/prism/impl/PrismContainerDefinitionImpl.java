@@ -101,6 +101,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     }
 
     public void setCompileTimeClass(Class<C> compileTimeClass) {
+        checkMutable();
         this.compileTimeClass = compileTimeClass;
     }
 
@@ -119,15 +120,13 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     }
 
     public void setComplexTypeDefinition(ComplexTypeDefinition complexTypeDefinition) {
+        checkMutable();
         this.complexTypeDefinition = complexTypeDefinition;
     }
 
     @Override
     public boolean isAbstract() {
-        if (super.isAbstract()) {
-            return true;
-        }
-        return complexTypeDefinition != null && complexTypeDefinition.isAbstract();
+        return super.isAbstract() || complexTypeDefinition != null && complexTypeDefinition.isAbstract();
     }
 
     @Override
@@ -277,10 +276,14 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     }
 
     @Override
-    public void accept(Visitor visitor) {
-        visitor.visit(this);
-        if (complexTypeDefinition != null) {
-            complexTypeDefinition.accept(visitor);
+    public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
+        if (super.accept(visitor, visitation)) {
+            if (complexTypeDefinition != null) {
+                complexTypeDefinition.accept(visitor, visitation);
+            }
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -343,6 +346,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     }
 
     private void addDefinition(ItemDefinition itemDef) {
+        checkMutable();
         if (complexTypeDefinition == null) {
             throw new UnsupportedOperationException("Cannot add an item definition because there's no complex type definition");
         } else if (!(complexTypeDefinition instanceof ComplexTypeDefinitionImpl)) {
@@ -534,6 +538,13 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     @Override
     public MutablePrismContainerDefinition<C> toMutable() {
+        checkMutableOnExposing();
         return this;
+    }
+
+    @Override
+    public void freeze() {
+        // We do not "own" complex type definition so we do not freeze it here
+        super.freeze();
     }
 }

@@ -2791,9 +2791,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             SchemaRegistry registry = prismContext.getSchemaRegistry();
-            PrismObjectDefinition userDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-            PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(F_ASSIGNMENT);
-            PrismPropertyDefinition propDef = assignmentDef.toMutable().createPropertyDefinition(
+            PrismPropertyDefinition propDef = prismContext.definitionFactory().createPropertyDefinition(
                     SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN);
 
             ObjectQuery objectQuery = prismContext.queryFor(UserType.class)
