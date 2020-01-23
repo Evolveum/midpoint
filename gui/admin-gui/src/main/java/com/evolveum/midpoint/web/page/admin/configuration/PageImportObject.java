@@ -147,7 +147,7 @@ public class PageImportObject extends PageAdminConfiguration {
 
         dataLanguage = determineDataLanguage();
 
-        DataLanguagePanel<List> languagePanel = new DataLanguagePanel<>(ID_LANGUAGE_PANEL, dataLanguage, List.class, this) {
+        DataLanguagePanel<List> languagePanel = new DataLanguagePanel<List>(ID_LANGUAGE_PANEL, dataLanguage, List.class, this) {
             @Override
             protected void onLanguageSwitched(AjaxRequestTarget target, int index, String updatedLanguage, String objectString) {
                 dataLanguage = updatedLanguage;

@@ -23,7 +23,7 @@ public class TriStateComboPanel extends InputPanel {
     public TriStateComboPanel(String id, final IModel<Boolean> model) {
         super(id);
 
-        DropDownChoice combo = WebComponentUtil.createTriStateCombo(ID_COMBO, model);
+        DropDownChoice<Boolean> combo = WebComponentUtil.createTriStateCombo(ID_COMBO, model);
         add(combo);
     }
 

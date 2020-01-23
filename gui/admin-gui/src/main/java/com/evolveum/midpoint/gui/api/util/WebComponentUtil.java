@@ -2921,23 +2921,21 @@ public final class WebComponentUtil {
         return polystring;
     }
 
-    public static <T> DropDownChoice createTriStateCombo(String id, IModel<Boolean> model) {
-        final IChoiceRenderer<T> renderer = new IChoiceRenderer<T>() {
-
+    public static DropDownChoice<Boolean> createTriStateCombo(String id, IModel<Boolean> model) {
+        final IChoiceRenderer<Boolean> renderer = new IChoiceRenderer<Boolean>() {
 
             @Override
-            public T getObject(String id, IModel<? extends List<? extends T>> choices) {
+            public Boolean getObject(String id, IModel<? extends List<? extends Boolean>> choices) {
                 return id != null ? choices.getObject().get(Integer.parseInt(id)) : null;
             }
 
             @Override
-            public String getDisplayValue(T object) {
+            public String getDisplayValue(Boolean object) {
                 String key;
                 if (object == null) {
                     key = KEY_BOOLEAN_NULL;
                 } else {
-                    Boolean b = (Boolean) object;
-                    key = b ? KEY_BOOLEAN_TRUE : KEY_BOOLEAN_FALSE;
+                    key = object ? KEY_BOOLEAN_TRUE : KEY_BOOLEAN_FALSE;
                 }
 
                 StringResourceModel model = PageBase.createStringResourceStatic(null, key);
@@ -2946,15 +2944,12 @@ public final class WebComponentUtil {
             }
 
             @Override
-            public String getIdValue(T object, int index) {
+            public String getIdValue(Boolean object, int index) {
                 return Integer.toString(index);
             }
-
-
-
         };
 
-        DropDownChoice dropDown = new DropDownChoice(id, model, createChoices(), renderer) {
+        DropDownChoice<Boolean> dropDown = new DropDownChoice<Boolean>(id, model, createChoices(), renderer) {
 
             @Override
             protected CharSequence getDefaultChoice(String selectedValue) {
@@ -3012,13 +3007,13 @@ public final class WebComponentUtil {
         return lookupTable;
     }
 
-    public static Class getPreviousPageClass(PageBase parentPage){
+    public static Class<?> getPreviousPageClass(PageBase parentPage){
         List<Breadcrumb> breadcrumbs = parentPage.getBreadcrumbs();
         if (breadcrumbs == null || breadcrumbs.size() < 2){
             return null;
         }
         Breadcrumb previousBreadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
-        Class page = null;
+        Class<?> page = null;
         if (previousBreadcrumb instanceof BreadcrumbPageClass){
             page = ((BreadcrumbPageClass) previousBreadcrumb).getPage();
         } else if (previousBreadcrumb instanceof BreadcrumbPageInstance){

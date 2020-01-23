@@ -32,7 +32,7 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 
         List<SummaryTag<ResourceType>> summaryTagList = new ArrayList<>();
 
-        SummaryTag<ResourceType> summaryTag = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
+        SummaryTag<ResourceType> summaryTag = new SummaryTag<ResourceType>(ID_SUMMARY_TAG, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
