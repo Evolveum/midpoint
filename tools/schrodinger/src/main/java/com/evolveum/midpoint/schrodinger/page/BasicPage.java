@@ -35,7 +35,7 @@ import com.evolveum.midpoint.schrodinger.page.service.ListServicesPage;
 import com.evolveum.midpoint.schrodinger.page.service.NewServicePage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.task.NewTaskPage;
-import com.evolveum.midpoint.schrodinger.page.user.FormSubmitablePage;
+import com.evolveum.midpoint.schrodinger.page.user.FormSubmittablePage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.page.cases.*;
@@ -323,8 +323,8 @@ public class BasicPage {
         return new QueryPlaygroundPage();
     }
 
-    public FormSubmitablePage dynamicForm() {
-        return new FormSubmitablePage();
+    public FormSubmittablePage dynamicForm() {
+        return new FormSubmittablePage();
     }
 
     private void clickSelfServiceMenu(String mainMenuKey, String menuItemKey) {

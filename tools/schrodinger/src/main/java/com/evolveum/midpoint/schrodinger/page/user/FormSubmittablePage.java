@@ -15,20 +15,20 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class FormSubmitablePage {
+public class FormSubmittablePage {
 
     SelenideElement element;
 
-    public FormSubmitablePage (){
+    public FormSubmittablePage() {
 
-       this.element = $(Schrodinger.byDataId("dynamicForm")).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S);
+        this.element = $(Schrodinger.byDataId("dynamicForm")).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S);
 
     }
 
-    public PrismForm<FormSubmitablePage> form (){
+    public PrismForm<FormSubmittablePage> form() {
 
-        if(!element.exists()){
-        throw new SchrodingerException("Dynamic form not present");
+        if (!element.exists()) {
+            throw new SchrodingerException("Dynamic form not present");
         }
 
         return new PrismForm<>(this, element);
