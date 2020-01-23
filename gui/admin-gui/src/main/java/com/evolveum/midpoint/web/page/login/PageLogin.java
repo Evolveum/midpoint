@@ -115,18 +115,19 @@ public class PageLogin extends PageBase {
         if (securityPolicy != null && securityPolicy.getCredentialsReset() != null
             && StringUtils.isNotBlank(securityPolicy.getCredentialsReset().getAuthenticationSequenceName())) {
             AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
-            if (sequence == null) {
-                throw new IllegalArgumentException("Couldn't find sequence with name " + securityPolicy.getCredentialsReset().getAuthenticationSequenceName());
-            }
-            if (sequence.getChannel() == null || StringUtils.isBlank(sequence.getChannel().getUrlSuffix())) {
-                throw new IllegalArgumentException("Sequence with name " + securityPolicy.getCredentialsReset().getAuthenticationSequenceName() + " doesn't contain urlSuffix");
-            }
-            link.add(AttributeModifier.replace("href", new IModel<String>() {
-                @Override
-                public String getObject() {
-                    return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
+            if (sequence != null) {
+//                throw new IllegalArgumentException("Couldn't find sequence with name " + securityPolicy.getCredentialsReset().getAuthenticationSequenceName());
+
+                if (sequence.getChannel() == null || StringUtils.isBlank(sequence.getChannel().getUrlSuffix())) {
+                    throw new IllegalArgumentException("Sequence with name " + securityPolicy.getCredentialsReset().getAuthenticationSequenceName() + " doesn't contain urlSuffix");
                 }
-            }));
+                link.add(AttributeModifier.replace("href", new IModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
+                    }
+                }));
+            }
         }
         form.add(link);
 

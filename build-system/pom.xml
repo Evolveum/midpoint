@@ -1278,6 +1278,11 @@
                 <artifactId>openjson</artifactId>
                 <version>1.0.10</version>
             </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-security-impl</artifactId>
+                <version>3.3.0</version>
+            </dependency>
 
             <!-- webjars -->
             <dependency>

@@ -70,6 +70,8 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
             return null;
         }
 
+        isSupportedChannel(authenticationChannel);
+
         SamlModuleWebSecurityConfiguration.setProtector(protector);
         SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build((AuthenticationModuleSaml2Type)moduleType, prefixOfSequence, request);
         configuration.setPrefixOfSequence(prefixOfSequence);

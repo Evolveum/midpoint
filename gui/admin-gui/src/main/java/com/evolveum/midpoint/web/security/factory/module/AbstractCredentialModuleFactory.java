@@ -43,6 +43,8 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
             return null;
         }
 
+        isSupportedChannel(authenticationChannel);
+
         C configuration = createConfiguration(moduleType, prefixOfSequence, authenticationChannel);
 
         configuration.addAuthenticationProvider(getProvider((AbstractCredentialAuthenticationModuleType)moduleType, credentialPolicy));

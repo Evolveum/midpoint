@@ -179,7 +179,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
                 LOGGER.debug(UrlUtils.buildRequestUrl(httpRequest)
                         +  "has no filters");
             }
-            return;
+            throw new AuthenticationServiceException("Couldn't find filters for sequence " + sequence.getName());
         }
 
         int indexOfProcessingModule = -1;

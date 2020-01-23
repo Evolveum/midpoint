@@ -56,6 +56,8 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
             return null;
         }
 
+        isSupportedChannel(authenticationChannel);
+
         HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build((AuthenticationModuleHttpHeaderType)moduleType, prefixOfSequence);
         configuration.addAuthenticationProvider(new PasswordProvider());
         ModuleWebSecurityConfig module = getObjectObjectPostProcessor().postProcess(new HttpHeaderModuleWebConfig(configuration));
