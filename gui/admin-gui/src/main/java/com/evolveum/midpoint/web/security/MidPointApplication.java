@@ -301,6 +301,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);
+        getMarkupSettings().setStripComments(true);
 
         if (RuntimeConfigurationType.DEVELOPMENT.equals(getConfigurationType())) {
             getDebugSettings().setAjaxDebugModeEnabled(true);
