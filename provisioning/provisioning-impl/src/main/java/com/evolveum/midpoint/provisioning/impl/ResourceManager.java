@@ -769,7 +769,7 @@ public class ResourceManager {
             schemaResult.recordFatalError("Communication error: " + e.getMessage(), e);
             return;
         } catch (ConfigurationException e) {
-            modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
             schemaResult.recordFatalError("Configuration error: " + e.getMessage(), e);
             return;
         } catch (ExpressionEvaluationException e) {
