@@ -245,13 +245,15 @@ public class SecurityUtils {
         String channel = findChannelByPath(localePath);
         if (MY_MAP.get("ws/rest").equals(channel)) {
             String header = httpRequest.getHeader("Authorization");
-            String type = header.split(" ")[0];
-            if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
-                AuthenticationSequenceType sequence = new AuthenticationSequenceType();
-                sequence.setName(NameOfModuleType.CLUSTER.getName());
-                AuthenticationSequenceChannelType seqChannel = new AuthenticationSequenceChannelType();
-                seqChannel.setUrlSuffix(NameOfModuleType.CLUSTER.getName().toLowerCase());
-                return sequence;
+            if (header != null) {
+                String type = header.split(" ")[0];
+                if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
+                    AuthenticationSequenceType sequence = new AuthenticationSequenceType();
+                    sequence.setName(NameOfModuleType.CLUSTER.getName());
+                    AuthenticationSequenceChannelType seqChannel = new AuthenticationSequenceChannelType();
+                    seqChannel.setUrlSuffix(NameOfModuleType.CLUSTER.getName().toLowerCase());
+                    return sequence;
+                }
             }
         }
         return null;
@@ -336,21 +338,24 @@ public class SecurityUtils {
         String channel = findChannelByPath(localePath);
         if (MY_MAP.get("ws/rest").equals(channel)) {
             String header = httpRequest.getHeader("Authorization");
-            String type = header.split(" ")[0];
-            if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
-                List<AuthModule> authModules = new ArrayList<AuthModule>();
-                WebApplicationContext context = ContextLoader.getCurrentWebApplicationContext();
-                HttpClusterModuleFactory factory = context.getBean(HttpClusterModuleFactory.class);
-                AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType(){};
-                module.setName(NameOfModuleType.CLUSTER.getName().toLowerCase() + "-module");
-                try {
-                    authModules.add(factory.createModuleFilter(module, urlSuffix, httpRequest,
-                            sharedObjects, authenticationModulesType, credentialPolicy, null));
-                } catch (Exception e) {
-                    LOGGER.error("Couldn't create module for cluster authentication");
-                    return null;
+            if (header != null) {
+                String type = header.split(" ")[0];
+                if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
+                    List<AuthModule> authModules = new ArrayList<AuthModule>();
+                    WebApplicationContext context = ContextLoader.getCurrentWebApplicationContext();
+                    HttpClusterModuleFactory factory = context.getBean(HttpClusterModuleFactory.class);
+                    AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType() {
+                    };
+                    module.setName(NameOfModuleType.CLUSTER.getName().toLowerCase() + "-module");
+                    try {
+                        authModules.add(factory.createModuleFilter(module, urlSuffix, httpRequest,
+                                sharedObjects, authenticationModulesType, credentialPolicy, null));
+                    } catch (Exception e) {
+                        LOGGER.error("Couldn't create module for cluster authentication");
+                        return null;
+                    }
+                    return authModules;
                 }
-                return authModules;
             }
         }
         return null;
