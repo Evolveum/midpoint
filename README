@@ -1,4 +1,4 @@
-MidPoint 4.1 Development Branch
+MidPoint 4.1 Milestone 2
 -------------------------------
 
 General information:
@@ -44,14 +44,14 @@ For bugtracking system please go to:
 
 MidPoint source code is maintained on github:
 
-  https://github.com/Evolveum/midpoint 
+  https://github.com/Evolveum/midpoint
 
-Latest source code can be obtained from our Git repository using one of the 
+Latest source code can be obtained from our Git repository using one of the
 following repository locations:
 
   https://github.com/Evolveum/midpoint.git
-  
+
   git@github.com:Evolveum/midpoint.git
 
-This project is dual-licensed under Apache License 2.0 
+This project is dual-licensed under Apache License 2.0
 and European Union Public License. See LICENSE file for details.

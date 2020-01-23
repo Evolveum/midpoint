@@ -15,7 +15,7 @@
     <parent>
         <artifactId>icf-connectors</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.1-SNAPSHOT</version>
+        <version>4.1-M2</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -40,7 +40,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>4.1-M2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
