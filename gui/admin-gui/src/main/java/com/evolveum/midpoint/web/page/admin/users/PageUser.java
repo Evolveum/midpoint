@@ -112,7 +112,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     protected void initializeModel(final PrismObject<UserType> objectToEdit, boolean isNewObject, boolean isReadonly) {
         super.initializeModel(objectToEdit, isNewObject, isReadonly);
 
-        delegationsModel = new LoadableModel<>(false) {
+        delegationsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -124,7 +124,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                 }
             }
         };
-        privilegesListModel = new LoadableModel<>(false) {
+        privilegesListModel = new LoadableModel<List<AssignmentInfoDto>>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -161,7 +161,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     @Override
     protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
-        return new FocusMainPanel<>(id, getObjectModel(), getProjectionModel(), this) {
+        return new FocusMainPanel<UserType>(id, getObjectModel(), getProjectionModel(), this) {
             private static final long serialVersionUID = 1L;
 
             @Override
