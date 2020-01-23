@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2016 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -11,7 +11,6 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
 
 /**

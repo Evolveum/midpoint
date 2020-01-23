@@ -30,6 +30,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -531,12 +532,7 @@ public class MiscUtil {
     }
 
     public static String hexToUtf8String(String hex) {
-        try {
-            return new String(MiscUtil.hexToBinary(hex), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            // Should never happen
-            throw new RuntimeException(e.getMessage(), e);
-        }
+        return new String(MiscUtil.hexToBinary(hex), StandardCharsets.UTF_8);
     }
 
     public static <T> void addAllIfNotPresent(List<T> receivingList, List<T> supplyingList) {

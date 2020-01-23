@@ -13,8 +13,8 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.util.SimpleTaskAdapter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -57,7 +57,7 @@ public class AuditTest extends BaseSQLRepoTest {
         record.addReferenceValue("ref2", refVal2);
         record.addReferenceValue("ref3", refVal3);
         LOGGER.info("Adding audit record {}", record);
-        auditService.audit(record, new SimpleTaskAdapter());
+        auditService.audit(record, new NullTaskImpl());
 
         // THEN
         System.out.println("Record written:\n" + record.debugDump());
@@ -88,7 +88,7 @@ public class AuditTest extends BaseSQLRepoTest {
         AuditEventRecord record = new AuditEventRecord();
         record.addPropertyValue("prop", "val");
         LOGGER.info("Adding audit record {}", record);
-        auditService.audit(record, new SimpleTaskAdapter());
+        auditService.audit(record, new NullTaskImpl());
 
         // THEN
         System.out.println("Record written:\n" + record.debugDump());
@@ -119,7 +119,7 @@ public class AuditTest extends BaseSQLRepoTest {
                 "124"));
         record.getDeltas().add(delta);
 
-        auditService.audit(record, new SimpleTaskAdapter());
+        auditService.audit(record, new NullTaskImpl());
     }
 
     private AuditEventRecord getAuditEventRecord(int expectedCount, int index) {

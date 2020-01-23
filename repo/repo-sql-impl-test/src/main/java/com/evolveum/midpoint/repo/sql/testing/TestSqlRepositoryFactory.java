@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.testing;
 
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
@@ -18,6 +17,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.*;
@@ -48,11 +48,6 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         super.init(configuration);
     }
 
-//    @Override
-//    public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
-//        return new TestSqlRepositoryServiceImpl(this);
-//    }
-
     private void updateConfigurationFromFile(Configuration configuration, String filePath) throws RepositoryServiceFactoryException {
         Properties properties = new Properties();
         try {
@@ -62,7 +57,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
                 throw new RepositoryServiceFactoryException("Config file '" + filePath + "' doesn't exist or can't be read.");
             }
 
-            Reader reader = new InputStreamReader(new FileInputStream(file), "utf-8");
+            Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8);
             properties.load(reader);
         } catch (RepositoryServiceFactoryException ex) {
             throw ex;
@@ -149,7 +144,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         if (value == null) {
             return;
         }
-        boolean val = Boolean.valueOf(value);
+        boolean val = Boolean.parseBoolean(value);
         LOGGER.info("Overriding loaded configuration with value read from system properties: {}={}", propertyName, val);
         configuration.setProperty(propertyName, val);
     }

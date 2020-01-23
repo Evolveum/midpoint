@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Evolveum and contributors
+ * Copyright (c) 2014-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -106,7 +106,7 @@ public abstract class AbstractLexicalProcessorTest {
 
         assertUserJackXNodeOrdering("serialized xnode", xnode);
 
-        assertUserJack(user, true);
+        assertUserJack(user, true, true);
 
     }
 
@@ -133,7 +133,7 @@ public abstract class AbstractLexicalProcessorTest {
         System.out.println("\nParsed user:");
         System.out.println(user.debugDump());
 
-        assertUserJack(user, true);
+        assertUserJack(user, true, true);
 
         // WHEN (re-serialize to XNode)
         RootXNode serializedXNode = prismContext.xnodeSerializer()

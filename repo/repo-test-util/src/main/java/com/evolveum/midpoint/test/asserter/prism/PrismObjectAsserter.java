@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -19,7 +19,6 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import org.apache.commons.lang.StringUtils;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -29,7 +28,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
-import com.evolveum.midpoint.test.asserter.CaseAsserter;
 import com.evolveum.midpoint.test.asserter.ExtensionAsserter;
 import com.evolveum.midpoint.test.asserter.OrgAsserter;
 import com.evolveum.midpoint.test.asserter.ParentOrgRefsAsserter;
@@ -38,7 +36,6 @@ import com.evolveum.midpoint.test.asserter.TriggersAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;

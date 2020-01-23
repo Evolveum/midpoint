@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.model.test.asserter;
 
-import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -22,7 +21,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author semancik
- *
  */
 public class RoleSelectionSpecificationAsserter<RA> extends AbstractAsserter<RA> {
 

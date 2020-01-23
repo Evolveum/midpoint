@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.*;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -339,6 +340,10 @@ class EntitlementConverter {
             Collection<Operation> operations) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         Map<QName, PropertyModificationOperation> operationsMap = new HashMap<>();
 
+        if (CollectionUtils.isNotEmpty(itemDelta.getValuesToReplace())) {
+            LOGGER.error("Replace delta not supported for association, modifications {},\n provisioning context: {}", itemDelta, ctx);
+            throw new SchemaException("Cannot perform replace delta for association, replace values: " + itemDelta.getValuesToReplace());
+        }
         collectEntitlementToAttrsDelta(ctx, operationsMap, itemDelta.getValuesToAdd(), ModificationType.ADD);
         collectEntitlementToAttrsDelta(ctx, operationsMap, itemDelta.getValuesToDelete(), ModificationType.DELETE);
         collectEntitlementToAttrsDelta(ctx, operationsMap, itemDelta.getValuesToReplace(), ModificationType.REPLACE);

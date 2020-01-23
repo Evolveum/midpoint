@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -19,7 +19,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
- *
  * Note: considered to align this with ParentOrgRefFinder into some kind of common superclass.
  * But the resulting structure of generics is just too insane. It is lesser evil to have copy&pasted code.
  *

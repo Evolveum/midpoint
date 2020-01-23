@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -111,6 +111,8 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_NO_OBJECTS = "fa fa-times";
     public static final String CLASS_ICON_ACTIVATION_ACTIVE = "fa fa-check";
     public static final String CLASS_ICON_ACTIVATION_INACTIVE = "fa fa-times";
+    public static final String CLASS_ICON_RESOURCE_BROKEN = "fa fa-exclamation";
+    public static final String CLASS_ICON_RESOURCE_UNKNOWN = "fa fa-question";
     public static final String CLASS_ICON_ASSIGNMENTS = "fa fa-bank";
     public static final String CLASS_SHADOW_ICON_REQUEST = "fa fa-pencil-square-o";
     public static final String CLASS_ICON_TACHOMETER = "fa fa-tachometer";

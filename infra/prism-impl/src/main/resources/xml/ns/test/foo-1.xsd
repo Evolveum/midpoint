@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -249,6 +249,7 @@
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
+        <xsd:attribute name="incomplete" type="xsd:boolean" use="optional"/>
     </xsd:complexType>
 
 
@@ -276,6 +277,7 @@
             <xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
+        <xsd:attribute name="incomplete" type="xsd:boolean" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="AccountConstructionType">

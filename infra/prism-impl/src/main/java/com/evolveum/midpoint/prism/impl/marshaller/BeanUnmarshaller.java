@@ -36,6 +36,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -1284,11 +1285,7 @@ public class BeanUnmarshaller {
         if (stringValue == null) {
             return null;
         }
-        try {
-            protectedType.setClearValue(ArrayUtils.toObject(stringValue.getBytes("UTF-8")));
-        } catch (UnsupportedEncodingException e) {
-            throw new SystemException("UTF-8 encoding is not supported", e);
-        }
+        protectedType.setClearValue(ArrayUtils.toObject(stringValue.getBytes(StandardCharsets.UTF_8)));
         return protectedType;
     }
     //endregion

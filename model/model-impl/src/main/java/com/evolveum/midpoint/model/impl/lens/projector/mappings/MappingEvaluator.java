@@ -17,6 +17,7 @@ import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -77,20 +78,26 @@ public class MappingEvaluator {
     @Autowired private CredentialsProcessor credentialsProcessor;
     @Autowired private ContextLoader contextLoader;
     @Autowired private PrismContext prismContext;
+    @Autowired private ObjectResolver objectResolver;
 
     public PrismContext getPrismContext() {
         return prismContext;
     }
 
-    public static final List<String> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
+    static final List<String> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
 
-    public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
-            MappingImpl<V,D> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+    public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(MappingImpl<V,D> mapping,
+            LensContext<F> lensContext, Task task, OperationResult parentResult)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
         evaluateMapping(mapping, lensContext, null, task, parentResult);
     }
 
-    public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
-            MappingImpl<V,D> mapping, LensContext<F> lensContext, LensProjectionContext projContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+    public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(MappingImpl<V,D> mapping,
+            LensContext<F> lensContext, LensProjectionContext projContext, Task task, OperationResult parentResult)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
+
         ExpressionEnvironment<F,V,D> env = new ExpressionEnvironment<>();
         env.setLensContext(lensContext);
         env.setProjectionContext(projContext);
@@ -98,6 +105,7 @@ public class MappingEvaluator {
         env.setCurrentResult(parentResult);
         env.setCurrentTask(task);
         ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
+
         ObjectType originObject = mapping.getOriginObject();
         String objectOid, objectName, objectTypeName;
         if (originObject != null) {
@@ -108,6 +116,7 @@ public class MappingEvaluator {
             objectOid = objectName = objectTypeName = null;
         }
         String mappingName = mapping.getItemName() != null ? mapping.getItemName().getLocalPart() : null;
+
         long start = System.currentTimeMillis();
         try {
             task.recordState("Started evaluation of mapping " + mapping.getMappingContextDescription() + ".");
@@ -202,11 +211,10 @@ public class MappingEvaluator {
             if (defaultTargetItemPath != null && targetObjectDefinition != null) {
                 D defaultTargetItemDef = targetObjectDefinition.findItemDefinition(defaultTargetItemPath);
                 mappingBuilder.defaultTargetDefinition(defaultTargetItemDef);
-                mappingBuilder.defaultTargetPath(defaultTargetItemPath);
             } else {
                 mappingBuilder.defaultTargetDefinition(params.getTargetItemDefinition());
-                mappingBuilder.defaultTargetPath(defaultTargetItemPath);
             }
+            mappingBuilder.defaultTargetPath(defaultTargetItemPath);
             mappingBuilder.targetContext(targetObjectDefinition);
 
             if (params.getSourceContext() != null) {
@@ -214,23 +222,18 @@ public class MappingEvaluator {
             }
 
             // Initialize mapping (using Inversion of Control)
-            mappingBuilder = params.getInitializer().initialize(mappingBuilder);
+            MappingImpl.Builder<V,D> initializedMappingBuilder = params.getInitializer().initialize(mappingBuilder);
 
-            MappingImpl<V,D> mapping = mappingBuilder.build();
+            MappingImpl<V,D> mapping = initializedMappingBuilder.build();
             Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(task, result);
 
-            if (params.getEvaluateCurrent() != null) {
-                if (params.getEvaluateCurrent() == MappingTimeEval.CURRENT && !timeConstraintValid) {
-                    LOGGER.trace("Mapping {} is non-current, but evulating current mappings, skipping {}", mappingName, params.getContext().getChannel());
-                    continue;
-                }
-                if (params.getEvaluateCurrent() == MappingTimeEval.FUTURE && timeConstraintValid) {
-                    LOGGER.trace("Mapping {} is current, but evulating non-current mappings, skipping {}", mappingName, params.getContext().getChannel());
-                    continue;
-                }
+            if (params.getEvaluateCurrent() == MappingTimeEval.CURRENT && !timeConstraintValid) {
+                LOGGER.trace("Mapping {} is non-current, but evaluating current mappings, skipping {}", mappingName, params.getContext().getChannel());
+            } else if (params.getEvaluateCurrent() == MappingTimeEval.FUTURE && timeConstraintValid) {
+                LOGGER.trace("Mapping {} is current, but evaluating non-current mappings, skipping {}", mappingName, params.getContext().getChannel());
+            } else {
+                mappings.add(mapping);
             }
-
-            mappings.add(mapping);
         }
 
         boolean hasFullTargetObject = params.hasFullTargetObject();
@@ -295,9 +298,7 @@ public class MappingEvaluator {
                 }
 
             } else {
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Output triple of mapping {} is NOT meaningful", mapping.getContextDescription());
-                }
+                LOGGER.trace("Output triple of mapping {} is NOT meaningful", mapping.getContextDescription());
             }
 
         }
@@ -322,9 +323,13 @@ public class MappingEvaluator {
                 }
 
                 PrismValueDeltaSetTriple<V> outputTriple = mappingOutputStruct.getOutputTriple();
-                if (outputTriple != null) {
-                    // Previous mapping produced output. We do not need to evaluate weak mapping.
-                    // TODO: this is not entirely correct. Previous mapping might have deleted all
+                if (outputTriple != null && !outputTriple.getNonNegativeValues().isEmpty()) {
+                    // Previous mapping produced zero/positive output. We do not need to evaluate weak mapping.
+                    //
+                    // Note: this might or might not be correct. The idea is that if previous mapping produced no positive values
+                    //  (e.g. because of condition switched from true to false) we might apply the weak mapping.
+                    //
+                    // TODO (original) this is not entirely correct. Previous mapping might have deleted all
                     //  values. Also we may need the output of the weak mapping to correctly process
                     //  non-tolerant values (to avoid removing the value that weak mapping produces).
                     //  MID-3847
@@ -380,11 +385,12 @@ public class MappingEvaluator {
             MappingOutputStruct<V> mappingOutputStruct = outputTripleMapEntry.getValue();
             PrismValueDeltaSetTriple<V> outputTriple = mappingOutputStruct.getOutputTriple();
 
-            boolean defaultProcessing = true;
-
+            boolean defaultProcessing;
             if (processor != null) {
                 LOGGER.trace("Executing processor to process mapping evaluation results: {}", processor);
                 defaultProcessing = processor.process(mappingOutputPath, mappingOutputStruct);
+            } else {
+                defaultProcessing = true;
             }
 
             if (defaultProcessing) {
@@ -394,7 +400,7 @@ public class MappingEvaluator {
                     continue;
                 }
 
-                ItemDefinition targetItemDefinition = null;
+                ItemDefinition targetItemDefinition;
                 if (mappingOutputPath != null) {
                     targetItemDefinition = targetObjectDefinition.findItemDefinition(mappingOutputPath);
                     if (targetItemDefinition == null) {
@@ -403,24 +409,27 @@ public class MappingEvaluator {
                 } else {
                     targetItemDefinition = params.getTargetItemDefinition();
                 }
+                //noinspection unchecked
                 ItemDelta<V,D> targetItemDelta = targetItemDefinition.createEmptyDelta(mappingOutputPath);
 
-                Item<V,D> aPrioriTargetItem = null;
+                Item<V,D> aPrioriTargetItem;
                 if (aPrioriTargetObject != null) {
                     aPrioriTargetItem = aPrioriTargetObject.findItem(mappingOutputPath);
+                } else {
+                    aPrioriTargetItem = null;
                 }
 
                 // WARNING
-                // Following code seems to be wrong. It is not very relativisic. It seems to always
+                // Following code seems to be wrong. It is not very relativistic. It seems to always
                 // go for replace.
-                // It seems that it is only used for activation mappings (outbout and inbound). As
+                // It seems that it is only used for activation mappings (outbound and inbound). As
                 // these are quite special single-value properties then it seems to work fine
                 // (with the exception of MID-3418). Todo: make it more relativistic: MID-3419
 
                 if (targetContext.isAdd()) {
 
                     Collection<V> nonNegativeValues = outputTriple.getNonNegativeValues();
-                    if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
+                    if (nonNegativeValues.isEmpty()) {
                         LOGGER.trace("{} resulted in null or empty value for {}, skipping", mappingDesc, targetContext);
                         continue;
                     }
@@ -681,6 +690,7 @@ public class MappingEvaluator {
                 .originalTargetValues(targetValues)
                 .originType(OriginType.USER_POLICY)
                 .originObject(originObject)
+                .objectResolver(objectResolver)
                 .valuePolicyResolver(stringPolicyResolver)
                 .rootNode(focusOdo)
                 .now(now);

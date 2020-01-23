@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -55,7 +56,7 @@ public class PerformanceTest extends BaseSQLRepoTest {
 
     @Test(enabled = false)
     public void test100Parsing() throws Exception {
-        String data = FileUtils.readFileToString(new File(FOLDER_BASIC, "objects.xml"), "utf-8");
+        String data = FileUtils.readFileToString(new File(FOLDER_BASIC, "objects.xml"), StandardCharsets.UTF_8);
         String lang = PrismContext.LANG_JSON;
 
         List<PrismObject<? extends Objectable>> list = prismContext.parserFor(data).parseObjects();
@@ -81,7 +82,7 @@ public class PerformanceTest extends BaseSQLRepoTest {
     @Test(enabled = false)
     public void test200PrepareBigXml() throws Exception {
         File file = new File("./target/big-test.xml");
-        Writer writer = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
+        Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
         try {
             writeHeader(writer);
 

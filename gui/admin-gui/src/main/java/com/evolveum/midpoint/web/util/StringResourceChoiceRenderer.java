@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -15,7 +15,6 @@ import org.apache.wicket.model.ResourceModel;
 
 /**
  * @author semancik
- *
  */
 public class StringResourceChoiceRenderer implements IChoiceRenderer<String> {
     private static final long serialVersionUID = 1L;

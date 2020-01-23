@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import java.util.List;
 
 public class NonceAuthenticationContext extends AbstractAuthenticationContext {
 
@@ -14,6 +17,10 @@ public class NonceAuthenticationContext extends AbstractAuthenticationContext {
     private NonceCredentialsPolicyType policy;
 
     public NonceAuthenticationContext(String username, String nonce, NonceCredentialsPolicyType policy) {
+        this(username, nonce, policy, null);
+    }
+
+    public NonceAuthenticationContext(String username, String nonce, NonceCredentialsPolicyType policy, List<ObjectReferenceType> requireAssignment) {
         super(username);
         this.nonce = nonce;
         this.policy = policy;

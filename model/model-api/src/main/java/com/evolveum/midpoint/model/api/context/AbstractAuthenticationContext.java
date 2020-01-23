@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -16,6 +16,8 @@ public abstract class AbstractAuthenticationContext {
 
     private List<ObjectReferenceType> requireAssignments;
 
+    private boolean supportActivationByChannel = true;
+
     public String getUsername() {
         return username;
     }
@@ -27,6 +29,14 @@ public abstract class AbstractAuthenticationContext {
     public AbstractAuthenticationContext(String username, List<ObjectReferenceType> requireAssignment){
         this.username = username;
         this.requireAssignments = requireAssignment;
+    }
+
+    public void setSupportActivationByChannel(boolean supportActivationByChannel) {
+        this.supportActivationByChannel = supportActivationByChannel;
+    }
+
+    public boolean isSupportActivationByChannel() {
+        return supportActivationByChannel;
     }
 
     public List<ObjectReferenceType> getRequireAssignments() {

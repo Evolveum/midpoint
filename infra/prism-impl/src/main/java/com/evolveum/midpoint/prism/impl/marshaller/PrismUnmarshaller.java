@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -202,12 +202,16 @@ public class PrismUnmarshaller {
 
     private <C extends Containerable> void parseContainerValueToContainer(PrismContainer<C> container, XNodeImpl node,
             @NotNull ParsingContext pc) throws SchemaException {
-        container.add(parseContainerValue(node, container.getDefinition(), pc));
-        if (node instanceof MapXNodeImpl && container instanceof PrismObject) {
-            MapXNodeImpl map = (MapXNodeImpl) node;
-            PrismObject object = (PrismObject) container;
-            object.setOid(getOid(map));
-            object.setVersion(getVersion(map));
+        if (node instanceof IncompleteMarkerXNodeImpl) {
+            container.setIncomplete(true);
+        } else {
+            container.add(parseContainerValue(node, container.getDefinition(), pc));
+            if (node instanceof MapXNodeImpl && container instanceof PrismObject) {
+                MapXNodeImpl map = (MapXNodeImpl) node;
+                PrismObject object = (PrismObject) container;
+                object.setOid(getOid(map));
+                object.setVersion(getVersion(map));
+            }
         }
     }
 
@@ -367,8 +371,12 @@ public class PrismUnmarshaller {
                 throw new SchemaException("Attempt to store multiple values in single-valued property " + itemName);
             }
             for (XNodeImpl subNode : listNode) {
-                PrismPropertyValue<T> pval = parsePropertyValue(subNode, itemDefinition, pc);
-                addItemValueIfPossible(property, pval, pc);
+                if (subNode instanceof IncompleteMarkerXNodeImpl) {
+                    property.setIncomplete(true);
+                } else {
+                    PrismPropertyValue<T> pval = parsePropertyValue(subNode, itemDefinition, pc);
+                    addItemValueIfPossible(property, pval, pc);
+                }
             }
         } else if (node instanceof MapXNodeImpl || node instanceof PrimitiveXNodeImpl || node.isHeterogeneousList()) {
             PrismPropertyValue<T> pval = parsePropertyValue(node, itemDefinition, pc);
@@ -380,6 +388,8 @@ public class PrismUnmarshaller {
             @SuppressWarnings("unchecked")
             PrismPropertyValue<T> val = new PrismPropertyValueImpl(schemaDefType);
             addItemValueIfPossible(property, val, pc);
+        } else if (node instanceof IncompleteMarkerXNodeImpl) {
+            property.setIncomplete(true);
         } else {
             throw new IllegalArgumentException("Cannot parse property from " + node);
         }
@@ -463,17 +473,19 @@ public class PrismUnmarshaller {
             @NotNull PrismReferenceDefinition definition, @NotNull ParsingContext pc) throws SchemaException {
         PrismReference ref = definition.instantiate();
         if (node instanceof ListXNodeImpl) {
-            ListXNodeImpl listNode = (ListXNodeImpl) node;
-            if (!definition.isMultiValue() && listNode.size() > 1) {
-                throw new SchemaException("Attempt to store multiple values in single-valued reference " + itemName);
-            }
-            for (XNodeImpl subNode : listNode) {
-                ref.add(parseReferenceValueFromXNode(subNode, definition, itemName, pc));
+            for (XNodeImpl subNode : (ListXNodeImpl) node) {
+                if (subNode instanceof IncompleteMarkerXNodeImpl) {
+                    ref.setIncomplete(true);
+                } else {
+                    ref.add(parseReferenceValueFromXNode(subNode, definition, itemName, pc));
+                }
             }
         } else if (node instanceof MapXNodeImpl) {
             ref.add(parseReferenceValueFromXNode(node, definition, itemName, pc));
         } else if (node instanceof PrimitiveXNodeImpl) {
             // empty
+        } else if (node instanceof IncompleteMarkerXNodeImpl) {
+            ref.setIncomplete(true);
         } else {
             throw new IllegalArgumentException("Cannot parse reference from " + node);
         }

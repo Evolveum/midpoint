@@ -299,6 +299,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             protected boolean isAdditionalPanel(){
                 return true;
             }
+
+            protected boolean isTypeChanged(Class<ObjectType> newTypeClass){
+                return true;
+            }
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
@@ -816,6 +820,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             @Override
             protected void onValueChanged(AjaxRequestTarget target){
                 refreshAll(target);
+            }
+
+            @Override
+            protected String getNullValidDisplayValue(){
+                return getString("RelationTypes.ANY");
             }
         };
         form.add(relationSelector);

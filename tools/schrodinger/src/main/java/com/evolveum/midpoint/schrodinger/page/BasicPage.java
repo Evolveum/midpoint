@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schrodinger.page;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.LoggedUser;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
@@ -302,6 +303,11 @@ public class BasicPage {
         return new SystemPage().adminGuiTab();
     }
 
+    public InfrastructureTab infrastructure() {
+        clickConfigurationMenu("PageAdmin.menu.top.configuration.basic", "PageAdmin.menu.top.configuration.infrastructure");
+        return new SystemPage().infrastructureTab();
+    }
+
     public RoleManagementTab roleManagement() {
         clickConfigurationMenu("PageAdmin.menu.top.configuration.basic", "PageAdmin.menu.top.configuration.roleManagement");
         return new SystemPage().roleManagementTab();
@@ -388,5 +394,11 @@ public class BasicPage {
             mainMenuLi.waitUntil(Condition.cssClass("active"),MidPoint.TIMEOUT_MEDIUM_6_S).shouldHave(Condition.cssClass("active"));
         }
         return mainMenu;
+    }
+
+    public String getCurrentUrl() {
+        String url = WebDriverRunner.url();
+        url = url.split("\\?")[0];
+        return url;
     }
 }

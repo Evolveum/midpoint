@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2017-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -25,7 +25,6 @@ import java.util.Collection;
 
 /**
  * @author semancik
- *
  */
 public class RepoSimpleObjectResolver implements SimpleObjectResolver {
 

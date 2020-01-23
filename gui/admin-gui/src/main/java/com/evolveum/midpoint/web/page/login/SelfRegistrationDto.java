@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -9,19 +9,17 @@ package com.evolveum.midpoint.web.page.login;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.security.module.authentication.MailNonceModuleAuthentication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailAuthenticationPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SelfRegistrationPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsAuthenticationPolicyType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class SelfRegistrationDto implements Serializable {
 
@@ -36,6 +34,8 @@ public class SelfRegistrationDto implements Serializable {
     private MailAuthenticationPolicyType mailAuthenticationPolicy;
     private SmsAuthenticationPolicyType smsAuthenticationPolicy;
     private NonceCredentialsPolicyType noncePolicy;
+    private String additionalAuthentication;
+    private AuthenticationsPolicyType authenticationPolicy;
 
     private String requiredLifecycleState;
     private String initialLifecycleState;
@@ -73,18 +73,32 @@ public class SelfRegistrationDto implements Serializable {
         this.defaultRoles = selfRegistration.getDefaultRole();
         this.initialLifecycleState = selfRegistration.getInitialLifecycleState();
         this.requiredLifecycleState = selfRegistration.getRequiredLifecycleState();
+        this.additionalAuthentication = selfRegistration.getAdditionalAuthenticationName();
+        this.authenticationPolicy = securityPolicy.getAuthentication();
 
         this.formRef = selfRegistration.getFormRef();
 
-        AbstractAuthenticationPolicyType authPolicy = SecurityPolicyUtil.getAuthenticationPolicy(
-                selfRegistration.getAdditionalAuthenticationName(), securityPolicy);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        MailNonceModuleAuthentication mailModuleAuthentication = null;
+        if (authentication instanceof MidpointAuthentication) {
+            ModuleAuthentication moduleAuthentication = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
+            if (moduleAuthentication instanceof MailNonceModuleAuthentication) {
+                mailModuleAuthentication = (MailNonceModuleAuthentication) moduleAuthentication;
+            }
+        }
+        if (mailModuleAuthentication != null && mailModuleAuthentication.getCredentialName() != null) {
+            noncePolicy = SecurityPolicyUtil.getCredentialPolicy(mailModuleAuthentication.getCredentialName(), securityPolicy);
+        } else {
+            AbstractAuthenticationPolicyType authPolicy = SecurityPolicyUtil.getAuthenticationPolicy(
+                    selfRegistration.getAdditionalAuthenticationName(), securityPolicy);
 
-        if (authPolicy instanceof MailAuthenticationPolicyType) {
-            this.mailAuthenticationPolicy = (MailAuthenticationPolicyType) authPolicy;
-            noncePolicy = SecurityPolicyUtil.getCredentialPolicy(((MailAuthenticationPolicyType) authPolicy).getMailNonce(), securityPolicy);
-        } else if (authPolicy instanceof SmsAuthenticationPolicyType) {
-            this.smsAuthenticationPolicy = (SmsAuthenticationPolicyType) authPolicy;
-            noncePolicy = SecurityPolicyUtil.getCredentialPolicy(((SmsAuthenticationPolicyType) authPolicy).getSmsNonce(), securityPolicy);
+            if (authPolicy instanceof MailAuthenticationPolicyType) {
+                this.mailAuthenticationPolicy = (MailAuthenticationPolicyType) authPolicy;
+                noncePolicy = SecurityPolicyUtil.getCredentialPolicy(((MailAuthenticationPolicyType) authPolicy).getMailNonce(), securityPolicy);
+            } else if (authPolicy instanceof SmsAuthenticationPolicyType) {
+                this.smsAuthenticationPolicy = (SmsAuthenticationPolicyType) authPolicy;
+                noncePolicy = SecurityPolicyUtil.getCredentialPolicy(((SmsAuthenticationPolicyType) authPolicy).getSmsNonce(), securityPolicy);
+            }
         }
     }
 
@@ -318,5 +332,13 @@ public class SelfRegistrationDto implements Serializable {
 
     public ObjectReferenceType getFormRef() {
         return formRef;
+    }
+
+    public String getAdditionalAuthentication() {
+        return additionalAuthentication;
+    }
+
+    public AuthenticationsPolicyType getAuthenticationPolicy() {
+        return authenticationPolicy;
     }
 }

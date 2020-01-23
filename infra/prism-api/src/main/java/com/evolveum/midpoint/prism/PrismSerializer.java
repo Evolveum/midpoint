@@ -67,7 +67,8 @@ public interface PrismSerializer<T> {
     PrismSerializer<T> options(@Nullable SerializationOptions options);
 
     /**
-     * These items will be skipped during serialization.
+     * These items will be skipped during serialization. If present, their original presence is indicated
+     * by the "incomplete" flag.
      *
      * @param itemNames Names of items to be skipped.
      * @return Serializer with the items to be skipped set.

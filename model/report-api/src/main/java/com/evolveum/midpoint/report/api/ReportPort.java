@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -9,7 +9,6 @@ package com.evolveum.midpoint.report.api;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-
 
 public interface ReportPort {
     String CLASS_NAME_WITH_DOT = ReportPort.class.getName() + ".";

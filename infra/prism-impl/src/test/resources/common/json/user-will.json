@@ -46,6 +46,7 @@
     },
     "fullName" : "Will Turner",
     "givenName" : "William",
-    "familyName" : "Turner"
+    "familyName" : "Turner",
+    "password" : { "@incomplete" : "true" }
   }
 }

@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import java.io.IOException;
 import java.util.List;
 
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -73,7 +75,7 @@ public class TestMappingDomain {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -81,6 +83,10 @@ public class TestMappingDomain {
         PrismAsserts.assertTripleNoZero(outputTriple);
           PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Pirate Jackie (321)"));
           PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Pirate null (1234567890)"));
+    }
+
+    private Task createTask() {
+        return new NullTaskImpl();
     }
 
     /**
@@ -112,7 +118,7 @@ public class TestMappingDomain {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         // WHEN
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -155,7 +161,7 @@ public class TestMappingDomain {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -199,7 +205,7 @@ public class TestMappingDomain {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -246,7 +252,7 @@ public class TestMappingDomain {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        mapping.evaluate(null, opResult);
+        mapping.evaluate(createTask(), opResult);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);

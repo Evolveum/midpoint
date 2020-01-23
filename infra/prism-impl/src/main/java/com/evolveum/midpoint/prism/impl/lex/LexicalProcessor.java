@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -83,11 +83,6 @@ public interface LexicalProcessor<T> {
      * TODO
      *
      * Not supported for NullLexicalProcessor, though.
-     * @param roots
-     * @param aggregateElementName
-     * @param context
-     * @return
-     * @throws SchemaException
      */
     @NotNull
     T write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName, @Nullable SerializationContext context) throws SchemaException;

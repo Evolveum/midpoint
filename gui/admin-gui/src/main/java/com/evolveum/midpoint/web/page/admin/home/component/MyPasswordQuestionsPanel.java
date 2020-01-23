@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -50,24 +50,6 @@ public class MyPasswordQuestionsPanel extends InputPanel {
 
     }
 
-    /*
-     * public void initLayout(){
-     *
-     *
-     * // final Label question = new Label (F_QUESTION, new
-     * PropertyModel(model,SecurityQuestionAnswerDTO
-     * .F_PASSWORD_QUESTION_ITSELF)); final Label question = new Label
-     * (F_QUESTION,"asfsasfd"); // final Label question = new Label (F_QUESTION,
-     * "safsdfasfsa"); question.setOutputMarkupId(true); add(question); //new
-     * PropertyModel<String>(mod,PasswordQuestionsDto.F_MY_QUESTIONS_ANSWER)
-     * final TextField<String> answer = new
-     * TextField<String>(F_ANSWER,Model.of("")); //final TextField<String>
-     * answer = new TextField<String>(F_ANSWER, new PropertyModel(model,
-     * SecurityQuestionAnswerDTO.F_PASSWORD_QUESTION_ANSWER));
-     * answer.setRequired(true); answer.setOutputMarkupId(true); add(answer);
-     *
-     * }
-     */
     @Override
     public List<FormComponent> getFormComponents() {
         List<FormComponent> list = new ArrayList<>();

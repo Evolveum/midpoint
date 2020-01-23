@@ -80,8 +80,6 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
     private static final int ADD_VALUE_ITERATIONS = 100000;
 
-    private boolean verbose = false;
-
     @BeforeClass
     public void beforeClass() throws Exception {
         super.beforeClass();
@@ -1773,19 +1771,6 @@ public class ExtensionTest extends BaseSQLRepoTest {
             fail("Objects are not equal with include=" + include + ", toInclude=" + toInclude + ":\n*** Expected:\n" +
                     expectedAdapted.debugDump() + "\n*** Got:\n" + real.debugDump() + "\n*** Delta:\n" + delta.debugDump());
         }
-    }
-
-    private void assertSearch(ItemName item, String value, int expectedCount, OperationResult result) throws SchemaException {
-        ObjectQuery query = getPrismContext().queryFor(UserType.class)
-                .item(UserType.F_EXTENSION, item)
-                .eq(value)
-                .build();
-        SearchResultList<PrismObject<UserType>> found = repositoryService
-                .searchObjects(UserType.class, query, null, result);
-        if (verbose) {
-            PrismTestUtil.display("Found", found);
-        }
-        assertEquals("Wrong # of objects found", expectedCount, found.size());
     }
 
     // This is ad-hoc test moved here from ObjectDeltaUpdaterTest

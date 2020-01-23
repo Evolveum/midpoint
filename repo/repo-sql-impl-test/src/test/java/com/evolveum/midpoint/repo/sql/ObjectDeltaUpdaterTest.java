@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sql.data.common.RFocusPhoto;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
+import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -38,6 +39,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.util.*;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
@@ -57,6 +59,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
     private String userOid;
 
+    private RExtItem itemVisibleSingle;
+
     @AfterMethod
     public void afterMethod() {
         TestStatementInspector.clear();
@@ -65,6 +69,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
     @BeforeClass
     public void beforeClass() throws Exception {
         OperationResult result = new OperationResult("setup");
+
+        itemVisibleSingle = createOrFindExtensionItemDefinition(UserType.class, EXT_VISIBLE_SINGLE);
 
         PrismObject<UserType> user = prismContext.parseObject(new File(DATA_FOLDER, FILE_USER));
 
@@ -1053,8 +1059,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 //    }
 
     @Test
-    public void test270modifyOperationExecution() throws Exception {
-        OperationResult result = new OperationResult("test270modifyOperationExecution");
+    public void test270ModifyOperationExecution() throws Exception {
+        OperationResult result = new OperationResult("test270ModifyOperationExecution");
 
         String file = FOLDER_BASE + "/modify/user-with-assignment-extension.xml";
         PrismObject<UserType> user = prismContext.parseObject(new File(file));
@@ -1182,5 +1188,45 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             Set<RFocusPhoto> p = u.getJpegPhoto();
             AssertJUnit.assertEquals(0, p.size());
         }
+    }
+
+    // MID-5906
+    @Test
+    public void test400AddExtensionItem() throws Exception {
+        OperationResult result = new OperationResult("test400AddExtensionItem");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, EXT_VISIBLE_SINGLE).add("v1")
+                .asObjectDelta(userOid);
+
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), null, result);
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemVisibleSingle, "v1");
+        }
+
+        assertSearch(EXT_VISIBLE_SINGLE, "v1", 1, result);
+        assertSearch(EXT_VISIBLE_SINGLE, "v2", 0, result);
+    }
+
+    // MID-5906
+    @Test
+    public void test410ReplaceExtensionItem() throws Exception {
+        OperationResult result = new OperationResult("test410ReplaceExtensionItem");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, EXT_VISIBLE_SINGLE).replace()
+                .asObjectDelta(userOid);
+
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), null, result);
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemVisibleSingle);
+        }
+
+        assertSearch(EXT_VISIBLE_SINGLE, "v1", 0, result);
+        assertSearch(EXT_VISIBLE_SINGLE, "v2", 0, result);
     }
 }

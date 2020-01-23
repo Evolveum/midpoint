@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -37,7 +37,6 @@ import static org.testng.AssertJUnit.assertTrue;
 /**
  * @author skublik
  */
-
 @ContextConfiguration(locations = {"classpath:ctx-task.xml",
         "classpath:ctx-repo-cache.xml",
         "classpath:ctx-provisioning.xml",

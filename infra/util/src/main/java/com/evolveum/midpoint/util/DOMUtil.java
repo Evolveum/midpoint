@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -60,7 +61,8 @@ public class DOMUtil {
 
     public static final String HACKED_XSI_TYPE = "xsiType";
     public static final String IS_LIST_ATTRIBUTE_NAME = "list";
-    private static final List<String> AUXILIARY_ATTRIBUTE_NAMES = Arrays.asList(HACKED_XSI_TYPE, IS_LIST_ATTRIBUTE_NAME);
+    public static final String IS_INCOMPLETE_ATTRIBUTE_NAME = "incomplete";
+    private static final List<String> AUXILIARY_ATTRIBUTE_NAMES = Arrays.asList(HACKED_XSI_TYPE, IS_LIST_ATTRIBUTE_NAME, IS_INCOMPLETE_ATTRIBUTE_NAME);
     private static final List<String> AUXILIARY_NAMESPACES = Arrays.asList(W3C_XML_SCHEMA_XMLNS_URI, W3C_XML_XML_URI, W3C_XML_SCHEMA_INSTANCE_NS_URI);
 
     public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
@@ -243,7 +245,7 @@ public class DOMUtil {
     public static Document parseDocument(String doc) {
         try {
             DocumentBuilder loader = createDocumentBuilder();
-            return loader.parse(IOUtils.toInputStream(doc, "utf-8"));
+            return loader.parse(IOUtils.toInputStream(doc, StandardCharsets.UTF_8));
         } catch (SAXException | IOException ex) {
             throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
         }
@@ -458,6 +460,10 @@ public class DOMUtil {
 
     public static QName resolveQName(Node domNode, String qnameStringRepresentation) {
         return resolveQName(prefix -> findNamespace(domNode, prefix), qnameStringRepresentation);
+    }
+
+    public static boolean isMarkedAsIncomplete(Element element) {
+        return Boolean.parseBoolean(DOMUtil.getAttribute(element, DOMUtil.IS_INCOMPLETE_ATTRIBUTE_NAME));
     }
 
     @FunctionalInterface
@@ -1448,6 +1454,11 @@ public class DOMUtil {
             attr = element.getAttribute(attrQname.getLocalPart());
         }
         return attr;
+    }
+
+    // for unqualified attributes
+    public static String getAttribute(Element element, String attrName) {
+        return element.getAttribute(attrName);
     }
 
     public static boolean hasNoPrefix(Element top) {

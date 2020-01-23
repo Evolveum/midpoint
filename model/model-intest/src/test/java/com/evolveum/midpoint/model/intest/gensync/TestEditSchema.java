@@ -116,8 +116,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 
-        PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
-        assertNull("Table container sneaked in", tableContainer);
+        PrismAsserts.assertEmptyAndIncomplete(lookup, LookupTableType.F_ROW);
 
         assertSteadyResources();
     }
@@ -148,8 +147,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         assertEquals("Wrong lang lookup name", LOOKUP_LANGUAGES_NAME, lookup.asObjectable().getName().getOrig());
 
-        PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
-        assertNull("Table container sneaked in", tableContainer);
+        PrismAsserts.assertEmptyAndIncomplete(lookup, LookupTableType.F_ROW);
 
         assertSteadyResources();
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.impl.xnode.PrimitiveXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.SchemaXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
+import com.evolveum.midpoint.prism.xnode.IncompleteMarkerXNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -120,23 +121,25 @@ public class DomLexicalWriter {
             DOMUtil.setXsiType(topElement, setQNamePrefixExplicitIfNeeded(typeQName));
         }
         XNodeImpl subnode = rootxnode.getSubnode();
-        if (subnode instanceof PrimitiveXNodeImpl){
+        if (subnode instanceof PrimitiveXNodeImpl) {
             serializePrimitiveElementOrAttribute((PrimitiveXNodeImpl) subnode, topElement, rootElementName, false);
             return DOMUtil.getFirstChildElement(topElement);
-        }
-        if (subnode instanceof MapXNodeImpl) {
-            // at this point we can put frequently used namespaces (e.g. c, t, q, ri) into the document to eliminate their use
-            // on many places inside the doc (MID-2198)
-            DOMUtil.setNamespaceDeclarations(topElement, getNamespacePrefixMapper().getNamespacesDeclaredByDefault());
-            serializeMap((MapXNodeImpl) subnode, topElement);
-        } else if (subnode.isHeterogeneousList()) {
-            DOMUtil.setNamespaceDeclarations(topElement, getNamespacePrefixMapper().getNamespacesDeclaredByDefault());
-            serializeExplicitList((ListXNodeImpl) subnode, topElement);
         } else {
-            throw new SchemaException("Sub-root xnode is not a map nor an explicit list, cannot serialize to XML (it is "+subnode+")");
+            if (subnode instanceof MapXNodeImpl) {
+                // at this point we can put frequently used namespaces (e.g. c, t, q, ri) into the document to eliminate their use
+                // on many places inside the doc (MID-2198)
+                DOMUtil.setNamespaceDeclarations(topElement, getNamespacePrefixMapper().getNamespacesDeclaredByDefault());
+                serializeMap((MapXNodeImpl) subnode, topElement);
+            } else if (subnode.isHeterogeneousList()) {
+                DOMUtil.setNamespaceDeclarations(topElement, getNamespacePrefixMapper().getNamespacesDeclaredByDefault());
+                serializeExplicitList((ListXNodeImpl) subnode, topElement);
+            } else {
+                throw new SchemaException(
+                        "Sub-root xnode is not a map nor an explicit list, cannot serialize to XML (it is " + subnode + ")");
+            }
+            addDefaultNamespaceDeclaration(topElement);
+            return topElement;
         }
-        addDefaultNamespaceDeclaration(topElement);
-        return topElement;
     }
 
     /**
@@ -176,7 +179,11 @@ public class DomLexicalWriter {
         if (xsubnode == null) {
             return;
         }
-        if (xsubnode instanceof RootXNodeImpl) {
+        if (xsubnode instanceof IncompleteMarkerXNode) {
+            Element element = createElement(elementName, parentElement);
+            DOMUtil.setAttributeValue(element, DOMUtil.IS_INCOMPLETE_ATTRIBUTE_NAME, "true");
+            parentElement.appendChild(element);
+        } else if (xsubnode instanceof RootXNodeImpl) {
             Element element = createElement(elementName, parentElement);
             appendCommentIfPresent(element, xsubnode);
             parentElement.appendChild(element);
@@ -184,7 +191,7 @@ public class DomLexicalWriter {
         } else if (xsubnode instanceof MapXNodeImpl) {
             Element element = createElement(elementName, parentElement);
             appendCommentIfPresent(element, xsubnode);
-            if (xsubnode.isExplicitTypeDeclaration() && xsubnode.getTypeQName() != null){
+            if (xsubnode.isExplicitTypeDeclaration() && xsubnode.getTypeQName() != null) {
                 DOMUtil.setXsiType(element, setQNamePrefixExplicitIfNeeded(xsubnode.getTypeQName()));
             }
             parentElement.appendChild(element);

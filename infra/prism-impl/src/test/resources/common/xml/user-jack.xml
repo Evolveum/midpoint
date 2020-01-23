@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -37,6 +37,7 @@
         <ext:multi xsi:type="xsd:string">raz</ext:multi>
         <ext:multi xsi:type="xsd:string">dva</ext:multi>
         <ext:multi xsi:type="xsd:string">tri</ext:multi>
+        <ext:multi incomplete="true"/>
 
     <!--    <foo:password xsi:type="ProtectedStringType">
             <clearValue>openS3zam3</clearValue>
@@ -81,6 +82,8 @@
         </accountConstruction>
     </assignment>
 
+    <assignment incomplete="true"/>
+
     <activation>
         <enabled>true</enabled>
         <validFrom>1975-05-30T21:30:00.000Z</validFrom>
@@ -118,6 +121,8 @@
             </q:equal>
         </filter>
     </accountRef>
+
+    <accountRef incomplete="true" />
 
     <special>got it!</special>
 

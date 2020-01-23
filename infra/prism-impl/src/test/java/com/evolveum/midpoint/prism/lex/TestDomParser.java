@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Evolveum and contributors
+ * Copyright (c) 2014-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -69,7 +69,7 @@ public class TestDomParser extends AbstractLexicalProcessorTest {
         // TODO: assert value
 
         ListXNodeImpl xass = getAssertXMapSubnode("root map", rootMap, UserType.F_ASSIGNMENT, ListXNodeImpl.class);
-        assertEquals("assignment size", 2, xass.size());
+        assertEquals("assignment size", 3, xass.size());        // one is IncompleteMarker
         // TODO: asserts
 
         MapXNodeImpl xextension = getAssertXMapSubnode("root map", rootMap, UserType.F_EXTENSION, MapXNodeImpl.class);

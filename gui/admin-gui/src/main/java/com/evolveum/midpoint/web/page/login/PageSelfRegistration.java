@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.page.login;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -65,7 +66,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 
-@PageDescriptor(urls = {@Url(mountUrl = "/registration")}, permitAll = true)
+@PageDescriptor(urls = {@Url(mountUrl = "/registration", matchUrlForSecurity = "/registration")}, permitAll = true, loginPage = true)
 public class PageSelfRegistration extends PageAbstractFlow {
 
     private static final long serialVersionUID = 1L;
@@ -343,14 +344,21 @@ public class PageSelfRegistration extends PageAbstractFlow {
             getSession()
                     .success(createStringResource("PageSelfRegistration.registration.success").getString());
 
-            switch (getSelfRegistrationConfiguration().getAuthenticationMethod()) {
-                case MAIL:
-                    target.add(PageSelfRegistration.this);
-                    break;
-                case SMS:
-                    throw new UnsupportedOperationException();
-                case NONE:
-                    setResponsePage(PageLogin.class);
+            String sequenceName = getSelfRegistrationConfiguration().getAdditionalAuthentication();
+
+            if (SecurityUtils.getSequenceByName(sequenceName, getSelfRegistrationConfiguration().getAuthenticationPolicy()) != null){
+                target.add(PageSelfRegistration.this);
+            } else {
+
+                switch (getSelfRegistrationConfiguration().getAuthenticationMethod()) {
+                    case MAIL:
+                        target.add(PageSelfRegistration.this);
+                        break;
+                    case SMS:
+                        throw new UnsupportedOperationException();
+                    case NONE:
+                        setResponsePage(PageLogin.class);
+                }
             }
             LOGGER.trace("Registration for user {} was successfull.", getUserModel().getObject());
 

@@ -4,14 +4,13 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.prism;
 
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author mederly
@@ -31,8 +30,8 @@ public class ParserStringSource implements ParserSource {
 
     @NotNull
     @Override
-    public InputStream getInputStream() throws IOException {
-        return IOUtils.toInputStream(data, "utf-8");
+    public InputStream getInputStream() {
+        return IOUtils.toInputStream(data, StandardCharsets.UTF_8);
     }
 
     @Override

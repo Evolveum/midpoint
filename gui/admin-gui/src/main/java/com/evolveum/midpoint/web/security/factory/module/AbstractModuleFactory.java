@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.security.factory.module;
 
 import com.evolveum.midpoint.model.api.authentication.AuthModule;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
@@ -47,7 +48,8 @@ public abstract class AbstractModuleFactory {
 
     public abstract AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence,
                                                   ServletRequest request, Map<Class<? extends Object>, Object> sharedObjects,
-                                                  AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy) throws Exception;
+                                                  AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy,
+                                                  AuthenticationChannel authenticationChannel) throws Exception;
 
     protected Integer getOrder(){
         return 0;

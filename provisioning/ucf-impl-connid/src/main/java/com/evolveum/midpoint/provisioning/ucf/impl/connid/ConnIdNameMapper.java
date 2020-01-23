@@ -116,9 +116,8 @@ public class ConnIdNameMapper {
             // fallback, compatibility
             return SPECIAL_ATTRIBUTE_MAP_ICF.get(icfAttrName);
         }
-        QName attrXsdName = new QName(resourceSchemaNamespace, QNameUtil.escapeElementName(icfAttrName),
+        return new QName(resourceSchemaNamespace, QNameUtil.escapeElementName(icfAttrName),
                 MidPointConstants.PREFIX_NS_RI);
-        return attrXsdName;
     }
 
     public QName convertAttributeNameToQName(String icfAttrName, ResourceAttributeDefinition attrDef) {

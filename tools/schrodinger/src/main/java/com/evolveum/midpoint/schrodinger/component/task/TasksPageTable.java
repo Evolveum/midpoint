@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -9,15 +9,17 @@ package com.evolveum.midpoint.schrodinger.component.task;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
 import com.evolveum.midpoint.schrodinger.page.task.EditTaskPage;
+import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 /**
  * Created by matus on 6/25/2018.
  */
-public class TasksPageTable<T> extends TableWithPageRedirect<T> {
-    public TasksPageTable(T parent, SelenideElement parentElement) {
+public class TasksPageTable extends AssignmentHolderObjectListTable<ListTasksPage, EditTaskPage> {
+    public TasksPageTable(ListTasksPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
@@ -31,9 +33,15 @@ public class TasksPageTable<T> extends TableWithPageRedirect<T> {
     }
 
     @Override
-    public TableWithPageRedirect<T> selectCheckboxByName(String name) {
+    public TableWithPageRedirect selectCheckboxByName(String name) {
         //TODO implement
 
         return null;
     }
+
+    @Override
+    public EditTaskPage getObjectDetailsPage(){
+        return new EditTaskPage();
+    }
+
 }

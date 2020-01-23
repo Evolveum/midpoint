@@ -8,11 +8,23 @@
 package com.evolveum.midpoint.web.security.util;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.*;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -31,7 +43,6 @@ import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
@@ -49,7 +60,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.WebApplicationContext;
 
-import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.*;
@@ -77,6 +87,7 @@ public class SecurityUtils {
         map.put("ws/rest", SchemaConstants.CHANNEL_REST_URI);
         map.put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI);
         map.put("resetPassword", SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
+        map.put("registration", SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
         MY_MAP = Collections.unmodifiableMap(map);
     }
 
@@ -215,13 +226,18 @@ public class SecurityUtils {
 
     }
 
-    private static String findChannelByPath(String localePath) {
+    public static String findChannelByPath(String localePath) {
         for (String prefix : MY_MAP.keySet()) {
             if (stripStartingSlashes(localePath).startsWith(prefix)) {
                 return MY_MAP.get(prefix);
             }
         }
         return null;
+    }
+
+    public static String findChannelByRequest(HttpServletRequest httpRequest) {
+        String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
+        return findChannelByPath(localePath);
     }
 
     private static AuthenticationSequenceType getSpecificSequence(HttpServletRequest httpRequest) {
@@ -284,7 +300,8 @@ public class SecurityUtils {
 
     public static List<AuthModule> buildModuleFilters(AuthModuleRegistryImpl authRegistry, AuthenticationSequenceType sequence,
                                                       HttpServletRequest request, AuthenticationModulesType authenticationModulesType,
-                                                          CredentialsPolicyType credentialPolicy, Map<Class<? extends Object>, Object> sharedObjects) {
+                                                      CredentialsPolicyType credentialPolicy, Map<Class<? extends Object>, Object> sharedObjects,
+                                                      AuthenticationChannel authenticationChannel) {
         Validate.notNull(authRegistry);
         Validate.notEmpty(sequence.getModule());
 
@@ -301,7 +318,7 @@ public class SecurityUtils {
                 AbstractAuthenticationModuleType module = getModuleByName(sequenceModule.getName(), authenticationModulesType);
                 AbstractModuleFactory moduleFactory = authRegistry.findModelFactory(module);
                 AuthModule authModule = moduleFactory.createModuleFilter(module, sequence.getChannel().getUrlSuffix(), request,
-                        sharedObjects, authenticationModulesType, credentialPolicy);
+                        sharedObjects, authenticationModulesType, credentialPolicy, authenticationChannel);
                 authModules.add(authModule);
             } catch (Exception e) {
                 LOGGER.error("Couldn't build filter for module moduleFactory", e);
@@ -328,7 +345,7 @@ public class SecurityUtils {
                 module.setName(NameOfModuleType.CLUSTER.getName().toLowerCase() + "-module");
                 try {
                     authModules.add(factory.createModuleFilter(module, urlSuffix, httpRequest,
-                            sharedObjects, authenticationModulesType, credentialPolicy));
+                            sharedObjects, authenticationModulesType, credentialPolicy, null));
                 } catch (Exception e) {
                     LOGGER.error("Couldn't create module for cluster authentication");
                     return null;
@@ -474,5 +491,77 @@ public class SecurityUtils {
                 ((HttpModuleAuthentication) moduleAuth).setProxyUserOid(proxyUserOid);
             }
         }
+    }
+
+    private static Task createAnonymousTask(String operation, TaskManager manager) {
+        Task task = manager.createTaskInstance(operation);
+        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        return task;
+    }
+
+    public static UserType searchUserPrivileged(String username, SecurityContextManager securityContextManager, TaskManager manager,
+                                            ModelService modelService, PrismContext prismContext) {
+        UserType userType = securityContextManager.runPrivileged(new Producer<UserType>() {
+            ObjectQuery query = prismContext.queryFor(UserType.class).item(UserType.F_NAME)
+                    .eqPoly(username).matchingNorm().build();
+
+            @Override
+            public UserType run() {
+
+                Task task = createAnonymousTask("load user", manager);
+                OperationResult result = new OperationResult("search user");
+
+                SearchResultList<PrismObject<UserType>> users;
+                try {
+                    users = modelService.searchObjects(UserType.class, query, null, task, result);
+                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+                        | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                    LoggingUtils.logException(LOGGER, "failed to search user", e);
+                    return null;
+                }
+
+                if ((users == null) || (users.isEmpty())) {
+                    LOGGER.trace("Empty user list in ForgetPassword");
+                    return null;
+                }
+
+                if (users.size() > 1) {
+                    LOGGER.trace("Problem while seeking for user");
+                    return null;
+                }
+
+                UserType user = users.iterator().next().asObjectable();
+                LOGGER.trace("User found for ForgetPassword: {}", user);
+
+                return user;
+            }
+
+        });
+        return userType;
+    }
+
+    public static  SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user, SecurityContextManager securityContextManager, TaskManager manager,
+                                                       ModelInteractionService modelInteractionService) {
+        SecurityPolicyType securityPolicy = securityContextManager.runPrivileged(new Producer<SecurityPolicyType>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public SecurityPolicyType run() {
+
+                Task task = createAnonymousTask("get security policy", manager);
+                OperationResult result = new OperationResult("get security policy");
+
+                try {
+                    return modelInteractionService.getSecurityPolicy(user, task, result);
+                } catch (CommonException e) {
+                    LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
+                    return null;
+                }
+
+            }
+
+        });
+
+        return securityPolicy;
     }
 }

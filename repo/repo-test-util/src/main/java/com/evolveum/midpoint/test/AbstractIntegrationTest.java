@@ -819,19 +819,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     protected void assumeResourceAssigmentPolicy(String resourceOid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
         ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
-        syncSettings.setLegalize(Boolean.valueOf(legalize));
+        syncSettings.setLegalize(legalize);
         applySyncSettings(ResourceType.class, resourceOid, ResourceType.F_PROJECTION, syncSettings);
     }
 
     protected void deleteResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
         ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
-        syncSettings.setLegalize(Boolean.valueOf(legalize));
+        syncSettings.setLegalize(legalize);
         ContainerDelta<ProjectionPolicyType> deleteAssigmentEnforcement = prismContext.deltaFactory().container()
                 .createModificationDelete(ResourceType.F_PROJECTION, ResourceType.class,
                         syncSettings.clone());
 
-        Collection<ItemDelta> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add(deleteAssigmentEnforcement);
 
         OperationResult result = new OperationResult("Aplying sync settings");

@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
+import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
+import com.evolveum.midpoint.schrodinger.component.configuration.InfrastructureTab;
+import com.evolveum.midpoint.schrodinger.component.configuration.NotificationsTab;
 import com.evolveum.midpoint.schrodinger.component.report.AuditRecordTable;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.report.AuditLogViewerPage;
@@ -30,7 +33,6 @@ public class AbstractLoginPageTest extends TestBase {
     private static final File DISABLED_USER = new File("src/test/resources/configuration/objects/users/disabled-user.xml");
     private static final File ENABLED_USER_WITHOUT_AUTHORIZATIONS = new File("src/test/resources/configuration/objects/users/enabled-user-without-authorizations.xml");
 
-
     @BeforeClass
     @Override
     public void beforeClass() throws IOException {
@@ -48,7 +50,6 @@ public class AbstractLoginPageTest extends TestBase {
             unsuccessfulLogin("enabled_user", "bad_password");
         }
         unsuccessfulLogin("enabled_user", "5ecr3t");
-        screenshot("testik");
     }
 
     @Test
@@ -76,10 +77,13 @@ public class AbstractLoginPageTest extends TestBase {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         login.login("administrator", "5ecr3t");
+        auditingSuccesfulLogin("administrator");
+    }
 
+    protected void auditingSuccesfulLogin(String username) {
         AuditLogViewerPage auditLogViewer = basicPage.auditLogViewer();
         AuditRecordTable auditRecordsTable = auditLogViewer.table();
-        auditRecordsTable.checkInitiator(1, "administrator");
+        auditRecordsTable.checkInitiator(1, username);
         auditRecordsTable.checkEventType(1, "Create session");
         auditRecordsTable.checkOutcome(1, "Success");
     }

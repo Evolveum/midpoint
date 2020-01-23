@@ -1,31 +1,24 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism;
 
-import static org.testng.AssertJUnit.assertTrue;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_ADHOC_BASENAME;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_FILE_BASENAME;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_OID;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.assertPropertyValue;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.assertUserJack;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.constructInitializedPrismContext;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
-import java.io.IOException;
-
+import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.util.DOMUtil;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.util.DOMUtil;
+import java.io.IOException;
+
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 public class TestPrismParsingXml extends TestPrismParsing {
 
@@ -65,7 +58,7 @@ public class TestPrismParsingXml extends TestPrismParsing {
         System.out.println(user.debugDump());
         assertNotNull(user);
 
-        assertUserJack(user, true);
+        assertUserJack(user, true, true);
     }
 
     @Test
@@ -87,7 +80,7 @@ public class TestPrismParsingXml extends TestPrismParsing {
         System.out.println(user.debugDump());
         assertNotNull(user);
 
-        assertUserAdhoc(user, true);
+        assertUserAdhoc(user, true, false);
     }
 
     @Test

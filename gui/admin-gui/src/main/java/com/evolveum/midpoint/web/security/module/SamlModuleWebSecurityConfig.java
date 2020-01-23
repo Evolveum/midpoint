@@ -18,6 +18,7 @@ import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHa
 import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.SamlAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -27,6 +28,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.saml.provider.SamlProviderLogoutFilter;
 import org.springframework.security.saml.provider.SamlServerConfiguration;
+import org.springframework.security.saml.provider.provisioning.HostBasedSamlServiceProviderProvisioning;
+import org.springframework.security.saml.provider.provisioning.SamlProviderProvisioning;
+import org.springframework.security.saml.provider.service.ServiceProviderService;
 import org.springframework.security.saml.provider.service.config.SamlServiceProviderServerBeanConfiguration;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
@@ -51,19 +55,10 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
 
     private static final Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfig.class);
 
-    @Autowired
-    private SessionRegistry sessionRegistry;
-
-    @Autowired
-    private MidPointGuiAuthorizationEvaluator accessDecisionManager;
-
-    private SamlServerConfiguration saml2Configuration;
-
     private MidpointSamlProviderServerBeanConfiguration beanConfiguration;
 
     public SamlModuleWebSecurityConfig(C configuration) {
         super(configuration);
-        this.saml2Configuration = configuration.getSamlConfiguration();
         this.beanConfiguration = new MidpointSamlProviderServerBeanConfiguration(configuration);
     }
 
@@ -71,7 +66,6 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
     protected void configure(HttpSecurity http) throws Exception {
         getObjectPostProcessor().postProcess(getBeanConfiguration());
         super.configure(http);
-        String prefix = getPrefix();
 
         http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
         http.csrf().disable();
@@ -107,9 +101,6 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
 
     private class MidpointSamlProviderServerBeanConfiguration extends SamlServiceProviderServerBeanConfiguration {
 
-        @Autowired
-        private UserProfileService userProfileService;
-
 //        @Autowired
 //        private AuditedLogoutHandler auditedLogoutHandler;
 
@@ -120,6 +111,18 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
         public MidpointSamlProviderServerBeanConfiguration(SamlModuleWebSecurityConfiguration configuration) {
             this.configuration = configuration;
             this.saml2Config = configuration.getSamlConfiguration();
+        }
+
+        @Override
+        @Bean(name = "samlServiceProviderProvisioning")
+        public SamlProviderProvisioning<ServiceProviderService> getSamlProvisioning() {
+            return new MidpointHostBasedSamlServiceProviderProvisioning(
+                    samlConfigurationRepository(),
+                    samlTransformer(),
+                    samlValidator(),
+                    samlMetadataCache(),
+                    authenticationRequestEnhancer()
+            );
         }
 
         @Override

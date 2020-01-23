@@ -121,7 +121,6 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -472,17 +471,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return locator;
     }
 
-    private URL buildMidpointHomeLocalizationFolderUrl() {
-        String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
-
-        File file = new File(midpointHome, "localization");
-        try {
-            return file.toURI().toURL();
-        } catch (IOException ex) {
-            throw new SystemException("Couldn't transform localization folder file to url", ex);
-        }
-    }
-
     private void initializeDevelopmentSerializers() {
         JavaSerializer javaSerializer = new JavaSerializer( getApplicationKey() ) {
             @Override
@@ -491,7 +479,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
                 IObjectChecker checker2 = new NotDetachedModelChecker();
                 IObjectChecker checker3 = new ObjectSerializationChecker();
                 return new CheckingObjectOutputStream(out, checker1, checker3);
-//                return new ObjectOutputStream(out);
             }
         };
         getFrameworkSettings().setSerializer( javaSerializer );
@@ -722,7 +709,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
                 if (stream != null) {
                     try {
                         // Only this line is changed to make it to read properties files as UTF-8.
-                        bundle = new PropertyResourceBundle(new InputStreamReader(stream, "UTF-8"));
+                        bundle = new PropertyResourceBundle(new InputStreamReader(stream, StandardCharsets.UTF_8));
                     } finally {
                         IOUtils.closeQuietly(stream);
                     }

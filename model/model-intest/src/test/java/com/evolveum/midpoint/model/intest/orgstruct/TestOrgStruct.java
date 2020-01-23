@@ -63,7 +63,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -1664,11 +1663,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     }
 
 
-    /**
-     *  Now let's test working with assignments when there is an object template that prescribes an org assignment
-     *  based on organizationalUnit property.
-     *
-     */
+    // Now let's test working with assignments when there is an object template that prescribes an org assignment
+    // based on organizationalUnit property.
 
     /**
      * MID-3545

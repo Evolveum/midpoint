@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -37,12 +37,12 @@ public class MidPoint {
     private String baseUrl;
     private String webDriver;
     private String webdriverLocation;
-    private Boolean headless;
+    private boolean headless;
 
     public MidPoint(EnvironmentConfiguration environment) throws IOException {
         Validate.notNull(environment, "Environment configuration must not be null");
 
-        this.environment = environment;
+        MidPoint.environment = environment;
 
         init();
     }
@@ -51,7 +51,6 @@ public class MidPoint {
         fetchProperties();
         environment.baseUrl(baseUrl);
         environment.validate();
-
 
         System.setProperty(webDriver, webdriverLocation);
         System.setProperty("selenide.browser", environment.getDriver().name().toLowerCase());
@@ -90,7 +89,7 @@ public class MidPoint {
             password = schrodingerProperties.getProperty("password");
             baseUrl = schrodingerProperties.getProperty("base_url");
 
-            headless = Boolean.valueOf(schrodingerProperties.getProperty("headlessStart"));
+            headless = Boolean.parseBoolean(schrodingerProperties.getProperty("headlessStart"));
         } catch (IOException e) {
             throw new IOException("An exception was thrown during Schrodinger initialization " + e.getLocalizedMessage());
         }
@@ -104,5 +103,9 @@ public class MidPoint {
     public String getUsername() {
 
         return this.username;
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
     }
 }

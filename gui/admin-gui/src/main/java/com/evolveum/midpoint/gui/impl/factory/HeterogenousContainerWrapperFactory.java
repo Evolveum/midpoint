@@ -85,7 +85,7 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
             Item<?,?> childItem = value.findItem(def.getItemName());
 
             if (childItem == null && def instanceof PrismContainerDefinition) {
-                LOGGER.trace("Skipping craeting wrapper for {}, only property and refernce wrappers are created for heterogenous containers.");
+                LOGGER.trace("Skipping creating wrapper for {}, only property and reference wrappers are created for heterogeneous containers.", def);
                 continue;
             }
 

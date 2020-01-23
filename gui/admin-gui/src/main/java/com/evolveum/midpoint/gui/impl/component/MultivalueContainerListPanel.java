@@ -263,14 +263,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
     }
 
     protected WebMarkupContainer initButtonToolbar(String id) {
-//        return getNewItemButton(id);
-        return new WebMarkupContainer(id);
+        return getNewItemButton(id);
     }
-//
-//    private List<MultiFunctinalButtonDto> loadButtonDescriptions() {
-//        getNewObjectInfluencesList();
-//    }
-
+    
     protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
         return null;
     }
@@ -287,7 +282,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
                     }
 
                     @Override
-                    protected boolean isMainButtonVisible(){
+                    protected boolean isDefaultButtonVisible(){
                         return getNewObjectGenericButtonVisibility();
                     }
 

@@ -15,6 +15,9 @@ import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 
+import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -200,12 +203,14 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
         ItemPath itemPath = toItemPath(path);
 
         // WHEN
-        Object resolved = ExpressionUtil.resolvePathGetValue(itemPath, variables, false, null, null,
-                PrismTestUtil.getPrismContext(), TEST_NAME, null, result);
+        ObjectResolver objectResolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
+        Object resolved = ExpressionUtil.resolvePathGetValue(itemPath, variables, false, null, objectResolver,
+                PrismTestUtil.getPrismContext(), TEST_NAME, new NullTaskImpl(), result);
 
         // THEN
         IntegrationTestTools.display("Resolved", resolved);
 
+        //noinspection unchecked
         return (T) resolved;
     }
 

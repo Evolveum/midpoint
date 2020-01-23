@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2017 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -26,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
- *
  */
 @Component
 public class ProvisioningContextFactory {

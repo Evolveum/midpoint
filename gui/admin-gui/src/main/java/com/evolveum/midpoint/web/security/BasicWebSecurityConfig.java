@@ -15,6 +15,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.MidpointRequestAttributeAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.AuthFilterConfigurer;
@@ -67,6 +68,9 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private AuthModuleRegistryImpl authRegistry;
+
+    @Autowired
+    AuthChannelRegistryImpl authChannelRegistry;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -198,7 +202,7 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        AnonymousAuthenticationFilter anonymousFilter = new MidpointAnonymousAuthenticationFilter(authRegistry, UUID.randomUUID().toString(), "anonymousUser",
+        AnonymousAuthenticationFilter anonymousFilter = new MidpointAnonymousAuthenticationFilter(authRegistry, authChannelRegistry, UUID.randomUUID().toString(), "anonymousUser",
                 AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
 
         http.setSharedObject(AuthenticationTrustResolverImpl.class, new MidpointAuthenticationTrustResolverImpl());

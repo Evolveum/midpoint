@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -20,7 +20,6 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.AccessDecision;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -28,9 +27,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * @author Radovan Semancik
  * Inspired by work of Cédric Champeau (http://melix.github.io/blog/2015/03/sandboxing.html)
  *
+ * @author Radovan Semancik
  */
 public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension {
 
@@ -99,7 +98,7 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
         String contextDescription = context.getContextDescription();
 
         if (!isDynamic(vexp)) {
-            LOGGER.error("Unresolved script variable {} because it is not dynamic, in {}", contextDescription);
+            LOGGER.error("Unresolved script variable {} because it is not dynamic, in {}", variableName, contextDescription);
             return false;
         }
 
@@ -135,7 +134,7 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
             }
         }
 
-        LOGGER.error("Unresolved script variable {} because no declaration for it cannot be found in {}", contextDescription);
+        LOGGER.error("Unresolved script variable {} because no declaration for it cannot be found in {}", variableName, contextDescription);
         return false;
     }
 }

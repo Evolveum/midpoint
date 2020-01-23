@@ -60,8 +60,10 @@ import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -131,6 +133,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private SynchronizationExpressionsEvaluator correlationConfirmationEvaluator;
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private TriggerCreatorGlobalState triggerCreatorGlobalState;
+    @Autowired private TaskManager taskManager;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -1450,11 +1453,34 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public String createRegistrationConfirmationLink(UserType userType) {
+        SecurityPolicyType securityPolicy = resolveSecurityPolicy(userType.asPrismObject());
+        if (securityPolicy != null && securityPolicy.getAuthentication() != null
+                && securityPolicy.getAuthentication().getSequence() != null && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
+            if (securityPolicy.getRegistration() != null && securityPolicy.getRegistration().getSelfRegistration() != null
+            && securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName() != null) {
+                String resetPasswordSequenceName = securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName();
+                String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
+                if (prefix != null) {
+                    return createTokenConfirmationLink(prefix, userType);
+                }
+            }
+        }
         return createTokenConfirmationLink(SchemaConstants.REGISTRATION_CONFIRAMTION_PREFIX, userType);
     }
 
     @Override
     public String createPasswordResetLink(UserType userType) {
+        SecurityPolicyType securityPolicy = resolveSecurityPolicy(userType.asPrismObject());
+        if (securityPolicy != null && securityPolicy.getAuthentication() != null
+                && securityPolicy.getAuthentication().getSequence() != null && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
+            if (securityPolicy.getCredentialsReset() != null && securityPolicy.getCredentialsReset().getAuthenticationSequenceName() != null) {
+                String resetPasswordSequenceName = securityPolicy.getCredentialsReset().getAuthenticationSequenceName();
+                String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
+                if (prefix != null) {
+                    return createTokenConfirmationLink(prefix, userType);
+                }
+            }
+        }
         return createTokenConfirmationLink(SchemaConstants.PASSWORD_RESET_CONFIRMATION_PREFIX, userType);
     }
 
@@ -1473,6 +1499,54 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     private String createTokenConfirmationLink(String prefix, UserType userType) {
         return createBaseConfirmationLink(prefix, userType) + "&" + SchemaConstants.TOKEN + "=" + getNonce(userType);
+    }
+
+    private String createPrefixLinkByAuthSequence(String channel, String nameOfSequence, Collection<AuthenticationSequenceType> sequences){
+                AuthenticationSequenceType sequenceByName = null;
+                AuthenticationSequenceType defaultSequence = null;
+                for (AuthenticationSequenceType sequenceType : sequences) {
+                    if (sequenceType.getName().equals(nameOfSequence)) {
+                        sequenceByName = sequenceType;
+                        break;
+                    } else if (sequenceType.getChannel().getChannelId().equals(channel)
+                            && Boolean.TRUE.equals(sequenceType.getChannel().isDefault())) {
+                        defaultSequence = sequenceType;
+                    }
+                }
+                AuthenticationSequenceType usedSequence = sequenceByName != null ? sequenceByName : defaultSequence;
+                if (usedSequence != null) {
+                    String sequecnceSuffix = usedSequence.getChannel().getUrlSuffix();
+                    String prefix = (sequecnceSuffix.startsWith("/")) ? sequecnceSuffix : ("/" + sequecnceSuffix);
+                    return SchemaConstants.AUTH_MODULE_PREFIX + prefix;
+                }
+        return null;
+    }
+
+    private SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user) {
+        SecurityPolicyType securityPolicy = securityContextManager.runPrivileged(new Producer<SecurityPolicyType>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public SecurityPolicyType run() {
+
+                Task task = taskManager.createTaskInstance("load security policy");
+
+                Task currentTask = getCurrentTask();
+                task.setChannel(currentTask != null ? currentTask.getChannel() : null);
+
+                OperationResult result = new OperationResult("load security policy");
+
+                try {
+                    return modelInteractionService.getSecurityPolicy(user, task, result);
+                } catch (CommonException e) {
+                    LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
+                    return null;
+                }
+
+            }
+
+        });
+        return securityPolicy;
     }
 
     private String getDefaultHostname() {

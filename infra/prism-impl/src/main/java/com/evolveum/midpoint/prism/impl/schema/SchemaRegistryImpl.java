@@ -637,7 +637,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
     private Map<QName, Class<?>> createXsdTypeMap(Package pkg) {
         Map<QName, Class<?>> map = new HashMap<>();
-        for (Class clazz: ClassPathUtil.listClasses(pkg)) {
+        for (Class<?> clazz: ClassPathUtil.listClasses(pkg)) {
             QName typeName = JAXBUtil.getTypeQName(clazz);
             if (typeName != null) {
                 map.put(typeName, clazz);
@@ -1381,28 +1381,6 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         return prismContext.createObject(compileTimeClass);
     }
     //endregion
-
-    //region TODO categorize
-    /**
-     * Returns true if specified element has a definition that matches specified type
-     * in the known schemas.
-     */
-//    @Override
-//    public boolean hasImplicitTypeDefinitionOld(QName elementName, QName typeName) {
-//        elementName = resolveElementNameIfNeeded(elementName, false);
-//        if (elementName == null) {
-//            return false;
-//        }
-//        PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
-//        if (schema == null) {
-//            return false;
-//        }
-//        ItemDefinition itemDefinition = schema.findItemDefinitionByElementName(elementName, ItemDefinition.class);
-//        if (itemDefinition == null) {
-//            return false;
-//        }
-//        return QNameUtil.match(typeName, itemDefinition.getTypeName());
-//    }
 
     /**
      * Answers the question: "If the receiver would get itemName without any other information, will it be able to
