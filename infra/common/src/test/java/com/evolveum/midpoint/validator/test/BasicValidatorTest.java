@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.validator.test;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -35,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -214,7 +214,7 @@ public class BasicValidatorTest {
         validator.setVerbose(false);
         validator.setStopAfterErrors(2);
 
-        validateFile("three-users-schema-violation.xml", null, validator, result);
+        validateFile("three-users-schema-violation.xml", validator, result);
 
         System.out.println(result.debugDump());
         assertFalse(result.isSuccess());
@@ -237,7 +237,7 @@ public class BasicValidatorTest {
     }
 
     private void validateFile(String filename, OperationResult result) throws FileNotFoundException {
-        validateFile(filename,null,result);
+        validateFile(filename,(EventHandler) null,result);
     }
 
     private void validateFile(String filename,EventHandler handler, OperationResult result) throws FileNotFoundException {
@@ -246,10 +246,10 @@ public class BasicValidatorTest {
             validator.setHandler(handler);
         }
         validator.setVerbose(false);
-        validateFile(filename, handler, validator, result);
+        validateFile(filename, validator, result);
     }
 
-    private void validateFile(String filename,EventHandler handler, LegacyValidator validator, OperationResult result) throws FileNotFoundException {
+    private void validateFile(String filename, LegacyValidator validator, OperationResult result) throws FileNotFoundException {
 
         String filepath = BASE_PATH + filename;
 
