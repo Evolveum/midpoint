@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -48,9 +48,9 @@ public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<S
     public static final String HANDLER_URI = SchemaConstants.NS_PROVISIONING_TASK + "/propagation/handler-3";
 
     // WARNING! This task handler is efficiently singleton!
-     // It is a spring bean and it is supposed to handle all search task instances
-     // Therefore it must not have task-specific fields. It can only contain fields specific to
-     // all tasks of a specified type
+    // It is a spring bean and it is supposed to handle all search task instances
+    // Therefore it must not have task-specific fields. It can only contain fields specific to
+    // all tasks of a specified type
 
     @Autowired private TaskManager taskManager;
     @Autowired private ProvisioningService provisioningService;

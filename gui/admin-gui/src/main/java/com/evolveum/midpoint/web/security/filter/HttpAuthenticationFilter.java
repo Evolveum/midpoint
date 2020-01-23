@@ -26,6 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
@@ -54,8 +55,7 @@ public abstract class HttpAuthenticationFilter extends BasicAuthenticationFilter
     protected String[] extractAndDecodeHeader(String header, HttpServletRequest request, int startIndex)
             throws IOException {
 
-//        int startIndex = NameOfModuleType.HTTP_BASIC.getName().length()+1;
-        byte[] base64Token = header.substring(startIndex).getBytes("UTF-8");
+        byte[] base64Token = header.substring(startIndex).getBytes(StandardCharsets.UTF_8);
         byte[] decoded;
         try {
             decoded = Base64.getDecoder().decode(base64Token);

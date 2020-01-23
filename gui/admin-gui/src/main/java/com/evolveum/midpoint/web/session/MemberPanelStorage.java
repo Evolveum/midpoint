@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.session;
 
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -25,7 +26,7 @@ public class MemberPanelStorage implements PageStorage{
     private Search search;
     private SearchBoxScopeType orgSearchScope;
     private Boolean isIndirect = false;
-    private QName relation = null;
+    private QName relation = PrismConstants.Q_ANY;
     private ObjectTypes type = null;
 
     public SearchBoxScopeType getOrgSearchScope() {

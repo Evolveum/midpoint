@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -10,7 +10,6 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.Iterator;
 import java.util.List;
@@ -37,7 +36,6 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * @author semancik
- *
  */
 public class PrismContainerValueAsserter<C extends Containerable, RA> extends PrismValueAsserter<PrismContainerValue<C>, RA> {
 

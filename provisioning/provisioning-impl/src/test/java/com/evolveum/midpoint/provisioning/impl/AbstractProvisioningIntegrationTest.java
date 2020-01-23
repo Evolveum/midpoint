@@ -4,10 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
-/**
- *
- */
 package com.evolveum.midpoint.provisioning.impl;
 
 import static org.testng.AssertJUnit.assertEquals;

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,21 +6,12 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.ArrayUtils;
-import org.bouncycastle.util.Arrays;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -28,7 +19,6 @@ import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
- *
  */
 public class ShadowAssociationAsserter<R> extends AbstractAsserter<R> {
 

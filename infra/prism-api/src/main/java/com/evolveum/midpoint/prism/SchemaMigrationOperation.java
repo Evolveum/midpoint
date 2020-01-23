@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -10,7 +10,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
- *
  */
 public enum SchemaMigrationOperation {
 

@@ -25,7 +25,7 @@ public class SelfRegistrationChannelFactory extends AbstractChannelFactory {
 
     @Override
     public AuthenticationChannel createAuthChannel(AuthenticationSequenceChannelType channel) throws Exception {
-        return new SelfRegistrationAuthenticationChannel();
+        return new SelfRegistrationAuthenticationChannel(channel);
     }
 
     @Override

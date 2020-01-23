@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -41,7 +41,6 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportFieldDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
-import com.evolveum.midpoint.web.util.Base64Model;
 
 public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 

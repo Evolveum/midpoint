@@ -6,19 +6,21 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.component;
 
-import com.evolveum.midpoint.gui.api.Validatable;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -40,7 +42,7 @@ import java.util.*;
 /**
  * Created by honchar
  */
-public class PolyStringEditorPanel extends BasePanel<PolyString> implements Validatable {
+public class PolyStringEditorPanel extends InputPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_LOCALIZED_VALUE_CONTAINER = "localizedValueContainer";
@@ -66,9 +68,15 @@ public class PolyStringEditorPanel extends BasePanel<PolyString> implements Vali
 
     private boolean showFullData = false;
     private final StringBuilder currentlySelectedLang = new StringBuilder();
+    IModel<PolyString> model;
+    private LookupTableType predefinedValuesLookupTable;
+    private boolean hasValueEnumerationRef;
 
-    public PolyStringEditorPanel(String id, IModel<PolyString> model){
-        super(id, model);
+    public PolyStringEditorPanel(String id, IModel<PolyString> model, LookupTableType predefinedValuesLookupTable, boolean hasValueEnumerationRef){
+        super(id);
+        this.model = model;
+        this.predefinedValuesLookupTable = predefinedValuesLookupTable;
+        this.hasValueEnumerationRef = hasValueEnumerationRef;
     }
 
     @Override
@@ -88,7 +96,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString> implements Vali
         localizedValueContainer.add(new VisibleBehaviour(() -> showFullData || StringUtils.isNotEmpty(localizedValue)));
         add(localizedValueContainer);
 
-        Label localizedValueLabel = new Label(ID_LOCALIZED_VALUE_LABEL, createStringResource("PolyStringEditorPanel.localizedValue"));
+        Label localizedValueLabel = new Label(ID_LOCALIZED_VALUE_LABEL, ((PageBase)getPage()).createStringResource("PolyStringEditorPanel.localizedValue"));
         localizedValueLabel.setOutputMarkupId(true);
         localizedValueLabel.add(new VisibleBehaviour(() -> showFullData));
         localizedValueContainer.add(localizedValueLabel);
@@ -123,7 +131,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString> implements Vali
         originValueContainer.add(new VisibleBehaviour(() -> showFullData || StringUtils.isEmpty(localizedValue)));
         add(originValueContainer);
 
-        Label origValueLabel = new Label(ID_ORIG_VALUE_LABEL, createStringResource("PolyStringEditorPanel.origValue"));
+        Label origValueLabel = new Label(ID_ORIG_VALUE_LABEL, ((PageBase) getPage()).createStringResource("PolyStringEditorPanel.origValue"));
         origValueLabel.setOutputMarkupId(true);
         origValueLabel.add(new VisibleBehaviour(() -> showFullData));
         originValueContainer.add(origValueLabel);
@@ -133,8 +141,8 @@ public class PolyStringEditorPanel extends BasePanel<PolyString> implements Vali
         origValueWithButton.setOutputMarkupId(true);
         originValueContainer.add(origValueWithButton);
 
-        //todo better to create PolyStringWrapper ? how to create new value?
-        TextPanel<String> origValuePanel = new TextPanel<String>(ID_ORIG_VALUE, new IModel<String>() {
+        InputPanel origValuePanel;
+        IModel<String> origValueModel = new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -158,7 +166,21 @@ public class PolyStringEditorPanel extends BasePanel<PolyString> implements Vali
             public void detach() {
 
             }
-        }, String.class, false);
+        };
+        if (predefinedValuesLookupTable == null) {
+            origValuePanel = new TextPanel<String>(ID_ORIG_VALUE, origValueModel, String.class, false);
+        } else {
+            origValuePanel = new AutoCompleteTextPanel<String>(ID_ORIG_VALUE, origValueModel, String.class,
+                    hasValueEnumerationRef, predefinedValuesLookupTable) {
+
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public Iterator<String> getIterator(String input) {
+                    return getPredefinedValuesIterator(input).iterator();
+                }
+            };
+        }
         origValuePanel.setOutputMarkupId(true);
         origValuePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         origValueWithButton.add(origValuePanel);
@@ -328,7 +350,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString> implements Vali
     }
 
     private String getLocalizedPolyStringValue(){
-        return getPageBase().getLocalizationService().translate(getModelObject(), WebComponentUtil.getCurrentLocale(), false);
+        return ((PageBase) getPage()).getLocalizationService().translate(getModelObject(), WebComponentUtil.getCurrentLocale(), false);
     }
 
     private IModel<List<String>> getLanguageChoicesModel(){
@@ -405,8 +427,8 @@ public class PolyStringEditorPanel extends BasePanel<PolyString> implements Vali
         });
     }
 
-    private TextPanel<PolyString> getOrigValuePanel(){
-        return (TextPanel<PolyString>) get(getPageBase().createComponentPath(ID_ORIGIN_VALUE_CONTAINER, ID_ORIG_VALUE_WITH_BUTTON, ID_ORIG_VALUE));
+    private InputPanel getOrigValuePanel(){
+        return (InputPanel) get(ID_ORIGIN_VALUE_CONTAINER).get(ID_ORIG_VALUE_WITH_BUTTON).get(ID_ORIG_VALUE);
     }
 
     //todo refactor with PolyStringWrapper
@@ -465,4 +487,21 @@ public class PolyStringEditorPanel extends BasePanel<PolyString> implements Vali
         return getOrigValuePanel().getBaseFormComponent();
     }
 
+    @Override
+    public FormComponent<PolyString> getBaseFormComponent() {
+        return getOrigValuePanel().getBaseFormComponent();
+    }
+
+    private IModel<PolyString> getModel(){
+        return model;
+    }
+
+    private PolyString getModelObject(){
+        return model == null ? null : model.getObject();
+    }
+
+    private List<String> getPredefinedValuesIterator(String input) {
+        return WebComponentUtil.prepareAutoCompleteList(predefinedValuesLookupTable, input,
+                ((PageBase)getPage()).getLocalizationService());
+    }
 }

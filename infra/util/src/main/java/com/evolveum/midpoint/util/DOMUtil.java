@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -245,7 +246,7 @@ public class DOMUtil {
     public static Document parseDocument(String doc) {
         try {
             DocumentBuilder loader = createDocumentBuilder();
-            return loader.parse(IOUtils.toInputStream(doc, "utf-8"));
+            return loader.parse(IOUtils.toInputStream(doc, StandardCharsets.UTF_8));
         } catch (SAXException | IOException ex) {
             throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
         }

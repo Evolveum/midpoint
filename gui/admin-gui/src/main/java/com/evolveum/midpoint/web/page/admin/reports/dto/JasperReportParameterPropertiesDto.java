@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -94,10 +94,7 @@ public class JasperReportParameterPropertiesDto implements Serializable{
             return false;
         }
         String isMandatory = propertiesMap.getProperty(MANDATORY_KEY);
-        if (isMandatory != null && Boolean.valueOf(isMandatory)) {
-            return true;
-        }
-        return false;
+        return Boolean.parseBoolean(isMandatory);
     }
 
     public void setMandatory(boolean isMandatory) {

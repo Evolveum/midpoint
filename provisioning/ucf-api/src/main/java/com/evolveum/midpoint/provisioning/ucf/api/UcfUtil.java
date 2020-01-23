@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2017 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -30,7 +30,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
- *
  */
 public class UcfUtil {
 

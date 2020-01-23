@@ -434,7 +434,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="keys" type="tns:AuthenticationModuleSaml2KeyType" minOccurs="1" maxOccurs="1">
+            <xsd:element name="keys" type="tns:AuthenticationModuleSaml2KeyType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Key used by service provider.
@@ -599,7 +599,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="active" type="tns:AuthenticationModuleSaml2SimpleKeyType" minOccurs="1" maxOccurs="1">
+            <xsd:element name="active" type="tns:AuthenticationModuleSaml2SimpleKeyType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Active key.

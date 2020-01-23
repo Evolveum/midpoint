@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,20 +6,13 @@
  */
 package com.evolveum.midpoint.test.asserter.prism;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
- *
  */
 public abstract class PrismItemAsserter<I extends Item, RA> extends AbstractAsserter<RA> {
 

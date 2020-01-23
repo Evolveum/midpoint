@@ -4,14 +4,12 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.util;
 
-import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.wicket.model.IModel;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author lazyman
@@ -31,25 +29,18 @@ public class Base64Model implements IModel<String> {
             return null;
         }
 
-        try {
-            return new String(Base64.decodeBase64(obj), "utf-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new SystemException(e);
-        }
+        return new String(Base64.decodeBase64(obj), StandardCharsets.UTF_8);
     }
 
     @Override
     public void setObject(String object) {
         if (object == null) {
             model.setObject(null);
+            return;
         }
 
-        try {
-            byte[] val = Base64.encodeBase64(object.getBytes("utf-8"));
-            model.setObject(val);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        byte[] val = Base64.encodeBase64(object.getBytes(StandardCharsets.UTF_8));
+        model.setObject(val);
     }
 
     @Override

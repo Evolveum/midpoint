@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -17,7 +17,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author semancik
- *
  */
 public class ProfilingModelInspectorManager implements DiagnosticContextManager, DebugDumpable {
 

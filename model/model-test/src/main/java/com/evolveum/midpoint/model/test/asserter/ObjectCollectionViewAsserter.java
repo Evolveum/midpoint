@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -12,7 +12,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
-import com.evolveum.midpoint.test.asserter.ArchetypePolicyAsserter;
 import com.evolveum.midpoint.test.asserter.DisplayTypeAsserter;
 
 /**
