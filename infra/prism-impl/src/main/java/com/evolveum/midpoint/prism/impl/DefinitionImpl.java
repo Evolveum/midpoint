@@ -7,11 +7,7 @@
 
 package com.evolveum.midpoint.prism.impl;
 
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.ItemProcessing;
-import com.evolveum.midpoint.prism.MutableDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.SchemaMigration;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -83,13 +79,17 @@ public abstract class DefinitionImpl implements MutableDefinition {
      */
     protected boolean emphasized = false;
 
+    /**
+     * True if this definition cannot be changed.
+     */
+    protected boolean immutable;
+
     protected transient PrismContext prismContext;
 
     DefinitionImpl(@NotNull QName typeName, @NotNull PrismContext prismContext) {
         this.typeName = typeName;
         this.prismContext = prismContext;
     }
-
 
     @Override
     @NotNull
@@ -98,6 +98,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
     }
 
     public void setTypeName(@NotNull QName typeName) {
+        checkMutable();
         this.typeName = typeName;
     }
 
@@ -113,6 +114,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
 
     @Override
     public void setProcessing(ItemProcessing processing) {
+        checkMutable();
         this.processing = processing;
     }
 
@@ -122,6 +124,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
     }
 
     public void setAbstract(boolean isAbstract) {
+        checkMutable();
         this.isAbstract = isAbstract;
     }
 
@@ -132,6 +135,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
 
     @Override
     public void setDeprecated(boolean deprecated) {
+        checkMutable();
         this.deprecated = deprecated;
     }
 
@@ -141,6 +145,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
     }
 
     public void setDeprecatedSince(String deprecatedSince) {
+        checkMutable();
         this.deprecatedSince = deprecatedSince;
     }
 
@@ -151,6 +156,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
 
     @Override
     public void setExperimental(boolean experimental) {
+        checkMutable();
         this.experimental = experimental;
     }
 
@@ -160,6 +166,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
     }
 
     public void setPlannedRemoval(String plannedRemoval) {
+        checkMutable();
         this.plannedRemoval = plannedRemoval;
     }
 
@@ -169,6 +176,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
     }
 
     public void setElaborate(boolean elaborate) {
+        checkMutable();
         this.elaborate = elaborate;
     }
 
@@ -183,6 +191,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
 
     @Override
     public void setEmphasized(boolean emphasized) {
+        checkMutable();
         this.emphasized = emphasized;
     }
 
@@ -193,6 +202,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
 
     @Override
     public void setDisplayName(String displayName) {
+        checkMutable();
         this.displayName = displayName;
     }
 
@@ -203,6 +213,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
 
     @Override
     public void setDisplayOrder(Integer displayOrder) {
+        checkMutable();
         this.displayOrder = displayOrder;
     }
 
@@ -213,6 +224,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
 
     @Override
     public void setHelp(String help) {
+        checkMutable();
         this.help = help;
     }
 
@@ -222,6 +234,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
     }
 
     public void setDocumentation(String documentation) {
+        checkMutable();
         this.documentation = documentation;
     }
 
@@ -244,6 +257,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
     }
 
     public void setRuntimeSchema(boolean isRuntimeSchema) {
+        checkMutable();
         this.isRuntimeSchema = isRuntimeSchema;
     }
 
@@ -286,6 +300,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
     }
 
     public void addSchemaMigration(SchemaMigration schemaMigration) {
+        checkMutable();
         if (schemaMigrations == null) {
             schemaMigrations = new ArrayList<>();
         }
@@ -344,7 +359,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
 
     @Override
     public String toString() {
-        return getDebugDumpClassName() + " ("+PrettyPrinter.prettyPrint(getTypeName())+")";
+        return getDebugDumpClassName() + getMutabilityFlag() + " ("+PrettyPrinter.prettyPrint(getTypeName())+")";
     }
 
     @Override
@@ -375,8 +390,41 @@ public abstract class DefinitionImpl implements MutableDefinition {
     @Override
     public abstract Definition clone();
 
-//    @Override
-//    public void accept(Visitor visitor) {
-//        visitor.visit(this);
-//    }
+    protected void checkMutable() {
+        if (immutable) {
+            throw new IllegalStateException("Definition couldn't be changed because it is immutable: " + this);
+        }
+    }
+
+    protected void checkMutableOnExposing() {
+        if (immutable) {
+            throw new IllegalStateException("Definition couldn't be exposed as mutable because it is immutable: " + this);
+        }
+    }
+
+    @Override
+    public boolean isImmutable() {
+        return immutable;
+    }
+
+    @Override
+    public void freeze() {
+        immutable = true;
+    }
+
+    @Override
+    public void accept(Visitor<Definition> visitor) {
+        accept(visitor, new SmartVisitationImpl<>());
+    }
+
+    @Override
+    public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
+        if (visitation.alreadyVisited(this)) {
+            return false;
+        } else {
+            visitation.registerVisit(this);
+            visitor.visit(this);
+            return true;
+        }
+    }
 }

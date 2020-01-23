@@ -38,25 +38,24 @@ import java.util.*;
  */
 public class PrismSchemaImpl implements MutablePrismSchema {
 
-    //private static final long serialVersionUID = 5068618465625931984L;
-
     private static final Trace LOGGER = TraceManager.getTrace(PrismSchema.class);
 
     @NotNull protected final Collection<Definition> definitions = new ArrayList<>();
+
+    // These maps contain the same objects as are in definitions collection.
+
     @NotNull private final Map<QName, ItemDefinition<?>> itemDefinitionMap = new HashMap<>();            // key is the item name (qualified or unqualified)
     @NotNull private final MultiValuedMap<QName, ItemDefinition<?>> itemDefinitionByTypeMap = new ArrayListValuedHashMap<>();        // key is the type name (always qualified)
     @NotNull private final Map<QName, TypeDefinition> typeDefinitionMap = new HashMap<>();                // key is the type name (always qualified)
-    protected String namespace;            // may be null if not properly initialized
+    @NotNull protected final String namespace;
     protected PrismContext prismContext;
+
+    private boolean immutable;
 
     // Item definitions that couldn't be created when parsing the schema because of unresolvable CTD.
     // (Caused by the fact that the type resides in another schema.)
     // These definitions are to be resolved after parsing the set of schemas.
     @NotNull private final List<DefinitionSupplier> delayedItemDefinitions = new ArrayList<>();
-
-    protected PrismSchemaImpl(PrismContext prismContext) {
-        this.prismContext = prismContext;
-    }
 
     public PrismSchemaImpl(@NotNull String namespace, PrismContext prismContext) {
         if (StringUtils.isEmpty(namespace)) {
@@ -67,14 +66,10 @@ public class PrismSchemaImpl implements MutablePrismSchema {
     }
 
     //region Trivia
+    @NotNull
     @Override
     public String getNamespace() {
         return namespace;
-    }
-
-    @Override
-    public void setNamespace(@NotNull String namespace) {
-        this.namespace = namespace;
     }
 
     @NotNull
@@ -97,6 +92,7 @@ public class PrismSchemaImpl implements MutablePrismSchema {
     }
 
     public void addDelayedItemDefinition(DefinitionSupplier supplier) {
+        checkMutable();
         delayedItemDefinitions.add(supplier);
     }
 
@@ -112,6 +108,7 @@ public class PrismSchemaImpl implements MutablePrismSchema {
 
     @Override
     public void add(@NotNull Definition def) {
+        checkMutable();
 
         definitions.add(def);
 
@@ -152,24 +149,22 @@ public class PrismSchemaImpl implements MutablePrismSchema {
     // TODO: cleanup this chaos
     // used for report, connector, resource schemas
     public static PrismSchema parse(Element element, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
-        return parse(element, ((PrismContextImpl) prismContext).getEntityResolver(), new PrismSchemaImpl(prismContext), isRuntime, shortDescription,
+        PrismSchemaImpl schema = new PrismSchemaImpl(DOMUtil.getSchemaTargetNamespace(element), prismContext);
+        return parse(element, ((PrismContextImpl) prismContext).getEntityResolver(), schema, isRuntime, shortDescription,
                 false, prismContext);
     }
 
     // used for parsing prism schemas; only in exceptional cases
     public static PrismSchema parse(Element element, EntityResolver resolver, boolean isRuntime, String shortDescription,
             boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
-        return parse(element, resolver, new PrismSchemaImpl(prismContext), isRuntime, shortDescription, allowDelayedItemDefinitions, prismContext);
+        PrismSchemaImpl schema = new PrismSchemaImpl(DOMUtil.getSchemaTargetNamespace(element), prismContext);
+        return parse(element, resolver, schema, isRuntime, shortDescription, allowDelayedItemDefinitions, prismContext);
     }
 
     // main entry point for parsing standard prism schemas
-    public static void parseSchemas(Element wrapperElement, XmlEntityResolver resolver,
+    static void parseSchemas(Element wrapperElement, XmlEntityResolver resolver,
             List<SchemaDescription> schemaDescriptions,
             boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
-
-        for (SchemaDescription schemaDescription : schemaDescriptions) {
-            setSchemaNamespace((PrismSchemaImpl) schemaDescription.getSchema(), schemaDescription.getDomElement());
-        }
         DomToSchemaProcessor processor = new DomToSchemaProcessor(resolver, prismContext);
         processor.parseSchemas(schemaDescriptions, wrapperElement, allowDelayedItemDefinitions, "multiple schemas");
     }
@@ -177,6 +172,7 @@ public class PrismSchemaImpl implements MutablePrismSchema {
     // used for connector and resource schemas
     @Override
     public void parseThis(Element element, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
+        checkMutable();
         parse(element, ((PrismContextImpl) prismContext).getEntityResolver(), this, isRuntime, shortDescription, false, prismContext);
     }
 
@@ -185,19 +181,9 @@ public class PrismSchemaImpl implements MutablePrismSchema {
         if (element == null) {
             throw new IllegalArgumentException("Schema element must not be null in "+shortDescription);
         }
-        setSchemaNamespace(schema, element);
-
         DomToSchemaProcessor processor = new DomToSchemaProcessor(resolver, prismContext);
         processor.parseSchema(schema, element, isRuntime, allowDelayedItemDefinitions, shortDescription);
         return schema;
-    }
-
-    private static void setSchemaNamespace(PrismSchemaImpl prismSchema, Element xsdSchema) throws SchemaException {
-        String targetNamespace = DOMUtil.getAttribute(xsdSchema, DOMUtil.XSD_ATTR_TARGET_NAMESPACE);
-        if (StringUtils.isEmpty(targetNamespace)) {
-            throw new SchemaException("Schema does not have targetNamespace specification");
-        }
-        prismSchema.setNamespace(targetNamespace);
     }
 
     @NotNull
@@ -224,7 +210,7 @@ public class PrismSchemaImpl implements MutablePrismSchema {
         QName typeName = new QName(getNamespace(), localTypeName);
         QName name = new QName(getNamespace(), toElementName(localTypeName));
         ComplexTypeDefinition cTypeDef = new ComplexTypeDefinitionImpl(typeName, prismContext);
-        PrismContainerDefinitionImpl def = new PrismContainerDefinitionImpl(name, cTypeDef, prismContext);
+        PrismContainerDefinitionImpl<?> def = new PrismContainerDefinitionImpl<>(name, cTypeDef, prismContext);
         add(cTypeDef);
         add(def);
         return def;
@@ -239,7 +225,7 @@ public class PrismSchemaImpl implements MutablePrismSchema {
             cTypeDef = new ComplexTypeDefinitionImpl(typeName, prismContext);
             add(cTypeDef);
         }
-        PrismContainerDefinitionImpl def = new PrismContainerDefinitionImpl(name, cTypeDef, prismContext);
+        PrismContainerDefinitionImpl<?> def = new PrismContainerDefinitionImpl<>(name, cTypeDef, prismContext);
         add(def);
         return def;
     }
@@ -298,7 +284,7 @@ public class PrismSchemaImpl implements MutablePrismSchema {
      */
     @Override
     public PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName) {
-        PrismPropertyDefinition def = new PrismPropertyDefinitionImpl(name, typeName, prismContext);
+        PrismPropertyDefinition<?> def = new PrismPropertyDefinitionImpl<>(name, typeName, prismContext);
         add(def);
         return def;
     }
@@ -310,17 +296,13 @@ public class PrismSchemaImpl implements MutablePrismSchema {
         String elementName = StringUtils.uncapitalize(localTypeName);
         if (elementName.endsWith("Type")) {
             return elementName.substring(0, elementName.length() - 4);
+        } else {
+            return elementName;
         }
-        return elementName;
     }
     //endregion
 
     //region Pretty printing
-    @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
     @Override
     public String debugDump(int indent) {
         IdentityHashMap<Definition, Object> seen = new IdentityHashMap<>();
@@ -420,7 +402,7 @@ public class PrismSchemaImpl implements MutablePrismSchema {
         CollectionUtils.addIgnoreNull(matching, itemDefinitionMap.get(elementName));
         if (QNameUtil.hasNamespace(elementName)) {
             CollectionUtils.addIgnoreNull(matching, itemDefinitionMap.get(QNameUtil.unqualify(elementName)));
-        } else if (namespace != null) {
+        } else {
             CollectionUtils.addIgnoreNull(matching, itemDefinitionMap.get(new QName(namespace, elementName.getLocalPart())));
         }
         List<ID> list = new ArrayList<>();
@@ -459,7 +441,7 @@ public class PrismSchemaImpl implements MutablePrismSchema {
     public <TD extends TypeDefinition> Collection<TD> findTypeDefinitionsByType(@NotNull QName typeName, @NotNull Class<TD> definitionClass) {
         List<TD> rv = new ArrayList<>();
         addMatchingTypeDefinitions(rv, typeDefinitionMap.get(typeName), definitionClass);
-        if (QNameUtil.isUnqualified(typeName) && namespace != null) {
+        if (QNameUtil.isUnqualified(typeName)) {
             addMatchingTypeDefinitions(rv, typeDefinitionMap.get(new QName(namespace, typeName.getLocalPart())), definitionClass);
         }
         return rv;
@@ -473,6 +455,7 @@ public class PrismSchemaImpl implements MutablePrismSchema {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Nullable
     @Override
     public <TD extends TypeDefinition> TD findTypeDefinitionByCompileTimeClass(@NotNull Class<?> compileTimeClass, @NotNull Class<TD> definitionClass) {
@@ -486,4 +469,16 @@ public class PrismSchemaImpl implements MutablePrismSchema {
     }
 
     //endregion
+
+    private void checkMutable() {
+        if (immutable) {
+            throw new IllegalStateException("Couldn't modify immutable schema " + this);
+        }
+    }
+
+    @Override
+    public void freeze() {
+        definitions.forEach(Freezable::freeze);
+        immutable = true;
+    }
 }

@@ -40,7 +40,6 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
     private static final Map<String, String> GLOBAL_NAMESPACE_PREFIX_MAP = new HashMap<>();
     private Map<String, String> localNamespacePrefixMap = new HashMap<>();
     private String defaultNamespace = null;
-    private boolean alwaysExplicit = false;
     private final Set<String> prefixesDeclaredByDefault = new HashSet<>();
 
     public String getDefaultNamespace() {
@@ -49,16 +48,6 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 
     public synchronized void setDefaultNamespace(String defaultNamespace) {
         this.defaultNamespace = defaultNamespace;
-    }
-
-    @Override
-    public boolean isAlwaysExplicit() {
-        return alwaysExplicit;
-    }
-
-    @Override
-    public void setAlwaysExplicit(boolean alwaysExplicit) {
-        this.alwaysExplicit = alwaysExplicit;
     }
 
     @Override
@@ -97,18 +86,15 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 
     @Override
     public String getPrefix(String namespace) {
-        if (defaultNamespace != null && defaultNamespace.equals(namespace) && !alwaysExplicit) {
+        if (defaultNamespace != null && defaultNamespace.equals(namespace)) {
             return "";
         }
         return getPrefixExplicit(namespace);
     }
 
-    public synchronized String getPrefixExplicit(String namespace) {
+    private synchronized String getPrefixExplicit(String namespace) {
         String prefix = localNamespacePrefixMap.get(namespace);
-        if (prefix == null) {
-            return getPreferredPrefix(namespace);
-        }
-        return prefix;
+        return prefix != null ? prefix : getPreferredPrefix(namespace);
     }
 
     @Override
@@ -133,16 +119,14 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 
     @Override
     public String getPreferredPrefix(String namespaceUri, String suggestion, boolean requirePrefix) {
-        //for JAXB we are mapping midpoint common namespace to default namespace
-        if (defaultNamespace != null && defaultNamespace.equals(namespaceUri) && !alwaysExplicit) {
+        if (defaultNamespace != null && defaultNamespace.equals(namespaceUri)) {
             return "";
+        } else {
+            return getPreferredPrefix(namespaceUri, suggestion);
         }
-        return getPreferredPrefix(namespaceUri, suggestion);
     }
 
     /**
-     *
-     * @param namespace
      * @return preferred prefix for the namespace, if no prefix is assigned yet,
      *         then it will assign a prefix and return it.
      */
@@ -151,14 +135,12 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
     }
 
     /**
-     * @param namespace
-     * @param hintPrefix
      * @return preferred prefix for the namespace, if no prefix is assigned yet,
      *         then it assign hint prefix (if it is not assigned yet) or assign
      *         a new prefix and return it (if hint prefix is already assigned to
      *         other namespace).
      */
-    public static synchronized String getPreferredPrefix(String namespace, String hintPrefix) {
+    private static synchronized String getPreferredPrefix(String namespace, String hintPrefix) {
         String prefix = GLOBAL_NAMESPACE_PREFIX_MAP.get(namespace);
 
         if (StringUtils.isEmpty(prefix)) {
@@ -180,12 +162,12 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public synchronized GlobalDynamicNamespacePrefixMapper clone() {
         GlobalDynamicNamespacePrefixMapper clone = new GlobalDynamicNamespacePrefixMapper();
         clone.defaultNamespace = this.defaultNamespace;
         clone.localNamespacePrefixMap = clonePrefixMap(this.localNamespacePrefixMap);
-        clone.alwaysExplicit = this.alwaysExplicit;
         return clone;
     }
 

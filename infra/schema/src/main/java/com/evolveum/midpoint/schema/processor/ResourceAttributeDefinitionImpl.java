@@ -76,6 +76,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 
     @Override
     public void setReturnedByDefault(Boolean returnedByDefault) {
+        checkMutable();
         this.returnedByDefault = returnedByDefault;
     }
 
@@ -137,6 +138,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 
     @Override
     public void setNativeAttributeName(String nativeAttributeName) {
+        checkMutable();
         this.nativeAttributeName = nativeAttributeName;
     }
 
@@ -153,6 +155,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 
     @Override
     public void setFrameworkAttributeName(String frameworkAttributeName) {
+        checkMutable();
         this.frameworkAttributeName = frameworkAttributeName;
     }
 
@@ -210,6 +213,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 
     @Override
     public MutableResourceAttributeDefinition<T> toMutable() {
+        checkMutableOnExposing();
         return this;
     }
 }

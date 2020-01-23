@@ -1292,9 +1292,9 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
         }
     }
 
-    protected void deepCloneDefinition(boolean ultraDeep, PrismContainerDefinition<C> clonedContainerDef, Consumer<ItemDefinition> postCloneAction) {
+    void deepCloneDefinition(boolean ultraDeep, PrismContainerDefinition<C> clonedContainerDef, Consumer<ItemDefinition> postCloneAction) {
         // special treatment of CTD (we must not simply overwrite it with clonedPCD.CTD!)
-        PrismContainerable parent = getParent();
+        PrismContainerable<?> parent = getParent();
         if (parent != null && complexTypeDefinition != null) {
             if (complexTypeDefinition == parent.getComplexTypeDefinition()) {
                 replaceComplexTypeDefinition(clonedContainerDef.getComplexTypeDefinition());
@@ -1310,15 +1310,17 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     private <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>> void deepCloneDefinitionItem(I item, boolean ultraDeep, PrismContainerDefinition<C> clonedContainerDef, Consumer<ItemDefinition> postCloneAction) {
         PrismContainerDefinition<C> oldContainerDef = getDefinition();
         ItemName itemName = item.getElementName();
-        ID oldItemDefFromContainer = oldContainerDef.findItemDefinition(itemName);
+        ID oldItemDefFromContainer = oldContainerDef.findLocalItemDefinition(itemName);
         ID oldItemDef = item.getDefinition();
         ID clonedItemDef;
         if (oldItemDefFromContainer == oldItemDef) {
             clonedItemDef = clonedContainerDef.findItemDefinition(itemName);
         } else {
+            //noinspection unchecked
             clonedItemDef = (ID) oldItemDef.deepClone(ultraDeep, postCloneAction);
         }
-        ((ItemImpl) item).propagateDeepCloneDefinition(ultraDeep, clonedItemDef, postCloneAction);        // propagate to items in values
+        //noinspection unchecked
+        ((ItemImpl<?, ID>) item).propagateDeepCloneDefinition(ultraDeep, clonedItemDef, postCloneAction);        // propagate to items in values
         item.setDefinition(clonedItemDef);                                    // sets CTD in values only if null!
     }
 

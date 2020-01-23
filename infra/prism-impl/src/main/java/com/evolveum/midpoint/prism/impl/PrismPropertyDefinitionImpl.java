@@ -109,6 +109,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
     }
 
     public void setIndexed(Boolean indexed) {
+        checkMutable();
         this.indexed = indexed;
     }
 
@@ -126,6 +127,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 
     @Override
     public void setMatchingRuleQName(QName matchingRuleQName) {
+        checkMutable();
         this.matchingRuleQName = matchingRuleQName;
     }
 
@@ -221,6 +223,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 
     @Override
     public MutablePrismPropertyDefinition<T> toMutable() {
+        checkMutableOnExposing();
         return this;
     }
 }
