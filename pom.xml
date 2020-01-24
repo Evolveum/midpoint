@@ -49,6 +49,17 @@
         <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
         <url>https://github.com/Evolveum/midpoint.git</url>
     </scm>
+
+    <!--
+    moved here based on https://maven.apache.org/developers/conventions/code.html
+    TODO: shuffle other sections accordingly when touched + rethink build-system+build-tools dirs
+    -->
+    <properties>
+        <!-- Build system options - more options in build-system/pom.xml -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.source.version>1.8</project.source.version>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -160,11 +171,7 @@
             <url>https://repo.spring.io/milestone</url>
         </repository>
     </repositories>
-    <properties>
-        <!-- Build system options - more options in build-system/pom.xml -->
-        <clover.version>3.1.11</clover.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+
     <modules>
         <module>build-tools</module>
         <module>build-system</module>
@@ -179,34 +186,6 @@
         <module>testing</module>
     </modules>
     <profiles>
-        <profile>
-            <id>clover</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.atlassian.maven.plugins</groupId>
-                        <artifactId>maven-clover2-plugin</artifactId>
-                        <version>3.1.1</version>
-                        <configuration>
-                            <targetPercentage>0%</targetPercentage>
-                            <includesTestSourceRoots>true</includesTestSourceRoots>
-                            <jdk>${project.source.version}</jdk>
-                            <generateXml>true</generateXml>
-                            <generateHistorical>true</generateHistorical>
-                            <multiproject>true</multiproject>
-                            <excludes>
-                                <exclude>**/MidpointAspect.java</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-
-        </profile>
-
         <profile>
             <id>dist</id>
             <activation>
@@ -236,52 +215,5 @@
                 <jdk>1.8</jdk>
             </activation>
         </profile>
-        <!-- TODO experimental PROFILE, remove after merge to master  -->
-    <!--    <profile>
-        <id>schrodinger</id>
-            <build>
-           <plugins>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.19.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>1.6.0</version>
-            <executions>
-            <execution>
-                <id>id1</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                    <goal>exec</goal>
-                </goals>
-                <configuration>
-                    <executable>mvn</executable>
-                    <arguments>
-                        <argument>-amd</argument>
-                        <argument>-pl</argument>
-                        <argument>midpoint/gui</argument>
-                        <argument>-am</argument>
-                        <argument>spring-boot:run</argument>
-                    </arguments>
-                </configuration>
-            </execution>
-                </executions>
-            </plugin>
-        </plugins>
-          </build>
-        </profile>-->
     </profiles>
 </project>

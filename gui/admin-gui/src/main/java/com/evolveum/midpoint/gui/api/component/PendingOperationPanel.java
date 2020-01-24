@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -84,23 +83,24 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
                 OperationResultStatusType rStatus = op.getResultStatus();
                 PendingOperationExecutionStatusType eStatus = op.getExecutionStatus();
 
-                if (rStatus != null &&
-                        (rStatus == OperationResultStatusType.FATAL_ERROR || rStatus == OperationResultStatusType.PARTIAL_ERROR)) {
+                if (rStatus == OperationResultStatusType.FATAL_ERROR
+                        || rStatus == OperationResultStatusType.PARTIAL_ERROR) {
                     return "label-danger";
                 }
 
-                if (rStatus != null &&
-                        (rStatus == OperationResultStatusType.UNKNOWN || rStatus == OperationResultStatusType.WARNING)) {
+                if (rStatus == OperationResultStatusType.UNKNOWN
+                        || rStatus == OperationResultStatusType.WARNING) {
                     return "label-warning";
                 }
 
-                if ((rStatus != null && rStatus == OperationResultStatusType.SUCCESS)
-                        || (eStatus != null && eStatus == PendingOperationExecutionStatusType.COMPLETED)) {
+                if (rStatus == OperationResultStatusType.SUCCESS
+                        || eStatus == PendingOperationExecutionStatusType.COMPLETED) {
                     return "label-success";
                 }
 
-                if ((rStatus != null &&
-                        (rStatus == OperationResultStatusType.IN_PROGRESS || rStatus == OperationResultStatusType.NOT_APPLICABLE || rStatus == OperationResultStatusType.HANDLED_ERROR))) {
+                if (rStatus == OperationResultStatusType.IN_PROGRESS
+                        || rStatus == OperationResultStatusType.NOT_APPLICABLE
+                        || rStatus == OperationResultStatusType.HANDLED_ERROR) {
                     return "label-info";
                 }
 
@@ -140,7 +140,7 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
 
         sb.append(getString(key)).append(" ");
 
-        String value = obj instanceof Enum ? getString((Enum) obj) : obj.toString();
+        String value = obj instanceof Enum ? getString((Enum<?>) obj) : obj.toString();
 
         sb.append(value);
         sb.append('\n');

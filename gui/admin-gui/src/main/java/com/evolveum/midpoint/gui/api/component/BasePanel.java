@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -17,12 +16,9 @@ import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 
@@ -36,7 +32,7 @@ import org.jetbrains.annotations.Contract;
  * @author lazyman
  * @author semancik
  */
-public class BasePanel<T> extends Panel {// extends Serializable> extends Panel {
+public class BasePanel<T> extends Panel {
     private static final long serialVersionUID = 1L;
 
     private IModel<T> model;
@@ -71,22 +67,20 @@ public class BasePanel<T> extends Panel {// extends Serializable> extends Panel 
         return createStringResource(resourceKey, objects).getString();
     }
 
-    public String getString(Enum e) {
+    public String getString(Enum<?> e) {
         return createStringResource(e).getString();
     }
 
-    public StringResourceModel createStringResource(String resourceKey, IModel model, Object... objects) {
+    public StringResourceModel createStringResource(String resourceKey, IModel<?> model, Object... objects) {
         return new StringResourceModel(resourceKey, this).setModel(model)
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
-//        return StringResourceModelMigration.of(resourceKey, this, null, resourceKey, objects);
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
         return new StringResourceModel(resourceKey, this).setModel(null)
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
-//        return StringResourceModelMigration.of(resourceKey, this, null, resourceKey, objects);
     }
 
     public StringResourceModel createStringResource(PolyString polystringKey, Object... objects) {
@@ -111,15 +105,15 @@ public class BasePanel<T> extends Panel {// extends Serializable> extends Panel 
                 .setParameters(objects);
     }
 
-    public StringResourceModel createStringResource(Enum e) {
+    public StringResourceModel createStringResource(Enum<?> e) {
         return createStringResource(e, null);
     }
 
-    public StringResourceModel createStringResource(Enum e, String prefix) {
+    public StringResourceModel createStringResource(Enum<?> e, String prefix) {
         return createStringResource(e, prefix, null);
     }
 
-    public StringResourceModel createStringResource(Enum e, String prefix, String nullKey) {
+    public StringResourceModel createStringResource(Enum<?> e, String prefix, String nullKey) {
         StringBuilder sb = new StringBuilder();
         if (StringUtils.isNotEmpty(prefix)) {
             sb.append(prefix).append('.');
@@ -157,7 +151,7 @@ public class BasePanel<T> extends Panel {// extends Serializable> extends Panel 
     }
 
     public WebApplicationConfiguration getWebApplicationConfiguration() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        MidPointApplication application = MidPointApplication.get();
         return application.getWebApplicationConfiguration();
     }
 

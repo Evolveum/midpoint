@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.web.boot.actuator;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.info.Info.Builder;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.context.annotation.PropertySource;
@@ -18,7 +17,7 @@ import org.springframework.stereotype.Component;
  * @author skublik
  */
 @Component
-@PropertySource("classpath:midpoint-system.properties")
+@PropertySource(value = "classpath:midpoint-system.properties", encoding = "UTF-8")
 public class MidpointInfoContributor implements InfoContributor {
 
     @Autowired
