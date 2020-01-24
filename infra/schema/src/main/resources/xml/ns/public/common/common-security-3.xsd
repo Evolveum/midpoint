@@ -123,6 +123,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="ignoredLocalPath" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -600,14 +607,14 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:choice>
-                <xsd:element name="activeSimpleKey" type="tns:ModuleSaml2SimpleKeyType" minOccurs="0" maxOccurs="1">
+                <xsd:element name="activeSimpleKey" type="tns:ModuleSaml2SimpleKeyType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             Active key.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="activeKeyStoreKey" type="tns:ModuleSaml2KeyStoreKeyType" minOccurs="0" maxOccurs="1">
+                <xsd:element name="activeKeyStoreKey" type="tns:ModuleSaml2KeyStoreKeyType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             Active key.
@@ -804,21 +811,21 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:choice>
-                <xsd:element name="metadataUrl" type="xsd:string">
+                <xsd:element name="metadataUrl" type="xsd:string" minOccurs="1">
                     <xsd:annotation>
                         <xsd:documentation>
                             URL, which show metadata.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="xml" type="xsd:base64Binary">
+                <xsd:element name="xml" type="xsd:base64Binary" minOccurs="1">
                     <xsd:annotation>
                         <xsd:documentation>
                             Xml of metadata encrypted by base64.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="pathToFile" type="xsd:string">
+                <xsd:element name="pathToFile" type="xsd:string" minOccurs="1">
                     <xsd:annotation>
                         <xsd:documentation>
                             Path to xml file, which contains metadata.

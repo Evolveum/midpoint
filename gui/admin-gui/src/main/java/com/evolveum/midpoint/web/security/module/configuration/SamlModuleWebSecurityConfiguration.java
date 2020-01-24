@@ -58,7 +58,6 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
     }
 
     public static SamlModuleWebSecurityConfiguration build(AuthenticationModuleSaml2Type modelType, String prefixOfSequence, ServletRequest request){
-        Validate.notNull(request);
         SamlModuleWebSecurityConfiguration configuration = buildInternal((AuthenticationModuleSaml2Type)modelType, prefixOfSequence, request);
         configuration.validate();
         return configuration;

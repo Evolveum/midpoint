@@ -137,6 +137,11 @@ public class MidpointAuthFilter extends GenericFilterBean {
             authenticationsPolicy = getDefaultAuthenticationPolicy();
         }
 
+        if (SecurityUtils.isIgnoredLocalPath(authenticationsPolicy, httpRequest)) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         AuthenticationSequenceType sequence;
         // permitAll pages (login, select ID for saml ...) during processing of modules
         if (mpAuthentication != null && SecurityUtils.isLoginPage(httpRequest)) {
