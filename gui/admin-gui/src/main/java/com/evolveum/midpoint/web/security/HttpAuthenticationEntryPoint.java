@@ -22,7 +22,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 /**
  * @author skublik
  */
-
 public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint{
 
     @Override
@@ -33,20 +32,20 @@ public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint{
 
        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication != null && authentication instanceof MidpointAuthentication) {
+        if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            List<ModuleAuthentication> parallelProccessingModules = mpAuthentication.getParallelProcessingModules();
-            if (!parallelProccessingModules.isEmpty()) {
+            List<ModuleAuthentication> parallelProcessingModules = mpAuthentication.getParallelProcessingModules();
+            if (!parallelProcessingModules.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
 
                 boolean first = true;
-                for (ModuleAuthentication moduleAuthentication : parallelProccessingModules) {
+                for (ModuleAuthentication moduleAuthentication : parallelProcessingModules) {
                     if (!first) {
                         sb.append(", ");
                     }
                     first = false;
                     sb.append(moduleAuthentication.getNameOfModuleType().getName())
-                            .append(" realm=\"" + moduleAuthentication.getNameOfModule() + "\"");
+                            .append(" realm=\"").append(moduleAuthentication.getNameOfModule()).append("\"");
                 }
                 response.setHeader("WWW-Authenticate",sb.toString());
             }

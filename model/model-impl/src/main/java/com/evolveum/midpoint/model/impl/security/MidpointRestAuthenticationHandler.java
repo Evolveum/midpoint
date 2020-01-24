@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
-import java.io.IOException;
-
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
@@ -28,18 +26,13 @@ import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 import org.apache.cxf.message.Message;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.*;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 /**
  * @author Katka Valalikova
@@ -53,10 +46,6 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 
     @Autowired private MidpointRestSecurityQuestionsAuthenticator securityQuestionAuthenticator;
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repository;
-
     @Autowired private NodeAuthenticationEvaluator nodeAuthenticator;
     @Autowired private TaskManager taskManager;
 
@@ -64,20 +53,19 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
     private SystemObjectCache systemObjectCache;
 
     @Override
-    public void filter(ContainerRequestContext request, ContainerResponseContext response) throws IOException {
+    public void filter(ContainerRequestContext request, ContainerResponseContext response) {
         // nothing to do
-
     }
 
     @Override
-    public void filter(ContainerRequestContext requestCtx) throws IOException {
+    public void filter(ContainerRequestContext requestCtx) {
 
         boolean isExperimentalEnabled = false;
         try {
             isExperimentalEnabled = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(
                     systemObjectCache.getSystemConfiguration(new OperationResult("Load System Config")).asObjectable());
         } catch (SchemaException e) {
-            LOGGER.error("Coulnd't load system configuration", e);
+            LOGGER.error("Couldn't load system configuration", e);
         }
         if (isExperimentalEnabled) {
             //used flexible authentication
@@ -86,7 +74,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 
         Message m = JAXRSUtils.getCurrentMessage();
 
-        AuthorizationPolicy policy = (AuthorizationPolicy) m.get(AuthorizationPolicy.class);
+        AuthorizationPolicy policy = m.get(AuthorizationPolicy.class);
         if (policy != null) {
             passwordAuthenticator.handleRequest(policy, m, requestCtx);
             return;
@@ -143,13 +131,4 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
             m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
         }
     }
-
-
-
-//    protected void createAbortMessage(ContainerRequestContext requestCtx){
-//        requestCtx.abortWith(Response.status(Status.UNAUTHORIZED)
-//                .header("WWW-Authenticate", AuthenticationType.BASIC.getAuthenticationType() + " realm=\"midpoint\", " + AuthenticationType.SECURITY_QUESTIONS.getAuthenticationType()).build());
-//    }
-//
-
 }

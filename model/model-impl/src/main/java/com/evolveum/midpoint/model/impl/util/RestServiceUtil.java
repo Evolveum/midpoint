@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.util;
 
 import java.net.URI;
@@ -17,7 +16,6 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import com.evolveum.midpoint.model.impl.ModelRestService;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -33,12 +31,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
@@ -46,8 +42,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author mederly (only copied existing code)
@@ -73,7 +67,7 @@ public class RestServiceUtil {
         return createErrorResponseBuilder(result, t).build();
     }
 
-    public static <T> Response createResponse(Response.Status statusCode, OperationResult result) {
+    public static Response createResponse(Response.Status statusCode, OperationResult result) {
 
         return createResponse(statusCode, null, result, false);
 
@@ -105,7 +99,7 @@ public class RestServiceUtil {
 
     }
 
-    public static <T> Response createResponse(Response.Status statusCode, URI location, OperationResult result) {
+    public static Response createResponse(Response.Status statusCode, URI location, OperationResult result) {
         result.computeStatusIfUnknown();
 
         if (result.isPartialError()) {
@@ -114,11 +108,8 @@ public class RestServiceUtil {
             return createBody(Response.status(240), false, null, result).location(location).build();
         }
 
-
         return location == null ? Response.status(statusCode).build() : Response.status(statusCode).location(location).build();
     }
-
-
 
     public static Response.ResponseBuilder createErrorResponseBuilder(OperationResult result, Throwable t) {
         if (t instanceof ObjectNotFoundException) {
@@ -165,7 +156,7 @@ public class RestServiceUtil {
         return Response.status(status).entity(message);
     }
 
-    public static ModelExecuteOptions getOptions(UriInfo uriInfo){
+    public static ModelExecuteOptions getOptions(UriInfo uriInfo) {
         List<String> options = uriInfo.getQueryParameters().get(QUERY_PARAMETER_OPTIONS);
         return ModelExecuteOptions.fromRestOptions(options);
     }
@@ -189,13 +180,6 @@ public class RestServiceUtil {
         securityHelper.auditLogout(connEnv, task);
     }
 
-    // slightly experimental
-    public static Response.ResponseBuilder createResultHeaders(Response.ResponseBuilder builder, OperationResult result) {
-        return builder.entity(result);
-//                .header(OPERATION_RESULT_STATUS, OperationResultStatus.createStatusType(result.getStatus()).value())
-//                .header(OPERATION_RESULT_MESSAGE, result.getMessage());
-    }
-
     public static void createAbortMessage(ContainerRequestContext requestCtx) {
         requestCtx.abortWith(Response.status(Status.UNAUTHORIZED)
                 .header("WWW-Authenticate",
@@ -204,7 +188,7 @@ public class RestServiceUtil {
                 .build());
     }
 
-    public static void createSecurityQuestionAbortMessage(ContainerRequestContext requestCtx, String secQChallenge){
+    public static void createSecurityQuestionAbortMessage(ContainerRequestContext requestCtx, String secQChallenge) {
         String challenge = "";
         if (StringUtils.isNotBlank(secQChallenge)) {
             challenge = " " + Base64Utility.encode(secQChallenge.getBytes());

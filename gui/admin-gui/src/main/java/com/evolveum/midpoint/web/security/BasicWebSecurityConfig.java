@@ -156,7 +156,7 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
                     isExperimentalEnabled = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(
                             systemObjectCache.getSystemConfiguration(new OperationResult("Load System Config")).asObjectable());
                 } catch (SchemaException e) {
-                    LOGGER.error("Coulnd't load system configuration", e);
+                    LOGGER.error("Couldn't load system configuration", e);
                 }
                 if (isExperimentalEnabled
                         && mather.match("/ws/rest/**", httpServletRequest.getRequestURI().substring(httpServletRequest.getContextPath().length()))) {
