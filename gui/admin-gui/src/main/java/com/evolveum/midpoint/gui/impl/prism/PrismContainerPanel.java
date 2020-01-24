@@ -98,6 +98,8 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 
 
         PrismContainerPanelContext<C> panelCtx = new PrismContainerPanelContext<>(getModel());
+        panelCtx.setComponentId("value");
+        panelCtx.setRealValueModel(item.getModel());
         Panel panel = componentFactory.createPanel(panelCtx);
         panel.setOutputMarkupId(true);
         item.add(panel);

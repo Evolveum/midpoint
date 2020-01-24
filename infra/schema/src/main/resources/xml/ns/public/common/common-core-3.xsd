@@ -3128,6 +3128,9 @@
 
                 EXPERIMENTAL.
             </xsd:documentation>
+           <xsd:appinfo>
+               <a:container>true</a:container>
+           </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="environmentalPerformanceInformation" type="tns:EnvironmentalPerformanceInformationType" minOccurs="0"/>
@@ -3720,6 +3723,9 @@
             <xsd:documentation>
                 Task schedule. Specifies when and how often something should happen.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="earliestStartTime" type="xsd:dateTime" minOccurs="0">

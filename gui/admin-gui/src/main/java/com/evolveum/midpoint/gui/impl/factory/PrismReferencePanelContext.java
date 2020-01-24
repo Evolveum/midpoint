@@ -33,11 +33,4 @@ public class PrismReferencePanelContext<R extends Referencable> extends ItemPane
         return unwrapWrapperModel().getFilter();
     }
 
-    public List<QName> getTargetTypes() {
-        return unwrapWrapperModel().getTargetTypes();
-    }
-
-    public QName getTargetTypeName() {
-        return unwrapWrapperModel().getTargetTypeName();
-    }
 }

@@ -4159,4 +4159,15 @@ public final class WebComponentUtil {
         return gc != null ? XmlTypeConverter.toMillis(gc) : null;
     }
 
+    public static String getSimpleChannel(String chanelUri) {
+        if (chanelUri == null) {
+            return null;
+        }
+        int i = chanelUri.indexOf('#');
+        if (i < 0) {
+            return chanelUri;
+        }
+        return chanelUri.substring(i + 1);
+    }
+
 }

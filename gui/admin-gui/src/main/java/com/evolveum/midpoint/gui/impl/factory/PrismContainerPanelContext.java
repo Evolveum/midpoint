@@ -6,13 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
+import com.evolveum.midpoint.prism.*;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 
 /**
  * @author katka
@@ -20,9 +19,22 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
  */
 public class PrismContainerPanelContext<C extends Containerable> extends ItemPanelContext<C, PrismContainerWrapper<C>>{
 
+    private IModel<PrismContainerValueWrapper<C>> valueWrapperModel;
+
     public PrismContainerPanelContext(IModel<PrismContainerWrapper<C>> itemWrapper) {
         super(itemWrapper);
         // TODO Auto-generated constructor stub
     }
+
+    @Override
+    public <VW extends PrismValueWrapper<C,?>> void setRealValueModel(IModel<VW> valueWrapper) {
+        super.setRealValueModel(valueWrapper);
+        this.valueWrapperModel = (IModel<PrismContainerValueWrapper<C>>) valueWrapper;
+    }
+
+    public IModel<PrismContainerValueWrapper<C>> getValueWrapper() {
+        return valueWrapperModel;
+    }
+
 
 }
