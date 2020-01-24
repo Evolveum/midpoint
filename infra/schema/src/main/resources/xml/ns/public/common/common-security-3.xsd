@@ -621,7 +621,7 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-            </xsd:choice>
+            </xsd:choice> <!--> can use only one of types, but all can be null<-->
             <xsd:element name="standBySimpleKey" type="tns:ModuleSaml2SimpleKeyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>

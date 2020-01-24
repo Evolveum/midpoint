@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.web.security.util.KeyStoreKey;
+import org.bouncycastle.openssl.PEMEncryptedKeyPair;
 import org.springframework.security.saml.SamlKeyException;
 import org.springframework.security.saml.key.SimpleKey;
 import org.springframework.security.saml.spi.SamlKeyStoreProvider;
@@ -54,5 +55,10 @@ public class MidpointSamlKeyStoreProvider implements SamlKeyStoreProvider {
         } else {
             return SamlKeyStoreProvider.super.getKeyStore(key);
         }
+    }
+
+    //this is hack for use bcpkix-jdk15on:1.64 library
+    private void usedBcpkixDependency() {
+        PEMEncryptedKeyPair ckp = (PEMEncryptedKeyPair) new Object();
     }
 }
