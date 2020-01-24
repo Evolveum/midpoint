@@ -16,10 +16,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
+import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.MidpointRequestAttributeAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.AuthFilterConfigurer;
-import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
 import org.jasig.cas.client.session.SingleSignOutFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,7 +58,6 @@ import java.util.UUID;
 /**
  * @author skublik
  */
-
 @Order(SecurityProperties.BASIC_AUTH_ORDER - 1)
 @Configuration
 @EnableWebSecurity
@@ -96,15 +95,12 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${auth.logout.url:/}")
     private String authLogoutUrl;
 
-    private ObjectPostProcessor<Object> objectObjectPostProcessor;
-
-    public BasicWebSecurityConfig(){
+    public BasicWebSecurityConfig() {
         super(true);
     }
 
     @Override
     public void setObjectPostProcessor(ObjectPostProcessor<Object> objectPostProcessor) {
-        this.objectObjectPostProcessor = objectPostProcessor;
         super.setObjectPostProcessor(objectPostProcessor);
     }
 
@@ -171,6 +167,9 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
                 if (mather.match("/ws/**", httpServletRequest.getRequestURI().substring(httpServletRequest.getContextPath().length()))) {
                     return true;
                 }
+                if (mather.match("/rest2/**", httpServletRequest.getRequestURI().substring(httpServletRequest.getContextPath().length()))) {
+                    return true;
+                }
                 return false;
             }
         });
@@ -210,7 +209,6 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().and()
                 .securityContext();
         http.apply(new AuthFilterConfigurer());
-
 
         http.sessionManagement()
                 .maximumSessions(-1)
