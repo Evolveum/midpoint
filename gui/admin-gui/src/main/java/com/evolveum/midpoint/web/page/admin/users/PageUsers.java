@@ -129,21 +129,21 @@ public class PageUsers extends PageAdminObjectList<UserType> {
     protected List<IColumn<SelectableBean<UserType>, String>> initColumns() {
         List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
 
-        IColumn<SelectableBean<UserType>, String> column = new PolyStringPropertyColumn(
+        IColumn<SelectableBean<UserType>, String> column = new PolyStringPropertyColumn<SelectableBean<UserType>>(
                 createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
                 SelectableBeanImpl.F_VALUE + ".givenName");
         columns.add(column);
 
-        column = new PolyStringPropertyColumn(createStringResource("UserType.familyName"),
+        column = new PolyStringPropertyColumn<SelectableBean<UserType>>(createStringResource("UserType.familyName"),
                 UserType.F_FAMILY_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".familyName");
         columns.add(column);
 
-        column = new PolyStringPropertyColumn(createStringResource("UserType.fullName"),
+        column = new PolyStringPropertyColumn<SelectableBean<UserType>>(createStringResource("UserType.fullName"),
                 UserType.F_FULL_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".fullName");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("UserType.emailAddress"), null,
-                SelectableBeanImpl.F_VALUE + ".emailAddress");
+        column = new PropertyColumn<SelectableBean<UserType>, String>(createStringResource("UserType.emailAddress"),
+                null, SelectableBeanImpl.F_VALUE + ".emailAddress");
         columns.add(column);
 
         column = new AbstractExportableColumn<SelectableBean<UserType>, String>(

@@ -68,6 +68,11 @@ public class PageAuditLogViewer extends PageBase {
             private static final long serialVersionUID = 1L;
 
             @Override
+            protected AuditLogStorage getAuditLogStorage(){
+                return PageAuditLogViewer.this.getAuditLogStorage();
+            }
+
+            @Override
             protected void updateAuditSearchStorage(AuditSearchDto searchDto) {
                 getAuditLogStorage().setSearchDto(searchDto);
                 getAuditLogStorage().setPageNumber(0);
@@ -77,17 +82,6 @@ public class PageAuditLogViewer extends PageBase {
             protected void resetAuditSearchStorage() {
                 getAuditLogStorage().setSearchDto(new AuditSearchDto());
 
-            }
-
-            @Override
-            protected void updateCurrentPage(long current) {
-                getAuditLogStorage().setPageNumber(current);
-
-            }
-
-            @Override
-            protected long getCurrentPage() {
-                return getAuditLogStorage().getPageNumber();
             }
 
         };

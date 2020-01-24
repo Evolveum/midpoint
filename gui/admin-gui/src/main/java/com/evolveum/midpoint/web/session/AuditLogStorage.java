@@ -19,6 +19,7 @@ public class AuditLogStorage implements PageStorage {
     private AuditEventRecordType auditRecord;
     private AuditSearchDto searchDto;
     private long pageNumber = 0;
+    private ObjectPaging auditLogPaging;
 
     public AuditLogStorage() {
     }
@@ -52,12 +53,12 @@ public class AuditLogStorage implements PageStorage {
 
     @Override
     public ObjectPaging getPaging() {
-        return null;
+        return auditLogPaging;
     }
 
     @Override
     public void setPaging(ObjectPaging auditLogPaging) {
-
+        this.auditLogPaging = auditLogPaging;
     }
 
     @Override
