@@ -131,6 +131,11 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
             }
 
             @Override
+            protected AuditLogStorage getAuditLogStorage(){
+                return getPageBase().getSessionStorage().getUserHistoryAuditLog();
+            }
+
+            @Override
             protected void updateAuditSearchStorage(AuditSearchDto searchDto) {
                 getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(searchDto);
                 getPageBase().getSessionStorage().getUserHistoryAuditLog().setPageNumber(0);
