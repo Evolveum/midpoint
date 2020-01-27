@@ -52,7 +52,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 @Component
 public class StageComputeHelper {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(StageComputeHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(StageComputeHelper.class);
 
     @Autowired private ExpressionEvaluationHelper evaluationHelper;
     @Autowired private PrismContext prismContext;

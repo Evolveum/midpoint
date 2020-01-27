@@ -31,11 +31,10 @@ import static com.evolveum.midpoint.task.quartzimpl.TaskTestUtil.createExtension
  */
 public class MockSingleTaskHandler implements TaskHandler {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MockSingleTaskHandler.class);
-    private String MOCK_HANDLER_URI = "http://midpoint.evolveum.com/test/mock";
-    private String NS_EXT = "http://myself.me/schemas/whatever";
-    private ItemName L1_FLAG_QNAME = new ItemName(NS_EXT, "l1Flag", "m");
-    private ItemName WFS_FLAG_QNAME = new ItemName(NS_EXT, "wfsFlag", "m");
+    private static final Trace LOGGER = TraceManager.getTrace(MockSingleTaskHandler.class);
+    private static final String NS_EXT = "http://myself.me/schemas/whatever";
+    private static final ItemName L1_FLAG_QNAME = new ItemName(NS_EXT, "l1Flag", "m");
+    private static final ItemName WFS_FLAG_QNAME = new ItemName(NS_EXT, "wfsFlag", "m");
 
     private TaskManagerQuartzImpl taskManager;
 

@@ -48,7 +48,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemT
  */
 public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(WorkItemDtoProvider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(WorkItemDtoProvider.class);
 
     private static final String DOT_CLASS = WorkItemDtoProvider.class.getName() + ".";
 

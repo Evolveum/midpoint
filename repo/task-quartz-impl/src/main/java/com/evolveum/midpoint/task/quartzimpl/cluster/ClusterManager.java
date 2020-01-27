@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class ClusterManager {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ClusterManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ClusterManager.class);
 
     private static final String CLASS_DOT = ClusterManager.class.getName() + ".";
     private static final String CHECK_SYSTEM_CONFIGURATION_CHANGED = CLASS_DOT + "checkSystemConfigurationChanged";

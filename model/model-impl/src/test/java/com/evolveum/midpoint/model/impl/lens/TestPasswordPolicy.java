@@ -52,7 +52,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 
     public static final File TEST_DIR =  new File("src/test/resources/lens/ppolicy/");
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestPasswordPolicy.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestPasswordPolicy.class);
 
     private static final String USER_AB_USERNAME = "ab";
     private static final String USER_AB_FULL_NAME = "Ad Fel";

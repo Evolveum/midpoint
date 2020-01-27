@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Component("securityContextManager")
 public class SecurityContextManagerImpl implements SecurityContextManager {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(SecurityContextManagerImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SecurityContextManagerImpl.class);
 
     private MidPointPrincipalManager userProfileService = null;
     private ThreadLocal<HttpConnectionInformation> connectionInformationThreadLocal = new ThreadLocal<>();

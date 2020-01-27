@@ -37,7 +37,7 @@ public class RecomputeTriggerHandler implements SingleTriggerHandler {
 
     public static final String HANDLER_URI = ModelConstants.NS_MODEL_TRIGGER_PREFIX + "/recompute/handler-3";
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(RecomputeTriggerHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RecomputeTriggerHandler.class);
 
     @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
     @Autowired private Clockwork clockwork;

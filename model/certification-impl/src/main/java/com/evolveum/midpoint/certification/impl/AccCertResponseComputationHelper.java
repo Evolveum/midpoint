@@ -40,7 +40,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 @Component
 public class AccCertResponseComputationHelper {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AccCertResponseComputationHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccCertResponseComputationHelper.class);
 
     private static final AccessCertificationCaseOutcomeStrategyType DEFAULT_CASE_STAGE_OUTCOME_STRATEGY = ONE_ACCEPT_ACCEPTS;
     private static final AccessCertificationCaseOutcomeStrategyType DEFAULT_CASE_OVERALL_OUTCOME_STRATEGY = ALL_MUST_ACCEPT;

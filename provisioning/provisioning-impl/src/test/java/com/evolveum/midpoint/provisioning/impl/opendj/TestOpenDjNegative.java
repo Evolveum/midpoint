@@ -79,14 +79,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 @DirtiesContext
 public class TestOpenDjNegative extends AbstractOpenDjTest {
 
-    private static Trace LOGGER = TraceManager.getTrace(TestOpenDjNegative.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestOpenDjNegative.class);
 
     @Autowired
     TaskManager taskManager;
-
-//    @Autowired
-//    private ResourceObjectChangeListener syncServiceMock;
-
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

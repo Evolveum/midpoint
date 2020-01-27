@@ -47,7 +47,7 @@ import java.util.*;
  */
 public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthenticationEntryPoint {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MidpointAuthFilter.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MidpointAuthFilter.class);
 
     private static final String WWW_AUTHENTICATION_HEADER = "WWW-Authenticate";
     private static final String AUTHENTICATION_HEADER = "Authorization";

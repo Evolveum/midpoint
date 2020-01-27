@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class UtilsTest {
 
-    private static String FILENAME_BAD_UTF = "src/test/resources/bad-utf.txt";
+    private static final String FILENAME_BAD_UTF = "src/test/resources/bad-utf.txt";
 
     public UtilsTest() {
     }

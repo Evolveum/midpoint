@@ -59,7 +59,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
     @Autowired private PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationRemediationTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationRemediationTaskHandler.class);
 
     @PostConstruct
     private void initialize() {

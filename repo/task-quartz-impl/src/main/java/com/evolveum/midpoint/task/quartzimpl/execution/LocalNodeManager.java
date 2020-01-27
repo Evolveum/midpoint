@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.repo.sql.DataSourceFactory;
@@ -46,7 +45,7 @@ import java.util.stream.Collectors;
  */
 public class LocalNodeManager {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(LocalNodeManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LocalNodeManager.class);
 
     private TaskManagerQuartzImpl taskManager;
 

@@ -7,19 +7,15 @@
 
 package com.evolveum.midpoint.schema;
 
+import java.util.Collection;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import java.util.Collection;
-
 public class RefreshShadowOperation implements DebugDumpable {
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(RefreshShadowOperation.class);
 
     private PrismObject<ShadowType> refreshedShadow;
     private Collection<ObjectDeltaOperation<ShadowType>> executedDeltas;

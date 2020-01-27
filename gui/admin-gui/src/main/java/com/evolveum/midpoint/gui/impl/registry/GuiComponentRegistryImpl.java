@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 @Component
 public class GuiComponentRegistryImpl implements GuiComponentRegistry {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(GuiComponentRegistryImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(GuiComponentRegistryImpl.class);
 
     List<GuiComponentFactory> guiComponentFactories = new ArrayList<>();
 

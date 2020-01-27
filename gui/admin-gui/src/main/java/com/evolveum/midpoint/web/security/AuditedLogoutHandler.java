@@ -14,8 +14,6 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.gui.api.GuiConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -24,15 +22,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.filter.MidpointAuthFilter;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -42,7 +37,7 @@ import java.io.IOException;
  */
 public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AuditedLogoutHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AuditedLogoutHandler.class);
 
     @Autowired
     private TaskManager taskManager;
@@ -63,9 +58,9 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
 
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-            throws IOException, ServletException {
+            throws IOException {
 
-        String targetUrl = null;
+        String targetUrl;
         if (useDefaultUrl()) {
             targetUrl = getDefaultTargetUrl();
         } else {

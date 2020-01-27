@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
@@ -27,9 +26,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
-import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author skublik
@@ -37,12 +34,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
-//@ImportResource(locations = {
-//        "classpath:ctx-init.xml"
-//})
 public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrationTest {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestPageSystemConfiguration.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestPageSystemConfiguration.class);
 
     private static final String MAIN_FORM = "mainPanel:mainForm";
     private static final String FORM_INPUT_DESCRIPTION = "tabPanel:panel:basicSystemConfiguration:values:0:value:propertiesLabel:properties:1:property:values:0:valueContainer:form:input:input";
@@ -66,7 +60,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
     public void test001testModifySystemConfig() throws Exception {
         renderPage();
 
-        tester.clickLink(MAIN_FORM +":tabPanel:panel:basicSystemConfiguration:values:0:value:showEmptyButton");
+        tester.clickLink(MAIN_FORM + ":tabPanel:panel:basicSystemConfiguration:values:0:value:showEmptyButton");
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
         String des = "new description";

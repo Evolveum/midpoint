@@ -532,7 +532,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
 
-    private static String SPECIAL="!@#$%^&*()";
+    private static final String SPECIAL="!@#$%^&*()";
     protected char getOidCharFor(int i) {
         if (i < 10) {
             return (char) ('0'+i);

@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public abstract class ItemWrapperModel<C extends Containerable, IW extends ItemWrapper> implements IModel<IW> {
 
-    private static final transient Trace LOGGER  = TraceManager.getTrace(ItemWrapperModel.class);
+    private static final Trace LOGGER  = TraceManager.getTrace(ItemWrapperModel.class);
 
 
     private IModel<?> parent;

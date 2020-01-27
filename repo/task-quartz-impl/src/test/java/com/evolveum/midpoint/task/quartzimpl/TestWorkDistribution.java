@@ -55,7 +55,7 @@ import static org.testng.AssertJUnit.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestWorkDistribution extends AbstractTaskManagerTest {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestWorkDistribution.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestWorkDistribution.class);
 
     public static final long DEFAULT_TIMEOUT = 30000L;
 

@@ -22,7 +22,6 @@ import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -59,10 +58,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  *
  * @author Pavol Mederly
  */
-
 public class TaskSynchronizer {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskSynchronizer.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskSynchronizer.class);
 
     private TaskManagerQuartzImpl taskManager;
 

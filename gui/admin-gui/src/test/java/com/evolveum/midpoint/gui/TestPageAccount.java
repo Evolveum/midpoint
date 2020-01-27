@@ -33,12 +33,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
-//@ImportResource(locations = {
-//        "classpath:ctx-init.xml"
-//})
 public class TestPageAccount extends AbstractInitializedGuiIntegrationTest {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestPageAccount.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestPageAccount.class);
 
     private static final String FORM_SAVE = "mainForm:save";
 

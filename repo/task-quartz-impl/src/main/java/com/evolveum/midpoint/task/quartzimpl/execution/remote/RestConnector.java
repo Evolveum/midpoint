@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.execution.remote;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -27,7 +26,7 @@ import javax.ws.rs.core.Response;
  */
 public class RestConnector {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(RestConnector.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RestConnector.class);
 
     private TaskManagerQuartzImpl taskManager;
 

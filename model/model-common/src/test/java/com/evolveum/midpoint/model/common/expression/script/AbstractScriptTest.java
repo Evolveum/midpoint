@@ -67,8 +67,8 @@ import com.evolveum.midpoint.common.LocalizationTestUtil;
 public abstract class AbstractScriptTest {
 
     protected static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
-    protected static File BASE_TEST_DIR = new File("src/test/resources/expression");
-    protected static File OBJECTS_DIR = new File("src/test/resources/objects");
+    protected static final File BASE_TEST_DIR = new File("src/test/resources/expression");
+    protected static final File OBJECTS_DIR = new File("src/test/resources/objects");
     protected static final String USER_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 
     public static final String VAR_POISON = "poison";

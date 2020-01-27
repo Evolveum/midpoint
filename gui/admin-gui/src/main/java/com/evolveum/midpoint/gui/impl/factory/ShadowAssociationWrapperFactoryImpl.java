@@ -66,9 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extends PrismContainerWrapperFactoryImpl<C>{
 
-    private static final long serialVersionUID = 1L;
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(ShadowAssociationWrapperFactoryImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowAssociationWrapperFactoryImpl.class);
 
     @Autowired private GuiComponentRegistry registry;
     @Autowired private PrismContext prismContext;

@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
 import java.util.List;
@@ -18,7 +17,6 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.InternalTaskInterface;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,12 +27,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author Pavol Mederly
- *
  */
 @Deprecated
 public class WaitForSubtasksByPollingTaskHandler implements TaskHandler {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(WaitForSubtasksByPollingTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(WaitForSubtasksByPollingTaskHandler.class);
     public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/wait-for-subtasks-polling/handler-3";
 
     private static WaitForSubtasksByPollingTaskHandler instance = null;
