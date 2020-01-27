@@ -11,17 +11,12 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections4.CollectionUtils;
+import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 /**
@@ -112,5 +107,27 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismPropertyVa
         }
 
         return allEmpty;
+    }
+
+    @Override
+    public boolean isImmutable() {
+        // TODO
+        return false;
+    }
+
+    @Override
+    public void freeze() {
+        // TODO
+    }
+
+    @Override
+    public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
+        // TODO
+        return false;
+    }
+
+    @Override
+    public void accept(Visitor<Definition> visitor) {
+        // TODO
     }
 }

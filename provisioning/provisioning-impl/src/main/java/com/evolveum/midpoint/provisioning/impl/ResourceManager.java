@@ -1159,13 +1159,13 @@ public class ResourceManager {
         }
 
         Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
-        MutablePrismSchema connectorSchema = null;
+        MutablePrismSchema connectorSchema;
         if (connectorSchemaElement == null) {
             // No schema to validate with
             return;
         }
         try {
-            connectorSchema = prismContext.schemaFactory().createPrismSchema();
+            connectorSchema = prismContext.schemaFactory().createPrismSchema(DOMUtil.getSchemaTargetNamespace(connectorSchemaElement));
             connectorSchema.parseThis(connectorSchemaElement, true, "schema for " + connector, prismContext);
         } catch (SchemaException e) {
             objectResult.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);

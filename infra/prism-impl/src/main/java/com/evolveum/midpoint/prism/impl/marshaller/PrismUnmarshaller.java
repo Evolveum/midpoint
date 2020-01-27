@@ -653,7 +653,6 @@ public class PrismUnmarshaller {
 
         PrismReferenceValue refVal = new PrismReferenceValueImpl();
         setReferenceObject(refVal, compositeObject);
-        ((PrismReferenceDefinitionImpl) definition).setComposite(true);             // TODO why do we modify the definition? is that safe?
         return refVal;
     }
 

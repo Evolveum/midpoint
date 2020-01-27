@@ -213,5 +213,4 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
     //endregion
 
     String getDebugDumpClassName();
-
 }

@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.DisplayableValue;
 
 import javax.xml.namespace.QName;

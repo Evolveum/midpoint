@@ -13,6 +13,9 @@ import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import org.aopalliance.intercept.MethodInvocation;
 import org.slf4j.MDC;
 
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -21,14 +24,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * EXPERIMENTAL.
  */
-public final class OperationInvocationRecord {
+public final class OperationInvocationRecord implements Serializable {
+
+    private static final long serialVersionUID = 6805648677427302932L;
 
     private static AtomicInteger idCounter = new AtomicInteger(0);
 
     private long startTime = System.nanoTime();
     private long elapsedTime;
     private int invocationId;
-    private Object returnValue;
+    private String formattedReturnValue;            // present only if traceEnabled=true
     private boolean gotException;
     private String exceptionName;
 
@@ -166,8 +171,19 @@ public final class OperationInvocationRecord {
     }
 
     public Object processReturnValue(Object returnValue) {
-        this.returnValue = returnValue;
+        if (traceEnabled) {
+            formattedReturnValue = formatVal(returnValue);
+        }
         return returnValue;
+    }
+
+    public void processReturnValue(Map<String, Collection<String>> returns, Throwable cause) {
+        if (traceEnabled) {
+            formattedReturnValue = returns.toString();
+            if (cause != null) {
+                formattedReturnValue += "; " + cause.getClass().getName() + ": " + cause.getMessage();
+            }
+        }
     }
 
     public <T extends Throwable> T processException(T e) {
@@ -213,7 +229,7 @@ public final class OperationInvocationRecord {
                 if (gotException) {
                     OperationExecutionLogger.LOGGER_PROFILING.trace("###### return exception: {}", exceptionName);
                 } else {
-                    OperationExecutionLogger.LOGGER_PROFILING.trace("###### retval: {}", formatVal(returnValue));
+                    OperationExecutionLogger.LOGGER_PROFILING.trace("###### retval: {}", formattedReturnValue);
                 }
             }
         }

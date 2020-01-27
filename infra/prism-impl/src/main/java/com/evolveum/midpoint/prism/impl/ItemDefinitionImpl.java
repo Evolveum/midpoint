@@ -46,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Radovan Semancik
  *
  */
-public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl implements MutableItemDefinition<I> {
+public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl implements MutableItemDefinition<I>, ItemDefinitionTestAccess {
     private static final long serialVersionUID = -2643332934312107274L;
 
     @NotNull protected ItemName itemName;
@@ -68,7 +68,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 
     /**
      * The constructors should be used only occasionally (if used at all).
-     * Use the factory methods in the ResourceObjectDefintion instead.
+     * Use the factory methods in the ResourceObjectDefinition instead.
      *
      * @param itemName definition name (element Name)
      * @param typeName type name (XSD complex or simple type)
@@ -100,6 +100,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     }
 
     public void setItemName(@NotNull QName name) {
+        checkMutable();
         this.itemName = ItemName.fromQName(name); // todo
     }
 
@@ -119,6 +120,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     }
 
     public void setMinOccurs(int minOccurs) {
+        checkMutable();
         this.minOccurs = minOccurs;
     }
 
@@ -135,6 +137,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     }
 
     public void setMaxOccurs(int maxOccurs) {
+        checkMutable();
         this.maxOccurs = maxOccurs;
     }
 
@@ -187,6 +190,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 
     @Override
     public void setOperational(boolean operational) {
+        checkMutable();
         this.operational = operational;
     }
 
@@ -196,6 +200,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     }
 
     public void setDynamic(boolean dynamic) {
+        checkMutable();
         this.dynamic = dynamic;
     }
 
@@ -221,6 +226,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
      *
      */
     public void setReadOnly() {
+        checkMutable();
         canAdd = false;
         canRead = true;
         canModify = false;
@@ -228,16 +234,19 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 
     @Override
     public void setCanRead(boolean read) {
+        checkMutable();
         this.canRead = read;
     }
 
     @Override
     public void setCanModify(boolean modify) {
+        checkMutable();
         this.canModify = modify;
     }
 
     @Override
     public void setCanAdd(boolean add) {
+        checkMutable();
         this.canAdd = add;
     }
 
@@ -256,6 +265,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     }
 
     public void setSubstitutionHead(QName substitutionHead) {
+        checkMutable();
         this.substitutionHead = substitutionHead;
     }
 
@@ -265,6 +275,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     }
 
     public void setHeterogeneousListItem(boolean heterogeneousListItem) {
+        checkMutable();
         this.heterogeneousListItem = heterogeneousListItem;
     }
 
@@ -282,6 +293,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 
     @Override
     public void setValueEnumerationRef(PrismReferenceValue valueEnumerationRef) {
+        checkMutable();
         this.valueEnumerationRef = valueEnumerationRef;
     }
 
@@ -334,11 +346,6 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
             return true;
         }
         return true;
-    }
-
-    @Override
-    public void accept(Visitor visitor) {
-        visitor.visit(this);
     }
 
     @NotNull
@@ -406,6 +413,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(getDebugDumpClassName());
+        sb.append(getMutabilityFlag());
         sb.append(":");
         sb.append(PrettyPrinter.prettyPrint(getItemName()));
         sb.append(" ");
@@ -493,6 +501,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 
     @Override
     public void setInherited(boolean inherited) {
+        checkMutable();
         this.inherited = inherited;
     }
 
@@ -503,6 +512,12 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 
     @Override
     public void setIndexOnly(boolean indexOnly) {
+        checkMutable();
         this.indexOnly = indexOnly;
+    }
+
+    @Override
+    public void replaceName(ItemName newName) {
+        itemName = newName;
     }
 }

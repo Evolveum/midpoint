@@ -64,7 +64,8 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     private String displayName;
     private String description;
     private boolean isDefault;
-    private boolean shared = true;            // experimental
+    private boolean shared = true;            // experimental - will be probably removed soon (replaced by immutable)
+    private boolean immutable;
     @NotNull private final List<RefinedAttributeDefinition<?>> primaryIdentifiers = new ArrayList<>();
     @NotNull private final List<RefinedAttributeDefinition<?>> secondaryIdentifiers = new ArrayList<>();
     @NotNull private final List<ResourceObjectPattern> protectedObjectPatterns = new ArrayList<>();
@@ -605,7 +606,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     //endregion
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor<Definition> visitor) {
         visitor.visit(this);
         originalObjectClassDefinition.accept(visitor);
 
@@ -618,6 +619,24 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         for (RefinedAssociationDefinition associationDefinition : associationDefinitions) {
             associationDefinition.accept(visitor);
         }
+    }
+
+    //TODO reconsider this
+    @Override
+    public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
+        visitor.visit(this);
+        originalObjectClassDefinition.accept(visitor, visitation);
+
+        for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+            auxiliaryObjectClassDefinition.accept(visitor, visitation);
+        }
+        for (RefinedAttributeDefinition<?> attributeDefinition : attributeDefinitions) {
+            attributeDefinition.accept(visitor, visitation);
+        }
+        for (RefinedAssociationDefinition associationDefinition : associationDefinitions) {
+            associationDefinition.accept(visitor);
+        }
+        return true;
     }
 
     //region Cloning ========================================================
@@ -1118,10 +1137,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
             if (rAttrDef.isDisplayNameAttribute()) {
                 displayNameAttributeDefinition = rAttrDef;
             }
-
         }
-
-
     }
 
     private void processIdentifiers(RefinedAttributeDefinition rAttrDef, ObjectClassComplexTypeDefinition objectClassDef) {
@@ -1182,7 +1198,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(_this.getDebugDumpClassName()).append("(");
+        sb.append(_this.getDebugDumpClassName()).append(_this.getMutabilityFlag()).append("(");
         sb.append(SchemaDebugUtil.prettyPrint(_this.getTypeName()));
         if (_this.isDefault()) {
             sb.append(",default");
@@ -1225,9 +1241,9 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     @Override
     public String toString() {
         if (getKind() == null) {
-            return getDebugDumpClassName() + "("+PrettyPrinter.prettyPrint(getTypeName())+")";
+            return getDebugDumpClassName() + getMutabilityFlag() + "("+PrettyPrinter.prettyPrint(getTypeName())+")";
         } else {
-            return getDebugDumpClassName() + "("+getKind()+":"+getIntent()+"="+PrettyPrinter.prettyPrint(getTypeName())+")";
+            return getDebugDumpClassName() + getMutabilityFlag() + "("+getKind()+":"+getIntent()+"="+PrettyPrinter.prettyPrint(getTypeName())+")";
         }
     }
 
@@ -1434,5 +1450,17 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         return null;
     }
 
+    @Override
+    public boolean isImmutable() {
+        return immutable;
+    }
 
+    @Override
+    public void freeze() {
+        attributeDefinitions.forEach(Freezable::freeze);
+        associationDefinitions.forEach(Freezable::freeze);
+        originalObjectClassDefinition.freeze();                             // TODO really?
+        auxiliaryObjectClassDefinitions.forEach(Freezable::freeze);
+        this.immutable = true;
+    }
 }

@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -477,7 +478,7 @@ public class ObjectImporter {
                 return;
             }
             try {
-                connectorSchema = prismContext.schemaFactory().createPrismSchema();
+                connectorSchema = prismContext.schemaFactory().createPrismSchema(DOMUtil.getSchemaTargetNamespace(connectorSchemaElement));
                 connectorSchema.parseThis(connectorSchemaElement, true, "schema for " + connector, prismContext);
             } catch (SchemaException e) {
                 result.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);
@@ -535,7 +536,7 @@ public class ObjectImporter {
         }
 
         try {
-            prismContext.schemaFactory().createPrismSchema()
+            prismContext.schemaFactory().createPrismSchema(DOMUtil.getSchemaTargetNamespace(xsdElement))
                     .parseThis(xsdElement, true, schemaName, prismContext);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema integrity check: " + e.getMessage(), e);

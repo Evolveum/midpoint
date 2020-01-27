@@ -8,17 +8,11 @@ package com.evolveum.midpoint.gui.impl.prism;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -127,4 +121,25 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
         return oldObject;
     }
 
+    @Override
+    public boolean isImmutable() {
+        // TODO
+        return false;
+    }
+
+    @Override
+    public void freeze() {
+        // TODO
+    }
+
+    @Override
+    public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
+        // TODO
+        return false;
+    }
+
+    @Override
+    public void accept(Visitor<Definition> visitor) {
+        // TODO
+    }
 }
