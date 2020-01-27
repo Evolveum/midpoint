@@ -73,7 +73,7 @@ public class UnknownNodeValidationTest {
 
     @Test
     public void elementInObject() throws Exception {
-        validateNodeFailure("ElementInObject", "connector-element.xml", "");
+        validateNodeFailure("ElementInObject", "object-element.xml", "");
     }
 
     @Test
@@ -83,7 +83,7 @@ public class UnknownNodeValidationTest {
 
     @Test
     public void elementInConnector() throws Exception {
-        validateNodeFailure("ElementInConnector", "object-element.xml", "");
+        validateNodeFailure("ElementInConnector", "connector-element.xml", "");
     }
 
     protected void validateNodeFailure(String name, String file, String expected) throws Exception {
