@@ -173,7 +173,6 @@
     </repositories>
 
     <modules>
-        <module>build-tools</module>
         <module>build-system</module>
         <module>tools</module>
         <module>infra</module>

@@ -1727,16 +1727,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>${checkstyle.version}</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.evolveum.midpoint</groupId>
-                        <artifactId>build-tools</artifactId>
-                        <version>${project.version}</version>
-                    </dependency>
-                </dependencies>
                 <configuration>
-                    <configLocation>midpoint-build/checkstyle.xml</configLocation>
-                    <suppressionsLocation>midpoint-build/checkstyle-suppressions.xml</suppressionsLocation>
+                    <configLocation>${maven.multiModuleProjectDirectory}/build-system/checkstyle-configs/checkstyle.xml</configLocation>
+                    <suppressionsLocation>${maven.multiModuleProjectDirectory}/build-system/checkstyle-configs/checkstyle-suppressions.xml</suppressionsLocation>
                     <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
