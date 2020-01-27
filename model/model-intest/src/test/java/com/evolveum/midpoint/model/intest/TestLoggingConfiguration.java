@@ -6,9 +6,10 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.cast;
-import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.cast;
+import static com.evolveum.midpoint.test.IntegrationTestTools.LOGGER;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -20,10 +21,6 @@ import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.RollingPolicy;
 import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -34,6 +31,9 @@ import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -42,16 +42,17 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLoggingConfiguration extends AbstractConfiguredModelIntegrationTest {
 
-    private final String JUL_LOGGER_NAME = "com.example.jul.logger";
+    private static final String JUL_LOGGER_NAME = "com.example.jul.logger";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -71,7 +72,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
         PrismObject<SystemConfigurationType> systemConfiguration = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_FILE);
-        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         ObjectDelta<SystemConfigurationType> systemConfigurationAddDelta = DeltaFactory.Object.createAddDelta(systemConfiguration);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigurationAddDelta);
@@ -89,7 +90,6 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
     }
 
-
     @Test
     public void test002InitialConfiguration() throws Exception {
         final String TEST_NAME = "test002InitialConfiguration";
@@ -98,7 +98,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
         // GIVEN
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<SystemConfigurationType> systemConfiguration = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_FILE);
@@ -111,7 +111,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
         modelSubSystemLogger.setLevel(LoggingLevelType.TRACE);
         logging.getSubSystemLogger().add(modelSubSystemLogger);
 
-        Collection<? extends ItemDelta> modifications = prismContext.deltaFor(SystemConfigurationType.class)
+        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
                 .item(SystemConfigurationType.F_LOGGING)
                 .replace(logging.asPrismContainerValue().clone())
                 .asItemDeltas();
@@ -152,7 +152,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
         // GIVEN
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<SystemConfigurationType> systemConfiguration = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value());
@@ -184,7 +184,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
         PrismObject<SystemConfigurationType> systemConfigurationNew = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value());
         String newVersion = systemConfigurationNew.getVersion();
-        assertTrue("Versions do not follow: "+previousVersion+" -> "+newVersion,
+        assertTrue("Versions do not follow: " + previousVersion + " -> " + newVersion,
                 Integer.parseInt(previousVersion) < Integer.parseInt(newVersion));
 
     }
@@ -197,7 +197,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
         // GIVEN
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // Precondition
@@ -210,7 +210,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
         // Setup
         PrismObject<SystemConfigurationType> systemConfiguration =
-            PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
+                PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
         LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 
         applyTestLoggingConfig(logging);
@@ -250,7 +250,6 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
         tailer.close();
 
     }
-
 
     @Test
     public void test020JulLoggingDisabled() throws Exception {
@@ -293,12 +292,12 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
         java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(JUL_LOGGER_NAME);
 
-        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // Setup
         PrismObject<SystemConfigurationType> systemConfiguration =
-            PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
+                PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
         LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 
         applyTestLoggingConfig(logging);
@@ -306,7 +305,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
         ClassLoggerConfigurationType classLoggerConfig = new ClassLoggerConfigurationType();
         classLoggerConfig.setPackage(JUL_LOGGER_NAME);
         classLoggerConfig.setLevel(LoggingLevelType.ALL);
-        logging.getClassLogger().add(classLoggerConfig );
+        logging.getClassLogger().add(classLoggerConfig);
 
         ObjectDelta<SystemConfigurationType> systemConfigDelta = prismContext.deltaFactory().object().createModificationReplaceContainer(SystemConfigurationType.class,
                 AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING,
@@ -350,14 +349,14 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
         // ICF logging is prefixing the messages;
         tailer.setAllowPrefix(true);
 
-        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         importObjectFromFile(RESOURCE_DUMMY_FILE, result);
 
         // Setup
         PrismObject<SystemConfigurationType> systemConfiguration =
-            PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
+                PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
         LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 
         applyTestLoggingConfig(logging);
@@ -365,7 +364,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
         ClassLoggerConfigurationType classLogerCongif = new ClassLoggerConfigurationType();
         classLogerCongif.setPackage(DummyConnector.class.getPackage().getName());
         classLogerCongif.setLevel(LoggingLevelType.ALL);
-        logging.getClassLogger().add(classLogerCongif );
+        logging.getClassLogger().add(classLogerCongif);
 
         ObjectDelta<SystemConfigurationType> systemConfigDelta = prismContext.deltaFactory().object().createModificationReplaceContainer(SystemConfigurationType.class,
                 AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING,
@@ -409,7 +408,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
         // GIVEN
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
-        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test101EnableBasicAudit");
+        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + ".test101EnableBasicAudit");
         OperationResult result = task.getResult();
 
         // Precondition
@@ -472,7 +471,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
         TestUtil.displayTestTitle("test110SetMaxHistory");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test101EnableBasicAudit");
+        Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName() + ".test101EnableBasicAudit");
         OperationResult result = task.getResult();
 
         // Setup
@@ -510,7 +509,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
         RollingPolicy rollingPolicy = fileAppender.getRollingPolicy();
         System.out.println("Rolling policy = " + rollingPolicy);
         assertTrue("Wrong type of rolling policy", rollingPolicy instanceof TimeBasedRollingPolicy);
-        TimeBasedRollingPolicy timeBasedRollingPolicy = (TimeBasedRollingPolicy) rollingPolicy;
+        TimeBasedRollingPolicy<?> timeBasedRollingPolicy = (TimeBasedRollingPolicy<?>) rollingPolicy;
         assertEquals("Wrong maxHistory", 100, timeBasedRollingPolicy.getMaxHistory());
     }
 

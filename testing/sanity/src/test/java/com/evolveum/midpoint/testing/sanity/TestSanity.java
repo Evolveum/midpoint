@@ -314,7 +314,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private int lastSyncToken;
 
-    @Autowired(required = true)
+    @Autowired
     private MatchingRuleRegistry matchingRuleRegistry;
 
     // This will get called from the superclass to init the repository
@@ -4086,11 +4086,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 }
                 int tokenNow = findSyncToken(syncCycle);
                 display("tokenNow = " + tokenNow);
-                if (tokenNow >= tokenBefore + increment) {
-                    return true;
-                } else {
-                    return false;
-                }
+
+                return tokenNow >= tokenBefore + increment;
             }
 
             @Override
@@ -4102,9 +4099,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private void setAssignmentEnforcement(AssignmentPolicyEnforcementType enforcementType) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         assumeAssignmentPolicy(enforcementType);
-//        AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-//        syncSettings.setAssignmentPolicyEnforcement(enforcementType);
-//        applySyncSettings(SystemConfigurationType.class, syncSettings);
     }
 
     private void assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType assignmentPolicy) throws

@@ -67,7 +67,7 @@ public class TestRbac extends AbstractRbacTest {
     private String userRedskullOid;
     private String userBignoseOid;
 
-    private final String EXISTING_GOSSIP = "Black spot!";
+    private static final String EXISTING_GOSSIP = "Black spot!";
 
     private String accountJackRedOid;
 
