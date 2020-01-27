@@ -9,12 +9,6 @@ package com.evolveum.midpoint.report.impl;
 import java.io.File;
 import java.io.Serializable;
 
-import com.evolveum.midpoint.schema.util.ReportTypeUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import net.sf.jasperreports.compilers.JRGroovyGenerator;
 import net.sf.jasperreports.crosstabs.JRCrosstab;
 import net.sf.jasperreports.engine.JRDataset;
 import net.sf.jasperreports.engine.JRException;
@@ -23,11 +17,10 @@ import net.sf.jasperreports.engine.JasperReportsContext;
 import net.sf.jasperreports.engine.design.JRAbstractCompiler;
 import net.sf.jasperreports.engine.design.JRCompilationSourceCode;
 import net.sf.jasperreports.engine.design.JRCompilationUnit;
-import net.sf.jasperreports.engine.design.JRCompiler;
-import net.sf.jasperreports.engine.design.JRDefaultCompilationSourceCode;
 import net.sf.jasperreports.engine.design.JRSourceCompileTask;
-import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.fill.JREvaluator;
+
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 
 /**
  * Custom expression compiler for JasperReports. This class is used to direct all expression execution
@@ -38,12 +31,6 @@ import net.sf.jasperreports.engine.fill.JREvaluator;
  */
 public class JRMidpointCompiler extends JRAbstractCompiler {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(JRMidpointCompiler.class);
-
-    /**
-     * @param jasperReportsContext
-     * @param needsSourceFiles
-     */
     public JRMidpointCompiler(JasperReportsContext jasperReportsContext) {
         super(jasperReportsContext, false);
     }

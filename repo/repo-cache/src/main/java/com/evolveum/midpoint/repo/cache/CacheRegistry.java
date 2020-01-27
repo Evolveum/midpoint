@@ -8,27 +8,22 @@ package com.evolveum.midpoint.repo.cache;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.Cacheable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachesStateInformationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CacheListener;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.repo.api.Cacheable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachesStateInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 @Component
 public class CacheRegistry implements CacheListener {
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(CacheListener.class);
 
     private List<Cacheable> cacheableServices = new ArrayList<>();
 

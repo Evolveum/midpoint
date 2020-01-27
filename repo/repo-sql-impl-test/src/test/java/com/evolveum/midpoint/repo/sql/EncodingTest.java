@@ -48,7 +48,7 @@ public class EncodingTest extends BaseSQLRepoTest {
      * Long text with national characters. This is used to test whether the database can store a long text
      * and that it maintains national characters.
      */
-    public static String POLICIJA =
+    public static final String POLICIJA =
             "\u013e\u0161\u010d\u0165\u017e\u00fd\u00e1\u00ed\u00e9\u013d\u0139\u00c1\u00c9\n" +
                     "P\u00f3lic\u00edja, p\u00f3lic\u00edja, S\u00e1la\u0161\u00e1ry, pr\u00e1va Jova. Z c\u00e9sty pr\u00edva, z c\u00e9sty pr\u00e1va, s\u00fdmpatika, korpora. \n" +
                     "Popul\u00e1ry, Karpatula. Juv\u00e1 svorno polic\u00e1na. Kerl\u00e9\u0161 na strach, polic\u00edja. Bumtar\u00e1ra, bumtar\u00e1ra, bum. \n" +
@@ -610,7 +610,7 @@ public class EncodingTest extends BaseSQLRepoTest {
         result.recordSuccessIfUnknown();
     }
 
-    private <T> void assertMultivalue(String message, T expectedVals[], Collection<T> actualVals, OperationResult result) {
+    private <T> void assertMultivalue(String message, T[] expectedVals, Collection<T> actualVals, OperationResult result) {
         if (expectedVals.length != actualVals.size()) {
             fail(message + ": expected " + expectedVals.length + " values but has " + actualVals.size() + " values: " + actualVals, result);
             return;
@@ -654,7 +654,7 @@ public class EncodingTest extends BaseSQLRepoTest {
         AssertJUnit.fail(message);
     }
 
-    private void assertMultivaluePolyString(String message, String expectedOrigs[], Collection<PolyString> actualPolyStrings, OperationResult result) {
+    private void assertMultivaluePolyString(String message, String[] expectedOrigs, Collection<PolyString> actualPolyStrings, OperationResult result) {
         if (expectedOrigs.length != actualPolyStrings.size()) {
             fail(message + ": expected " + expectedOrigs.length + " values but has " + actualPolyStrings.size() + " values: " + actualPolyStrings, result);
             return;

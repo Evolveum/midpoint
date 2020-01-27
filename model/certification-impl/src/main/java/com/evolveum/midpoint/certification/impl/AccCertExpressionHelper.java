@@ -40,22 +40,10 @@ import java.util.List;
 @Component
 public class AccCertExpressionHelper {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AccCertExpressionHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccCertExpressionHelper.class);
 
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
-
-//    public <T> List<T> evaluateExpressionChecked(Class<T> resultClass, ExpressionType expressionType, ExpressionVariables expressionVariables,
-//                                                  String shortDesc, Task task, OperationResult result) {
-//
-//        try {
-//            return evaluateExpression(resultClass, expressionType, expressionVariables, shortDesc, task, result);
-//        } catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-//            LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
-//            result.recordFatalError("Couldn't evaluate " + shortDesc, e);
-//            throw new SystemException(e);
-//        }
-//    }
 
     @SuppressWarnings("SameParameterValue")
     private <T> List<T> evaluateExpression(Class<T> resultClass, ExpressionType expressionType, ExpressionVariables expressionVariables,

@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.wf.impl.processes.common;
 
 import com.evolveum.midpoint.model.impl.trigger.MultipleTriggersHandler;
@@ -57,7 +56,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 
     public static final String HANDLER_URI = WorkflowConstants.NS_WORKFLOW_TRIGGER_PREFIX + "/timed-action/handler-3";
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(WfTimedActionTriggerHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(WfTimedActionTriggerHandler.class);
 
     @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
     @Autowired private WorkItemManager workItemManager;

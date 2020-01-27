@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
  */
 public class MockCycleTaskHandler implements TaskHandler {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MockCycleTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MockCycleTaskHandler.class);
     private final boolean finishTheHandler;
 
     public MockCycleTaskHandler(boolean finishTheHandler) {

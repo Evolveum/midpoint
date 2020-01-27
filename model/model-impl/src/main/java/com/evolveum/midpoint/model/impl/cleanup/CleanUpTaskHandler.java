@@ -44,7 +44,7 @@ public class CleanUpTaskHandler implements TaskHandler {
     @Autowired(required = false)
     private ReportManager reportManager;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(CleanUpTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CleanUpTaskHandler.class);
 
     @PostConstruct
     private void initialize() {

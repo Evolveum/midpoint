@@ -35,7 +35,7 @@ import java.util.Map;
 @Component
 public class HttpHeaderModuleFactory extends AbstractModuleFactory {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(HttpHeaderModuleFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(HttpHeaderModuleFactory.class);
 
 //    @Autowired
 //    private AuthenticationProvider midPointAuthenticationProvider;

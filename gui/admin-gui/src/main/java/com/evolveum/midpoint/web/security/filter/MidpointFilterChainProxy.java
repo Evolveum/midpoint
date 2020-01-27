@@ -27,7 +27,7 @@ import java.util.List;
 
 public class MidpointFilterChainProxy extends FilterChainProxy {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MidpointFilterChainProxy.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MidpointFilterChainProxy.class);
 
     private final static String FILTER_APPLIED = MidpointFilterChainProxy.class.getName().concat(
             ".APPLIED");

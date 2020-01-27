@@ -46,7 +46,7 @@ import static org.testng.AssertJUnit.assertTrue;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestWorkersManagement extends AbstractTaskManagerTest {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestWorkersManagement.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestWorkersManagement.class);
     private static final long DEFAULT_SLEEP_INTERVAL = 250L;
     private static final long DEFAULT_TIMEOUT = 30000L;
 

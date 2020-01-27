@@ -13,27 +13,19 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerColumnHeaderPanel;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperHeaderModel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 /**
  * @author katka
- *
  */
 public class PrismContainerWrapperColumn<C extends Containerable> extends AbstractItemWrapperColumn<C, PrismContainerValueWrapper<C>>{
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperColumn.class);
-
     private static final long serialVersionUID = 1L;
-
-    private static final String ID_HEADER = "header";
 
     private PageBase pageBase;
 

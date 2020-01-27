@@ -51,7 +51,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
     @Autowired private PrismContext prismContext;
     @Autowired private SyncTaskHelper helper;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(LiveSyncTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LiveSyncTaskHandler.class);
 
     @PostConstruct
     private void initialize() {

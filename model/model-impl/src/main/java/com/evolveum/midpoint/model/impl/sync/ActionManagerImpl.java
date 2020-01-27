@@ -29,7 +29,8 @@ import java.util.Map;
  */
 public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 
-    private static transient Trace trace = TraceManager.getTrace(ActionManagerImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ActionManagerImpl.class);
+
     private Map<String, Class<T>> actionMap;
     private Clockwork clockwork;
     private ChangeExecutor changeExecutor;
@@ -67,7 +68,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
                 baseAction.setModelObjectResolver(modelObjectResolver);
             }
         } catch (Exception ex) {
-            LoggingUtils.logException(trace, "Couldn't create action instance", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't create action instance", ex);
         }
 
         return action;

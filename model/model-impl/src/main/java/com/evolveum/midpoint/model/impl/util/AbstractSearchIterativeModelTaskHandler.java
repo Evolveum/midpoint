@@ -63,7 +63,7 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
     @Autowired protected ExpressionFactory expressionFactory;
     @Autowired protected SystemObjectCache systemObjectCache;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeModelTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeModelTaskHandler.class);
 
     protected AbstractSearchIterativeModelTaskHandler(String taskName, String taskOperationPrefix) {
         super(taskName, taskOperationPrefix);

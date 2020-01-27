@@ -54,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMachineIntelligence extends AbstractStoryTest {
 
-    public static Trace LOGGER = TraceManager.getTrace(TestMachineIntelligence.class);
+    public static final Trace LOGGER = TraceManager.getTrace(TestMachineIntelligence.class);
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "machineintelligence");
 

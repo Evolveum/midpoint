@@ -50,7 +50,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
     private static final String CLASS_DOT = ResourceRelatedHandlerDto.class.getName() + ".";
     private static final String OPERATION_LOAD_RESOURCE = CLASS_DOT + "loadResource";
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ResourceRelatedHandlerDto.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceRelatedHandlerDto.class);
 
     private boolean dryRun;
     private ShadowKindType kind;

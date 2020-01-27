@@ -39,7 +39,7 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
     @Autowired private TaskManager taskManager;
     @Autowired private ScriptingService scriptingService;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(IterativeScriptExecutionTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(IterativeScriptExecutionTaskHandler.class);
 
     public IterativeScriptExecutionTaskHandler() {
         super("Execute script", OperationConstants.EXECUTE_SCRIPT);

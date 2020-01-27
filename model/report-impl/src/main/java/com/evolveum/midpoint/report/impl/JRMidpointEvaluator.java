@@ -37,7 +37,7 @@ import net.sf.jasperreports.engine.fill.JRFillVariable;
  */
 public class JRMidpointEvaluator extends JREvaluator {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(JRMidpointEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(JRMidpointEvaluator.class);
 
     private Serializable compileData = null;
     private String unitName = null;

@@ -16,8 +16,6 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
@@ -61,11 +59,7 @@ import java.util.List;
                         description = "PageTasks.auth.tasks.description")})
 public class PageTasks extends PageAdmin {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(PageTasks.class);
-
     private static final String ID_TABLE = "table";
-
-    private static final String DOT_CLASS = PageTasks.class.getName() + ".";
 
     public static final String SELECTED_CATEGORY = "category";
 

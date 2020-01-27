@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -29,11 +28,10 @@ import java.sql.*;
 /**
  * @author Pavol Mederly
  */
-
 @Component
 public class JdbcPingTaskHandler implements TaskHandler {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(JdbcPingTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(JdbcPingTaskHandler.class);
     public static final String HANDLER_URI = TaskConstants.JDBC_PING_HANDLER_URI;
 
     @Autowired

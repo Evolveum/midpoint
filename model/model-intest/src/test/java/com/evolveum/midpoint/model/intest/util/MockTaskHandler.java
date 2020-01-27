@@ -34,7 +34,7 @@ public class MockTaskHandler implements TaskHandler {
 
     @Autowired private TaskManager taskManager;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MockTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MockTaskHandler.class);
 
     @PostConstruct
     private void initialize() {

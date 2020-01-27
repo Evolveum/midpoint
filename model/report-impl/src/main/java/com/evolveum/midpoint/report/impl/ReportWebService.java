@@ -61,7 +61,7 @@ public class ReportWebService extends AbstractModelWebService implements ReportP
     private static final String OP_EVALUATE_AUDIT_SCRIPT = ReportWebService.class.getName() + ".evaluateAuditScript";
     private static final String OP_PROCESS_REPORT = ReportWebService.class.getName() + ".processReport";
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ReportWebService.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ReportWebService.class);
 
     @Autowired private PrismContext prismContext;
     @Autowired private ReportService reportService;

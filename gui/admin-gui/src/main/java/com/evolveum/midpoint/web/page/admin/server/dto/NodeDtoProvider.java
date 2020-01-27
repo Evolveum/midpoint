@@ -27,7 +27,7 @@ import java.util.*;
  */
 public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(NodeDtoProvider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(NodeDtoProvider.class);
     private static final String DOT_CLASS = NodeDtoProvider.class.getName() + ".";
     private static final String OPERATION_LIST_NODES = DOT_CLASS + "listNodes";
     private static final String OPERATION_COUNT_NODES = DOT_CLASS + "countNodes";

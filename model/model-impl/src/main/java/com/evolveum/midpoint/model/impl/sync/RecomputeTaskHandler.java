@@ -63,7 +63,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
     @Autowired private ContextFactory contextFactory;
     @Autowired private Clockwork clockwork;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(RecomputeTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RecomputeTaskHandler.class);
 
     public RecomputeTaskHandler() {
         super("Recompute", OperationConstants.RECOMPUTE);

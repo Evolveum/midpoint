@@ -6,14 +6,12 @@
  */
 package com.evolveum.midpoint.gui;
 
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
-import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_OID;
 
 import java.io.File;
 
-import com.evolveum.midpoint.web.component.objectdetails.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,7 +23,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
-import com.evolveum.midpoint.gui.impl.prism.PrismObjectValuePanel;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -33,9 +30,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
-import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
+import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeDetailsTabPanel;
+import com.evolveum.midpoint.web.component.objectdetails.ObjectHistoryTabPanel;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -44,14 +41,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * @author katka
  * @author skublik
- *
  */
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestPageUser.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestPageUser.class);
 
     private static final String TAB_MAIN = "mainPanel:mainForm:tabPanel:panel:main";
     private static final String TAB_ACTIVATION = "mainPanel:mainForm:tabPanel:panel:activation";
@@ -70,7 +66,6 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public static final File CONNECTOR_CSV_FILE = new File(COMMON_DIR, "connector-csv.xml");
     public static final File RESOURCE_CSV_FAKE_FILE = new File(COMMON_DIR, "resource-csv-fake.xml");
     public static final File SHADOW_RESOURCE_CSV_FAKE_FILE = new File(COMMON_DIR, "shadow-resource-csv-fake.xml");
-
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -113,8 +108,6 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
         formTester.setValue(PATH_PASSWORD_NEW_REPEAT, "n3wP4ss");
 
         formTester = formTester.submit(FORM_SAVE);
-
-
 
         Thread.sleep(5000);
 
@@ -215,7 +208,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
 
     private PageUser renderPageWithParams(PageParameters params) {
         LOGGER.info("render page user");
-        if(params == null) {
+        if (params == null) {
             params = new PageParameters();
         }
         PageUser pageUser = tester.startPage(PageUser.class, params);

@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.execution.remote;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -42,10 +41,9 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Pavol Mederly
  */
-
 public class JmxConnector {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(JmxConnector.class);
+    private static final Trace LOGGER = TraceManager.getTrace(JmxConnector.class);
 
     private TaskManagerQuartzImpl taskManager;
 

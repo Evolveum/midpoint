@@ -3850,9 +3850,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSteadyResource();
     }
 
-    protected final String WILL_GOSSIP_AVAST = "Aye! Avast!";
-    protected final String WILL_GOSSIP_BLOOD_OF_A_PIRATE = "Blood of a pirate";
-    protected final String WILL_GOSSIP_EUNUCH = "Eunuch!";
+    protected static final String WILL_GOSSIP_AVAST = "Aye! Avast!";
+    protected static final String WILL_GOSSIP_BLOOD_OF_A_PIRATE = "Blood of a pirate";
+    protected static final String WILL_GOSSIP_EUNUCH = "Eunuch!";
 
     /**
      * Gossip is a multivalue attribute. Make sure that replace operations work

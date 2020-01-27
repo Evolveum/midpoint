@@ -40,7 +40,7 @@ public class TestConnectorManager extends AbstractIntegrationTest {
     @Autowired private ProvisioningService provisioningService;
     @Autowired private ConnectorManager connectorManager;
 
-    private static Trace LOGGER = TraceManager.getTrace(TestConnectorManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestConnectorManager.class);
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

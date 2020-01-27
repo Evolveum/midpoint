@@ -25,10 +25,7 @@ import java.io.IOException;
 /**
  * @author skublik
  */
-
 public class RedirectForLoginPagesWithAuthenticationFilter extends OncePerRequestFilter {
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(RedirectForLoginPagesWithAuthenticationFilter.class);
 
     private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
