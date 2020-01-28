@@ -10,6 +10,7 @@ import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -38,6 +39,7 @@ public class RReportOutput extends RObject<ReportOutputType> {
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
     })
     @Embedded
+    @NeverNull
     public RPolyString getNameCopy() {
         return nameCopy;
     }

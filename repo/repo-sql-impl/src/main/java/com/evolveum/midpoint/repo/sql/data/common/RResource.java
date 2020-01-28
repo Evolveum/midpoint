@@ -14,6 +14,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RResourceAdministrativeState;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -87,6 +88,7 @@ public class RResource extends RObject<ResourceType> {
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
     })
     @Embedded
+    @NeverNull
     public RPolyString getNameCopy() {
         return nameCopy;
     }
