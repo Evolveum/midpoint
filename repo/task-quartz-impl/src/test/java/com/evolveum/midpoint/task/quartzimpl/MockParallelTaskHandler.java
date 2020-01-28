@@ -36,10 +36,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class MockParallelTaskHandler implements TaskHandler {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MockParallelTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MockParallelTaskHandler.class);
     public static final int NUM_SUBTASKS = 500;
-    public static String NS_EXT = "http://myself.me/schemas/whatever";
-    public static ItemName DURATION_QNAME = new ItemName(NS_EXT, "duration", "m");
+    public static final String NS_EXT = "http://myself.me/schemas/whatever";
+    public static final ItemName DURATION_QNAME = new ItemName(NS_EXT, "duration", "m");
     private final PrismPropertyDefinition durationDefinition;
 
     private TaskManagerQuartzImpl taskManager;

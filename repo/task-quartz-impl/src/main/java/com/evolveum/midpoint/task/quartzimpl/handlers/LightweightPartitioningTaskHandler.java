@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.repo.api.CounterManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -34,7 +33,6 @@ import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.InternalTaskInterface;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.execution.HandlerExecutor;
-import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -48,12 +46,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
 
 /**
  * @author katka
- *
  */
 @Component
 public class LightweightPartitioningTaskHandler implements TaskHandler {
 
-    private static final transient Trace LOGGER  = TraceManager.getTrace(LightweightPartitioningTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LightweightPartitioningTaskHandler.class);
 
     private static final String HANDLER_URI = TaskConstants.LIGHTWEIGTH_PARTITIONING_TASK_HANDLER_URI;
 

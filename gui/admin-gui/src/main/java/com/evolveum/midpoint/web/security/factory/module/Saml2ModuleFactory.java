@@ -49,7 +49,7 @@ import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 @Component
 public class Saml2ModuleFactory extends AbstractModuleFactory {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(Saml2ModuleFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(Saml2ModuleFactory.class);
 
     @Autowired
     private Protector protector;

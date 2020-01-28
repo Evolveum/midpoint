@@ -60,7 +60,7 @@ import java.util.*;
  */
 public class NodeRegistrar {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(NodeRegistrar.class);
+    private static final Trace LOGGER = TraceManager.getTrace(NodeRegistrar.class);
     private static final int SECRET_LENGTH = 20;
     private static final long SECRET_RENEWAL_PERIOD = 86400L * 1000L * 10L;
 

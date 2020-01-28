@@ -48,7 +48,7 @@ public class JobExecutor implements InterruptableJob {
         taskManagerImpl = managerImpl;
     }
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(JobExecutor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(JobExecutor.class);
 
     private static final long WATCHFUL_SLEEP_INCREMENT = 500;
 

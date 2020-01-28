@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
@@ -23,7 +22,7 @@ import java.util.List;
  */
 public class JobStarter implements Job {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(JobStarter.class);
+    private static final Trace LOGGER = TraceManager.getTrace(JobStarter.class);
 
     private static final String REDIRECT_FLAG = "redirected";
     public static final String TASK_OID = "oid";

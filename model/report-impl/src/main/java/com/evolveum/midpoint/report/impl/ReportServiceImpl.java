@@ -87,7 +87,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 @Component
 public class ReportServiceImpl implements ReportService {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ReportServiceImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ReportServiceImpl.class);
 
     @Autowired private ModelService model;
     @Autowired private TaskManager taskManager;

@@ -51,7 +51,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 
     private static final long serialVersionUID = 1L;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ItemWrapperImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ItemWrapperImpl.class);
 
     private PrismContainerValueWrapper<?> parent;
 

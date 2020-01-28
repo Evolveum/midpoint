@@ -38,12 +38,11 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
  * @author katka
- *
  */
 @Component
 public class HeterogenousContainerWrapperFactory<C extends Containerable> implements PrismContainerWrapperFactory<C> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(HeterogenousContainerWrapperFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(HeterogenousContainerWrapperFactory.class);
 
     @Autowired private GuiComponentRegistry registry;
 
@@ -121,8 +120,6 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
 
     protected List<PrismContainerValueWrapper<C>> createValuesWrapper(PrismContainerWrapper<C> itemWrapper, PrismContainer<C> item, WrapperContext context) throws SchemaException {
         List<PrismContainerValueWrapper<C>> pvWrappers = new ArrayList<>();
-
-//        PrismContainerDefinition<C> definition = item.getDefinition();
 
         if (item.getValues() == null || item.getValues().isEmpty()) {
             PrismContainerValueWrapper<C> valueWrapper = createValueWrapper(itemWrapper, item.createNewValue(), ValueStatus.ADDED, context);

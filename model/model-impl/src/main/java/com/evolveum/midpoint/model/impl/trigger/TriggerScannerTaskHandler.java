@@ -57,7 +57,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
     public static final String HANDLER_URI = ModelPublicConstants.TRIGGER_SCANNER_TASK_HANDLER_URI;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TriggerScannerTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TriggerScannerTaskHandler.class);
 
     @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
 

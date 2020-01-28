@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConstructionWrapperFactory extends AssignmentDetailsWrapperFactoryImpl<ConstructionType> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ConstructionWrapperFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ConstructionWrapperFactory.class);
 
     @Autowired private ModelService model;
 

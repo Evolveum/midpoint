@@ -43,7 +43,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -68,7 +67,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CheckExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordLifeTimeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProhibitedValueItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProhibitedValuesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringLimitType;
@@ -91,12 +89,11 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  *  @author mamut
  *  @author semancik
  */
-
 @Component
 public class ValuePolicyProcessor {
 
     private static final String OP_GENERATE = ValuePolicyProcessor.class.getName() + ".generate";
-    private static final transient Trace LOGGER = TraceManager.getTrace(ValuePolicyProcessor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ValuePolicyProcessor.class);
 
     private static final Random RAND = new Random(System.currentTimeMillis());
 

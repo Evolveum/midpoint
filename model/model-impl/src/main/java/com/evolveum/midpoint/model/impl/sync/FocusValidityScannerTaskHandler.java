@@ -103,7 +103,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
         return !oids.add(objectOid);
     }
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(FocusValidityScannerTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(FocusValidityScannerTaskHandler.class);
 
     public FocusValidityScannerTaskHandler() {
         super(FocusType.class, "Focus validity scan", OperationConstants.FOCUS_VALIDITY_SCAN);

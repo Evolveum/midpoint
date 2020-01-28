@@ -76,7 +76,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public class TestUcfDummy extends AbstractUcfDummyTest {
 
-    private static Trace LOGGER = TraceManager.getTrace(TestUcfDummy.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestUcfDummy.class);
 
     @Test
     public void test000PrismContextSanity() throws Exception {

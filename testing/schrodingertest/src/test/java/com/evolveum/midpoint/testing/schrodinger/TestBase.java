@@ -42,7 +42,7 @@ public abstract class TestBase {
     protected static final String CSV_RESOURCE_ATTR_UNIQUE= "Unique attribute name";
 
     private static final Logger LOG = LoggerFactory.getLogger(TestBase.class);
-    protected static File CSV_TARGET_DIR;
+    protected static File csvTargetDir;
 
     protected MidPoint midPoint;
     protected BasicPage basicPage;
@@ -146,19 +146,19 @@ public abstract class TestBase {
         String home = fetchMidpointHome();
         File parentDir = new File(home, "schrodinger");
         parentDir.mkdir();
-        CSV_TARGET_DIR = new File(parentDir, dir);
+        csvTargetDir = new File(parentDir, dir);
 
-        if (CSV_TARGET_DIR.mkdir()) {
+        if (csvTargetDir.mkdir()) {
 
-            return CSV_TARGET_DIR;
+            return csvTargetDir;
         } else {
-            if (CSV_TARGET_DIR.exists()) {
+            if (csvTargetDir.exists()) {
 
-                FileUtils.cleanDirectory(CSV_TARGET_DIR);
-                return CSV_TARGET_DIR;
+                FileUtils.cleanDirectory(csvTargetDir);
+                return csvTargetDir;
             } else {
 
-                throw new IOException("Creation of directory \"" + CSV_TARGET_DIR.getAbsolutePath() + "\" unsuccessful");
+                throw new IOException("Creation of directory \"" + csvTargetDir.getAbsolutePath() + "\" unsuccessful");
             }
         }
     }

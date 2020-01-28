@@ -39,7 +39,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 public class AccCertQueryHelper {
 
     @SuppressWarnings("unused")
-    private static final transient Trace LOGGER = TraceManager.getTrace(AccCertQueryHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccCertQueryHelper.class);
 
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;

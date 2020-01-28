@@ -38,7 +38,7 @@ public class TestOpenDjIncompletePassword extends TestOpenDj {
 
     protected static final File RESOURCE_OPENDJ_INCOMPLETE_PASSWORD_FILE = new File(TEST_DIR, "resource-opendj-incomplete-password.xml");
 
-    private static Trace LOGGER = TraceManager.getTrace(TestOpenDjIncompletePassword.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestOpenDjIncompletePassword.class);
 
     @Override
     protected File getResourceOpenDjFile() {

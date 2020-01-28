@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.factory;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,21 +24,14 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 
 /**
  * @author skublik
- *
  */
 @Component
-public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<ClassLoggerConfigurationType>{
-
-    private static final long serialVersionUID = 1L;
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(ProfilingClassLoggerWrapperFactoryImpl.class);
+public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<ClassLoggerConfigurationType> {
 
     @Autowired private GuiComponentRegistry registry;
 
@@ -70,7 +62,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
         PrismContainer<ClassLoggerConfigurationType> clone = childContainer.clone();
 //        clone.setElementName(PROFILING_LOGGER_PATH);
         registry.registerWrapperPanel(PROFILING_LOGGER_PATH, ProfilingClassLoggerPanel.class);
-        return new ProfilingClassLoggerContainerWrapperImpl<ClassLoggerConfigurationType>((PrismContainerValueWrapper<ClassLoggerConfigurationType>) parent, clone, status);
+        return new ProfilingClassLoggerContainerWrapperImpl<>(parent, clone, status);
     }
 
     @Override
@@ -79,7 +71,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
             throws SchemaException {
         List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> pvWrappers = new ArrayList<>();
 
-        for (PrismContainerValue<ClassLoggerConfigurationType> pcv : (List<PrismContainerValue<ClassLoggerConfigurationType>>)item.getValues()) {
+        for (PrismContainerValue<ClassLoggerConfigurationType> pcv : item.getValues()) {
             if(canCreateValueWrapper(pcv)) {
                 PrismContainerValueWrapper<ClassLoggerConfigurationType> valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
                 pvWrappers.add(valueWrapper);
@@ -89,7 +81,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
         if (pvWrappers.isEmpty()) {
             PrismContainerValue<ClassLoggerConfigurationType> prismValue = createNewValue(item);
             PrismContainerValueWrapper<ClassLoggerConfigurationType> valueWrapper =  createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
-            ((ClassLoggerConfigurationType)valueWrapper.getRealValue()).setPackage(LOGGER_PROFILING);
+            valueWrapper.getRealValue().setPackage(LOGGER_PROFILING);
             pvWrappers.add(valueWrapper);
         }
 
@@ -100,7 +92,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
     public PrismContainerValueWrapper<ClassLoggerConfigurationType> createContainerValueWrapper(PrismContainerWrapper<ClassLoggerConfigurationType> objectWrapper,
             PrismContainerValue<ClassLoggerConfigurationType> objectValue, ValueStatus status, WrapperContext context) {
 
-        ClassLoggerConfigurationType logger = (ClassLoggerConfigurationType) objectValue.getRealValue();
+        ClassLoggerConfigurationType logger = objectValue.getRealValue();
         logger.setPackage(LOGGER_PROFILING);
 
         return new ProfilingClassLoggerContainerValueWrapperImpl(objectWrapper, objectValue, status);

@@ -41,8 +41,6 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
 
     public static final String URI = AccessCertificationApiConstants.DIRECT_ASSIGNMENT_HANDLER_URI;
 
-    //private static final transient Trace LOGGER = TraceManager.getTrace(DirectAssignmentCertificationHandler.class);
-
     @PostConstruct
     public void init() {
         certificationManager.registerHandler(URI, this);

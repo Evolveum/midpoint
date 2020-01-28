@@ -74,7 +74,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 @Component
 public class AccCertOpenerHelper {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AccCertOpenerHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccCertOpenerHelper.class);
 
     @Autowired private AccCertReviewersHelper reviewersHelper;
     @Autowired private AccCertEventHelper eventHelper;

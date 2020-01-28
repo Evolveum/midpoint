@@ -31,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public class MultiPropagationResultHandler extends AbstractSearchIterativeResultHandler<ResourceType> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MultiPropagationResultHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MultiPropagationResultHandler.class);
 
     private final RepositoryService repositoryService;
     private final ShadowCache shadowCache;

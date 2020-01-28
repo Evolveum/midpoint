@@ -19,7 +19,7 @@ import java.util.*;
 @Component
 public class AuthModuleRegistryImpl {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AuthModuleRegistryImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AuthModuleRegistryImpl.class);
 
     List<AbstractModuleFactory> moduleFactories = new ArrayList<>();
 
