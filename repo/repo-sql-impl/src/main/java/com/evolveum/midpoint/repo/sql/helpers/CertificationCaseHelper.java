@@ -236,7 +236,7 @@ public class CertificationCaseHelper {
         for (ItemDelta delta : modifications) {
             ItemPath deltaPath = delta.getPath();
             if (deltaPath.size() > 1) {
-                LOGGER.trace("Updating campaign " + campaignOid + " with delta " + delta);
+                LOGGER.trace("Updating campaign {} with delta {}", campaignOid, delta);
 
                 // should start with "case[id]"
                 long id = checkPathSanity(deltaPath, casesAddedOrDeleted);
