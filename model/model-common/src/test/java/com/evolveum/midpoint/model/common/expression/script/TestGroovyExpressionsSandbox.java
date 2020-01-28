@@ -59,7 +59,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 
         // WHEN
         evaluateAndAssertStringScalarExpresssionRestricted(
-                "expression-poinson-smell.xml",
+                "expression-poison-smell.xml",
                 "testSmellPoison",
                 createPoisonVariables(poison));
 
@@ -78,7 +78,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 
         // WHEN
         evaluateAndAssertStringScalarExpresssionRestricted(
-                "expression-poinson-smell-tricky.xml",
+                "expression-poison-smell-tricky.xml",
                 "testDrinkPoisonTricky",
                 createPoisonVariables(poison));
 
@@ -95,7 +95,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 
         // WHEN
         evaluateAndAssertStringScalarExpresssionRestricted(
-                "expression-poinson-smell-dynamic.xml",
+                "expression-poison-smell-dynamic.xml",
                 "testSmellPoisonDynamic",
                 createPoisonVariables(poison));
 
@@ -116,7 +116,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
         // WHEN
         try {
             evaluateAndAssertStringScalarExpresssion(
-                    "expression-poinson-smell-very-dynamic.xml",
+                    "expression-poison-smell-very-dynamic.xml",
                     "testSmellPoisonVeryDynamic",
                     createPoisonVariables(poison),
                     RESULT_POISON_OK);
@@ -139,7 +139,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 
         // WHEN
         evaluateAndAssertStringScalarExpresssionRestricted(
-                "expression-poinson-smell-reflection.xml",
+                "expression-poison-smell-reflection.xml",
                 "testSmellPoisonDynamic",
                 createPoisonVariables(poison));
 
@@ -157,7 +157,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 
         // WHEN
         evaluateAndAssertStringScalarExpresssionRestricted(
-                "expression-poinson-drink.xml",
+                "expression-poison-drink.xml",
                 "testDrinkPoison",
                 createPoisonVariables(poison));
 
