@@ -2084,24 +2084,22 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         OperationResult result = new OperationResult("Search Dashboard");
         List<PrismObject<DashboardType>> dashboards = WebModelServiceUtils.searchObjects(DashboardType.class, null, result, this);
-        if(dashboards != null) {
-            dashboards.forEach(prismObject -> {
-                Validate.notNull(prismObject, "PrismObject<Dashboard> is null");
-                DashboardType dashboard = prismObject.getRealValue();
-                Validate.notNull(dashboard, "Dashboard object is null");
+        dashboards.forEach(prismObject -> {
+            Validate.notNull(prismObject, "PrismObject<Dashboard> is null");
+            DashboardType dashboard = prismObject.getRealValue();
+            Validate.notNull(dashboard, "Dashboard object is null");
 
-                StringResourceModel label = null;
-                if(dashboard.getDisplay() != null && dashboard.getDisplay().getLabel() != null) {
-                    label = createStringResource(dashboard.getDisplay().getLabel().getOrig());
-                } else {
-                    label = createStringResource(dashboard.getName());
-                }
-                PageParameters pageParameters = new PageParameters();
-                pageParameters.add(OnePageParameterEncoder.PARAMETER, dashboard.getOid());
-                MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null);
-                item.getItems().add(menu);
-            });
-        }
+            StringResourceModel label;
+            if(dashboard.getDisplay() != null && dashboard.getDisplay().getLabel() != null) {
+                label = createStringResource(dashboard.getDisplay().getLabel().getOrig());
+            } else {
+                label = createStringResource(dashboard.getName());
+            }
+            PageParameters pageParameters = new PageParameters();
+            pageParameters.add(OnePageParameterEncoder.PARAMETER, dashboard.getOid());
+            MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null);
+            item.getItems().add(menu);
+        });
 
         return item;
     }
