@@ -60,7 +60,9 @@ public class TaskManagerConfiguration {
     private static final String JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY = "jdbcDriverDelegateClass";
     private static final String USE_THREAD_INTERRUPT_CONFIG_ENTRY = "useThreadInterrupt";
     @Deprecated private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
-    private static final String QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "quartzNodeRegistrationInterval";
+    private static final String QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "quartzNodeRegistrationInterval";  // unused
+    private static final String QUARTZ_CLUSTER_CHECKIN_INTERVAL_CONFIG_ENTRY = "quartzClusterCheckinInterval";
+    private static final String QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_CONFIG_ENTRY = "quartzClusterCheckinGracePeriod";
     private static final String NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "nodeRegistrationInterval";
     private static final String NODE_ALIVENESS_CHECK_INTERVAL_CONFIG_ENTRY = "nodeAlivenessCheckInterval";
     private static final String NODE_ALIVENESS_TIMEOUT_CONFIG_ENTRY = "nodeAlivenessTimeout";
@@ -101,13 +103,14 @@ public class TaskManagerConfiguration {
     @Deprecated private static final int JMX_PORT_DEFAULT = 20001;
     @Deprecated private static final int JMX_CONNECT_TIMEOUT_DEFAULT = 5;
     private static final String USE_THREAD_INTERRUPT_DEFAULT = "whenNecessary";
-    private static final int QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT = 120;
     private static final int NODE_ALIVENESS_TIMEOUT_DEFAULT = 900;              // node should be down for 900 seconds before declaring as dead in the repository
     private static final int NODE_STARTUP_TIMEOUT_DEFAULT = 900;              // node should be not checking in for 900 seconds before reporting it as starting too long
     private static final int NODE_TIMEOUT_DEFAULT = 30;
     private static final int NODE_STARTUP_DELAY_DEFAULT = 0;
+    private static final long QUARTZ_CLUSTER_CHECKIN_INTERVAL_DEFAULT = 7500;
+    private static final long QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_DEFAULT = 7500;
     private static final boolean CHECK_FOR_TASK_CONCURRENT_EXECUTION_DEFAULT = false;
     private static final boolean USE_JMX_DEFAULT = false;
     @Deprecated private static final String JMX_USERNAME_DEFAULT = "midpoint";
@@ -136,13 +139,14 @@ public class TaskManagerConfiguration {
     @Deprecated private String jmxHostName;
     @Deprecated private int jmxPort;
     @Deprecated private int jmxConnectTimeout;
-    private int quartzNodeRegistrationCycleTime;            // UNUSED (currently) !
     private int nodeRegistrationCycleTime;                  // How often should node register itself in repository
     private int nodeTimeout;                                // After what time should be node considered (temporarily) down.
     private int nodeAlivenessTimeout;                       // After what time should be node considered (permanently) down and recorded as such in the repository.
     private int nodeStartupTimeout;                         // After what time the node start-up is considered to be "too long".
     private int nodeAlivenessCheckInterval;                 // How often to check for down nodes.
     private int nodeStartupDelay;                           // # of seconds after which we declare the node as started and announce it as a part of the cluster
+    private long quartzClusterCheckinInterval;               // How often Quartz node registers itself in Quartz database (in milliseconds)
+    private long quartzClusterCheckinGracePeriod;            // How long can be Quartz node "unresponsive" (not checking in) (in milliseconds)
     private boolean checkForTaskConcurrentExecution;
     private UseThreadInterrupt useThreadInterrupt;
     private int waitingTasksCheckInterval;
@@ -215,7 +219,8 @@ public class TaskManagerConfiguration {
             JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY,
             USE_THREAD_INTERRUPT_CONFIG_ENTRY,
             JMX_CONNECT_TIMEOUT_CONFIG_ENTRY,
-            QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,
+            QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,     // unused
+            QUARTZ_CLUSTER_CHECKIN_INTERVAL_CONFIG_ENTRY, QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_CONFIG_ENTRY,
             NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,
             NODE_TIMEOUT_CONFIG_ENTRY,
             USE_JMX_CONFIG_ENTRY,
@@ -252,7 +257,6 @@ public class TaskManagerConfiguration {
     private void checkAllowedKeys(Configuration c) throws TaskManagerConfigurationException {
         Set<String> knownKeysSet = new HashSet<>(TaskManagerConfiguration.KNOWN_KEYS);
 
-        //noinspection unchecked
         Iterator<String> keyIterator = c.getKeys();
         while (keyIterator.hasNext())  {
             String keyName = keyIterator.next();
@@ -320,13 +324,16 @@ public class TaskManagerConfiguration {
             throw new TaskManagerConfigurationException("Illegal value for " + USE_THREAD_INTERRUPT_CONFIG_ENTRY + ": " + useTI, e);
         }
 
-        quartzNodeRegistrationCycleTime = c.getInt(QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
         nodeRegistrationCycleTime = c.getInt(NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
         nodeAlivenessCheckInterval = c.getInt(NODE_ALIVENESS_CHECK_INTERVAL_CONFIG_ENTRY, NODE_ALIVENESS_CHECK_INTERVAL_DEFAULT);
         nodeAlivenessTimeout = c.getInt(NODE_ALIVENESS_TIMEOUT_CONFIG_ENTRY, NODE_ALIVENESS_TIMEOUT_DEFAULT);
         nodeStartupTimeout = c.getInt(NODE_STARTUP_TIMEOUT_CONFIG_ENTRY, NODE_STARTUP_TIMEOUT_DEFAULT);
         nodeTimeout = c.getInt(NODE_TIMEOUT_CONFIG_ENTRY, NODE_TIMEOUT_DEFAULT);
         nodeStartupDelay = c.getInt(NODE_STARTUP_DELAY_CONFIG_ENTRY, NODE_STARTUP_DELAY_DEFAULT);
+
+        quartzClusterCheckinInterval = c.getLong(QUARTZ_CLUSTER_CHECKIN_INTERVAL_CONFIG_ENTRY, QUARTZ_CLUSTER_CHECKIN_INTERVAL_DEFAULT);
+        quartzClusterCheckinGracePeriod = c.getLong(QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_CONFIG_ENTRY, QUARTZ_CLUSTER_CHECKIN_GRACE_PERIOD_DEFAULT);
+
         checkForTaskConcurrentExecution = c.getBoolean(CHECK_FOR_TASK_CONCURRENT_EXECUTION_CONFIG_ENTRY, CHECK_FOR_TASK_CONCURRENT_EXECUTION_DEFAULT);
 
         useJmx = c.getBoolean(USE_JMX_CONFIG_ENTRY, USE_JMX_DEFAULT);
@@ -481,7 +488,6 @@ public class TaskManagerConfiguration {
 
         notEmpty(nodeId, "Node identifier must be set.");
 
-        mustBeTrue(quartzNodeRegistrationCycleTime > 1 && quartzNodeRegistrationCycleTime <= 600, "Quartz node registration cycle time must be between 1 and 600 seconds");
         mustBeTrue(nodeRegistrationCycleTime > 1 && nodeRegistrationCycleTime <= 600, "Node registration cycle time must be between 1 and 600 seconds");
         mustBeTrue(nodeTimeout > 5, "Node timeout must be at least 5 seconds");
     }
@@ -516,13 +522,6 @@ public class TaskManagerConfiguration {
 
     private void mustBeTrue(boolean condition, String message) throws TaskManagerConfigurationException {
         if (!condition) {
-            throw new TaskManagerConfigurationException(message);
-        }
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private void mustBeFalse(boolean condition, String message) throws TaskManagerConfigurationException {
-        if (condition) {
             throw new TaskManagerConfigurationException(message);
         }
     }
@@ -609,8 +608,16 @@ public class TaskManagerConfiguration {
         return nodeRegistrationCycleTime;
     }
 
-    public int getNodeStartupDelay() {
+    int getNodeStartupDelay() {
         return nodeStartupDelay;
+    }
+
+    public long getQuartzClusterCheckinInterval() {
+        return quartzClusterCheckinInterval;
+    }
+
+    public long getQuartzClusterCheckinGracePeriod() {
+        return quartzClusterCheckinGracePeriod;
     }
 
     public int getNodeAlivenessCheckInterval() {
@@ -619,11 +626,6 @@ public class TaskManagerConfiguration {
 
     public boolean isCheckForTaskConcurrentExecution() {
         return checkForTaskConcurrentExecution;
-    }
-
-    @SuppressWarnings("unused")
-    public int getQuartzNodeRegistrationCycleTime() {
-        return quartzNodeRegistrationCycleTime;
     }
 
     public String getUrl() {
