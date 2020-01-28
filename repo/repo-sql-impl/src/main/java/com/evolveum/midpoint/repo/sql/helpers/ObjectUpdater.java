@@ -21,6 +21,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sql.RestartOperationRequestedException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
@@ -60,11 +62,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author lazyman, mederly
@@ -408,14 +405,27 @@ public class ObjectUpdater {
                 //
                 // So the first step is to retrieve the current value of photo - we obviously do this only if the modifications
                 // deal with the jpegPhoto property.
+                //
+                // TODO handling of "externally stored" items (focus.jpegPhoto, task.result, lookupTable.row, ...)
+                //  is a kind of ugly magic. It needs to be reviewed and fixed.
                 GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder();
                 boolean containsFocusPhotoModification = FocusType.class.isAssignableFrom(type) && containsPhotoModification(modifications);
                 if (containsFocusPhotoModification) {
+                    LOGGER.trace("Setting 'retrieve' option on jpegPhoto for object fetching because containsFocusPhotoModification=true");
                     optionsBuilder = optionsBuilder.item(FocusType.F_JPEG_PHOTO).retrieve();
                 }
                 if (reindex) {
                     LOGGER.trace("Setting 'raw' option for object fetching because reindex is being applied");
                     optionsBuilder = optionsBuilder.root().raw();
+                    if (TaskType.class.isAssignableFrom(type) || ShadowType.class.isAssignableFrom(type)) {
+                        // Certification campaigns and lookup tables treat their externally stored items (cases, rows)
+                        // in a different way that collides with the use of "retrieve" option. TODO resolve this!
+                        LOGGER.trace("Setting 'retrieve' option for object fetching because reindex is being applied");
+                        optionsBuilder = optionsBuilder.root().retrieve();
+                    } else {
+                        LOGGER.trace("Setting 'retrieve' option for c:extension for object fetching because reindex is being applied");
+                        optionsBuilder = optionsBuilder.item(ObjectType.F_EXTENSION).retrieve();        // index-only items can be also here
+                    }
                 }
 
                 // get object
