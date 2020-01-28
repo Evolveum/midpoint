@@ -49,7 +49,7 @@
         <jaxb-xjc.version>2.3.0.1</jaxb-xjc.version>
         <junit.version>4.8.2</junit.version>
         <opendj.version>2.6.2</opendj.version>
-        <quartz.version>2.3.0.e2</quartz.version>
+        <quartz.version>2.3.0.e3</quartz.version>
         <selenium.version>3.141.59</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
