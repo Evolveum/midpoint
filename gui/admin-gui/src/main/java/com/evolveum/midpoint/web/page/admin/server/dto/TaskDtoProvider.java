@@ -34,7 +34,7 @@ import java.util.*;
  */
 public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskDtoProvider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskDtoProvider.class);
     private static final String DOT_CLASS = TaskDtoProvider.class.getName() + ".";
     private static final String OPERATION_LIST_TASKS = DOT_CLASS + "listTasks";
     private static final String OPERATION_COUNT_TASKS = DOT_CLASS + "countTasks";

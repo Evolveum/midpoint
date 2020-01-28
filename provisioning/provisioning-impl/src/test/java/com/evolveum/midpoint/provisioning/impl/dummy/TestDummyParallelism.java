@@ -96,7 +96,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
     private static final int MESS_RESOURCE_ITERATIONS = 200;
 
-    private final Random RND = new Random();
+    private static final Random RND = new Random();
 
     private String accountMorganOid;
     private String accountElizabethOid;
@@ -120,7 +120,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         dummyResource.setOperationDelayRange(DUMMY_OPERATION_DELAY_RANGE);
-//        InternalMonitor.setTraceConnectorOperation(true);
     }
 
     @Override

@@ -29,7 +29,7 @@ import java.sql.*;
  */
 public class ScriptRunner {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ScriptRunner.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ScriptRunner.class);
 
     private static final String DEFAULT_DELIMITER = ";";
 

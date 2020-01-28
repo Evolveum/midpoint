@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -45,7 +44,7 @@ import java.util.List;
 @Component("workflowManager")
 public class WorkflowManagerImpl implements WorkflowManager {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(WorkflowManagerImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(WorkflowManagerImpl.class);
 
     @Autowired private PrismContext prismContext;
     @Autowired private WfConfiguration wfConfiguration;

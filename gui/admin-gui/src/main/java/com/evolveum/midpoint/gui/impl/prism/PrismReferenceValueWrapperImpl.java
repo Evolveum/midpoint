@@ -9,8 +9,6 @@ package com.evolveum.midpoint.gui.impl.prism;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
@@ -21,8 +19,6 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
 
     private static final long serialVersionUID = 1L;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(PrismReferenceValueWrapperImpl.class);
-
     public PrismReferenceValueWrapperImpl(ItemWrapper<?, ?, ?, ?> parent, PrismReferenceValue value, ValueStatus status) {
         super(parent, value, status);
     }
@@ -32,7 +28,6 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
 
     @Override
     public void setRealValue(T realValueReferencable) {
-//        LOGGER.info("#####$$$$$Nothing to do");
         PrismReferenceValue value = getNewValue();
         PrismReferenceValue realValue = realValueReferencable.asReferenceValue();
         value.setOid(realValue.getOid());

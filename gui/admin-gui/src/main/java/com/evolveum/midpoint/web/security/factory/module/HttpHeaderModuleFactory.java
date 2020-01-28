@@ -10,7 +10,6 @@ import com.evolveum.midpoint.model.api.authentication.AuthModule;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.model.api.authentication.AuthModuleImpl;
 import com.evolveum.midpoint.web.security.module.HttpHeaderModuleWebConfig;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.authentication.HttpHeaderModuleAuthentication;
@@ -18,6 +17,7 @@ import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.configuration.HttpHeaderModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.web.security.provider.PasswordProvider;
+import com.evolveum.midpoint.web.security.util.AuthModuleImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModuleHttpHeaderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
@@ -35,7 +35,7 @@ import java.util.Map;
 @Component
 public class HttpHeaderModuleFactory extends AbstractModuleFactory {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(HttpHeaderModuleFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(HttpHeaderModuleFactory.class);
 
 //    @Autowired
 //    private AuthenticationProvider midPointAuthenticationProvider;
@@ -55,6 +55,8 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
             LOGGER.error("This factory support only AuthenticationModuleHttpHeaderType, but modelType is " + moduleType);
             return null;
         }
+
+        isSupportedChannel(authenticationChannel);
 
         HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build((AuthenticationModuleHttpHeaderType)moduleType, prefixOfSequence);
         configuration.addAuthenticationProvider(new PasswordProvider());

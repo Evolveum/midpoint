@@ -31,8 +31,6 @@ public class ExclusionCertificationHandler extends BaseCertificationHandler {
 
     public static final String URI = AccessCertificationApiConstants.EXCLUSION_HANDLER_URI;
 
-    //private static final transient Trace LOGGER = TraceManager.getTrace(ExclusionCertificationHandler.class);
-
     @PostConstruct
     public void init() {
         certificationManager.registerHandler(URI, this);

@@ -24,12 +24,7 @@ public class SchemaFactoryImpl implements SchemaFactory {
     }
 
     @Override
-    public MutablePrismSchema createPrismSchema() {
-        return new PrismSchemaImpl(prismContext);
-    }
-
-    @Override
-    public MutablePrismSchema createPrismSchema(String namespace) {
+    public MutablePrismSchema createPrismSchema(@NotNull String namespace) {
         return new PrismSchemaImpl(namespace, prismContext);
     }
 }

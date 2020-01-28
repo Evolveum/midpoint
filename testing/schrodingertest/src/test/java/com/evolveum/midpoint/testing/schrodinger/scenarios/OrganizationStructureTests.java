@@ -26,7 +26,7 @@ import java.io.IOException;
  */
 public class OrganizationStructureTests extends TestBase {
 
-    private static File CSV_TARGET_FILE;
+    private static File csvTargetFile;
 
     private static final File CSV_RESOURCE_ADVANCED_SYNC = new File("./src/test/resources/csv/resource-csv-groups.xml");
 
@@ -54,8 +54,8 @@ public class OrganizationStructureTests extends TestBase {
 
         initTestDirectory(DIRECTORY_CURRENT_TEST);
 
-        CSV_TARGET_FILE = new File(CSV_TARGET_DIR, FILE_RESOUCE_NAME);
-        FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE,CSV_TARGET_FILE);
+        csvTargetFile = new File(CSV_TARGET_DIR, FILE_RESOUCE_NAME);
+        FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE, csvTargetFile);
 
         ImportObjectPage importPage = basicPage.importObject();
         Assert.assertTrue(
@@ -174,7 +174,7 @@ public class OrganizationStructureTests extends TestBase {
                 .clickByName(NAME_CSV_RESOURCE_ADVANCED_SYNC)
                     .clickEditResourceConfiguration()
                         .form()
-                        .changeAttributeValue("File path", "", CSV_TARGET_FILE.getAbsolutePath())
+                        .changeAttributeValue("File path", "", csvTargetFile.getAbsolutePath())
                         .changeAttributeValue(CSV_RESOURCE_ATTR_UNIQUE,"","login")
                     .and()
                 .and()

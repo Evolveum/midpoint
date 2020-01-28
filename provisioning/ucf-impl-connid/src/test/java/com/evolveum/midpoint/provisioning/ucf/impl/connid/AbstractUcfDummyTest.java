@@ -66,7 +66,7 @@ public abstract class AbstractUcfDummyTest extends AbstractTestNGSpringContextTe
     @Autowired(required = true)
     protected PrismContext prismContext;
 
-    private static Trace LOGGER = TraceManager.getTrace(AbstractUcfDummyTest.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractUcfDummyTest.class);
 
     @BeforeClass
     public void setup() throws Exception {

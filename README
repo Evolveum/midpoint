@@ -5,15 +5,15 @@ General information:
 
 MidPoint is a comprehensive identity management and governance system.
 MidPoint can synchronize several identity repositories, manage and
-transform data in these repostories to keep them synchronized. MidPoint can
+transform data in these repositories to keep them synchronized. MidPoint can
 make the data available in unified form, apply and manage policies,
-manage object lifecycle, maitain audit trails and many other things.
+manage object lifecycle, maintain audit trails and many other things.
 
 The most important features of midPoint are:
    - User provisioning and deprovisioning
    - Identity governance
    - Administration GUI
-   - Identity repository implemention (SQL)
+   - Identity repository implementation (SQL)
    - Custom schema extensibility
    - Identity synchronization (liveSync, reconciliation, discovery, import)
    - Support for expressions in synchronization mappings (Groovy, JavaScript, Python)
@@ -32,7 +32,7 @@ The most important features of midPoint are:
    - Reporting
    - Notifications
    - Local Java APIs, Remote web service interface (SOAP), REST API
-   - High availablity (HA) support
+   - High availability (HA) support
 
 For more information please go to:
 
@@ -44,14 +44,14 @@ For bugtracking system please go to:
 
 MidPoint source code is maintained on github:
 
-  https://github.com/Evolveum/midpoint 
+  https://github.com/Evolveum/midpoint
 
-Latest source code can be obtained from our Git repository using one of the 
+Latest source code can be obtained from our Git repository using one of the
 following repository locations:
 
   https://github.com/Evolveum/midpoint.git
-  
+
   git@github.com:Evolveum/midpoint.git
 
-This project is dual-licensed under Apache License 2.0 
+This project is dual-licensed under Apache License 2.0
 and European Union Public License. See LICENSE file for details.

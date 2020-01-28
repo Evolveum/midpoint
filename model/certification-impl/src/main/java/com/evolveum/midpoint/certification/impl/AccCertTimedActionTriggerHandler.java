@@ -39,7 +39,7 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
 
     static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/timed-action/handler-3";
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AccCertTimedActionTriggerHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccCertTimedActionTriggerHandler.class);
 
     @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
     @Autowired private AccCertQueryHelper queryHelper;

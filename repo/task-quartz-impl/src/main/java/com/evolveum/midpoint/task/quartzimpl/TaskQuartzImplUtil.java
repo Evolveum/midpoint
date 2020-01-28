@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl;
 
 import static org.quartz.CronScheduleBuilder.cronScheduleNonvalidatedExpression;
@@ -32,9 +31,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 public class TaskQuartzImplUtil {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskQuartzImplUtil.class);
-
-    public static final long SINGLE_TASK_CHECK_INTERVAL = 10000;
+    private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImplUtil.class);
 
     public static JobKey createJobKeyForTask(Task t) {
         return new JobKey(t.getOid());
@@ -148,7 +145,6 @@ public class TaskQuartzImplUtil {
                 }
             } else {
                 return null;
-                //throw new IllegalStateException("The schedule for task " + task + " is neither fixed nor cron-like one.");
             }
 
             tb.withSchedule(sb);
@@ -157,7 +153,6 @@ public class TaskQuartzImplUtil {
             // (their trigger will be erased when these tasks will be completed)
 
             looselyBoundRecurrent = false;
-            // tb.withSchedule(simpleSchedule().withIntervalInMilliseconds(SINGLE_TASK_CHECK_INTERVAL).repeatForever());
         }
 
         tb.usingJobData("schedule", scheduleFingerprint(task.getSchedule()));

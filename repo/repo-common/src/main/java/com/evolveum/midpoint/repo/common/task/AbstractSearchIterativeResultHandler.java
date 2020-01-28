@@ -77,7 +77,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
     private AtomicBoolean stopRequestedByAnyWorker = new AtomicBoolean(false);
     private final long startTime;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeResultHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeResultHandler.class);
     private volatile boolean allItemsSubmitted = false;
 
     private List<OperationResult> workerSpecificResults;

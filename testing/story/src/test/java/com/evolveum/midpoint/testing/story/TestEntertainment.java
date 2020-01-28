@@ -39,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestEntertainment extends AbstractStoryTest {
 
-    public static Trace LOGGER = TraceManager.getTrace(TestEntertainment.class);
+    public static final Trace LOGGER = TraceManager.getTrace(TestEntertainment.class);
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "entertainment");
 

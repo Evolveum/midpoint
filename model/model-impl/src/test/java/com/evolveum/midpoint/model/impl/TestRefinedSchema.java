@@ -81,7 +81,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
     }
 
     @Test
-    public void test010SanityModel() throws Exception {
+			public void test010SanityModel() throws Exception {
         final String TEST_NAME = "test010SanityModel";
         TestUtil.displayTestTitle(this, TEST_NAME);
 

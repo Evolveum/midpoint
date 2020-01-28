@@ -51,7 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/multi");
-    private static Trace LOGGER = TraceManager.getTrace(TestConnectorMultiInstance.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestConnectorMultiInstance.class);
 
     protected DummyResource dummyResourceYellow;
     protected DummyResourceContoller dummyResourceCtlYellow;

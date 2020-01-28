@@ -70,7 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
  */
 public class MappingTestEvaluator {
 
-    public static File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "mapping");
+    public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "mapping");
     public static final File USER_OLD_FILE = new File(TEST_DIR, "user-jack.xml");
     public static final File ACCOUNT_FILE = new File(TEST_DIR, "account-jack.xml");
     public static final String USER_OLD_OID = "2f9b9299-6f45-498f-bc8e-8d17c6b93b20";

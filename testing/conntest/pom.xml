@@ -198,6 +198,11 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-powershell</artifactId>
+            <version>1.0-M1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.polygon</groupId>
             <artifactId>connector-databasetable</artifactId>
             <scope>test</scope>
         </dependency>

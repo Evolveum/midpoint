@@ -64,7 +64,7 @@ import static org.testng.AssertJUnit.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestQuartzTaskManagerContract.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestQuartzTaskManagerContract.class);
 
     private static final String TASK_OWNER_FILENAME = "src/test/resources/basic/owner.xml";
     private static final String TASK_OWNER2_FILENAME = "src/test/resources/basic/owner2.xml";

@@ -17,7 +17,7 @@ import org.apache.wicket.model.IModel;
 
 public class SearchFilterTypeModel implements IModel<String> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(SearchFilterTypeModel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SearchFilterTypeModel.class);
 
         private static final long serialVersionUID = 1L;
 

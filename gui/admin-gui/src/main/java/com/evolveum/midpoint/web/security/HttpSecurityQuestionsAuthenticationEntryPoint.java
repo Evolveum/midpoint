@@ -45,10 +45,9 @@ import java.util.*;
 /**
  * @author skublik
  */
-
 public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthenticationEntryPoint {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MidpointAuthFilter.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MidpointAuthFilter.class);
 
     private static final String WWW_AUTHENTICATION_HEADER = "WWW-Authenticate";
     private static final String AUTHENTICATION_HEADER = "Authorization";
@@ -100,7 +99,7 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
        try {
-           if (authentication != null && authentication instanceof MidpointAuthentication) {
+           if (authentication instanceof MidpointAuthentication) {
                if (request.getHeader(AUTHENTICATION_HEADER) != null
                        && request.getHeader(AUTHENTICATION_HEADER).toLowerCase().startsWith(NameOfModuleType.SECURITY_QUESTIONS.getName().toLowerCase())) {
                    String header = request.getHeader(AUTHENTICATION_HEADER);
@@ -149,7 +148,7 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
     }
 
     public static void createSecurityQuestionAbortMessage(HttpServletResponse request, String json){
-        String value = NameOfModuleType.SECURITY_QUESTIONS.getName() + " " + Base64.getEncoder().encode((json.getBytes()));
+        String value = NameOfModuleType.SECURITY_QUESTIONS.getName() + " " + Arrays.toString(Base64.getEncoder().encode((json.getBytes())));
         request.setHeader(WWW_AUTHENTICATION_HEADER, value);
     }
 
@@ -181,7 +180,7 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
             public List<SecurityQuestionDefinitionType> run() {
                 Task task = taskManager.createTaskInstance("Search user by name");
                 OperationResult result = task.getResult();
-                SecurityPolicyType securityPolicyType = null;
+                SecurityPolicyType securityPolicyType;
                 try {
                     SecurityContextHolder.getContext().setAuthentication(new AnonymousAuthenticationToken("rest_sec_q_auth", "REST", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
                     securityPolicyType = modelInteractionService.getSecurityPolicy(user, task, result);

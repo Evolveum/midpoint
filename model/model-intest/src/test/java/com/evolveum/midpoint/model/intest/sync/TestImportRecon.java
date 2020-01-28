@@ -215,9 +215,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     private static final String ACCOUNT_CAPSIZE_PASSWORD = "is0mud01d";
 
-    private static int NUMBER_OF_IMPORTED_USERS = 2;
+    private static final int NUMBER_OF_IMPORTED_USERS = 2;
 
-    @Autowired(required = true)
+    @Autowired
     private ValuePolicyProcessor valuePolicyProcessor;
 
     protected DummyResource dummyResourceAzure;
@@ -230,7 +230,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     protected ResourceType resourceDummyLimeType;
     protected PrismObject<ResourceType> resourceDummyLime;
 
-    @Autowired(required=true)
+    @Autowired
     private ReconciliationTaskHandler reconciliationTaskHandler;
 
     private DebugReconciliationTaskResultListener reconciliationTaskResultListener;

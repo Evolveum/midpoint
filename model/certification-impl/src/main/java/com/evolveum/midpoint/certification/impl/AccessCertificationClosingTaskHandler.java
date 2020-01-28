@@ -65,7 +65,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
     @Autowired private WorkflowManager workflowManager;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationClosingTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationClosingTaskHandler.class);
 
     @PostConstruct
     private void initialize() {

@@ -63,7 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
 public class TestScriptCaching {
 
     private static final File TEST_DIR = new File("src/test/resources/expression/groovy");
-    protected static File OBJECTS_DIR = new File("src/test/resources/objects");
+    protected static final File OBJECTS_DIR = new File("src/test/resources/objects");
 
     private static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
     private static final String NS_WHATEVER = "http://whatever/xml/ns";

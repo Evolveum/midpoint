@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
  *
  */
 public interface MutableObjectClassComplexTypeDefinition extends ObjectClassComplexTypeDefinition, MutableComplexTypeDefinition {
+
     void add(ItemDefinition<?> definition);
 
     void addPrimaryIdentifier(ResourceAttributeDefinition<?> identifier);

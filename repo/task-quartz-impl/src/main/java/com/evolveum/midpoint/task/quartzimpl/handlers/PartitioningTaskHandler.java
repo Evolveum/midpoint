@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -39,7 +38,7 @@ import java.util.stream.Collectors;
  */
 public class PartitioningTaskHandler implements TaskHandler {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(PartitioningTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PartitioningTaskHandler.class);
 
     private static final String DEFAULT_HANDLER_URI = "{masterTaskHandlerUri}#{index}";
 

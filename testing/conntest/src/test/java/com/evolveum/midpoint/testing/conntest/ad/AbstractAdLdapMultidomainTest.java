@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.testing.conntest.ad;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
+import static com.evolveum.midpoint.test.IntegrationTestTools.LDAP_CONNECTOR_TYPE;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -283,6 +284,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
     protected abstract File getReconciliationTaskFile();
 
     protected abstract String getReconciliationTaskOid();
+
+    protected String getLdapConnectorClassName() { return AdUtils.AD_CONNECTOR_TYPE; }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

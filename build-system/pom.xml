@@ -758,7 +758,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>2.4</version>
+                <version>3.0-M1</version>
             </dependency>
             <!-- End connectors -->
             <dependency>
@@ -911,6 +911,16 @@
                 <groupId>org.springframework.security.extensions</groupId>
                 <artifactId>spring-security-saml2-core</artifactId>
                 <version>${spring.security.saml2.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcpkix-jdk15on</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk15on</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.cache2k</groupId>
@@ -1277,6 +1287,11 @@
                 <groupId>com.github.openjson</groupId>
                 <artifactId>openjson</artifactId>
                 <version>1.0.10</version>
+            </dependency>
+            <dependency>
+                <groupId>org.opensaml</groupId>
+                <artifactId>opensaml-security-impl</artifactId>
+                <version>3.3.0</version>
             </dependency>
 
             <!-- webjars -->

@@ -39,7 +39,7 @@ import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database
 @Component
 public class TaskManagerConfiguration {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerConfiguration.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskManagerConfiguration.class);
 
     @Autowired private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;

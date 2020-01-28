@@ -20,7 +20,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 public class TestProtector {
 
-    private static transient Trace LOGGER = TraceManager.getTrace(TestProtector.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestProtector.class);
 
     @Test
     public void testProtectorEncryptionRoundTrip() throws Exception {

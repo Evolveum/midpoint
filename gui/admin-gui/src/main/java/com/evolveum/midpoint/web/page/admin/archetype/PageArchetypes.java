@@ -15,8 +15,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
@@ -42,8 +40,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 public class PageArchetypes extends PageAdminObjectList<ArchetypeType> {
 
     private static final long serialVersionUID = 1L;
-
-    private static transient final Trace LOGGER = TraceManager.getTrace(PageArchetypes.class);
 
     public PageArchetypes() {
         super();

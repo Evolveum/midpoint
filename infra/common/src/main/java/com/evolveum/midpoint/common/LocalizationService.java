@@ -10,6 +10,7 @@ package com.evolveum.midpoint.common;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.CommonException;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 
@@ -45,5 +46,6 @@ public interface LocalizationService {
      */
     <T extends CommonException> T translate(T e);
 
+    @NotNull
     Locale getDefaultLocale();
 }

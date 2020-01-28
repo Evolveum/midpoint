@@ -10,16 +10,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.repo.cache.CacheRegistry;
 import com.evolveum.midpoint.repo.api.Cacheable;
+import com.evolveum.midpoint.repo.cache.CacheRegistry;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,12 +29,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Factory for expressions and registry for expression evaluator factories.
@@ -42,8 +40,6 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class ExpressionFactory implements Cacheable {
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(ExpressionFactory.class);
 
     private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<>();
     private ExpressionEvaluatorFactory defaultEvaluatorFactory;

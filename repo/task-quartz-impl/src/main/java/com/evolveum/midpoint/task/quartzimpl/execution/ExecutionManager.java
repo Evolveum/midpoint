@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import java.util.ArrayList;
@@ -68,7 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  */
 public class ExecutionManager {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ExecutionManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ExecutionManager.class);
 
     private static final String DOT_CLASS = ExecutionManager.class.getName() + ".";
 

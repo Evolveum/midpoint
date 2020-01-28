@@ -44,7 +44,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
 
     private static final long serialVersionUID = 1L;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(DynamicFieldGroupPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DynamicFieldGroupPanel.class);
 
     private static final String ID_PROPERTY = "property";
     private static final String ID_HEADER = "header";

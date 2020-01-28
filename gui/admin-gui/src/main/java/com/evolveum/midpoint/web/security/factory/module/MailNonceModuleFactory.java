@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.security.factory.module;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.security.module.MailNonceFormModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.authentication.MailNonceModuleAuthentication;
@@ -65,6 +66,11 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory {
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
         return moduleAuthentication;
+    }
+
+    @Override
+    protected void isSupportedChannel(AuthenticationChannel authenticationChannel) {
+        return; //supported for all modules
     }
 
 }

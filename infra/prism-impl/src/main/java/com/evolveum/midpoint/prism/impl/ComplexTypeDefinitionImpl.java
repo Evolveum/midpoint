@@ -75,6 +75,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 
     @Override
     public void add(ItemDefinition<?> definition) {
+        checkMutable();
         itemDefinitions.add(definition);
         invalidateCaches();
     }
@@ -94,6 +95,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     }
 
     public void setExtensionForType(QName extensionForType) {
+        checkMutable();
         this.extensionForType = extensionForType;
     }
 
@@ -103,6 +105,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     }
 
     public void setReferenceMarker(boolean referenceMarker) {
+        checkMutable();
         this.referenceMarker = referenceMarker;
     }
 
@@ -112,6 +115,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     }
 
     public void setContainerMarker(boolean containerMarker) {
+        checkMutable();
         this.containerMarker = containerMarker;
     }
 
@@ -126,6 +130,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     }
 
     public void setXsdAnyMarker(boolean xsdAnyMarker) {
+        checkMutable();
         this.xsdAnyMarker = xsdAnyMarker;
     }
 
@@ -134,6 +139,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     }
 
     public void setListMarker(boolean listMarker) {
+        checkMutable();
         this.listMarker = listMarker;
     }
 
@@ -143,6 +149,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     }
 
     public void setDefaultNamespace(String defaultNamespace) {
+        checkMutable();
         this.defaultNamespace = defaultNamespace;
     }
 
@@ -153,10 +160,12 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     }
 
     public void setIgnoredNamespaces(@NotNull List<String> ignoredNamespaces) {
+        checkMutable();
         this.ignoredNamespaces = ignoredNamespaces;
     }
 
     public void setObjectMarker(boolean objectMarker) {
+        checkMutable();
         this.objectMarker = objectMarker;
     }
 
@@ -328,10 +337,14 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     }
 
     @Override
-    public void accept(Visitor visitor) {
-        visitor.visit(this);
-        for (ItemDefinition itemDefinition : itemDefinitions) {
-            itemDefinition.accept(visitor);
+    public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
+        if (super.accept(visitor, visitation)) {
+            for (ItemDefinition<?> itemDefinition : itemDefinitions) {
+                itemDefinition.accept(visitor, visitation);
+            }
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -391,6 +404,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 
     @Override
     public void replaceDefinition(QName itemName, ItemDefinition newDefinition) {
+        checkMutable();
         invalidateCaches();
         for (int i=0; i<itemDefinitions.size(); i++) {
             ItemDefinition itemDef = itemDefinitions.get(i);
@@ -520,19 +534,20 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 
     @Override
     public void trimTo(@NotNull Collection<ItemPath> paths) {
+        checkMutable();
         if (shared) {
-            LOGGER.warn("Couldn't trim shared definition: {}. The definition will not be trimmed.", this);
-        } else {
-            for (Iterator<ItemDefinition> iterator = itemDefinitions.iterator(); iterator.hasNext(); ) {
-                ItemDefinition<?> itemDef = iterator.next();
-                ItemPath itemPath = itemDef.getItemName();
-                if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(paths, itemPath)) {
-                    iterator.remove();
-                } else if (itemDef instanceof PrismContainerDefinition) {
-                    PrismContainerDefinition<?> itemPcd = (PrismContainerDefinition<?>) itemDef;
-                    if (itemPcd.getComplexTypeDefinition() != null) {
-                        itemPcd.getComplexTypeDefinition().trimTo(ItemPathCollectionsUtil.remainder(paths, itemPath, false));
-                    }
+            // TODO shared mutable definition that is in use??
+            throw new IllegalStateException("Couldn't trim shared definition: " + this);
+        }
+        for (Iterator<ItemDefinition> iterator = itemDefinitions.iterator(); iterator.hasNext(); ) {
+            ItemDefinition<?> itemDef = iterator.next();
+            ItemPath itemPath = itemDef.getItemName();
+            if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(paths, itemPath)) {
+                iterator.remove();
+            } else if (itemDef instanceof PrismContainerDefinition) {
+                PrismContainerDefinition<?> itemPcd = (PrismContainerDefinition<?>) itemDef;
+                if (itemPcd.getComplexTypeDefinition() != null) {
+                    itemPcd.getComplexTypeDefinition().trimTo(ItemPathCollectionsUtil.remainder(paths, itemPath, false));
                 }
             }
         }
@@ -540,12 +555,13 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 
     @Override
     public MutableComplexTypeDefinition toMutable() {
+        checkMutableOnExposing();
         return this;
     }
 
-    //    @Override
-//    public void accept(Visitor visitor) {
-//        super.accept(visitor);
-//        itemDefinitions.forEach(def -> def.accept(visitor));
-//    }
+    @Override
+    public void freeze() {
+        itemDefinitions.forEach(Freezable::freeze);
+        super.freeze();
+    }
 }

@@ -49,7 +49,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 
     private static final long serialVersionUID = 1L;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(PrismContainerValueWrapperImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismContainerValueWrapperImpl.class);
 
     private boolean expanded;
     private boolean showMetadata = false;

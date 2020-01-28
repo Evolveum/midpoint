@@ -92,7 +92,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgStructTest.class);
 
-    String ELAINE_OID;
+    private String elaineOid;
     private static final String ELAINE_NAME = "elaine";
     private static final String ELAINE_NAME1 = "elaine1";
 
@@ -123,7 +123,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
 
         AssertJUnit.assertEquals(1, users.size());
-        ELAINE_OID = users.get(0).getOid();
+        elaineOid = users.get(0).getOid();
 
         testMonkeySubordinate();
 
@@ -539,12 +539,12 @@ public class OrgStructTest extends BaseSQLRepoTest {
         PrismReferenceValue prv = itemFactory().createReferenceValue(MODIFY_USER_DELETE_REF_OID);
         prv.setTargetType(OrgType.COMPLEX_TYPE);
         ObjectDelta<UserType> delta = prismContext.deltaFactory().object()
-                .createModificationDeleteReference(UserType.class, ELAINE_OID, UserType.F_PARENT_ORG_REF,
+                .createModificationDeleteReference(UserType.class, elaineOid, UserType.F_PARENT_ORG_REF,
                         prv);
 
-        repositoryService.modifyObject(UserType.class, ELAINE_OID, delta.getModifications(), opResult);
+        repositoryService.modifyObject(UserType.class, elaineOid, delta.getModifications(), opResult);
 
-        UserType userElaine = repositoryService.getObject(UserType.class, ELAINE_OID, null, opResult).asObjectable();
+        UserType userElaine = repositoryService.getObject(UserType.class, elaineOid, null, opResult).asObjectable();
         LOGGER.trace("elaine's og refs");
         for (ObjectReferenceType ort : userElaine.getParentOrgRef()) {
             LOGGER.trace("{}", ort);
@@ -586,7 +586,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         List<PrismObject<ObjectType>> orgs = repositoryService.searchObjects(ObjectType.class, query, null, opResult);
 
         // THEN
-        PrismAsserts.assertOids(orgs, ORG_F002_OID, ORG_F003_OID, ORG_F004_OID, ELAINE_OID);
+        PrismAsserts.assertOids(orgs, ORG_F002_OID, ORG_F003_OID, ORG_F004_OID, elaineOid);
     }
 
     @Test
@@ -605,7 +605,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         List<PrismObject<ObjectType>> orgs = repositoryService.searchObjects(ObjectType.class, query, null, opResult);
 
         // THEN
-        PrismAsserts.assertOids(orgs, ELAINE_OID);
+        PrismAsserts.assertOids(orgs, elaineOid);
     }
 
     @Test
@@ -624,7 +624,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         List<PrismObject<ObjectType>> orgs = repositoryService.searchObjects(ObjectType.class, query, null, opResult);
 
         // THEN
-        PrismAsserts.assertOids(orgs, ORG_F002_OID, ORG_F003_OID, ORG_F004_OID, ELAINE_OID, ELAINE_OID);
+        PrismAsserts.assertOids(orgs, ORG_F002_OID, ORG_F003_OID, ORG_F004_OID, elaineOid, elaineOid);
     }
 
 }

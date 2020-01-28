@@ -18,7 +18,7 @@ import java.io.IOException;
 
 public class AdvancedAccountTests extends TestBase {
 // TODO in progress
-  private static File CSV_TARGET_FILE;
+  private static File csvTargetFile;
 
   private static final String FILE_RESOUCE_NAME = "midpoint-advanced-sync.csv";
   private static final String INITIALIZE_TEST_CONFIGURATION_DEPENDENCY = "initializeTestConfiguration";
@@ -29,13 +29,13 @@ public class AdvancedAccountTests extends TestBase {
 
     initTestDirectory(DIRECTORY_CURRENT_TEST);
 
-    CSV_TARGET_FILE = new File(CSV_TARGET_DIR, FILE_RESOUCE_NAME);
-    FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
+    csvTargetFile = new File(CSV_TARGET_DIR, FILE_RESOUCE_NAME);
+    FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE, csvTargetFile);
 
 
     importObject(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_FILE,true);
     importObject(ScenariosCommons.USER_TEST_RAPHAEL_FILE,true);
-    changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath());
+    changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csvTargetFile.getAbsolutePath());
   }
 
   @Test (dependsOnMethods ={INITIALIZE_TEST_CONFIGURATION_DEPENDENCY})

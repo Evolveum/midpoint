@@ -75,7 +75,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 @Service(value = "certificationManager")
 public class CertificationManagerImpl implements CertificationManager {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(CertificationManagerImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CertificationManagerImpl.class);
 
     private static final String INTERFACE_DOT = CertificationManager.class.getName() + ".";
     //public static final String CLASS_DOT = CertificationManagerImpl.class.getName() + ".";

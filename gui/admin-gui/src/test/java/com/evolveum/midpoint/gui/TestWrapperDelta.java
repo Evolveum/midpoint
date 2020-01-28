@@ -62,7 +62,7 @@ import static org.testng.AssertJUnit.*;
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestWrapperDelta.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestWrapperDelta.class);
 
     private static final String TEST_DIR = "src/test/resources/delta";
 

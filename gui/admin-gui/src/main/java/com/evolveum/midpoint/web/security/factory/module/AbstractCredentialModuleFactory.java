@@ -7,10 +7,10 @@
 package com.evolveum.midpoint.web.security.factory.module;
 
 import com.evolveum.midpoint.model.api.authentication.*;
-import com.evolveum.midpoint.model.api.authentication.AuthModuleImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
+import com.evolveum.midpoint.web.security.util.AuthModuleImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -42,6 +42,8 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
             LOGGER.error("This factory support only AbstractPasswordAuthenticationModuleType, but modelType is " + moduleType);
             return null;
         }
+
+        isSupportedChannel(authenticationChannel);
 
         C configuration = createConfiguration(moduleType, prefixOfSequence, authenticationChannel);
 
