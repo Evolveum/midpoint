@@ -16,7 +16,7 @@
         xmlns:my="http://myself.me/schemas/whatever">
 
         <!-- Resource name. It will be displayed in GUI.  -->
-    <name>Basic Localhost OpenDJ</name>
+    <name>Undeclared Filter Element</name>
 
      <extension>
          <my:menOnChest xsi:type="xsd:int">15</my:menOnChest>
@@ -26,7 +26,8 @@
     <connectorRef type="ConnectorType">
         <description>Search for LDAP connector type, resolved during import</description>
         <filter>
-                <q:equal undeclared="attr">
+                <q:equal>
+                    <undeclared>FooBar</undeclared>
                     <q:path>connectorType</q:path>
                     <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
                 </q:equal>
