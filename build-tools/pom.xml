@@ -11,12 +11,16 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <!--
+    This can't be parent, because build-tools is used again in checkstyle plugin configuration.
     <parent>
         <groupId>com.evolveum.midpoint</groupId>
         <artifactId>midpoint</artifactId>
         <version>4.1-SNAPSHOT</version>
     </parent>
+    -->
 
+    <groupId>com.evolveum.midpoint</groupId>
     <artifactId>build-tools</artifactId>
     <version>4.1-SNAPSHOT</version>
     <packaging>jar</packaging>
