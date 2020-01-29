@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrate
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeStorageStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author skublik
@@ -225,6 +226,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
         return getRefinedAttributeDefinition().isVolatilityTrigger();
     }
 
+    @NotNull
     @Override
     public RefinedAttributeDefinition<T> clone() {
         return getRefinedAttributeDefinition().clone();
@@ -262,11 +264,13 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
         return getRefinedAttributeDefinition().isDisplayNameAttribute();
     }
 
+    @NotNull
     @Override
     public ResourceAttribute<T> instantiate() {
         return getRefinedAttributeDefinition().instantiate();
     }
 
+    @NotNull
     @Override
     public ResourceAttribute<T> instantiate(QName name) {
         return getRefinedAttributeDefinition().instantiate(name);
