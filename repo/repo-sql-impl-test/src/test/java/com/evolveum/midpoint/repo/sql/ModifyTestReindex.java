@@ -75,7 +75,7 @@ public class ModifyTestReindex extends ModifyTest {
         assertEquals("Wrong # of objects found", 1, count);
     }
 
-    @Test(enabled = false)   // MID-5112
+    @Test   // MID-5112
     public void testReindexIndexOnlyItem() throws Exception {
         final String TEST_NAME = "testReindexIndexOnlyItem";
         TestUtil.displayTestTitle(TEST_NAME);
@@ -135,7 +135,7 @@ public class ModifyTestReindex extends ModifyTest {
         assertEquals("Missing or wrong photo", PHOTO, userAfter.getJpegPhoto());
     }
 
-    @Test(enabled = false)   // MID-5112
+    @Test   // MID-5112
     public void testReindexTaskResult() throws Exception {
         final String TEST_NAME = "testReindexTaskResult";
         TestUtil.displayTestTitle(TEST_NAME);

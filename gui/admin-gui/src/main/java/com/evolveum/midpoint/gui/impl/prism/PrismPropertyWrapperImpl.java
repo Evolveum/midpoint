@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author katka
@@ -65,6 +66,7 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismPropertyVa
         return getItemDefinition().createEmptyDelta(path);
     }
 
+    @NotNull
     @Override
     public PrismPropertyDefinition<T> clone() {
         return getItemDefinition().clone();
@@ -75,11 +77,13 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismPropertyVa
         return getItemDefinition().toMutable();
     }
 
+    @NotNull
     @Override
     public PrismProperty<T> instantiate() {
         return getItemDefinition().instantiate();
     }
 
+    @NotNull
     @Override
     public PrismProperty<T> instantiate(QName name) {
         return getItemDefinition().instantiate(name);

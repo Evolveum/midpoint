@@ -49,7 +49,7 @@ public class LocalNodeManager {
 
     private TaskManagerQuartzImpl taskManager;
 
-    public LocalNodeManager(TaskManagerQuartzImpl taskManager) {
+    LocalNodeManager(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
     }
 
@@ -62,8 +62,6 @@ public class LocalNodeManager {
     /**
      * Prepares Quartz scheduler. Configures its properties (based on Task Manager configuration) and creates the instance.
      * Does not start the scheduler, because this is done during post initialization.
-     *
-     * @throws com.evolveum.midpoint.task.api.TaskManagerInitializationException
      */
     void initializeScheduler() throws TaskManagerInitializationException {
 
@@ -73,6 +71,8 @@ public class LocalNodeManager {
         if (configuration.isJdbcJobStore()) {
             quartzProperties.put("org.quartz.jobStore.class", "org.quartz.impl.jdbcjobstore.JobStoreTX");
             quartzProperties.put("org.quartz.jobStore.driverDelegateClass", configuration.getJdbcDriverDelegateClass());
+            quartzProperties.put("org.quartz.jobStore.clusterCheckinInterval", String.valueOf(configuration.getQuartzClusterCheckinInterval()));
+            quartzProperties.put("org.quartz.jobStore.clusterCheckinGracePeriod", String.valueOf(configuration.getQuartzClusterCheckinGracePeriod()));
 
             createQuartzDbSchema(configuration);
 
@@ -107,7 +107,7 @@ public class LocalNodeManager {
         quartzProperties.put("org.quartz.threadPool.threadCount", Integer.toString(configuration.getThreads()));
 
         // in test mode we set idleWaitTime to a lower value, because on some occasions
-        // the Quartz scheduler "forgots" to fire a trigger immediately after creation,
+        // the Quartz scheduler "forgot" to fire a trigger immediately after creation,
         // and the default delay of 10s is too much for most of the tests.
         int schedulerLoopTime;
         if (configuration.isTestMode()) {
@@ -172,15 +172,12 @@ public class LocalNodeManager {
 
     /**
      * Creates Quartz database schema, if it does not exist.
-     *
-     * @throws TaskManagerInitializationException
-     * @param configuration
      */
     private void createQuartzDbSchema(TaskManagerConfiguration configuration) throws TaskManagerInitializationException {
         Connection connection = getConnection(configuration);
         LOGGER.debug("createQuartzDbSchema: trying JDBC connection {}", connection);
         try {
-            if (!doQuartzTablesExist(connection)) {
+            if (areQuartzTablesMissing(connection)) {
 
                 if (configuration.isCreateQuartzTables()) {
                     try {
@@ -195,7 +192,7 @@ public class LocalNodeManager {
                         throw new TaskManagerInitializationException("Could not create Quartz JDBC Job Store tables from " + configuration.getSqlSchemaFile(), e);
                     }
 
-                    if (!doQuartzTablesExist(connection)) {
+                    if (areQuartzTablesMissing(connection)) {
                         throw new TaskManagerInitializationException("Quartz tables seem not to exist even after running creation script.");
                     }
                 } else {
@@ -239,14 +236,15 @@ public class LocalNodeManager {
         return connection;
     }
 
-    private boolean doQuartzTablesExist(Connection connection) {
+    private boolean areQuartzTablesMissing(Connection connection) {
+        //noinspection CatchMayIgnoreException
         try {
             connection.prepareStatement("SELECT count(*) FROM QRTZ_JOB_DETAILS").executeQuery().close();
             LOGGER.debug("Quartz tables seem to exist (at least QRTZ_JOB_DETAILS does).");
-            return true;
+            return false;
         } catch (SQLException ignored) {
             LOGGER.debug("Quartz tables seem not to exist (at least QRTZ_JOB_DETAILS does not), we got an exception when trying to access it", ignored);
-            return false;
+            return true;
         }
     }
 
@@ -258,21 +256,7 @@ public class LocalNodeManager {
         return new BufferedReader(new InputStreamReader(stream));
     }
 
-    private String getResource(String name) throws IOException, TaskManagerInitializationException {
-        InputStream stream = getClass().getResourceAsStream(name);
-        if (stream == null) {
-            throw new TaskManagerInitializationException("Quartz DB schema (" + name + ") cannot be found.");
-        }
-        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
-        StringBuffer sb = new StringBuffer();
-        int i;
-        while ((i = br.read()) != -1) {
-            sb.append((char) i);
-        }
-        return sb.toString();
-    }
-
-    void pauseScheduler(OperationResult result) {
+    private void pauseScheduler(OperationResult result) {
 
         LOGGER.info("Putting Quartz scheduler into standby mode");
         try {
@@ -342,7 +326,7 @@ public class LocalNodeManager {
         }
     }
 
-    public NodeExecutionStatusType getLocalNodeExecutionStatus() {
+    NodeExecutionStatusType getLocalNodeExecutionStatus() {
 
         if (taskManager.getLocalNodeErrorStatus() != NodeErrorStatusType.OK) {
             return NodeExecutionStatusType.ERROR;
@@ -371,11 +355,7 @@ public class LocalNodeManager {
 
     public boolean isRunning() {
         Boolean retval = isQuartzSchedulerRunning();
-        if (retval == null) {
-            return false;           // should not occur anyway
-        } else {
-            return retval;
-        }
+        return retval != null && retval;
     }
 
     /*
@@ -481,8 +461,6 @@ public class LocalNodeManager {
 
     /**
      * Returns all the currently executing tasks.
-     *
-     * @return
      */
     Collection<Task> getLocallyRunningTasks(OperationResult parentResult) {
 
@@ -515,11 +493,7 @@ public class LocalNodeManager {
      * Various auxiliary methods
      */
 
-    private OperationResult createOperationResult(String methodName) {
-        return new OperationResult(LocalNodeManager.class.getName() + "." + methodName);
-    }
-
-    public ExecutionManager getGlobalExecutionManager() {
+    private ExecutionManager getGlobalExecutionManager() {
         return taskManager.getExecutionManager();
     }
 

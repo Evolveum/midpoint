@@ -4923,6 +4923,28 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
+    // MID-5515
+    @Test
+    public void test1443QueryNameNull() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery q = prismContext.queryFor(UserType.class)
+                    .item(F_NAME).isNull()
+                    .build();
+            String real = getInterpretedQuery2(session, UserType.class, q, false);
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "where\n"
+                    + "  1=0\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
     //@Test
     public void test1443QueryWithMultiValueItemPathForOrdering() throws Exception {
         Session session = open();
