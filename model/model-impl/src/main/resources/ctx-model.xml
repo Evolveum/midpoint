@@ -381,7 +381,6 @@
         <constructor-arg name="userDetailsService" ref="userDetailsService"/>
         <constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
         <constructor-arg name="securityHelper" ref="securityHelper"/>
-        <constructor-arg name="activationComputer" ref="activationComputer"/>
         <constructor-arg name="taskManager" ref="taskManager"/>
     </bean>
 
