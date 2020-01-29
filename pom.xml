@@ -1576,6 +1576,7 @@
                             <Organization>Evolveum</Organization>
                             <Organization-URL>http://www.evolveum.com</Organization-URL>
                             <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
+                            <!-- TODO: add EUPL -->
                             <License>Apache License 2.0</License>
                             <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
                         </manifestEntries>
