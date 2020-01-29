@@ -19,6 +19,10 @@
     <groupId>com.evolveum.midpoint.model</groupId>
     <artifactId>rest-impl</artifactId>
 
+    <properties>
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
