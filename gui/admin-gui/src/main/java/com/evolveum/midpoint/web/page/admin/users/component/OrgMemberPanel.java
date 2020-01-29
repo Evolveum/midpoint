@@ -127,11 +127,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     }
 
     @Override
-    protected List<ObjectReferenceType> getMembershipReferenceList(FocusType focusObject){
-        return focusObject.getParentOrgRef();
-    }
-
-    @Override
     protected <O extends ObjectType> Class<O> getDefaultObjectType() {
         return getMemberPanelStorage().getType() != null ? (Class) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(),
                 getMemberPanelStorage().getType().getTypeQName()) : (Class) UserType.class;
