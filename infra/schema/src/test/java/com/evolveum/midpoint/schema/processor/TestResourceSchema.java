@@ -82,7 +82,7 @@ public class TestResourceSchema {
         // WHEN
 
         ResourceSchema schema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(schemaDom),
-                RESOURCE_SCHEMA_SIMPLE_FILENAME, PrismTestUtil.getPrismContext());
+                "http://schema.foo.com/bar", RESOURCE_SCHEMA_SIMPLE_FILENAME, PrismTestUtil.getPrismContext());
 
         // THEN
         assertSimpleSchema(schema, RESOURCE_SCHEMA_SIMPLE_FILENAME);
@@ -97,7 +97,7 @@ public class TestResourceSchema {
 
         // WHEN
 
-        ResourceSchema schema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(schemaDom),
+        ResourceSchema schema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(schemaDom), "http://schema.foo.com/bar",
                 RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME, PrismTestUtil.getPrismContext());
 
         // THEN
@@ -178,7 +178,7 @@ public class TestResourceSchema {
     }
 
     @Test
-    public void testResourceSchemaPrismRoundTrip() throws SchemaException, JAXBException {
+    public void testResourceSchemaPrismRoundTrip() throws SchemaException {
         System.out.println("\n===[ testResourceSchemaPrismRoundTrip ]=====");
         // GIVEN
         ResourceSchema schema = createResourceSchema();
@@ -195,6 +195,7 @@ public class TestResourceSchema {
         PrismObject<ResourceType> resource = resourceDefinition.instantiate();
         ResourceType resourceType = resource.asObjectable();
         resourceType.setName(PrismTestUtil.createPolyStringType("Prism With Dynamic Schemas Test"));
+        resourceType.setNamespace(SCHEMA_NAMESPACE);
         ResourceTypeUtil.setResourceXsdSchema(resource, DOMUtil.getFirstChildElement(xsd));
 
         // WHEN
@@ -224,7 +225,8 @@ public class TestResourceSchema {
     }
 
     private void assertResourceSchema(ResourceSchema unSchema) {
-        ObjectClassComplexTypeDefinition objectClassDef = unSchema.findObjectClassDefinition(new ItemName(SCHEMA_NAMESPACE,"AccountObjectClass"));
+        ObjectClassComplexTypeDefinition objectClassDef = unSchema.findObjectClassDefinition(new ItemName(SCHEMA_NAMESPACE, "AccountObjectClass"));
+        assertNotNull("No object class def", objectClassDef);
         assertEquals(new ItemName(SCHEMA_NAMESPACE,"AccountObjectClass"),objectClassDef.getTypeName());
         assertEquals("AccountObjectClass class not an account", ShadowKindType.ACCOUNT, objectClassDef.getKind());
         assertTrue("AccountObjectClass class not a DEFAULT account", objectClassDef.isDefaultInAKind());

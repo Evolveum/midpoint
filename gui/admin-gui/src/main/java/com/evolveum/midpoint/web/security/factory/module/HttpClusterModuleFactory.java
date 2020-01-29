@@ -13,6 +13,7 @@ import com.evolveum.midpoint.web.security.module.HttpClusterModuleWebSecurityCon
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
 import com.evolveum.midpoint.web.security.provider.ClusterProvider;
+import com.evolveum.midpoint.web.security.util.AuthModuleImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -51,7 +52,7 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory {
 
         ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication(moduleType, configuration);
         SecurityFilterChain filter = http.build();
-        return com.evolveum.midpoint.model.api.authentication.AuthModuleImpl.build(filter, configuration, moduleAuthentication);
+        return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 
     private ModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence) {

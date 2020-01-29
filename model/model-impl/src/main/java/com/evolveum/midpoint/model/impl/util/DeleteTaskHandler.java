@@ -67,7 +67,7 @@ public class DeleteTaskHandler implements TaskHandler {
     @Autowired protected ModelService modelService;
     @Autowired protected PrismContext prismContext;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(DeleteTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DeleteTaskHandler.class);
 
     @PostConstruct
     private void initialize() {

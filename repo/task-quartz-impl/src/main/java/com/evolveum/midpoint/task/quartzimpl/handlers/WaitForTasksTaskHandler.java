@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -25,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
  */
 public class WaitForTasksTaskHandler implements TaskHandler {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(WaitForTasksTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(WaitForTasksTaskHandler.class);
     public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/wait-for-tasks/handler-3";
 
     private static WaitForTasksTaskHandler instance = null;

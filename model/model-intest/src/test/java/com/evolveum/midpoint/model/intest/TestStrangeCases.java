@@ -1426,15 +1426,14 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
     }
 
-    private void changeDefinition(QName piracyShip, QName piracyShipBroken) {
+    private void changeDefinition(QName piracyShip, ItemName piracyShipBroken) {
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismContainerDefinition<?> extensionDefinition = userDef.getExtensionDefinition();
         List<? extends ItemDefinition> extensionDefs = extensionDefinition.getComplexTypeDefinition().getDefinitions();
         for (ItemDefinition itemDefinition : extensionDefs) {
             if (itemDefinition.getItemName().equals(piracyShip)) {
-                //iterator.remove();    // not possible as the collection is unmodifiable
-                itemDefinition.toMutable().setItemName(piracyShipBroken);
+                ((ItemDefinitionTestAccess) itemDefinition).replaceName(piracyShipBroken);
             }
         }
     }

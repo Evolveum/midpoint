@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -31,7 +30,7 @@ import java.util.*;
  */
 public class StalledTasksWatcher {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(StalledTasksWatcher.class);
+    private static final Trace LOGGER = TraceManager.getTrace(StalledTasksWatcher.class);
 
     private static final String DOT_CLASS = StalledTasksWatcher.class.getName() + ".";
 

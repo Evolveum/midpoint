@@ -26,7 +26,7 @@ import java.io.IOException;
  */
 public class TestLazyDumpPerformance {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestLazyDumpPerformance.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestLazyDumpPerformance.class);
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {

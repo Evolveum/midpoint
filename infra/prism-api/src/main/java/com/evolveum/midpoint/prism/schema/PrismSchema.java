@@ -30,7 +30,7 @@ import java.util.List;
  * @author semancik
  * @author mederly
  */
-public interface PrismSchema extends DebugDumpable, GlobalDefinitionsStore, DefinitionSearchImplementation {
+public interface PrismSchema extends DebugDumpable, GlobalDefinitionsStore, DefinitionSearchImplementation, Freezable {
 
     /**
      * Returns schema namespace.
@@ -38,9 +38,8 @@ public interface PrismSchema extends DebugDumpable, GlobalDefinitionsStore, Defi
      * All schema definitions are placed in the returned namespace.
      *
      * @return schema namespace
-     *
-     * TODO can be null?
      */
+    @NotNull
     String getNamespace();
 
     /**

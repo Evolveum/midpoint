@@ -4,9 +4,11 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.api.authentication;
+package com.evolveum.midpoint.web.security.util;
 
-import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
+import com.evolveum.midpoint.model.api.authentication.AuthModule;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -52,9 +54,9 @@ public class AuthModuleImpl implements AuthModule {
 
     public static AuthModule build(SecurityFilterChain securityFilterChain, ModuleWebSecurityConfiguration configuration,
                                        ModuleAuthentication baseModuleAuthentication) {
-        Validate.notNull(securityFilterChain);
-        Validate.notNull(configuration);
-        Validate.notNull(baseModuleAuthentication);
+        Validate.notNull(securityFilterChain, "Couldn't build AuthModuleImpl, because filter is null");
+        Validate.notNull(configuration, "Couldn't build AuthModuleImpl, because configuration is null");
+        Validate.notNull(baseModuleAuthentication, "Couldn't build AuthModuleImpl, because base authentication module is null");
         AuthModuleImpl module = new AuthModuleImpl();
         module.setSecurityFilterChain(securityFilterChain);
         module.setConfiguration(configuration);

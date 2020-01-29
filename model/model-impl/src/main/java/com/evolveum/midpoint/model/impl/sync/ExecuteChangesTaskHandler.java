@@ -58,7 +58,7 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeModelTaskH
     @Autowired
     private ModelService model;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ExecuteChangesTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ExecuteChangesTaskHandler.class);
 
     public ExecuteChangesTaskHandler() {
         super("Execute", OperationConstants.EXECUTE);

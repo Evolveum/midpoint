@@ -7,20 +7,18 @@
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Repository</name>
-    <artifactId>repo</artifactId>
-    <packaging>pom</packaging>
+
     <parent>
-        <artifactId>parent</artifactId>
+        <artifactId>midpoint</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>4.1-SNAPSHOT</version>
-        <relativePath>../build-system/pom.xml</relativePath>
     </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>repo</artifactId>
+    <packaging>pom</packaging>
+
+    <name>midPoint Repository</name>
+
     <modules>
         <module>audit-api</module>
         <module>audit-impl</module>

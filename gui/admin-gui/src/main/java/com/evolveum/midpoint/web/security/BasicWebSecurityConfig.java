@@ -77,9 +77,6 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private SystemObjectCache systemObjectCache;
 
-//    @Autowired
-//    private AuthenticationProvider midPointAuthenticationProvider;
-
     @Autowired
     private SessionRegistry sessionRegistry;
 
@@ -139,16 +136,13 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new WicketLoginUrlAuthenticationEntryPoint("/login");
     }
 
-//    @Override
-//    public void init(WebSecurity web) throws Exception {
-//        //rewrite init method because this is basic configuration for bean and ignored paths
-//    }
-
     @Override
     public void configure(WebSecurity web) throws Exception {
         super.configure(web);
         // Web (SOAP) services
         web.ignoring().antMatchers("/model/**");
+
+        // REST service
         web.ignoring().requestMatchers(new RequestMatcher() {
             @Override
             public boolean matches(HttpServletRequest httpServletRequest) {
@@ -158,7 +152,7 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
                     isExperimentalEnabled = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(
                             systemObjectCache.getSystemConfiguration(new OperationResult("Load System Config")).asObjectable());
                 } catch (SchemaException e) {
-                    LOGGER.error("Coulnd't load system configuration", e);
+                    LOGGER.error("Couldn't load system configuration", e);
                 }
                 if (isExperimentalEnabled
                         && mather.match("/ws/rest/**", httpServletRequest.getRequestURI().substring(httpServletRequest.getContextPath().length()))) {
@@ -173,8 +167,6 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
                 return false;
             }
         });
-
-        // REST service
         web.ignoring().antMatchers("/rest/**");
 
         // Special intra-cluster service to download and delete report outputs
@@ -190,12 +182,6 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/less/**");
 
         web.ignoring().antMatchers("/wicket/resource/**");
-
-        web.ignoring().antMatchers("/actuator");
-        web.ignoring().antMatchers("/actuator/health");
-        web.ignoring().antMatchers("/favicon.ico");
-
-//            web.debug(true);
     }
 
     @Override

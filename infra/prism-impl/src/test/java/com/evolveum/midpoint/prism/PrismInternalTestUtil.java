@@ -59,8 +59,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 
     public static final String COMMON_DIR_PATH = "src/test/resources/common";
     public static final File COMMON_DIR = new File(COMMON_DIR_PATH);
-    public static File SCHEMA_DIR = new File("src/test/resources/schema");
-    public static File EXTRA_SCHEMA_DIR = new File("src/test/resources/schema-extra");
+    public static final File SCHEMA_DIR = new File("src/test/resources/schema");
+    public static final File EXTRA_SCHEMA_DIR = new File("src/test/resources/schema-extra");
 
     public static final File COMMON_DIR_XML = new File(COMMON_DIR, "xml");
 

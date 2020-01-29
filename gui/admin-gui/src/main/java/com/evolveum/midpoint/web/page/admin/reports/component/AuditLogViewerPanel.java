@@ -22,6 +22,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.session.AuditLogStorage;
+import com.evolveum.midpoint.web.session.PageStorage;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -501,6 +503,11 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 //                }
             }
 
+            @Override
+            protected PageStorage getPageStorage(){
+                return getAuditLogStorage();
+            }
+
         };
         UserProfileStorage userProfile = getPageBase().getSessionStorage().getUserProfile();
         int pageSize = DEFAULT_PAGE_SIZE;
@@ -545,10 +552,21 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     }
 
 
-    protected abstract void updateAuditSearchStorage(AuditSearchDto searchDto);
+    protected abstract AuditLogStorage getAuditLogStorage();
     protected abstract void resetAuditSearchStorage();
-    protected abstract void updateCurrentPage(long current);
-    protected abstract long getCurrentPage();
+
+    protected void updateAuditSearchStorage(AuditSearchDto searchDto){
+        getAuditLogStorage().setSearchDto(searchDto);
+        getAuditLogStorage().setPageNumber(0);
+    }
+
+    protected void updateCurrentPage(long current){
+        getAuditLogStorage().setPageNumber(current);
+    }
+
+    protected long getCurrentPage(){
+        return getAuditLogStorage().getPageNumber();
+    }
 
 
     private BoxedTablePanel getAuditLogViewerTable(){
@@ -558,7 +576,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     protected List<IColumn<AuditEventRecordType, String>> initColumns() {
         List<IColumn<AuditEventRecordType, String>> columns = new ArrayList<>();
         IColumn<AuditEventRecordType, String> linkColumn = new LinkColumn<AuditEventRecordType>(
-                createStringResource("AuditEventRecordType.timestamp"), "timestamp") {
+                createStringResource("AuditEventRecordType.timestamp"), AuditEventRecordProvider.TIMESTAMP_VALUE_PARAMETER,
+                AuditEventRecordProvider.TIMESTAMP_VALUE_PARAMETER) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -588,7 +607,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         columns.add(linkColumn);
 
         PropertyColumn<AuditEventRecordType, String> initiatorRefColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("AuditEventRecordType.initiatorRef"),
-                AuditEventRecordType.F_INITIATOR_REF.getLocalPart()) {
+                AuditEventRecordProvider.INITIATOR_OID_PARAMETER, AuditEventRecordType.F_INITIATOR_REF.getLocalPart()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -602,7 +621,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
         if (!isHistory) {
             IColumn<AuditEventRecordType, String> eventStageColumn = new PropertyColumn<AuditEventRecordType, String>(
-                createStringResource("PageAuditLogViewer.eventStageLabel"), "eventStage"){
+                createStringResource("PageAuditLogViewer.eventStageLabel"),
+                    AuditEventRecordProvider.EVENT_STAGE_PARAMETER, "eventStage"){
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -613,7 +633,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             columns.add(eventStageColumn);
         }
         IColumn<AuditEventRecordType, String> eventTypeColumn = new PropertyColumn<AuditEventRecordType, String>(
-            createStringResource("PageAuditLogViewer.eventTypeLabel"), "eventType"){
+            createStringResource("PageAuditLogViewer.eventTypeLabel"),
+                AuditEventRecordProvider.EVENT_TYPE_PARAMETER, "eventType"){
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -625,7 +646,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
         if (!isHistory) {
             PropertyColumn<AuditEventRecordType, String> targetRefColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("AuditEventRecordType.targetRef"),
-                    AuditEventRecordType.F_TARGET_REF.getLocalPart()) {
+                    AuditEventRecordProvider.TARGET_OID_PARAMETER, AuditEventRecordType.F_TARGET_REF.getLocalPart()) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -640,7 +661,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
         if (!isHistory) {
             PropertyColumn<AuditEventRecordType, String> targetOwnerRefColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("AuditEventRecordType.targetOwnerRef"),
-                    AuditEventRecordType.F_TARGET_OWNER_REF.getLocalPart()) {
+                    AuditEventRecordProvider.TARGET_OWNER_OID_PARAMETER, AuditEventRecordType.F_TARGET_OWNER_REF.getLocalPart()) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -653,7 +674,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             columns.add(targetOwnerRefColumn);
         }
         IColumn<AuditEventRecordType, String> channelColumn = new PropertyColumn<AuditEventRecordType, String>(
-                createStringResource("AuditEventRecordType.channel"), "channel") {
+                createStringResource("AuditEventRecordType.channel"),
+                AuditEventRecordProvider.CHANNEL_PARAMETER, "channel") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -681,7 +703,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         columns.add(channelColumn);
 
         IColumn<AuditEventRecordType, String> outcomeColumn = new PropertyColumn<AuditEventRecordType, String>(
-            createStringResource("PageAuditLogViewer.outcomeLabel"), "outcome"){
+                createStringResource("PageAuditLogViewer.outcomeLabel"),
+                AuditEventRecordProvider.OUTCOME_PARAMETER, "outcome") {
             private static final long serialVersionUID = 1L;
 
             @Override

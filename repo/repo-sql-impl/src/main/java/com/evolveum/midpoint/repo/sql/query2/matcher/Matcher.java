@@ -77,18 +77,4 @@ public abstract class Matcher<T> {
 
         return condition;
     }
-
-    static QName getApproximateSupportedMatchingRule(QName originalMatchingRule, List<QName> supportedMatchingRules,
-            Map<QName, QName> matchingRulesConvergenceMap) {
-        if (originalMatchingRule == null || supportedMatchingRules.contains(originalMatchingRule)) {
-            return originalMatchingRule;
-        }
-        return matchingRulesConvergenceMap.entrySet().stream()
-                .filter(entry -> QNameUtil.match(entry.getKey(), originalMatchingRule))
-                .map(Map.Entry::getValue)
-                .findFirst()
-                // if nothing applicable we return the original one - query interpreter will take care of it
-                // (logging error or throwing an exception) ... TODO rethink this
-                .orElse(originalMatchingRule);
-    }
 }

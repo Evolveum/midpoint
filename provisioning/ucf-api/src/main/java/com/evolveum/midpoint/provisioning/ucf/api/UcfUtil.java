@@ -59,7 +59,8 @@ public class UcfUtil {
         if (xsdElement == null) {
             return null;
         }
-        MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema();
+        MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema(
+                DOMUtil.getSchemaTargetNamespace(xsdElement));
         connectorSchema.parseThis(xsdElement, true, connectorType.toString(), prismContext);
         return connectorSchema;
     }

@@ -62,6 +62,7 @@ public class SimpleTypeDefinitionImpl extends TypeDefinitionImpl implements Simp
 
     @Override
     public MutableDefinition toMutable() {
+        checkMutableOnExposing();
         return this;
     }
 }

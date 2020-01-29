@@ -37,8 +37,10 @@ import static java.util.Collections.emptySet;
 public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObjectClassDefinition {
     private static final long serialVersionUID = 1L;
 
-    private RefinedObjectClassDefinition refinedObjectClassDefinition;
-    private LayerType layer;
+    private boolean immutable;
+
+    private final RefinedObjectClassDefinition refinedObjectClassDefinition;
+    private final LayerType layer;
     /**
      * Keeps layer-specific information on resource object attributes.
      * This list is lazily evaluated.
@@ -58,9 +60,9 @@ public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefined
     }
 
     static List<? extends LayerRefinedObjectClassDefinition> wrapCollection(Collection<? extends RefinedObjectClassDefinition> rOCDs, LayerType layer) {
-        return(rOCDs.stream()
+        return rOCDs.stream()
                 .map(rAccountDef -> wrap(rAccountDef, layer))
-                .collect(Collectors.toCollection(() -> new ArrayList<>(rOCDs.size()))));
+                .collect(Collectors.toCollection(() -> new ArrayList<>(rOCDs.size())));
     }
 
     @Override
@@ -282,6 +284,9 @@ public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefined
     @Override
     public List<? extends LayerRefinedAttributeDefinition<?>> getAttributeDefinitions() {
         if (layerRefinedAttributeDefinitions == null) {
+            if (immutable) {
+                throw new IllegalStateException("Definition is immutable: " + this);
+            }
             layerRefinedAttributeDefinitions = LayerRefinedAttributeDefinitionImpl.wrapCollection(refinedObjectClassDefinition.getAttributeDefinitions(), layer);
         }
         return layerRefinedAttributeDefinitions;
@@ -601,9 +606,16 @@ public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefined
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor<Definition> visitor) {
         visitor.visit(this);
         refinedObjectClassDefinition.accept(visitor);
+    }
+
+    // TODO reconsider
+    @Override
+    public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
+        visitor.visit(this);
+        return refinedObjectClassDefinition.accept(visitor, visitation);
     }
 
     @NotNull
@@ -676,8 +688,7 @@ public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefined
 
     @Override
     public String toString() {
-        return "LROCDef("+layer+": "
-                + refinedObjectClassDefinition + ")";
+        return "LROCDef" + layer + getMutabilityFlag() + ": " + refinedObjectClassDefinition + ")";
     }
 
     @Override
@@ -725,5 +736,16 @@ public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefined
     @Override
     public boolean canRepresent(QName typeName) {
         return refinedObjectClassDefinition.canRepresent(typeName);
+    }
+
+    @Override
+    public boolean isImmutable() {
+        return immutable;
+    }
+
+    @Override
+    public void freeze() {
+        getAttributeDefinitions();
+        this.immutable = true;
     }
 }

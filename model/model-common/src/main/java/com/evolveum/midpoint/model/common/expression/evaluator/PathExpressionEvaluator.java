@@ -36,15 +36,11 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author Radovan Semancik
  */
 public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(PathExpressionEvaluator.class);
 
     private final QName elementName;
     private final ItemPath path;

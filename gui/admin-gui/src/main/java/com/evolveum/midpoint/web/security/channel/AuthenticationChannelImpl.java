@@ -10,11 +10,9 @@ import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
 
@@ -29,7 +27,7 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
     private AuthenticationSequenceChannelType channel;
 
     public AuthenticationChannelImpl(AuthenticationSequenceChannelType channel) {
-        Validate.notNull(channel);
+        Validate.notNull(channel, "Couldn't create authentication channel object, because channel is null");
         this.channel = channel;
     }
 

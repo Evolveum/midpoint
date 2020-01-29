@@ -33,7 +33,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends AbstractItemWrapperColumnPanel<PrismReferenceWrapper<R>, PrismValueWrapper<R, PrismReferenceValue>> {
 
     private static final long serialVersionUID = 1L;
-    private static final transient Trace LOGGER = TraceManager.getTrace(PrismReferenceWrapperColumnPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismReferenceWrapperColumnPanel.class);
 
     PrismReferenceWrapperColumnPanel(String id, IModel<PrismReferenceWrapper<R>> model, ColumnType columnType) {
         super(id, model, columnType);

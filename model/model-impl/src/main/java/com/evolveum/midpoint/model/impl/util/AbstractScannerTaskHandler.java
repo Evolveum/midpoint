@@ -39,7 +39,7 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 
     @Autowired protected Clock clock;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AbstractScannerTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractScannerTaskHandler.class);
 
     public AbstractScannerTaskHandler(Class<O> type, String taskName, String taskOperationPrefix) {
         super(taskName, taskOperationPrefix);

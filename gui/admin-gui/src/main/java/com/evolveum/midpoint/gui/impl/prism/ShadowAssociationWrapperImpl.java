@@ -35,7 +35,7 @@ public class ShadowAssociationWrapperImpl extends PrismContainerWrapperImpl<Shad
 
     private static final long serialVersionUID = 1L;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ShadowAssociationWrapperImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowAssociationWrapperImpl.class);
 
     public ShadowAssociationWrapperImpl(PrismContainerValueWrapper<?> parent, PrismContainer<ShadowAssociationType> item, ItemStatus status) {
         super(parent, item, status);

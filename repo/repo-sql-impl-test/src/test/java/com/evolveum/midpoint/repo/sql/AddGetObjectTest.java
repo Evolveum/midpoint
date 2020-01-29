@@ -604,7 +604,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         }
     }
 
-    private final String OID_200 = "70016628-2c41-4a2d-9558-8340014adaab";
+    private static final String OID_200 = "70016628-2c41-4a2d-9558-8340014adaab";
 
     @Test
     public void test200WatcherAddWithOid() throws Exception {

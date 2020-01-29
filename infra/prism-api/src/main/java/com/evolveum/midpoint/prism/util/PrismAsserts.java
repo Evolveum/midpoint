@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.util;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -1253,5 +1254,23 @@ public class PrismAsserts {
         assertNotNull("No " + itemPath + " in " + object, item);
         assertTrue(itemPath + " is not incomplete in " + object, item.isIncomplete());
         return item;
+    }
+
+    public static void assertImmutable(Definition definition) {
+        definition.accept(def -> {
+            System.out.println("Checking " + def);
+            if (!def.isImmutable()) {
+                fail("Definition is not immutable: " + def);
+            }
+        });
+    }
+
+    public static void assertMutable(Definition definition) {
+        definition.accept(def -> {
+            System.out.println("Checking " + def);
+            if (def.isImmutable()) {
+                fail("Definition is not mutable: " + def);
+            }
+        });
     }
 }

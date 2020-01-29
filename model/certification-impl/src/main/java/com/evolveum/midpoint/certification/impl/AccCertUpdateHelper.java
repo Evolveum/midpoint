@@ -47,7 +47,7 @@ import static java.util.Collections.singleton;
 @Component
 public class AccCertUpdateHelper {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AccCertUpdateHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccCertUpdateHelper.class);
 
     @Autowired private AccCertEventHelper eventHelper;
     @Autowired private PrismContext prismContext;

@@ -333,14 +333,9 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     // todo determine appropriate places where recordEnd() should be called
     public void recordEnd() {
         if (invocationRecord != null) {
-            // TODO use lambda here to avoid string manipulation if not necessary (i.e. if profiling logging is turned off)
-            String returnValue = getReturns().toString();
-            if (cause != null) {
-                returnValue += "; " + cause.getClass().getName() + ": " + cause.getMessage();
-            }
             // This is not quite clean. We should report the exception via processException method - but that does not allow
             // showing return values that can be present in operation result. So this is a hack until InvocationRecord is fixed.
-            invocationRecord.processReturnValue(returnValue);
+            invocationRecord.processReturnValue(getReturns(), cause);
             invocationRecord.afterCall();
             microseconds = invocationRecord.getElapsedTimeMicros();
             if (collectingLogEntries) {

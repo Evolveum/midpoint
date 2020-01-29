@@ -151,7 +151,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             "sk", "Kapitán Džek Sperou"
         };
 
-    private static Trace LOGGER = TraceManager.getTrace(TestOpenDj.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestOpenDj.class);
 
     private String groupSailorOid;
 

@@ -47,6 +47,8 @@ import static java.util.Collections.emptySet;
 public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefinedObjectClassDefinition {
     private static final long serialVersionUID = 1L;
 
+    private boolean immutable;
+
     @NotNull private final RefinedObjectClassDefinition structuralObjectClassDefinition;
     @NotNull private final Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
 
@@ -650,7 +652,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor<Definition> visitor) {
         visitor.visit(this);
         structuralObjectClassDefinition.accept(visitor);
         for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
@@ -658,6 +660,16 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
         }
     }
 
+    // TODO reconsider this
+    @Override
+    public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
+        visitor.visit(this);
+        structuralObjectClassDefinition.accept(visitor, visitation);
+        for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+            auxiliaryObjectClassDefinition.accept(visitor, visitation);
+        }
+        return true;
+    }
 
     @NotNull
     @Override
@@ -718,7 +730,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(getDebugDumpClassName()).append(": ");
+        sb.append(getDebugDumpClassName()).append(getMutabilityFlag()).append(": ");
         sb.append(SchemaDebugUtil.prettyPrint(getTypeName()));
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "structural", structuralObjectClassDefinition, indent + 1);
@@ -745,10 +757,10 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     @Override
     public String toString() {
         if (auxiliaryObjectClassDefinitions.isEmpty()) {
-            return getDebugDumpClassName() + " ("+getTypeName()+")";
+            return getDebugDumpClassName() + getMutabilityFlag() + " ("+getTypeName()+")";
         } else {
             StringBuilder sb = new StringBuilder();
-            sb.append(getDebugDumpClassName()).append("(").append(getTypeName());
+            sb.append(getDebugDumpClassName()).append(getMutabilityFlag()).append("(").append(getTypeName());
             for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
                 sb.append("+").append(auxiliaryObjectClassDefinition.getTypeName());
             }
@@ -826,5 +838,17 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
             }
         }
         return false;
+    }
+
+    @Override
+    public void freeze() {
+        structuralObjectClassDefinition.freeze();
+        auxiliaryObjectClassDefinitions.forEach(Freezable::freeze);
+        this.immutable = true;
+    }
+
+    @Override
+    public boolean isImmutable() {
+        return immutable;
     }
 }

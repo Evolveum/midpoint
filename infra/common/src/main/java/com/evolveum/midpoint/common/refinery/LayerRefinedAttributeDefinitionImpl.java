@@ -39,6 +39,8 @@ public final class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefine
     private Boolean overrideCanAdd = null;
     private Boolean overrideCanModify = null;
 
+    private boolean immutable;
+
     private LayerRefinedAttributeDefinitionImpl(RefinedAttributeDefinition<T> refinedAttributeDefinition, LayerType layer) {
         this.refinedAttributeDefinition = refinedAttributeDefinition;
         this.layer = layer;
@@ -112,9 +114,17 @@ public final class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefine
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor<Definition> visitor) {
         visitor.visit(this);
         refinedAttributeDefinition.accept(visitor);
+    }
+
+    // TODO reconsider this
+    @Override
+    public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
+        visitor.visit(this);
+        refinedAttributeDefinition.accept(visitor, visitation);
+        return true;
     }
 
     @NotNull
@@ -291,6 +301,11 @@ public final class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefine
     @Override
     public MutableResourceAttributeDefinition<T> toMutable() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isImmutable() {
+        return immutable;
     }
 
     @Override
@@ -676,4 +691,8 @@ public final class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefine
         return refinedAttributeDefinition + ":" + layer;
     }
 
+    @Override
+    public void freeze() {
+        immutable = true;
+    }
 }

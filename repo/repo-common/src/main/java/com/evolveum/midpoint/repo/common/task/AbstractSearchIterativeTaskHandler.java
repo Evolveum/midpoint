@@ -105,7 +105,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     @Autowired
     protected PrismContext prismContext;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeTaskHandler.class);
 
     protected AbstractSearchIterativeTaskHandler(String taskName, String taskOperationPrefix) {
         this.taskName = taskName;

@@ -14,7 +14,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.QueryFactory;
@@ -434,7 +433,7 @@ public abstract class ResourceContentPanel extends Panel {
 
     private void runTask(List<TaskType> tasks, AjaxRequestTarget target) {
 
-        ResourceTasksPanel tasksPanel = new ResourceTasksPanel(getPageBase().getMainPopupBodyId(), false,
+        ResourceTasksPanel tasksPanel = new ResourceTasksPanel(getPageBase().getMainPopupBodyId(),
                 new ListModel<TaskType>(tasks), getPageBase());
         getPageBase().showMainPopup(tasksPanel, target);
 

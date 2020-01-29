@@ -27,8 +27,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfiguratio
 @Component
 public class AppendersWrapperFactoryImpl<C extends Containerable> extends PrismContainerWrapperFactoryImpl<C>{
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AppendersWrapperFactoryImpl.class);
-
     @Override
     public boolean match(ItemDefinition<?> def) {
         return QNameUtil.match(def.getTypeName(), AppenderConfigurationType.COMPLEX_TYPE);

@@ -8,27 +8,25 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Testing Infrastructure</name>
-    <groupId>com.evolveum.midpoint</groupId>
-    <artifactId>testing</artifactId>
-    <packaging>pom</packaging>
+
     <parent>
-        <artifactId>parent</artifactId>
+        <artifactId>midpoint</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>4.1-SNAPSHOT</version>
-        <relativePath>../build-system/pom.xml</relativePath>
     </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>testing</artifactId>
+    <packaging>pom</packaging>
+
+    <name>midPoint Testing Infrastructure</name>
+
     <modules>
         <module>sanity</module>
         <!-- DO NOT include longtest and story by default, this runs too long for
         ordinary build -->
 <!--         <module>rest</module> -->
     </modules>
+
     <build>
         <plugins>
             <!-- reference failsafe and surefire from build-system plugin management in order for tests to be running -->
@@ -68,11 +66,14 @@
     </profiles>
 
     <dependencies>
-        <dependency> <!-- Not used, but required for surefire plugin not to complain -->
+        <!-- Not used, but required for surefire plugin not to complain -->
+        <!--
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
+        -->
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>

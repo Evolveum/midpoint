@@ -84,7 +84,7 @@ import java.util.List;
 @EnableScheduling
 public class MidPointSpringApplication extends AbstractSpringBootApplication {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
 
     private static ConfigurableApplicationContext applicationContext = null;
     private Context tomcatContext;
