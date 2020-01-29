@@ -20,7 +20,6 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -30,7 +29,7 @@ import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -89,7 +88,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.fasterxml.jackson.databind.type.CollectionType;
 
 /**
  * Created by honchar.
@@ -785,6 +783,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         Label help = new Label(id);
         help.add(AttributeModifier.replace("title",createStringResource(helpInfo != null ? helpInfo : "")));
         help.add(new InfoTooltipBehavior());
+        help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpInfo)));
         return help;
     }
 
