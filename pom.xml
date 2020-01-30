@@ -1563,7 +1563,6 @@
                             <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
                             <License>dual-licensed under the Apache License 2.0 and European Union Public License</License>
                             <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
-                            <anything>sss</anything>
                         </manifestEntries>
                     </archive>
                 </configuration>

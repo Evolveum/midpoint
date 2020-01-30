@@ -25,7 +25,7 @@ xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
     <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <c:password>
             <c:value xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
-                <clearValue>proxyPassword</clearValue>
+                <clearValue>ProxyPassw0rd</clearValue>
             </c:value>
         </c:password>
         <securityQuestions>

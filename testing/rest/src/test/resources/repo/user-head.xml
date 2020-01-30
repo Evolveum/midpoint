@@ -22,7 +22,7 @@
     <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <c:password>
             <c:value xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
-                <clearValue>headPassw0rd</clearValue>
+                <clearValue>HeadPassw0rd</clearValue>
             </c:value>
         </c:password>
         <securityQuestions>

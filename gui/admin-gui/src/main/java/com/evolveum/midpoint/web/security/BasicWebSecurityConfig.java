@@ -127,7 +127,7 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public MidPointAccessDeniedHandler accessDeniedHandler() {
-        return new MidPointAccessDeniedHandler();
+        return objectObjectPostProcessor.postProcess(new MidPointAccessDeniedHandler());
     }
 
     @Profile("!cas")

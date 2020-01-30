@@ -125,6 +125,9 @@
             </xsd:element>
             <xsd:element name="ignoredLocalPath" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        Path without authentication.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.1</a:since>
                     </xsd:appinfo>

@@ -27,18 +27,4 @@
         <module>ucf-impl-connid</module>
         <module>ucf-impl-builtin</module>
     </modules>
-
-    <build>
-        <plugins>
-            <!-- reference failsafe and surefire from build-system plugin management in order for tests to be running -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 </project>

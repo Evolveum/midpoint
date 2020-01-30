@@ -9,13 +9,16 @@ package com.evolveum.midpoint.gui.test;
 import java.lang.management.ManagementFactory;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.web.boot.AbstractSpringBootApplication;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.boot.Banner;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
@@ -24,7 +27,6 @@ import com.evolveum.midpoint.gui.impl.factory.TextAreaPanelFactory;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.boot.AbstractSpringBootApplication;
 
 /**
  * @author katka
@@ -59,10 +61,12 @@ import com.evolveum.midpoint.web.boot.AbstractSpringBootApplication;
 })
 @Profile({"test", "!default"})
 @SpringBootConfiguration
-@ComponentScan(basePackages = {"com.evolveum.midpoint.gui","com.evolveum.midpoint.gui.api"}, basePackageClasses = {TextAreaPanelFactory.class, GuiComponentRegistryImpl.class})
+@ComponentScan(basePackages = {"com.evolveum.midpoint.web.security.factory", "com.evolveum.midpoint.gui","com.evolveum.midpoint.gui.api"}, basePackageClasses = {TextAreaPanelFactory.class, GuiComponentRegistryImpl.class})
 public class TestMidPointSpringApplication extends AbstractSpringBootApplication {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestMidPointSpringApplication.class);
+
+    public static int DEFAULT_PORT = 18080;
 
     private static ConfigurableApplicationContext applicationContext = null;
 
@@ -125,6 +129,13 @@ public class TestMidPointSpringApplication extends AbstractSpringBootApplication
         application.bannerMode(Banner.Mode.LOG);
 
         return application.sources(TestMidPointSpringApplication.class);
+    }
+
+    @Bean
+    public TomcatServletWebServerFactory tomcatEmbeddedServletContainerFactory() {
+        TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
+        tomcat.setPort(DEFAULT_PORT);
+        return tomcat;
     }
 
 }

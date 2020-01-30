@@ -10,6 +10,7 @@ spring:
       max-request-size: 100MB
 
 server:
+  port: 18080
   tomcat:
     basedir: ${midpoint.home}
     max-http-post-size: 104857600 # in bytes

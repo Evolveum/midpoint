@@ -37,18 +37,4 @@
         <!-- TODO separate rest-api after PoC is finished -->
         <module>rest-impl</module>
     </modules>
-
-    <build>
-        <plugins>
-            <!-- reference failsafe and surefire from build-system plugin management in order for tests to be running -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 </project>

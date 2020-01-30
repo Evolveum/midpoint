@@ -8,13 +8,10 @@
 package com.evolveum.midpoint.testing.rest;
 
 import java.io.File;
-
 import javax.ws.rs.core.MediaType;
 
 import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
 
-//@ContextConfiguration(locations = { "classpath:ctx-rest-test.xml" })
-//@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRestServiceJson extends TestAbstractRestService {
 
     @Override
