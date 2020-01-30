@@ -12,6 +12,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -43,6 +45,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.SchemaMigration;
 import com.evolveum.midpoint.prism.SchemaMigrationOperation;
+import com.evolveum.midpoint.prism.TypeDefinition;
 import com.evolveum.midpoint.prism.impl.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.impl.PrismPropertyDefinitionImpl;
@@ -66,6 +69,7 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -74,6 +78,8 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 
 
 public class PrismUnmarshaller {
@@ -81,6 +87,16 @@ public class PrismUnmarshaller {
     private static final Trace LOGGER = TraceManager.getTrace(PrismUnmarshaller.class);
 
     private static final QName ARTIFICIAL_OBJECT_NAME = new QName(XMLConstants.NULL_NS_URI, "anObject");
+
+    private static final Set<String> REFERENCE_PROPERTIES = ImmutableSet.of(
+            XNodeImpl.KEY_REFERENCE_OID.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_TYPE.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_RELATION.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_DESCRIPTION.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_FILTER.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_RESOLUTION_TIME.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_TARGET_NAME.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_OBJECT.getLocalPart());
 
     @NotNull private PrismContext prismContext;
     @NotNull private final BeanUnmarshaller beanUnmarshaller;
@@ -300,11 +316,14 @@ public class PrismUnmarshaller {
             }
             cval = new PrismContainerValueImpl<>(null, null, null, id, complexTypeDefinition, prismContext);
         }
+        parseContainerChildren(cval, map, containerDef, complexTypeDefinition, pc);
+        return cval;
+    }
+
+    private void parseContainerChildren(PrismContainerValue<?> cval, MapXNodeImpl map, PrismContainerDefinition<?> containerDef, ComplexTypeDefinition complexTypeDefinition, ParsingContext pc) throws SchemaException {
         for (Entry<QName, XNodeImpl> entry : map.entrySet()) {
             QName itemName = entry.getKey();
-            if (itemName == null) {
-                throw new IllegalArgumentException("Null item name while parsing " + map.debugDump());
-            }
+            checkArgument(itemName != null, "Null item name while parsing %s", map.debugDumpLazily());
             if (QNameUtil.match(itemName, XNodeImpl.KEY_CONTAINER_ID)) {
                 continue;
             }
@@ -314,41 +333,14 @@ public class PrismUnmarshaller {
             }
 
             ItemDefinition<?> itemDef = locateItemDefinition(itemName, complexTypeDefinition, entry.getValue());
-            if (itemDef == null) {
-                SchemaMigration migration = determineSchemaMigration(complexTypeDefinition, itemName, pc);
-                if (migration != null && pc.isCompat()) {
-                    if (migration.getOperation() == SchemaMigrationOperation.REMOVED) {
-                        String msg = "Item "+itemName+" was removed from the schema, skipped processing of that item";
-                        pc.warn(LOGGER, msg);
-                        continue;
-                    } else {
-                        pc.warnOrThrow(LOGGER, "Unsupported migration operation " + migration.getOperation() + " for item " + itemName + " (in container "
-                                + containerDef + ")" + "while parsing " + map.debugDump());
-                    }
+            if(itemDef == null) {
+                boolean shouldContinue = handleMissingDefinition(itemName, containerDef, complexTypeDefinition, pc, map);
+                if(shouldContinue) {
+                    continue;
                 }
-            }
-            if (itemDef == null) {
-                if (complexTypeDefinition == null || complexTypeDefinition.isXsdAnyMarker() || complexTypeDefinition.isRuntimeSchema()) {
-                    PrismSchema itemSchema = ((SchemaRegistry) schemaRegistry).findSchemaByNamespace(itemName.getNamespaceURI());
-                    if (itemSchema != null) {
-                        // If we already have schema for this namespace then a missing element is
-                        // an error. We positively know that it is not in the schema.
-                        pc.warnOrThrow(LOGGER, "Item " + itemName + " has no definition (schema present, in container "
-                                + containerDef + ")" + "while parsing " + map.debugDump());
-                        // we can go along this item (at least show it in repository pages) - MID-3249
-                        // TODO make this configurable
-                    } else {
-                        // No definition for item, but the schema is runtime. the definition may come later.
-                        // Null is OK here. The item will be parsed as "raw"
-                    }
-                } else {    // complex type definition is static
-                    pc.warnOrThrow(LOGGER, "Item " + itemName + " has no definition (in container value "
-                            + complexTypeDefinition + ")" + "while parsing " + map.debugDump());
-                    continue;   // don't even attempt to parse it
-                }
-            }
 
-            Item<?, ?> item;
+            }
+            final Item<?, ?> item;
             if (entry.getValue() == null) {
                 if (itemDef != null) {
                     item = itemDef.instantiate();       // TODO or skip the creation altogether?
@@ -364,14 +356,47 @@ public class PrismUnmarshaller {
                 cval.merge(item);
             }
         }
-        return cval;
     }
 
-    private SchemaMigration determineSchemaMigration(ComplexTypeDefinition complexTypeDefinition, QName itemName, @NotNull ParsingContext pc) {
-        if (complexTypeDefinition == null) {
+    private boolean handleMissingDefinition(QName itemName, ItemDefinition<?> containerDef, TypeDefinition typeDefinition, ParsingContext pc, DebugDumpable object) throws SchemaException {
+        SchemaMigration migration = determineSchemaMigration(typeDefinition, itemName, pc);
+        if (migration != null && pc.isCompat()) {
+            if (migration.getOperation() == SchemaMigrationOperation.REMOVED) {
+                String msg = "Item "+itemName+" was removed from the schema, skipped processing of that item";
+                pc.warn(LOGGER, msg);
+                return true;
+            } else {
+                pc.warnOrThrow(LOGGER, "Unsupported migration operation " + migration.getOperation() + " for item " + itemName + " (in "
+                        + containerDef + ")" + "while parsing " + object.debugDump());
+            }
+        }
+        boolean anyXsd = typeDefinition instanceof ComplexTypeDefinition && ((ComplexTypeDefinition) typeDefinition).isXsdAnyMarker();
+        if (typeDefinition == null || typeDefinition.isRuntimeSchema() || anyXsd) {
+            PrismSchema itemSchema = schemaRegistry.findSchemaByNamespace(itemName.getNamespaceURI());
+            if (itemSchema != null) {
+                // If we already have schema for this namespace then a missing element is
+                // an error. We positively know that it is not in the schema.
+                pc.warnOrThrow(LOGGER, "Item " + itemName + " has no definition (schema present, in "
+                        + containerDef + ")" + "while parsing " + object.debugDump());
+                // we can go along this item (at least show it in repository pages) - MID-3249
+                // TODO make this configurable
+            } else {
+                // No definition for item, but the schema is runtime. the definition may come later.
+                // Null is OK here. The item will be parsed as "raw"
+            }
+        } else {    // complex type definition is static
+            pc.warnOrThrow(LOGGER, "Item " + itemName + " has no definition (in value "
+                    + typeDefinition + ")" + "while parsing " + object.debugDump());
+            return true;   // don't even attempt to parse it
+        }
+        return false;
+    }
+
+    private SchemaMigration determineSchemaMigration(TypeDefinition typeDefinition, QName itemName, @NotNull ParsingContext pc) {
+        if (typeDefinition == null) {
             return null;
         }
-        List<SchemaMigration> schemaMigrations = complexTypeDefinition.getSchemaMigrations();
+        List<SchemaMigration> schemaMigrations = typeDefinition.getSchemaMigrations();
         if (schemaMigrations != null) {
             for (SchemaMigration schemaMigration : schemaMigrations) {
                 if (QNameUtil.match(schemaMigration.getElementQName(), itemName)) {
@@ -379,11 +404,11 @@ public class PrismUnmarshaller {
                 }
             }
         }
-        QName superTypeQName = complexTypeDefinition.getSuperType();
+        QName superTypeQName = typeDefinition.getSuperType();
         if (superTypeQName == null) {
             return null;
         }
-        ComplexTypeDefinition superTypeDef = prismContext.getSchemaRegistry().findComplexTypeDefinitionByType(superTypeQName);
+        TypeDefinition superTypeDef = prismContext.getSchemaRegistry().findTypeDefinitionByType(superTypeQName);
         if (superTypeDef == null) {
             return null;
         }
@@ -555,35 +580,33 @@ public class PrismUnmarshaller {
 
     private PrismReferenceValue parseReferenceValueAsReference(@NotNull XNodeImpl xnode, @NotNull PrismReferenceDefinition definition,
             @NotNull ParsingContext pc, boolean allowMissingRefTypesOverride) throws SchemaException {
-        if (!(xnode instanceof MapXNodeImpl)) {
-            throw new IllegalArgumentException("Cannot parse reference from " + xnode);
-        }
+        checkArgument(xnode instanceof MapXNodeImpl, "Cannot parse reference from %s", xnode);
         MapXNodeImpl map = (MapXNodeImpl) xnode;
-
+        TypeDefinition typeDefinition = schemaRegistry.findTypeDefinitionByType(definition.getTypeName());
         String oid = map.getParsedPrimitiveValue(XNodeImpl.KEY_REFERENCE_OID, DOMUtil.XSD_STRING);
         PrismReferenceValue refVal = new PrismReferenceValueImpl(oid);
 
-        QName type = map.getParsedPrimitiveValue(XNodeImpl.KEY_REFERENCE_TYPE, DOMUtil.XSD_QNAME);
-        if (type == null) {
+        QName targetType = map.getParsedPrimitiveValue(XNodeImpl.KEY_REFERENCE_TYPE, DOMUtil.XSD_QNAME);
+        if (targetType == null) {
             if (!pc.isAllowMissingRefTypes() && !allowMissingRefTypesOverride) {
-                type = checkSchemaNotNull(definition.getTargetTypeName(),
+                targetType = checkSchemaNotNull(definition.getTargetTypeName(),
                         "Target type in reference %s not specified in reference nor in the schema", definition.getItemName());
             }
         } else {
-            if (QNameUtil.noNamespace(type)) {
-                type = ((SchemaRegistry) schemaRegistry).resolveUnqualifiedTypeName(type);
+            if (QNameUtil.noNamespace(targetType)) {
+                targetType = ((SchemaRegistry) schemaRegistry).resolveUnqualifiedTypeName(targetType);
             }
             QName defTargetType = definition.getTargetTypeName();
             if (defTargetType != null) {
-                checkSchema(prismContext.getSchemaRegistry().isAssignableFrom(defTargetType, type),
-                        "Target type specified in reference %s (%s) does not match target type in schema (%s)", definition.getItemName(), type, defTargetType);
+                checkSchema(prismContext.getSchemaRegistry().isAssignableFrom(defTargetType, targetType),
+                        "Target type specified in reference %s (%s) does not match target type in schema (%s)", definition.getItemName(), targetType, defTargetType);
             }
         }
         PrismObjectDefinition<Objectable> objectDefinition = null;
-        if (type != null) {
-            objectDefinition = checkSchemaNotNull(schemaRegistry.findObjectDefinitionByType(type),
-                    "No definition for type %s in reference",type);
-            refVal.setTargetType(type);
+        if (targetType != null) {
+            objectDefinition = checkSchemaNotNull(schemaRegistry.findObjectDefinitionByType(targetType),
+                    "No definition for type %s in reference",targetType);
+            refVal.setTargetType(targetType);
         }
 
         QName relationAttribute = map.getParsedPrimitiveValue(XNodeImpl.KEY_REFERENCE_RELATION, DOMUtil.XSD_QNAME);
@@ -608,12 +631,27 @@ public class PrismUnmarshaller {
         XNodeImpl xrefObject = map.get(XNodeImpl.KEY_REFERENCE_OBJECT);
         if (xrefObject != null) {
             MapXNodeImpl objectMapNode = toObjectMapNode(xrefObject);
-            checkSchemaNotNull(type, "Cannot parse object from %s without knowing its type", xrefObject);
+            checkSchemaNotNull(targetType, "Cannot parse object from %s without knowing its type", xrefObject);
             PrismObject<Objectable> object = parseObject(objectMapNode, objectDefinition, pc);
             setReferenceObject(refVal, object);
         }
 
+        for (Entry<QName, XNodeImpl> entry : map.entrySet()) {
+            QName itemName = entry.getKey();
+            if (!isDefinedProperty(REFERENCE_PROPERTIES, itemName)) {
+                handleMissingDefinition(itemName, definition, typeDefinition, pc, map);
+            }
+        }
+
         return refVal;
+    }
+
+    private boolean isDefinedProperty(Set<String> properties, QName itemName) {
+        String ns = itemName.getNamespaceURI();
+        if(Strings.isNullOrEmpty(ns) || Objects.equals(ns, schemaRegistry.getDefaultNamespace())) {
+            return properties.contains(itemName.getLocalPart());
+        }
+        return false;
     }
 
     private MapXNodeImpl toObjectMapNode(XNodeImpl xNode) throws SchemaException {
@@ -686,8 +724,7 @@ public class PrismUnmarshaller {
 
     private ItemDefinition<?> locateItemDefinition(@NotNull QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition,
             XNode xnode) {
-        return ((SchemaRegistry) schemaRegistry)
-                .locateItemDefinition(itemName, complexTypeDefinition, qName -> createDynamicItemDefinition(qName, xnode));
+        return schemaRegistry.locateItemDefinition(itemName, complexTypeDefinition, qName -> createDynamicItemDefinition(qName, xnode));
     }
 
     private ItemDefinition<?> createDynamicItemDefinition(QName itemName, XNode node)  {
@@ -699,7 +736,7 @@ public class PrismUnmarshaller {
             if (node instanceof ListXNodeImpl) {
                 // there may be type definitions in individual list members
                 for (XNodeImpl subNode : ((ListXNodeImpl) node)) {
-                    ItemDefinition subdef = createDynamicItemDefinition(itemName, subNode);
+                    ItemDefinition<?> subdef = createDynamicItemDefinition(itemName, subNode);
                     // TODO: make this smarter, e.g. detect conflicting type definitions
                     if (subdef != null) {
                         return subdef;

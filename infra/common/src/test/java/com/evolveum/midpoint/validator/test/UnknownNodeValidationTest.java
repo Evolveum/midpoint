@@ -63,7 +63,7 @@ public class UnknownNodeValidationTest {
 
     @Test
     public void elementInReference() throws Exception {
-        validateNodeFailure("ElementInReference", "reference-element.xml", "");
+        validateNodeFailure("ElementInReference", "reference-element.xml", "unknown");
     }
 
     @Test
