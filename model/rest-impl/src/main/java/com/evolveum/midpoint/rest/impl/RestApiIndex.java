@@ -28,7 +28,8 @@ public class RestApiIndex {
         this.handlerMapping = handlerMapping;
         uiRestInfo = operationInfoStream()
                 .filter(info -> info.handler.getBeanType()
-                        .getPackageName().startsWith("com.evolveum.midpoint.rest."))
+                        // TODO getPackageName on Java 11
+                        .getPackage().getName().startsWith("com.evolveum.midpoint.rest."))
                 .collect(Collectors.toList());
     }
 
