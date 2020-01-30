@@ -1552,8 +1552,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>3.2.0</version>
                 <configuration>
+                    <skipIfEmpty>true</skipIfEmpty>
                     <archive>
                         <manifestEntries>
                             <Version-Number>${project.version}</Version-Number>
@@ -1763,7 +1764,7 @@
                     <configuration>
                         <source>${project.source.version}</source>
                         <target>${project.source.version}</target>
-                        <!-- taken from build-system/pom.xml, will try to turn it on as needed -->
+                        <!-- taken from removed build-system/pom.xml, will try to turn it on as needed -->
                         <!--<fork>true</fork>-->
                         <!--<meminitial>1024m</meminitial>-->
                         <!--<maxmem>2048m</maxmem>-->

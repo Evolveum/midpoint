@@ -29,7 +29,7 @@
     </properties>
 
     <dependencies>
-           <dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
             <version>4.1-SNAPSHOT</version>
@@ -45,7 +45,7 @@
             <artifactId>tomcat-annotations-api</artifactId>
             <scope>provided</scope>
         </dependency>
-           <dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-impl</artifactId>
             <version>4.1-SNAPSHOT</version>
@@ -54,25 +54,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <!-- Default (main) jar is empty. We do not want to build it. -->
-                        <id>default-jar</id>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <!-- Test jar is empty. We do not want to build it. -->
-                        <id>test-jar</id>
-                        <phase>none</phase>
-                        <configuration>
-                            <skipIfEmpty>true</skipIfEmpty>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
@@ -84,7 +65,7 @@
                     <isOffline>true</isOffline>
                     <doctitle>midPoint Aggregate JavaDoc</doctitle>
                     <windowtitle>midPoint Aggregate JavaDoc</windowtitle>
-                     <doclint>none</doclint>
+                    <doclint>none</doclint>
                     <quiet>true</quiet>
                     <debug>false</debug>
                 </configuration>
@@ -128,26 +109,26 @@
         <profile>
             <id>java8</id>
             <activation>
-              <jdk>(,1.8]</jdk>
+                <jdk>(,1.8]</jdk>
             </activation>
             <build>
                 <plugins>
-                     <plugin>
-                       <groupId>org.apache.maven.plugins</groupId>
-                       <artifactId>maven-javadoc-plugin</artifactId>
-                       <executions>
-                         <execution>
-                             <id>javadoc-jar</id>
-                             <phase>none</phase>
-                             <goals>
-                                 <goal>jar</goal>
-                             </goals>
-                             <configuration>
-                                 <skip>true</skip>
-                             </configuration>
-                         </execution>
-                     </executions>
-                 </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>javadoc-jar</id>
+                                <phase>none</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <skip>true</skip>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
