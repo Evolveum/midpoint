@@ -712,7 +712,7 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations-java5</artifactId>
+            <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.mail</groupId>

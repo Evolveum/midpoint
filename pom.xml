@@ -477,8 +477,8 @@
             </dependency>
             <dependency>
                 <groupId>org.jetbrains</groupId>
-                <artifactId>annotations-java5</artifactId>
-                <version>15.0</version>
+                <artifactId>annotations</artifactId>
+                <version>18.0.0</version>
             </dependency>
             <dependency>
                 <groupId>javax.annotation</groupId>

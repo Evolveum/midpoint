@@ -106,7 +106,7 @@
 
         <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations-java5</artifactId>
+            <artifactId>annotations</artifactId>
         </dependency>
         <!-- this one is needed to get SQL configuration from the repository -->
         <dependency>
