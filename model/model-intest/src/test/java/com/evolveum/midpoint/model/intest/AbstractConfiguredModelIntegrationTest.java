@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 import org.testng.IHookCallBack;
 import org.testng.ITestResult;
@@ -332,8 +333,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     protected static final String USER_HERMAN_FAMILY_NAME = "Toothrot";
     protected static final String USER_HERMAN_FULL_NAME = "Herman Toothrot";
     protected static final String USER_HERMAN_PASSWORD = "m0nk3y";
-    protected static final Date USER_HERMAN_VALID_FROM_DATE = MiscUtil.asDate(1700, 5, 30, 11, 00, 00);
-    protected static final Date USER_HERMAN_VALID_TO_DATE = MiscUtil.asDate(2233, 3, 23, 18, 30, 00);
+    protected static final Date USER_HERMAN_VALID_FROM_DATE = MiscUtil.asDate(1700, 5, 30, 11, 0, 0);
+    protected static final Date USER_HERMAN_VALID_TO_DATE = MiscUtil.asDate(2233, 3, 23, 18, 30, 0);
 
     // Has null name, doesn not have given name, no employeeType
     protected static final File USER_THREE_HEADED_MONKEY_FILE = new File(COMMON_DIR, "/user-three-headed-monkey.xml");
@@ -622,7 +623,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     }
 
     @Override
-    public void run(IHookCallBack callBack, ITestResult testResult) {
+    public void run(@NotNull IHookCallBack callBack, ITestResult testResult) {
         long time = System.currentTimeMillis();
         LOGGER.info("###>>> run start");
         super.run(callBack, testResult);
@@ -648,11 +649,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
      * because memory consumption is too big. Test class instances can't be GCed
      * immediately. If they holds autowired fields like sessionFactory (for example
      * through SqlRepositoryService impl), their memory footprint is getting big.
-     *
-     * @param forClass
-     * @throws Exception
      */
-    public static void nullAllFields(Object object, Class forClass) throws Exception{
+    public static void nullAllFields(Object object, Class<?> forClass) throws Exception{
         if (forClass.getSuperclass() != null) {
             nullAllFields(object, forClass.getSuperclass());
         }
@@ -680,7 +678,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
     @AfterMethod
     @Override
-    protected void springTestContextAfterTestMethod(Method testMethod) throws Exception {
+    protected void springTestContextAfterTestMethod(@NotNull Method testMethod) throws Exception {
         long time = System.currentTimeMillis();
         LOGGER.info("###>>> springTestContextAfterTestMethod start");
         super.springTestContextAfterTestMethod(testMethod);
@@ -698,7 +696,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
     @BeforeMethod
     @Override
-    protected void springTestContextBeforeTestMethod(Method testMethod) throws Exception {
+    protected void springTestContextBeforeTestMethod(@NotNull Method testMethod) throws Exception {
         long time = System.currentTimeMillis();
         LOGGER.info("###>>> springTestContextBeforeTestMethod start");
         super.springTestContextBeforeTestMethod(testMethod);
@@ -745,7 +743,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
         OperationResult result = new OperationResult("clearUserOrgAndRoleRefs");
         Collection modifications = new ArrayList<>();
         ReferenceDelta parentOrgRefDelta = prismContext.deltaFactory().reference().createModificationReplace(
-                (ItemPath) UserType.F_PARENT_ORG_REF, getUserDefinition(), (PrismReferenceValue)null);
+                UserType.F_PARENT_ORG_REF, getUserDefinition(), (PrismReferenceValue)null);
         modifications.add(parentOrgRefDelta);
         ReferenceDelta roleMembershipRefDelta = prismContext.deltaFactory().reference().createModificationReplace(
                 UserType.F_ROLE_MEMBERSHIP_REF, getUserDefinition(), (PrismReferenceValue)null);

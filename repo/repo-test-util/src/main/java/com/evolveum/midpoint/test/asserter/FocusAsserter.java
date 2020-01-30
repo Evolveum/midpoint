@@ -13,7 +13,11 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -22,13 +26,6 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -362,6 +359,35 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
     @Override
     public FocusAsserter<F,RA> assertNoTrigger() {
         super.assertNoTrigger();
+        return this;
+    }
+
+    public FocusAsserter<F,RA> assertPassword(String expectedClearPassword) throws SchemaException, EncryptionException {
+        assertPassword(expectedClearPassword, CredentialsStorageTypeType.ENCRYPTION);
+        return this;
+    }
+
+    public FocusAsserter<F,RA> assertHasPassword() throws SchemaException, EncryptionException {
+        assertHasPassword(CredentialsStorageTypeType.ENCRYPTION);
+        return this;
+    }
+
+    public FocusAsserter<F,RA> assertPassword(String expectedClearPassword, CredentialsStorageTypeType storageType) throws SchemaException, EncryptionException {
+        CredentialsType creds = getObject().asObjectable().getCredentials();
+        assertNotNull("No credentials in "+desc(), creds);
+        PasswordType password = creds.getPassword();
+        assertNotNull("No password in "+desc(), password);
+        ProtectedStringType protectedActualPassword = password.getValue();
+        IntegrationTestTools.assertProtectedString("Password for "+desc(), expectedClearPassword, protectedActualPassword, storageType, getProtector());
+        return this;
+    }
+
+    public FocusAsserter<F,RA> assertHasPassword(CredentialsStorageTypeType storageType) throws SchemaException, EncryptionException {
+        CredentialsType creds = getObject().asObjectable().getCredentials();
+        assertNotNull("No credentials in "+desc(), creds);
+        PasswordType password = creds.getPassword();
+        assertNotNull("No password in "+desc(), password);
+        IntegrationTestTools.assertHasProtectedString("Password for "+desc(), password.getValue(), storageType, getProtector());
         return this;
     }
 }

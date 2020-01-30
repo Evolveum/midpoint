@@ -477,8 +477,8 @@
             </dependency>
             <dependency>
                 <groupId>org.jetbrains</groupId>
-                <artifactId>annotations-java5</artifactId>
-                <version>15.0</version>
+                <artifactId>annotations</artifactId>
+                <version>18.0.0</version>
             </dependency>
             <dependency>
                 <groupId>javax.annotation</groupId>
@@ -870,11 +870,6 @@
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
-                <artifactId>spring-test</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
                 <artifactId>spring-tx</artifactId>
                 <version>${spring.version}</version>
             </dependency>
@@ -968,13 +963,7 @@
                 <artifactId>aopalliance</artifactId>
                 <version>1.0</version>
             </dependency>
-            <dependency>
-                <groupId>org.testng</groupId>
-                <artifactId>testng</artifactId>
-                <version>${testng.version}</version>
-                <!-- TODO: set this scope by default and only overwrite it to compile if needed -->
-                <!--<scope>test</scope>-->
-            </dependency>
+
             <dependency>
                 <groupId>org.xmlunit</groupId>
                 <artifactId>xmlunit-core</artifactId>
@@ -1471,6 +1460,23 @@
                 <artifactId>dnsjava</artifactId>
                 <version>2.1.8</version>
             </dependency>
+
+            <!-- Test support dependencies -->
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>${testng.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-test</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.evolveum.midpoint.tools</groupId>
+                <artifactId>test-ng</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -1512,23 +1518,6 @@
                 </configuration>
             </plugin>
 
-            <!-- see pluginManagement section
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
-                <configuration>
-                    <source>${project.source.version}</source>
-                    <target>${project.source.version}</target>
-                    <fork>true</fork>
-                    <meminitial>1024m</meminitial>
-                    <maxmem>2048m</maxmem>
-                    <showDeprecation>false</showDeprecation>
-                    <showWarnings>false</showWarnings>
-                    <verbose>false</verbose>
-                </configuration>
-            </plugin>
-            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -1561,10 +1550,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.1.1</version>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.1.2</version>
@@ -1576,9 +1561,9 @@
                             <Organization>Evolveum</Organization>
                             <Organization-URL>http://www.evolveum.com</Organization-URL>
                             <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
-                            <!-- TODO: add EUPL -->
-                            <License>Apache License 2.0</License>
-                            <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
+                            <License>dual-licensed under the Apache License 2.0 and European Union Public License</License>
+                            <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
+                            <anything>sss</anything>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -1893,14 +1878,13 @@
                         <parallel>false</parallel>
                         <forkCount>1</forkCount>
                         <reuseForks>true</reuseForks>
-                        <!-- <runOrder>alphabetical</runOrder> -->
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         <!-- <threadCount>1</threadCount> -->
                         <!-- <perCoreThreadCount>false</perCoreThreadCount> -->
                         <!-- <reportFormat>plain</reportFormat> -->
                         <trimStackTrace>false</trimStackTrace>
-                        <useSystemClassLoader>false
-                        </useSystemClassLoader> <!-- See https://issues.apache.org/jira/browse/SUREFIRE-1588 -->
+                        <!-- See https://issues.apache.org/jira/browse/SUREFIRE-1588 -->
+                        <useSystemClassLoader>false</useSystemClassLoader>
                         <systemPropertyVariables>
                             <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
                             <midpoint.home>target/midpoint-home</midpoint.home>
@@ -1988,6 +1972,10 @@
                         <htmlOutput>true</htmlOutput>
                         <onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>3.1.1</version>
                 </plugin>
             </plugins>
         </pluginManagement>
