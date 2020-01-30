@@ -37,7 +37,7 @@ import static org.testng.AssertJUnit.assertEquals;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestPartitioning extends AbstractTaskManagerTest {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestPartitioning.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestPartitioning.class);
     public static final long DEFAULT_SLEEP_INTERVAL = 250L;
     public static final long DEFAULT_TIMEOUT = 30000L;
 

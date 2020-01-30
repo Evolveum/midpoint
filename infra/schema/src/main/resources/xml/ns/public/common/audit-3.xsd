@@ -143,7 +143,8 @@
             <xsd:element name="hostIdentifier" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Identifier of a host that generated the audit record.
+                        This is the host name corresponding to a network interface that accepted the HTTP request.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -214,14 +215,15 @@
             <xsd:element name="eventType" type="tns:AuditEventTypeType" minOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Type of audit event. It describes what kind of operation was executed
+                        (adding an object, modification, user login, ...)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="eventStage" type="tns:AuditEventStageType" minOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Stage of event processing: request or execution.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -229,7 +231,7 @@
             <xsd:element name="channel" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        The channel that was the source of the operation that the record describes
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

@@ -31,7 +31,7 @@ import javax.annotation.PostConstruct;
 @Component
 public class AsyncUpdateTaskHandler implements TaskHandler {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AsyncUpdateTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AsyncUpdateTaskHandler.class);
 
     public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/async-update/handler-3";
 

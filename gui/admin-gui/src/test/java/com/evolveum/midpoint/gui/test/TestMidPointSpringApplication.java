@@ -64,7 +64,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @ComponentScan(basePackages = {"com.evolveum.midpoint.web.security.factory", "com.evolveum.midpoint.gui","com.evolveum.midpoint.gui.api"}, basePackageClasses = {TextAreaPanelFactory.class, GuiComponentRegistryImpl.class})
 public class TestMidPointSpringApplication extends AbstractSpringBootApplication {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestMidPointSpringApplication.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestMidPointSpringApplication.class);
 
     private static ConfigurableApplicationContext applicationContext = null;
 

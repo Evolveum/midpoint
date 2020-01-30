@@ -61,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestCollections extends AbstractArchetypesTest {
 
-    private static Trace LOGGER = TraceManager.getTrace(TestCollections.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestCollections.class);
 
     private PrismObject<ObjectCollectionType> collectionActiveUsers;
     private CompiledObjectCollectionView collectionViewActiveUsers;

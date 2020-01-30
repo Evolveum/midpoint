@@ -6,26 +6,22 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import java.util.Collection;
+
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import java.util.Collection;
 
 /**
  * Created by honchar
  */
 public class ProtectedStringTypeWrapperImpl extends PrismPropertyWrapperImpl<ProtectedStringType>{
     private static final long serialVersionUID = 1L;
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(ProtectedStringTypeWrapperImpl.class);
 
     public ProtectedStringTypeWrapperImpl(PrismContainerValueWrapper<?> parent, PrismProperty<ProtectedStringType> item, ItemStatus status) {
         super(parent, item, status);

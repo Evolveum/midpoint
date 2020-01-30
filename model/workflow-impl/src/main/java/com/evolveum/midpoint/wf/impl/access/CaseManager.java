@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.wf.impl.access;
 
 import com.evolveum.midpoint.common.Clock;
@@ -22,8 +21,6 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.api.request.CancelCaseRequest;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
@@ -38,15 +35,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- */
-
 @Component("wfCaseManager")
 public class CaseManager {
-
-    @SuppressWarnings("unused")
-    private static final transient Trace LOGGER = TraceManager.getTrace(CaseManager.class);
 
     @Autowired private PrismContext prismContext;
     @Autowired private WorkflowEngine workflowEngine;

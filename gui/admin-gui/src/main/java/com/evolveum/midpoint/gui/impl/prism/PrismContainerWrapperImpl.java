@@ -36,7 +36,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 
     private static final long serialVersionUID = 1L;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperImpl.class);
 
     private boolean expanded;
 

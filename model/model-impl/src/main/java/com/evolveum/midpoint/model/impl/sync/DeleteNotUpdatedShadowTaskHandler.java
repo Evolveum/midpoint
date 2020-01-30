@@ -79,7 +79,7 @@ public class DeleteNotUpdatedShadowTaskHandler extends AbstractSearchIterativeMo
     @Autowired private ModelService model;
     @Autowired private ProvisioningService provisioningService;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(DeleteNotUpdatedShadowTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DeleteNotUpdatedShadowTaskHandler.class);
 
     public DeleteNotUpdatedShadowTaskHandler() {
         super("DeleteNotUpdatedShadow", OperationConstants.DELETE_NOT_UPDATED_SHADOWS);

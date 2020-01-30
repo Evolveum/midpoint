@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 @Component
 public class HandlerExecutor {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(HandlerExecutor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(HandlerExecutor.class);
     private static final String DOT_CLASS = HandlerExecutor.class.getName() + ".";
 
     private static final long FREE_BUCKET_WAIT_TIME = -1;        // indefinitely

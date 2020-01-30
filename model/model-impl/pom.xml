@@ -418,7 +418,8 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
-            <scope>test</scope>
+            <!-- TODO: compile scope for ModelRestService - I think it should go to more infrastructural modul (Virgo) -->
+            <!--<scope>test</scope>-->
         </dependency>
         <dependency>
             <groupId>com.googlecode.java-diff-utils</groupId>
@@ -435,11 +436,6 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-aop</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
     <build>

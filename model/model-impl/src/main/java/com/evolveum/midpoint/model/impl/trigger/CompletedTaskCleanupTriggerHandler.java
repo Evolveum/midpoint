@@ -36,7 +36,7 @@ public class CompletedTaskCleanupTriggerHandler implements SingleTriggerHandler 
 
     public static final String HANDLER_URI = SchemaConstants.COMPLETED_TASK_CLEANUP_TRIGGER_HANDLER_URI;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(CompletedTaskCleanupTriggerHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CompletedTaskCleanupTriggerHandler.class);
 
     @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
     @Autowired private RepositoryService repositoryService;

@@ -37,7 +37,7 @@ public class TestOpenDjReadablePassword extends TestOpenDj {
 
     protected static final File RESOURCE_OPENDJ_READABLE_PASSWORD_FILE = new File(TEST_DIR, "resource-opendj-readable-password.xml");
 
-    private static Trace LOGGER = TraceManager.getTrace(TestOpenDjReadablePassword.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestOpenDjReadablePassword.class);
 
     @Override
     protected File getResourceOpenDjFile() {

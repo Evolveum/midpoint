@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MockWorkBucketsTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MockWorkBucketsTaskHandler.class);
 
     private TaskManagerQuartzImpl taskManager;
     private String id;

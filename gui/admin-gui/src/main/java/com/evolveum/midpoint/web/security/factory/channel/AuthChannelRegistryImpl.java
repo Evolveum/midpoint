@@ -21,7 +21,7 @@ import java.util.Optional;
 @Component
 public class AuthChannelRegistryImpl {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AuthChannelRegistryImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AuthChannelRegistryImpl.class);
 
     List<AbstractChannelFactory> moduleFactories = new ArrayList<>();
 

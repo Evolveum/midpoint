@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
@@ -24,6 +23,7 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.Session;
 import org.apache.wicket.ThreadContext;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.LocalizationService;
@@ -160,19 +160,17 @@ public class WebModelServiceUtils {
         OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT_REFS);
 //        Task task = page.createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
 
-        try{
+        try {
             List<PrismObject<O>> objects = searchObjects(type, null, result, page);
             result.recomputeStatus();
-            if(objects != null){
-                List<ObjectReferenceType> references = new ArrayList<>();
+            List<ObjectReferenceType> references = new ArrayList<>();
 
-                for(PrismObject<O> object: objects){
-                    referenceMap.put(object.getOid(), WebComponentUtil.getName(object));
-                    references.add(ObjectTypeUtil.createObjectRef(object, page.getPrismContext()));
+            for(PrismObject<O> object: objects){
+                referenceMap.put(object.getOid(), WebComponentUtil.getName(object));
+                references.add(ObjectTypeUtil.createObjectRef(object, page.getPrismContext()));
 
-                }
-                return references;
             }
+            return references;
         } catch (Exception e){
             result.recordFatalError(page.createStringResource("WebModelUtils.couldntLoadPasswordPolicies").getString(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
@@ -184,7 +182,6 @@ public class WebModelServiceUtils {
         // }
 
         return null;
-
     }
 
     public static String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
@@ -388,22 +385,24 @@ public class WebModelServiceUtils {
         return GetOperationOptions.isNoFetch(rootOptions);
     }
 
-    public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-                                                                            OperationResult result, PageBase page) {
+    @NotNull
+    public static <T extends ObjectType> List<PrismObject<T>> searchObjects(
+            Class<T> type, ObjectQuery query, OperationResult result, PageBase page) {
         return searchObjects(type, query, null, result, page, null);
     }
 
+    @NotNull
     public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult result, PageBase page) {
         return searchObjects(type, query, options, result, page, null);
     }
 
-    public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-                                                                            Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                            OperationResult result, PageBase page,
-                                                                            PrismObject<UserType> principal) {
-        LOGGER.debug("Searching {} with oid {}, options {}", new Object[]{type.getSimpleName(), query, options});
+    @NotNull
+    public static <T extends ObjectType> List<PrismObject<T>> searchObjects(
+            Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult result, PageBase page, PrismObject<UserType> principal) {
+        LOGGER.debug("Searching {} with oid {}, options {}", type.getSimpleName(), query, options);
 
         OperationResult subResult;
         if (result != null) {
@@ -429,7 +428,7 @@ public class WebModelServiceUtils {
             page.showResult(subResult);
         }
 
-        LOGGER.debug("Loaded ({}) with result {}", new Object[]{objects.size(), subResult});
+        LOGGER.debug("Loaded ({}) with result {}", objects.size(), subResult);
 
         return objects;
     }
@@ -447,7 +446,7 @@ public class WebModelServiceUtils {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
         }
 
-         LOGGER.debug("Count objects with result {}", new Object[]{parentResult});
+         LOGGER.debug("Count objects with result {}", parentResult);
          return count;
     }
 
@@ -464,7 +463,7 @@ public class WebModelServiceUtils {
     public static <T extends ObjectType> void deleteObject(Class<T> type, String oid, ModelExecuteOptions options,
                                                            OperationResult result, PageBase page,
                                                            PrismObject<UserType> principal) {
-        LOGGER.debug("Deleting {} with oid {}, options {}", new Object[]{type.getSimpleName(), oid, options});
+        LOGGER.debug("Deleting {} with oid {}, options {}", type.getSimpleName(), oid, options);
 
         OperationResult subResult;
         if (result != null) {
@@ -490,7 +489,7 @@ public class WebModelServiceUtils {
             page.showResult(subResult);
         }
 
-        LOGGER.debug("Deleted with result {}", new Object[]{result});
+        LOGGER.debug("Deleted with result {}", result);
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> createOptionsForParentOrgRefs(GetOperationOptionsBuilder builder) {
@@ -514,7 +513,7 @@ public class WebModelServiceUtils {
 
     public static void save(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
                             OperationResult result, Task task, PageBase page) {
-        LOGGER.debug("Saving deltas {}, options {}", new Object[]{deltas, options});
+        LOGGER.debug("Saving deltas {}, options {}", deltas, options);
 
         OperationResult subResult;
         if (result != null) {
@@ -540,7 +539,7 @@ public class WebModelServiceUtils {
             page.showResult(subResult);
         }
 
-        LOGGER.debug("Saved with result {}", new Object[]{subResult});
+        LOGGER.debug("Saved with result {}", subResult);
     }
 
     public static <T extends ObjectType> ObjectDelta<T> createActivationAdminStatusDelta(

@@ -44,7 +44,7 @@ import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 
 public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigurationImpl {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfiguration.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfiguration.class);
     private static Protector protector;
 
     private SamlServerConfiguration samlConfiguration;

@@ -37,7 +37,7 @@ public class TestOpenDjDumber extends TestOpenDj {
 
     protected static final File RESOURCE_OPENDJ_DUMBER_FILE = new File(TEST_DIR, "resource-opendj-dumber.xml");
 
-    private static Trace LOGGER = TraceManager.getTrace(TestOpenDjDumber.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestOpenDjDumber.class);
 
     @Override
     protected File getResourceOpenDjFile() {

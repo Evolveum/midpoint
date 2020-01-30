@@ -56,7 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
-    private static Trace LOGGER = TraceManager.getTrace(TestUcfDummyMulti.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestUcfDummyMulti.class);
 
     @Test
     public void test000PrismContextSanity() throws Exception {

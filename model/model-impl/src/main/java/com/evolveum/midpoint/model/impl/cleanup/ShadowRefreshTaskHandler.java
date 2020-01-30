@@ -45,9 +45,9 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
 
     public static final String HANDLER_URI = ModelPublicConstants.SHADOW_REFRESH_TASK_HANDLER_URI;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ShadowRefreshTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowRefreshTaskHandler.class);
 
-    @Autowired(required = true)
+    @Autowired
     protected ProvisioningService provisioningService;
 
     public ShadowRefreshTaskHandler() {

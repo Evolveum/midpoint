@@ -36,7 +36,7 @@ public class AccessCertificationCampaignReiterationTriggerHandler implements Sin
 
     static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/reiterate-campaign/handler-3";
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationCampaignReiterationTriggerHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationCampaignReiterationTriggerHandler.class);
 
     @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
     @Autowired private CertificationManager certificationManager;

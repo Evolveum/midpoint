@@ -49,7 +49,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjec
 
     private static final long serialVersionUID = 1L;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(DynamicFormPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DynamicFormPanel.class);
 
     private static final String DOT_CLASS = DynamicFormPanel.class.getName() + ".";
 
