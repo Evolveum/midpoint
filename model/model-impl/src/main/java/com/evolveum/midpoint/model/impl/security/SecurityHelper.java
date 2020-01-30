@@ -176,63 +176,62 @@ public class SecurityHelper implements ModelAuditRecorder {
      * If there is also referenced value policy, it is will be stored as "object" in the value policy reference inside the
      * returned security policy.
      */
-    public <F extends FocusType> SecurityPolicyType locateSecurityPolicy(PrismObject<F> user, PrismObject<SystemConfigurationType> systemConfiguration,
+    public <F extends FocusType> SecurityPolicyType locateSecurityPolicy(PrismObject<F> focus, PrismObject<SystemConfigurationType> systemConfiguration,
             Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        SecurityPolicyType focusSecurityPolicy = locateFocusSecurityPolicy(user, systemConfiguration, task, result);
+        SecurityPolicyType focusSecurityPolicy = locateFocusSecurityPolicy(focus, task, result);
         if (focusSecurityPolicy != null) {
-            traceSecurityPolicy(focusSecurityPolicy, user);
+            traceSecurityPolicy(focusSecurityPolicy, focus);
             return focusSecurityPolicy;
         }
 
-        SecurityPolicyType globalSecurityPolicy = locateGlobalSecurityPolicy(user, systemConfiguration, task, result);
+        SecurityPolicyType globalSecurityPolicy = locateGlobalSecurityPolicy(focus, systemConfiguration, task, result);
         if (globalSecurityPolicy != null) {
-            traceSecurityPolicy(globalSecurityPolicy, user);
+            traceSecurityPolicy(globalSecurityPolicy, focus);
             return globalSecurityPolicy;
         }
 
         return null;
     }
 
-    public <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicy(PrismObject<F> user, PrismObject<SystemConfigurationType> systemConfiguration,
-            Task task, OperationResult result) throws SchemaException {
-        PrismObject<SecurityPolicyType> orgSecurityPolicy = objectResolver.searchOrgTreeWidthFirstReference(user, o -> o.asObjectable().getSecurityPolicyRef(), "security policy", task, result);
+    public <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicy(PrismObject<F> focus, Task task,
+            OperationResult result) throws SchemaException {
+        PrismObject<SecurityPolicyType> orgSecurityPolicy = objectResolver.searchOrgTreeWidthFirstReference(focus,
+                o -> o.asObjectable().getSecurityPolicyRef(), "security policy", task, result);
         LOGGER.trace("Found organization security policy: {}", orgSecurityPolicy);
         if (orgSecurityPolicy != null) {
             SecurityPolicyType orgSecurityPolicyType = orgSecurityPolicy.asObjectable();
             postProcessSecurityPolicy(orgSecurityPolicyType, task, result);
             return orgSecurityPolicyType;
-        }
-
-        return null;
-    }
-
-    public <F extends FocusType> SecurityPolicyType locateGlobalSecurityPolicy(PrismObject<F> user, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        if (systemConfiguration == null) {
+        } else {
             return null;
         }
-        SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
-
-        SecurityPolicyType globalSecurityPolicy = resolveGlobalSecurityPolicy(user, systemConfigurationType, task, result);
-        if (globalSecurityPolicy != null) {
-            return globalSecurityPolicy;
-        }
-
-        return null;
     }
 
-    private <F extends FocusType> SecurityPolicyType resolveGlobalSecurityPolicy(PrismObject<F> user, SystemConfigurationType systemConfiguration, Task task, OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public <F extends FocusType> SecurityPolicyType locateGlobalSecurityPolicy(PrismObject<F> focus,
+            PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result)
+            throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        if (systemConfiguration != null) {
+            return resolveGlobalSecurityPolicy(focus, systemConfiguration.asObjectable(), task, result);
+        } else {
+            return null;
+        }
+    }
+
+    private <F extends FocusType> SecurityPolicyType resolveGlobalSecurityPolicy(PrismObject<F> focus,
+            SystemConfigurationType systemConfiguration, Task task, OperationResult result)
+            throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ObjectReferenceType globalSecurityPolicyRef = systemConfiguration.getGlobalSecurityPolicyRef();
         if (globalSecurityPolicyRef != null) {
             try {
                 SecurityPolicyType globalSecurityPolicyType = objectResolver.resolve(globalSecurityPolicyRef, SecurityPolicyType.class, null, "global security policy reference in system configuration", task, result);
                 LOGGER.trace("Using global security policy: {}", globalSecurityPolicyType);
                 postProcessSecurityPolicy(globalSecurityPolicyType, task, result);
-                traceSecurityPolicy(globalSecurityPolicyType, user);
+                traceSecurityPolicy(globalSecurityPolicyType, focus);
                 return globalSecurityPolicyType;
             } catch (ObjectNotFoundException | SchemaException e) {
                 LOGGER.error(e.getMessage(), e);
-                traceSecurityPolicy(null, user);
+                traceSecurityPolicy(null, focus);
                 return null;
             }
         }
