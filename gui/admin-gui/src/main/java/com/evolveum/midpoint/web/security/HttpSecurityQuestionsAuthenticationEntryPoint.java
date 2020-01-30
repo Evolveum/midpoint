@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefi
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
+import org.apache.cxf.common.util.Base64Utility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -106,7 +107,7 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
                    if (header.toLowerCase().equals(NameOfModuleType.SECURITY_QUESTIONS.getName().toLowerCase())) {
                        createSecurityQuestionAbortMessage(response, DEFAULT_JSON);
                    } else {
-                       byte[] jsonByte = Base64.getDecoder().decode(header.substring(NameOfModuleType.SECURITY_QUESTIONS.getName().length() + 1));
+                       byte[] jsonByte = Base64Utility.decode(header.substring(NameOfModuleType.SECURITY_QUESTIONS.getName().length() + 1));
                        String json = new String(jsonByte);
                        JSONObject jsonObject =  new JSONObject(json);
                        if (jsonObject.keySet().size() == 1 && jsonObject.keySet().contains(HttpSecurityQuestionsAuthenticationFilter.J_USER)) {
@@ -148,7 +149,7 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
     }
 
     public static void createSecurityQuestionAbortMessage(HttpServletResponse request, String json){
-        String value = NameOfModuleType.SECURITY_QUESTIONS.getName() + " " + Arrays.toString(Base64.getEncoder().encode((json.getBytes())));
+        String value = NameOfModuleType.SECURITY_QUESTIONS.getName() + " " + Base64Utility.encode(json.getBytes());
         request.setHeader(WWW_AUTHENTICATION_HEADER, value);
     }
 

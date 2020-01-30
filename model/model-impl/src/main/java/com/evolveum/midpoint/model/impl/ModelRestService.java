@@ -1090,7 +1090,7 @@ public class ModelRestService {
         record.setInitiator(user);
         record.setParameter(name);
 
-        record.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        record.setChannel(SchemaConstants.CHANNEL_REST_URI);
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
 

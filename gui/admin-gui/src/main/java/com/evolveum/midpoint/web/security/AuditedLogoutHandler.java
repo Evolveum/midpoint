@@ -87,15 +87,21 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser(authentication);
         PrismObject<UserType> user = principal != null ? principal.getUser().asPrismObject() : null;
 
+        String channel = SchemaConstants.CHANNEL_GUI_USER_URI;
+        if (authentication instanceof MidpointAuthentication
+                && ((MidpointAuthentication) authentication).getAuthenticationChannel() != null) {
+            channel = ((MidpointAuthentication) authentication).getAuthenticationChannel().getChannelId();
+        }
+
         Task task = taskManager.createTaskInstance();
         task.setOwner(user);
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(channel);
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
         record.setInitiator(user);
         record.setParameter(WebComponentUtil.getName(user, false));
 
-        record.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        record.setChannel(channel);
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
 

@@ -62,8 +62,9 @@ public class HttpSecurityQuestionsAuthenticationFilter extends HttpAuthenticatio
             }
 
             JSONObject tokens = extractAndDecodeHeader(header, request);
-            assert tokens.keySet().contains(J_USER);
-            assert tokens.keySet().contains(J_ANSWER);
+            if (!tokens.keySet().contains(J_USER) || !tokens.keySet().contains(J_ANSWER)){
+                throw new AuthenticationServiceException("Authorization header doesn't contains attribute 'user' or 'answer'");
+            }
 
             String username = tokens.getString(J_USER);
 
