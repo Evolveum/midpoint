@@ -113,6 +113,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     private static final String ID_VALUE_REF_TARGET_NAMES_FIELD_HELP = "valueRefTargetNamesFieldHelp";
     private static final String ID_USED_QUERY_FIELD_HELP = "usedQueryFieldHelp";
     private static final String ID_USED_INTERVAL_FIELD_HELP = "usedIntervalFieldHelp";
+    private static final String ID_RESOURCE_OID_FIELD = "resourceOidField";
+    private static final String ID_RESOURCE_OID_FIELD_HELP = "resourceOidFieldHelp";
     private static final String ID_TO = "toField";
     private static final String ID_INITIATOR_NAME = "initiatorNameField";
     private static final String ID_TARGET_NAME_FIELD = "targetNameField";
@@ -202,6 +204,14 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         to.setOutputMarkupId(true);
         parametersPanel.add(to);
         parametersPanel.add(getHelpComponent(ID_TO_FIELD_HELP, WebPrismUtil.getHelpText(getItemDefinition(AuditEventRecordType.F_TIMESTAMP))));
+
+        TextPanel<String> resourceOidFiels = new TextPanel<>(ID_RESOURCE_OID_FIELD, new PropertyModel<>(getModel(),
+                AuditSearchDto.F_RESOURCE_OID));
+        resourceOidFiels.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        resourceOidFiels.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        resourceOidFiels.setOutputMarkupId(true);
+        parametersPanel.add(resourceOidFiels);
+        parametersPanel.add(getHelpComponent(ID_RESOURCE_OID_FIELD_HELP, ""));
 
         ItemPathPanel changedItemPanel = new ItemPathPanel(ID_CHANGED_ITEM, new PropertyModel<>(getModel(),
             AuditSearchDto.F_CHANGED_ITEM));
@@ -494,6 +504,9 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         parameters.put(AuditEventRecordProvider.PARAMETER_HOST_IDENTIFIER, search.getHostIdentifier());
         parameters.put(AuditEventRecordProvider.PARAMETER_REQUEST_IDENTIFIER, search.getRequestIdentifier());
 
+        if (StringUtils.isNotEmpty(search.getResourceOid())){
+            parameters.put(AuditEventRecordProvider.PARAMETER_RESOURCE_OID, search.getResourceOid());
+        }
         if (search.getInitiatorName() != null) {
             parameters.put(AuditEventRecordProvider.PARAMETER_INITIATOR_NAME, search.getInitiatorName().getOid());
         }
