@@ -128,10 +128,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
-            <scope>compile</scope>
         </dependency>
-
-
 
         <!-- Testing dependecies -->
         <dependency>
