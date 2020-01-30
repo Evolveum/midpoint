@@ -29,15 +29,15 @@
         </classLogger>
         <classLogger>
             <package>com.evolveum.midpoint.model.impl.controller</package>
-            <level>TRACE</level>
+            <level>OFF</level>
         </classLogger>
         <classLogger>
             <package>com.evolveum.midpoint.model.impl.security.MidpointRestAuthenticationHandler</package>
-            <level>TRACE</level>
+            <level>OFF</level>
         </classLogger>
         <classLogger>
             <package>PROFILING</package>
-            <level>TRACE</level>
+            <level>OFF</level>
         </classLogger>
         <appender xsi:type="FileAppenderConfigurationType" name="IDM_LOG" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
@@ -49,4 +49,7 @@
     </logging>
 <!--     <globalPasswordPolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3fffb" type="ValuePolicyType"/> -->
     <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b" type="SecurityPolicyType"/>
+    <internals>
+        <enableExperimentalCode>true</enableExperimentalCode>
+    </internals>
 </systemConfiguration>

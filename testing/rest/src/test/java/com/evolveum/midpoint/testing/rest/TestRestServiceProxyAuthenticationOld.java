@@ -30,9 +30,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
+public class TestRestServiceProxyAuthenticationOld extends RestServiceInitializer {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestRestServiceProxyAuthentication.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestRestServiceProxyAuthenticationOld.class);
 
     // REST and end user authorization
     public static final File USER_EGOIST_FILE = new File(BASE_REPO_DIR, "user-egoist.xml");
