@@ -735,7 +735,7 @@ public class InboundProcessor {
                 .targetContext(LensUtil.getFocusDefinition(context))
                 .variables(variables)
                 .variableResolver(variableProducer)
-                .valuePolicyResolver(createStringPolicyResolver(context, task, result))
+                .valuePolicyResolver(createStringPolicyResolver(context))
                 .originType(OriginType.INBOUND)
                 .originObject(resource);
 
@@ -1198,10 +1198,9 @@ public class InboundProcessor {
                 }
             }
         }
-
     }
 
-    private <F extends ObjectType> ValuePolicyResolver createStringPolicyResolver(final LensContext<F> context, final Task task, final OperationResult result) {
+    private <F extends ObjectType> ValuePolicyResolver createStringPolicyResolver(final LensContext<F> context) {
         ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
             private ItemPath outputPath;
             private ItemDefinition outputDefinition;
@@ -1220,7 +1219,7 @@ public class InboundProcessor {
                 if (!outputDefinition.getItemName().equals(PasswordType.F_VALUE)) {
                     return null;
                 }
-                ValuePolicyType passwordPolicy = credentialsProcessor.determinePasswordPolicy(context.getFocusContext(), task, result);
+                ValuePolicyType passwordPolicy = credentialsProcessor.determinePasswordPolicy(context.getFocusContext());
                 if (passwordPolicy == null) {
                     return null;
                 }
@@ -1331,7 +1330,7 @@ public class InboundProcessor {
                         .addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION)
                         .addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION)
                         .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projContext.getResource(), ResourceType.class)
-                        .valuePolicyResolver(createStringPolicyResolver(context, task, opResult))
+                        .valuePolicyResolver(createStringPolicyResolver(context))
                         .originType(OriginType.INBOUND)
                         .originObject(projContext.getResource());
 

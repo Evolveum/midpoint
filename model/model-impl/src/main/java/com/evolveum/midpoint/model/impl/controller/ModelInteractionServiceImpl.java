@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.model.common.stringpolicy.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
@@ -69,11 +70,6 @@ import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
-import com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluator;
-import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
-import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
-import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
@@ -656,8 +652,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public SecurityPolicyType getSecurityPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public <F extends FocusType> SecurityPolicyType getSecurityPolicy(PrismObject<F> focus, Task task, OperationResult parentResult)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = parentResult.createMinorSubresult(GET_SECURITY_POLICY);
         try {
             PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
@@ -666,7 +662,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 return null;
             }
 
-            SecurityPolicyType securityPolicyType = securityHelper.locateSecurityPolicy(user, systemConfiguration, task, result);
+            SecurityPolicyType securityPolicyType = securityHelper.locateSecurityPolicy(focus, systemConfiguration, task, result);
             if (securityPolicyType == null) {
                 result.recordNotApplicableIfUnknown();
                 return null;
@@ -1196,53 +1192,40 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             OperationResult result = parentResult.createSubresult(OPERATION_VALIDATE_VALUE + ".value");
             if (path != null ) result.addParam("path", path.toString());
             result.addParam("valueToValidate", newValue);
-//            if (stringPolicy == null) {
-//                stringPolicy = new ValuePolicyType();
-//                stringPolicy.setName(PolyString.toPolyStringType(new PolyString("Default policy")));
-//            }
 
-            ObjectValuePolicyEvaluator evaluator = new ObjectValuePolicyEvaluator(prismContext);
-            evaluator.setValuePolicy(stringPolicy);
-            evaluator.setValuePolicyProcessor(policyProcessor);
-            evaluator.setProtector(protector);
-            evaluator.setValueItemPath(path);
-            evaluator.setOriginResolver(getOriginResolver(object));
-            evaluator.setTask(task);
-            evaluator.setShortDesc(" rest validate ");
-            if (object != null && path != null) {
+            ObjectValuePolicyEvaluator.Builder evaluatorBuilder = new ObjectValuePolicyEvaluator.Builder()
+                    .valuePolicy(stringPolicy)
+                    .valuePolicyProcessor(policyProcessor)
+                    .protector(protector)
+                    .valueItemPath(path)
+                    .originResolver(getOriginResolver(object))
+                    .task(task)
+                    .shortDesc(" rest validate ");
+            O objectable = object != null ? object.asObjectable() : null;
+            if (path != null && objectable instanceof FocusType) {
+                //noinspection unchecked
+                PrismObject<? extends FocusType> focus = (PrismObject<? extends FocusType>) object;
                 if (path.isSuperPathOrEquivalent(SchemaConstants.PATH_PASSWORD)) {
-
-                    evaluator.setSecurityPolicy(getSecurityPolicy((PrismObject<UserType>) object, task, parentResult));
-                    PrismContainer<PasswordType> password = object.findContainer(SchemaConstants.PATH_PASSWORD);
-                    PasswordType passwordType = null;
-                    if (password != null) {
-                        PrismContainerValue<PasswordType> passwordPcv = password.getValue();
-                        passwordType = passwordPcv != null ? passwordPcv.asContainerable() : null;
-                    }
-                    evaluator.setOldCredentialType(passwordType);
+                    evaluatorBuilder.securityPolicy(getSecurityPolicy(focus, task, parentResult));
+                    PrismContainer<PasswordType> passwordContainer = focus.findContainer(SchemaConstants.PATH_PASSWORD);
+                    PasswordType password = passwordContainer != null ? passwordContainer.getValue().asContainerable() : null;
+                    evaluatorBuilder.oldCredential(password);
                 } else if (path.isSuperPathOrEquivalent(SchemaConstants.PATH_SECURITY_QUESTIONS)) {
-                        LOGGER.trace("Setting security questions related policy.");
-                        SecurityPolicyType securityPolicy = getSecurityPolicy((PrismObject<UserType>) object, task, parentResult);
-                        evaluator.setSecurityPolicy(securityPolicy);
-                        PrismContainer<SecurityQuestionsCredentialsType> securityQuestionsContainer = object.findContainer(SchemaConstants.PATH_SECURITY_QUESTIONS);
-                        SecurityQuestionsCredentialsType securityQuestions = null;
-                        if (securityQuestionsContainer != null) {
-                            PrismContainerValue<SecurityQuestionsCredentialsType> secQestionPcv = securityQuestionsContainer.getValue();
-                            securityQuestions = secQestionPcv != null ? secQestionPcv.asContainerable() : null;
-                        }
-                        //evaluator.setOldCredentialType(securityQuestions);
-
-                        ValuePolicyType valuePolicy = resolveSecurityQuestionsPolicy(securityPolicy, task, parentResult);
-                        if (valuePolicy != null) {
-                            evaluator.setValuePolicy(valuePolicy);
-                        }
+                    LOGGER.trace("Setting security questions related policy.");
+                    SecurityPolicyType securityPolicy = getSecurityPolicy(focus, task, parentResult);
+                    evaluatorBuilder.securityPolicy(securityPolicy);
+                    PrismContainer<SecurityQuestionsCredentialsType> securityQuestionsContainer =
+                            focus.findContainer(SchemaConstants.PATH_SECURITY_QUESTIONS);
+                    SecurityQuestionsCredentialsType securityQuestions = securityQuestionsContainer != null ?
+                            securityQuestionsContainer.getValue().asContainerable() : null;
+                    //evaluatorBuilder.oldCredentialType(securityQuestions);        // TODO what with this?
+                    evaluatorBuilder.valuePolicy(resolveSecurityQuestionsPolicy(securityPolicy, task, parentResult));
                 }
             }
-            evaluator.setNow(clock.currentTimeXMLGregorianCalendar());
+            evaluatorBuilder.now(clock.currentTimeXMLGregorianCalendar());
             LOGGER.trace("Validating value started");
-            OperationResult subResult = evaluator.validateStringValue(newValue);
+            evaluatorBuilder.build().validateStringValue(newValue, result);
             LOGGER.trace("Validating value finished");
-            result.addSubresult(subResult);
 //
             result.computeStatus();
 
@@ -1293,24 +1276,24 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return objectResolver.resolve(policyRef, ValuePolicyType.class, null, " resolve value policy for security questions", task, result);
     }
 
-    private <O extends ObjectType> AbstractValuePolicyOriginResolver<O> getOriginResolver(PrismObject<O> object) {
+    private <O extends ObjectType> ObjectBasedValuePolicyOriginResolver<?> getOriginResolver(PrismObject<O> object) {
         if (object != null && UserType.class.equals(object.getCompileTimeClass())) {
-            return (AbstractValuePolicyOriginResolver) new UserValuePolicyOriginResolver((PrismObject<UserType>) object, objectResolver);
+            return new FocusValuePolicyOriginResolver<>((PrismObject<UserType>) object, objectResolver);
         }
 
         //TODO not supported yet, throw exception instead of null???
         return null;
     }
 
-    private <O extends ObjectType> AbstractValuePolicyOriginResolver<O> createOriginResolver(PrismObject<O> object, OperationResult result) throws SchemaException {
+    private <O extends ObjectType> ObjectBasedValuePolicyOriginResolver<?> createOriginResolver(PrismObject<O> object, OperationResult result) throws SchemaException {
         if (object == null) {
             return null;
         }
         if (object.canRepresent(UserType.class)) {
-            return (AbstractValuePolicyOriginResolver<O>) new UserValuePolicyOriginResolver((PrismObject<UserType>) object, objectResolver);
+            return new FocusValuePolicyOriginResolver<>((PrismObject<UserType>) object, objectResolver);
         }
         if (object.canRepresent(ShadowType.class)) {
-            return (AbstractValuePolicyOriginResolver<O>) new ShadowValuePolicyOriginResolver((PrismObject<ShadowType>) object, objectResolver);
+            return new ShadowValuePolicyOriginResolver((PrismObject<ShadowType>) object, objectResolver);
         }
         SchemaException e = new SchemaException("Unsupport object type "+object);
         result.recordFatalError(e);

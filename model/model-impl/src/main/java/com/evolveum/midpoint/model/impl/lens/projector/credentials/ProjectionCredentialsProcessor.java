@@ -126,10 +126,10 @@ public class ProjectionCredentialsProcessor {
                     throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         LensFocusContext<F> focusContext = context.getFocusContext();
 
-        PrismObject<F> userNew = focusContext.getObjectNew();
-        if (userNew == null) {
-            // This must be a user delete or something similar. No point in proceeding
-            LOGGER.trace("userNew is null, skipping credentials processing");
+        PrismObject<F> focusNew = focusContext.getObjectNew();
+        if (focusNew == null) {
+            // This must be a focus delete or something similar. No point in proceeding
+            LOGGER.trace("focusNew is null, skipping credentials processing");
             return;
         }
 
@@ -158,8 +158,8 @@ public class ProjectionCredentialsProcessor {
             return;
         }
 
-        final ObjectDelta<ShadowType> projDelta = projCtx.getDelta();
-        final PropertyDelta<ProtectedStringType> projPasswordDelta;
+        ObjectDelta<ShadowType> projDelta = projCtx.getDelta();
+        PropertyDelta<ProtectedStringType> projPasswordDelta;
         if (projDelta != null && projDelta.getChangeType() == MODIFY) {
             projPasswordDelta = projDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
         } else {
@@ -169,7 +169,7 @@ public class ProjectionCredentialsProcessor {
 
         boolean evaluateWeak = getEvaluateWeak(projCtx);
 
-        final ItemDeltaItem<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> userPasswordIdi = focusContext
+        ItemDeltaItem<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> focusPasswordIdi = focusContext
                 .getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
 
         ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
@@ -188,7 +188,7 @@ public class ProjectionCredentialsProcessor {
         MappingInitializer<PrismPropertyValue<ProtectedStringType>,PrismPropertyDefinition<ProtectedStringType>> initializer =
             (builder) -> {
                 builder.defaultTargetDefinition(projPasswordPropertyDefinition);
-                builder.defaultSource(new Source<>(userPasswordIdi, ExpressionConstants.VAR_INPUT_QNAME));
+                builder.defaultSource(new Source<>(focusPasswordIdi, ExpressionConstants.VAR_INPUT_QNAME));
                 builder.valuePolicyResolver(stringPolicyResolver);
                 return builder;
             };
@@ -234,17 +234,17 @@ public class ProjectionCredentialsProcessor {
                         if (!canGetCleartext(minusSet)) {
                             // We have hashed values in minus set. That is not great, we won't be able to get
                             // cleartext from that if we need it (e.g. for runAs in provisioning).
-                            // Therefore try to get old value from user password delta. If that matches with
+                            // Therefore try to get old value from focus password delta. If that matches with
                             // hashed value then we have the cleartext.
                             ProtectedStringType oldProjectionPassword = minusSet.iterator().next().getRealValue();
-                            PropertyDelta<ProtectedStringType> userPasswordDelta = (PropertyDelta<ProtectedStringType>) userPasswordIdi.getDelta();
-                            Collection<PrismPropertyValue<ProtectedStringType>> userPasswordDeltaOldValues = userPasswordDelta.getEstimatedOldValues();
-                            if (userPasswordDeltaOldValues != null && !userPasswordDeltaOldValues.isEmpty()) {
-                                ProtectedStringType oldUserPassword = userPasswordDeltaOldValues.iterator().next().getRealValue();
+                            PropertyDelta<ProtectedStringType> focusPasswordDelta = (PropertyDelta<ProtectedStringType>) focusPasswordIdi.getDelta();
+                            Collection<PrismPropertyValue<ProtectedStringType>> focusPasswordDeltaOldValues = focusPasswordDelta.getEstimatedOldValues();
+                            if (focusPasswordDeltaOldValues != null && !focusPasswordDeltaOldValues.isEmpty()) {
+                                ProtectedStringType oldFocusPassword = focusPasswordDeltaOldValues.iterator().next().getRealValue();
                                 try {
-                                    if (oldUserPassword.canGetCleartext() && protector.compareCleartext(oldUserPassword, oldProjectionPassword)) {
+                                    if (oldFocusPassword.canGetCleartext() && protector.compareCleartext(oldFocusPassword, oldProjectionPassword)) {
                                         outputTriple.clearMinusSet();
-                                        outputTriple.addToMinusSet(prismContext.itemFactory().createPropertyValue(oldUserPassword));
+                                        outputTriple.addToMinusSet(prismContext.itemFactory().createPropertyValue(oldFocusPassword));
                                     }
                                 } catch (EncryptionException e) {
                                     throw new SystemException(e.getMessage(), e);
@@ -368,17 +368,17 @@ public class ProjectionCredentialsProcessor {
 
         String passwordValue = determinePasswordValue(password);
 
-        ObjectValuePolicyEvaluator objectValuePolicyEvaluator = new ObjectValuePolicyEvaluator(prismContext);
-        objectValuePolicyEvaluator.setNow(now);
-        objectValuePolicyEvaluator.setOriginResolver(getOriginResolver(accountShadow));
-        objectValuePolicyEvaluator.setProtector(protector);
-        objectValuePolicyEvaluator.setSecurityPolicy(securityPolicy);
-        objectValuePolicyEvaluator.setShortDesc("password for " + accountShadow);
-        objectValuePolicyEvaluator.setTask(task);
-        objectValuePolicyEvaluator.setValueItemPath(SchemaConstants.PATH_PASSWORD_VALUE);
-        objectValuePolicyEvaluator.setValuePolicyProcessor(valuePolicyProcessor);
-
-        OperationResult validationResult = objectValuePolicyEvaluator.validateStringValue(passwordValue);
+        ObjectValuePolicyEvaluator objectValuePolicyEvaluator = new ObjectValuePolicyEvaluator.Builder()
+                .now(now)
+                .originResolver(getOriginResolver(accountShadow))
+                .protector(protector)
+                .securityPolicy(securityPolicy)
+                .shortDesc("password for " + accountShadow)
+                .task(task)
+                .valueItemPath(SchemaConstants.PATH_PASSWORD_VALUE)
+                .valuePolicyProcessor(valuePolicyProcessor)
+                .build();
+        OperationResult validationResult = objectValuePolicyEvaluator.validateStringValue(passwordValue, result);
 
 //        boolean isValid = valuePolicyProcessor.validateValue(passwordValue, securityPolicy, getOriginResolver(accountShadow), "projection password policy", task, result);
 
@@ -474,7 +474,7 @@ public class ProjectionCredentialsProcessor {
             try {
                 passwordStr = protector.decryptString(passValue);
             } catch (EncryptionException ex) {
-                throw new SystemException("Failed to process password for user: " , ex);
+                throw new SystemException("Failed to process password for focus: " + ex.getMessage(), ex);
             }
         }
 

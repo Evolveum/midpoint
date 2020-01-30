@@ -1658,12 +1658,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     }
 
-    protected void assertPasswordHistoryEntries(PrismObject<UserType> user, String... changedPasswords) {
-        CredentialsType credentials = user.asObjectable().getCredentials();
-        assertNotNull("Null credentials in "+user, credentials);
+    protected <F extends FocusType> void assertPasswordHistoryEntries(PrismObject<F> focus, String... changedPasswords) {
+        CredentialsType credentials = focus.asObjectable().getCredentials();
+        assertNotNull("Null credentials in "+focus, credentials);
         PasswordType passwordType = credentials.getPassword();
-        assertNotNull("Null passwordType in "+user, passwordType);
-        assertPasswordHistoryEntries(user.toString(), passwordType.getHistoryEntry(), getPasswordHistoryStorageType(), changedPasswords);
+        assertNotNull("Null passwordType in "+focus, passwordType);
+        assertPasswordHistoryEntries(focus.toString(), passwordType.getHistoryEntry(), getPasswordHistoryStorageType(), changedPasswords);
     }
 
     protected void assertPasswordHistoryEntries(PasswordType passwordType, String... changedPasswords) {

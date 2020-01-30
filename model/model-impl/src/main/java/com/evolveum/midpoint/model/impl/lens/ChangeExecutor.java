@@ -1263,7 +1263,7 @@ public class ChangeExecutor {
         if (focusContext == null) {
             return false;
         }
-        if (!focusContext.canRepresent(UserType.class)) {
+        if (!focusContext.represents(UserType.class)) {
             return false;
         }
 

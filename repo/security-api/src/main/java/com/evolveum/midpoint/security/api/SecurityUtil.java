@@ -93,20 +93,19 @@ public class SecurityUtil {
         return ((MidPointPrincipal)principalObject).getUsername();
     }
 
-    public static <T> T getCredPolicyItem(CredentialPolicyType defaltCredPolicyType, CredentialPolicyType credPolicyType, Function<CredentialPolicyType, T> getter) {
-        if (credPolicyType != null) {
-            T val = getter.apply(credPolicyType);
+    public static <T> T getCredentialPolicyItem(CredentialPolicyType defaultPolicy, CredentialPolicyType policy,
+            Function<CredentialPolicyType, T> getter) {
+        if (policy != null) {
+            T val = getter.apply(policy);
             if (val != null) {
                 return val;
             }
         }
-        if (defaltCredPolicyType != null) {
-            T val = getter.apply(defaltCredPolicyType);
-            if (val != null) {
-                return val;
-            }
+        if (defaultPolicy != null) {
+            return getter.apply(defaultPolicy);
+        } else {
+            return null;
         }
-        return null;
     }
 
     public static PasswordCredentialsPolicyType getEffectivePasswordCredentialsPolicy(SecurityPolicyType securityPolicy) {

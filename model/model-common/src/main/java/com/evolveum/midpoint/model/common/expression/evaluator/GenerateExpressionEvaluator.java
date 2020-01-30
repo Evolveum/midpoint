@@ -10,10 +10,7 @@ import java.util.UUID;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
-import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
-import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
-import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
+import com.evolveum.midpoint.model.common.stringpolicy.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
@@ -33,14 +30,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
@@ -124,7 +114,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
         Item<V, D> output = outputDefinition.instantiate();
         if (mode == null || mode == GenerateExpressionEvaluatorModeType.POLICY) {
 
-            AbstractValuePolicyOriginResolver<? extends ObjectType> originResolver = getOriginResolver(context);
+            ObjectBasedValuePolicyOriginResolver<?> originResolver = getOriginResolver(context);
 
             // TODO: generate value based on stringPolicyType (if not null)
             if (valuePolicyType != null) {
@@ -171,31 +161,25 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
     // determine object from the variables
     @SuppressWarnings("unchecked")
-    private <O extends ObjectType> AbstractValuePolicyOriginResolver<O> getOriginResolver(ExpressionEvaluationContext params) throws SchemaException {
+    private <O extends ObjectType> ObjectBasedValuePolicyOriginResolver<O> getOriginResolver(ExpressionEvaluationContext params) throws SchemaException {
         ExpressionVariables variables = params.getVariables();
         if (variables == null) {
             return null;
         }
         PrismObject<O> object = variables.getValueNew(ExpressionConstants.VAR_PROJECTION);
         if (object != null) {
-            return (AbstractValuePolicyOriginResolver<O>) new ShadowValuePolicyOriginResolver((PrismObject<ShadowType>) object, objectResolver);
+            return (ObjectBasedValuePolicyOriginResolver<O>) new ShadowValuePolicyOriginResolver((PrismObject<ShadowType>) object, objectResolver);
         }
         object = variables.getValueNew(ExpressionConstants.VAR_FOCUS);
-        return (AbstractValuePolicyOriginResolver<O>) new UserValuePolicyOriginResolver((PrismObject<UserType>) object, objectResolver);
+        return (ObjectBasedValuePolicyOriginResolver<O>) new FocusValuePolicyOriginResolver<>((PrismObject<FocusType>) object, objectResolver);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#
-     * shortDebugDump()
-     */
     @Override
     public String shortDebugDump() {
         if (elementValuePolicy != null) {
             return "generate: " + elementValuePolicy;
+        } else {
+            return "generate";
         }
-        return "generate";
     }
-
 }

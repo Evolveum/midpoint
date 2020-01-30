@@ -105,10 +105,10 @@ public class ValuePolicyProcessor {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private Protector protector;
 
-    static class Context {
-        @NotNull final ItemPath path;
+    private static class Context {
+        @NotNull private final ItemPath path;
 
-        public Context(@NotNull ItemPath path) {
+        private Context(@NotNull ItemPath path) {
             this.path = path;
         }
     }
@@ -122,8 +122,10 @@ public class ValuePolicyProcessor {
         this.expressionFactory = expressionFactory;
     }
 
-    public <O extends ObjectType> String generate(ItemPath path, ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
-            AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public String generate(ItemPath path, ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
+            ObjectBasedValuePolicyOriginResolver<?> originResolver, String shortDesc, Task task, OperationResult parentResult)
+            throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         Context ctx = new Context(path != null ? path : SchemaConstants.PATH_PASSWORD_VALUE);
         OperationResult result = parentResult.createSubresult(OP_GENERATE);
 
@@ -166,15 +168,15 @@ public class ValuePolicyProcessor {
         return generatedValue;
     }
 
-    public <O extends ObjectType> boolean validateValue(String newValue, ValuePolicyType pp,
-            AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult parentResult)
+    public boolean validateValue(String newValue, ValuePolicyType pp,
+            ObjectBasedValuePolicyOriginResolver<?> originResolver, String shortDesc, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return validateValue(newValue, pp, originResolver, new ArrayList<>(), shortDesc, task, parentResult);
     }
 
-    public <O extends ObjectType> boolean validateValue(String newValue, ValuePolicyType pp,
-            AbstractValuePolicyOriginResolver<O> originResolver, List<LocalizableMessage> messages, String shortDesc, Task task,
+    public boolean validateValue(String newValue, ValuePolicyType pp,
+            ObjectBasedValuePolicyOriginResolver<?> originResolver, List<LocalizableMessage> messages, String shortDesc, Task task,
             OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         //TODO: do we want to throw exception when no value policy defined??
@@ -378,10 +380,10 @@ public class ValuePolicyProcessor {
         }
     }
 
-    private <O extends ObjectType> void testCheckExpression(String newPassword, LimitationsType lims,
-            ExpressionProfile expressionProfile, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result,
-            List<LocalizableMessage> messages) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+    private void testCheckExpression(String newPassword, LimitationsType lims,
+            ExpressionProfile expressionProfile, ObjectBasedValuePolicyOriginResolver<?> originResolver, String shortDesc,
+            Task task, OperationResult result, List<LocalizableMessage> messages) throws SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         for (CheckExpressionType checkExpression: lims.getCheckExpression()) {
             ExpressionType expressionType = checkExpression.getExpression();
             if (expressionType == null) {
@@ -402,8 +404,8 @@ public class ValuePolicyProcessor {
         }
     }
 
-    private <O extends ObjectType> void testProhibitedValues(String newPassword, ProhibitedValuesType prohibitedValuesType,
-            AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result,
+    private void testProhibitedValues(String newPassword, ProhibitedValuesType prohibitedValuesType,
+            ObjectBasedValuePolicyOriginResolver<?> originResolver, String shortDesc, Task task, OperationResult result,
             List<LocalizableMessage> messages) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         if (prohibitedValuesType == null || originResolver == null) {
@@ -419,7 +421,7 @@ public class ValuePolicyProcessor {
         checkProhibitedValues(newPassword, prohibitedValuesType, originResolver, failAction, shortDesc, task, result);
     }
 
-    private <O extends ObjectType, R extends ObjectType> boolean checkProhibitedValues(String newPassword, ProhibitedValuesType prohibitedValuesType, AbstractValuePolicyOriginResolver<O> originResolver,
+    private <O extends ObjectType, R extends ObjectType> boolean checkProhibitedValues(String newPassword, ProhibitedValuesType prohibitedValuesType, ObjectBasedValuePolicyOriginResolver<O> originResolver,
             Consumer<ProhibitedValueItemType> failAction, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         if (prohibitedValuesType == null || originResolver == null) {
@@ -452,7 +454,7 @@ public class ValuePolicyProcessor {
 
                 return true;
             };
-            originResolver.resolve(handler, prohibitedItemType, shortDesc, task, result);
+            originResolver.resolve(prohibitedItemType, handler, shortDesc, task, result);
         }
 
         return isAcceptable.booleanValue();
@@ -531,11 +533,7 @@ public class ValuePolicyProcessor {
         }
 
         if (maxLen == 0) {
-            if (minLen > defaultLength) {
-                maxLen = minLen;
-            } else {
-                maxLen = defaultLength;
-            }
+            maxLen = Math.max(minLen, defaultLength);
         }
 
         // Initialize generator
@@ -555,10 +553,10 @@ public class ValuePolicyProcessor {
 
         // If any limitation was found to be first
         if (!mustBeFirst.isEmpty()) {
-            Map<Integer, List<String>> posibleFirstChars = cardinalityCounter(mustBeFirst, null, false, false,
-                    result);
+            Map<Integer, List<String>> possibleFirstChars = cardinalityCounter(mustBeFirst, null, false,
+                    false, result);
             int intersectionCardinality = mustBeFirst.keySet().size();
-            List<String> intersectionCharacters = posibleFirstChars.get(intersectionCardinality);
+            List<String> intersectionCharacters = possibleFirstChars.get(intersectionCardinality);
             // If no intersection was found then raise error
             if (null == intersectionCharacters || intersectionCharacters.size() == 0) {
                 result.recordFatalError(
@@ -570,11 +568,11 @@ public class ValuePolicyProcessor {
                             "Unable to generate value for " + ctx.path + ": No intersection for required first character sets in value policy: ["
                                     + stringPolicy.getDescription()
                                     + "] following character limitation and sets are used:");
-                    for (StringLimitType l : mustBeFirst.keySet()) {
+                    for (Map.Entry<StringLimitType, List<String>> entry : mustBeFirst.entrySet()) {
                         StrBuilder tmp = new StrBuilder();
                         tmp.appendSeparator(", ");
-                        tmp.appendAll(mustBeFirst.get(l));
-                        LOGGER.error("L:" + l.getDescription() + " -> [" + tmp + "]");
+                        tmp.appendAll(entry.getValue());
+                        LOGGER.error("L:" + entry.getKey().getDescription() + " -> [" + tmp + "]");
                     }
                 }
                 // No more processing unrecoverable conflict
@@ -716,7 +714,10 @@ public class ValuePolicyProcessor {
         return sb.toString();
     }
 
-    private <O extends ObjectType> boolean checkAttempt(String generatedValue, ValuePolicyType policy, ExpressionProfile expressionProfile, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <O extends ObjectType> boolean checkAttempt(String generatedValue, ValuePolicyType policy,
+            ExpressionProfile expressionProfile, ObjectBasedValuePolicyOriginResolver<O> originResolver, String shortDesc,
+            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         StringPolicyType stringPolicy = policy.getStringPolicy();
         if (stringPolicy != null) {
             LimitationsType limitationsType = stringPolicy.getLimitations();
@@ -737,7 +738,9 @@ public class ValuePolicyProcessor {
     }
 
     private <O extends ObjectType> boolean checkExpressions(String generatedValue, List<CheckExpressionType> checkExpressionTypes,
-            ExpressionProfile expressionProfile, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ExpressionProfile expressionProfile, ObjectBasedValuePolicyOriginResolver<O> originResolver, String shortDesc,
+            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         for (CheckExpressionType checkExpressionType: checkExpressionTypes) {
             ExpressionType expression = checkExpressionType.getExpression();
             if (!checkExpression(generatedValue, expression, expressionProfile, originResolver, shortDesc, task, result)) {
@@ -747,8 +750,10 @@ public class ValuePolicyProcessor {
         return true;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private <O extends ObjectType> boolean checkExpression(String generatedValue, ExpressionType checkExpression,
-            ExpressionProfile expressionProfile, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result)
+            ExpressionProfile expressionProfile, ObjectBasedValuePolicyOriginResolver<O> originResolver, String shortDesc,
+            Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         ExpressionVariables variables = new ExpressionVariables();
@@ -766,6 +771,7 @@ public class ValuePolicyProcessor {
             }
         }
         if (objectDef == null) {
+            //noinspection unchecked
             objectDef = (PrismObjectDefinition<O>) prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
         }
         variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object, objectDef);
@@ -781,14 +787,15 @@ public class ValuePolicyProcessor {
             List<String> password, Boolean skipMatchedLims, boolean uniquenessReached, OperationResult op) {
         HashMap<String, Integer> counter = new HashMap<>();
 
-        Map<StringLimitType, List<String>> mustBeFirst = new HashMap<>();
         for (Map.Entry<StringLimitType, List<String>> entry : lims.entrySet()) {
             final StringLimitType key = entry.getKey();
             int counterKey = 1;
             List<String> chars = entry.getValue();
-            int i = 0;
-            if (null != password) {
+            int i;
+            if (password != null) {
                 i = charIntersectionCounter(entry.getValue(), password);
+            } else {
+                i = 0;
             }
             // If max is exceed then error unable to continue
             if (key.getMaxOccurs() != null && i > key.getMaxOccurs()) {
@@ -807,21 +814,17 @@ public class ValuePolicyProcessor {
             }
             for (String s : chars) {
                 if (null == password || !password.contains(s) || uniquenessReached) {
-                    // if (null == counter.get(s)) {
                     counter.put(s, counterKey);
-                    // } else {
-                    // counter.put(s, counter.get(s) + 1);
-                    // }
                 }
             }
-            counterKey++;
+            counterKey++;       // TODO this is suspicious
         }
 
-
         // If need to remove disabled chars (already reached limitations)
-        if (null != password) {
-            for (StringLimitType l : lims.keySet()) {
-                int i = charIntersectionCounter(lims.get(l), password);
+        if (password != null) {
+            for (Map.Entry<StringLimitType, List<String>> entry : lims.entrySet()) {
+                StringLimitType l = entry.getKey();
+                int i = charIntersectionCounter(entry.getValue(), password);
                 if (l.getMaxOccurs() != null && i > l.getMaxOccurs()) {
                     OperationResult o = new OperationResult("Limitation check :" + l.getDescription());
                     o.recordFatalError(
@@ -831,19 +834,19 @@ public class ValuePolicyProcessor {
                 } else if (l.getMaxOccurs() != null && i == l.getMaxOccurs()) {
                     // limitation matched remove all used chars
                     LOGGER.trace("Skip " + l.getDescription());
-                    for (String charToRemove : lims.get(l)) {
+                    for (String charToRemove : entry.getValue()) {
                         counter.remove(charToRemove);
                     }
                 }
             }
         }
 
-        // Transpone to better format
+        // Transpose to better format
         Map<Integer, List<String>> ret = new HashMap<>();
-        for (String s : counter.keySet()) {
+        for (Map.Entry<String, Integer> entry : counter.entrySet()) {
             // if not there initialize
-            ret.computeIfAbsent(counter.get(s), k -> new ArrayList<>());
-            ret.get(counter.get(s)).add(s);
+            ret.computeIfAbsent(entry.getValue(), k -> new ArrayList<>());
+            ret.get(entry.getValue()).add(entry.getKey());
         }
         return ret;
     }
