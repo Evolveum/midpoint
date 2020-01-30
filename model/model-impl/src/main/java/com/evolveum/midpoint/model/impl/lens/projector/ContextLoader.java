@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -68,7 +69,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 /**
  * Context loader loads the missing parts of the context. The context enters the projector with just the minimum information.
  * Context loader gets missing data such as accounts. It gets them from the repository or provisioning as necessary. It follows
- * the account links in user (accountRef) and user deltas.
+ * the account links in focus (linkRef) and focus deltas.
  *
  * @author Radovan Semancik
  *
@@ -351,8 +352,8 @@ public class ContextLoader {
                 return;
             }
 
-            // Make sure that we RELOAD the user object if the context is not fresh
-            // the user may have changed in the meantime
+            // Make sure that we RELOAD the focus object if the context is not fresh
+            // the focus may have changed in the meantime
             if (focusContext.getObjectCurrent() != null && focusContext.isFresh()) {
                 result.addReturnComment("Already loaded");
                 return;
@@ -462,7 +463,7 @@ public class ContextLoader {
     }
 
     private <F extends ObjectType> void loadFromSystemConfig(LensContext<F> context, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, SecurityViolationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
         if (systemConfiguration == null) {
             // This happens in some tests. And also during first startup.
@@ -602,15 +603,15 @@ public class ContextLoader {
 
         LOGGER.trace("loadLinkRefs starting");
 
-        PrismObject<F> userCurrent = focusContext.getObjectCurrent();
-        if (userCurrent != null) {
-            loadLinkRefsFromFocus(context, userCurrent, task, result);
+        PrismObject<F> focusCurrent = focusContext.getObjectCurrent();
+        if (focusCurrent != null) {
+            loadLinkRefsFromFocus(context, focusCurrent, task, result);
             LOGGER.trace("loadLinkRefsFromFocus done");
         }
 
         if (consistencyChecks) context.checkConsistence();
 
-        loadLinkRefsFromDelta(context, userCurrent, focusContext, task, result);
+        loadLinkRefsFromDelta(context, focusCurrent, focusContext, task, result);
         LOGGER.trace("loadLinkRefsFromDelta done");
 
         if (consistencyChecks) context.checkConsistence();
@@ -650,9 +651,11 @@ public class ContextLoader {
                 existingAccountContext.setFresh(true);
                 continue;
             }
-            PrismObject<ShadowType> shadow = linkRefVal.getObject();
-            if (shadow == null) {
-                GetOperationOptions rootOpts = null;
+            PrismObject<ShadowType> shadow;
+            //noinspection unchecked
+            PrismObject<ShadowType> shadowFromLink = linkRefVal.getObject();
+            if (shadowFromLink == null) {
+                GetOperationOptions rootOpts;
                 if (context.isDoReconciliationForAllProjections()) {
                     rootOpts = GetOperationOptions.createForceRetry();
                 } else {
@@ -677,20 +680,17 @@ public class ContextLoader {
                     continue;
                 }
             } else {
+                shadow = shadowFromLink;
                 // Make sure it has a proper definition. This may come from outside of the model.
                 provisioningService.applyDefinition(shadow, task, result);
             }
             LensProjectionContext projectionContext = getOrCreateAccountContext(context, shadow, task, result);
             projectionContext.setFresh(true);
-            if (shadow == null) {
-                projectionContext.setExists(false);
-            } else {
-                projectionContext.setExists(ShadowUtil.isExists(shadow.asObjectable()));
-                if (ShadowUtil.isDead(shadow.asObjectable())) {
-                    projectionContext.markTombstone();
-                    LOGGER.trace("Loading dead shadow {} for projection {}.", shadow, projectionContext.getHumanReadableName());
-                    continue;
-                }
+            projectionContext.setExists(ShadowUtil.isExists(shadow.asObjectable()));
+            if (ShadowUtil.isDead(shadow.asObjectable())) {
+                projectionContext.markTombstone();
+                LOGGER.trace("Loading dead shadow {} for projection {}.", shadow, projectionContext.getHumanReadableName());
+                continue;
             }
             if (context.isDoReconciliationForAllProjections()) {
                 projectionContext.setDoReconciliation(true);
@@ -763,17 +763,17 @@ public class ContextLoader {
                         // the deltas match. It is an error otherwise.
                         ObjectDelta<ShadowType> primaryDelta = projectionContext.getPrimaryDelta();
                         if (primaryDelta == null) {
-                            throw new SchemaException("Attempt to add "+shadow+" to a user that already contains "+
+                            throw new SchemaException("Attempt to add "+shadow+" to a focus that already contains "+
                                     projectionContext.getHumanReadableKind()+" of type '"+
                                     projectionContext.getResourceShadowDiscriminator().getIntent()+"' on "+projectionContext.getResource());
                         }
                         if (!primaryDelta.isAdd()) {
                             throw new SchemaException("Conflicting changes in the context. " +
-                                    "Add of accountRef in the user delta with embedded object conflicts with explicit delta "+primaryDelta);
+                                    "Add of linkRef in the focus delta with embedded object conflicts with explicit delta "+primaryDelta);
                         }
                         if (!shadow.equals(primaryDelta.getObjectToAdd())) {
                             throw new SchemaException("Conflicting changes in the context. " +
-                                    "Add of accountRef in the user delta with embedded object is not adding the same object as explicit delta "+primaryDelta);
+                                    "Add of linkRef in the focus delta with embedded object is not adding the same object as explicit delta "+primaryDelta);
                         }
                     } else {
                         // Create account context from embedded object
@@ -887,7 +887,7 @@ public class ContextLoader {
         // The accounts
         // are in the context now and will be linked at the end of the process
         // (it they survive the policy)
-        // We need to make sure this happens on the real primary user delta
+        // We need to make sure this happens on the real primary focus delta
 
         ObjectDelta<F> primaryDeltaToUpdate;
         if (focusPrimaryDelta.isImmutable()) {
@@ -1105,7 +1105,7 @@ public class ContextLoader {
         ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, accountIntent, shadowType.getTag(), false);
         LensProjectionContext accountSyncContext = context.findProjectionContext(rsd);
         if (accountSyncContext != null) {
-            throw new SchemaException("Attempt to add "+account+" to a user that already contains account of type '"+accountIntent+"' on "+resource);
+            throw new SchemaException("Attempt to add "+account+" to a focus that already contains projection of type '"+accountIntent+"' on "+resource);
         }
         accountSyncContext = context.createProjectionContext(rsd);
         accountSyncContext.setResource(resource);
@@ -1618,69 +1618,85 @@ public class ContextLoader {
         }
     }
 
-    public <F extends ObjectType> void reloadSecurityPolicyIfNeeded(LensContext<F> context,
-            Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-                    SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            return;
+    public <F extends FocusType> void reloadSecurityPolicyIfNeeded(@NotNull LensContext<F> context,
+            @NotNull LensFocusContext<F> focusContext, Task task, OperationResult result)
+            throws ExpressionEvaluationException, SchemaException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+        if (focusContext.hasOrganizationalChange()) {
+            loadSecurityPolicy(context, true, task, result);
         }
-        if (!UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-            LOGGER.trace("Skipping load of security policy because focus is not user");
-            return;
-        }
-        if (!focusContext.hasOrganizationalChange()) {
-            return;
-        }
-        loadSecurityPolicy(context, true, task, result);
     }
 
-    public <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context,
-            Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-                    SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context,
+            Task task, OperationResult result) throws ExpressionEvaluationException,
+            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         loadSecurityPolicy(context, false, task, result);
     }
 
     @SuppressWarnings("unchecked")
-    private <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context, boolean forceReload,
-            Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-                    SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null) {
+    private <O extends ObjectType> void loadSecurityPolicy(LensContext<O> context, boolean forceReload,
+            Task task, OperationResult result) throws ExpressionEvaluationException,
+            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+        LensFocusContext<O> genericFocusContext = context.getFocusContext();
+        if (genericFocusContext == null || !genericFocusContext.represents(FocusType.class)) {
+            LOGGER.trace("Skipping load of security policy because focus is not of FocusType");
             return;
         }
-        if (focusContext == null || !UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-            LOGGER.trace("Skipping load of security policy because focus is not user");
-            return;
-        }
-        SecurityPolicyType globalSecurityPolicy = context.getGlobalSecurityPolicy();
-        if (globalSecurityPolicy == null) {
-            globalSecurityPolicy = securityHelper.locateGlobalSecurityPolicy((PrismObject<UserType>)focusContext.getObjectAny(),
-                    context.getSystemConfiguration(), task, result);
-            if (globalSecurityPolicy == null) {
-                // store empty policy to avoid repeated lookups
-                globalSecurityPolicy = new SecurityPolicyType();
-            }
-            context.setGlobalSecurityPolicy(globalSecurityPolicy);
-        }
-        SecurityPolicyType focusSecurityPolicy = focusContext.getSecurityPolicy();
-        if (forceReload || focusSecurityPolicy == null) {
-            focusSecurityPolicy = securityHelper.locateFocusSecurityPolicy((PrismObject<UserType>)focusContext.getObjectAny(),
-                    context.getSystemConfiguration(), task, result);
-            if (focusSecurityPolicy == null) {
-                // Not very clean. In fact we should store focus security policy separate from global
-                // policy to avoid confusion. But need to do this to fix MID-4793 and backport the fix.
-                // Therefore avoiding big changes. TODO: fix properly later
-                focusSecurityPolicy = globalSecurityPolicy;
-            }
-            focusContext.setSecurityPolicy(focusSecurityPolicy);
-        }
+        LensFocusContext<FocusType> focusContext = (LensFocusContext<FocusType>) genericFocusContext;
+        PrismObject<FocusType> focus = focusContext.getObjectAny();
+        SecurityPolicyType globalSecurityPolicy = determineAndSetGlobalSecurityPolicy(context, focus, task, result);
+        SecurityPolicyType focusSecurityPolicy = determineAndSetFocusSecurityPolicy(focusContext, focus, globalSecurityPolicy,
+                forceReload, task, result);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Security policy:\n  Global:\n{}\n  Focus:\n{}",
-                    globalSecurityPolicy==null?null:globalSecurityPolicy.asPrismObject().debugDump(2),
+                    globalSecurityPolicy.asPrismObject().debugDump(2),
                     focusSecurityPolicy==null?null:focusSecurityPolicy.asPrismObject().debugDump(2));
         } else {
             LOGGER.debug("Security policy: global: {}, focus: {}", globalSecurityPolicy, focusSecurityPolicy);
+        }
+    }
+
+    @NotNull
+    private <O extends ObjectType> SecurityPolicyType determineAndSetGlobalSecurityPolicy(LensContext<O> context,
+            PrismObject<FocusType> focus, Task task, OperationResult result)
+            throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        SecurityPolicyType existingPolicy = context.getGlobalSecurityPolicy();
+        if (existingPolicy != null) {
+            return existingPolicy;
+        } else {
+            SecurityPolicyType loadedPolicy = securityHelper.locateGlobalSecurityPolicy(focus, context.getSystemConfiguration(),
+                    task, result);
+            SecurityPolicyType resultingPolicy;
+            if (loadedPolicy != null) {
+                resultingPolicy = loadedPolicy;
+            } else {
+                // use empty policy to avoid repeated lookups
+                resultingPolicy = new SecurityPolicyType();
+            }
+            context.setGlobalSecurityPolicy(resultingPolicy);
+            return resultingPolicy;
+        }
+    }
+
+    private SecurityPolicyType determineAndSetFocusSecurityPolicy(LensFocusContext<FocusType> focusContext,
+            PrismObject<FocusType> focus, SecurityPolicyType globalSecurityPolicy, boolean forceReload, Task task,
+            OperationResult result) throws SchemaException {
+        SecurityPolicyType existingPolicy = focusContext.getSecurityPolicy();
+        if (existingPolicy != null && !forceReload) {
+            return existingPolicy;
+        } else {
+            SecurityPolicyType loadedPolicy = securityHelper.locateFocusSecurityPolicy(focus, task, result);
+            SecurityPolicyType resultingPolicy;
+            if (loadedPolicy != null) {
+                resultingPolicy = loadedPolicy;
+            } else {
+                // Not very clean. In fact we should store focus security policy separate from global
+                // policy to avoid confusion. But need to do this to fix MID-4793 and backport the fix.
+                // Therefore avoiding big changes. TODO: fix properly later
+                resultingPolicy = globalSecurityPolicy;
+            }
+            focusContext.setSecurityPolicy(resultingPolicy);
+            return resultingPolicy;
         }
     }
 }

@@ -68,6 +68,10 @@ public interface PrismContainer<C extends Containerable>
      */
     boolean canRepresent(QName type);
 
+    /**
+     * @return List of current values. The list itself is freely modifiable - it is independent on the list of values
+     * in this container. However, values themselves are directly linked to the PCVs.
+     */
     @NotNull
     @Override
     Collection<C> getRealValues();

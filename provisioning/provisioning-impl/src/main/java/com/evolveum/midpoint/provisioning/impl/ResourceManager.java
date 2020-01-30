@@ -665,11 +665,17 @@ public class ResourceManager {
 
         String resourceOid = resource.getOid();
 
+        String operationCtx = "test resource " + resourceOid + "connection";
+
         List<ConnectorSpec> allConnectorSpecs;
         try {
             allConnectorSpecs = getAllConnectorSpecs(resource);
         } catch (SchemaException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            operationCtx += ", getting all connectors failed: " + e.getMessage();
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.error("Configuration error: {}", e.getMessage(), e);
+            }
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             parentResult.recordFatalError("Configuration error: " + e.getMessage(), e);
             return;
         }
@@ -703,11 +709,19 @@ public class ResourceManager {
             schema = fetchResourceSchema(resource, capabilityMap, task, schemaResult);
 
         } catch (CommunicationException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, true, task, parentResult);
+            operationCtx += " failed while fetching schema: " + e.getMessage();
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.error("Communication error: {}", e.getMessage(), e);
+            }
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, operationCtx, task, parentResult, true);
             schemaResult.recordFatalError("Communication error: " + e.getMessage(), e);
             return;
         } catch (GenericFrameworkException | ConfigurationException | ObjectNotFoundException | SchemaException | RuntimeException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            operationCtx += " failed while fetching schema: " + e.getMessage();
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.error("Error: {}", e.getMessage(), e);
+            }
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             schemaResult.recordFatalError("Error: " + e.getMessage(), e);
             return;
         }
@@ -718,14 +732,20 @@ public class ResourceManager {
             try {
                 schema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
             } catch (SchemaException e) {
-                modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+                operationCtx += " failed while parsing refined schema: " + e.getMessage();
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.error("Error: {}", e.getMessage(), e);
+                }
+                modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
                 schemaResult.recordFatalError(e);
                 return;
             }
 
             if (schema == null || schema.isEmpty()) {
-                modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
-                schemaResult.recordFatalError("Connector does not support schema and no static schema available");
+                String msg = "Connector does not support schema and no static schema available";
+                operationCtx += ". " + msg;
+                modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+                schemaResult.recordFatalError(msg);
                 return;
             }
         }
@@ -737,22 +757,28 @@ public class ResourceManager {
         try {
             completedResource = completeResourceInternal(resource, schema, true, capabilityMap, null, task, schemaResult);
         } catch (ObjectNotFoundException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
-            schemaResult.recordFatalError(
-                    "Object not found (unexpected error, probably a bug): " + e.getMessage(), e);
+            String msg = "Object not found (unexpected error, probably a bug): " + e.getMessage();
+            operationCtx += " failed while completing resource. " + msg;
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            schemaResult.recordFatalError(msg, e);
             return;
         } catch (SchemaException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
-            schemaResult.recordFatalError(
-                    "Schema processing error (probably connector bug): " + e.getMessage(), e);
+            String msg = "Schema processing error (probably connector bug): " + e.getMessage();
+            operationCtx += " failed while completing resource. " + msg;
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            schemaResult.recordFatalError(msg, e);
             return;
         } catch (ExpressionEvaluationException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
-            schemaResult.recordFatalError("Expression error: " + e.getMessage(), e);
+            String msg = "Expression error: " + e.getMessage();
+            operationCtx += " failed while completing resource. " + msg;
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            schemaResult.recordFatalError(msg, e);
             return;
         } catch (RuntimeException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
-            schemaResult.recordFatalError("Unspecified exception: " + e.getMessage(), e);
+            String msg = "Unspecified exception: " + e.getMessage();
+            operationCtx += " failed while completing resource. " + msg;
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            schemaResult.recordFatalError(msg, e);
             return;
         }
 
@@ -761,7 +787,8 @@ public class ResourceManager {
         try {
             updateResourceSchema(allConnectorSpecs, parentResult, completedResource);
         } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | RuntimeException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            operationCtx += " failed while updating resource schema: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             parentResult.recordFatalError("Couldn't update resource schema: " + e.getMessage(), e);
             return;
         }
@@ -800,6 +827,8 @@ public class ResourceManager {
         LOGGER.debug("Testing connection using {}", connectorSpec);
         String resourceOid = connectorSpec.getResource().getOid();
 
+        String operationCtx = "testing connection using " + connectorSpec;
+
         ConfiguredConnectorInstanceEntry connectorInstanceCacheEntry;
         try {
             // Make sure we are getting non-configured instance.
@@ -808,24 +837,34 @@ public class ResourceManager {
         } catch (ObjectNotFoundException e) {
             // The connector was not found. The resource definition is either
             // wrong or the connector is not installed.
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
-            initResult.recordFatalError("The connector was not found: "+e.getMessage(), e);
+            String msg = "The connector was not found: "+e.getMessage();
+            operationCtx += " failed while getting connector instance. " + msg;
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            initResult.recordFatalError(msg, e);
             return;
         } catch (SchemaException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
-            initResult.recordFatalError("Schema error while dealing with the connector definition: "+e.getMessage(), e);
+            String msg = "Schema error while dealing with the connector definition: "+e.getMessage();
+            operationCtx += " failed while getting connector instance. " + msg;
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            initResult.recordFatalError(msg, e);
             return;
         } catch (RuntimeException | Error e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
-            initResult.recordFatalError("Unexpected runtime error: "+e.getMessage(), e);
+            String msg = "Unexpected runtime error: "+e.getMessage();
+            operationCtx += " failed while getting connector instance. " + msg;
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            initResult.recordFatalError(msg, e);
             return;
         } catch (CommunicationException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, true, task, parentResult);
-            initResult.recordFatalError("Communication error: "+e.getMessage(), e);
+            String msg = "Communication error: "+e.getMessage();
+            operationCtx += " failed while getting connector instance. " + msg;
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, operationCtx, task, parentResult, true);
+            initResult.recordFatalError(msg, e);
             return;
         } catch (ConfigurationException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
-            initResult.recordFatalError("Configuration error: "+e.getMessage(), e);
+            String msg = "Configuration error: "+e.getMessage();
+            operationCtx += " failed while getting connector instance. " + msg;
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
+            initResult.recordFatalError(msg, e);
             return;
         }
 
@@ -865,35 +904,43 @@ public class ResourceManager {
 
             configResult.recordSuccess();
         } catch (CommunicationException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, true, task, parentResult);
+            operationCtx += " failed while testing configuration: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, operationCtx, task, parentResult, true);
             configResult.recordFatalError("Communication error", e);
             return;
         } catch (GenericFrameworkException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            operationCtx += " failed while testing configuration: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             configResult.recordFatalError("Generic error", e);
             return;
         } catch (SchemaException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            operationCtx += " failed while testing configuration: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             configResult.recordFatalError("Schema error", e);
             return;
         } catch (ConfigurationException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            operationCtx += " failed while testing configuration: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             configResult.recordFatalError("Configuration error", e);
             return;
         } catch (ObjectNotFoundException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            operationCtx += " failed while testing configuration: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             configResult.recordFatalError("Object not found", e);
             return;
         } catch (ExpressionEvaluationException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            operationCtx += " failed while testing configuration: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             configResult.recordFatalError("Expression error", e);
             return;
         } catch (SecurityViolationException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            operationCtx += " failed while testing configuration: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             configResult.recordFatalError("Security violation", e);
             return;
         } catch (RuntimeException | Error e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            operationCtx += " failed while testing configuration: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             configResult.recordFatalError("Unexpected runtime error", e);
             return;
         }
@@ -905,13 +952,15 @@ public class ResourceManager {
 
         parentResult.computeStatus();
         if (!parentResult.isAcceptable()) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, true, task, parentResult);
+            operationCtx += ". Connector test failed: " + parentResult.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, operationCtx, task, parentResult, true);
             // No point in going on. Following tests will fail anyway, they will
             // just produce misleading
             // messages.
             return;
         } else {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.UP, false, task, parentResult);
+            operationCtx += ". Connector test successful.";
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.UP, operationCtx, task, parentResult, false);
         }
 
         // === test CAPABILITIES ===
@@ -925,23 +974,28 @@ public class ResourceManager {
             capabilityMap.put(connectorSpec.getConnectorName(), retrievedCapabilities);
             capabilitiesResult.recordSuccess();
         } catch (CommunicationException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, true, task, parentResult);
+            operationCtx += " failed while testing capabilities: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, operationCtx, task, parentResult, true);
             capabilitiesResult.recordFatalError("Communication error", e);
             return;
         } catch (GenericFrameworkException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            operationCtx += " failed while testing capabilities: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             capabilitiesResult.recordFatalError("Generic error", e);
             return;
         } catch (ConfigurationException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            operationCtx += " failed while testing capabilities: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             capabilitiesResult.recordFatalError("Configuration error", e);
             return;
         } catch (SchemaException e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            operationCtx += " failed while testing capabilities: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             capabilitiesResult.recordFatalError("Schema error", e);
             return;
         } catch (RuntimeException | Error e) {
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, true, task, parentResult);
+            operationCtx += " failed while testing capabilities: " + e.getMessage();
+            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             capabilitiesResult.recordFatalError("Unexpected runtime error", e);
             return;
         }
@@ -957,20 +1011,21 @@ public class ResourceManager {
      * Modifies resource availability status in the repository (if needed).
      *
      * The necessity of status modification is determined against the current version of the resource - unless "skipGetResource"
-     * is set. The resource is hopefully cached ResourceCache, so the performance impact should be almost none.
+     * is set. The resource is hopefully cached ResourceCache, so the performance impact should be almost ponone.
      *
      * Also note that in-memory representation of the resource is not modified. As a side effect, the cached resource
      * is invalidated because of the modification. But it will be loaded on the next occasion. This should be quite harmless,
      * as we do not expect availability changes to occur frequently.
      *
+     *
+     * @param operationCtx
      * @param skipGetResource True if we want to skip "getResource" operation and therefore apply the change regardless of
      *                        the current resource availability status. This is to be used in situations where we expect that
      *                        the resource might not be successfully retrievable (e.g. if it's broken).
      *
      * @throws ObjectNotFoundException If the resource object does not exist in repository.
      */
-    public void modifyResourceAvailabilityStatus(String resourceOid, AvailabilityStatusType newStatus, boolean skipGetResource,
-            Task task, OperationResult result) throws ObjectNotFoundException {
+    public void modifyResourceAvailabilityStatus(String resourceOid, AvailabilityStatusType newStatus, String operationCtx, Task task, OperationResult result, boolean skipGetResource) throws ObjectNotFoundException {
 
         AvailabilityStatusType currentStatus;
         String description;
@@ -991,7 +1046,8 @@ public class ResourceManager {
         }
 
         if (newStatus != currentStatus) {
-            LOGGER.debug("Changing availability status of {}: {} -> {}", description, currentStatus, newStatus);
+            //info becasue it's for diagnosing the issues with resource availability
+            LOGGER.info("Availability status changed from {} to {} for {} because {}", currentStatus, newStatus, description, operationCtx);
             try {
                 List<ItemDelta<?, ?>> modifications = singletonList(createResourceAvailabilityStatusDelta(newStatus));
                 repositoryService.modifyObject(ResourceType.class, resourceOid, modifications, result);

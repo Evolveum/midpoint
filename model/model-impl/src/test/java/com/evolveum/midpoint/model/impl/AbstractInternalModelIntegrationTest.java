@@ -10,6 +10,8 @@ import java.io.File;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.test.TestResource;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 
@@ -49,6 +51,8 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
     protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
     protected static final String USER_JACK_USERNAME = "jack";
     protected static final String USER_JACK_PASSWORD = "deadmentellnotales";
+
+    protected static final TestResource USER_JACK = new TestResource(COMMON_DIR, "user-jack.xml", USER_JACK_OID);
 
     protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
     protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";

@@ -4641,6 +4641,17 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The set of user's credentials (such as passwords).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>UserType.credentials</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -4971,17 +4982,6 @@
                             <xsd:appinfo>
                                 <a:displayName>UserType.organizationalUnit</a:displayName>
                                 <a:displayOrder>440</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The set of user's credentials (such as passwords).
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>UserType.credentials</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
