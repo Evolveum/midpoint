@@ -11,13 +11,13 @@ import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -25,8 +25,8 @@ import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationActionValue;
 import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthentication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
@@ -36,8 +36,6 @@ import org.springframework.security.core.Authentication;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import static com.evolveum.midpoint.security.api.AuthorizationConstants.AUTZ_UI_TASK_DETAIL_URL;
 
 /**
  * @author skublik
@@ -85,11 +83,12 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
 
                         requiredActions.add(AuthorizationConstants.AUTZ_REST_PROXY_URL);
 
+                        MidPointPrincipal actualPrincipal = getPrincipalFromAuthentication(authentication, object, configAttributes);
+                        decideInternal(actualPrincipal, requiredActions, authentication, object, task, AuthorizationParameters.Builder.buildObject(authorizedUser));
+
                         MidPointPrincipal principal= securityContextManager.getUserProfileService().getPrincipal(authorizedUser);
-
-                        decideInternal(principal, requiredActions, authentication, object, task);
-
                         ((MidpointAuthentication) authentication).setPrincipal(principal);
+                        ((MidpointAuthentication) authentication).setAuthorities(principal.getAuthorities());
                     } catch (SystemException | SchemaException | CommunicationException | ConfigurationException
                             | SecurityViolationException | ExpressionEvaluationException e) {
                         LOGGER.error("Error while processing authorization: {}", e.getMessage(), e);
@@ -99,6 +98,31 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
                     }
                 }
             }
+        }
+    }
+
+    protected void decideInternal(MidPointPrincipal principal, List<String> requiredActions, Authentication authentication, Object object, Task task, AuthorizationParameters<? extends ObjectType, ? extends ObjectType> parameters) {
+        AccessDecision decision;
+        try {
+            decision = decideAccess(principal, requiredActions, parameters, task, task.getResult());
+        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException
+                | CommunicationException | ConfigurationException | SecurityViolationException e) {
+            LOGGER.error("Error while processing authorization: {}", e.getMessage(), e);
+            LOGGER.trace("DECIDE: authentication={}, object={}, requiredActions={}: ERROR {}",
+                    authentication, object, requiredActions, e.getMessage());
+            throw new SystemException("Error while processing authorization: "+e.getMessage(), e);
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("DECIDE: authentication={}, object={}, requiredActions={}: {}",
+                    authentication, object, requiredActions, decision);
+        }
+
+        if (!decision.equals(AccessDecision.ALLOW)) {
+            SecurityUtil.logSecurityDeny(object, ": Not authorized", null, requiredActions);
+            // Sparse exception method by purpose. We do not want to expose details to attacker.
+            // Better message is logged.
+            throw new AccessDeniedException("Not authorized");
         }
     }
 

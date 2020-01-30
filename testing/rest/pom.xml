@@ -119,13 +119,6 @@
             <artifactId>repo-test-util</artifactId>
             <version>4.1-SNAPSHOT</version>
         </dependency>
-        <!--<dependency>-->
-        <!--    <groupId>com.evolveum.midpoint.gui</groupId>-->
-        <!--    <artifactId>admin-gui</artifactId>-->
-        <!--    <version>4.1-SNAPSHOT</version>-->
-        <!--    <type>jar</type>-->
-        <!--    <classifier>sources</classifier>-->
-        <!--</dependency>-->
         <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
@@ -160,6 +153,10 @@
             <artifactId>jackson-jaxrs-base</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+        </dependency>
 
         <!-- TEST dependency -->
         <dependency>
@@ -167,28 +164,14 @@
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
-      <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot</artifactId>
-      </dependency>
-      <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-web</artifactId>
-      </dependency>
-      <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-autoconfigure</artifactId>
-      </dependency>
-      <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-tomcat</artifactId>
-          <scope>provided</scope>
-      </dependency>
-
-      <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-security</artifactId>
-      </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.gui</groupId>
+            <artifactId>admin-gui</artifactId>
+            <version>4.1-SNAPSHOT</version>
+            <type>jar</type>
+            <classifier>sources</classifier>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -336,10 +319,6 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-local</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-frontend-jaxrs</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>

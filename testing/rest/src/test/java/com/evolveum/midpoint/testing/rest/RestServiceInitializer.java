@@ -6,56 +6,53 @@
  */
 package com.evolveum.midpoint.testing.rest;
 
-import static org.testng.AssertJUnit.assertEquals;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-
-import javax.ws.rs.core.Response;
-
+import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
 import com.evolveum.midpoint.common.rest.MidpointJsonProvider;
 import com.evolveum.midpoint.common.rest.MidpointXmlProvider;
 import com.evolveum.midpoint.common.rest.MidpointYamlProvider;
-import org.apache.cxf.endpoint.Server;
-import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
-import org.apache.cxf.jaxrs.client.ClientConfiguration;
-import org.apache.cxf.jaxrs.client.WebClient;
-import org.apache.cxf.transport.local.LocalConduit;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-
+import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.DummyAuditService;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.apache.cxf.jaxrs.client.ClientConfiguration;
+import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.transport.local.LocalConduit;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.web.context.WebApplicationContext;
 
-@ContextConfiguration(locations = { "classpath:ctx-rest-test-main.xml" })
-@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public abstract class RestServiceInitializer {
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.util.Arrays;
+
+import static org.testng.AssertJUnit.assertEquals;
+
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ActiveProfiles("test")
+@SpringBootTest(classes = TestMidPointSpringApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(properties = "server.port=18088")
+public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(RestServiceInitializer.class);
 
@@ -101,78 +98,50 @@ public abstract class RestServiceInitializer {
     public static final File SECURITY_POLICY = new File(BASE_REPO_DIR, "security-policy.xml");
     public static final File SECURITY_POLICY_NO_HISTORY = new File(BASE_REPO_DIR, "security-policy-no-history.xml");
 
-    ApplicationContext applicationContext = null;
-
-    private PrismContext prismContext;
-    private TaskManager taskManager;
-    private ModelService modelService;
-
-    private Server server;
-
-    protected RepositoryService repositoryService;
+    @Autowired
     private ProvisioningService provisioning;
-    protected DummyAuditService dummyAuditService;
 
+    @Autowired
     protected MidpointXmlProvider xmlProvider;
+
+    @Autowired
     protected MidpointJsonProvider jsonProvider;
+
+    @Autowired
     protected MidpointYamlProvider yamlProvider;
 
     protected abstract String getAcceptHeader();
     protected abstract String getContentType();
     protected abstract MidpointAbstractProvider getProvider();
 
-    protected final static String ENDPOINT_ADDRESS = "http://localhost:18080/rest";
+    protected String ENDPOINT_ADDRESS = "http://localhost:" + TestMidPointSpringApplication.DEFAULT_PORT + "/ws/rest";
 
-    @BeforeClass
-    public void initialize() throws Exception {
-        startServer();
-    }
-
-    @AfterClass
-    public void shutDown() {
-        ((ClassPathXmlApplicationContext) applicationContext).close();
-    }
-
-    public void startServer() throws Exception {
-        applicationContext = new ClassPathXmlApplicationContext("ctx-rest-test-main.xml");
-        LOGGER.info("Spring context initialized.");
-
-        JAXRSServerFactoryBean sf = (JAXRSServerFactoryBean) applicationContext.getBean("restService");
-
-        sf.setAddress(ENDPOINT_ADDRESS);
-
-        server = sf.create();
-
-        repositoryService = (SqlRepositoryServiceImpl) applicationContext.getBean("repositoryService");
-        provisioning = (ProvisioningServiceImpl) applicationContext.getBean("provisioningService");
-        taskManager = (TaskManager) applicationContext.getBean("taskManager");
-        modelService = (ModelService) applicationContext.getBean("modelController");
-        xmlProvider = (MidpointXmlProvider) applicationContext.getBean("jaxbProvider");
-        jsonProvider = (MidpointJsonProvider) applicationContext.getBean("jsonProvider");
-        yamlProvider = (MidpointYamlProvider) applicationContext.getBean("yamlProvider");
+    @Override
+    public void initSystem(Task initTask, OperationResult result) throws Exception {
+        super.initSystem(initTask, result);
+        LOGGER.trace("initSystem");
 
         InternalsConfig.encryptionChecks = false;
 
-        prismContext = (PrismContext) applicationContext.getBean("prismContext");
-
-        Task initTask = getTaskManager().createTaskInstance(TestAbstractRestService.class.getName() + ".startServer");
-        OperationResult result = initTask.getResult();
-
-        addObject(ROLE_SUPERUSER_FILE, result);
-        addObject(ROLE_ENDUSER_FILE, result);
-        addObject(ROLE_REST_FILE, result);
-        addObject(ROLE_READER_FILE, result);
-        addObject(USER_ADMINISTRATOR_FILE, result);
-        addObject(USER_NOBODY_FILE, result);
-        addObject(USER_CYCLOPS_FILE, result);
-        addObject(USER_SOMEBODY_FILE, result);
-        addObject(USER_JACK_FILE, result);
-        addObject(VALUE_POLICY_GENERAL, result);
-        addObject(VALUE_POLICY_NUMERIC, result);
-        addObject(VALUE_POLICY_SIMPLE, result);
-        addObject(VALUE_POLICY_SECURITY_ANSWER, result);
-        addObject(SECURITY_POLICY, result);
-        addObject(SYSTEM_CONFIGURATION_FILE, result);
+        PrismObject<RoleType> superRole = parseObject(ROLE_SUPERUSER_FILE);
+        addObject(superRole, ModelExecuteOptions.createOverwrite(), initTask, result);
+        PrismObject<RoleType> endRole = parseObject(ROLE_ENDUSER_FILE);
+        addObject(endRole, ModelExecuteOptions.createOverwrite(), initTask, result);
+        addObject(ROLE_REST_FILE, initTask, result);
+        addObject(ROLE_READER_FILE, initTask, result);
+        PrismObject<UserType> adminUser = parseObject(USER_ADMINISTRATOR_FILE);
+        addObject(adminUser, ModelExecuteOptions.createOverwrite(), initTask, result);
+        addObject(USER_NOBODY_FILE, initTask, result);
+        addObject(USER_CYCLOPS_FILE, initTask, result);
+        addObject(USER_SOMEBODY_FILE, initTask, result);
+        addObject(USER_JACK_FILE, initTask, result);
+        addObject(VALUE_POLICY_GENERAL, initTask, result);
+        addObject(VALUE_POLICY_NUMERIC, initTask, result);
+        addObject(VALUE_POLICY_SIMPLE, initTask, result);
+        addObject(VALUE_POLICY_SECURITY_ANSWER, initTask, result);
+        addObject(SECURITY_POLICY, initTask, result);
+        PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
+        addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, result);
 
         dummyAuditService = getDummyAuditService().getInstance();
 
@@ -181,19 +150,6 @@ public abstract class RestServiceInitializer {
         getModelService().postInit(result);
 
         result.computeStatus();
-        TestUtil.assertSuccessOrWarning("startServer failed (result)", result, 1);
-
-    }
-
-    protected <O extends ObjectType> PrismObject<O> addObject(File file, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException {
-        return addObject(file, null, result);
-    }
-
-    protected <O extends ObjectType> PrismObject<O> addObject(File file, RepoAddOptions options, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException {
-        PrismObject<O> object = getPrismContext().parseObject(file);
-        String oid = getRepositoryService().addObject(object, options, result);
-        object.setOid(oid);
-        return object;
     }
 
     protected WebClient prepareClient(String username, String password) {
@@ -235,10 +191,6 @@ public abstract class RestServiceInitializer {
 
     public ModelService getModelService() {
         return modelService;
-    }
-
-    public Server getServer() {
-        return server;
     }
 
     public RepositoryService getRepositoryService() {

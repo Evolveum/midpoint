@@ -66,6 +66,8 @@ public class TestMidPointSpringApplication extends AbstractSpringBootApplication
 
     private static final Trace LOGGER = TraceManager.getTrace(TestMidPointSpringApplication.class);
 
+    public static int DEFAULT_PORT = 18080;
+
     private static ConfigurableApplicationContext applicationContext = null;
 
      public static void main(String[] args) {
@@ -132,6 +134,7 @@ public class TestMidPointSpringApplication extends AbstractSpringBootApplication
     @Bean
     public TomcatServletWebServerFactory tomcatEmbeddedServletContainerFactory() {
         TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
+        tomcat.setPort(DEFAULT_PORT);
         return tomcat;
     }
 

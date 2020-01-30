@@ -26,43 +26,18 @@
      https://jax-ws.dev.java.net/spring/servlet.xsd"
     default-lazy-init="false" default-autowire="byName">
 
-    <!--<import resource="classpath*:ctx-task.xml"/>-->
-    <!--<import resource="ctx-model.xml"/>-->
-    <!--<import resource="ctx-model-common.xml"/>-->
-    <!--<import resource="ctx-provisioning.xml"/>-->
-    <!--<import resource="ctx-rest-test.xml"/>-->
-    <!--<import resource="ctx-task.xml"/>-->
-    <!--<import resource="ctx-audit.xml"/>-->
-    <!--<import resource="ctx-common.xml"/>-->
-    <!--<import resource="ctx-security.xml"/>-->
-    <!--<import resource="ctx-security-enforcer.xml"/>-->
-    <!--<import resource="ctx-repo-common.xml"/>-->
-    <!--<import resource="classpath*:ctx-repository-test.xml"/>-->
-    <!--<import resource="ctx-repo-cache.xml"/>-->
-    <!--<import resource="ctx-configuration-test.xml"/>-->
-
-    <import resource="classpath:ctx-common.xml" />
-    <import resource="classpath*:ctx-repository-test.xml" />
-    <import resource="classpath:ctx-repo-cache.xml" />
-    <import resource="classpath:ctx-repo-common.xml" />
+    <import resource="classpath*:ctx-task.xml"/>
+    <import resource="ctx-model.xml"/>
+    <import resource="ctx-model-common.xml"/>
+    <import resource="ctx-provisioning.xml"/>
+    <import resource="ctx-rest-test.xml"/>
+    <import resource="ctx-task.xml"/>
+    <import resource="ctx-audit.xml"/>
+    <import resource="ctx-common.xml"/>
+    <import resource="ctx-security.xml"/>
+    <import resource="ctx-security-enforcer.xml"/>
+    <import resource="ctx-repo-common.xml"/>
+    <import resource="classpath*:ctx-repository-test.xml"/>
+    <import resource="ctx-repo-cache.xml"/>
     <import resource="ctx-configuration-test.xml"/>
-    <import resource="classpath:ctx-task.xml" />
-    <import resource="classpath:ctx-provisioning.xml" />
-    <import resource="classpath:ctx-audit.xml" />
-    <import resource="classpath:ctx-security.xml" />
-    <import resource="classpath:ctx-security-enforcer.xml" />
-    <import resource="classpath:ctx-model.xml" />
-    <import resource="classpath:ctx-model-common.xml" />
-    <import resource="classpath:ctx-model-test.xml" />
-    <import resource="classpath*:ctx-workflow.xml" />
-    <import resource="classpath*:ctx-notifications.xml" />
-    <import resource="classpath:ctx-certification.xml" />
-    <import resource="classpath:ctx-init.xml" />
-    <!--    <import resource="classpath:ctx-webapp.xml" />-->
-
-    <bean id="midPointApplication" class="com.evolveum.midpoint.web.security.MidPointApplication"/>
-
-    <bean id="asyncWebProcessManager" class="com.evolveum.midpoint.web.application.AsyncWebProcessManagerImpl"/>
-    <!--<bean id="guiComponentRegistry" class="com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl"/>-->
-
 </beans>

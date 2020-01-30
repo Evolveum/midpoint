@@ -54,7 +54,7 @@ public class ClusterProvider extends MidPointAbstractAuthenticationProvider {
         String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
+        ConnectionEnvironment connEnv = createEnviroment(channel);
 
         try {
             Authentication token;
