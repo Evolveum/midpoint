@@ -218,7 +218,6 @@
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-core</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
@@ -713,7 +712,7 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations-java5</artifactId>
+            <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.mail</groupId>
@@ -1017,17 +1016,14 @@
                 <dependency>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-tomcat</artifactId>
-                    <scope>compile</scope>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.tomcat.embed</groupId>
                     <artifactId>tomcat-embed-core</artifactId>
-                    <scope>compile</scope>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.tomcat</groupId>
                     <artifactId>tomcat-annotations-api</artifactId>
-                    <scope>compile</scope>
                 </dependency>
                 <dependency>
                     <groupId>mysql</groupId>

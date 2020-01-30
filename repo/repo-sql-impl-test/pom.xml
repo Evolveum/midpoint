@@ -9,20 +9,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Repository - sql repository test</name>
-    <groupId>com.evolveum.midpoint.repo</groupId>
-    <artifactId>repo-sql-impl-test</artifactId>
-    <packaging>jar</packaging>
+
     <parent>
         <artifactId>repo</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <groupId>com.evolveum.midpoint.repo</groupId>
+    <artifactId>repo-sql-impl-test</artifactId>
+    <packaging>jar</packaging>
+
+    <name>midPoint Repository - sql repository test</name>
+
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -108,7 +107,7 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations-java5</artifactId>
+            <artifactId>annotations</artifactId>
         </dependency>
 
         <dependency>
@@ -200,6 +199,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <profiles>
         <profile>
             <id>dbtest</id>
