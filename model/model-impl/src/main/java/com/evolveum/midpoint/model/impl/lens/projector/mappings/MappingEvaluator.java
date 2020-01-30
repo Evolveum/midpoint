@@ -639,11 +639,7 @@ public class MappingEvaluator {
             public ValuePolicyType resolve() {
                 // TODO need to switch to ObjectValuePolicyEvaluator
                 if (outputDefinition.getItemName().equals(PasswordType.F_VALUE)) {
-                    ValuePolicyType passwordPolicy = credentialsProcessor.determinePasswordPolicy(context.getFocusContext(), task, result);
-                    if (passwordPolicy == null) {
-                        return null;
-                    }
-                    return passwordPolicy;
+                    return credentialsProcessor.determinePasswordPolicy(context.getFocusContext());
                 }
                 if (mappingType.getExpression() != null){
                     List<JAXBElement<?>> evaluators = mappingType.getExpression().getExpressionEvaluator();

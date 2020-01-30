@@ -8,35 +8,19 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Model - impl</name>
-    <groupId>com.evolveum.midpoint.model</groupId>
-    <artifactId>model-impl</artifactId>
-    <packaging>jar</packaging>
+
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
-    <organization>
-        <name>Evolveum</name>
-        <url>http://www.evolveum.com</url>
-    </organization>
-    <licenses>
-        <license>
-            <name>Apache License v2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    <issueManagement>
-        <system>Atlassian JIRA</system>
-        <url>http://jira.evolveum.com/</url>
-    </issueManagement>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <groupId>com.evolveum.midpoint.model</groupId>
+    <artifactId>model-impl</artifactId>
+    <packaging>jar</packaging>
+
+    <name>midPoint Model - impl</name>
+
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -192,52 +176,52 @@
             <artifactId>cxf-rt-ws-security</artifactId>
         </dependency>
         <dependency>
-              <groupId>org.apache.cxf</groupId>
+            <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
         </dependency>
         <dependency>
-              <groupId>org.apache.cxf</groupId>
+            <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-           <groupId>org.apache.cxf</groupId>
-           <artifactId>cxf-rt-rs-extension-providers</artifactId>
-           <scope>runtime</scope>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-extension-providers</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
-           <groupId>org.apache.cxf</groupId>
-           <artifactId>cxf-rt-bindings-soap</artifactId>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-bindings-soap</artifactId>
         </dependency>
         <dependency>
-           <groupId>org.apache.cxf</groupId>
-           <artifactId>cxf-rt-rs-client</artifactId>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-client</artifactId>
         </dependency>
         <dependency>
-           <groupId>javax.ws.rs</groupId>
-           <artifactId>javax.ws.rs-api</artifactId>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
         </dependency>
         <dependency>
-           <groupId>org.apache.wss4j</groupId>
-           <artifactId>wss4j-ws-security-common</artifactId>
+            <groupId>org.apache.wss4j</groupId>
+            <artifactId>wss4j-ws-security-common</artifactId>
         </dependency>
         <dependency>
-           <groupId>org.apache.wss4j</groupId>
-           <artifactId>wss4j-ws-security-dom</artifactId>
+            <groupId>org.apache.wss4j</groupId>
+            <artifactId>wss4j-ws-security-dom</artifactId>
         </dependency>
         <dependency>
-           <groupId>org.apache.ws.xmlschema</groupId>
-           <artifactId>xmlschema-core</artifactId>
+            <groupId>org.apache.ws.xmlschema</groupId>
+            <artifactId>xmlschema-core</artifactId>
         </dependency>
         <dependency>
-           <groupId>org.jvnet.jaxb2_commons</groupId>
-           <artifactId>jaxb2-basics-runtime</artifactId>
+            <groupId>org.jvnet.jaxb2_commons</groupId>
+            <artifactId>jaxb2-basics-runtime</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-ldap</artifactId>
         </dependency>
@@ -259,7 +243,7 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations-java5</artifactId>
+            <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.annotation</groupId>
@@ -289,7 +273,7 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>com.evolveum.icf</groupId>
             <artifactId>dummy-connector</artifactId>
             <version>4.1-SNAPSHOT</version>
@@ -373,10 +357,10 @@
             <scope>test</scope>
             <exclusions>
                 <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
-              <exclusion>
-                <groupId>org.slf4j</groupId>
-                  <artifactId>slf4j-jdk14</artifactId>
-              </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-jdk14</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -397,7 +381,6 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -418,7 +401,7 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
-            <!-- TODO: compile scope for ModelRestService - I think it should go to more infrastructural modul (Virgo) -->
+            <!-- TODO: compile scope for ModelRestService - I think it should go to more infrastructural module (Virgo) -->
             <!--<scope>test</scope>-->
         </dependency>
         <dependency>
@@ -438,19 +421,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

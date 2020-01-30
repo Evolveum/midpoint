@@ -34,23 +34,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyOriginType;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyOriginType.OBJECT;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  * @author semancik
  *
  */
-public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> {
+public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> implements ObjectBasedValuePolicyOriginResolver<O> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractValuePolicyOriginResolver.class);
 
     private final PrismObject<O> object;
     private final ObjectResolver objectResolver;
 
-    public AbstractValuePolicyOriginResolver(PrismObject<O> object, ObjectResolver objectResolver) {
+    AbstractValuePolicyOriginResolver(PrismObject<O> object, ObjectResolver objectResolver) {
         super();
         this.object = object;
         this.objectResolver = objectResolver;
     }
 
+    @Override
     public PrismObject<O> getObject() {
         return object;
     }
@@ -61,13 +66,12 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> {
         return (Class<R>) UserType.class;
     }
 
-    // TODO: later maybe isolate this method to an interface (ValuePolicyTypeResolver)
-    public <R extends ObjectType> void resolve(ResultHandler<R> handler, ProhibitedValueItemType prohibitedValueItemType, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        ValuePolicyOriginType originType = prohibitedValueItemType.getOrigin();
-        if (originType == null) {
-            handleObject(handler, result);
-        }
-        switch (originType) {
+    @Override
+    public <R extends ObjectType> void resolve(ProhibitedValueItemType prohibitedValueItem, ResultHandler<R> handler,
+            String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        ValuePolicyOriginType origin = defaultIfNull(prohibitedValueItem.getOrigin(), OBJECT);
+        switch (origin) {
             case OBJECT:
                 handleObject(handler, result);
                 break;
@@ -78,30 +82,29 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> {
                 handlePersonas(handler, contextDescription, task, result);
                 break;
             case PROJECTION:
-                handleProjections(handler, prohibitedValueItemType, contextDescription, task, result);
+                handleProjections(handler, prohibitedValueItem, contextDescription, task, result);
                 break;
             default:
-                throw new IllegalArgumentException("Unexpected origin type "+originType);
+                throw new IllegalArgumentException("Unexpected origin type " + origin);
         }
     }
 
     private <R extends ObjectType> void handleObject(ResultHandler<R> handler, OperationResult result) {
-        handler.handle((PrismObject<R>) getObject(), result);
+        handler.handle((PrismObject<R>) object, result);
     }
 
     private <P extends ObjectType> void handlePersonas(ResultHandler<P> handler, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        PrismObject<O> object = getObject();
         if (!object.canRepresent(UserType.class)) {
             return;
         }
         for (ObjectReferenceType personaRef: ((UserType)object.asObjectable()).getPersonaRef()) {
             UserType persona = objectResolver.resolve(personaRef, UserType.class, SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), "resolving persona in " + contextDescription, task, result);
+            //noinspection unchecked
             handler.handle((PrismObject<P>) persona.asPrismObject(), result);
         }
     }
 
     private <P extends ObjectType> void handleProjections(ResultHandler<P> handler, ProhibitedValueItemType prohibitedValueItemType, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        PrismObject<O> object = getObject();
         // Not very efficient. We will usually read the shadows again, as they are already in model context.
         // It will also work only for the items that are stored in shadow (usually not attributes, unless caching is enabled).
         // But this is good enough for now.
@@ -109,10 +112,10 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> {
         if (object.canRepresent(FocusType.class)) {
             focusType = ((FocusType)object.asObjectable());
         } else if (object.canRepresent(ShadowType.class)) {
-            ObjectQuery query = getObject().getPrismContext()
-            .queryFor(FocusType.class)
-            .item(UserType.F_LINK_REF).ref(getObject().getOid())
-            .build();
+            ObjectQuery query = object.getPrismContext()
+                    .queryFor(FocusType.class)
+                    .item(FocusType.F_LINK_REF).ref(object.getOid())
+                    .build();
             final Holder<FocusType> focusTypeHolder = new Holder<>();
             try {
                 objectResolver.searchIterative(FocusType.class, query,
@@ -151,7 +154,10 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> {
     }
 
     private <P extends ObjectType> void handleOwner(ResultHandler<P> handler, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        objectResolver.searchIterative(getOwnerClass(), getOwnerQuery(), SelectorOptions.createCollection(GetOperationOptions.createReadOnly()),
-                handler, task, result);
+        ObjectQuery ownerQuery = getOwnerQuery();
+        if (ownerQuery != null) {
+            objectResolver.searchIterative(getOwnerClass(), ownerQuery,
+                    SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), handler, task, result);
+        }
     }
 }

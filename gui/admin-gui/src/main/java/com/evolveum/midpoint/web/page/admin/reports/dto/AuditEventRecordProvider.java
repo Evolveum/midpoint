@@ -63,6 +63,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     public static final String PARAMETER_TARGET_OWNER_NAME = "targetOwnerName";
     public static final String PARAMETER_TARGET_NAMES = "targetNames";
     public static final String PARAMETER_TASK_IDENTIFIER = "taskIdentifier";
+    public static final String PARAMETER_RESOURCE_OID = "resourceOid";
 
     @Nullable private final IModel<ObjectCollectionType> objectCollectionModel;
     @NotNull private final SerializableSupplier<Map<String, Object>> parametersSupplier;
@@ -70,6 +71,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     private static final String AUDIT_RECORDS_QUERY_SELECT = "select * ";
     private static final String AUDIT_RECORDS_QUERY_CORE = " from m_audit_event as aer";
     private static final String AUDIT_RECORDS_QUERY_ITEMS_CHANGED = " right join m_audit_item as item on item.record_id=aer.id ";
+    private static final String AUDIT_RECORDS_QUERY_RESOURCE_OID = " right join m_audit_resource as res on res.record_id=aer.id ";
     private static final String AUDIT_RECORDS_QUERY_REF_VALUES = " left outer join m_audit_ref_value as rv on rv.record_id=aer.id ";
     private static final String AUDIT_RECORDS_QUERY_COUNT = "select count(*) ";
     private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.";
@@ -198,6 +200,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     private String generateFullQuery(Map<String, Object> parameters, boolean ordered, boolean isCount) {
         boolean filteredOnChangedItem = parameters.get(PARAMETER_CHANGED_ITEM) != null;
         boolean filteredOnValueRefTargetNames = filteredOnValueRefTargetNames(parameters);
+        boolean filteredOnResourceOid = parameters.get(PARAMETER_RESOURCE_OID) != null;
         List<String> conditions = new ArrayList<>();
         if (parameters.get(PARAMETER_FROM) != null) {
             conditions.add("aer.timestampValue >= :from");
@@ -271,6 +274,11 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         } else {
             parameters.remove(PARAMETER_CHANGED_ITEM);
         }
+        if (filteredOnResourceOid) {
+            conditions.add("res.resourceOid = :resourceOid");
+        } else {
+            parameters.remove(PARAMETER_RESOURCE_OID);
+        }
         if (filteredOnValueRefTargetNames) {
             conditions.add("rv.targetName_orig in ( :valueRefTargetNames )");
         } else {
@@ -283,6 +291,9 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
             query = AUDIT_RECORDS_QUERY_CORE;
             if (filteredOnChangedItem) {
                 query += AUDIT_RECORDS_QUERY_ITEMS_CHANGED;
+            }
+            if (filteredOnResourceOid) {
+                query += AUDIT_RECORDS_QUERY_RESOURCE_OID;
             }
             if (filteredOnValueRefTargetNames) {
                 query += AUDIT_RECORDS_QUERY_REF_VALUES;

@@ -140,17 +140,22 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
     }
 
     public UserAsserter<RA> assertPassword(String expectedClearPassword) throws SchemaException, EncryptionException {
-        assertPassword(expectedClearPassword, CredentialsStorageTypeType.ENCRYPTION);
+        super.assertPassword(expectedClearPassword);
         return this;
     }
 
     public UserAsserter<RA> assertPassword(String expectedClearPassword, CredentialsStorageTypeType storageType) throws SchemaException, EncryptionException {
-        CredentialsType creds = getObject().asObjectable().getCredentials();
-        assertNotNull("No credentials in "+desc(), creds);
-        PasswordType password = creds.getPassword();
-        assertNotNull("No password in "+desc(), password);
-        ProtectedStringType protectedActualPassword = password.getValue();
-        IntegrationTestTools.assertProtectedString("Password for "+desc(), expectedClearPassword, protectedActualPassword, storageType, getProtector());
+        super.assertPassword(expectedClearPassword, storageType);
+        return this;
+    }
+
+    public UserAsserter<RA> assertHasPassword() throws SchemaException, EncryptionException {
+        super.assertHasPassword();
+        return this;
+    }
+
+    public UserAsserter<RA> assertHasPassword(CredentialsStorageTypeType storageType) throws SchemaException, EncryptionException {
+        super.assertHasPassword(storageType);
         return this;
     }
 

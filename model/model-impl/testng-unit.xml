@@ -41,7 +41,8 @@
             <class name="com.evolveum.midpoint.model.impl.lens.TestDependencies"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestClockwork"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestReconScript"/>
-            <class name="com.evolveum.midpoint.model.impl.lens.TestPasswordPolicyProcessor"/>
+            <class name="com.evolveum.midpoint.model.impl.lens.TestPasswordPolicyProcessorForUser"/>
+            <class name="com.evolveum.midpoint.model.impl.lens.TestPasswordPolicyProcessorForService"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestPasswordPolicy"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestPolicyRules"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestPolicyRules2"/>

@@ -14,6 +14,11 @@ import java.io.File;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.test.TestResource;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -28,178 +33,151 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestPasswordPolicyProcessor extends AbstractLensTest {
+public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends AbstractLensTest {
 
-    private static final String BASE_PATH = "src/test/resources/lens";
+    static final File TEST_DIR = new File(AbstractLensTest.TEST_DIR, "ppolicy");
 
-    private static final String PASSWORD_HISTORY_POLICY_OID = "policy00-0000-0000-0000-000000000003";
-    private static final String PASSWORD_HISTORY_POLICY_NAME = "password-policy-history.xml";
-    private static final File PASSWORD_HISTORY_POLICY_FILE = new File(BASE_PATH,
-            PASSWORD_HISTORY_POLICY_NAME);
-
-    private static final String PASSWORD_NO_HISTORY_POLICY_OID = "policy00-0000-0000-0000-000000000004";
-    private static final String PASSWORD_NO_HISTORY_POLICY_NAME = "password-policy-no-history.xml";
-    private static final File PASSWORD_NO_HISTORY_POLICY_FILE = new File(BASE_PATH,
-            PASSWORD_NO_HISTORY_POLICY_NAME);
+    private static final String OLD_PASSWORD = USER_JACK_PASSWORD;
 
     private static final String PASSWORD1 = "ch4nGedPa33word1";
     private static final String PASSWORD2 = "ch4nGedPa33word2";
     private static final String PASSWORD3 = "ch4nGedPa33word3";
 
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        repoAddObjectFromFile(PASSWORD_HISTORY_POLICY_FILE, initResult);
-        repoAddObjectFromFile(PASSWORD_NO_HISTORY_POLICY_FILE, initResult);
+        setAutoTaskManagementEnabled(true);
+    }
 
-        deleteObject(UserType.class, USER_JACK_OID);
+    abstract Class<F> getType();
+
+    abstract TestResource getTestResource();
+
+    private String getOid() {
+        return getTestResource().oid;
     }
 
     @Test
     public void test000initPasswordPolicyForHistory() throws Exception {
-        final String TEST_NAME = "test000initPasswordPolicyForHistory";
-        initPasswordPolicy(TEST_NAME, 3, PASSWORD_HISTORY_POLICY_OID);
-
+        setPasswordHistoryLength(3);
     }
 
     @Test
-    public void test100CreateUserWithPassword() throws Exception {
-        final String TEST_NAME = "test100CreateUserWithPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-        // WHEN
-        addObject(USER_JACK_FILE);
-
-        // THEN
-        PrismObject<UserType> jack = getObject(UserType.class, USER_JACK_OID);
-        assertNotNull("User Jack was not found.", jack);
-
-        assertPasswordHistoryEntries(jack);
-    }
-
-    @Test
-    public void test101ModifyUserPassword() throws Exception {
-        final String TEST_NAME = "test101ModifyUserPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+    public void test100CreateFocusWithPassword() throws Exception {
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
-        modifyUserChangePassword(USER_JACK_OID, PASSWORD1, task, result);
+        addObject(getTestResource(), task, result);
 
         // THEN
-        PrismObject<UserType> jack = getObject(UserType.class, USER_JACK_OID);
-        assertNotNull("User Jack was not found.", jack);
+        PrismObject<F> focusAfter = getFocus();
+        assertPasswordHistoryEntries(focusAfter);
+    }
 
-        UserType jackType = jack.asObjectable();
-        CredentialsType credentialsType = jackType.getCredentials();
-        assertNotNull("No credentials set for user Jack", credentialsType);
-
-        PasswordType passwordType = credentialsType.getPassword();
-        assertNotNull("No password set for user Jack", passwordType);
-        ProtectedStringType passwordAfterChange = passwordType.getValue();
-        assertNotNull("Password musn't be null", passwordAfterChange);
-        assertPasswords(PASSWORD1, passwordAfterChange);
-        assertPasswordHistoryEntries(passwordType,
-                USER_JACK_PASSWORD);
-
+    @NotNull
+    private PrismObject<F> getFocus() throws Exception {
+        PrismObject<F> focusAfter = getObject(getType(), getOid());
+        assertNotNull("Focus was not found.", focusAfter);
+        return focusAfter;
     }
 
     @Test
-    public void test102ModifyUserPassword() throws Exception {
-        final String TEST_NAME = "test102ModifyUserPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TEST_NAME);
-        OperationResult result = task.getResult();
+    public void test110ModifyPassword() throws Exception {
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
-        modifyUserChangePassword(USER_JACK_OID, PASSWORD2, task, result);
+        modifyFocusChangePassword(getType(), getOid(), PASSWORD1, task, result);
 
         // THEN
-        PrismObject<UserType> jack = getObject(UserType.class, USER_JACK_OID);
-        assertNotNull("User Jack was not found.", jack);
+        PrismObject<F> focusAfter = getFocus();
 
-        UserType jackType = jack.asObjectable();
-        CredentialsType credentialsType = jackType.getCredentials();
-        assertNotNull("No credentials set for user Jack", credentialsType);
+        F focusBeanAfter = focusAfter.asObjectable();
+        CredentialsType credentialsAfter = focusBeanAfter.getCredentials();
+        assertNotNull("No credentials found", credentialsAfter);
 
-        PasswordType passwordType = credentialsType.getPassword();
-        assertNotNull("No password set for user Jack", passwordType);
-        ProtectedStringType passwordAfterChange = passwordType.getValue();
-        assertNotNull("Password musn't be null", passwordAfterChange);
-        assertPasswords(PASSWORD2, passwordAfterChange);
-        assertPasswordHistoryEntries(passwordType,
-                USER_JACK_PASSWORD, PASSWORD1);
-
+        PasswordType passwordAfter = credentialsAfter.getPassword();
+        assertNotNull("No password found", passwordAfter);
+        ProtectedStringType passwordValueAfter = passwordAfter.getValue();
+        assertNotNull("Password mustn't be null", passwordValueAfter);
+        assertPasswords(PASSWORD1, passwordValueAfter);
+        assertPasswordHistoryEntries(passwordAfter, OLD_PASSWORD);
     }
 
     @Test
-    public void test103ModifyUserPasswordAgain() throws Exception {
-        final String TEST_NAME = "test103ModifyUserPasswordAgain";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+    public void test120ModifyPasswordSecondTime() throws Exception {
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
-        modifyUserChangePassword(USER_JACK_OID, PASSWORD3, task, result);
+        modifyFocusChangePassword(getType(), getOid(), PASSWORD2, task, result);
 
         // THEN
-        PrismObject<UserType> jackAfterSecondChange = getObject(UserType.class, USER_JACK_OID);
-        assertNotNull("User Jack was not found.", jackAfterSecondChange);
+        PrismObject<F> focusAfter = getFocus();
 
-        UserType jackTypeAfterSecondChange = jackAfterSecondChange.asObjectable();
-        CredentialsType credentialsTypeAfterSecondChange = jackTypeAfterSecondChange.getCredentials();
-        assertNotNull("No credentials set for user Jack", credentialsTypeAfterSecondChange);
+        F focusBeanAfter = focusAfter.asObjectable();
+        CredentialsType credentialsAfter = focusBeanAfter.getCredentials();
+        assertNotNull("No credentials found", credentialsAfter);
 
-        PasswordType passwordTypeAfterSecondChnage = credentialsTypeAfterSecondChange.getPassword();
-        assertNotNull("No password set for user Jack", passwordTypeAfterSecondChnage);
-        ProtectedStringType passwordAfterSecondChange = passwordTypeAfterSecondChnage.getValue();
-        assertNotNull("Password musn't be null", passwordAfterSecondChange);
-
-        assertPasswords(PASSWORD3, passwordAfterSecondChange);
-
-        assertPasswordHistoryEntries(passwordTypeAfterSecondChnage,
-                PASSWORD1, PASSWORD2);
+        PasswordType passwordAfter = credentialsAfter.getPassword();
+        assertNotNull("No password found", passwordAfter);
+        ProtectedStringType passwordValueAfter = passwordAfter.getValue();
+        assertNotNull("Password mustn't be null", passwordValueAfter);
+        assertPasswords(PASSWORD2, passwordValueAfter);
+        assertPasswordHistoryEntries(passwordAfter, OLD_PASSWORD, PASSWORD1);
     }
 
     @Test
-    public void test111ModifyUserPasswordOldPassword1() throws Exception {
-        doTestModifyUserPasswordExpectFailure("test111ModifyUserPasswordOldPassword1", PASSWORD1);
+    public void test130ModifyPasswordThirdTime() throws Exception {
+        Task task = getTask();
+        OperationResult result = getResult();
+
+        // WHEN
+        modifyFocusChangePassword(getType(), getOid(), PASSWORD3, task, result);
+
+        // THEN
+        PrismObject<F> focusAfter = getFocus();
+
+        F focusBeanAfter = focusAfter.asObjectable();
+        CredentialsType credentialsAfter = focusBeanAfter.getCredentials();
+        assertNotNull("No credentials found", credentialsAfter);
+
+        PasswordType passwordAfter = credentialsAfter.getPassword();
+        assertNotNull("No password found", passwordAfter);
+        ProtectedStringType passwordValueAfter = passwordAfter.getValue();
+        assertNotNull("Password mustn't be null", passwordValueAfter);
+        assertPasswords(PASSWORD3, passwordValueAfter);
+        assertPasswordHistoryEntries(passwordAfter, PASSWORD1, PASSWORD2);
     }
 
     @Test
-    public void test112ModifyUserPasswordOldPassword2() throws Exception {
-        doTestModifyUserPasswordExpectFailure("test112ModifyUserPasswordOldPassword2", PASSWORD2);
+    public void test140ModifyPasswordOldPassword1() throws Exception {
+        doTestModifyPasswordExpectFailure(PASSWORD1);
     }
 
     @Test
-    public void test113ModifyUserPasswordSamePassword3() throws Exception {
-        doTestModifyUserPasswordExpectFailure("test113ModifyUserPasswordSamePassword3", PASSWORD3);
+    public void test150ModifyPasswordOldPassword2() throws Exception {
+        doTestModifyPasswordExpectFailure(PASSWORD2);
     }
 
-    public void doTestModifyUserPasswordExpectFailure(final String TEST_NAME, String password) throws Exception {
-        Task task = taskManager.createTaskInstance(TEST_NAME);
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult result = task.getResult();
+    @Test
+    public void test160ModifyPasswordSamePassword3() throws Exception {
+        doTestModifyPasswordExpectFailure(PASSWORD3);
+    }
+
+    private void doTestModifyPasswordExpectFailure(String password) throws Exception {
+        Task task = getTask();
+        OperationResult result = getResult();
 
         try {
             // WHEN
-            modifyUserChangePassword(USER_JACK_OID, password, task, result);
+            modifyFocusChangePassword(getType(), getOid(), password, task, result);
 
             fail("Expected PolicyViolationException but didn't get one.");
         } catch (PolicyViolationException ex) {
@@ -211,95 +189,78 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
     }
 
     @Test
-    public void test200initNoHistoryPasswordPolicy() throws Exception {
-        String title = "test200initNoHistoryPasswordPolicy";
-        initPasswordPolicy(title, 0, PASSWORD_NO_HISTORY_POLICY_OID);
+    public void test200InitNoHistoryPasswordPolicy() throws Exception {
+        setPasswordHistoryLength(0);
     }
 
     @Test
-    public void test201deleteUserJack() throws Exception {
-        final String TEST_NAME = "test201deleteUserJack";
-        TestUtil.displayTestTitle(TEST_NAME);
-
+    public void test201deleteFocus() throws Exception {
         // WHEN
-        deleteObject(UserType.class, USER_JACK_OID);
+        deleteObject(getType(), getOid());
 
         try {
-            getObject(UserType.class, USER_JACK_OID);
-            fail("Unexpected user Jack, should be deleted.");
+            getObject(getType(), getOid());
+            fail("Unexpected focus object, should be deleted.");
         } catch (ObjectNotFoundException ex) {
             // this is OK;
         }
-
     }
 
     @Test
-    public void test202createUserJackNoPasswordHistory() throws Exception {
-        final String TEST_NAME = "test202createUserJackNoPasswordHistory";
-        TestUtil.displayTestTitle(TEST_NAME);
+    public void test210CreateFocusNoPasswordHistory() throws Exception {
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
-        addObject(USER_JACK_FILE);
+        addObject(getTestResource(), task, result);
 
         // THEN
-        PrismObject<UserType> userJack = getObject(UserType.class, USER_JACK_OID);
-        assertNotNull("Expected to find user Jack, but no one exists here", userJack);
+        PrismObject<F> focus = getFocus();
 
-        UserType userJackType = userJack.asObjectable();
-        CredentialsType credentials = userJackType.getCredentials();
-        assertNotNull("User Jack has no credentials", credentials);
+        F focusBean = focus.asObjectable();
+        CredentialsType credentials = focusBean.getCredentials();
+        assertNotNull("Focus has no credentials", credentials);
 
         PasswordType password = credentials.getPassword();
-        assertNotNull("User Jack has no password", password);
+        assertNotNull("Focus has no password", password);
 
         List<PasswordHistoryEntryType> historyEntries = password.getHistoryEntry();
-        assertEquals("Expected no history entries, but found: " + historyEntries.size(), 0,
-                historyEntries.size());
-
+        assertEquals("Wrong # of history entries", 0, historyEntries.size());
     }
 
     @Test
-    public void test203modifyUserJackPasswordNoPasswordHistory() throws Exception {
-        final String TEST_NAME = "test203modifyUserJackPasswordNoPasswordHistory";
-        modifyUserJackPasswordNoHistory(TEST_NAME);
-
+    public void test220ModifyPasswordNoPasswordHistory() throws Exception {
+        modifyPasswordNoHistory();
     }
 
     @Test
-    public void test204modifyUserJackSamePasswordNoPasswordHistory() throws Exception {
-        final String TEST_NAME = "test204modifyUserJackSamePasswordNoPasswordHistory";
-        modifyUserJackPasswordNoHistory(TEST_NAME);
-
+    public void test230ModifySamePasswordNoPasswordHistory() throws Exception {
+        modifyPasswordNoHistory();
     }
 
-    private void modifyUserJackPasswordNoHistory(String TEST_NAME) throws Exception{
-        TestUtil.displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TEST_NAME);
-        OperationResult result = task.getResult();
+    private void modifyPasswordNoHistory() throws Exception{
+        Task task = getTask();
+        OperationResult result = getResult();
 
         // WHEN
         ProtectedStringType newValue = new ProtectedStringType();
         newValue.setClearValue("n0Hist0ryEntr7");
 
-        modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, newValue);
+        modifyObjectReplaceProperty(getType(), getOid(), PATH_CREDENTIALS_PASSWORD_VALUE, task, result, newValue);
 
         // THEN
-        PrismObject<UserType> userJack = getObject(UserType.class, USER_JACK_OID);
-        assertNotNull("Expected to find user Jack, but no one exists here", userJack);
+        PrismObject<F> focusAfter = getFocus();
 
-        UserType userJackType = userJack.asObjectable();
-        CredentialsType credentials = userJackType.getCredentials();
-        assertNotNull("User Jack has no credentials", credentials);
+        F focusBeanAfter = focusAfter.asObjectable();
+        CredentialsType credentialsAfter = focusBeanAfter.getCredentials();
+        assertNotNull("Focus has no credentials", credentialsAfter);
 
-        PasswordType password = credentials.getPassword();
-        assertNotNull("User Jack has no password", password);
+        PasswordType passwordAfter = credentialsAfter.getPassword();
+        assertNotNull("Focus has no password", passwordAfter);
 
-        List<PasswordHistoryEntryType> historyEntries = password.getHistoryEntry();
-        assertEquals("Expected no history entries, but found: " + historyEntries.size(), 0,
-                historyEntries.size());
-
+        List<PasswordHistoryEntryType> historyEntries = passwordAfter.getHistoryEntry();
+        assertEquals("Wrong # of history entries", 0, historyEntries.size());
     }
-
 
     private void assertPasswords(String password, ProtectedStringType passwordAfterChange) throws SchemaException, EncryptionException {
         ProtectedStringType protectedStringType = new ProtectedStringType();
@@ -308,14 +269,10 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
                 protector.compareCleartext(protectedStringType, passwordAfterChange));
     }
 
-    private void initPasswordPolicy(String title, int historyLength, String passwordPolicyOid) throws Exception {
-        display(title);
-        Task task = createTask(title);
-        OperationResult result = task.getResult();
-
-//        ObjectReferenceType passwordPolicyRef = ObjectTypeUtil.createObjectRef(passwordPolicyOid,
-//                ObjectTypes.PASSWORD_POLICY);
-        modifyObjectReplaceProperty(SecurityPolicyType.class, SECURITY_POLICY_OID, SchemaConstants.PATH_CREDENTIALS_PASSWORD_HISTORY_LENGTH, task, result, historyLength);
+    private void setPasswordHistoryLength(int historyLength) throws Exception {
+        Task task = getTask();
+        OperationResult result = getResult();
+        modifyObjectReplaceProperty(SecurityPolicyType.class, SECURITY_POLICY_OID,
+                SchemaConstants.PATH_CREDENTIALS_PASSWORD_HISTORY_LENGTH, task, result, historyLength);
     }
-
 }
