@@ -1,7 +1,7 @@
 MidPoint Identity Manager
-Copyright 2010-2018 Evolveum
+Copyright 2010-2020 Evolveum
 
-This project is dual-licensed under Apache License 2.0 
+This project is dual-licensed under Apache License 2.0
 and European Union Public License. See LICENSE file for details.
 
 This product includes software developed at
@@ -15,14 +15,14 @@ Please see the headers of individual source files for more
 details.
 
 This product includes the jQuery JavaScript Library.
-Copyright (c) 2012 jQuery Foundation and other contributors, 
+Copyright (c) 2012 jQuery Foundation and other contributors,
 jQuery is dually licensed under the MIT and GPL licenses, and
 is included in this software distribution under the MIT license.
 For details, see the jQuery web site: http://jquery.com/
 
 This product includes DejaVu fonts.
 Copyright (c) 2003 by Bitstream, Inc. All Rights Reserved.
-Bitstream Vera is a trademark of Bitstream, Inc. 
+Bitstream Vera is a trademark of Bitstream, Inc.
 For details, see http://dejavu-fonts.org
 and http://dejavu-fonts.org/wiki/License
 

@@ -51,18 +51,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <dependencies>
-        <dependency> <!-- Not used, but required for surefire plugin not to complain -->
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 </project>

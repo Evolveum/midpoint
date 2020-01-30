@@ -160,7 +160,6 @@
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
             <version>4.1-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

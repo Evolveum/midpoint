@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<service oid="296f03b4-f642-4017-94d9-19ff83c32dcf"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
+    <name>printer</name>
+    <credentials>
+        <password>
+            <value>
+                <t:clearValue>deadmentellnotales</t:clearValue>
+            </value>
+        </password>
+        <nonce>
+            <value>
+                <t:clearValue>12345</t:clearValue>
+            </value>
+        </nonce>
+        <securityQuestions>
+            <questionAnswer>
+                <questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</questionIdentifier>
+                <questionAnswer>
+                    <t:clearValue>No answer</t:clearValue>
+                </questionAnswer>
+            </questionAnswer>
+        </securityQuestions>
+    </credentials>
+</service>

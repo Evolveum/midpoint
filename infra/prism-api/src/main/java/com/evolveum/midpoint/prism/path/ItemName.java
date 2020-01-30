@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.prism.path;
 
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -174,5 +176,9 @@ public class ItemName extends QName implements ItemPath {
         } else {
             return this;
         }
+    }
+
+    public boolean matches(ItemName other) {
+        return QNameUtil.match(this, other);
     }
 }

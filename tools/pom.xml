@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
@@ -29,11 +28,4 @@
         <module>ninja</module>
         <module>schrodinger</module>
     </modules>
-    <dependencies> <!-- Not used, but required for surefire plugin not to complain -->
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 </project>
