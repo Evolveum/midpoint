@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.util;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
@@ -114,6 +115,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.collections4.CollectionUtils;
@@ -2859,6 +2861,64 @@ public final class WebComponentUtil {
         return getRelationRegistry().getRelationDefinition(relation);
     }
 
+    public static List<String> prepareAutoCompleteList(LookupTableType lookupTable, String input,
+            LocalizationService localizationService){
+        List<String> values = new ArrayList<>();
+
+        if (lookupTable == null) {
+            return values;
+        }
+
+        List<LookupTableRowType> rows = lookupTable.getRow();
+
+        if (input == null || input.isEmpty()) {
+            for (LookupTableRowType row : rows) {
+
+                PolyString polystring = null;
+                if (row.getLabel() != null) {
+                    polystring = setTranslateToPolystring(row);
+                }
+                values.add(localizationService.translate(polystring, getCurrentLocale(), true));
+            }
+        } else {
+            for (LookupTableRowType row : rows) {
+                if (row.getLabel() == null) {
+                    continue;
+                }
+                PolyString polystring = setTranslateToPolystring(row);
+                String rowLabel = localizationService.translate(polystring, getCurrentLocale(), true);
+                if (rowLabel != null && rowLabel.toLowerCase().contains(input.toLowerCase())) {
+                    values.add(rowLabel);
+                }
+            }
+        }
+        return values;
+    }
+
+    private static PolyString setTranslateToPolystring(LookupTableRowType row) {
+        PolyString polystring = row.getLabel().toPolyString();
+        return setTranslateToPolystring(polystring);
+    }
+
+    private static PolyString setTranslateToPolystring(PolyString polystring){
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(polystring.getOrig())) {
+            if (polystring.getTranslation() == null) {
+                PolyStringTranslationType translation = new PolyStringTranslationType();
+                translation.setKey(polystring.getOrig());
+                if (org.apache.commons.lang3.StringUtils.isBlank(translation.getFallback())) {
+                    translation.setFallback(polystring.getOrig());
+                }
+                polystring.setTranslation(translation);
+            } else if (org.apache.commons.lang3.StringUtils.isNotBlank(polystring.getTranslation().getKey())) {
+                polystring.getTranslation().setKey(polystring.getOrig());
+                if (org.apache.commons.lang3.StringUtils.isBlank(polystring.getTranslation().getFallback())) {
+                    polystring.getTranslation().setFallback(polystring.getOrig());
+                }
+            }
+        }
+        return polystring;
+    }
+
     public static <T> DropDownChoice createTriStateCombo(String id, IModel<Boolean> model) {
         final IChoiceRenderer<T> renderer = new IChoiceRenderer<T>() {
 
@@ -3660,7 +3720,7 @@ public final class WebComponentUtil {
     // TODO: use LocalizationService.translate(polyString) instead
     @Deprecated
     public static String getLocalizedOrOriginPolyStringValue(PolyString polyString){
-        String value = getLocalizedPolyStringValue(polyString);
+        String value = getLocalizedPolyStringValue(setTranslateToPolystring(polyString));
         if(value == null) {
             return getOrigStringFromPoly(polyString);
         }
