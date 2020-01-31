@@ -78,8 +78,6 @@
         <git.describe>${describe}</git.describe>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>EEE, d MMM yyyy HH:mm:ss Z</maven.build.timestamp.format>
-        <!-- allows skipping unit tests (surefire) and still run integration tests (failsafe) -->
-        <skipUnitTests>false</skipUnitTests>
 
         <!-- Dependencies global versions -->
         <commons.io.version>2.6</commons.io.version>
@@ -1873,7 +1871,6 @@
                                         </value>
                                     </property>
                                 </properties>
-                                <skipTests>${skipUnitTests}</skipTests>
                             </configuration>
                         </execution>
                     </executions>
