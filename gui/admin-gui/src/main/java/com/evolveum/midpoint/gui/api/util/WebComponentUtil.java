@@ -2884,7 +2884,7 @@ public final class WebComponentUtil {
                 if (row.getLabel() != null) {
                     polystring = setTranslateToPolystring(row);
                 }
-                values.add(localizationService.translate(polystring));
+                values.add(localizationService.translate(polystring, getCurrentLocale(), true));
             }
         } else {
             for (LookupTableRowType row : rows) {
@@ -2892,7 +2892,7 @@ public final class WebComponentUtil {
                     continue;
                 }
                 PolyString polystring = setTranslateToPolystring(row);
-                String rowLabel = localizationService.translate(polystring);
+                String rowLabel = localizationService.translate(polystring, getCurrentLocale(), true);
                 if (rowLabel != null && rowLabel.toLowerCase().contains(input.toLowerCase())) {
                     values.add(rowLabel);
                 }
@@ -2903,6 +2903,10 @@ public final class WebComponentUtil {
 
     private static PolyString setTranslateToPolystring(LookupTableRowType row){
         PolyString polystring = row.getLabel().toPolyString();
+        return setTranslateToPolystring(polystring);
+    }
+
+    private static PolyString setTranslateToPolystring(PolyString polystring){
         if (org.apache.commons.lang3.StringUtils.isNotBlank(polystring.getOrig())) {
             if (polystring.getTranslation() == null) {
                 PolyStringTranslationType translation = new PolyStringTranslationType();
@@ -3805,7 +3809,7 @@ public final class WebComponentUtil {
     // TODO: use LocalizationService.translate(polyString) instead
     @Deprecated
     public static String getLocalizedOrOriginPolyStringValue(PolyString polyString){
-        String value = getLocalizedPolyStringValue(polyString);
+        String value = getLocalizedPolyStringValue(setTranslateToPolystring(polyString));
         if(value == null) {
             return getOrigStringFromPoly(polyString);
         }
