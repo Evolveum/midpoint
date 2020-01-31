@@ -22,13 +22,16 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -82,11 +85,6 @@ import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -135,6 +133,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     private static final String ID_USED_INTERVAL = "usedIntervalField";
     private static final String ID_USED_INTERVAL_CONTAINER = "usedIntervalContainer";
     private static final String ID_REQUEST_IDENTIFIER_FIELD = "requestIdentifierField";
+    private static final String ID_RESOURCE_OID_CONTAINER = "resourceOidContainer";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_BUTTON = "searchButton";
@@ -145,6 +144,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
     private static final String OPERATION_RESOLVE_REFENRENCE_NAME = AuditLogViewerPanel.class.getSimpleName()
             + ".resolveReferenceName()";
+    private static final String OPERATION_LOAD_AUDIT_CONFIGURATION = AuditLogViewerPanel.class.getSimpleName()
+            + ".isResourceOidAuditEnabled()";
 
     private static final int DEFAULT_PAGE_SIZE = 10;
 
@@ -205,13 +206,18 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         parametersPanel.add(to);
         parametersPanel.add(getHelpComponent(ID_TO_FIELD_HELP, WebPrismUtil.getHelpText(getItemDefinition(AuditEventRecordType.F_TIMESTAMP))));
 
+        WebMarkupContainer resourceOidContainer = new WebMarkupContainer(ID_RESOURCE_OID_CONTAINER);
+        resourceOidContainer.setOutputMarkupId(true);
+        resourceOidContainer.add(new VisibleBehaviour(() -> isResourceOidAuditEnabled()));
+        parametersPanel.add(resourceOidContainer);
+
         TextPanel<String> resourceOidFiels = new TextPanel<>(ID_RESOURCE_OID_FIELD, new PropertyModel<>(getModel(),
                 AuditSearchDto.F_RESOURCE_OID));
         resourceOidFiels.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         resourceOidFiels.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         resourceOidFiels.setOutputMarkupId(true);
-        parametersPanel.add(resourceOidFiels);
-        parametersPanel.add(getHelpComponent(ID_RESOURCE_OID_FIELD_HELP, ""));
+        resourceOidContainer.add(resourceOidFiels);
+        resourceOidContainer.add(getHelpComponent(ID_RESOURCE_OID_FIELD_HELP, ""));
 
         ItemPathPanel changedItemPanel = new ItemPathPanel(ID_CHANGED_ITEM, new PropertyModel<>(getModel(),
             AuditSearchDto.F_CHANGED_ITEM));
@@ -806,5 +812,18 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             return auditSchema.findComplexTypeDefinitionByType(AuditEventRecordType.COMPLEX_TYPE).findItemDefinition(itemPath);
         }
         return null;
+    }
+
+    private boolean isResourceOidAuditEnabled(){
+        OperationResult result = new OperationResult(OPERATION_LOAD_AUDIT_CONFIGURATION);
+        try {
+            SystemConfigurationAuditType auditConfig = getPageBase().getModelInteractionService().getAuditConfiguration(result);
+            if (auditConfig != null && auditConfig.getEventRecording() != null){
+                return Boolean.TRUE.equals(auditConfig.getEventRecording().isRecordResourceOids());
+            }
+        } catch (Exception ex){
+            LOGGER.error("Cannot load audit configuration: {}", ex.getMessage());
+        }
+        return false;
     }
 }
