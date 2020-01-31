@@ -267,6 +267,8 @@ public interface ModelInteractionService {
 
     DeploymentInformationType getDeploymentInformationConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+    SystemConfigurationAuditType getAuditConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
     List<MergeConfigurationType> getMergeConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     AccessCertificationConfigurationType getCertificationConfiguration(OperationResult parentResult)
