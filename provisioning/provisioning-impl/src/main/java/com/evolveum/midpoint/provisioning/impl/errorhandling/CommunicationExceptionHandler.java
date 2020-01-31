@@ -79,7 +79,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_GET_ERROR);
         result.addParam("exception", cause.getMessage());
 
-        markResourceDown(resource, result);
+        String operationCtx = "getting " + repositoryShadow + " ended with communication problem, " + cause.getMessage();
+        markResourceDown(resource, operationCtx, result);
 
         // nothing to do, just return the shadow from the repo and set fetch
         // result..
@@ -120,7 +121,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_ADD_ERROR);
         result.addParam("exception", cause.getMessage());
         ResourceType resource = ctx.getResource();
-        markResourceDown(resource, result);
+        String operationCtx = "adding " + shadowToAdd + " ended with communication problem, " + cause.getMessage();
+        markResourceDown(resource, operationCtx, result);
         handleRetriesAndAttempts(ctx, opState, options, cause, result);
         return postponeAdd(ctx, shadowToAdd, opState, failedOperationResult, result);
     }
@@ -137,7 +139,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_MODIFY_ERROR);
         result.addParam("exception", cause.getMessage());
         ResourceType resource = ctx.getResource();
-        markResourceDown(resource, result);
+        String operationCtx = "modifying " + repoShadow + " ended with communication problem, " + cause.getMessage();
+        markResourceDown(resource, operationCtx, result);
         handleRetriesAndAttempts(ctx, opState, options, cause, result);
         return postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
     }
@@ -153,7 +156,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_DELETE_ERROR);
         result.addParam("exception", cause.getMessage());
         ResourceType resource = ctx.getResource();
-        markResourceDown(resource, result);
+        String operationCtx = "deleting " + repoShadow + " ended with communication problem, " + cause.getMessage();
+        markResourceDown(resource, operationCtx, result);
         handleRetriesAndAttempts(ctx, opState, options, cause, result);
         return postponeDelete(ctx, repoShadow, opState, failedOperationResult, result);
     }

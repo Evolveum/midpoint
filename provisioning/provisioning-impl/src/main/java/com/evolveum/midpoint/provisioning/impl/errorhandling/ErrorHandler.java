@@ -184,9 +184,9 @@ public abstract class ErrorHandler {
         }
     }
 
-    protected void markResourceDown(ResourceType resource, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void markResourceDown(ResourceType resource, String operationCtx, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         resourceManager.modifyResourceAvailabilityStatus(resource.asPrismObject(),
-                AvailabilityStatusType.DOWN, parentResult);
+                AvailabilityStatusType.DOWN, operationCtx, parentResult);
     }
 
     protected boolean isOperationRetryEnabled(ResourceType resource) {
