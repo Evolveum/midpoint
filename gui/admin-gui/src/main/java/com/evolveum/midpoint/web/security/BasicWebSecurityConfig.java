@@ -92,12 +92,15 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${auth.logout.url:/}")
     private String authLogoutUrl;
 
+    private ObjectPostProcessor<Object> objectObjectPostProcessor;
+
     public BasicWebSecurityConfig() {
         super(true);
     }
 
     @Override
     public void setObjectPostProcessor(ObjectPostProcessor<Object> objectPostProcessor) {
+        this.objectObjectPostProcessor = objectPostProcessor;
         super.setObjectPostProcessor(objectPostProcessor);
     }
 
