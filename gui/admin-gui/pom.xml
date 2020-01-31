@@ -425,11 +425,7 @@
             <artifactId>system-init</artifactId>
             <version>4.1-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>rest-impl</artifactId>
-            <version>4.1-SNAPSHOT</version>
-        </dependency>
+
         <!-- MIDPOINT RUNTIME DEPENDENCIES -->
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
@@ -443,6 +439,13 @@
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>rest-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
         <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
             <groupId>org.springframework</groupId>
             <artifactId>spring-aspects</artifactId>
