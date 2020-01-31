@@ -99,16 +99,19 @@ public class LensUtil {
         return resourceType;
     }
 
-    public static <F extends ObjectType> ResourceType getResourceReadOnly(LensContext<F> context, String resourceOid, ObjectResolver objectResolver,
-                                                                  Task task, OperationResult result) throws ObjectNotFoundException,
+    @NotNull
+    static <F extends ObjectType> ResourceType getResourceReadOnly(LensContext<F> context, String resourceOid, ObjectResolver objectResolver,
+            Task task, OperationResult result) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        ResourceType resourceType = context.getResource(resourceOid);
-        if (resourceType == null) {
+        ResourceType resourceFromContext = context.getResource(resourceOid);
+        if (resourceFromContext != null) {
+            return resourceFromContext;
+        } else {
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-            resourceType = objectResolver.getObject(ResourceType.class, resourceOid, options, task, result);
-            context.rememberResource(resourceType);
+            ResourceType resourceFetched = objectResolver.getObject(ResourceType.class, resourceOid, options, task, result);
+            context.rememberResource(resourceFetched);
+            return resourceFetched;
         }
-        return resourceType;
     }
 
     public static String refineProjectionIntent(ShadowKindType kind, String intent, ResourceType resource, PrismContext prismContext) throws SchemaException {

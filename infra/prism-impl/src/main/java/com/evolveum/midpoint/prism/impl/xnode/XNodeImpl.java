@@ -11,7 +11,6 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.Transformer;
 import org.jetbrains.annotations.Contract;
@@ -32,6 +31,7 @@ public abstract class XNodeImpl implements XNode {
     public static final QName KEY_REFERENCE_DESCRIPTION = new QName(null, "description");
     public static final QName KEY_REFERENCE_FILTER = new QName(null, "filter");
     public static final QName KEY_REFERENCE_RESOLUTION_TIME = new QName(null, "resolutionTime");
+    public static final QName KEY_REFERENCE_REFERENTIAL_INTEGRITY = new QName(null, "referentialIntegrity");
     public static final QName KEY_REFERENCE_TARGET_NAME = new QName(null, "targetName");
     public static final QName KEY_REFERENCE_OBJECT = new QName(null, "object");
 

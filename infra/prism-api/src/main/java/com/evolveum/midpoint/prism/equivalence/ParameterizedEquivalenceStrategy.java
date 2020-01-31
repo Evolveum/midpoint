@@ -72,6 +72,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
      *
      * Corresponds to pre-4.0 flags ignoreMetadata = true, literal = true.
      */
+    @SuppressWarnings("WeakerAccess")
     public static final ParameterizedEquivalenceStrategy LITERAL_IGNORE_METADATA;
 
     /**
@@ -88,6 +89,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
      *
      * EXPERIMENTAL
      */
+    @SuppressWarnings("WeakerAccess")
     public static final ParameterizedEquivalenceStrategy REAL_VALUE_CONSIDER_DIFFERENT_IDS;
 
     public static final ParameterizedEquivalenceStrategy DEFAULT_FOR_EQUALS;
@@ -104,6 +106,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         LITERAL.consideringDifferentContainerIds = true;
         LITERAL.consideringValueOrigin = false;
         LITERAL.consideringReferenceFilters = true;
+        LITERAL.consideringReferenceOptions = true;
         LITERAL.compareElementNames = true;
         putIntoNiceNames(LITERAL, "LITERAL");
 
@@ -114,6 +117,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         NOT_LITERAL.consideringDifferentContainerIds = true;
         NOT_LITERAL.consideringValueOrigin = false;
         NOT_LITERAL.consideringReferenceFilters = true;
+        NOT_LITERAL.consideringReferenceOptions = true;         // ok?
         NOT_LITERAL.compareElementNames = true;
         putIntoNiceNames(NOT_LITERAL, "NOT_LITERAL");
 
@@ -124,6 +128,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         IGNORE_METADATA.consideringDifferentContainerIds = false;
         IGNORE_METADATA.consideringValueOrigin = false;
         IGNORE_METADATA.consideringReferenceFilters = true;
+        IGNORE_METADATA.consideringReferenceOptions = true;         // ok?
         IGNORE_METADATA.compareElementNames = true; //???
         putIntoNiceNames(IGNORE_METADATA, "IGNORE_METADATA");
 
@@ -134,6 +139,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringDifferentContainerIds = true;
         IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringValueOrigin = false;
         IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringReferenceFilters = true;
+        IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringReferenceOptions = true;         // ok?
         IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.compareElementNames = true; //???
         putIntoNiceNames(IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, "IGNORE_METADATA_CONSIDER_DIFFERENT_IDS");
 
@@ -144,6 +150,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         LITERAL_IGNORE_METADATA.consideringDifferentContainerIds = false;
         LITERAL_IGNORE_METADATA.consideringValueOrigin = false;
         LITERAL_IGNORE_METADATA.consideringReferenceFilters = true;
+        LITERAL_IGNORE_METADATA.consideringReferenceOptions = true;
         LITERAL_IGNORE_METADATA.compareElementNames = true;
         putIntoNiceNames(LITERAL_IGNORE_METADATA, "LITERAL_IGNORE_METADATA");
 
@@ -154,6 +161,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         REAL_VALUE.consideringDifferentContainerIds = false;
         REAL_VALUE.consideringValueOrigin = false;
         REAL_VALUE.consideringReferenceFilters = false;
+        REAL_VALUE.consideringReferenceOptions = false;
         REAL_VALUE.compareElementNames = false;
         putIntoNiceNames(REAL_VALUE, "REAL_VALUE");
 
@@ -164,6 +172,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringDifferentContainerIds = true;
         REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringValueOrigin = false;
         REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringReferenceFilters = false;
+        REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringReferenceOptions = false;
         REAL_VALUE_CONSIDER_DIFFERENT_IDS.compareElementNames = false;
         putIntoNiceNames(REAL_VALUE_CONSIDER_DIFFERENT_IDS, "REAL_VALUE_CONSIDER_DIFFERENT_IDS");
 
@@ -182,6 +191,10 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
     private boolean consideringDifferentContainerIds;       // i
     private boolean consideringValueOrigin;                 // o
     private boolean consideringReferenceFilters;            // F
+    /**
+     * Whether we consider resolutionTime and referentialIntegrity.
+     */
+    private boolean consideringReferenceOptions;            // r
     private boolean compareElementNames;                    // E
 
     /**
@@ -203,6 +216,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
                 (consideringDifferentContainerIds ? "i" : "-") +
                 (consideringValueOrigin ? "o" : "-") +
                 (consideringReferenceFilters ? "F" : "-") +
+                (consideringReferenceOptions ? "r" : "-") +
                 (compareElementNames ? "E" : "-") +
                 (hashRuntimeSchemaItems ? "R" : "-");
     }
@@ -286,6 +300,14 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
 
     public void setConsideringReferenceFilters(boolean consideringReferenceFilters) {
         this.consideringReferenceFilters = consideringReferenceFilters;
+    }
+
+    public boolean isConsideringReferenceOptions() {
+        return consideringReferenceOptions;
+    }
+
+    public void setConsideringReferenceOptions(boolean consideringReferenceOptions) {
+        this.consideringReferenceOptions = consideringReferenceOptions;
     }
 
     public boolean isHashRuntimeSchemaItems() {

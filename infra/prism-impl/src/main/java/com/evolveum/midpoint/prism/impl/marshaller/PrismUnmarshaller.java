@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
@@ -571,6 +572,12 @@ public class PrismUnmarshaller {
         if (resolutionTimeString != null) {
             EvaluationTimeType resolutionTime = EvaluationTimeType.fromValue(resolutionTimeString);
             refVal.setResolutionTime(resolutionTime);
+        }
+
+        String referentialIntegrityString = map.getParsedPrimitiveValue(XNodeImpl.KEY_REFERENCE_REFERENTIAL_INTEGRITY,
+                DOMUtil.XSD_STRING);
+        if (referentialIntegrityString != null) {
+            refVal.setReferentialIntegrity(ReferentialIntegrityType.fromValue(referentialIntegrityString));
         }
 
         XNodeImpl xnodeForTargetName = map.get(XNodeImpl.KEY_REFERENCE_TARGET_NAME);

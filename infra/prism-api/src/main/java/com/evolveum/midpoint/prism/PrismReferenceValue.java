@@ -14,13 +14,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
+
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Radovan Semancik
@@ -107,6 +105,10 @@ public interface PrismReferenceValue extends PrismValue, ShortDumpable {
 
     void setResolutionTime(EvaluationTimeType resolutionTime);
 
+    ReferentialIntegrityType getReferentialIntegrity();
+
+    void setReferentialIntegrity(ReferentialIntegrityType referentialIntegrity);
+
     PrismReferenceDefinition getDefinition();
 
     boolean isRaw();
@@ -176,5 +178,4 @@ public interface PrismReferenceValue extends PrismValue, ShortDumpable {
 
     @Override
     void shortDump(StringBuilder sb);
-
 }

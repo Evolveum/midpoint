@@ -204,7 +204,7 @@ public class SchemaProcessor implements Processor {
         ClassOutline objectReferenceOutline = null;
         for (Map.Entry<NClass, CClassInfo> entry : outline.getModel().beans().entrySet()) {
             QName qname = entry.getValue().getTypeName();
-            if (qname == null || !OBJECT_REFERENCE_TYPE.equals(qname)) {
+            if (!OBJECT_REFERENCE_TYPE.equals(qname)) {
                 continue;
             }
             objectReferenceOutline = outline.getClazz(entry.getValue());
@@ -247,6 +247,7 @@ public class SchemaProcessor implements Processor {
         updateObjectReferenceDescription(definedClass, asReferenceValueMethod);
         updateObjectReferenceFilter(definedClass, asReferenceValueMethod);
         updateObjectReferenceResolutionTime(definedClass, asReferenceValueMethod);
+        updateObjectReferenceReferentialIntegrity(definedClass, asReferenceValueMethod);
         updateObjectReferenceGetObject(definedClass, asReferenceValueMethod);
         updateObjectReferenceGetObjectable(definedClass, asReferenceValueMethod);
 
@@ -364,6 +365,19 @@ public class SchemaProcessor implements Processor {
         invocation.arg(setType.listParams()[0]);
     }
 
+    private void updateObjectReferenceReferentialIntegrity(JDefinedClass definedClass, JMethod asReferenceMethod) {
+        JFieldVar typeField = definedClass.fields().get("referentialIntegrity");
+        JMethod getType = recreateMethod(findMethod(definedClass, "getReferentialIntegrity"), definedClass);
+        copyAnnotations(getType, typeField);
+        JBlock body = getType.body();
+        body._return(JExpr.invoke(JExpr.invoke(asReferenceMethod), "getReferentialIntegrity"));
+
+        definedClass.removeField(typeField);
+        JMethod setType = recreateMethod(findMethod(definedClass, "setReferentialIntegrity"), definedClass);
+        body = setType.body();
+        JInvocation invocation = body.invoke(JExpr.invoke(asReferenceMethod), "setReferentialIntegrity");
+        invocation.arg(setType.listParams()[0]);
+    }
 
     private void updateObjectReferenceGetObject(JDefinedClass definedClass, JMethod asReferenceMethod) {
         JMethod method = definedClass.method(JMod.PUBLIC, PrismObject.class, METHOD_GET_OBJECT);

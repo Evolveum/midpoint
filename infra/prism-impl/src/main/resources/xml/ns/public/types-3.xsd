@@ -120,7 +120,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="key" type="xsd:string" minOccurs="1">
+            <xsd:element name="key" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Key used to look up the localized message format in the localization catalogs.
@@ -186,6 +186,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+            <!--suppress XmlDefaultAttributeValue -->
             <xsd:any namespace="##any" minOccurs="0" maxOccurs="unbounded" processContents="lax">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -295,7 +296,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="algorithm" type="xsd:anyURI" minOccurs="1"/>
+            <xsd:element name="algorithm" type="xsd:anyURI"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -325,7 +326,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="cipherValue" type="xsd:base64Binary" minOccurs="1"/>
+            <xsd:element name="cipherValue" type="xsd:base64Binary"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -341,8 +342,8 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="digestMethod" type="tns:DigestMethodType" minOccurs="1"/>
-            <xsd:element name="digestValue" type="xsd:base64Binary" minOccurs="1"/>
+            <xsd:element name="digestMethod" type="tns:DigestMethodType"/>
+            <xsd:element name="digestValue" type="xsd:base64Binary"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -357,7 +358,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="algorithm" type="xsd:anyURI" minOccurs="1"/>
+            <xsd:element name="algorithm" type="xsd:anyURI"/>
             <xsd:element name="salt" type="xsd:base64Binary" minOccurs="0"/>
             <xsd:element name="workFactor" type="xsd:int" minOccurs="0"/>
         </xsd:sequence>
@@ -399,7 +400,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Free-form description of this reference. Usually used to describe the purpose of
@@ -407,7 +408,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="filter" minOccurs="0" maxOccurs="1">
+            <xsd:element name="filter" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Filter that can be used to dynamically lookup the reference OID e.g. during imports.
@@ -421,7 +422,7 @@
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
-            <xsd:element name="resolutionTime" type="tns:EvaluationTimeType" minOccurs="0" maxOccurs="1" default="import">
+            <xsd:element name="resolutionTime" type="tns:EvaluationTimeType" minOccurs="0" default="import">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -441,7 +442,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="targetName" type="tns:PolyStringType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="referentialIntegrity" type="tns:ReferentialIntegrityType" minOccurs="0" default="default">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Definition of the behavior related to non-existence of object with specified target OID.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="targetName" type="tns:PolyStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -456,7 +469,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="oid" type="xsd:string" use="optional">
+        <xsd:attribute name="oid" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
                     Target of the reference.
@@ -466,7 +479,7 @@
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
-        <xsd:attribute name="type" type="xsd:QName" use="optional">
+        <xsd:attribute name="type" type="xsd:QName">
             <xsd:annotation>
                 <xsd:documentation>
                     XSD type of the reference target object.
@@ -480,14 +493,14 @@
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
-        <xsd:attribute name="relation" type="xsd:QName" use="optional">
+        <xsd:attribute name="relation" type="xsd:QName">
             <xsd:annotation>
                 <xsd:documentation>
                     <p>
                         The relation or a "role" of this reference. It may further specify
                         the meaning of the reference. E.g. it may specify whether the objects
                         linked by the reference are analogous, form a composition, aggregation,
-                        are mebers of the org or managers of the org, etc.
+                        are members of the org or managers of the org, etc.
                     </p>
                 </xsd:documentation>
             </xsd:annotation>
@@ -701,7 +714,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Optional property to store current name of the changed object.
-                        This value is supposed to be used only for presenation and diagnostic
+                        This value is supposed to be used only for presentation and diagnostic
                         purposes. It must NOT be used for any business logic.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -899,6 +912,77 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="ReferentialIntegrityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to deal with references that point to non-existing object.
+            </xsd:documentation>
+            <!-- TODO what about references that are invalid from some other reason e.g. that the object type is wrong? -->
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <!-- TODO something like "ultra-strict", "pedantic" or similar for the highest level of integrity that would prevent
+                  creation of invalid references in the first place -->
+            <xsd:enumeration value="strict">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            When a reference to non-existing object is encountered, the processing stops with an indication
+                            of error. The exact way of stopping is specific to the component dealing with the reference.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STRICT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="relaxed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            It is generally expected that the reference target should exist. But if it does not, the component
+                            should tolerate it, with some "complaints" presented e.g. as warnings. Overall, the processing should
+                            not stop because of non-existing target.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RELAXED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="lax">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            A reference to non-existing objects is well tolerated (maybe even somewhat expected).
+                            The relevant part of processing is simply skipped.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LAX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="default">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            The default behavior is specific to any given reference (like assignment/targetRef or
+                            assignment/construction/resourceRef). Some references are considered strict by default, other
+                            relaxed.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DEFAULT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="PolyStringNormalizerConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -928,8 +1012,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Unicode Normalization Form Compatibility Decomposition (NFKD).
-                        This process expands composed characters (e.g. diacritic marks, ligatures, roman numberals).
-                        Character components are then processed individually. E.g. ascsii7 normalizer
+                        This process expands composed characters (e.g. diacritic marks, ligatures, roman numerals).
+                        Character components are then processed individually. E.g. ascii7 normalizer
                         will then remove just the diacritic mark, but leave the base letter. Therefore
                         for a-acute character with NFKD processing the output will be plain "a" character.
                         Without NFKD processing the whole character will be removed.

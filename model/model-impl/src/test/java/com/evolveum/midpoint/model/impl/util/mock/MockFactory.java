@@ -185,8 +185,9 @@ public class MockFactory {
     public static RepositoryService createRepositoryService() {
         return new RepositoryService() {
             @Override
+            @NotNull
             public <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-                return null;
+                throw new UnsupportedOperationException();
             }
 
             @Override

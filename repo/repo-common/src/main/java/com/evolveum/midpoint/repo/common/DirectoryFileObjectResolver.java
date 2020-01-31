@@ -30,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Object resolver that works on files in a directory.
  * This is only used in tests. But due to complicated dependencies this is
@@ -77,13 +79,14 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
     }
 
     @Override
+    @NotNull
     public <T extends ObjectType> T getObject(Class<T> clazz, String oid,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
-            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException {
         File file = new File( directory, oidToFilename(oid));
         if (file.exists()) {
             try {
+                //noinspection unchecked
                 return (T)PrismTestUtil.parseObject(file).asObjectable();
             } catch (IOException e) {
                 throw new SystemException(e.getMessage(), e);
