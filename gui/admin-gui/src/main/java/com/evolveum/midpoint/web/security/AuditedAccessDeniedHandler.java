@@ -38,9 +38,7 @@ import java.io.IOException;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class MidPointAccessDeniedHandler<SecurityHelper> implements AccessDeniedHandler {
-
-    private AccessDeniedHandler defaultHandler = new AccessDeniedHandlerImpl();
+public class AuditedAccessDeniedHandler<SecurityHelper> extends MidpointAccessDeniedHandler {
 
     @Autowired
     private TaskManager taskManager;
@@ -48,29 +46,18 @@ public class MidPointAccessDeniedHandler<SecurityHelper> implements AccessDenied
     private AuditService auditService;
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response,
+    protected boolean handleInternal(HttpServletRequest request, HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        if (response.isCommitted()) {
-            return;
-        }
 
-        if (accessDeniedException instanceof CsrfException) {
-            // handle invalid csrf token exception gracefully when user tries to log in/out with expired exception
-            // handle session timeout for ajax cases -> redirect to base context (login)
-            if (WicketRedirectStrategy.isWicketAjaxRequest(request)) {
-                WicketRedirectStrategy redirect = new WicketRedirectStrategy();
-                redirect.sendRedirect(request, response, request.getContextPath());
-            } else {
-                response.sendRedirect(request.getContextPath());
-            }
-
-            return;
+        boolean ended = super.handleInternal(request, response, accessDeniedException);
+        if (ended) {
+            return ended;
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         auditEvent(request, authentication, accessDeniedException);
 
-        defaultHandler.handle(request, response, accessDeniedException);
+        return false;
     }
 
     private void auditEvent(HttpServletRequest request, Authentication authentication, AccessDeniedException accessDeniedException) {

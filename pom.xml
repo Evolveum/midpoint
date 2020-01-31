@@ -1552,8 +1552,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>3.2.0</version>
                 <configuration>
+                    <skipIfEmpty>true</skipIfEmpty>
                     <archive>
                         <manifestEntries>
                             <Version-Number>${project.version}</Version-Number>
@@ -1763,7 +1764,7 @@
                     <configuration>
                         <source>${project.source.version}</source>
                         <target>${project.source.version}</target>
-                        <!-- taken from build-system/pom.xml, will try to turn it on as needed -->
+                        <!-- taken from removed build-system/pom.xml, will try to turn it on as needed -->
                         <!--<fork>true</fork>-->
                         <!--<meminitial>1024m</meminitial>-->
                         <!--<maxmem>2048m</maxmem>-->
@@ -1928,8 +1929,7 @@
                                 <systemPropertyVariables>
                                     <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
                                     <midpoint.home>target/midpoint-home</midpoint.home>
-                                    <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties
-                                    </java.util.logging.config.file>
+                                    <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
                                 </systemPropertyVariables>
                                 <argLine>-Xms1024m -Xmx4096m -Duser.language=en</argLine>
                                 <!--argLine>-Xms16g -Xmx16g -Duser.language=en</argLine-->
@@ -1943,9 +1943,7 @@
                                     </property>
                                     <property>
                                         <name>listener</name>
-                                        <value>
-                                            com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener
-                                        </value>
+                                        <value>com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener</value>
                                     </property>
                                 </properties>
                                 <!-- it's used for bamboo build to load jdbc libraries which can not

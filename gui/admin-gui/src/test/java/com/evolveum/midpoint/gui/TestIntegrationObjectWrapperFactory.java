@@ -107,7 +107,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             OrgType.F_ADMIN_GUI_CONFIGURATION,
             OrgType.F_DATA_PROTECTION,
             OrgType.F_TRIGGER,
-            OrgType.F_AUTOASSIGN);
+            OrgType.F_AUTOASSIGN,
+            ShadowType.F_CREDENTIALS);
 
     private String userWallyOid;
     private String accountWallyOid;

@@ -118,7 +118,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>${failsafe.version}</version>
                 <configuration>
                     <suiteXmlFiles>
                         <suiteXmlFile>testng-integration-schrodinger.xml</suiteXmlFile>
