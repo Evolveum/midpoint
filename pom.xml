@@ -78,6 +78,8 @@
         <git.describe>${describe}</git.describe>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>EEE, d MMM yyyy HH:mm:ss Z</maven.build.timestamp.format>
+        <!-- allows skipping unit tests (surefire) and still run integration tests (failsafe) -->
+        <skipUnitTests>false</skipUnitTests>
 
         <!-- Dependencies global versions -->
         <commons.io.version>2.6</commons.io.version>
@@ -1871,6 +1873,7 @@
                                         </value>
                                     </property>
                                 </properties>
+                                <skipTests>${skipUnitTests}</skipTests>
                             </configuration>
                         </execution>
                     </executions>
@@ -1929,8 +1932,7 @@
                                 <systemPropertyVariables>
                                     <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
                                     <midpoint.home>target/midpoint-home</midpoint.home>
-                                    <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties
-                                    </java.util.logging.config.file>
+                                    <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
                                 </systemPropertyVariables>
                                 <argLine>-Xms1024m -Xmx4096m -Duser.language=en</argLine>
                                 <!--argLine>-Xms16g -Xmx16g -Duser.language=en</argLine-->
@@ -1944,9 +1946,7 @@
                                     </property>
                                     <property>
                                         <name>listener</name>
-                                        <value>
-                                            com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener
-                                        </value>
+                                        <value>com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener</value>
                                     </property>
                                 </properties>
                                 <!-- it's used for bamboo build to load jdbc libraries which can not

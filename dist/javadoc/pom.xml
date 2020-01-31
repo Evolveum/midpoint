@@ -26,6 +26,7 @@
         The packaging for this project did not assign a file to the build artifact
         -->
         <maven.install.skip>true</maven.install.skip>
+        <maven.test.skip>true</maven.test.skip>
     </properties>
 
     <dependencies>

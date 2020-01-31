@@ -403,7 +403,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${failsafe.version}</version>
                         <configuration>
                             <skipTests>true</skipTests>
                         </configuration>

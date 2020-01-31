@@ -21,8 +21,12 @@
 
     <name>midPoint API Distribution</name>
 
+    <properties>
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
+
     <dependencies>
-       <dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
             <version>4.1-SNAPSHOT</version>
@@ -57,7 +61,6 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-                    <!-- <finalName>midpoint-${version}</finalName> -->
                 </configuration>
                 <executions>
                     <execution>
@@ -91,18 +94,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <configuration>
                     <skip>true</skip>
@@ -115,33 +106,33 @@
         <profile>
             <id>java8</id>
             <activation>
-              <jdk>[1.8,)</jdk>
+                <jdk>[1.8,)</jdk>
             </activation>
             <build>
                 <plugins>
-                     <plugin>
-                       <groupId>org.apache.maven.plugins</groupId>
-                       <artifactId>maven-javadoc-plugin</artifactId>
-                       <executions>
-                         <execution>
-                             <id>javadoc-jar</id>
-                             <phase>package</phase>
-                             <goals>
-                                 <goal>jar</goal>
-                             </goals>
-                             <configuration>
-                                 <includeDependencySources>true</includeDependencySources>
-                                 <dependencySourceIncludes>
-                                     <dependencySourceInclude>com.evolveum.*:*</dependencySourceInclude>
-                                 </dependencySourceIncludes>
-                                 <quiet>false</quiet>
-                                 <debug>false</debug>
-                                <doclint>none</doclint>
-                                 <failOnError>true</failOnError>
-                             </configuration>
-                         </execution>
-                     </executions>
-                 </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>javadoc-jar</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <includeDependencySources>true</includeDependencySources>
+                                    <dependencySourceIncludes>
+                                        <dependencySourceInclude>com.evolveum.*:*</dependencySourceInclude>
+                                    </dependencySourceIncludes>
+                                    <quiet>false</quiet>
+                                    <debug>false</debug>
+                                    <doclint>none</doclint>
+                                    <failOnError>true</failOnError>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
