@@ -164,9 +164,6 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
                 if (mather.match("/ws/**", httpServletRequest.getRequestURI().substring(httpServletRequest.getContextPath().length()))) {
                     return true;
                 }
-                if (mather.match("/rest2/**", httpServletRequest.getRequestURI().substring(httpServletRequest.getContextPath().length()))) {
-                    return true;
-                }
                 return false;
             }
         });

@@ -83,8 +83,9 @@ public class SecurityUtils {
 
     private static final Map<String, String> LOCAL_PATH_AND_CHANNEL;
     static {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         map.put("ws/rest", SchemaConstants.CHANNEL_REST_URI);
+        map.put("rest2", SchemaConstants.CHANNEL_REST_URI);
         map.put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI);
         map.put("resetPassword", SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
         map.put("registration", SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
