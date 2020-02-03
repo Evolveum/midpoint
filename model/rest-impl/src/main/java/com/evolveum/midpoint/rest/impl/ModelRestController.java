@@ -1,18 +1,27 @@
 package com.evolveum.midpoint.rest.impl;
 
-import com.evolveum.midpoint.model.impl.ModelRestService;
-import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
-import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import static com.evolveum.midpoint.model.impl.ModelRestService.OPERATION_SELF;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.evolveum.midpoint.model.impl.ModelCrudService;
+import com.evolveum.midpoint.model.impl.ModelRestService;
+import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @RestController
 @RequestMapping("/rest2")
@@ -21,6 +30,7 @@ public class ModelRestController {
     private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
 
     @Autowired private TaskManager taskManager;
+    @Autowired private ModelCrudService model;
 
     @GetMapping(
             value = "/self",
@@ -29,27 +39,47 @@ public class ModelRestController {
                     MediaType.APPLICATION_JSON_UTF8_VALUE,
                     RestServiceUtil.APPLICATION_YAML
             })
-    public String getSelf() { //@Context MessageContext mc){
+    public ResponseEntity<?> getSelf() {
+        //@Context MessageContext mc){ TODO otazka: toto uz nechceme pouzivat? po novom to uz nepotrebujeme na init requestu?
         LOGGER.debug("model rest service for get operation start");
-//        Task task = initRequest(mc);
-//        OperationResult parentResult = task.getResult().createSubresult(OPERATION_SELF);
-//        Response response;
+        // uses experimental version, does not require CXF/JAX-RS
+        Task task = RestServiceUtil.initRequest(taskManager);
+        OperationResult parentResult = task.getResult().createSubresult(OPERATION_SELF);
+        ResponseEntity<?> response;
 
         try {
             UserType loggedInUser = SecurityUtil.getPrincipal().getUser();
             System.out.println("loggedInUser = " + loggedInUser);
-//            PrismObject<UserType> user = model.getObject(UserType.class, loggedInUser.getOid(), null, task, parentResult);
-//            response = RestServiceUtil.createResponse(Response.Status.OK, user, parentResult, true);
-//            parentResult.recordSuccessIfUnknown();
-        } catch (SecurityViolationException e) {
-//            response = RestServiceUtil.handleException(parentResult, e);
+            PrismObject<UserType> user = model.getObject(UserType.class, loggedInUser.getOid(), null, task, parentResult);
+            response = createResponse(HttpStatus.OK, user, parentResult, true);
+            parentResult.recordSuccessIfUnknown();
+        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
             e.printStackTrace();
-            return e.getMessage();
+            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
 
-        //        finishRequest(task, mc.getHttpServletRequest());
-//        return response;
-        return "yes";
+        // TODO ako tu nahradit mc? ak staci len HSRequest, tak to asi bude trivialne
+        // finishRequest(task, mc.getHttpServletRequest());
+        return response;
     }
 
+    public static <T> ResponseEntity<?> createResponse(HttpStatus statusCode, T body, OperationResult result, boolean sendOriginObjectIfNotSuccess) {
+        result.computeStatusIfUnknown();
+
+//        if (result.isPartialError()) {
+//            return createBody(Response.status(250), sendOriginObjectIfNotSuccess, body, result);
+//        } else if (result.isHandledError()) {
+//            return createBody(Response.status(240), sendOriginObjectIfNotSuccess, body, result);
+//        }
+
+        return ResponseEntity.status(statusCode).body(body);
+    }
+
+//    private static <T> ResponseEntity<?> createBody(
+//            Response.ResponseBuilder builder, boolean sendOriginObjectIfNotSuccess, T body, OperationResult result) {
+//        if (sendOriginObjectIfNotSuccess) {
+//            return builder.entity(body);
+//        }
+//        return builder.entity(result);
+//    }
 }
