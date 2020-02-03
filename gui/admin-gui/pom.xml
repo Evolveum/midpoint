@@ -7,20 +7,18 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint User Interface - admin web gui</name>
-    <groupId>com.evolveum.midpoint.gui</groupId>
-    <artifactId>admin-gui</artifactId>
-    <packaging>war</packaging>
+
     <parent>
         <artifactId>gui</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.gui</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>admin-gui</artifactId>
+    <packaging>war</packaging>
+
+    <name>midPoint User Interface - admin web gui</name>
+
     <properties>
         <server.port></server.port>
         <midpoint.host></midpoint.host>
@@ -29,87 +27,6 @@
         <javax.net.ssl.trustStore></javax.net.ssl.trustStore>
         <javax.net.ssl.trustStoreType></javax.net.ssl.trustStoreType>
     </properties>
-    <build>
-        <finalName>midpoint</finalName>
-        <resources>
-            <resource>
-                <filtering>false</filtering>
-                <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>**/org.identityconnectors.common.logging</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <filtering>true</filtering>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>banner.txt</include>
-                </includes>
-            </resource>
-            <!--  ICF LOGGING CONFIGURATION -->
-            <resource>
-                <targetPath>../midpoint/META-INF/services</targetPath>
-                <filtering>false</filtering>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>**/org.identityconnectors.common.logging</include>
-                </includes>
-            </resource>
-            <resource>
-                <filtering>false</filtering>
-                <directory>src/main/java</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                    <exclude>**/*.properties</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <filtering>true</filtering>
-                <directory>src/main/java</directory>
-                <includes>
-                    <include>**/*.properties</include>
-                </includes>
-            </resource>
-        </resources>
-        <testResources>
-            <testResource>
-                <filtering>false</filtering>
-                <directory>src/test/resources</directory>
-            </testResource>
-            <testResource>
-                <filtering>false</filtering>
-                <directory>src/test/java</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                    <exclude>**/*.properties</exclude>
-                </excludes>
-            </testResource>
-            <testResource>
-                <filtering>true</filtering>
-                <directory>src/test/java</directory>
-                <includes>
-                    <include>**/*.properties</include>
-                </includes>
-            </testResource>
-        </testResources>
-        <plugins>
-            <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>revision</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <verbose>false</verbose>
-                    <offline>true</offline>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
     <dependencies>
         <dependency>
@@ -139,7 +56,7 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId> org.springframework</groupId>
+            <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
         </dependency>
 
@@ -178,11 +95,11 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-actuator</artifactId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-actuator-autoconfigure</artifactId>
+            <artifactId>spring-boot-actuator-autoconfigure</artifactId>
         </dependency>
 
         <!-- webjars -->
@@ -770,8 +687,8 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <exclusions>
                 <exclusion>
-                 <artifactId>asm</artifactId>
-                 <groupId>org.ow2.asm</groupId>
+                    <artifactId>asm</artifactId>
+                    <groupId>org.ow2.asm</groupId>
                 </exclusion>
             </exclusions>
             <scope>test</scope>
@@ -955,6 +872,88 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <finalName>midpoint</finalName>
+        <resources>
+            <resource>
+                <filtering>false</filtering>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>**/org.identityconnectors.common.logging</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>banner.txt</include>
+                </includes>
+            </resource>
+            <!--  ICF LOGGING CONFIGURATION -->
+            <resource>
+                <targetPath>../midpoint/META-INF/services</targetPath>
+                <filtering>false</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/org.identityconnectors.common.logging</include>
+                </includes>
+            </resource>
+            <resource>
+                <filtering>false</filtering>
+                <directory>src/main/java</directory>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                    <exclude>**/*.properties</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <filtering>false</filtering>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <filtering>false</filtering>
+                <directory>src/test/java</directory>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                    <exclude>**/*.properties</exclude>
+                </excludes>
+            </testResource>
+            <testResource>
+                <filtering>true</filtering>
+                <directory>src/test/java</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <verbose>false</verbose>
+                    <offline>true</offline>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <profiles>
         <profile>
             <id>executable</id>
@@ -970,8 +969,9 @@
                         <configuration>
                             <fork>true</fork>
                             <skip>false</skip>
-<!--                             <jvmArguments>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000 -Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments> -->
-                            <jvmArguments>-Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments><!-- TODO question: CAN this argument be active by default, or should be there a different profile defined for this? -->
+                            <!-- <jvmArguments>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000 -Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments> -->
+                            <!-- TODO question: CAN this argument be active by default, or should be there a different profile defined for this? -->
+                            <jvmArguments>-Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments>
                         </configuration>
                         <executions>
                             <execution>
@@ -986,9 +986,9 @@
                         </executions>
                         <dependencies>
                             <dependency>
-                                <groupId>com.evolveum.midpoint</groupId>
+                                <groupId>com.evolveum.midpoint.tools</groupId>
                                 <artifactId>midpoint-war-layout</artifactId>
-                                <version>4.0-M2</version>
+                                <version>${project.version}</version>
                             </dependency>
                         </dependencies>
                     </plugin>

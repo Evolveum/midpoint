@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -164,8 +165,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      * Construction is not a part of model-api. To avoid heavy refactoring at present time, there is not a classical
      * Construction-ConstructionImpl separation, but we use artificial (simplified) EvaluatedConstruction
      * API class instead.
-     *
-     * @return
      */
     @Override
     public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -174,15 +173,16 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
             Collection<Construction<AH>> constructionSet = constructionTriple.getSet(whichSet);
             if (constructionSet != null) {
                 for (Construction<AH> construction : constructionSet) {
-                    rv.addToSet(whichSet, new EvaluatedConstructionImpl(construction, task, result));
+                    if (!construction.isIgnored()) {
+                        rv.addToSet(whichSet, new EvaluatedConstructionImpl(construction));
+                    }
                 }
             }
         }
         return rv;
     }
 
-
-    public Collection<Construction<AH>> getConstructionSet(PlusMinusZero whichSet) {
+    Collection<Construction<AH>> getConstructionSet(PlusMinusZero whichSet) {
         switch (whichSet) {
             case ZERO: return getConstructionTriple().getZeroSet();
             case PLUS: return getConstructionTriple().getPlusSet();
@@ -191,7 +191,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         }
     }
 
-    public void addConstruction(Construction<AH> contruction, PlusMinusZero whichSet) {
+    void addConstruction(Construction<AH> contruction, PlusMinusZero whichSet) {
         switch (whichSet) {
             case ZERO:
                 constructionTriple.addToZeroSet(contruction);
@@ -208,11 +208,11 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     @NotNull
-    public DeltaSetTriple<PersonaConstruction<AH>> getPersonaConstructionTriple() {
+    DeltaSetTriple<PersonaConstruction<AH>> getPersonaConstructionTriple() {
         return personaConstructionTriple;
     }
 
-    public void addPersonaConstruction(PersonaConstruction<AH> personaContruction, PlusMinusZero whichSet) {
+    void addPersonaConstruction(PersonaConstruction<AH> personaContruction, PlusMinusZero whichSet) {
         switch (whichSet) {
             case ZERO:
                 personaConstructionTriple.addToZeroSet(personaContruction);
@@ -234,7 +234,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return roles;
     }
 
-    public void addRole(EvaluatedAssignmentTargetImpl role, PlusMinusZero mode) {
+    void addRole(EvaluatedAssignmentTargetImpl role, PlusMinusZero mode) {
         roles.addToSet(mode, role);
     }
 
@@ -243,7 +243,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return orgRefVals;
     }
 
-    public void addOrgRefVal(PrismReferenceValue org) {
+    void addOrgRefVal(PrismReferenceValue org) {
         orgRefVals.add(org);
     }
 
@@ -252,7 +252,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return archetypeRefVals;
     }
 
-    public void addArchetypeRefVal(PrismReferenceValue archetypeRefVal) {
+    void addArchetypeRefVal(PrismReferenceValue archetypeRefVal) {
         archetypeRefVals.add(archetypeRefVal);
     }
 
@@ -261,7 +261,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return membershipRefVals;
     }
 
-    public void addMembershipRefVal(PrismReferenceValue org) {
+    void addMembershipRefVal(PrismReferenceValue org) {
         membershipRefVals.add(org);
     }
 
@@ -270,7 +270,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return delegationRefVals;
     }
 
-    public void addDelegationRefVal(PrismReferenceValue org) {
+    void addDelegationRefVal(PrismReferenceValue org) {
         delegationRefVals.add(org);
     }
 
@@ -278,7 +278,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return tenantOid;
     }
 
-    public void setTenantOid(String tenantOid) {
+    void setTenantOid(String tenantOid) {
         this.tenantOid = tenantOid;
     }
 
@@ -288,7 +288,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return authorizations;
     }
 
-    public void addAuthorization(Authorization authorization) {
+    void addAuthorization(Authorization authorization) {
         authorizations.add(authorization);
     }
 
@@ -297,7 +297,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return adminGuiConfigurations;
     }
 
-    public void addAdminGuiConfiguration(AdminGuiConfigurationType adminGuiConfiguration) {
+    void addAdminGuiConfiguration(AdminGuiConfigurationType adminGuiConfiguration) {
         adminGuiConfigurations.add(adminGuiConfiguration);
     }
 
@@ -351,10 +351,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         this.isValid = isValid;
     }
 
-    public boolean getWasValid() {
-        return wasValid;
-    }
-
     public void setWasValid(boolean wasValid) {
         this.wasValid = wasValid;
     }
@@ -367,27 +363,25 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         this.forceRecon = forceRecon;
     }
 
-    public Collection<ResourceType> getResources(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        Collection<ResourceType> resources = new ArrayList<>();
-        for (Construction<AH> acctConstr: constructionTriple.getAllValues()) {
-            resources.add(acctConstr.getResource(task, result));
-        }
-        return resources;
-    }
-
     // System configuration is used only to provide $configuration script variable (MID-2372)
-    public void evaluateConstructions(ObjectDeltaObject<AH> focusOdo, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
-        for (Construction<AH> construction :constructionTriple.getAllValues()) {
+    public void evaluateConstructions(ObjectDeltaObject<AH> focusOdo, PrismObject<SystemConfigurationType> systemConfiguration,
+            Consumer<ResourceType> resourceConsumer, Task task, OperationResult result) throws SchemaException,
+            ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException,
+            CommunicationException {
+        for (Construction<AH> construction : constructionTriple.getAllValues()) {
             construction.setFocusOdo(focusOdo);
             construction.setSystemConfiguration(systemConfiguration);
             construction.setWasValid(wasValid);
             LOGGER.trace("Evaluating construction '{}' in {}", construction, construction.getSource());
             construction.evaluate(task, result);
+            if (resourceConsumer != null && construction.getResource() != null) {
+                resourceConsumer.accept(construction.getResource());
+            }
         }
     }
 
-    public void evaluateConstructions(ObjectDeltaObject<AH> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
-        evaluateConstructions(focusOdo, null, task, result);
+    void evaluateConstructions(ObjectDeltaObject<AH> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+        evaluateConstructions(focusOdo, null, null, task, result);
     }
 
     public void setPresentInCurrentObject(boolean presentInCurrentObject) {
@@ -413,7 +407,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return focusPolicyRules;
     }
 
-    public void addFocusPolicyRule(EvaluatedPolicyRule policyRule) {
+    void addFocusPolicyRule(EvaluatedPolicyRule policyRule) {
         focusPolicyRules.add(policyRule);
     }
 
@@ -443,17 +437,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     @Override
     public int getAllTargetsPolicyRulesCount() {
         return thisTargetPolicyRules.size() + otherTargetsPolicyRules.size();
-    }
-
-    @NotNull
-    private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints, AssignmentPath assignmentPath,
-            AssignmentHolderType directOwner, PrismContext prismContext) {
-        PolicyRuleType policyRuleType = new PolicyRuleType();
-        policyRuleType.setPolicyConstraints(constraints);
-        PolicyActionsType policyActionsType = new PolicyActionsType();
-        policyActionsType.setEnforcement(new EnforcementPolicyActionType());
-        policyRuleType.setPolicyActions(policyActionsType);
-        return new EvaluatedPolicyRuleImpl(policyRuleType, assignmentPath, prismContext);
     }
 
     @Override
@@ -591,7 +574,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
                 + "; " + focusPolicyRules.size()+" rules)";
     }
 
-    public String toHumanReadableString() {
+    String toHumanReadableString() {
         if (target != null) {
             return "EvaluatedAssignment(" + target + ")";
         } else if (!constructionTriple.isEmpty()) {

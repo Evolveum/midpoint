@@ -15,6 +15,7 @@
         <version>4.1-SNAPSHOT</version>
     </parent>
 
+    <groupId>com.evolveum.midpoint.model</groupId>
     <artifactId>model</artifactId>
     <packaging>pom</packaging>
 

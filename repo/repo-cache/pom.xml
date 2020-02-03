@@ -11,11 +11,10 @@
 
     <parent>
         <artifactId>repo</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.repo</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.evolveum.midpoint.repo</groupId>
     <artifactId>repo-cache</artifactId>
     <packaging>jar</packaging>
 

@@ -110,12 +110,14 @@ public class LinkedReferencePanel<O extends ObjectType> extends BasePanel<Object
         add(nameLink);
 
         ObjectType referencedObject= referencedObjectModel.getObject();
-        ObjectReferenceType referencedObjectRef = WebComponentUtil.createObjectRef(referencedObject.getOid(), referencedObject.getName().getOrig(), WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObject.getClass()));
-        PrismReferenceValue referenceValue = getPageBase().getPrismContext().itemFactory().createReferenceValue(referencedObject.getOid(),
-                        WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObject.getClass()));
-        referenceValue.setObject(referencedObject.asPrismObject());
-        referencedObjectRef.setupReferenceValue(referenceValue);
-
+        ObjectReferenceType referencedObjectRef = null;
+        if (referencedObject != null) {
+            referencedObjectRef = WebComponentUtil.createObjectRef(referencedObject.getOid(), referencedObject.getName().getOrig(), WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObject.getClass()));
+            PrismReferenceValue referenceValue = getPageBase().getPrismContext().itemFactory().createReferenceValue(referencedObject.getOid(),
+                    WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObject.getClass()));
+            referenceValue.setObject(referencedObject.asPrismObject());
+            referencedObjectRef.setupReferenceValue(referenceValue);
+        }
         String nameLinkTextVal = (referencedObject instanceof UserType)?WebComponentUtil.getDisplayNameAndName(referencedObjectRef):
                 WebComponentUtil.getDisplayNameOrName(referencedObjectRef);
 

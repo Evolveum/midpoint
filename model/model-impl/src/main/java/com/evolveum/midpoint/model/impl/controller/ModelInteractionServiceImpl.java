@@ -726,6 +726,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
+    public SystemConfigurationAuditType getAuditConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+        PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
+        if (systemConfiguration == null) {
+            return null;
+        }
+        return systemConfiguration.asObjectable().getAudit();
+    }
+
+    @Override
     public List<MergeConfigurationType> getMergeConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
         if (systemConfiguration == null) {
@@ -783,7 +792,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     @NotNull
-    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException{
+        return visualizer.visualizeDelta(delta, null, includeOperationalItems,  task, result);
+    }
+
+    @Override
+    @NotNull
+    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         return visualizer.visualizeDelta(delta, objectRef, task, result);
     }
 

@@ -11,11 +11,10 @@
 
     <parent>
         <artifactId>testing</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.testing</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.evolveum.midpoint.testing</groupId>
     <artifactId>sanity</artifactId>
 
     <name>midPoint Testing - Sanity</name>
