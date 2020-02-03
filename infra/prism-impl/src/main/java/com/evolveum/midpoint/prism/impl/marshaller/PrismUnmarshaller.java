@@ -50,7 +50,6 @@ import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.impl.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.impl.PrismPropertyImpl;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
-import com.evolveum.midpoint.prism.impl.PrismReferenceDefinitionImpl;
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.impl.util.PrismUtilInternal;
@@ -95,7 +94,8 @@ public class PrismUnmarshaller {
             XNodeImpl.KEY_REFERENCE_FILTER.getLocalPart(),
             XNodeImpl.KEY_REFERENCE_RESOLUTION_TIME.getLocalPart(),
             XNodeImpl.KEY_REFERENCE_TARGET_NAME.getLocalPart(),
-            XNodeImpl.KEY_REFERENCE_OBJECT.getLocalPart());
+            XNodeImpl.KEY_REFERENCE_OBJECT.getLocalPart(),
+            XNodeImpl.KEY_REFERENCE_REFERENTIAL_INTEGRITY.getLocalPart());
 
     @NotNull private PrismContext prismContext;
     @NotNull private final BeanUnmarshaller beanUnmarshaller;
