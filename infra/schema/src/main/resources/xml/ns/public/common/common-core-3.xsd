@@ -567,6 +567,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="referentialIntegrity" type="t:ReferentialIntegrityType" minOccurs="0" default="default">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Definition of the behavior related to non-existence of object with specified target OID.
+                            (Currently supported only at selected places in midPoint.)
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="targetName" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>

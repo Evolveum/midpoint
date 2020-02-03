@@ -20,11 +20,14 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,6 +48,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
     private String description = null;
     private SearchFilterType filter = null;
     private EvaluationTimeType resolutionTime;
+    private ReferentialIntegrityType referentialIntegrity;
     private PolyString targetName = null;
 
     private Referencable referencable;
@@ -131,7 +135,6 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
     }
 
     /**
-     * @param targetType
      * @param allowEmptyNamespace This is an ugly hack. See comment in DOMUtil.validateNonEmptyQName.
      */
     public void setTargetType(QName targetType, boolean allowEmptyNamespace) {
@@ -236,6 +239,17 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
     }
 
     @Override
+    public ReferentialIntegrityType getReferentialIntegrity() {
+        return referentialIntegrity;
+    }
+
+    @Override
+    public void setReferentialIntegrity(ReferentialIntegrityType referentialIntegrity) {
+        checkMutability();
+        this.referentialIntegrity = referentialIntegrity;
+    }
+
+    @Override
     public PrismReferenceDefinition getDefinition() {
         return (PrismReferenceDefinition) super.getDefinition();
     }
@@ -270,11 +284,14 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
     @Override
     public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
         if (path == null || path.isEmpty()) {
+            //noinspection unchecked
             return new PartiallyResolvedItem<>((Item<IV, ID>) getParent(), null);
         }
+        //noinspection unchecked
         return new PartiallyResolvedItem<>((Item<IV, ID>) getParent(), path);
     }
 
+    @SuppressWarnings("SimplifiableIfStatement")
     private boolean compareLocalPart(QName a, QName b) {
         if (a == null && b == null) {
             return true;
@@ -302,6 +319,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
             return;
         }
         PrismContext prismContext = definition.getPrismContext();
+        //noinspection ConstantConditions
         PrismObjectDefinition<? extends Objectable> objectDefinition = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(object.getCompileTimeClass());
         QName targetTypeName = definition.getTargetTypeName();
@@ -324,6 +342,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
                     +": no definition for object type "+targetTypeName);
         }
         // this should do it
+        //noinspection unchecked
         object.applyDefinition((PrismObjectDefinition)objectDefinition, force);
     }
 
@@ -391,6 +410,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         return other instanceof PrismReferenceValue && equals((PrismReferenceValue) other, strategy);
     }
 
+    @SuppressWarnings({ "RedundantIfStatement" })
     public boolean equals(PrismReferenceValue other, @NotNull ParameterizedEquivalenceStrategy strategy) {
         if (!super.equals(other, strategy)) {
             return false;
@@ -424,10 +444,18 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         if ((strategy.isConsideringReferenceFilters() || bothOidsNull) && !filtersEquivalent(filter, other.getFilter())) {
             return false;
         }
+        if (strategy.isConsideringReferenceOptions()) {
+            if (this.getResolutionTime() != other.getResolutionTime()) {
+                return false;
+            }
+            if (this.getReferentialIntegrity() != other.getReferentialIntegrity()) {
+                return false;
+            }
+        }
         return true;
     }
 
-
+    @SuppressWarnings("SimplifiableIfStatement")
     private boolean filtersEquivalent(SearchFilterType filter1, SearchFilterType filter2) {
         if (filter1 == null && filter2 == null) {
             return true;
@@ -483,7 +511,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 
     // TODO take strategy into account
     @Override
-    public int hashCode(ParameterizedEquivalenceStrategy strategy) {
+    public int hashCode(@NotNull ParameterizedEquivalenceStrategy strategy) {
         final int prime = 31;
         int result = super.hashCode(strategy);
         result = prime * result + ((oid == null) ? 0 : oid.hashCode());
@@ -526,6 +554,9 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         if (resolutionTime != null) {
             sb.append(", resolutionTime=").append(resolutionTime);
         }
+        if (referentialIntegrity != null) {
+            sb.append(", RI=").append(referentialIntegrity);
+        }
         sb.append(")");
         return sb.toString();
     }
@@ -538,11 +569,11 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         Itemable parent = getParent();
         if (parent != null && parent.getDefinition() != null) {
             QName xsdType = parent.getDefinition().getTypeName();
-            Class clazz = getPrismContext() != null ? getPrismContext().getSchemaRegistry().getCompileTimeClass(xsdType) : null;
+            Class<?> clazz = getPrismContext() != null ? getPrismContext().getSchemaRegistry().getCompileTimeClass(xsdType) : null;
             if (clazz != null) {
                 try {
-                    referencable = (Referencable) clazz.newInstance();
-                } catch (InstantiationException | IllegalAccessException e) {
+                    referencable = (Referencable) clazz.getDeclaredConstructor().newInstance();
+                } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                     throw new SystemException("Couldn't create jaxb object instance of '" + clazz + "': " + e.getMessage(),
                             e);
                 }
@@ -555,14 +586,16 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         return new DefaultReferencableImpl(this);
     }
 
+    @SuppressWarnings("unused")
     @NotNull
     public static List<Referencable> asReferencables(@NotNull Collection<PrismReferenceValue> values) {
-        return values.stream().map(prv -> prv.asReferencable()).collect(Collectors.toList());
+        return values.stream().map(PrismReferenceValue::asReferencable).collect(Collectors.toList());
     }
 
+    @SuppressWarnings("unused")
     @NotNull
     public static List<PrismReferenceValue> asReferenceValues(@NotNull Collection<? extends Referencable> referencables) {
-        return referencables.stream().map(ref -> ref.asReferenceValue()).collect(Collectors.toList());
+        return referencables.stream().map(Referencable::asReferenceValue).collect(Collectors.toList());
     }
 
     @Override
@@ -613,13 +646,11 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         clone.description = this.description;
         clone.filter = this.filter;
         clone.resolutionTime = this.resolutionTime;
+        clone.referentialIntegrity = this.referentialIntegrity;
         clone.relation = this.relation;
         clone.targetName = this.targetName;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.prism.PrismValue#getHumanReadableDump()
-     */
     @Override
     public String toHumanReadableString() {
         StringBuilder sb = new StringBuilder();
@@ -671,6 +702,12 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         if (getObject() != null) {
             sb.append('*');
         }
+        if (getReferentialIntegrity() != null) {
+            switch (getReferentialIntegrity()) {
+                case STRICT: sb.append(" RI=S"); break;
+                case RELAXED: sb.append(" RI=R"); break;
+                case LAX: sb.append(" RI=L"); break;
+            }
+        }
     }
-
 }

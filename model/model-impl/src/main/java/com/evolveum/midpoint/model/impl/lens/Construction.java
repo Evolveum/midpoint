@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -69,6 +71,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Live class that contains "construction" - a definition how to construct a
@@ -89,7 +95,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
     private static final String OP_EVALUATE = Construction.class.getName() + ".evaluate";
 
     private ObjectType orderOneObject;
-    private ResourceType resource;
+    private ResolvedResource resolvedResource;
     private ExpressionProfile expressionProfile;
     private MappingFactory mappingFactory;
     private MappingEvaluator mappingEvaluator;
@@ -109,11 +115,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
     }
 
-    public ObjectType getOrderOneObject() {
-        return orderOneObject;
-    }
-
-    public void setOrderOneObject(ObjectType orderOneObject) {
+    void setOrderOneObject(ObjectType orderOneObject) {
         this.orderOneObject = orderOneObject;
     }
 
@@ -141,7 +143,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         this.systemConfiguration = systemConfiguration;
     }
 
-    public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
+    RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
         return refinedObjectClassDefinition;
     }
 
@@ -182,7 +184,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         return attributeMappings;
     }
 
-    public MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> getAttributeMapping(
+    MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> getAttributeMapping(
             QName attrName) {
         for (MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> myVc : getAttributeMappings()) {
             if (myVc.getItemName().equals(attrName)) {
@@ -197,15 +199,6 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         getAttributeMappings().add(mapping);
     }
 
-    public boolean containsAttributeMapping(QName attributeName) {
-        for (MappingImpl<?, ?> mapping : getAttributeMappings()) {
-            if (attributeName.equals(mapping.getItemName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> getAssociationMappings() {
         if (associationMappings == null) {
             associationMappings = new ArrayList<>();
@@ -218,34 +211,26 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         getAssociationMappings().add(mapping);
     }
 
-    public boolean containsAssociationMapping(QName assocName) {
-        for (MappingImpl<?, ?> mapping : getAssociationMappings()) {
-            if (assocName.equals(mapping.getItemName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
+    @SuppressWarnings("SameParameterValue")
+    @NotNull
     private ResourceType resolveTarget(String sourceDescription, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        // SearchFilterType filter = targetRef.getFilter();
         ExpressionVariables variables = ModelImplUtils
                 .getDefaultExpressionVariables(getFocusOdo().getNewObject().asObjectable(), null, null, null, mappingEvaluator.getPrismContext());
         if (assignmentPathVariables == null) {
             assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());
         }
         ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables, getPrismContext());
-        LOGGER.info("Expression variables for filter evaluation: {}", variables);
+        LOGGER.debug("Expression variables for filter evaluation: {}", variables);
 
         ObjectFilter origFilter = getPrismContext().getQueryConverter().parseFilter(getConstructionType().getResourceRef().getFilter(),
                 ResourceType.class);
-        LOGGER.info("Orig filter {}", origFilter);
+        LOGGER.debug("Orig filter {}", origFilter);
         ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables,
                 expressionProfile, getMappingFactory().getExpressionFactory(), getPrismContext(),
                 " evaluating resource filter expression ", task, result);
-        LOGGER.info("evaluatedFilter filter {}", evaluatedFilter);
+        LOGGER.debug("evaluatedFilter filter {}", evaluatedFilter);
 
         if (evaluatedFilter == null) {
             throw new SchemaException(
@@ -261,7 +246,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
                 null, handler, task, result);
 
         if (org.apache.commons.collections.CollectionUtils.isEmpty(results)) {
-            throw new IllegalArgumentException("Got no target from repository, filter:" + evaluatedFilter
+            throw new ObjectNotFoundException("Got no target from repository, filter:" + evaluatedFilter
                     + ", class:" + ResourceType.class + " in " + sourceDescription);
         }
 
@@ -271,33 +256,63 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         }
 
         PrismObject<ResourceType> target = results.iterator().next();
-
-        // assignmentType.getTargetRef().setOid(target.getOid());
         return target.asObjectable();
     }
 
-    public ResourceType getResource(Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
-        if (resource == null) {
+    public ResourceType getResource() {
+        if (resolvedResource != null) {
+            return resolvedResource.resource;
+        } else {
+            throw new IllegalStateException("Couldn't access resolved resource reference as construction was not evaluated yet; in "
+                    + getSource());
+        }
+    }
+
+    public String getResourceOid() {
+        ResourceType resource = getResource();
+        if (resource != null) {
+            return resource.getOid();
+        } else {
+            throw new IllegalStateException("Couldn't obtain resource OID because the resource does not exist in " + getSource());
+        }
+    }
+
+    private ResourceType resolveResource(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        if (resolvedResource != null) {
+            throw new IllegalStateException("Resolving the resource twice? In: " + getSource());
+        } else {
             ObjectReferenceType resourceRef = getConstructionType().getResourceRef();
             if (resourceRef != null) {
+                @NotNull ResourceType resource;
+                //noinspection unchecked
                 PrismObject<ResourceType> resourceFromRef = resourceRef.asReferenceValue().getObject();
                 if (resourceFromRef != null) {
                     resource = resourceFromRef.asObjectable();
                 } else {
+                    ReferentialIntegrityType refIntegrity = getReferentialIntegrity(resourceRef);
                     try {
-
-                        if (getConstructionType().getResourceRef().getOid() == null) {
+                        if (resourceRef.getOid() == null) {
                             resource = resolveTarget(" resolving resource ", task, result);
                         } else {
-                            resource = LensUtil.getResourceReadOnly(getLensContext(),
-                                    getConstructionType().getResourceRef().getOid(), getObjectResolver(), task, result);
+                            resource = LensUtil.getResourceReadOnly(getLensContext(), resourceRef.getOid(), getObjectResolver(),
+                                    task, result);
                         }
                     } catch (ObjectNotFoundException e) {
-                        throw new ObjectNotFoundException(
-                                "Resource reference seems to be invalid in account construction in " + getSource()
-                                        + ": " + e.getMessage(),
-                                e);
+                        if (refIntegrity == ReferentialIntegrityType.STRICT) {
+                            throw new ObjectNotFoundException("Resource reference seems to be invalid in account construction in "
+                                    + getSource() + ": " + e.getMessage(), e);
+                        } else if (refIntegrity == ReferentialIntegrityType.RELAXED) {
+                            LOGGER.warn("Resource reference couldn't be resolved in {}: {}", getSource(), e.getMessage(), e);
+                            resolvedResource = new ResolvedResource(true);
+                            return null;
+                        } else if (refIntegrity == ReferentialIntegrityType.LAX) {
+                            LOGGER.debug("Resource reference couldn't be resolved in {}: {}", getSource(), e.getMessage(), e);
+                            resolvedResource = new ResolvedResource(false);
+                            return null;
+                        } else {
+                            throw new IllegalStateException("Unsupported referential integrity: "
+                                    + resourceRef.getReferentialIntegrity());
+                        }
                     } catch (SecurityViolationException | CommunicationException | ConfigurationException e) {
                         throw new SystemException("Couldn't fetch the resource in account construction in "
                                 + getSource() + ": " + e.getMessage(), e);
@@ -308,14 +323,22 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
                                 e);
                     }
                 }
+                getConstructionType().getResourceRef().setOid(resource.getOid());
+                resolvedResource = new ResolvedResource(resource);
+                return resource;
+            } else {
+                throw new IllegalStateException("No resourceRef in account construction in " + getSource());
             }
-            if (resource == null) {
-                throw new SchemaException("No resource set in account construction in " + getSource()
-                        + ", resourceRef: " + getConstructionType().getResourceRef());
-            }
-            getConstructionType().getResourceRef().setOid(resource.getOid());
         }
-        return resource;
+    }
+
+    private ReferentialIntegrityType getReferentialIntegrity(ObjectReferenceType resourceRef) {
+        ReferentialIntegrityType value = resourceRef.getReferentialIntegrity();
+        if (value == null || value == ReferentialIntegrityType.DEFAULT) {
+            return ReferentialIntegrityType.STRICT;
+        } else {
+            return value;
+        }
     }
 
     public void evaluate(Task task, OperationResult parentResult)
@@ -325,26 +348,36 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE);
         try {
             assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());
-            evaluateKindIntentObjectClass(task, result);
-            evaluateAttributes(task, result);
-            evaluateAssociations(task, result);
-            result.recordSuccess();
+            ResourceType resource = resolveResource(task, result);
+            if (resource != null) {
+                evaluateKindIntentObjectClass(resource);
+                evaluateAttributes(task, result);
+                evaluateAssociations(task, result);
+                result.recordSuccess();
+            } else {
+                // If we are here (and not encountered an exception) it means that the resourceRef integrity was relaxed or lax.
+                if (resolvedResource.warning) {
+                    result.recordWarning("The resource could not be found");
+                } else {
+                    result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "The resource could not be found");
+                }
+            }
         } catch (Throwable e) {
             result.recordFatalError(e);
             throw e;
         }
     }
 
-    private void evaluateKindIntentObjectClass(Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
-        String resourceOid = null;
+    private void evaluateKindIntentObjectClass(ResourceType resource) throws SchemaException {
+        String resourceOid;
         if (getConstructionType().getResourceRef() != null) {
             resourceOid = getConstructionType().getResourceRef().getOid();
-        }
-        ResourceType resource = getResource(task, result);
-        if (resourceOid != null && !resource.getOid().equals(resourceOid)) {
-            throw new IllegalStateException(
-                    "The specified resource and the resource in construction does not match");
+            if (resourceOid != null && !resource.getOid().equals(resourceOid)) {
+                throw new IllegalStateException(
+                        "The specified resource and the resource in construction does not match");
+            }
+        } else {
+            resourceOid = null;
         }
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
@@ -364,7 +397,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
             if (getConstructionType().getIntent() != null) {
                 throw new SchemaException(
                         "No " + kind + " type '" + getConstructionType().getIntent() + "' found in "
-                                + getResource(task, result) + " as specified in construction in " + getSource());
+                                + resource + " as specified in construction in " + getSource());
             } else {
                 throw new SchemaException("No default " + kind + " type found in " + resource
                         + " as specified in construction in " + getSource());
@@ -378,7 +411,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
             if (auxOcDef == null) {
                 throw new SchemaException(
                         "No auxiliary object class " + auxiliaryObjectClassName + " found in "
-                                + getResource(task, result) + " as specified in construction in " + getSource());
+                                + resource + " as specified in construction in " + getSource());
             }
             auxiliaryObjectClassDefinitions.add(auxOcDef);
         }
@@ -391,27 +424,24 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
     private void evaluateAttributes(Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
         attributeMappings = new ArrayList<>();
-        // LOGGER.trace("Assignments used for account construction for {} ({}):
-        // {}", new Object[]{this.resource,
-        // assignments.size(), assignments});
-        for (ResourceAttributeDefinitionType attribudeDefinitionType : getConstructionType().getAttribute()) {
-            QName attrName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(attribudeDefinitionType.getRef());
+        for (ResourceAttributeDefinitionType attributeDefinition : getConstructionType().getAttribute()) {
+            QName attrName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(attributeDefinition.getRef());
             if (attrName == null) {
                 throw new SchemaException(
                         "No attribute name (ref) in attribute definition in account construction in "
                                 + getSource());
             }
-            if (!attribudeDefinitionType.getInbound().isEmpty()) {
+            if (!attributeDefinition.getInbound().isEmpty()) {
                 throw new SchemaException("Cannot process inbound section in definition of attribute "
                         + attrName + " in account construction in " + getSource());
             }
-            MappingType outboundMappingType = attribudeDefinitionType.getOutbound();
+            MappingType outboundMappingType = attributeDefinition.getOutbound();
             if (outboundMappingType == null) {
                 throw new SchemaException("No outbound section in definition of attribute " + attrName
                         + " in account construction in " + getSource());
             }
             MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeMapping = evaluateAttribute(
-                    attribudeDefinitionType, task, result);
+                    attributeDefinition, task, result);
             if (attributeMapping != null) {
                 attributeMappings.add(attributeMapping);
             }
@@ -419,18 +449,18 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
     }
 
     private <T> MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluateAttribute(
-            ResourceAttributeDefinitionType attribudeDefinitionType, Task task, OperationResult result)
+            ResourceAttributeDefinitionType attributeDefinition, Task task, OperationResult result)
                     throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-        QName attrName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(attribudeDefinitionType.getRef());
+        QName attrName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(attributeDefinition.getRef());
         if (attrName == null) {
             throw new SchemaException("Missing 'ref' in attribute construction in account construction in "
                     + getSource());
         }
-        if (!attribudeDefinitionType.getInbound().isEmpty()) {
+        if (!attributeDefinition.getInbound().isEmpty()) {
             throw new SchemaException("Cannot process inbound section in definition of attribute " + attrName
                     + " in account construction in " + getSource());
         }
-        MappingType outboundMappingType = attribudeDefinitionType.getOutbound();
+        MappingType outboundMappingType = attributeDefinition.getOutbound();
         if (outboundMappingType == null) {
             throw new SchemaException("No outbound section in definition of attribute " + attrName
                     + " in account construction in " + getSource());
@@ -438,8 +468,8 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         ResourceAttributeDefinition<T> outputDefinition = findAttributeDefinition(attrName);
         if (outputDefinition == null) {
             throw new SchemaException("Attribute " + attrName + " not found in schema for account type "
-                    + getIntent() + ", " + getResource(task, result)
-                    + " as definied in " + getSource(), attrName);
+                    + getIntent() + ", " + resolvedResource.resource
+                    + " as defined in " + getSource(), attrName);
         }
         MappingImpl.Builder<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> builder = mappingFactory.createMappingBuilder(
                 outboundMappingType,
@@ -447,36 +477,38 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
         MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluatedMapping;
 
+        //noinspection CaughtExceptionImmediatelyRethrown
         try {
 
             evaluatedMapping = evaluateMapping(builder, attrName, outputDefinition, null, task, result);
 
         } catch (SchemaException e) {
-            throw new SchemaException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+            throw new SchemaException(getAttributeEvaluationErrorMessage(attrName, e), e);
         } catch (ExpressionEvaluationException e) {
             // No need to specially handle this here. It was already handled in the expression-processing
             // code and it has proper description.
             throw e;
         } catch (ObjectNotFoundException e) {
-            throw new ObjectNotFoundException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+            throw new ObjectNotFoundException(getAttributeEvaluationErrorMessage(attrName, e), e);
         } catch (SecurityViolationException e) {
-            throw new SecurityViolationException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+            throw new SecurityViolationException(getAttributeEvaluationErrorMessage(attrName, e), e);
         } catch (ConfigurationException e) {
-            throw new ConfigurationException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+            throw new ConfigurationException(getAttributeEvaluationErrorMessage(attrName, e), e);
         } catch (CommunicationException e) {
-            throw new CommunicationException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+            throw new CommunicationException(getAttributeEvaluationErrorMessage(attrName, e), e);
         }
 
-        LOGGER.trace("Evaluated mapping for attribute " + attrName + ": " + evaluatedMapping);
+        LOGGER.trace("Evaluated mapping for attribute {}: {}", attrName, evaluatedMapping);
         return evaluatedMapping;
     }
 
-    private String getAttributeEvaluationErrorMesssage(QName attrName, Exception e) {
+    private String getAttributeEvaluationErrorMessage(QName attrName, Exception e) {
         return "Error evaluating mapping for attribute "+PrettyPrinter.prettyPrint(attrName)+" in "+getHumanReadableConstructionDescription()+": "+e.getMessage();
     }
 
     private String getHumanReadableConstructionDescription() {
-        return "construction for ("+resource+"/"+getKind()+"/"+getIntent()+") in "+getSource();
+        return "construction for ("+ (resolvedResource!=null?resolvedResource.resource:null)
+                +"/"+getKind()+"/"+getIntent()+") in "+getSource();
     }
 
     public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attributeName) {
@@ -498,7 +530,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         return null;
     }
 
-    public boolean hasValueForAttribute(QName attributeName) {
+    boolean hasValueForAttribute(QName attributeName) {
         for (MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeConstruction : attributeMappings) {
             if (attributeName.equals(attributeConstruction.getItemName())) {
                 PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = attributeConstruction
@@ -570,7 +602,8 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         return evaluatedMapping;
     }
 
-    private <V extends PrismValue, D extends ItemDefinition> MappingImpl<V, D> evaluateMapping(
+    @SuppressWarnings("ConstantConditions")
+    private <V extends PrismValue, D extends ItemDefinition<?>> MappingImpl<V, D> evaluateMapping(
             MappingImpl.Builder<V, D> builder, QName mappingQName, D outputDefinition,
             RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
                     throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -598,7 +631,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
             builder = builder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
                     assocTargetObjectClassDefinition, RefinedObjectClassDefinition.class);
         }
-        builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource, ResourceType.class);
+        builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, getResource(), ResourceType.class);
         builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables, getPrismContext());
         if (getSystemConfiguration() != null) {
             builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, getSystemConfiguration(), SystemConfigurationType.class);
@@ -634,26 +667,10 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result
-                + ((assignmentPathVariables == null) ? 0 : assignmentPathVariables.hashCode());
-        result = prime * result
-                + ((associationContainerDefinition == null) ? 0 : associationContainerDefinition.hashCode());
-        result = prime * result + ((associationMappings == null) ? 0 : associationMappings.hashCode());
-        result = prime * result + ((attributeMappings == null) ? 0 : attributeMappings.hashCode());
-        result = prime * result + ((auxiliaryObjectClassDefinitions == null) ? 0
-                : auxiliaryObjectClassDefinitions.hashCode());
-        result = prime * result + ((mappingEvaluator == null) ? 0 : mappingEvaluator.hashCode());
-        result = prime * result + ((mappingFactory == null) ? 0 : mappingFactory.hashCode());
-        result = prime * result + ((orderOneObject == null) ? 0 : orderOneObject.hashCode());
-        result = prime * result
-                + ((refinedObjectClassDefinition == null) ? 0 : refinedObjectClassDefinition.hashCode());
-        result = prime * result + ((resource == null) ? 0 : resource.hashCode());
-        result = prime * result + ((systemConfiguration == null) ? 0 : systemConfiguration.hashCode());
-        return result;
+        return super.hashCode();
     }
 
+    @SuppressWarnings("RedundantIfStatement")
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -665,7 +682,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         if (getClass() != obj.getClass()) {
             return false;
         }
-        Construction other = (Construction) obj;
+        Construction<?> other = (Construction<?>) obj;
         if (assignmentPathVariables == null) {
             if (other.assignmentPathVariables != null) {
                 return false;
@@ -729,18 +746,11 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         } else if (!refinedObjectClassDefinition.equals(other.refinedObjectClassDefinition)) {
             return false;
         }
-        if (resource == null) {
-            if (other.resource != null) {
+        if (resolvedResource == null) {
+            if (other.resolvedResource != null) {
                 return false;
             }
-        } else if (!resource.equals(other.resource)) {
-            return false;
-        }
-        if (systemConfiguration == null) {
-            if (other.systemConfiguration != null) {
-                return false;
-            }
-        } else if (!systemConfiguration.equals(other.systemConfiguration)) {
+        } else if (!resolvedResource.equals(other.resolvedResource)) {
             return false;
         }
         return true;
@@ -796,7 +806,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         if (attributeMappings != null && !attributeMappings.isEmpty()) {
             sb.append("\n");
             DebugUtil.debugDumpLabel(sb, "attribute mappings", indent + 1);
-            for (MappingImpl mapping : attributeMappings) {
+            for (MappingImpl<?,?> mapping : attributeMappings) {
                 sb.append("\n");
                 sb.append(mapping.debugDump(indent + 2));
             }
@@ -804,7 +814,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         if (associationMappings != null && !associationMappings.isEmpty()) {
             sb.append("\n");
             DebugUtil.debugDumpLabel(sb, "association mappings", indent + 1);
-            for (MappingImpl mapping : associationMappings) {
+            for (MappingImpl<?,?> mapping : associationMappings) {
                 sb.append("\n");
                 sb.append(mapping.debugDump(indent + 2));
             }
@@ -825,9 +835,6 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
             sb.append(refinedObjectClassDefinition.getShadowDiscriminator());
         }
         sb.append(" in ").append(getSource());
-//        if (getRelativityMode() != null) {
-//            sb.append(", ").append(getRelativityMode());
-//        }
         if (isValid()) {
             if (!getWasValid()) {
                 sb.append(", invalid->valid");
@@ -843,4 +850,42 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         return sb.toString();
     }
 
+    /**
+     * Should this construction be ignored e.g. because the resource couldn't be resolved?
+     * @pre The construction was already evaluated.
+     */
+    public boolean isIgnored() {
+        return getResource() == null;
+    }
+
+    public static class ResolvedResource {
+        @Nullable public final ResourceType resource;
+        public boolean warning;
+
+        private ResolvedResource(@NotNull ResourceType resource) {
+            this.resource = resource;
+            this.warning = false;
+        }
+
+        private ResolvedResource(boolean warning) {
+            this.resource = null;
+            this.warning = warning;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (!(o instanceof ResolvedResource))
+                return false;
+            ResolvedResource that = (ResolvedResource) o;
+            return warning == that.warning &&
+                    Objects.equals(resource, that.resource);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(resource, warning);
+        }
+    }
 }

@@ -22,8 +22,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.HumanReadableDescribable;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -49,20 +47,17 @@ public class ConstructionProcessor {
     public <F extends FocusType, K extends HumanReadableDescribable, T extends AbstractConstruction>
     DeltaMapTriple<K, ConstructionPack<T>> processConstructions(LensContext<F> context,
             DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
-            Function<EvaluatedAssignmentImpl<F>,DeltaSetTriple<T>> constructionTripleExtractor, FailableLensFunction<T,K> keyGenerator, ComplexConstructionConsumer<K,T> consumer,
-            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            Function<EvaluatedAssignmentImpl<F>, DeltaSetTriple<T>> constructionTripleExtractor,
+            FailableLensFunction<T, K> keyGenerator, ComplexConstructionConsumer<K, T> consumer)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
 
         // We will be collecting the evaluated account constructions into these three maps.
         // It forms a kind of delta set triple for the account constructions.
         DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple = prismContext.deltaFactory().createDeltaMapTriple();
-        collectToConstructionMaps(context, evaluatedAssignmentTriple, constructionMapTriple,
-                constructionTripleExtractor, keyGenerator,
-                task, result);
+        collectToConstructionMaps(context, evaluatedAssignmentTriple, constructionMapTriple, constructionTripleExtractor, keyGenerator);
 
-        if (LOGGER.isTraceEnabled()) {
-            // Dump the maps
-            LOGGER.trace("constructionMapTriple:\n{}", constructionMapTriple.debugDump());
-        }
+        LOGGER.trace("constructionMapTriple:\n{}", constructionMapTriple.debugDumpLazily());
 
         // Now we are processing constructions from all the three sets once again. We will create projection contexts
         // for them if not yet created. Now we will do the usual routing for converting the delta triples to deltas.
@@ -121,7 +116,7 @@ public class ConstructionProcessor {
 
             // SITUATION: The projection is both ASSIGNED and UNASSIGNED
             } else if (constructionMapTriple.getPlusMap().containsKey(key) && constructionMapTriple.getMinusMap().containsKey(key) &&
-                    plusConstructionPack.hasStrongConstruction()) {
+                    plusConstructionPack != null && plusConstructionPack.hasStrongConstruction()) {
                 // Account was removed and added in the same operation. This is the case if e.g. one role is
                 // removed and another is added and they include the same account.
                 // Keep original account state
@@ -192,42 +187,41 @@ public class ConstructionProcessor {
         return constructionMapTriple;
     }
 
-    public <F extends FocusType, K, T extends AbstractConstruction> void collectToConstructionMaps(LensContext<F> context,
+    private <F extends FocusType, K, T extends AbstractConstruction> void collectToConstructionMaps(LensContext<F> context,
             DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
             DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple,
-            Function<EvaluatedAssignmentImpl<F>,DeltaSetTriple<T>> constructionTripleExtractor, FailableLensFunction<T,K> keyGenerator,
-            Task task, OperationResult result)
+            Function<EvaluatedAssignmentImpl<F>, DeltaSetTriple<T>> constructionTripleExtractor, FailableLensFunction<T, K> keyGenerator)
                     throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getZeroSet(), constructionMapTriple, constructionTripleExtractor, keyGenerator, PlusMinusZero.ZERO, task, result);
-        collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getPlusSet(), constructionMapTriple, constructionTripleExtractor, keyGenerator, PlusMinusZero.PLUS, task, result);
-        collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getMinusSet(), constructionMapTriple, constructionTripleExtractor, keyGenerator, PlusMinusZero.MINUS, task, result);
+        collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getZeroSet(), constructionMapTriple, constructionTripleExtractor, keyGenerator, PlusMinusZero.ZERO);
+        collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getPlusSet(), constructionMapTriple, constructionTripleExtractor, keyGenerator, PlusMinusZero.PLUS);
+        collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getMinusSet(), constructionMapTriple, constructionTripleExtractor, keyGenerator, PlusMinusZero.MINUS);
     }
 
     private <F extends FocusType, K, T extends AbstractConstruction> void collectToConstructionMapFromEvaluatedAssignments(LensContext<F> context,
             Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments,
-            DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple, Function<EvaluatedAssignmentImpl<F>,DeltaSetTriple<T>> constructionTripleExtractor, FailableLensFunction<T,K> keyGenerator, PlusMinusZero mode, Task task,
-            OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple, Function<EvaluatedAssignmentImpl<F>, DeltaSetTriple<T>> constructionTripleExtractor, FailableLensFunction<T, K> keyGenerator, PlusMinusZero mode) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         for (EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignments) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Collecting constructions from evaluated assignment:\n{}", evaluatedAssignment.debugDump(1));
-            }
+            LOGGER.trace("Collecting constructions from evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
             DeltaSetTriple<T> constructionTriple = constructionTripleExtractor.apply(evaluatedAssignment);
-            collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getZeroSet(), constructionMapTriple, keyGenerator, mode, PlusMinusZero.ZERO, task, result);
-            collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getPlusSet(), constructionMapTriple, keyGenerator, mode, PlusMinusZero.PLUS, task, result);
-            collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getMinusSet(), constructionMapTriple, keyGenerator, mode, PlusMinusZero.MINUS, task, result);
+            collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getZeroSet(), constructionMapTriple, keyGenerator, mode, PlusMinusZero.ZERO);
+            collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getPlusSet(), constructionMapTriple, keyGenerator, mode, PlusMinusZero.PLUS);
+            collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getMinusSet(), constructionMapTriple, keyGenerator, mode, PlusMinusZero.MINUS);
         }
     }
 
-    private <F extends FocusType, K, T extends AbstractConstruction> void collectToConstructionMapFromEvaluatedConstructions(LensContext<F> context,
-                      EvaluatedAssignmentImpl<F> evaluatedAssignment,
-                      Collection<T> evaluatedConstructions,
-                      DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple,
-                      FailableLensFunction<T,K> keyGenerator,
-                      PlusMinusZero mode1, PlusMinusZero mode2,
-                      Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private <F extends FocusType, K, T extends AbstractConstruction> void collectToConstructionMapFromEvaluatedConstructions(
+            LensContext<F> context, EvaluatedAssignmentImpl<F> evaluatedAssignment, Collection<T> evaluatedConstructions,
+            DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple, FailableLensFunction<T, K> keyGenerator,
+            PlusMinusZero mode1, PlusMinusZero mode2)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
 
         for (T construction : evaluatedConstructions) {
+            if (construction.isIgnored()) {
+                LOGGER.trace("Construction {} is ignored, skipping", construction);
+                continue;
+            }
 
             PlusMinusZero mode = PlusMinusZero.compute(mode1, mode2);
             Map<K, ConstructionPack<T>> constructionMap = constructionMapTriple.getMap(mode);

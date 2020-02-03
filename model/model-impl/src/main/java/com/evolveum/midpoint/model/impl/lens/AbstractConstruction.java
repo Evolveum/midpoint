@@ -158,13 +158,6 @@ public abstract class AbstractConstruction<F extends AssignmentHolderType, T ext
         result = prime * result + ((assignmentPath == null) ? 0 : assignmentPath.hashCode());
         result = prime * result + ((channel == null) ? 0 : channel.hashCode());
         result = prime * result + ((constructionType == null) ? 0 : constructionType.hashCode());
-        result = prime * result + ((focusOdo == null) ? 0 : focusOdo.hashCode());
-        result = prime * result + (isValid ? 1231 : 1237);
-        result = prime * result + ((lensContext == null) ? 0 : lensContext.hashCode());
-        result = prime * result + ((objectResolver == null) ? 0 : objectResolver.hashCode());
-        result = prime * result + ((originType == null) ? 0 : originType.hashCode());
-        result = prime * result + ((prismContext == null) ? 0 : prismContext.hashCode());
-        result = prime * result + ((source == null) ? 0 : source.hashCode());
         return result;
     }
 
@@ -218,21 +211,7 @@ public abstract class AbstractConstruction<F extends AssignmentHolderType, T ext
         } else if (!lensContext.equals(other.lensContext)) {
             return false;
         }
-        if (objectResolver == null) {
-            if (other.objectResolver != null) {
-                return false;
-            }
-        } else if (!objectResolver.equals(other.objectResolver)) {
-            return false;
-        }
         if (originType != other.originType) {
-            return false;
-        }
-        if (prismContext == null) {
-            if (other.prismContext != null) {
-                return false;
-            }
-        } else if (!prismContext.equals(other.prismContext)) {
             return false;
         }
         if (source == null) {
@@ -245,4 +224,8 @@ public abstract class AbstractConstruction<F extends AssignmentHolderType, T ext
         return true;
     }
 
+    /**
+     * Typical reason for being ignored is that the resourceRef cannot be resolved.
+     */
+    abstract public boolean isIgnored();
 }
