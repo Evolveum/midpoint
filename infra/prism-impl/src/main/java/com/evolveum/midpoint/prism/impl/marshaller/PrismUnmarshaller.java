@@ -12,7 +12,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 
 import javax.xml.XMLConstants;
@@ -78,7 +77,6 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 
 
@@ -322,7 +320,7 @@ public class PrismUnmarshaller {
 
     private void parseContainerChildren(PrismContainerValue<?> cval, MapXNodeImpl map, PrismContainerDefinition<?> containerDef, ComplexTypeDefinition complexTypeDefinition, ParsingContext pc) throws SchemaException {
         for (Entry<QName, XNodeImpl> entry : map.entrySet()) {
-            QName itemName = entry.getKey();
+            final QName itemName = entry.getKey();
             checkArgument(itemName != null, "Null item name while parsing %s", map.debugDumpLazily());
             if (QNameUtil.match(itemName, XNodeImpl.KEY_CONTAINER_ID)) {
                 continue;
@@ -574,11 +572,11 @@ public class PrismUnmarshaller {
             // TODO fix this hack: for delta values of ObjectReferenceType we will not
             // insist on having reference type (because the target definition could be such that it won't require it)
             boolean allowMissingRefTypesOverride = node.isExplicitTypeDeclaration();
-            return parseReferenceValueAsReference(node, definition, pc, allowMissingRefTypesOverride);   // This is "real" reference (oid,  and nothing more)
+            return parseReferenceValueAsReference(itemName, node, definition, pc, allowMissingRefTypesOverride);   // This is "real" reference (oid,  and nothing more)
         }
     }
 
-    private PrismReferenceValue parseReferenceValueAsReference(@NotNull XNodeImpl xnode, @NotNull PrismReferenceDefinition definition,
+    private PrismReferenceValue parseReferenceValueAsReference(QName name, @NotNull XNodeImpl xnode, @NotNull PrismReferenceDefinition definition,
             @NotNull ParsingContext pc, boolean allowMissingRefTypesOverride) throws SchemaException {
         checkArgument(xnode instanceof MapXNodeImpl, "Cannot parse reference from %s", xnode);
         MapXNodeImpl map = (MapXNodeImpl) xnode;
@@ -635,10 +633,9 @@ public class PrismUnmarshaller {
             PrismObject<Objectable> object = parseObject(objectMapNode, objectDefinition, pc);
             setReferenceObject(refVal, object);
         }
-
         for (Entry<QName, XNodeImpl> entry : map.entrySet()) {
             QName itemName = entry.getKey();
-            if (!isDefinedProperty(REFERENCE_PROPERTIES, itemName)) {
+            if (!isDefinedProperty(itemName, name.getNamespaceURI(), REFERENCE_PROPERTIES)) {
                 handleMissingDefinition(itemName, definition, typeDefinition, pc, map);
             }
         }
@@ -646,12 +643,16 @@ public class PrismUnmarshaller {
         return refVal;
     }
 
-    private boolean isDefinedProperty(Set<String> properties, QName itemName) {
+    private boolean isDefinedProperty(QName itemName, String parentNamespace, Set<String> properties) {
+        // TODO: Namespace awarness is disabled, because some calls from parseItem use ItemDefinition.itemName
+        // instead of used itemName
+        /*
         String ns = itemName.getNamespaceURI();
-        if(Strings.isNullOrEmpty(ns) || Objects.equals(ns, schemaRegistry.getDefaultNamespace())) {
+        if(Strings.isNullOrEmpty(ns) || Objects.equals(parentNamespace,ns)) {
             return properties.contains(itemName.getLocalPart());
         }
-        return false;
+        */
+        return properties.contains(itemName.getLocalPart());
     }
 
     private MapXNodeImpl toObjectMapNode(XNodeImpl xNode) throws SchemaException {

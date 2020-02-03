@@ -76,6 +76,10 @@
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations-java5</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
         <!-- Uncomment for JSON support (experimental) -->
 <!--         <dependency> -->
 <!--     <groupId>org.codehaus.jackson</groupId> -->
