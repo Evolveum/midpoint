@@ -7,26 +7,19 @@
 package com.evolveum.midpoint.gui.impl.prism;
 
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 
 /**
  * @author skublik
- *
  */
 public class ProfilingClassLoggerContainerValueWrapperImpl extends PrismContainerValueWrapperImpl<ClassLoggerConfigurationType> {
 
     private static final long serialVersionUID = 1L;
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(PrismReferenceValueWrapperImpl.class);
 
     public ProfilingClassLoggerContainerValueWrapperImpl(PrismContainerWrapper<ClassLoggerConfigurationType> parent, PrismContainerValue<ClassLoggerConfigurationType> pcv, ValueStatus status) {
         super(parent, pcv, status);

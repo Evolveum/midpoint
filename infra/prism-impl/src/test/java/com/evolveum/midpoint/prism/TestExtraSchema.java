@@ -48,7 +48,7 @@ public class TestExtraSchema {
     private static final ItemName USER_EXT_2_ELEMENT = new ItemName(NS_USER_2_EXT, "ext2");
 
     /**
-     * Test is extra schema can be loaded to the schema registry and whether the file compliant to that
+     * Test if extra schema can be loaded to the schema registry and whether the file compliant to that
      * schema can be validated.
      */
     @Test

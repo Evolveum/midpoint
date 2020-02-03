@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -13,7 +13,6 @@ import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHo
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
 import com.evolveum.midpoint.schrodinger.page.task.EditTaskPage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
-import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 /**

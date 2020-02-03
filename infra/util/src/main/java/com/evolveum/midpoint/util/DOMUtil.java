@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.util;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -464,6 +465,15 @@ public class DOMUtil {
 
     public static boolean isMarkedAsIncomplete(Element element) {
         return Boolean.parseBoolean(DOMUtil.getAttribute(element, DOMUtil.IS_INCOMPLETE_ATTRIBUTE_NAME));
+    }
+
+    public static String getSchemaTargetNamespace(Element xsdSchema) throws SchemaException {
+        String targetNamespace = getAttribute(xsdSchema, XSD_ATTR_TARGET_NAMESPACE);
+        if (StringUtils.isNotEmpty(targetNamespace)) {
+            return targetNamespace;
+        } else {
+            throw new SchemaException("Schema does not have targetNamespace specification");
+        }
     }
 
     @FunctionalInterface

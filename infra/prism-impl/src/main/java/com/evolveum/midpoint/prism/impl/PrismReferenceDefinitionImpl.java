@@ -62,6 +62,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
     }
 
     public void setTargetTypeName(QName targetTypeName) {
+        checkMutable();
         this.targetTypeName = targetTypeName;
     }
 
@@ -80,6 +81,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
     }
 
     public void setComposite(boolean isComposite) {
+        checkMutable();
         this.isComposite = isComposite;
     }
 
@@ -150,6 +152,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 
     @Override
     public MutablePrismReferenceDefinition toMutable() {
+        checkMutableOnExposing();
         return this;
     }
 

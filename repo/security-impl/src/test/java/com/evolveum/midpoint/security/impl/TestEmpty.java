@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -32,8 +32,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Empty test class. Not used. Can be used as a template for security tests.
+ * 
  * @author semancik
- *
  */
 @ContextConfiguration(locations = "classpath:ctx-security-test-main.xml")
 @DirtiesContext

@@ -48,7 +48,7 @@ import static org.testng.AssertJUnit.assertTrue;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestWorkBucketStrategies.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestWorkBucketStrategies.class);
 
     @Autowired private WorkStateManager workStateManager;
     @Autowired private WorkSegmentationStrategyFactory strategyFactory;

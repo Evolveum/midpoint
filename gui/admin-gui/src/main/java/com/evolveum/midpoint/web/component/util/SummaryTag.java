@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -15,7 +15,6 @@ import com.evolveum.midpoint.prism.Containerable;
 
 /**
  * @author semancik
- *
  */
 public abstract class SummaryTag<C extends Containerable> extends Panel {
 

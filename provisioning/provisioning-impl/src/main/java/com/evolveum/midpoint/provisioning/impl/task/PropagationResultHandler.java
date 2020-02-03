@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -10,26 +10,19 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-
 /**
  * @author semancik
- *
  */
 public class PropagationResultHandler extends AbstractSearchIterativeResultHandler<ShadowType> {
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(PropagationResultHandler.class);
 
     private final ShadowCache shadowCache;
     private final PrismObject<ResourceType> resource;

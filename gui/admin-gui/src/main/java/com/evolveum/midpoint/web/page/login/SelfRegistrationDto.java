@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -12,7 +12,6 @@ import java.util.List;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.MailNonceModuleAuthentication;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

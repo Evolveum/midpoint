@@ -117,6 +117,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.collections4.CollectionUtils;
@@ -2866,23 +2867,75 @@ public final class WebComponentUtil {
         return getRelationRegistry().getRelationDefinition(relation);
     }
 
-    public static <T> DropDownChoice createTriStateCombo(String id, IModel<Boolean> model) {
-        final IChoiceRenderer<T> renderer = new IChoiceRenderer<T>() {
+    public static List<String> prepareAutoCompleteList(LookupTableType lookupTable, String input,
+            LocalizationService localizationService){
+        List<String> values = new ArrayList<>();
 
+        if (lookupTable == null) {
+            return values;
+        }
+
+        List<LookupTableRowType> rows = lookupTable.getRow();
+
+        if (input == null || input.isEmpty()) {
+            for (LookupTableRowType row : rows) {
+
+                PolyString polystring = null;
+                if (row.getLabel() != null) {
+                    polystring = setTranslateToPolystring(row);
+                }
+                values.add(localizationService.translate(polystring));
+            }
+        } else {
+            for (LookupTableRowType row : rows) {
+                if (row.getLabel() == null) {
+                    continue;
+                }
+                PolyString polystring = setTranslateToPolystring(row);
+                String rowLabel = localizationService.translate(polystring);
+                if (rowLabel != null && rowLabel.toLowerCase().contains(input.toLowerCase())) {
+                    values.add(rowLabel);
+                }
+            }
+        }
+        return values;
+    }
+
+    private static PolyString setTranslateToPolystring(LookupTableRowType row){
+        PolyString polystring = row.getLabel().toPolyString();
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(polystring.getOrig())) {
+            if (polystring.getTranslation() == null) {
+                PolyStringTranslationType translation = new PolyStringTranslationType();
+                translation.setKey(polystring.getOrig());
+                if (org.apache.commons.lang3.StringUtils.isBlank(translation.getFallback())) {
+                    translation.setFallback(polystring.getOrig());
+                }
+                polystring.setTranslation(translation);
+            } else if (org.apache.commons.lang3.StringUtils.isNotBlank(polystring.getTranslation().getKey())) {
+                polystring.getTranslation().setKey(polystring.getOrig());
+                if (org.apache.commons.lang3.StringUtils.isBlank(polystring.getTranslation().getFallback())) {
+                    polystring.getTranslation().setFallback(polystring.getOrig());
+                }
+            }
+        }
+        return polystring;
+    }
+
+    public static DropDownChoice<Boolean> createTriStateCombo(String id, IModel<Boolean> model) {
+        final IChoiceRenderer<Boolean> renderer = new IChoiceRenderer<Boolean>() {
 
             @Override
-            public T getObject(String id, IModel<? extends List<? extends T>> choices) {
+            public Boolean getObject(String id, IModel<? extends List<? extends Boolean>> choices) {
                 return id != null ? choices.getObject().get(Integer.parseInt(id)) : null;
             }
 
             @Override
-            public String getDisplayValue(T object) {
+            public String getDisplayValue(Boolean object) {
                 String key;
                 if (object == null) {
                     key = KEY_BOOLEAN_NULL;
                 } else {
-                    Boolean b = (Boolean) object;
-                    key = b ? KEY_BOOLEAN_TRUE : KEY_BOOLEAN_FALSE;
+                    key = object ? KEY_BOOLEAN_TRUE : KEY_BOOLEAN_FALSE;
                 }
 
                 StringResourceModel model = PageBase.createStringResourceStatic(null, key);
@@ -2891,15 +2944,12 @@ public final class WebComponentUtil {
             }
 
             @Override
-            public String getIdValue(T object, int index) {
+            public String getIdValue(Boolean object, int index) {
                 return Integer.toString(index);
             }
-
-
-
         };
 
-        DropDownChoice dropDown = new DropDownChoice(id, model, createChoices(), renderer) {
+        DropDownChoice<Boolean> dropDown = new DropDownChoice<Boolean>(id, model, createChoices(), renderer) {
 
             @Override
             protected CharSequence getDefaultChoice(String selectedValue) {
@@ -2957,13 +3007,13 @@ public final class WebComponentUtil {
         return lookupTable;
     }
 
-    public static Class getPreviousPageClass(PageBase parentPage){
+    public static Class<?> getPreviousPageClass(PageBase parentPage){
         List<Breadcrumb> breadcrumbs = parentPage.getBreadcrumbs();
         if (breadcrumbs == null || breadcrumbs.size() < 2){
             return null;
         }
         Breadcrumb previousBreadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
-        Class page = null;
+        Class<?> page = null;
         if (previousBreadcrumb instanceof BreadcrumbPageClass){
             page = ((BreadcrumbPageClass) previousBreadcrumb).getPage();
         } else if (previousBreadcrumb instanceof BreadcrumbPageInstance){

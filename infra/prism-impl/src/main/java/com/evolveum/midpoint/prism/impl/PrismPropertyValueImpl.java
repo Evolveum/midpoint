@@ -43,6 +43,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * @author lazyman
@@ -293,7 +294,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
                 String norm = poly.getNorm();
                 PolyStringNormalizer polyStringNormalizer = prismContext.getDefaultPolyStringNormalizer();
                 String expectedNorm = polyStringNormalizer.normalize(orig);
-                if (!norm.equals(expectedNorm)) {
+                if (!Objects.equals(norm, expectedNorm)) {
                     throw new IllegalStateException("PolyString has inconsistent orig ("+orig+") and norm ("+norm+") in property value "+this+" ("+myPath+" in "+rootItem+")");
                 }
             }
@@ -581,8 +582,22 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     public String toHumanReadableString() {
         if (value == null && expression != null) {
             return ("expression("+expression+")");
+        } else if (value instanceof PolyString) {
+            // We intentionally do not put this code into PrettyPrinter, to avoid unwanted side effects
+            // (displaying the aux information in user-visible context). But for e.g. deltas we need this information.
+            PolyString ps = (PolyString) this.value;
+            StringBuilder sb = new StringBuilder();
+            sb.append(ps.getOrig());
+            if (ps.getTranslation() != null) {
+                sb.append(" (has translation key)");
+            }
+            if (ps.getLang() != null) {
+                sb.append(" (").append(ps.getLang().size()).append(" lang map entry/entries)");
+            }
+            return sb.toString();
+        } else {
+            return PrettyPrinter.prettyPrint(value);
         }
-        return PrettyPrinter.prettyPrint(value);
     }
 
     /**

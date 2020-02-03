@@ -32,6 +32,7 @@ import javax.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -168,6 +169,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private Protector protector;
     @Autowired private PrismContext prismContext;
+    @Autowired private LocalizationService localizationService;
 
     public ConnectorFactoryConnIdImpl() {
     }
@@ -244,14 +246,12 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         }
 
         ConnectorInstanceConnIdImpl connectorImpl = new ConnectorInstanceConnIdImpl(cinfo, connectorType, namespace,
-                connectorSchema, protector, prismContext);
+                connectorSchema, protector, prismContext, localizationService);
         connectorImpl.setDescription(instanceDescription);
         connectorImpl.setInstanceName(instanceName);
 
         return connectorImpl;
     }
-
-
 
     /**
      * Returns a list XML representation of the ICF connectors.

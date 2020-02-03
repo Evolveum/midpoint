@@ -74,28 +74,12 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations-java5</artifactId>
+            <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
-        <!-- Uncomment for JSON support (experimental) -->
-<!--         <dependency> -->
-<!--     <groupId>org.codehaus.jackson</groupId> -->
-<!--     <artifactId>jackson-core-asl</artifactId> -->
-<!--     <version>1.9.13</version> -->
-<!-- </dependency> -->
-<!--             <dependency> -->
-<!--     <groupId>org.codehaus.jackson</groupId> -->
-<!--     <artifactId>jackson-mapper-asl</artifactId> -->
-<!--     <version>1.9.13</version> -->
-<!-- </dependency> -->
-<!-- <dependency> -->
-<!--   <groupId>com.fasterxml.jackson.module</groupId> -->
-<!--   <artifactId>jackson-module-jaxb-annotations</artifactId> -->
-<!--   <version>2.0.5</version> -->
-<!-- </dependency> -->
         <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>

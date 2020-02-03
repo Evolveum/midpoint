@@ -184,8 +184,8 @@ public abstract class ErrorHandler {
         }
     }
 
-    void markResourceDown(String resourceOid, Task task, OperationResult parentResult) throws ObjectNotFoundException {
-        resourceManager.modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, false, task, parentResult);
+    void markResourceDown(String resourceOid, String operationCtx, OperationResult parentResult, Task task) throws ObjectNotFoundException {
+        resourceManager.modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, operationCtx, task, parentResult, false);
     }
 
     protected boolean isOperationRetryEnabled(ResourceType resource) {

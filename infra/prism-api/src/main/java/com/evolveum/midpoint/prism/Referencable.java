@@ -10,6 +10,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
 
 import javax.xml.namespace.QName;
 
@@ -35,6 +36,8 @@ public interface Referencable {
     String getDescription();
 
     EvaluationTimeType getResolutionTime();
+
+    ReferentialIntegrityType getReferentialIntegrity();
 
     SearchFilterType getFilter();
 }

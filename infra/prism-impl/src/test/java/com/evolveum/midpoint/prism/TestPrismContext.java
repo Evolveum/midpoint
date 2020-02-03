@@ -75,31 +75,6 @@ public class TestPrismContext {
 
     }
 
-    @Test
-    public void testCompileTimeClassmap() throws SchemaException, SAXException, IOException {
-        System.out.println("===[ testCompileTimeClassmap ]===");
-
-        // WHEN
-        PrismContext prismContext = constructInitializedPrismContext();
-
-        // THEN
-        assertNotNull("No prism context", prismContext);
-
-        SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-        assertNotNull("No schema registry in context", schemaRegistry);
-
-        SchemaDescription fooDesc = schemaRegistry.findSchemaDescriptionByNamespace(NS_FOO);
-        Map<QName, Class<?>> map = fooDesc.getXsdTypeTocompileTimeClassMap();
-        assertNotNull("No XsdTypeTocompileTimeClassMap", map);
-        assertFalse("Empty XsdTypeTocompileTimeClassMap", map.isEmpty());
-        assertMapping(map, UserType.class, USER_TYPE_QNAME);
-        assertMapping(map, AccountType.class, ACCOUNT_TYPE_QNAME);
-        assertMapping(map, AssignmentType.class, ASSIGNMENT_TYPE_QNAME);
-        assertMapping(map, ActivationType.class, ACTIVATION_TYPE_QNAME);
-        // This is not a container, but it should be in the map anyway
-        assertMapping(map, AccountConstructionType.class, ACCOUNT_CONSTRUCTION_TYPE_QNAME);
-    }
-
     private void assertMapping(Map<QName, Class<?>> map, Class<?> clazz, QName typeName) {
         assertEquals("Wrong xsdType->class mapping for "+typeName, clazz, map.get(typeName));
     }

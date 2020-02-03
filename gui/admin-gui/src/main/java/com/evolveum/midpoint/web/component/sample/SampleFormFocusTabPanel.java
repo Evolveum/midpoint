@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -29,7 +29,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.SimpleRoleSelector;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -42,7 +41,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Sample showing a custom focus form that displays semi-static form.
  *
  * @author Radovan Semancik
- *
  */
 public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusTabPanel<F> {
     private static final long serialVersionUID = 1L;

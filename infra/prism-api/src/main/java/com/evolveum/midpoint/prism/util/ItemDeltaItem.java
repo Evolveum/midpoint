@@ -6,10 +6,11 @@
  */
 package com.evolveum.midpoint.prism.util;
 
+import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
-
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
@@ -22,10 +23,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import static com.evolveum.midpoint.prism.path.ItemPath.*;
 
 /**
  * A class defining old item state (before change), delta (change) and new item state (after change).
@@ -37,8 +34,6 @@ import static com.evolveum.midpoint.prism.path.ItemPath.*;
  * @author Radovan Semancik
  */
 public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable {
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(ItemDeltaItem.class);
 
     private Item<V,D> itemOld;
     private ItemDelta<V,D> delta;

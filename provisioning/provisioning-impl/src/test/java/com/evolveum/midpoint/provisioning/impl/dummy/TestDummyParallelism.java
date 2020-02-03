@@ -4,10 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
-/**
- *
- */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -46,7 +42,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
@@ -80,7 +75,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * The test is using dummy resource for speed and flexibility.
  *
  * @author Radovan Semancik
- *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -102,7 +96,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
     private static final int MESS_RESOURCE_ITERATIONS = 200;
 
-    private final Random RND = new Random();
+    private static final Random RND = new Random();
 
     private String accountMorganOid;
     private String accountElizabethOid;
@@ -126,7 +120,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         dummyResource.setOperationDelayRange(DUMMY_OPERATION_DELAY_RANGE);
-//        InternalMonitor.setTraceConnectorOperation(true);
     }
 
     @Override

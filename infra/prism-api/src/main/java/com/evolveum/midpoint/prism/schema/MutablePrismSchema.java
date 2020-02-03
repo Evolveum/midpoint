@@ -19,8 +19,6 @@ import javax.xml.namespace.QName;
  */
 public interface MutablePrismSchema extends PrismSchema {
 
-    void setNamespace(@NotNull String namespace);
-
     void add(@NotNull Definition def);
 
     // used for connector and resource schemas

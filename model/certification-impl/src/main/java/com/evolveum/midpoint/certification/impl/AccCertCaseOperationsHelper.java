@@ -55,7 +55,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 @Component
 public class AccCertCaseOperationsHelper {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AccCertCaseOperationsHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccCertCaseOperationsHelper.class);
 
     @Autowired private PrismContext prismContext;
     @Autowired private AccCertExpressionHelper expressionHelper;

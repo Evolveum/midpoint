@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -32,10 +31,9 @@ import org.quartz.*;
  *
  * @author Pavol Mederly
  */
-
 public class RemoteNodesManager {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(RemoteNodesManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RemoteNodesManager.class);
 
     public static final JobKey STARTER_JOB_KEY = JobKey.jobKey("STARTER JOB");
 

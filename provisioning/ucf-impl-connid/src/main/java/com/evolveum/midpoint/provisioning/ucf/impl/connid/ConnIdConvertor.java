@@ -18,6 +18,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -62,11 +63,13 @@ public class ConnIdConvertor {
     private String resourceSchemaNamespace;
     private Protector protector;
     private ConnIdNameMapper connIdNameMapper;
+    private LocalizationService localizationService;
 
-    public ConnIdConvertor(Protector protector, String resourceSchemaNamespace) {
+    ConnIdConvertor(Protector protector, String resourceSchemaNamespace, LocalizationService localizationService) {
         super();
         this.protector = protector;
         this.resourceSchemaNamespace = resourceSchemaNamespace;
+        this.localizationService = localizationService;
     }
 
     public ConnIdNameMapper getConnIdNameMapper() {
@@ -447,11 +450,16 @@ public class ConnIdConvertor {
                 lang.put(key, connIdMapEntry.getValue());
             }
         }
-        if (orig == null) {
+        if (orig != null) {
+            return new PolyString(orig, null, null, lang);
+        } else if (lang == null || lang.isEmpty()) {
             return null;
+        } else {
+            // No orig -- we need to determine it from lang.
+            String language = localizationService.getDefaultLocale().getLanguage();
+            String origForDefaultLanguage = lang.get(language);
+            String computedOrig = origForDefaultLanguage != null ? origForDefaultLanguage : lang.values().iterator().next();
+            return new PolyString(computedOrig, null, null, lang);
         }
-        PolyString polyString = new PolyString(orig);
-        polyString.setLang(lang);
-        return polyString;
     }
 }

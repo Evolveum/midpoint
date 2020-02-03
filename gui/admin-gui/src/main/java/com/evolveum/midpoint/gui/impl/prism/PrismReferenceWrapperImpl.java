@@ -12,10 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 
 /**
@@ -94,4 +91,25 @@ public class PrismReferenceWrapperImpl<R extends Referencable> extends ItemWrapp
         return allEmpty;
     }
 
+    @Override
+    public boolean isImmutable() {
+        // TODO
+        return false;
+    }
+
+    @Override
+    public void freeze() {
+        // TODO
+    }
+
+    @Override
+    public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
+        // TODO
+        return false;
+    }
+
+    @Override
+    public void accept(Visitor<Definition> visitor) {
+        // TODO
+    }
 }

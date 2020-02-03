@@ -28,7 +28,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColumnPanel<PrismPropertyWrapper<T>, PrismPropertyValueWrapper<T>> {
 
     private static final long serialVersionUID = 1L;
-    private static final transient Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperColumnPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperColumnPanel.class);
 
     PrismPropertyWrapperColumnPanel(String id, IModel<PrismPropertyWrapper<T>> model, ColumnType columnType) {
         super(id, model, columnType);

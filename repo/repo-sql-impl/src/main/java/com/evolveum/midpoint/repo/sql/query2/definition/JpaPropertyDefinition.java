@@ -22,13 +22,16 @@ public class JpaPropertyDefinition extends JpaDataNodeDefinition {
     private final boolean enumerated;
     private final boolean indexed;            // unused now (true if @Index-ed)
     private final boolean count;            // "count"-type variable, like RShadow.pendingOperationCount
+    private final boolean neverNull;
 
-    JpaPropertyDefinition(Class jpaClass, Class jaxbClass, boolean lob, boolean enumerated, boolean indexed, boolean count) {
+    JpaPropertyDefinition(Class jpaClass, Class jaxbClass, boolean lob, boolean enumerated, boolean indexed, boolean count,
+            boolean neverNull) {
         super(jpaClass, jaxbClass);
         this.lob = lob;
         this.enumerated = enumerated;
         this.indexed = indexed;
         this.count = count;
+        this.neverNull = neverNull;
     }
 
     public boolean isLob() {
@@ -45,6 +48,10 @@ public class JpaPropertyDefinition extends JpaDataNodeDefinition {
 
     public boolean isCount() {
         return count;
+    }
+
+    public boolean isNeverNull() {
+        return neverNull;
     }
 
     @Override
@@ -78,6 +85,9 @@ public class JpaPropertyDefinition extends JpaDataNodeDefinition {
         }
         if (count) {
             sb.append(", count");
+        }
+        if (neverNull) {
+            sb.append(", non-null");
         }
         return sb.toString();
     }

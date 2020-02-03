@@ -123,6 +123,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="ignoredLocalPath" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path without authentication.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -599,14 +609,30 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="active" type="tns:AuthenticationModuleSaml2SimpleKeyType" minOccurs="0" maxOccurs="1">
+            <xsd:choice>
+                <xsd:element name="activeSimpleKey" type="tns:ModuleSaml2SimpleKeyType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Active key.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="activeKeyStoreKey" type="tns:ModuleSaml2KeyStoreKeyType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Active key.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice> <!--> can use only one of types, but all can be null<-->
+            <xsd:element name="standBySimpleKey" type="tns:ModuleSaml2SimpleKeyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Active key.
+                        Stand-by keys.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="standBy" type="tns:AuthenticationModuleSaml2SimpleKeyType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="standByKeyStoreKey" type="tns:ModuleSaml2KeyStoreKeyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Stand-by keys.
@@ -616,10 +642,10 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleSaml2SimpleKeyType">
+    <xsd:complexType name="AbstractModuleSaml2KeyType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
-                SAML2 active key.
+                Abstract SAML2 key.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -627,15 +653,57 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="privateKey" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="passphrase" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="certificate" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="type" type="tns:AuthenticationModuleSaml2KeyTypeType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="type" type="tns:ModuleSaml2KeyTypeType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="AuthenticationModuleSaml2KeyTypeType">
+    <xsd:complexType name="ModuleSaml2KeyStoreKeyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                SAML2 simple key.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractModuleSaml2KeyType">
+                <xsd:sequence>
+                    <xsd:element name="keyStorePath" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="keyStorePassword" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="keyAlias" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="keyPassword" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="ModuleSaml2SimpleKeyType">
+
+            <xsd:annotation>
+                <xsd:documentation>
+                    SAML2 key from key store. Supported only JKS type of key store.
+                </xsd:documentation>
+                <xsd:appinfo>
+                    <a:container/>
+                    <a:since>4.1</a:since>
+                </xsd:appinfo>
+            </xsd:annotation>
+            <xsd:complexContent>
+            <xsd:extension base="tns:AbstractModuleSaml2KeyType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="privateKey" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="passphrase" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="certificate" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ModuleSaml2KeyTypeType">
         <xsd:annotation>
             <xsd:appinfo>
                 <xsd:documentation>
@@ -746,21 +814,21 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:choice>
-                <xsd:element name="metadataUrl" type="xsd:string">
+                <xsd:element name="metadataUrl" type="xsd:string" minOccurs="1">
                     <xsd:annotation>
                         <xsd:documentation>
                             URL, which show metadata.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="xml" type="xsd:base64Binary">
+                <xsd:element name="xml" type="xsd:base64Binary" minOccurs="1">
                     <xsd:annotation>
                         <xsd:documentation>
                             Xml of metadata encrypted by base64.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="pathToFile" type="xsd:string">
+                <xsd:element name="pathToFile" type="xsd:string" minOccurs="1">
                     <xsd:annotation>
                         <xsd:documentation>
                             Path to xml file, which contains metadata.

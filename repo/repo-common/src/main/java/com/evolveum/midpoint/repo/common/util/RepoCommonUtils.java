@@ -21,7 +21,7 @@ import java.util.List;
  */
 public class RepoCommonUtils {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(RepoCommonUtils.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RepoCommonUtils.class);
 
     public static void processErrorCriticality(Object object, CriticalityType criticality, Throwable e, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException,
     ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {

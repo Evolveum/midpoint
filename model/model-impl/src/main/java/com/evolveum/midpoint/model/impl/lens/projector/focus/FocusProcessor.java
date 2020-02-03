@@ -76,26 +76,24 @@ public class FocusProcessor {
     @Autowired private CredentialsProcessor credentialsProcessor;
     @Autowired private ActivationComputer activationComputer;
 
-
-    public <AH extends AssignmentHolderType, F extends FocusType> void processActivationBeforeAssignments(LensContext<AH> context, XMLGregorianCalendar now,
+    <AH extends AssignmentHolderType, F extends FocusType> void processActivationBeforeAssignments(LensContext<AH> context, XMLGregorianCalendar now,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
 
-        if (!isFocus(context)) {
+        if (isFocus(context)) {
+            //noinspection unchecked
+            processActivationBasic((LensContext<F>) context, now, result);
+        } else {
             LOGGER.trace("Skipping activation processing. Not a focus.");
-            return;
         }
-
-        processActivationBasic((LensContext<F>)context, now, result);
     }
 
     private <AH extends AssignmentHolderType> boolean isFocus(LensContext<AH> context) {
-        return FocusType.class.isAssignableFrom(context.getFocusContext().getObjectTypeClass());
+        LensFocusContext<AH> focusContext = context.getFocusContext();
+        return focusContext != null && focusContext.represents(FocusType.class);
     }
 
-
-
-    public <AH extends AssignmentHolderType, F extends FocusType> void processActivationAfterAssignments(LensContext<AH> context, XMLGregorianCalendar now,
+    <AH extends AssignmentHolderType, F extends FocusType> void processActivationAfterAssignments(LensContext<AH> context, XMLGregorianCalendar now,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
 
@@ -104,15 +102,15 @@ public class FocusProcessor {
         processAssignmentActivation(context, now, result);
     }
 
-    public <AH extends AssignmentHolderType, F extends FocusType> void processCredentials(LensContext<AH> context, XMLGregorianCalendar now,
+    <AH extends AssignmentHolderType, F extends FocusType> void processCredentials(LensContext<AH> context, XMLGregorianCalendar now,
             Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        if (!isFocus(context)) {
-            LOGGER.trace("Skipping activation processing. Not a focus.");
-            return;
+        if (isFocus(context)) {
+            //noinspection unchecked
+            credentialsProcessor.processFocusCredentials((LensContext<F>) context, now, task, result);
+        } else {
+            LOGGER.trace("Skipping credentials processing. Not a focus.");
         }
-
-        credentialsProcessor.processFocusCredentials((LensContext<F>) context, now, task, result);
     }
     private <F extends FocusType> void processActivationBasic(LensContext<F> context, XMLGregorianCalendar now,
             OperationResult result)
@@ -126,7 +124,8 @@ public class FocusProcessor {
 
         processActivationAdministrativeAndValidity(focusContext, now, result);
 
-        if (focusContext.canRepresent(UserType.class)) {
+        if (focusContext.represents(UserType.class)) {
+            //noinspection unchecked
             processActivationLockout((LensFocusContext<UserType>) focusContext, now, result);
         }
     }

@@ -25,12 +25,12 @@ import java.util.Set;
  */
 public abstract class TypeDefinitionImpl extends DefinitionImpl implements TypeDefinition {
 
-    protected QName superType;
+    private QName superType;
     protected Class<?> compileTimeClass;
-    @NotNull protected final Set<TypeDefinition> staticSubTypes = new HashSet<>();
+    @NotNull final Set<TypeDefinition> staticSubTypes = new HashSet<>();
     protected Integer instantiationOrder;
 
-    public TypeDefinitionImpl(QName typeName, PrismContext prismContext) {
+    TypeDefinitionImpl(QName typeName, PrismContext prismContext) {
         super(typeName, prismContext);
     }
 
@@ -40,6 +40,7 @@ public abstract class TypeDefinitionImpl extends DefinitionImpl implements TypeD
     }
 
     public void setSuperType(QName superType) {
+        checkMutable();
         this.superType = superType;
     }
 
@@ -59,6 +60,7 @@ public abstract class TypeDefinitionImpl extends DefinitionImpl implements TypeD
     }
 
     public void setInstantiationOrder(Integer instantiationOrder) {
+        checkMutable();
         this.instantiationOrder = instantiationOrder;
     }
 
@@ -68,6 +70,7 @@ public abstract class TypeDefinitionImpl extends DefinitionImpl implements TypeD
     }
 
     public void setCompileTimeClass(Class<?> compileTimeClass) {
+        checkMutable();
         this.compileTimeClass = compileTimeClass;
     }
 

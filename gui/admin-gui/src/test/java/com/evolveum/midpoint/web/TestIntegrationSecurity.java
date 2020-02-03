@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -30,7 +29,6 @@ import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -47,7 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-admin-gui-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

@@ -19,12 +19,18 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-public class SecurityQuestionsPolicyEvaluator extends CredentialPolicyEvaluator<SecurityQuestionsCredentialsType, SecurityQuestionsCredentialsPolicyType> {
+public class SecurityQuestionsPolicyEvaluator<F extends FocusType> extends
+        CredentialPolicyEvaluator<SecurityQuestionsCredentialsType, SecurityQuestionsCredentialsPolicyType, F> {
+
+    private SecurityQuestionsPolicyEvaluator(Builder<F> builder) {
+        super(builder);
+    }
 
     @Override
     protected ItemPath getCredentialsContainerPath() {
@@ -47,16 +53,19 @@ public class SecurityQuestionsPolicyEvaluator extends CredentialPolicyEvaluator<
     }
 
     @Override
-    protected void validateCredentialContainerValues(
-            PrismContainerValue<SecurityQuestionsCredentialsType> cVal) throws PolicyViolationException,
-                    SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        SecurityQuestionsCredentialsType securityQuestions = cVal.asContainerable();
-        if (securityQuestions != null) {
-            List<SecurityQuestionAnswerType> questionAnswers = securityQuestions.getQuestionAnswer();
-            for (SecurityQuestionAnswerType questionAnswer : questionAnswers) {
-                ProtectedStringType answer = questionAnswer.getQuestionAnswer();
-                validateProtectedStringValue(answer);
-            }
+    protected void validateCredentialContainerValues(PrismContainerValue<SecurityQuestionsCredentialsType> cVal)
+            throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+        List<SecurityQuestionAnswerType> questionAnswers = cVal.asContainerable().getQuestionAnswer();
+        for (SecurityQuestionAnswerType questionAnswer : questionAnswers) {
+            ProtectedStringType answer = questionAnswer.getQuestionAnswer();
+            validateProtectedStringValue(answer);
+        }
+    }
+
+    public static class Builder<F extends FocusType> extends CredentialPolicyEvaluator.Builder<F> {
+        public SecurityQuestionsPolicyEvaluator<F> build() {
+            return new SecurityQuestionsPolicyEvaluator<>(this);
         }
     }
 }

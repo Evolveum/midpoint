@@ -50,6 +50,8 @@ public class AdUtils {
 
     public static final QName OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME = new QName(MidPointConstants.NS_RI, "msExchBaseClass");
 
+    public static final String AD_CONNECTOR_TYPE = "com.evolveum.polygon.connector.ldap.ad.AdLdapConnector";
+
     /**
      * Returns dashed GUID notation formatted from simple hex-encoded binary.
      *

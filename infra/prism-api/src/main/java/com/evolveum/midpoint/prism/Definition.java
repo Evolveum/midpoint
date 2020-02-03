@@ -20,7 +20,7 @@ import java.util.List;
 /**
  *
  */
-public interface Definition extends Serializable, DebugDumpable, Revivable, Cloneable {
+public interface Definition extends Serializable, DebugDumpable, Revivable, Cloneable, Freezable, SmartVisitable<Definition> {
 
     /**
      * Returns a name of the type for this definition.
@@ -200,4 +200,11 @@ public interface Definition extends Serializable, DebugDumpable, Revivable, Clon
     }
 
     MutableDefinition toMutable();
+
+    boolean isImmutable();
+
+    // TODO reconsider/fix this
+    default String getMutabilityFlag() {
+        return isImmutable() ? "" : "+";
+    }
 }

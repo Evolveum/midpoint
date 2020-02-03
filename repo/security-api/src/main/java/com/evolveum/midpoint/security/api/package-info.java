@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2017 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -11,6 +11,5 @@
  * security context and so on.
  *
  * @author semancik
- *
  */
 package com.evolveum.midpoint.security.api;

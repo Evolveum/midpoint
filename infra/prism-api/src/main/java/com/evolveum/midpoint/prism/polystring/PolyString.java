@@ -64,7 +64,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
     }
 
     // TODO: we may need a builder for this ... hopefully I do not expect that there will be
-    // any more properties in a near future
+    //  any more properties in a near future
 
     public PolyString(String orig, String norm, PolyStringTranslationType translation) {
         this(orig, norm, translation, null);

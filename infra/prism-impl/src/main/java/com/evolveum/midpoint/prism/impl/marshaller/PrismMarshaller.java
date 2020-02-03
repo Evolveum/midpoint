@@ -22,6 +22,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -408,6 +410,11 @@ public class PrismMarshaller {
         if (resolutionTime != null) {
             xmap.put(createReferenceQName(XNodeImpl.KEY_REFERENCE_RESOLUTION_TIME, namespace),
                     createPrimitiveXNode(resolutionTime.value(), DOMUtil.XSD_STRING));
+        }
+        ReferentialIntegrityType referentialIntegrity = value.getReferentialIntegrity();
+        if (referentialIntegrity != null) {
+            xmap.put(createReferenceQName(XNodeImpl.KEY_REFERENCE_REFERENTIAL_INTEGRITY, namespace),
+                    createPrimitiveXNode(referentialIntegrity.value(), DOMUtil.XSD_STRING));
         }
         if (value.getTargetName() != null) {
             if (SerializationContext.isSerializeReferenceNames(ctx) ||

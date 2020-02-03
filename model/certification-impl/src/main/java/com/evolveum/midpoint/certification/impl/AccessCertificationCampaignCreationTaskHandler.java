@@ -38,7 +38,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
     @Autowired private TaskManager taskManager;
     @Autowired private CertificationManagerImpl certificationManager;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationCampaignCreationTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationCampaignCreationTaskHandler.class);
 
     @PostConstruct
     private void initialize() {

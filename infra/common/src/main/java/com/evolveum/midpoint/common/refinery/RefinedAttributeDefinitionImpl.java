@@ -198,6 +198,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 
     @Override
     public void setDisplayName(String displayName) {
+        checkMutable();
         this.displayName = displayName;
     }
 
@@ -354,6 +355,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     }
 
     public void setMatchingRuleQName(QName matchingRuleQName) {
+        checkMutable();
         this.matchingRuleQName = matchingRuleQName;
     }
 

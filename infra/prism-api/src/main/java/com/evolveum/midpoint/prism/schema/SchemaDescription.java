@@ -7,60 +7,47 @@
 
 package com.evolveum.midpoint.prism.schema;
 
+import com.evolveum.midpoint.prism.Freezable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import org.w3c.dom.Element;
 
-import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import java.io.InputStream;
-import java.util.Map;
 
 /**
- *
+ * Schema (prism or non-prism) with additional information.
  */
-public interface SchemaDescription extends DebugDumpable {
+public interface SchemaDescription extends DebugDumpable, Freezable {
 
+    /**
+     * @return Path to schema source data (e.g. XSD file) - if known.
+     */
     String getPath();
 
-    void setResourcePath(String path);
-
+    /**
+     * @return Namespace for elements in this schema.
+     */
     String getNamespace();
 
-    void setNamespace(String namespace);
-
+    /**
+     * @return Prefix that is usually used for this schema/namespace (e.g. "c" for common-3).
+     */
     String getUsualPrefix();
 
-    void setUsualPrefix(String usualPrefix);
-
-    String getSourceDescription();
-
-    void setSourceDescription(String sourceDescription);
-
-    void setPath(String path);
-
-    boolean isPrismSchema();
-
-    void setPrismSchema(boolean isMidPointSchema);
+    /**
+     * @return True if this prefix should be declared in XML files by default at the top of the file.
+     */
+    boolean isDeclaredByDefault();
 
     boolean isDefault();
 
-    void setDefault(boolean isDefault);
+    String getSourceDescription();
 
-    boolean isDeclaredByDefault();
-
-    void setDeclaredByDefault(boolean isDeclaredByDefault);
+    boolean isPrismSchema();
 
     PrismSchema getSchema();
 
-    void setSchema(PrismSchema schema);
-
     Package getCompileTimeClassesPackage();
-
-    void setCompileTimeClassesPackage(Package compileTimeClassesPackage);
-
-    Map<QName, Class<?>> getXsdTypeTocompileTimeClassMap();
-
-    void setXsdTypeTocompileTimeClassMap(Map<QName, Class<?>> xsdTypeTocompileTimeClassMap);
 
     boolean canInputStream();
 

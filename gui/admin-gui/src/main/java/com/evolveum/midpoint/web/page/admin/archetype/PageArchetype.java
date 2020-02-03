@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -25,20 +25,16 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractRoleMainPanel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-
 
 @PageDescriptor(
         url  = "/admin/archetype",

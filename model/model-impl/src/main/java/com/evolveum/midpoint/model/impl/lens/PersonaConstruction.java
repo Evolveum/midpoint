@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
 
@@ -18,13 +17,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionT
  */
 public class PersonaConstruction<F extends AssignmentHolderType> extends AbstractConstruction<F, PersonaConstructionType> {
 
-    public PersonaConstruction(PersonaConstructionType constructionType, ObjectType source) {
+    PersonaConstruction(PersonaConstructionType constructionType, ObjectType source) {
         super(constructionType, source);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.util.DebugDumpable#debugDump(int)
-     */
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
@@ -50,4 +46,8 @@ public class PersonaConstruction<F extends AssignmentHolderType> extends Abstrac
 
     }
 
+    @Override
+    public boolean isIgnored() {
+        return false;
+    }
 }

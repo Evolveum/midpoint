@@ -48,12 +48,13 @@ public class SchemaProcessorTest {
 
     @Test
     public void testAccessList() throws Exception {
-        String filename = "src/test/resources/processor/resource-schema-complex.xsd";
-        Document schemaDom = DOMUtil.parseFile(filename);
-        ResourceSchema schema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(schemaDom), filename, PrismTestUtil.getPrismContext());
-
         final String defaultNS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
         final String icfNS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+
+        String filename = "src/test/resources/processor/resource-schema-complex.xsd";
+        Document schemaDom = DOMUtil.parseFile(filename);
+        ResourceSchema schema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(schemaDom), defaultNS, filename, PrismTestUtil.getPrismContext());
+
         ObjectClassComplexTypeDefinition objectDef = schema.findObjectClassDefinition(new ItemName(defaultNS, "AccountObjectClass"));
         assertNotNull("AccountObjectClass definition not found", objectDef);
 
@@ -188,7 +189,8 @@ public class SchemaProcessorTest {
 
         Document parsedXsd = DOMUtil.parseDocument(stringXmlSchema);
 
-        ResourceSchema newSchema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(parsedXsd), "serialized schema", PrismTestUtil.getPrismContext());
+        ResourceSchema newSchema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(parsedXsd), SCHEMA_NS,
+                "serialized schema", PrismTestUtil.getPrismContext());
 
         System.out.println("Resource schema after parsing from XSD: ");
         System.out.println(newSchema.debugDump());

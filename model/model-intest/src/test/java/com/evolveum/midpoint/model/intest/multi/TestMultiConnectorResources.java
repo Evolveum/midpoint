@@ -48,7 +48,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
 
     public static final File TEST_DIR = new File("src/test/resources/multi-connector");
 
-    private static Trace LOGGER = TraceManager.getTrace(TestMultiConnectorResources.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestMultiConnectorResources.class);
 
     // Black dummy resource for testing tolerant attributes
     protected static final File RESOURCE_DUMMY_OPALINE_FILE = new File(TEST_DIR, "resource-dummy-opaline.xml");

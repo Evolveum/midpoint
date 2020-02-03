@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -22,7 +22,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
- *
  */
 public class ProvisioningOperationState<A extends AsynchronousOperationResult> implements ShortDumpable {
 

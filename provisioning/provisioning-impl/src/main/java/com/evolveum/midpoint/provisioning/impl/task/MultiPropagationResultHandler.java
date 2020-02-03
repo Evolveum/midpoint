@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -8,7 +8,6 @@ package com.evolveum.midpoint.provisioning.impl.task;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -32,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public class MultiPropagationResultHandler extends AbstractSearchIterativeResultHandler<ResourceType> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MultiPropagationResultHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MultiPropagationResultHandler.class);
 
     private final RepositoryService repositoryService;
     private final ShadowCache shadowCache;

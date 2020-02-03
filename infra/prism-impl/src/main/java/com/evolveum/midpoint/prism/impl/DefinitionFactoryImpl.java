@@ -21,7 +21,7 @@ public class DefinitionFactoryImpl implements DefinitionFactory {
 
     @NotNull private final PrismContextImpl prismContext;
 
-    public DefinitionFactoryImpl(@NotNull PrismContextImpl prismContext) {
+    DefinitionFactoryImpl(@NotNull PrismContextImpl prismContext) {
         this.prismContext = prismContext;
     }
 

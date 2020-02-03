@@ -41,7 +41,9 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
 
     private Object credential;
 
-    private Collection<GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
+    private String sessionId;
+
+    private Collection<? extends GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
@@ -79,10 +81,10 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
 
     @Override
     public Collection<GrantedAuthority> getAuthorities() {
-        return authorities;
+        return (Collection<GrantedAuthority>) authorities;
     }
 
-    public void setAuthorities(Collection<GrantedAuthority> authorities) {
+    public void setAuthorities(Collection<? extends GrantedAuthority> authorities) {
         this.authorities = authorities;
     }
 
@@ -111,6 +113,14 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
     @Override
     public void setAuthenticated(boolean authenticated) {
         throw new IllegalArgumentException("This method is not supported");
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    public String getSessionId() {
+        return sessionId;
     }
 
     @Override

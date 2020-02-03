@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -13,7 +13,6 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
@@ -29,7 +28,6 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 
 import java.util.Locale;
 

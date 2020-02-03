@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.ConstantCondition;
 import com.evolveum.midpoint.repo.sql.query2.resolution.HqlDataInstance;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
@@ -21,7 +22,6 @@ import com.evolveum.midpoint.repo.sql.query2.definition.JpaPropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.OrCondition;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -53,7 +53,8 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
     @Override
     public Condition interpretInternal() throws QueryException {
 
-        if (linkDefinition.getTargetDefinition().isLob()) {
+        JpaPropertyDefinition propertyDefinition = linkDefinition.getTargetDefinition();
+        if (propertyDefinition.isLob()) {
             throw new QueryException("Can't query based on clob property value '" + linkDefinition + "'.");
         }
 
@@ -62,12 +63,17 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
             return createPropertyVsPropertyCondition(propertyValuePath);
         } else {
             Object value = getValueFromFilter(filter);
-            Condition condition = createPropertyVsConstantCondition(propertyValuePath, value, filter);
-            return addIsNotNullIfNecessary(condition, propertyValuePath);
+            if (value == null && propertyDefinition.isNeverNull()) {
+                LOGGER.warn("Checking nullity of non-null property {} (filter = {})", propertyDefinition, filter);
+                return new ConstantCondition(context.getHibernateQuery(), false);
+            } else {
+                Condition condition = createPropertyVsConstantCondition(propertyValuePath, value, filter);
+                return addIsNotNullIfNecessary(condition, propertyValuePath);
+            }
         }
     }
 
-    protected Condition createPropertyVsPropertyCondition(String leftPropertyValuePath) throws QueryException {
+    Condition createPropertyVsPropertyCondition(String leftPropertyValuePath) throws QueryException {
         HqlDataInstance rightItem = getItemPathResolver().resolveItemPath(filter.getRightHandSidePath(),
                 filter.getRightHandSideDefinition(), getBaseHqlEntityForChildren(), true);
         String rightHqlPath = rightItem.getHqlPath();
@@ -83,24 +89,22 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
         if (filter instanceof EqualFilter) {
             // left = right OR (left IS NULL AND right IS NULL)
             Condition condition = hibernateQuery.createCompareXY(leftPropertyValuePath, rightHqlPath, "=", false);
-            OrCondition orCondition = hibernateQuery.createOr(
+            return hibernateQuery.createOr(
                     condition,
                     hibernateQuery.createAnd(
                             hibernateQuery.createIsNull(leftPropertyValuePath),
                             hibernateQuery.createIsNull(rightHqlPath)
                     )
             );
-            return orCondition;
         } else if (filter instanceof ComparativeFilter) {
             ItemRestrictionOperation operation = findOperationForFilter(filter);
-            Condition condition = hibernateQuery.createCompareXY(leftPropertyValuePath, rightHqlPath, operation.symbol(), false);
-            return condition;
+            return hibernateQuery.createCompareXY(leftPropertyValuePath, rightHqlPath, operation.symbol(), false);
         } else {
             throw new QueryException("Right-side ItemPath is supported currently only for EqualFilter or ComparativeFilter, not for " + filter);
         }
     }
 
-    protected Object getValueFromFilter(ValueFilter filter) throws QueryException {
+    private Object getValueFromFilter(ValueFilter filter) throws QueryException {
 
         JpaPropertyDefinition def = linkDefinition.getTargetDefinition();
 
@@ -111,67 +115,70 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
             throw new QueryException("Unknown filter '" + filter + "', can't get value from it.");
         }
 
-        value = checkValueType(value, filter);
+        Object adaptedValue = adaptValueType(value, filter);
 
         if (def.isEnumerated()) {
-            value = getRepoEnumValue((Enum) value, def.getJpaClass());
+            return getRepoEnumValue((Enum) adaptedValue, def.getJpaClass());
+        } else {
+            return adaptedValue;
         }
-
-        return value;
     }
 
-    private Object checkValueType(Object value, ValueFilter filter) throws QueryException {
+    private Object adaptValueType(Object value, ValueFilter filter) throws QueryException {
 
-        Class expectedType = linkDefinition.getTargetDefinition().getJaxbClass();
+        Class<?> expectedType = linkDefinition.getTargetDefinition().getJaxbClass();
         if (expectedType == null || value == null) {
             return value;   // nothing to check here
         }
 
+        Class<?> expectedWrappedType;
         if (expectedType.isPrimitive()) {
-            expectedType = ClassUtils.primitiveToWrapper(expectedType);
+            expectedWrappedType = ClassUtils.primitiveToWrapper(expectedType);
+        } else {
+            expectedWrappedType = expectedType;
         }
 
+        Object adaptedValue;
         //todo remove after some time [lazyman]
         //attempt to fix value type for polystring (if it was string in filter we create polystring from it)
-        if (PolyString.class.equals(expectedType) && (value instanceof String)) {
+        if (PolyString.class.equals(expectedWrappedType) && value instanceof String) {
             LOGGER.debug("Trying to query PolyString value but filter contains String '{}'.", filter);
             String orig = (String) value;
-            value = new PolyString(orig, context.getPrismContext().getDefaultPolyStringNormalizer().normalize(orig));
-        }
-        //attempt to fix value type for polystring (if it was polystringtype in filter we create polystring from it)
-        if (PolyString.class.equals(expectedType) && (value instanceof PolyStringType)) {
+            adaptedValue = new PolyString(orig, context.getPrismContext().getDefaultPolyStringNormalizer().normalize(orig));
+        } else if (PolyString.class.equals(expectedWrappedType) && value instanceof PolyStringType) {
+            //attempt to fix value type for polystring (if it was polystring type in filter we create polystring from it)
             LOGGER.debug("Trying to query PolyString value but filter contains PolyStringType '{}'.", filter);
             PolyStringType type = (PolyStringType) value;
-            value = new PolyString(type.getOrig(), type.getNorm());
-        }
-
-        if (String.class.equals(expectedType) && (value instanceof QName)) {
+            adaptedValue = new PolyString(type.getOrig(), type.getNorm());
+        } else if (String.class.equals(expectedWrappedType) && value instanceof QName) {
             //eg. shadow/objectClass
-            value = RUtil.qnameToString((QName) value);
-        }
-
-        if (value instanceof RawType) {     // MID-3850: but it's quite a workaround. Maybe we should treat RawType's earlier than this.
+            adaptedValue = RUtil.qnameToString((QName) value);
+        } else if (value instanceof RawType) {     // MID-3850: but it's quite a workaround. Maybe we should treat RawType's earlier than this.
             try {
-                return ((RawType) value).getParsedRealValue(expectedType);
+                adaptedValue = ((RawType) value).getParsedRealValue(expectedWrappedType);
             } catch (SchemaException e) {
-                throw new QueryException("Couldn't parse value " + value + " as " + expectedType + ": " + e.getMessage(), e);
+                throw new QueryException("Couldn't parse value " + value + " as " + expectedWrappedType + ": " + e.getMessage(), e);
             }
+        } else {
+            adaptedValue = value;
         }
 
-        if (!expectedType.isAssignableFrom(value.getClass())) {
-            throw new QueryException("Value should be type of '" + expectedType + "' but it's '"
+        if (expectedWrappedType.isAssignableFrom(adaptedValue.getClass())) {
+            return adaptedValue;
+        } else {
+            throw new QueryException("Value should be type of '" + expectedWrappedType + "' but it's '"
                     + value.getClass() + "', filter '" + filter + "'.");
         }
-        return value;
     }
 
-    private Enum getRepoEnumValue(Enum schemaValue, Class repoType) throws QueryException {
+    private Enum getRepoEnumValue(Enum<?> schemaValue, Class<?> repoType) throws QueryException {
         if (schemaValue == null) {
             return null;
         }
 
         if (SchemaEnum.class.isAssignableFrom(repoType)) {
-            return (Enum) RUtil.getRepoEnumValue(schemaValue, repoType);
+            //noinspection unchecked
+            return (Enum) RUtil.getRepoEnumValue(schemaValue, (Class<? extends SchemaEnum>) repoType);
         }
 
         Object[] constants = repoType.getEnumConstants();

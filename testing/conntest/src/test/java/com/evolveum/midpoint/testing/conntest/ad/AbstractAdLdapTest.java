@@ -217,6 +217,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         return false;
     }
 
+    protected String getLdapConnectorClassName() { return AdUtils.AD_CONNECTOR_TYPE; }
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);

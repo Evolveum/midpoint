@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -29,7 +28,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
  */
 public class Initializer {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(Initializer.class);
+    private static final Trace LOGGER = TraceManager.getTrace(Initializer.class);
 
     private TaskManagerQuartzImpl taskManager;
 

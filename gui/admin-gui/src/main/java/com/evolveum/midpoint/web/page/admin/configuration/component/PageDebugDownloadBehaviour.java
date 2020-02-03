@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.*;
@@ -21,7 +20,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromFile;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
-import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -35,7 +33,6 @@ import org.apache.wicket.util.file.Files;
 import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -19,7 +20,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -126,7 +126,10 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected AvailableRelationDto getSupportedRelations() {
-        return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, getPageBase()));
+        AvailableRelationDto availableRelationDto =
+                new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, getPageBase()));
+        availableRelationDto.setDefaultRelation(PrismConstants.Q_ANY);
+        return availableRelationDto;
     }
 
     @Override

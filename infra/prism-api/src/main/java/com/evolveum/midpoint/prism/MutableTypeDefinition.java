@@ -11,5 +11,6 @@ package com.evolveum.midpoint.prism;
  *
  */
 public interface MutableTypeDefinition extends MutableDefinition {
+
     void setInstantiationOrder(Integer order);
 }

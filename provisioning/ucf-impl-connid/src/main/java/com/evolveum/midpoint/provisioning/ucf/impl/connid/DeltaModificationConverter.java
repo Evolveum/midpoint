@@ -62,7 +62,7 @@ public class DeltaModificationConverter extends AbstractModificationConverter {
                 // Update attribute to no values. This will efficiently clean up the attribute.
                 // It should also make no substantial difference in such case.
                 // But it is working around some connector bugs.
-                // update with EMTPY value. The connIdAttributeValues is NOT used in this branch
+                // update with EMPTY value. The connIdAttributeValues is NOT used in this branch
                 // Explicitly replace with empty list. Passing null here would mean "no replace in this delta".
                 deltaBuilder.addValueToReplace(Collections.EMPTY_LIST);
             }

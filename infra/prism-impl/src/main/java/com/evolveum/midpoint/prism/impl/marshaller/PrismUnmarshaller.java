@@ -76,6 +76,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 import com.google.common.collect.ImmutableSet;
 
@@ -620,6 +621,12 @@ public class PrismUnmarshaller {
             refVal.setResolutionTime(resolutionTime);
         }
 
+        String referentialIntegrityString = map.getParsedPrimitiveValue(XNodeImpl.KEY_REFERENCE_REFERENTIAL_INTEGRITY,
+                DOMUtil.XSD_STRING);
+        if (referentialIntegrityString != null) {
+            refVal.setReferentialIntegrity(ReferentialIntegrityType.fromValue(referentialIntegrityString));
+        }
+
         XNodeImpl xnodeForTargetName = map.get(XNodeImpl.KEY_REFERENCE_TARGET_NAME);
         if (xnodeForTargetName != null) {
             PolyStringType targetName = beanUnmarshaller.unmarshal(xnodeForTargetName, PolyStringType.class, pc);
@@ -709,7 +716,6 @@ public class PrismUnmarshaller {
 
         PrismReferenceValue refVal = new PrismReferenceValueImpl();
         setReferenceObject(refVal, compositeObject);
-        ((PrismReferenceDefinitionImpl) definition).setComposite(true);             // TODO why do we modify the definition? is that safe?
         return refVal;
     }
 

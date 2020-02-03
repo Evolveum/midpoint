@@ -7,20 +7,15 @@
 package com.evolveum.midpoint.web.security.module;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.security.*;
 import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
-import com.evolveum.midpoint.web.security.filter.PreLogoutFilter;
 import com.evolveum.midpoint.web.security.filter.RedirectForLoginPagesWithAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
@@ -36,7 +31,6 @@ import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.csrf.CsrfFilter;
-import org.springframework.security.web.header.HeaderWriterFilter;
 
 import java.util.UUID;
 
@@ -47,7 +41,7 @@ import java.util.UUID;
 public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private MidPointAccessDeniedHandler accessDeniedHandler;
+    private AuditedAccessDeniedHandler accessDeniedHandler;
 
     @Autowired
     private SessionRegistry sessionRegistry;

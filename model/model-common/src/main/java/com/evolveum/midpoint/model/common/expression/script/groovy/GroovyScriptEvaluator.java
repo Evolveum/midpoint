@@ -28,12 +28,9 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionPermissionProfile;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import groovy.lang.Binding;
 import groovy.lang.GString;
@@ -47,7 +44,7 @@ import groovy.transform.CompileStatic;
  * @author Radovan Semancik
  * "Sandboxing" based on type checking inspired by work of Cédric Champeau (http://melix.github.io/blog/2015/03/sandboxing.html)
  */
-public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<GroovyClassLoader,Class> {
+public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<GroovyClassLoader, Class<?>> {
 
     public static final String LANGUAGE_NAME = "Groovy";
     public static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
@@ -65,10 +62,6 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
      * or denied.
      */
     private static final ScriptExpressionProfile BUILTIN_SCRIPT_EXPRESSION_PROFILE = new ScriptExpressionProfile(BUILTIN_EXPRESSION_PROFILE_NAME);
-
-    private static final Trace LOGGER = TraceManager.getTrace(GroovyScriptEvaluator.class);
-
-//    private GroovyClassLoader allmightyGroovyLoader;
 
     public GroovyScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
         super(prismContext, protector, localizationService);
@@ -107,7 +100,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
     }
 
     @Override
-    protected Class compileScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException, SecurityViolationException {
+    protected Class<?> compileScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException, SecurityViolationException {
         try {
             return getGroovyLoader(context).parseClass(codeString, context.getContextDescription());
         } catch (MultipleCompilationErrorsException e) {
@@ -162,7 +155,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
     }
 
     private String getSandboxError(MultipleCompilationErrorsException e) {
-        List errors = e.getErrorCollector().getErrors();
+        List<?> errors = e.getErrorCollector().getErrors();
         if (errors == null) {
             return null;
         }
@@ -190,7 +183,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
     }
 
     @Override
-    protected Object evaluateScript(Class compiledScriptClass, ScriptExpressionEvaluationContext context) throws Exception {
+    protected Object evaluateScript(Class<?> compiledScriptClass, ScriptExpressionEvaluationContext context) throws Exception {
 
         if (!Script.class.isAssignableFrom(compiledScriptClass)) {
             throw new ExpressionEvaluationException("Expected groovy script class, but got "+compiledScriptClass);

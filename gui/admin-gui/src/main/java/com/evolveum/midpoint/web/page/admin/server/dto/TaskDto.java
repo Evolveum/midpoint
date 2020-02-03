@@ -77,7 +77,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String CLASS_DOT = TaskDto.class.getName() + ".";
     public static final String OPERATION_NEW = CLASS_DOT + "new";
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskDto.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskDto.class);
     public static final String F_MODEL_OPERATION_STATUS = "modelOperationStatus";
     public static final String F_SUBTASKS = "subtasks";
     public static final String F_NAME = "name";

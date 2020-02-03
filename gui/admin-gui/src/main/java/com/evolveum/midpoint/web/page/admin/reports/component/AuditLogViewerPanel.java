@@ -20,8 +20,19 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.session.AuditLogStorage;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -74,13 +85,7 @@ import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.fasterxml.jackson.databind.type.CollectionType;
 
 /**
  * Created by honchar.
@@ -91,6 +96,23 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     private static final String ID_PARAMETERS_PANEL = "parametersPanel";
     private static final String ID_TABLE = "table";
     private static final String ID_FROM = "fromField";
+    private static final String ID_FROM_FIELD_HELP = "fromFieldHelp";
+    private static final String ID_TO_FIELD_HELP = "toFieldHelp";
+    private static final String ID_TARGET_NAME_FIELD_HELP = "targetNameFieldHelp";
+    private static final String ID_TARGET_OWNER_NAME_FIELD_HELP = "targetOwnerNameFieldHelp";
+    private static final String ID_INITIATOR_NAME_FIELD_HELP = "initiatorNameFieldHelp";
+    private static final String ID_CHANGED_ITEM_FIELD_HELP = "changedItemFieldHelp";
+    private static final String ID_EVENT_TYPE_FIELD_HELP = "eventTypeFieldHelp";
+    private static final String ID_EVENT_STAGE_FIELD_HELP = "eventStageFieldHelp";
+    private static final String ID_OUTCOME_FIELD_HELP = "outcomeFieldHelp";
+    private static final String ID_CHANNEL_FIELD_HELP = "channelFieldHelp";
+    private static final String ID_HOST_ID_FIELD_HELP = "hostIdentifierFieldHelp";
+    private static final String ID_REQUEST_ID_FIELD_HELP = "requestIdentifierFieldHelp";
+    private static final String ID_VALUE_REF_TARGET_NAMES_FIELD_HELP = "valueRefTargetNamesFieldHelp";
+    private static final String ID_USED_QUERY_FIELD_HELP = "usedQueryFieldHelp";
+    private static final String ID_USED_INTERVAL_FIELD_HELP = "usedIntervalFieldHelp";
+    private static final String ID_RESOURCE_OID_FIELD = "resourceOidField";
+    private static final String ID_RESOURCE_OID_FIELD_HELP = "resourceOidFieldHelp";
     private static final String ID_TO = "toField";
     private static final String ID_INITIATOR_NAME = "initiatorNameField";
     private static final String ID_TARGET_NAME_FIELD = "targetNameField";
@@ -111,6 +133,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     private static final String ID_USED_INTERVAL = "usedIntervalField";
     private static final String ID_USED_INTERVAL_CONTAINER = "usedIntervalContainer";
     private static final String ID_REQUEST_IDENTIFIER_FIELD = "requestIdentifierField";
+    private static final String ID_RESOURCE_OID_CONTAINER = "resourceOidContainer";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_BUTTON = "searchButton";
@@ -121,6 +144,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
     private static final String OPERATION_RESOLVE_REFENRENCE_NAME = AuditLogViewerPanel.class.getSimpleName()
             + ".resolveReferenceName()";
+    private static final String OPERATION_LOAD_AUDIT_CONFIGURATION = AuditLogViewerPanel.class.getSimpleName()
+            + ".isResourceOidAuditEnabled()";
 
     private static final int DEFAULT_PAGE_SIZE = 10;
 
@@ -165,6 +190,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
         from.setOutputMarkupId(true);
         parametersPanel.add(from);
+        parametersPanel.add(getHelpComponent(ID_FROM_FIELD_HELP, WebPrismUtil.getHelpText(getItemDefinition(AuditEventRecordType.F_TIMESTAMP))));
 
         DatePanel to = new DatePanel(ID_TO, new PropertyModel<>(getModel(),
             AuditSearchDto.F_TO));
@@ -178,11 +204,26 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
         to.setOutputMarkupId(true);
         parametersPanel.add(to);
+        parametersPanel.add(getHelpComponent(ID_TO_FIELD_HELP, WebPrismUtil.getHelpText(getItemDefinition(AuditEventRecordType.F_TIMESTAMP))));
+
+        WebMarkupContainer resourceOidContainer = new WebMarkupContainer(ID_RESOURCE_OID_CONTAINER);
+        resourceOidContainer.setOutputMarkupId(true);
+        resourceOidContainer.add(new VisibleBehaviour(() -> isResourceOidAuditEnabled()));
+        parametersPanel.add(resourceOidContainer);
+
+        TextPanel<String> resourceOidFiels = new TextPanel<>(ID_RESOURCE_OID_FIELD, new PropertyModel<>(getModel(),
+                AuditSearchDto.F_RESOURCE_OID));
+        resourceOidFiels.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        resourceOidFiels.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        resourceOidFiels.setOutputMarkupId(true);
+        resourceOidContainer.add(resourceOidFiels);
+        resourceOidContainer.add(getHelpComponent(ID_RESOURCE_OID_FIELD_HELP, ""));
 
         ItemPathPanel changedItemPanel = new ItemPathPanel(ID_CHANGED_ITEM, new PropertyModel<>(getModel(),
             AuditSearchDto.F_CHANGED_ITEM));
         changedItemPanel.setOutputMarkupId(true);
         parametersPanel.add(changedItemPanel);
+        parametersPanel.add(getHelpComponent(ID_CHANGED_ITEM_FIELD_HELP, ""));
 
         TextPanel<String> hostIdentifier = new TextPanel<>(ID_HOST_IDENTIFIER, new PropertyModel<>(getModel(),
                 AuditSearchDto.F_HOST_IDENTIFIER));
@@ -190,6 +231,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         hostIdentifier.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         hostIdentifier.setOutputMarkupId(true);
         parametersPanel.add(hostIdentifier);
+        parametersPanel.add(getHelpComponent(ID_HOST_ID_FIELD_HELP,
+                WebPrismUtil.getHelpText(getItemDefinition(AuditEventRecordType.F_HOST_IDENTIFIER))));
 
         TextPanel<String> requestIdentifier = new TextPanel<>(ID_REQUEST_IDENTIFIER_FIELD, new PropertyModel<>(getModel(),
                 AuditSearchDto.F_REQUEST_IDENTIFIER));
@@ -197,6 +240,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         requestIdentifier.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         requestIdentifier.setOutputMarkupId(true);
         parametersPanel.add(requestIdentifier);
+        parametersPanel.add(getHelpComponent(ID_REQUEST_ID_FIELD_HELP,
+                WebPrismUtil.getHelpText(getItemDefinition(AuditEventRecordType.F_REQUEST_IDENTIFIER))));
 
         WebMarkupContainer usedQueryContainer = new WebMarkupContainer(ID_USED_QUERY_CONTAINER);
         usedQueryContainer.add(getVisibleBehaviourForUsedQueryComponent());
@@ -208,6 +253,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         usedQuery.setOutputMarkupId(true);
         usedQuery.setEnabled(false);
         usedQueryContainer.add(usedQuery);
+        usedQueryContainer.add(getHelpComponent(ID_USED_QUERY_FIELD_HELP, ""));
 
         WebMarkupContainer usedIntervalContainer = new WebMarkupContainer(ID_USED_INTERVAL_CONTAINER);
         usedIntervalContainer.setOutputMarkupId(true);
@@ -219,6 +265,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         usedInterval.setOutputMarkupId(true);
         usedInterval.setEnabled(false);
         usedIntervalContainer.add(usedInterval);
+        usedIntervalContainer.add(getHelpComponent(ID_USED_INTERVAL_FIELD_HELP, ""));
 
         DropDownChoicePanel<AuditEventTypeType> eventType = new DropDownChoicePanel<>(
             ID_EVENT_TYPE, new PropertyModel<>(
@@ -229,6 +276,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         eventType.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         eventType.setOutputMarkupId(true);
         parametersPanel.add(eventType);
+        parametersPanel.add(getHelpComponent(ID_EVENT_TYPE_FIELD_HELP,
+                WebPrismUtil.getHelpText(getItemDefinition(AuditEventRecordType.F_EVENT_TYPE))));
 
         WebMarkupContainer eventStage = new WebMarkupContainer(ID_EVENT_STAGE);
         eventStage.setOutputMarkupId(true);
@@ -255,6 +304,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         eventStageField.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         eventStageField.setOutputMarkupId(true);
         eventStage.add(eventStageField);
+        eventStage.add(getHelpComponent(ID_EVENT_STAGE_FIELD_HELP,
+                WebPrismUtil.getHelpText(getItemDefinition(AuditEventRecordType.F_EVENT_STAGE))));
 
         ListModel<OperationResultStatusType> outcomeListModel = new ListModel<>(Arrays.asList(OperationResultStatusType.values()));
         PropertyModel<OperationResultStatusType> outcomeModel = new PropertyModel<>(getModel(), AuditSearchDto.F_OUTCOME);
@@ -264,6 +315,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         outcome.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         outcome.setOutputMarkupId(true);
         parametersPanel.add(outcome);
+        parametersPanel.add(getHelpComponent(ID_OUTCOME_FIELD_HELP,
+                WebPrismUtil.getHelpText(getItemDefinition(AuditEventRecordType.F_OUTCOME))));
 
         List<String> channelList = WebComponentUtil.getChannelList();
         List<QName> channelQnameList = new ArrayList<>();
@@ -284,6 +337,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         channel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         channel.setOutputMarkupId(true);
         parametersPanel.add(channel);
+        parametersPanel.add(getHelpComponent(ID_CHANNEL_FIELD_HELP,
+                WebPrismUtil.getHelpText(getItemDefinition(AuditEventRecordType.F_CHANNEL))));
 
         List<Class<? extends ObjectType>> allowedClasses = new ArrayList<>();
         allowedClasses.add(UserType.class);
@@ -291,6 +346,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                 ID_INITIATOR_NAME, allowedClasses, objectReferenceTransformer,
                 new PropertyModel<>(getModel(), AuditSearchDto.F_INITIATOR_NAME));
         parametersPanel.add(chooseInitiatorPanel);
+        parametersPanel.add(getHelpComponent(ID_INITIATOR_NAME_FIELD_HELP,
+                WebPrismUtil.getHelpText(getItemDefinition(AuditEventRecordType.F_INITIATOR_REF))));
 
         WebMarkupContainer targetOwnerName = new WebMarkupContainer(ID_TARGET_OWNER_NAME);
         targetOwnerName.add(new VisibleEnableBehaviour() {
@@ -308,6 +365,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                 ID_TARGET_OWNER_NAME_FIELD, allowedClasses, objectReferenceTransformer,
                 new PropertyModel<>(getModel(), AuditSearchDto.F_TARGET_OWNER_NAME));
         targetOwnerName.add(chooseTargetOwnerPanel);
+        targetOwnerName.add(getHelpComponent(ID_TARGET_OWNER_NAME_FIELD_HELP,
+                WebPrismUtil.getHelpText(getItemDefinition(AuditEventRecordType.F_TARGET_OWNER_REF))));
 
         WebMarkupContainer targetName = new WebMarkupContainer(ID_TARGET_NAME);
         targetName.add(new VisibleEnableBehaviour() {
@@ -330,6 +389,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             allowedClassesAll);
         chooseTargetPanel.setOutputMarkupId(true);
         targetName.add(chooseTargetPanel);
+        targetName.add(getHelpComponent(ID_TARGET_NAME_FIELD_HELP,
+                WebPrismUtil.getHelpText(getItemDefinition(AuditEventRecordType.F_TARGET_REF))));
 
         AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
                 createStringResource("BasicSearchPanel.search")) {
@@ -384,6 +445,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             allowedClassesAll);
         chooseValueRefTargetNamePanel.setOutputMarkupId(true);
         valueRefTargetNameContainer.add(chooseValueRefTargetNamePanel);
+        valueRefTargetNameContainer.add(getHelpComponent(ID_VALUE_REF_TARGET_NAMES_FIELD_HELP, ""));
 
     }
 
@@ -448,6 +510,9 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         parameters.put(AuditEventRecordProvider.PARAMETER_HOST_IDENTIFIER, search.getHostIdentifier());
         parameters.put(AuditEventRecordProvider.PARAMETER_REQUEST_IDENTIFIER, search.getRequestIdentifier());
 
+        if (StringUtils.isNotEmpty(search.getResourceOid())){
+            parameters.put(AuditEventRecordProvider.PARAMETER_RESOURCE_OID, search.getResourceOid());
+        }
         if (search.getInitiatorName() != null) {
             parameters.put(AuditEventRecordProvider.PARAMETER_INITIATOR_NAME, search.getInitiatorName().getOid());
         }
@@ -501,6 +566,11 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 //                }
             }
 
+            @Override
+            protected PageStorage getPageStorage(){
+                return getAuditLogStorage();
+            }
+
         };
         UserProfileStorage userProfile = getPageBase().getSessionStorage().getUserProfile();
         int pageSize = DEFAULT_PAGE_SIZE;
@@ -545,10 +615,21 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     }
 
 
-    protected abstract void updateAuditSearchStorage(AuditSearchDto searchDto);
+    protected abstract AuditLogStorage getAuditLogStorage();
     protected abstract void resetAuditSearchStorage();
-    protected abstract void updateCurrentPage(long current);
-    protected abstract long getCurrentPage();
+
+    protected void updateAuditSearchStorage(AuditSearchDto searchDto){
+        getAuditLogStorage().setSearchDto(searchDto);
+        getAuditLogStorage().setPageNumber(0);
+    }
+
+    protected void updateCurrentPage(long current){
+        getAuditLogStorage().setPageNumber(current);
+    }
+
+    protected long getCurrentPage(){
+        return getAuditLogStorage().getPageNumber();
+    }
 
 
     private BoxedTablePanel getAuditLogViewerTable(){
@@ -558,7 +639,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     protected List<IColumn<AuditEventRecordType, String>> initColumns() {
         List<IColumn<AuditEventRecordType, String>> columns = new ArrayList<>();
         IColumn<AuditEventRecordType, String> linkColumn = new LinkColumn<AuditEventRecordType>(
-                createStringResource("AuditEventRecordType.timestamp"), "timestamp") {
+                createStringResource("AuditEventRecordType.timestamp"), AuditEventRecordProvider.TIMESTAMP_VALUE_PARAMETER,
+                AuditEventRecordProvider.TIMESTAMP_VALUE_PARAMETER) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -588,7 +670,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         columns.add(linkColumn);
 
         PropertyColumn<AuditEventRecordType, String> initiatorRefColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("AuditEventRecordType.initiatorRef"),
-                AuditEventRecordType.F_INITIATOR_REF.getLocalPart()) {
+                AuditEventRecordProvider.INITIATOR_OID_PARAMETER, AuditEventRecordType.F_INITIATOR_REF.getLocalPart()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -602,7 +684,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
         if (!isHistory) {
             IColumn<AuditEventRecordType, String> eventStageColumn = new PropertyColumn<AuditEventRecordType, String>(
-                createStringResource("PageAuditLogViewer.eventStageLabel"), "eventStage"){
+                createStringResource("PageAuditLogViewer.eventStageLabel"),
+                    AuditEventRecordProvider.EVENT_STAGE_PARAMETER, "eventStage"){
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -613,7 +696,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             columns.add(eventStageColumn);
         }
         IColumn<AuditEventRecordType, String> eventTypeColumn = new PropertyColumn<AuditEventRecordType, String>(
-            createStringResource("PageAuditLogViewer.eventTypeLabel"), "eventType"){
+            createStringResource("PageAuditLogViewer.eventTypeLabel"),
+                AuditEventRecordProvider.EVENT_TYPE_PARAMETER, "eventType"){
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -625,7 +709,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
         if (!isHistory) {
             PropertyColumn<AuditEventRecordType, String> targetRefColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("AuditEventRecordType.targetRef"),
-                    AuditEventRecordType.F_TARGET_REF.getLocalPart()) {
+                    AuditEventRecordProvider.TARGET_OID_PARAMETER, AuditEventRecordType.F_TARGET_REF.getLocalPart()) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -640,7 +724,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
         if (!isHistory) {
             PropertyColumn<AuditEventRecordType, String> targetOwnerRefColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("AuditEventRecordType.targetOwnerRef"),
-                    AuditEventRecordType.F_TARGET_OWNER_REF.getLocalPart()) {
+                    AuditEventRecordProvider.TARGET_OWNER_OID_PARAMETER, AuditEventRecordType.F_TARGET_OWNER_REF.getLocalPart()) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -653,7 +737,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             columns.add(targetOwnerRefColumn);
         }
         IColumn<AuditEventRecordType, String> channelColumn = new PropertyColumn<AuditEventRecordType, String>(
-                createStringResource("AuditEventRecordType.channel"), "channel") {
+                createStringResource("AuditEventRecordType.channel"),
+                AuditEventRecordProvider.CHANNEL_PARAMETER, "channel") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -681,7 +766,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         columns.add(channelColumn);
 
         IColumn<AuditEventRecordType, String> outcomeColumn = new PropertyColumn<AuditEventRecordType, String>(
-            createStringResource("PageAuditLogViewer.outcomeLabel"), "outcome"){
+                createStringResource("PageAuditLogViewer.outcomeLabel"),
+                AuditEventRecordProvider.OUTCOME_PARAMETER, "outcome") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -710,5 +796,34 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
     private Form getMainFormComponent(){
         return (Form) get(ID_MAIN_FORM);
+    }
+
+    private Label getHelpComponent(String id, String helpInfo){
+        Label help = new Label(id);
+        help.add(AttributeModifier.replace("title",createStringResource(helpInfo != null ? helpInfo : "")));
+        help.add(new InfoTooltipBehavior());
+        help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpInfo)));
+        return help;
+    }
+
+    private ItemDefinition getItemDefinition(ItemPath itemPath){
+        PrismSchema auditSchema = getPageBase().getPrismContext().getSchemaRegistry().findSchemaByCompileTimeClass(AuditEventRecordType.class);
+        if (auditSchema != null){
+            return auditSchema.findComplexTypeDefinitionByType(AuditEventRecordType.COMPLEX_TYPE).findItemDefinition(itemPath);
+        }
+        return null;
+    }
+
+    private boolean isResourceOidAuditEnabled(){
+        OperationResult result = new OperationResult(OPERATION_LOAD_AUDIT_CONFIGURATION);
+        try {
+            SystemConfigurationAuditType auditConfig = getPageBase().getModelInteractionService().getAuditConfiguration(result);
+            if (auditConfig != null && auditConfig.getEventRecording() != null){
+                return Boolean.TRUE.equals(auditConfig.getEventRecording().isRecordResourceOids());
+            }
+        } catch (Exception ex){
+            LOGGER.error("Cannot load audit configuration: {}", ex.getMessage());
+        }
+        return false;
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,7 +20,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
- *
  */
 public class UpdateModificationConverter extends AbstractModificationConverter {
 

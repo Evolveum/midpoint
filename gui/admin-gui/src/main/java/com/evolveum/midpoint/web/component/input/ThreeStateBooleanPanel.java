@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -21,11 +20,10 @@ import org.apache.wicket.model.IModel;
  *     - second button represents UNDEFINED
  *     - third button represents FALSE
  *
- *  @author shood
- * */
-/**
- * Don't use this component, it will be gradually removed from gui.
+ * @deprecated Don't use this component, it will be gradually removed from gui.
  * It can be easily replaced with TriStateComboPanel. [honchar]
+ *
+ *  @author shood
  */
 @Deprecated
 public class ThreeStateBooleanPanel extends BasePanel<Boolean>{

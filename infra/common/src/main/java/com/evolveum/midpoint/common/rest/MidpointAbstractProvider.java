@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 public abstract class MidpointAbstractProvider<T> extends AbstractConfigurableProvider implements MessageBodyReader<T>, MessageBodyWriter<T>{
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MidpointAbstractProvider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MidpointAbstractProvider.class);
 
     @Autowired protected PrismContext prismContext;
     @Autowired protected LocalizationService localizationService;

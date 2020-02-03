@@ -19,10 +19,7 @@ import static org.testng.AssertJUnit.fail;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -31,6 +28,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringLangType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
@@ -1539,4 +1537,42 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertEquals("Wrong # of extension values found", expected, values.size());
         close(session);
     }
+
+    @Test(enabled = false)  // MID-5958
+    public void test500ReferenceTargetNameAdding() throws Exception {
+        final String TEST_NAME = "test500ReferenceTargetNameAdding";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PolyStringType parentName = new PolyStringType("Parent");
+        parentName.setNorm("Parent");
+        PolyStringLangType lang = new PolyStringLangType();
+        Map<String, String> langMap = new HashMap<>();
+        langMap.put("sk", "Rodič");
+        langMap.put("en", "Parent");
+        lang.setLang(langMap);
+        parentName.setLang(lang);
+        ObjectReferenceType parentRef = ObjectTypeUtil.createObjectRef("oid-parent", parentName, ObjectTypes.CASE);
+        final String OID = "oid-500";
+        PrismObject<CaseType> aCase = prismContext.createObjectable(CaseType.class)
+                .name("test500")
+                .oid(OID)
+                .parentRef(parentRef)
+                .asPrismObject();
+
+        // note that we do not support storing target names for references with known OID
+
+        // WHEN
+        repositoryService.addObject(aCase, null, result);
+
+        // THEN
+        PrismObject<CaseType> aCaseAfter = repositoryService.getObject(CaseType.class, OID, null, result);
+        PolyStringType parentNameAfter = aCaseAfter.asObjectable().getParentRef().getTargetName();
+        assertNotNull("No target name", parentNameAfter);
+        System.out.println("parent name after:\n" + parentNameAfter.debugDump());
+        // todo check for lang
+    }
+
 }

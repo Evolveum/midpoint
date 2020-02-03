@@ -22,7 +22,7 @@ import java.io.IOException;
 
 public class TranslateExeptionFilter extends OncePerRequestFilter {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TranslateExeptionFilter.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TranslateExeptionFilter.class);
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -30,6 +30,7 @@ public class TranslateExeptionFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
+            e.printStackTrace();
             if (!response.isCommitted()) {
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }

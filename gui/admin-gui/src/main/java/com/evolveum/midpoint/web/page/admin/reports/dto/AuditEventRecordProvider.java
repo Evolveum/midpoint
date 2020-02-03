@@ -6,39 +6,39 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
 
 /**
  * Created by honchar.
@@ -63,6 +63,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     public static final String PARAMETER_TARGET_OWNER_NAME = "targetOwnerName";
     public static final String PARAMETER_TARGET_NAMES = "targetNames";
     public static final String PARAMETER_TASK_IDENTIFIER = "taskIdentifier";
+    public static final String PARAMETER_RESOURCE_OID = "resourceOid";
 
     @Nullable private final IModel<ObjectCollectionType> objectCollectionModel;
     @NotNull private final SerializableSupplier<Map<String, Object>> parametersSupplier;
@@ -70,11 +71,22 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     private static final String AUDIT_RECORDS_QUERY_SELECT = "select * ";
     private static final String AUDIT_RECORDS_QUERY_CORE = " from m_audit_event as aer";
     private static final String AUDIT_RECORDS_QUERY_ITEMS_CHANGED = " right join m_audit_item as item on item.record_id=aer.id ";
+    private static final String AUDIT_RECORDS_QUERY_RESOURCE_OID = " right join m_audit_resource as res on res.record_id=aer.id ";
     private static final String AUDIT_RECORDS_QUERY_REF_VALUES = " left outer join m_audit_ref_value as rv on rv.record_id=aer.id ";
     private static final String AUDIT_RECORDS_QUERY_COUNT = "select count(*) ";
-    private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.timestampValue desc";
+    private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.";
     private static final String SET_FIRST_RESULT_PARAMETER = "setFirstResult";
     private static final String SET_MAX_RESULTS_PARAMETER = "setMaxResults";
+
+    public static final String TIMESTAMP_VALUE_PARAMETER = "timestampValue";
+    public static final String INITIATOR_OID_PARAMETER = "initiatorOid";
+    public static final String EVENT_STAGE_PARAMETER = "eventStage";
+    public static final String EVENT_TYPE_PARAMETER = "eventType";
+    public static final String TARGET_OID_PARAMETER = "targetOid";
+    public static final String TARGET_OWNER_OID_PARAMETER = "targetOwnerOid";
+    public static final String CHANNEL_PARAMETER = "channel";
+    public static final String OUTCOME_PARAMETER = "outcome";
+    public static final SortOrder DEFAULT_SORT_ORDER= SortOrder.DESCENDING;
 
     private static final String DOT_CLASS = AuditEventRecordProvider.class.getName() + ".";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
@@ -86,6 +98,22 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         super(component);
         this.objectCollectionModel = objectCollectionModel;
         this.parametersSupplier = parametersSupplier;
+        initSorting();
+    }
+
+    private void initSorting(){
+        String sortParameter = "";
+        SortOrder sortOrder = null;
+        if (getPageStorage() != null && getPageStorage().getPaging() != null && getPageStorage().getPaging().getOrderBy() != null){
+            sortParameter = getPageStorage().getPaging().getOrderBy().last() != null ?
+                    getPageStorage().getPaging().getOrderBy().last().toString() : "";
+        }
+        if (getPageStorage() != null && getPageStorage().getPaging() != null && getPageStorage().getPaging().getDirection() != null){
+            sortOrder = OrderDirection.ASCENDING.equals(getPageStorage().getPaging().getDirection()) ?
+                    SortOrder.ASCENDING : SortOrder.DESCENDING;
+        }
+        setSort(StringUtils.isNotEmpty(sortParameter) ? sortParameter : TIMESTAMP_VALUE_PARAMETER,
+                sortOrder != null ? sortOrder : DEFAULT_SORT_ORDER);
     }
 
     @Override
@@ -172,6 +200,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     private String generateFullQuery(Map<String, Object> parameters, boolean ordered, boolean isCount) {
         boolean filteredOnChangedItem = parameters.get(PARAMETER_CHANGED_ITEM) != null;
         boolean filteredOnValueRefTargetNames = filteredOnValueRefTargetNames(parameters);
+        boolean filteredOnResourceOid = parameters.get(PARAMETER_RESOURCE_OID) != null;
         List<String> conditions = new ArrayList<>();
         if (parameters.get(PARAMETER_FROM) != null) {
             conditions.add("aer.timestampValue >= :from");
@@ -245,6 +274,11 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         } else {
             parameters.remove(PARAMETER_CHANGED_ITEM);
         }
+        if (filteredOnResourceOid) {
+            conditions.add("res.resourceOid = :resourceOid");
+        } else {
+            parameters.remove(PARAMETER_RESOURCE_OID);
+        }
         if (filteredOnValueRefTargetNames) {
             conditions.add("rv.targetName_orig in ( :valueRefTargetNames )");
         } else {
@@ -257,6 +291,9 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
             query = AUDIT_RECORDS_QUERY_CORE;
             if (filteredOnChangedItem) {
                 query += AUDIT_RECORDS_QUERY_ITEMS_CHANGED;
+            }
+            if (filteredOnResourceOid) {
+                query += AUDIT_RECORDS_QUERY_RESOURCE_OID;
             }
             if (filteredOnValueRefTargetNames) {
                 query += AUDIT_RECORDS_QUERY_REF_VALUES;
@@ -274,7 +311,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         }
         query += conditions.stream().collect(Collectors.joining(" and "));
         if (ordered) {
-            query += AUDIT_RECORDS_ORDER_BY;
+            query += getQueryOrderByPart();
         }
         return query;
     }
@@ -286,7 +323,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
             query = AUDIT_RECORDS_QUERY_COUNT + query.substring(index);
         }
         if (ordered) {
-            query += AUDIT_RECORDS_ORDER_BY;
+            query += getQueryOrderByPart();
         }
         return query;
     }
@@ -305,6 +342,38 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         }
     }
 
+    @Override
+    protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+        if (getPageStorage() != null){
+            getPageStorage().setPaging(paging);
+        }
+    }
+
+    @Override
+    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+        if (sortParam != null && sortParam.getProperty() != null) {
+            OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
+            return Collections.singletonList(
+                    getPrismContext().queryFactory().createOrdering(
+                            ItemPath.create(new QName(sortParam.getProperty())), order));
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
     protected void saveCurrentPage(long from, long count) {
+    }
+
+    protected PageStorage getPageStorage(){
+        return null;
+    }
+
+    private String getQueryOrderByPart() {
+        SortParam<String> sortParam = getSort();
+        if (sortParam != null && sortParam.getProperty() != null) {
+            String sortOrder = sortParam.isAscending() ? "asc" : "desc";
+            return AUDIT_RECORDS_ORDER_BY + sortParam.getProperty() + " " + sortOrder;
+        }
+        return AUDIT_RECORDS_ORDER_BY + TIMESTAMP_VALUE_PARAMETER + " desc";
     }
 }

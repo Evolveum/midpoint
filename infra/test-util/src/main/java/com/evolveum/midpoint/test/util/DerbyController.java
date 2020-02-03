@@ -110,6 +110,16 @@ public class DerbyController {
         server = new NetworkServerControl(listenAddress, listenPort);
         System.setProperty("derby.stream.error.file", "target/derby.log");
         server.start(null);
+        boolean dbServerOk = false;
+        do {
+            try {
+                Thread.sleep(100);
+                server.ping();
+                dbServerOk = true;
+            } catch (Exception e) {
+                LOGGER.debug("Derby embedded network server not ready yet...");
+            }
+        } while (!dbServerOk);
     }
 
     public void stop() throws Exception {

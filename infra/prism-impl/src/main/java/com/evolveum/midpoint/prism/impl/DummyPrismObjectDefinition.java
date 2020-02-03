@@ -262,6 +262,11 @@ public class DummyPrismObjectDefinition implements PrismObjectDefinition<Objecta
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public boolean isImmutable() {
+        throw new UnsupportedOperationException();
+    }
+
     @NotNull
     @Override
     public QName getTypeName() {
@@ -377,7 +382,16 @@ public class DummyPrismObjectDefinition implements PrismObjectDefinition<Objecta
     }
 
     @Override
+    public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
+        return false;
+    }
+
+    @Override
     public String debugDump(int indent) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void freeze() {
     }
 }

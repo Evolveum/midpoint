@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2017 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -30,7 +30,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
- *
  */
 public class UcfUtil {
 
@@ -60,7 +59,8 @@ public class UcfUtil {
         if (xsdElement == null) {
             return null;
         }
-        MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema();
+        MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema(
+                DOMUtil.getSchemaTargetNamespace(xsdElement));
         connectorSchema.parseThis(xsdElement, true, connectorType.toString(), prismContext);
         return connectorSchema;
     }

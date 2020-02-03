@@ -105,7 +105,7 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.FocusValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -668,9 +668,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void modifyUserChangePassword(String userOid, String newPassword, Task task, OperationResult result) throws CommonException {
-        ProtectedStringType userPasswordPs = new ProtectedStringType();
-        userPasswordPs.setClearValue(newPassword);
-        modifyUserReplace(userOid, PASSWORD_VALUE_PATH, task,  result, userPasswordPs);
+        modifyFocusChangePassword(UserType.class, userOid, newPassword, task, result);
+    }
+
+    protected void modifyFocusChangePassword(Class<? extends ObjectType> type, String oid, String newPassword, Task task, OperationResult result) throws CommonException {
+        ProtectedStringType passwordPs = new ProtectedStringType();
+        passwordPs.setClearValue(newPassword);
+        modifyObjectReplaceProperty(type, oid, PASSWORD_VALUE_PATH, task, result, passwordPs);
     }
 
     protected void modifyUserSetPassword(String userOid, String newPassword, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -5672,11 +5676,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected UserValuePolicyOriginResolver createUserOriginResolver(PrismObject<UserType> user) {
-        if (user == null) {
+    protected FocusValuePolicyOriginResolver<UserType> createUserOriginResolver(PrismObject<UserType> user) {
+        if (user != null) {
+            return new FocusValuePolicyOriginResolver<>(user, modelObjectResolver);
+        } else {
             return null;
         }
-        return new UserValuePolicyOriginResolver(user, modelObjectResolver);
     }
 
     protected List<PrismObject<TaskType>> getTasksForObject(String oid, QName type,

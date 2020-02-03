@@ -4,10 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
-/**
- *
- */
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -51,9 +47,7 @@ import java.util.List;
 import static org.testng.AssertJUnit.*;
 
 /**
- *
  * @author Radovan Semancik
- *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext

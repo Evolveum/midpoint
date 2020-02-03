@@ -97,7 +97,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
     private PrismSchema connectorSchema;
     private ResourceSchema resourceSchema;
 
-    private static Trace LOGGER = TraceManager.getTrace(TestUcfOpenDj.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestUcfOpenDj.class);
 
     @Autowired(required = true)
     ConnectorFactory connectorFactoryIcfImpl;

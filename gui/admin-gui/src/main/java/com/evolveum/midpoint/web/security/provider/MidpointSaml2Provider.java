@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.security.provider;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -21,7 +20,6 @@ import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -70,7 +68,7 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
     }
 
     protected Authentication internalAuthentication(Authentication authentication, List requireAssignment, AuthenticationChannel channel) throws AuthenticationException {
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
+        ConnectionEnvironment connEnv = createEnviroment(channel);
 
         try {
             Authentication token;
@@ -78,7 +76,7 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
                 DefaultSamlAuthentication samlAuthentication = (DefaultSamlAuthentication) authentication;
                 Saml2ModuleAuthentication samlModule = (Saml2ModuleAuthentication) SecurityUtils.getProcessingModule(true);
                 List<Attribute> attributes = ((DefaultSamlAuthentication) authentication).getAssertion().getAttributes();
-                String enteredUsername = null;
+                String enteredUsername = "";
                 for (Attribute attribute : attributes) {
                     if (attribute.getFriendlyName().equals(samlModule.getNamesOfUsernameAttributes().get(samlAuthentication.getAssertingEntityId()))) {
                         List<Object> values = attribute.getValues();
@@ -93,7 +91,6 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
                         enteredUsername = (String) values.iterator().next();
                     }
                 }
-                Validate.notBlank(enteredUsername);
                 PreAuthenticationContext authContext = new PreAuthenticationContext(enteredUsername, requireAssignment);
                 if (channel != null) {
                     authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());

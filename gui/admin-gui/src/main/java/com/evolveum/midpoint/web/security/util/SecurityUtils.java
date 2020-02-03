@@ -81,14 +81,14 @@ public class SecurityUtils {
         return getPrincipalUser(authentication);
     }
 
-    private static final Map<String, String> MY_MAP;
+    private static final Map<String, String> LOCAL_PATH_AND_CHANNEL;
     static {
         Map<String, String> map = new HashMap<String, String>();
         map.put("ws/rest", SchemaConstants.CHANNEL_REST_URI);
         map.put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI);
         map.put("resetPassword", SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
         map.put("registration", SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
-        MY_MAP = Collections.unmodifiableMap(map);
+        LOCAL_PATH_AND_CHANNEL = Collections.unmodifiableMap(map);
     }
 
     public static MidPointUserProfilePrincipal getPrincipalUser(Authentication authentication) {
@@ -227,9 +227,9 @@ public class SecurityUtils {
     }
 
     public static String findChannelByPath(String localePath) {
-        for (String prefix : MY_MAP.keySet()) {
+        for (String prefix : LOCAL_PATH_AND_CHANNEL.keySet()) {
             if (stripStartingSlashes(localePath).startsWith(prefix)) {
-                return MY_MAP.get(prefix);
+                return LOCAL_PATH_AND_CHANNEL.get(prefix);
             }
         }
         return null;
@@ -243,22 +243,24 @@ public class SecurityUtils {
     private static AuthenticationSequenceType getSpecificSequence(HttpServletRequest httpRequest) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         String channel = findChannelByPath(localePath);
-        if (MY_MAP.get("ws/rest").equals(channel)) {
+        if (LOCAL_PATH_AND_CHANNEL.get("ws/rest").equals(channel)) {
             String header = httpRequest.getHeader("Authorization");
-            String type = header.split(" ")[0];
-            if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
-                AuthenticationSequenceType sequence = new AuthenticationSequenceType();
-                sequence.setName(NameOfModuleType.CLUSTER.getName());
-                AuthenticationSequenceChannelType seqChannel = new AuthenticationSequenceChannelType();
-                seqChannel.setUrlSuffix(NameOfModuleType.CLUSTER.getName().toLowerCase());
-                return sequence;
+            if (header != null) {
+                String type = header.split(" ")[0];
+                if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
+                    AuthenticationSequenceType sequence = new AuthenticationSequenceType();
+                    sequence.setName(NameOfModuleType.CLUSTER.getName());
+                    AuthenticationSequenceChannelType seqChannel = new AuthenticationSequenceChannelType();
+                    seqChannel.setUrlSuffix(NameOfModuleType.CLUSTER.getName().toLowerCase());
+                    return sequence;
+                }
             }
         }
         return null;
     }
 
     private static AuthenticationSequenceType searchSequence(String comparisonAttribute, boolean useOnlyChannel, AuthenticationsPolicyType authenticationPolicy) {
-        Validate.notBlank(comparisonAttribute);
+        Validate.notBlank(comparisonAttribute, "Comparison attribute for searching of sequence is blank");
         for (AuthenticationSequenceType sequence : authenticationPolicy.getSequence()) {
             if (sequence != null && sequence.getChannel() != null) {
                 if (useOnlyChannel && comparisonAttribute.equals(sequence.getChannel().getChannelId())
@@ -284,7 +286,7 @@ public class SecurityUtils {
             return null;
         }
 
-        Validate.notBlank(name);
+        Validate.notBlank(name,"Name for searching of sequence is blank");
         for (AuthenticationSequenceType sequence : authenticationPolicy.getSequence()) {
             if (sequence != null) {
                 if (name.equals(sequence.getName())) {
@@ -302,8 +304,8 @@ public class SecurityUtils {
                                                       HttpServletRequest request, AuthenticationModulesType authenticationModulesType,
                                                       CredentialsPolicyType credentialPolicy, Map<Class<? extends Object>, Object> sharedObjects,
                                                       AuthenticationChannel authenticationChannel) {
-        Validate.notNull(authRegistry);
-        Validate.notEmpty(sequence.getModule());
+        Validate.notNull(authRegistry, "Registry for module factories is null");
+        Validate.notEmpty(sequence.getModule(), "Sequence " + sequence.getName() + " don't contains authentication modules");
 
         List<AuthModule> specificModules = getSpecificModuleFilter(sequence.getChannel().getUrlSuffix(), request,
                 sharedObjects, authenticationModulesType, credentialPolicy);
@@ -334,23 +336,26 @@ public class SecurityUtils {
                                                             AuthenticationModulesType authenticationModulesType, CredentialsPolicyType credentialPolicy) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         String channel = findChannelByPath(localePath);
-        if (MY_MAP.get("ws/rest").equals(channel)) {
+        if (LOCAL_PATH_AND_CHANNEL.get("ws/rest").equals(channel)) {
             String header = httpRequest.getHeader("Authorization");
-            String type = header.split(" ")[0];
-            if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
-                List<AuthModule> authModules = new ArrayList<AuthModule>();
-                WebApplicationContext context = ContextLoader.getCurrentWebApplicationContext();
-                HttpClusterModuleFactory factory = context.getBean(HttpClusterModuleFactory.class);
-                AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType(){};
-                module.setName(NameOfModuleType.CLUSTER.getName().toLowerCase() + "-module");
-                try {
-                    authModules.add(factory.createModuleFilter(module, urlSuffix, httpRequest,
-                            sharedObjects, authenticationModulesType, credentialPolicy, null));
-                } catch (Exception e) {
-                    LOGGER.error("Couldn't create module for cluster authentication");
-                    return null;
+            if (header != null) {
+                String type = header.split(" ")[0];
+                if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
+                    List<AuthModule> authModules = new ArrayList<AuthModule>();
+                    WebApplicationContext context = ContextLoader.getCurrentWebApplicationContext();
+                    HttpClusterModuleFactory factory = context.getBean(HttpClusterModuleFactory.class);
+                    AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType() {
+                    };
+                    module.setName(NameOfModuleType.CLUSTER.getName().toLowerCase() + "-module");
+                    try {
+                        authModules.add(factory.createModuleFilter(module, urlSuffix, httpRequest,
+                                sharedObjects, authenticationModulesType, credentialPolicy, null));
+                    } catch (Exception e) {
+                        LOGGER.error("Couldn't create module for cluster authentication");
+                        return null;
+                    }
+                    return authModules;
                 }
-                return authModules;
             }
         }
         return null;
@@ -435,7 +440,7 @@ public class SecurityUtils {
     }
 
     public static AuthenticationChannel buildAuthChannel(AuthChannelRegistryImpl registry, AuthenticationSequenceType sequence) {
-        Validate.notNull(sequence);
+        Validate.notNull(sequence, "Couldn't build authentication channel object, because sequence is null");
         String channelId = null;
         AuthenticationSequenceChannelType channelSequence = sequence.getChannel();
         if (channelSequence != null) {
@@ -563,5 +568,19 @@ public class SecurityUtils {
         });
 
         return securityPolicy;
+    }
+
+    public static boolean isIgnoredLocalPath(AuthenticationsPolicyType authenticationsPolicy, HttpServletRequest httpRequest) {
+        if (authenticationsPolicy != null && authenticationsPolicy.getIgnoredLocalPath() != null
+                && !authenticationsPolicy.getIgnoredLocalPath().isEmpty()) {
+            List<String> ignoredPaths = authenticationsPolicy.getIgnoredLocalPath();
+            for (String ignoredPath : ignoredPaths) {
+                AntPathRequestMatcher matcher = new AntPathRequestMatcher(ignoredPath);
+                if (matcher.matches(httpRequest)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

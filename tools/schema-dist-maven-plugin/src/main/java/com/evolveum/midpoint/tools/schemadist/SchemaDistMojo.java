@@ -28,9 +28,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
-import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException;
 import org.apache.maven.artifact.versioning.VersionRange;
@@ -41,7 +38,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Execute;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -86,14 +82,14 @@ public class SchemaDistMojo extends AbstractMojo {
     @Parameter(defaultValue="${project}")
     private org.apache.maven.project.MavenProject project;
 
+    @Parameter(defaultValue = "${session}", readonly = true)
+    private MavenSession session;
+
     @Component
     private ArtifactFactory factory;
 
     @Component
     private RepositorySystem repository;
-
-    @Component
-    private MavenSession session;
 
     @Component
     private ArchiverManager archiverManager;

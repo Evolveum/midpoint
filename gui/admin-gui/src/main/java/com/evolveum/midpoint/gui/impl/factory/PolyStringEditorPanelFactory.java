@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by honchar
@@ -42,26 +43,8 @@ public class PolyStringEditorPanelFactory extends AbstractGuiComponentFactory<Po
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<PolyString> panelCtx) {
-        PolyStringEditorPanel panel = new PolyStringEditorPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel()){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected LookupTableType getPredefinedValues(){
-                return panelCtx.getPredefinedValues();
-            }
-
-            @Override
-            protected boolean hasValueEnumerationRef(){
-                return panelCtx.hasValueEnumerationRef();
-            }
-
-            @Override
-            protected Iterator<String> getPredefinedValuesIterator(String input) {
-                return (Iterator<String>) prepareAutoCompleteList(input, panelCtx.getPredefinedValues(), panelCtx.getPageBase().getLocalizationService()).iterator();
-            }
-        };
-
-        return panel;
+        return new PolyStringEditorPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
+                panelCtx.getPredefinedValues(), panelCtx.hasValueEnumerationRef());
     }
 
 }
