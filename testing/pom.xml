@@ -15,6 +15,7 @@
         <version>4.1-SNAPSHOT</version>
     </parent>
 
+    <groupId>com.evolveum.midpoint.testing</groupId>
     <artifactId>testing</artifactId>
     <packaging>pom</packaging>
 

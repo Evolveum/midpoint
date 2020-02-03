@@ -11,11 +11,10 @@
 
     <parent>
         <artifactId>model</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.model</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.evolveum.midpoint.model</groupId>
     <artifactId>model-test</artifactId>
     <packaging>jar</packaging>
 
