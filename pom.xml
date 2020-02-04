@@ -1979,9 +1979,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
+                <!-- TODO: unify with other checkstyle setup in pluginManagement? -->
                 <version>${checkstyle.version}</version>
                 <configuration>
-                    <configLocation>midpoint-build/checkstyle.xml</configLocation>
+                    <configLocation>${maven.multiModuleProjectDirectory}/build-system/checkstyle-configs/checkstyle.xml</configLocation>
+                    <!-- TODO: what about suppressions? without them and with failsOnError true it must fail, or not? -->
                     <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
