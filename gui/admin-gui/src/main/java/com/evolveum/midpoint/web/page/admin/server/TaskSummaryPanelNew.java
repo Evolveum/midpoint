@@ -11,9 +11,12 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
+import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
@@ -25,9 +28,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.util.time.Duration;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,10 +47,57 @@ import java.util.List;
 public class TaskSummaryPanelNew extends ObjectSummaryPanel<TaskType> {
     private static final long serialVersionUID = -5077637168906420769L;
 
+    private static final transient Trace LOGGER = TraceManager.getTrace(TaskSummaryPanelNew.class);
+
     private static final String ID_TAG_REFRESH = "refreshTag";
 
-    public TaskSummaryPanelNew(String id, IModel<TaskType> model, final PageBase parentPage) {
+    private Refreshable refreshable;
+
+    public TaskSummaryPanelNew(String id, IModel<TaskType> model, Refreshable refreshable, final PageBase parentPage) {
         super(id, TaskType.class, model, parentPage);
+        this.refreshable = refreshable;
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+
+        AutoRefreshPanel refreshTag = new AutoRefreshPanel(ID_TAG_REFRESH, createRefreshModel()) {
+
+            @Override
+            protected void refreshPerformed(AjaxRequestTarget target) {
+                refreshable.refresh(target);
+            }
+
+        };
+        AbstractAjaxTimerBehavior refreshingBehavior = new AbstractAjaxTimerBehavior(Duration.milliseconds(refreshable.getRefreshInterval())) {
+            @Override
+            protected void onTimer(AjaxRequestTarget ajaxRequestTarget) {
+                LOGGER.trace("onTimer called for {}; enabled = {}", this, refreshTag.getModelObject().isEnabled());
+                refreshable.refresh(ajaxRequestTarget);
+
+            }
+
+            @Override
+            protected boolean shouldTrigger() {
+                return refreshTag.getModelObject().isEnabled();
+            }
+        };
+
+        refreshTag.add(new AttributeModifier("class", "summary-tag"));
+
+        refreshTag.add(refreshingBehavior);
+        refreshTag.setOutputMarkupId(true);
+
+        getSummaryBoxPanel().add(refreshTag);
+    }
+
+    private IModel<AutoRefreshDto> createRefreshModel() {
+        AutoRefreshDto dto = new AutoRefreshDto();
+        dto.setEnabled(true);
+        dto.setInterval(refreshable.getRefreshInterval());
+        return Model.of(dto);
     }
 
     @Override
@@ -136,34 +190,10 @@ public class TaskSummaryPanelNew extends ObjectSummaryPanel<TaskType> {
         return "summary-tag-box-wide";
     }
 
-    private String getStageInfo() {
-//        return WfContextUtil.getStageInfo(parentPage.getTaskDto().getApprovalContext());
-        // TODO determine from Case
-        return null;
-    }
-
-    public String getRequestedOn() {
-       // return WebComponentUtil.getLongDateTimeFormattedValue(parentPage.getTaskDto().getRequestedOn(), parentPage);
-        //TODO from case?
-        return null;
-    }
-
     @Override
     protected IModel<String> getDisplayNameModel() {
         //TODO temporary
-        return new Model<>(getModelObject().getName().getNorm());
-//        return new ReadOnlyModel<>(() -> {
-//            // temporary code
-//            TaskDto taskDto = parentPage.getTaskDto();
-//            String name = WfGuiUtil.getLocalizedProcessName(taskDto.getApprovalContext(), TaskSummaryPanelNew.this);
-//            if (name == null) {
-//                name = WfGuiUtil.getLocalizedTaskName(taskDto.getApprovalContext(), TaskSummaryPanelNew.this);
-//            }
-//            if (name == null) {
-//                name = taskDto.getName();
-//            }
-//            return name;
-//        });
+        return new PropertyModel<>(getModel(), "name.orig");
     }
 
     @Override

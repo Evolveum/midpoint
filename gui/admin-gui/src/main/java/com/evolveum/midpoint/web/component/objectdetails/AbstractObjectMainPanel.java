@@ -312,4 +312,8 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
     protected boolean areSavePreviewButtonsEnabled() {
         return false;
     }
+
+    public TabbedPanel<ITab> getTabbedPanel() {
+        return (TabbedPanel<ITab>) get(WebComponentUtil.getPageBase(this).createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL));
+    }
 }

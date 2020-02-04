@@ -232,7 +232,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     public void initialize(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
         initializeModel(objectToEdit, isNewObject, isReadonly);
-        initLayout();
+//        initLayout();
     }
 
     protected void initializeModel(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
@@ -265,6 +265,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     protected abstract O createNewObject();
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
 
     protected void initLayout() {
         initLayoutSummaryPanel();
@@ -314,6 +320,10 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             return null;
         }
         return oid;
+    }
+
+    protected ObjectSummaryPanel<O> getSummaryPanel() {
+        return (ObjectSummaryPanel<O>) get(ID_SUMMARY_PANEL);
     }
 
     public boolean isOidParameterExists() {

@@ -134,7 +134,6 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
         return getItemDefinition().findNamedItemDefinition(firstName, rest, clazz);
     }
 
-
     //TODO : unify with PrismContainerImpl findContainer();
     @Override
     public <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException {

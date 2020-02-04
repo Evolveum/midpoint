@@ -36,7 +36,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
@@ -120,12 +120,12 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 //                super.objectDetailsPerformed(target, task);
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, task.getOid());
-                getPageBase().navigateToNext(PageTaskEdit.class, parameters);
+                getPageBase().navigateToNext(PageTask.class, parameters);
             }
 
             @Override
             protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
-                getPageBase().navigateToNext(PageTaskAdd.class);
+                getPageBase().navigateToNext(PageTask.class);
 
             }
 

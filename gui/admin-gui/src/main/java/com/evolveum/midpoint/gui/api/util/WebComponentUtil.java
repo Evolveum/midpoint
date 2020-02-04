@@ -95,6 +95,8 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
@@ -205,7 +207,7 @@ public final class WebComponentUtil {
         objectDetailsPageMap.put(RoleType.class, PageRole.class);
         objectDetailsPageMap.put(ServiceType.class, PageService.class);
         objectDetailsPageMap.put(ResourceType.class, PageResource.class);
-        objectDetailsPageMap.put(TaskType.class, PageTaskEdit.class);
+        objectDetailsPageMap.put(TaskType.class, PageTask.class);
         objectDetailsPageMap.put(ReportType.class, PageReport.class);
         objectDetailsPageMap.put(ValuePolicyType.class, PageValuePolicy.class);
         objectDetailsPageMap.put(CaseType.class, PageCase.class);

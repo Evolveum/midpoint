@@ -69,6 +69,9 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 
     private void initLayout() {
 
+        //brutal ugly hack TODO FIME - prism context is lost during srialization/deserialization.. find better way how to do it.
+        getModelObject().revive(getPrismContext());
+
         Panel headerPanel = createHeaderPanel();
         headerPanel.add(new VisibleBehaviour(() -> getHeaderVisibility()));
         add(headerPanel);

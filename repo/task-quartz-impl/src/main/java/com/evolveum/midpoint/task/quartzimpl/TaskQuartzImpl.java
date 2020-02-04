@@ -434,7 +434,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     private <X extends Containerable> ContainerDelta<X> createContainerDeltaIfPersistent(ItemName name, X value)
             throws SchemaException {
         return isPersistent() ?
-                deltaFactory().container().createModificationReplace(name, TaskType.class, value) : null;
+                deltaFactory().container().createModificationReplace(name, TaskType.class, value != null ? (X) value.asPrismContainerValue().clone().asContainerable() : null) : null;
     }
 
     @Nullable
@@ -585,11 +585,11 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     public void setOperationStats(OperationStatsType value) {
-        setProperty(TaskType.F_OPERATION_STATS, value);
+        setContainer(TaskType.F_OPERATION_STATS, value);
     }
 
     public void setOperationStatsTransient(OperationStatsType value) {
-        setPropertyTransient(TaskType.F_OPERATION_STATS, value);
+        setContainerTransient(TaskType.F_OPERATION_STATS, value.clone());
     }
 
     /*
@@ -1237,11 +1237,11 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     public void setSchedule(ScheduleType value) {
-        setProperty(TaskType.F_SCHEDULE, value);
+        setContainer(TaskType.F_SCHEDULE, value);
     }
 
     private void setScheduleTransient(ScheduleType value) {
-        setPropertyTransient(TaskType.F_SCHEDULE, value);
+        setContainerTransient(TaskType.F_SCHEDULE, value);
     }
 
     /*

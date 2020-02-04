@@ -1931,17 +1931,25 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         addMenuItem(item, "PageAdmin.menu.top.serverTasks.list", PageTasks.class);
 
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_TASKS_VIEW_URL)) {
+
+            addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE, PageTasks.class);
+        }
+
         addMenuItem(item, "PageAdmin.menu.top.serverTasks.nodes", PageNodes.class);
 
         //should we support archetype view for TaskType?
 //        addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE);
-        MenuItem newTaskMenu = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageTaskAdd.class, null,
+        MenuItem newTaskMenu = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageTask.class, null,
                 new VisibleEnableBehaviour());
         item.getItems().add(newTaskMenu);
 
         MenuItem menuItem = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.edit"),
                 PageTaskEdit.class, null, createVisibleDisabledBehaviorForEditMenu(PageTaskEdit.class));
         item.getItems().add(menuItem);
+
+
 
         return item;
     }
@@ -2317,7 +2325,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         item.getItems().add(menu);
     }
 
-    private void addCollectionsMenuItems(List<MenuItem> menu, QName type, Class<? extends PageAdminObjectList> redirectToPage) {
+    private void addCollectionsMenuItems(List<MenuItem> menu, QName type, Class<? extends PageBase> redirectToPage) {
         List<CompiledObjectCollectionView> objectViews = getCompiledUserProfile().findAllApplicableObjectCollectionViews(type);
         List<MenuItem> collectionMenuItems = new ArrayList<>(objectViews.size());
         objectViews.forEach(objectView -> {

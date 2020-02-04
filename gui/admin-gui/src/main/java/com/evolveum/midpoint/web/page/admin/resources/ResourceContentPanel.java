@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -429,7 +430,7 @@ public abstract class ResourceContentPanel extends Panel {
         taskType.setObjectRef(ObjectTypeUtil.createObjectRef(resource, getPageBase().getPrismContext()));
 
         taskType.setCategory(category);
-        setResponsePage(new PageTaskAdd(taskType));
+        setResponsePage(new PageTask(taskType.asPrismObject()));
     }
 
     private void runTask(List<TaskType> tasks, AjaxRequestTarget target) {

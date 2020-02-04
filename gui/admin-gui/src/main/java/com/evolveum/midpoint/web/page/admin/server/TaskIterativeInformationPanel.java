@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.page.admin.server.currentState;
+package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -23,9 +23,9 @@ import java.util.Date;
 /**
  * @author mederly
  */
-public class IterativeInformationPanelNew extends BasePanel<IterativeTaskInformationType> {
+public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInformationType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(IterativeInformationPanelNew.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskIterativeInformationPanel.class);
 
     private static final String ID_OBJECTS_PROCESSED_SUCCESS = "objectsProcessedSuccess";
     private static final String ID_OBJECTS_PROCESSED_SUCCESS_TIME = "objectsProcessedSuccessTime";
@@ -40,7 +40,7 @@ public class IterativeInformationPanelNew extends BasePanel<IterativeTaskInforma
     private static final String ID_CURRENT_OBJECT_PROCESSED_TIME = "currentObjectProcessedTime";
     private static final String ID_OBJECTS_TOTAL = "objectsTotal";
 
-    public IterativeInformationPanelNew(String id, IModel<IterativeTaskInformationType> model) {
+    public TaskIterativeInformationPanel(String id, IModel<IterativeTaskInformationType> model) {
         super(id, model);
     }
 

@@ -1,39 +1,34 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformation;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
-import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
+import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
+import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections4.CollectionUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -62,17 +57,18 @@ import java.util.List;
                         label = "PageUser.auth.user.label",
                         description = "PageUser.auth.user.description")
         })
-public class PageTask extends PageAdminObjectDetails<TaskType> {
+public class PageTask extends PageAdminObjectDetails<TaskType> implements Refreshable {
     private static final long serialVersionUID = 1L;
 
     private static final transient Trace LOGGER = TraceManager.getTrace(PageTask.class);
 
     private static final String DOT_CLASS = PageTask.class.getName() + ".";
-    private static final String OPERATION_LOAD_SUBTASKS = DOT_CLASS + "loadSubtasks";
-    private static final String OPERATION_CREATE_STATS_WRAPPER = DOT_CLASS + "createStatsWrapper";
 
-
-    private LoadableModel<List<TaskType>> subTasksModel;
+    private static final int REFRESH_INTERVAL_IF_RUNNING = 2000;
+    private static final int REFRESH_INTERVAL_IF_RUNNABLE = 60000;
+    private static final int REFRESH_INTERVAL_IF_SUSPENDED = 60000;
+    private static final int REFRESH_INTERVAL_IF_WAITING = 60000;
+    private static final int REFRESH_INTERVAL_IF_CLOSED = 60000;
 
     public PageTask() {
         initialize(null);
@@ -115,99 +111,26 @@ public class PageTask extends PageAdminObjectDetails<TaskType> {
 
     @Override
     protected ObjectSummaryPanel<TaskType> createSummaryPanel() {
-        return new TaskSummaryPanelNew(ID_SUMMARY_PANEL, isEditingFocus() ?
-                Model.of(getObjectModel().getObject().getObject().asObjectable()) : Model.of(), this);
+        return new TaskSummaryPanelNew(ID_SUMMARY_PANEL, createSummaryPanelModel(), this, this);
     }
 
-    private void addSubTasks(PrismReferenceValue subTaskRef, List<TaskType> loadedSubtasks) {
-        if (subTaskRef == null) {
-            return;
-        }
-        PrismObject<TaskType> subTask = subTaskRef.getObject();
-        if (subTask == null) {
-            return;
-        }
+    private IModel<TaskType> createSummaryPanelModel() {
+        return isEditingFocus() ?
 
-        loadedSubtasks.add(subTask.asObjectable());
-    }
-
-    private void resolveSubTasks(TaskType subTask, boolean alreadyLoaded, List<TaskType> allTasks, Task task, OperationResult result) {
-        List<TaskType> subTasks = new ArrayList<>();
-
-        PrismObject<TaskType> subTaskWithLoadedSubtasks;
-        if (alreadyLoaded) {
-            subTaskWithLoadedSubtasks = subTask.asPrismObject();
-        } else {
-            subTaskWithLoadedSubtasks = WebModelServiceUtils.loadObject(TaskType.class, subTask.getOid(), getOperationOptionsBuilder().item(TaskType.F_SUBTASK).retrieve().build(), PageTask.this, task, result);
-        }
-        PrismReference subRefs = subTaskWithLoadedSubtasks.findReference(TaskType.F_SUBTASK_REF);
-        if (subRefs == null) {
-            return;
-        }
-        for (PrismReferenceValue refVal : subRefs.getValues()) {
-            addSubTasks(refVal, subTasks);
-        }
-
-        allTasks.addAll(subTasks);
-
-        for (TaskType subLoaded : subTasks) {
-            resolveSubTasks(subLoaded, false, allTasks, task, result);
-        }
-
-
+                new LoadableModel<TaskType>(true) {
+                    @Override
+                    protected TaskType load() {
+                        PrismObjectWrapper<TaskType> taskWrapper = getObjectWrapper();
+                        if (taskWrapper == null) {
+                            return null;
+                        }
+                        return taskWrapper.getObject().asObjectable();
+                    }
+                } : Model.of();
     }
 
     @Override
     protected AbstractObjectMainPanel<TaskType> createMainPanel(String id) {
-
-        subTasksModel = new LoadableModel<List<TaskType>>(true) {
-
-            @Override
-            protected List<TaskType> load() {
-//                try {
-
-                    List<TaskType> loadedSubtasks =new ArrayList<>();
-                    PrismObject<TaskType> taskType = getObjectWrapper().getObject();
-                    if (taskType == null) {
-                        return null; //TODO throw exception?
-                    }
-
-                    Task task = createSimpleTask(OPERATION_LOAD_SUBTASKS);
-                    OperationResult result = task.getResult();
-                    resolveSubTasks(taskType.asObjectable(), true, loadedSubtasks, task, result);
-//                    PrismReferenceWrapper ref = PageTask.this.getObjectWrapper().findReference(TaskType.F_SUBTASK_REF);
-//
-//                    if (ref == null || CollectionUtils.isEmpty(ref.getValues())) {
-//                        LOGGER.trace("No subtasks, nothing will be loaded.");
-//                        return null;
-//                    }
-//
-//                    Task task = createSimpleTask(OPERATION_LOAD_SUBTASKS);
-//                    OperationResult result = task.getResult();
-//                    List<PrismReferenceValueWrapperImpl> refValues = ref.getValues();
-//
-//
-//                    for (PrismReferenceValueWrapperImpl<Referencable> refValue : refValues) {
-//                        PrismReferenceValue subTaskRef = refValue.getOldValue();
-//                        addSubTasks(subTaskRef, loadedSubtasks);
-//                    }
-//
-//                    for (TaskType subTask : loadedSubtasks) {
-//                        resolveSubTasks(subTask, loadedSubtasks, task, result);
-//                    }
-//
-//
-//
-//                    result.recomputeStatus();
-//                    showResult(result, false);
-
-                    return loadedSubtasks;
-//                } catch (SchemaException e) {
-//                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot load subtasks of task {}", e, getObjectWrapper().getObjectOld());
-//                    return null;
-//                }
-            }
-        };
 
         return new AbstractObjectMainPanel<TaskType>(id, getObjectModel(), this) {
 
@@ -221,7 +144,14 @@ public class PageTask extends PageAdminObjectDetails<TaskType> {
                     }
                 });
 
-                tabs.add(new AbstractTab(createStringResource("pageTask.basic.title")) {
+                tabs.add(new AbstractTab(createStringResource("pageTask.schedule.title")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_SCHEDULE));
+                    }
+                });
+
+                tabs.add(new AbstractTab(createStringResource("pageTask.subtasks.title")) {
                     @Override
                     public WebMarkupContainer getPanel(String panelId) {
                         return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_SCHEDULE));
@@ -231,58 +161,40 @@ public class PageTask extends PageAdminObjectDetails<TaskType> {
                 tabs.add(new AbstractTab(createStringResource("pageTask.operationStats.title")) {
                     @Override
                     public WebMarkupContainer getPanel(String panelId) {
-                        return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, createOperationStatsModel());
+                        return new TaskOperationStatisticsPanel(panelId, getObjectModel());
                     }
                 });
+
+                tabs.add(new AbstractTab(createStringResource("pageTask.internalPerformane.title")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        return new TaskInternalPerformanceTabPanelNew(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_OPERATION_STATS));
+                    }
+                });
+
+                tabs.add(new AbstractTab(createStringResource("pageTask.result.title")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        return new TaskResultTabPanelNew(panelId, getObjectModel());
+                    }
+                });
+
+
+                tabs.add(new AbstractTab(createStringResource("pageTask.errors.title")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        return new TaskErrorsTabPanelNew(panelId, getObjectModel());
+                    }
+                });
+
                 return tabs;
             }
         };
     }
 
-    private IModel<PrismContainerWrapper<OperationStatsType>> createOperationStatsModel() {
 
-        PrismObject<TaskType> task = getObjectWrapper().getObject();
 
-        IterativeTaskInformationType iterativeTaskInformation = new IterativeTaskInformationType();
-        SynchronizationInformationType synchronizationInformation = new SynchronizationInformationType();
-        ActionsExecutedInformationType actionsExecutedInformation = new ActionsExecutedInformationType();
-
-        if (TaskTypeUtil.isPartitionedMaster(task.asObjectable())) {
-            List<TaskType> subTasks = subTasksModel.getObject();
-            for (TaskType taskDto : subTasks) {
-                OperationStatsType operationStats = taskDto.getOperationStats();
-                if (operationStats != null) {
-                    IterativeTaskInformation.addTo(iterativeTaskInformation, operationStats.getIterativeTaskInformation(), true);
-                    SynchronizationInformation.addTo(synchronizationInformation, operationStats.getSynchronizationInformation());
-                    ActionsExecutedInformation.addTo(actionsExecutedInformation, operationStats.getActionsExecutedInformation());
-                }
-            }
-
-            OperationStatsType aggregatedStats = new OperationStatsType(getPrismContext())
-                    .iterativeTaskInformation(iterativeTaskInformation)
-                    .synchronizationInformation(synchronizationInformation)
-                    .actionsExecutedInformation(actionsExecutedInformation);
-
-            PrismContainer<OperationStatsType> statsContainer = getPrismContext().itemFactory().createContainer(TaskType.F_OPERATION_STATS, task.getDefinition().findContainerDefinition(TaskType.F_OPERATION_STATS));
-            try {
-                statsContainer.setValue(aggregatedStats.asPrismContainerValue());
-                Task operationTask = createSimpleTask(OPERATION_CREATE_STATS_WRAPPER);
-                WrapperContext ctx = new WrapperContext(operationTask, operationTask.getResult());
-                ctx.setCreateIfEmpty(true);
-                ctx.setReadOnly(Boolean.TRUE);
-
-                PrismContainerWrapper<OperationStatsType> statsContainerWrapper = createItemWrapper(statsContainer, ItemStatus.NOT_CHANGED, ctx);
-                return Model.of(statsContainerWrapper);
-            } catch (SchemaException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot create wrapper for operation stats: {}", e);
-                return null;
-            }
-
-        }
-        return PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_OPERATION_STATS);
-    }
-
-    private <C extends Containerable, T extends Containerable> Panel createContainerPanel(String id, QName typeName, IModel<? extends PrismContainerWrapper<C>> model) {
+    private <C extends Containerable> Panel createContainerPanel(String id, QName typeName, IModel<? extends PrismContainerWrapper<C>> model) {
             try {
                 ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                         .visibilityHandler(wrapper -> getVisibility(wrapper.getPath()))
@@ -314,5 +226,56 @@ public class PageTask extends PageAdminObjectDetails<TaskType> {
     @Override
     public void continueEditing(AjaxRequestTarget target) {
 
+    }
+
+    @Override
+    public int getRefreshInterval() {
+        TaskType task = getObjectWrapper().getObject().asObjectable();
+        TaskDtoExecutionStatus exec = TaskDtoExecutionStatus.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
+        if (exec == null) {
+            return REFRESH_INTERVAL_IF_CLOSED;
+        }
+        switch (exec) {
+            case RUNNING:
+            case SUSPENDING: return REFRESH_INTERVAL_IF_RUNNING;
+            case RUNNABLE:return REFRESH_INTERVAL_IF_RUNNABLE;
+            case SUSPENDED: return REFRESH_INTERVAL_IF_SUSPENDED;
+            case WAITING: return REFRESH_INTERVAL_IF_WAITING;
+            case CLOSED: return REFRESH_INTERVAL_IF_CLOSED;
+        }
+        return REFRESH_INTERVAL_IF_RUNNABLE;
+    }
+
+    @Override
+    public Component getRefreshingBehaviorParent() {
+        return null; //nothing to do, this method will be removed
+    }
+
+    public void refresh(AjaxRequestTarget target) {
+
+        target.add(getSummaryPanel());
+
+        for (Component component : getMainPanel().getTabbedPanel()) {
+            if (component instanceof TaskTabPanel) {
+
+                for (Component c : ((TaskTabPanel) component).getComponentsToUpdate()) {
+                    getObjectModel().reset();
+                    target.add(c);
+                }
+            }
+//            target.add(component);
+        }
+
+
+//        TabbedPanel<ITab> tabbedPanel = getMainPanel().getTabbedPanel();
+//        int selected = tabbedPanel.getSelectedTab();
+//        ITab selectedTab = tabbedPanel.getTabs().getObject().get(selected);
+//        if (selectedTab instanceof TaskTabPanel) {
+//            for (Component c : ((TaskTabPanel) selectedTab).getComponentsToUpdate()) {
+//                target.add(c);
+//            }
+//        }
+
+//        target.add(getMainPanel());
     }
 }
