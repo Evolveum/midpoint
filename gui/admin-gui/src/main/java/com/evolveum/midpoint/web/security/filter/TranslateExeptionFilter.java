@@ -30,6 +30,7 @@ public class TranslateExeptionFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
+            e.printStackTrace();
             if (!response.isCommitted()) {
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }

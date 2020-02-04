@@ -8,20 +8,18 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Provisioning - impl</name>
-    <groupId>com.evolveum.midpoint.provisioning</groupId>
-    <artifactId>provisioning-impl</artifactId>
-    <packaging>jar</packaging>
+
     <parent>
         <artifactId>provisioning</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.provisioning</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>provisioning-impl</artifactId>
+    <packaging>jar</packaging>
+
+    <name>midPoint Provisioning - impl</name>
+
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -33,18 +31,18 @@
             <artifactId>prism-api</artifactId>
             <version>4.1-SNAPSHOT</version>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-impl</artifactId>
             <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
             <version>4.1-SNAPSHOT</version>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
             <version>4.1-SNAPSHOT</version>
@@ -115,7 +113,7 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations-java5</artifactId>
+            <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.annotation</groupId>
@@ -207,10 +205,10 @@
             <scope>test</scope>
             <exclusions>
                 <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
-              <exclusion>
-                <groupId>org.slf4j</groupId>
-                  <artifactId>slf4j-jdk14</artifactId>
-              </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-jdk14</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>

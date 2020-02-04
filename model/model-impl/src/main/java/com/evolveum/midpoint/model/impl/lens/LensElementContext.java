@@ -58,7 +58,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     private PrismObject<O> objectNew;
     private ObjectDelta<O> primaryDelta;
     @NotNull private final List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<>();
-    private Class<O> objectTypeClass;
+    @NotNull private final Class<O> objectTypeClass;
     private String oid = null;
     private int iteration;
     private String iterationToken;
@@ -103,7 +103,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     private final Collection<EvaluatedPolicyRule> policyRules = new ArrayList<>();
     private final Collection<String> policySituations = new ArrayList<>();
 
-    public LensElementContext(Class<O> objectTypeClass, LensContext<? extends ObjectType> lensContext) {
+    public LensElementContext(@NotNull Class<O> objectTypeClass, LensContext<? extends ObjectType> lensContext) {
         super();
         Validate.notNull(objectTypeClass, "Object class is null");
         Validate.notNull(lensContext, "Lens context is null");
@@ -148,7 +148,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return objectTypeClass;
     }
 
-    public boolean canRepresent(Class type) {
+    public boolean represents(Class<?> type) {
         return type.isAssignableFrom(objectTypeClass);
     }
 
@@ -512,6 +512,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         this.securityPolicy = securityPolicy;
     }
 
+    public CredentialsPolicyType getCredentialsPolicy() {
+        return securityPolicy != null ? securityPolicy.getCredentials() : null;
+    }
+
     public void recompute() throws SchemaException, ConfigurationException {
         PrismObject<O> base = getObjectCurrentOrOld();
         ObjectDelta<O> delta = getDelta();
@@ -615,7 +619,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     public abstract LensElementContext<O> clone(LensContext<? extends ObjectType> lensContext);
 
-    protected void copyValues(LensElementContext<O> clone, LensContext lensContext) {
+    void copyValues(LensElementContext<O> clone, LensContext lensContext) {
         //noinspection unchecked
         clone.lensContext = lensContext;
         // This is de-facto immutable
@@ -623,7 +627,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         clone.objectNew = cloneObject(this.objectNew);
         clone.objectOld = cloneObject(this.objectOld);
         clone.objectCurrent = cloneObject(this.objectCurrent);
-        clone.objectTypeClass = this.objectTypeClass;
         clone.oid = this.oid;
         clone.primaryDelta = cloneDelta(this.primaryDelta);
         clone.isFresh = this.isFresh;

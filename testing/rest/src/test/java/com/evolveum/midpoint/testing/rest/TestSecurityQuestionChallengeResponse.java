@@ -7,24 +7,30 @@
 
 package com.evolveum.midpoint.testing.rest;
 
-import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import static org.testng.AssertJUnit.*;
+
+import java.util.Arrays;
+import java.util.List;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
+
 import org.apache.cxf.common.util.Base64Exception;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.transport.local.LocalConduit;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.testng.AssertJUnit.*;
+import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class TestSecurityQuestionChallengeResponse extends RestServiceInitializer {
 

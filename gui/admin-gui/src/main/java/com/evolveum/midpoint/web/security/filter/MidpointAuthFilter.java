@@ -213,6 +213,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
             SecurityContextHolder.getContext().setAuthentication(new MidpointAuthentication(sequence));
             mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
             mpAuthentication.setAuthModules(authModules);
+            mpAuthentication.setSessionId(httpRequest.getSession().getId());
             indexOfProcessingModule = 0;
             mpAuthentication.addAuthentications(authModules.get(indexOfProcessingModule).getBaseModuleAuthentication());
             indexOfProcessingModule = mpAuthentication.resolveParallelModules((HttpServletRequest) request, indexOfProcessingModule);

@@ -7,24 +7,25 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-   <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Tools - schema dist maven plugin</name>
-    <groupId>com.evolveum.midpoint.tools</groupId>
-    <artifactId>schema-dist-maven-plugin</artifactId>
-    <version>4.1-SNAPSHOT</version>
-    <packaging>maven-plugin</packaging>
-    <description>Utility module to compile all of the maven based midPoint projects.</description>
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <artifactId>tools</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.tools</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>schema-dist-maven-plugin</artifactId>
+    <packaging>maven-plugin</packaging>
+
+    <name>midPoint Tools - schema dist maven plugin</name>
+    <description>Utility module to compile all of the maven based midPoint projects.</description>
+
+    <properties>
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.maven</groupId>
@@ -54,10 +55,10 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
         </dependency>
-    <dependency>
-        <groupId>xml-resolver</groupId>
-        <artifactId>xml-resolver</artifactId>
-    </dependency>
+        <dependency>
+            <groupId>xml-resolver</groupId>
+            <artifactId>xml-resolver</artifactId>
+        </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
@@ -67,38 +68,27 @@
             <artifactId>util</artifactId>
             <version>4.1-SNAPSHOT</version>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
             <version>3.4</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
                 <version>3.6.0</version>
                 <executions>
-                  <execution>
-                    <id>default-descriptor</id>
-                    <phase>process-classes</phase>
-                  </execution>
+                    <execution>
+                        <id>default-descriptor</id>
+                        <phase>process-classes</phase>
+                    </execution>
                 </executions>
-              </plugin>
+            </plugin>
         </plugins>
     </build>
 </project>

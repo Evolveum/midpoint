@@ -32,7 +32,9 @@
         </foo:password>
     </extension>
 
-    <linkRef oid="2f9b9299-6f45-498f-aaaa-000000001111"/>
+    <linkRef oid="2f9b9299-6f45-498f-aaaa-000000001111">
+        <referentialIntegrity>lax</referentialIntegrity>
+    </linkRef>
     <linkRef oid="2f9b9299-6f45-498f-aaaa-000000002222"/>
     <!-- Account as reference with filter -->
     <linkRef oid="2f9b9299-6f45-498f-aaaa-000000003333" type="ShadowType">
@@ -53,6 +55,7 @@
        <construction>
            <resourceRef oid="2f9b9299-5555-5555-5555-000000001111" type="c:ResourceType">
                <targetName>resource1</targetName>
+               <referentialIntegrity>relaxed</referentialIntegrity>
            </resourceRef>
        </construction>
     </assignment>

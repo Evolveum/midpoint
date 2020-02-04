@@ -8,20 +8,18 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Audit - impl</name>
-    <groupId>com.evolveum.midpoint.repo</groupId>
-    <artifactId>audit-impl</artifactId>
-    <packaging>jar</packaging>
+
     <parent>
         <artifactId>repo</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.repo</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>audit-impl</artifactId>
+    <packaging>jar</packaging>
+
+    <name>midPoint Audit - impl</name>
+
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -76,12 +74,6 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>

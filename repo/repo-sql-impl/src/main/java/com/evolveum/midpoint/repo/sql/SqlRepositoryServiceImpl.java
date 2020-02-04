@@ -167,6 +167,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         RV get(ObjectQuery query) throws SchemaException;
     }
 
+    @NotNull
     @Override
     public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)

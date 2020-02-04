@@ -191,6 +191,7 @@ public interface RepositoryService {
      * @throws IllegalArgumentException
      *             wrong OID format, etc.
      */
+    @NotNull
     <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException;

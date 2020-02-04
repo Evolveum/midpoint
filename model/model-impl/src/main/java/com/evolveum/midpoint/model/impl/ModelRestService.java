@@ -1051,13 +1051,11 @@ public class ModelRestService {
     }
 
     private Task initRequest(MessageContext mc) {
-        Task task;
         if (isExperimentalEnabled()) {
-            task = RestServiceUtil.initRequest(taskManager);
+            return RestServiceUtil.initRequest(taskManager);
         } else {
-            task = RestServiceUtil.initRequest(mc);
+            return RestServiceUtil.initRequest(mc);
         }
-        return task;
     }
 
     private boolean isExperimentalEnabled() {
@@ -1090,7 +1088,7 @@ public class ModelRestService {
         record.setInitiator(user);
         record.setParameter(name);
 
-        record.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        record.setChannel(SchemaConstants.CHANNEL_REST_URI);
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
 

@@ -7,78 +7,19 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <name>midPoint Samples - Test</name>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.evolveum.midpoint.testing</groupId>
-    <artifactId>samples-test</artifactId>
-    <parent>
-        <artifactId>parent</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
-        <version>4.1-SNAPSHOT</version>
-        <relativePath>../../build-system/pom.xml</relativePath>
-    </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
-    <organization>
-        <name>Evolveum</name>
-        <url>http://www.evolveum.com</url>
-    </organization>
-    <licenses>
-        <license>
-            <name>Apache License v2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    <issueManagement>
-        <system>Atlassian JIRA</system>
-        <url>http://jira.evolveum.com/</url>
-    </issueManagement>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack-samples</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.evolveum.midpoint</groupId>
-                                    <artifactId>midpoint-samples</artifactId>
-                                    <includes>**</includes>
-                                </artifactItem>
-                            </artifactItems>
-                            <outputDirectory>${project.build.directory}/samples</outputDirectory>
-                            <includes>**</includes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <runOrder>alphabetical</runOrder>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <configuration>
-                    <runOrder>alphabetical</runOrder>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    <dependencies>
 
+    <parent>
+        <artifactId>testing</artifactId>
+        <groupId>com.evolveum.midpoint.testing</groupId>
+        <version>4.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>samples-test</artifactId>
+
+    <name>midPoint Samples - Test</name>
+
+    <dependencies>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
@@ -87,7 +28,6 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>
-
 
         <!-- TEST dependency -->
         <dependency>
@@ -284,4 +224,45 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack-samples</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.evolveum.midpoint</groupId>
+                                    <artifactId>midpoint-samples</artifactId>
+                                    <includes>**</includes>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${project.build.directory}/samples</outputDirectory>
+                            <includes>**</includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <runOrder>alphabetical</runOrder>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <runOrder>alphabetical</runOrder>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

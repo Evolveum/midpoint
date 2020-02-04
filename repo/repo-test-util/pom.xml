@@ -7,20 +7,18 @@
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Repository - test utils</name>
-    <groupId>com.evolveum.midpoint.repo</groupId>
-    <artifactId>repo-test-util</artifactId>
-    <packaging>jar</packaging>
+
     <parent>
         <artifactId>repo</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.repo</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>repo-test-util</artifactId>
+    <packaging>jar</packaging>
+
+    <name>midPoint Repository - test utils</name>
+
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -110,12 +108,8 @@
             <artifactId>spring-beans</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations-java5</artifactId>
+            <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -131,6 +125,14 @@
             <artifactId>testng</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.tools</groupId>
+            <artifactId>test-ng</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.icf</groupId>
             <artifactId>dummy-resource</artifactId>
             <version>4.1-SNAPSHOT</version>
@@ -138,11 +140,6 @@
         <dependency>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

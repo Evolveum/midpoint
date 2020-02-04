@@ -9,19 +9,21 @@ package com.evolveum.midpoint.model.common.expression.script;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import java.io.File;
+
+import org.apache.commons.lang3.SystemUtils;
+import org.testng.AssertJUnit;
+import org.testng.SkipException;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import java.io.File;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author Radovan Semancik
@@ -339,7 +341,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
         // WHEN
         evaluateAndAssertStringScalarExpresssion(
-                "expression-poinson-look.xml",
+                "expression-poison-look.xml",
                 "testLookAtPoison",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
@@ -357,7 +359,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
         // WHEN
         evaluateAndAssertStringScalarExpresssion(
-                "expression-poinson-smell.xml",
+                "expression-poison-smell.xml",
                 "testSmellPoison",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
@@ -375,7 +377,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
         // WHEN
         evaluateAndAssertStringScalarExpresssion(
-                "expression-poinson-smell-tricky.xml",
+                "expression-poison-smell-tricky.xml",
                 "testSmellPoisonTricky",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
@@ -394,7 +396,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
         // WHEN
         evaluateAndAssertStringScalarExpresssion(
-                "expression-poinson-smell-dynamic.xml",
+                "expression-poison-smell-dynamic.xml",
                 "testSmellPoisonDynamic",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
@@ -413,7 +415,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
         // WHEN
         evaluateAndAssertStringScalarExpresssion(
-                "expression-poinson-smell-very-dynamic.xml",
+                "expression-poison-smell-very-dynamic.xml",
                 "testSmellPoisonVeryDynamic",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
@@ -432,7 +434,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
         // WHEN
         evaluateAndAssertStringScalarExpresssion(
-                "expression-poinson-smell-reflection.xml",
+                "expression-poison-smell-reflection.xml",
                 "testSmellPoisonReflection",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
@@ -453,7 +455,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         try {
             evaluateAndAssertStringScalarExpresssion(
-                    "expression-poinson-drink.xml",
+                    "expression-poison-drink.xml",
                     "testDrinkPoison",
                     createPoisonVariables(poison),
                     "");
@@ -462,8 +464,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
         } catch (ExpressionEvaluationException ex) {
             // THEN
-            assertTrue("Expected that exception message will contain "+Poison.POISON_DRINK_ERROR_MESSAGE+
-                    ", but it did not. It was: "+ex.getMessage(), ex.getMessage().contains(Poison.POISON_DRINK_ERROR_MESSAGE));
+            assertTrue("Expected that exception message will contain " + Poison.POISON_DRINK_ERROR_MESSAGE +
+                    ", but it did not. It was: " + ex.getMessage(), ex.getMessage().contains(Poison.POISON_DRINK_ERROR_MESSAGE));
             Error error = (Error) ex.getCause();
             assertEquals("Wrong error message", Poison.POISON_DRINK_ERROR_MESSAGE, error.getMessage());
         }
@@ -498,10 +500,13 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     }
 
     /**
-     * Allmighty script can execute a process from string.
+     * Almighty script can execute a process from string.
      */
     @Test
     public void testStringExec() throws Exception {
+        if (SystemUtils.IS_OS_WINDOWS) {
+            throw new SkipException("Skipped for Windows");
+        }
 
         // WHEN
         evaluateAndAssertStringScalarExpresssion(
@@ -515,10 +520,13 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     }
 
     /**
-     * Allmighty script can execute a process from list.
+     * Almighty script can execute a process from list.
      */
     @Test
     public void testListExec() throws Exception {
+        if (SystemUtils.IS_OS_WINDOWS) {
+            throw new SkipException("Skipped for Windows");
+        }
 
         // WHEN
         evaluateAndAssertStringScalarExpresssion(

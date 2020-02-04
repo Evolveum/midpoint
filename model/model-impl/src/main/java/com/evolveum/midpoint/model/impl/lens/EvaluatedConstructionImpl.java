@@ -10,11 +10,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -31,8 +27,11 @@ public class EvaluatedConstructionImpl implements EvaluatedConstruction {
     final private AssignmentPath assignmentPath;
     final private boolean weak;
 
-    public <AH extends AssignmentHolderType> EvaluatedConstructionImpl(Construction<AH> construction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        resource = construction.getResource(task, result).asPrismObject();
+    /**
+     * @pre construction is already evaluated and not ignored (has resource)
+     */
+    <AH extends AssignmentHolderType> EvaluatedConstructionImpl(Construction<AH> construction) {
+        resource = construction.getResource().asPrismObject();
         kind = construction.getKind();
         intent = construction.getIntent();
         assignmentPath = construction.getAssignmentPath();

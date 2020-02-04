@@ -12,6 +12,8 @@ import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincip
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -112,6 +114,19 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
             throw new AuthenticationServiceException("web.security.auth.module.null"); //
         }
         return moduleAuthentication;
+    }
+
+    protected ConnectionEnvironment createEnviroment(AuthenticationChannel channel) {
+        if (channel != null) {
+            ConnectionEnvironment connEnv = ConnectionEnvironment.create(channel.getChannelId());
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication instanceof MidpointAuthentication) {
+                connEnv.setSessionIdOverride(((MidpointAuthentication) authentication).getSessionId());
+            }
+            return connEnv;
+        } else {
+            return ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
+        }
     }
 
     protected abstract Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment, AuthenticationChannel channel) throws AuthenticationException;

@@ -1117,10 +1117,21 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
      */
     @Override
     public AccessDecision decideAccess(MidPointPrincipal principal, List<String> requiredActions, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return decideAccess(principal, requiredActions, AuthorizationParameters.EMPTY, task, result);
+    }
+
+    /**
+     * Simple access control decision similar to that used by spring security.
+     * It is practically applicable for REST authorization with user from 'switch-to-principal' in parameters.
+     * However, it supports authorization hierarchies. Therefore the ordering of elements in
+     * required actions is important.
+     */
+    @Override
+    public <O extends ObjectType, T extends ObjectType> AccessDecision decideAccess(MidPointPrincipal principal, List<String> requiredActions, AuthorizationParameters<O,T> params, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         AccessDecision finalDecision = AccessDecision.DEFAULT;
         for(String requiredAction: requiredActions) {
-            AccessDecision decision = isAuthorizedInternal(principal, requiredAction, null, AuthorizationParameters.EMPTY, null, null, task, result);
+            AccessDecision decision = isAuthorizedInternal(principal, requiredAction, null, params, null, null, task, result);
             if (AccessDecision.DENY.equals(decision)) {
                 return AccessDecision.DENY;
             }

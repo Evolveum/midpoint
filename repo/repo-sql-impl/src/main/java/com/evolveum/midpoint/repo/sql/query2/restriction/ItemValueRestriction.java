@@ -27,8 +27,6 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNotNullCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNullCondition;
 import com.evolveum.midpoint.repo.sql.query2.matcher.Matcher;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Abstract superclass for all value-related filters. There are two major problems solved:
@@ -43,9 +41,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRestriction<T> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ItemValueRestriction.class);
-
-    public ItemValueRestriction(InterpretationContext context, T filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
+    ItemValueRestriction(InterpretationContext context, T filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         super(context, filter, filter.getFullPath(), filter.getDefinition(), baseEntityDefinition, parent);
     }
 
@@ -59,13 +55,12 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
         HqlDataInstance dataInstance = getItemPathResolver().resolveItemPath(path, itemDefinition, getBaseHqlEntity(), false);
         setHqlDataInstance(dataInstance);
 
-        Condition condition = interpretInternal();
-        return condition;
+        return interpretInternal();
     }
 
     public abstract Condition interpretInternal() throws QueryException;
 
-    protected Condition createPropertyVsConstantCondition(String hqlPropertyPath, Object value, ValueFilter filter) throws QueryException {
+    Condition createPropertyVsConstantCondition(String hqlPropertyPath, Object value, ValueFilter filter) throws QueryException {
         ItemRestrictionOperation operation = findOperationForFilter(filter);
 
         InterpretationContext context = getContext();
@@ -74,10 +69,11 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
         String matchingRule = filter.getMatchingRule() != null ? filter.getMatchingRule().getLocalPart() : null;
 
         // TODO treat null for multivalued properties (at least throw an exception!)
+        //noinspection unchecked
         return matcher.match(context.getHibernateQuery(), operation, hqlPropertyPath, value, matchingRule);
     }
 
-    protected ItemRestrictionOperation findOperationForFilter(ValueFilter filter) throws QueryException {
+    ItemRestrictionOperation findOperationForFilter(ValueFilter filter) throws QueryException {
         ItemRestrictionOperation operation;
         if (filter instanceof EqualFilter) {
             operation = ItemRestrictionOperation.EQ;
@@ -123,7 +119,7 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
      *
      * TODO implement for restrictions other than PropertyRestriction.
      */
-    protected Condition addIsNotNullIfNecessary(Condition condition, String propertyPath) {
+    Condition addIsNotNullIfNecessary(Condition condition, String propertyPath) {
         if (condition instanceof IsNullCondition || condition instanceof IsNotNullCondition) {
             return condition;
         }

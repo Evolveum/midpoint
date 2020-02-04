@@ -8,20 +8,18 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Infrastructure - java utils</name>
-    <groupId>com.evolveum.midpoint.infra</groupId>
-    <artifactId>util</artifactId>
-    <packaging>jar</packaging>
+
     <parent>
         <artifactId>infra</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.infra</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>util</artifactId>
+    <packaging>jar</packaging>
+
+    <name>midPoint Infrastructure - java utils</name>
+
     <dependencies>
         <dependency>
             <groupId>xerces</groupId>
@@ -59,10 +57,10 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
         </dependency>
-<!--         <dependency> -->
-<!--             <groupId>log4j</groupId> -->
-<!--             <artifactId>log4j</artifactId> -->
-<!--         </dependency> -->
+        <!--         <dependency> -->
+        <!--             <groupId>log4j</groupId> -->
+        <!--             <artifactId>log4j</artifactId> -->
+        <!--         </dependency> -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -75,10 +73,6 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
         </dependency>
-<!--         <dependency> -->
-<!--             <groupId>org.slf4j</groupId> -->
-<!--             <artifactId>slf4j-log4j12</artifactId> -->
-<!--         </dependency> -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
@@ -93,7 +87,7 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations-java5</artifactId>
+            <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.xml.bind</groupId>

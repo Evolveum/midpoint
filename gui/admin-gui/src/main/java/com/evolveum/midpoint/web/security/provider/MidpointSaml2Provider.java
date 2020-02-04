@@ -68,7 +68,7 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
     }
 
     protected Authentication internalAuthentication(Authentication authentication, List requireAssignment, AuthenticationChannel channel) throws AuthenticationException {
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
+        ConnectionEnvironment connEnv = createEnviroment(channel);
 
         try {
             Authentication token;

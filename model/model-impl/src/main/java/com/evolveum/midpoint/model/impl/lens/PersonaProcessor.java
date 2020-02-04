@@ -154,8 +154,7 @@ public class PersonaProcessor {
             constructionProcessor.processConstructions(context, evaluatedAssignmentTriple,
                 evaluatedAssignment -> evaluatedAssignment.getPersonaConstructionTriple(),
                 construction -> new PersonaKey(construction.getConstructionType()),
-                consumer,
-                task, result);
+                consumer);
 
         LOGGER.trace("activePersonaKeyTriple:\n{}", activePersonaKeyTriple.debugDumpLazily());
 

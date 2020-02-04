@@ -47,6 +47,7 @@ public class AuditSearchDto implements Serializable {
     public static final String F_CHANGED_ITEM = "changedItem";
     public static final String F_VALUE_REF_TARGET_NAME = "valueRefTargetNames";
     public static final String F_COLLECTION = "collection";
+    public static final String F_RESOURCE_OID = "resourceOid";
 
     private XMLGregorianCalendar from;
     private XMLGregorianCalendar to;
@@ -63,6 +64,7 @@ public class AuditSearchDto implements Serializable {
     private ItemPathDto changedItem;
     private List<ObjectType> valueRefTargetNames;
     private ObjectCollectionType collection;
+    private String resourceOid;
 
     public AuditSearchDto() {
     }
@@ -189,5 +191,13 @@ public class AuditSearchDto implements Serializable {
 
     public void setCollection(ObjectCollectionType collection) {
         this.collection = collection;
+    }
+
+    public String getResourceOid() {
+        return resourceOid;
+    }
+
+    public void setResourceOid(String resourceOid) {
+        this.resourceOid = resourceOid;
     }
 }

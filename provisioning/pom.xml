@@ -8,35 +8,19 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Provisioning</name>
-    <artifactId>provisioning</artifactId>
-    <packaging>pom</packaging>
+
     <parent>
-        <artifactId>parent</artifactId>
+        <artifactId>midpoint</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>4.1-SNAPSHOT</version>
-        <relativePath>../build-system/pom.xml</relativePath>
     </parent>
-    <organization>
-        <name>Evolveum</name>
-        <url>http://www.evolveum.com</url>
-    </organization>
-    <licenses>
-        <license>
-            <name>Apache License v2.0</name>
-                    <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    <issueManagement>
-        <system>Atlassian JIRA</system>
-        <url>http://jira.evolveum.com/</url>
-    </issueManagement>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <groupId>com.evolveum.midpoint.provisioning</groupId>
+    <artifactId>provisioning</artifactId>
+    <packaging>pom</packaging>
+
+    <name>midPoint Provisioning</name>
+
     <modules>
         <module>provisioning-api</module>
         <module>provisioning-impl</module>
@@ -44,30 +28,28 @@
         <module>ucf-impl-connid</module>
         <module>ucf-impl-builtin</module>
     </modules>
-    <build>
-        <plugins>
-            <!-- reference failsafe and surefire from build-system plugin management in order for tests to be running -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
+
     <dependencies>
-        <dependency> <!-- Not used, but required for surefire plugin not to complain -->
+        <!-- Required for surefire plugin not to complain -->
+        <dependency>
+            <groupId>com.evolveum.midpoint.tools</groupId>
+            <artifactId>test-ng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- reference failsafe to run integration tests (surefire/units run by default) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

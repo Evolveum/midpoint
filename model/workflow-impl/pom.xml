@@ -8,20 +8,18 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Workflow - impl</name>
-    <groupId>com.evolveum.midpoint.model</groupId>
-    <artifactId>workflow-impl</artifactId>
-    <packaging>jar</packaging>
+
     <parent>
         <artifactId>model</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.model</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>workflow-impl</artifactId>
+    <packaging>jar</packaging>
+
+    <name>midPoint Workflow - impl</name>
+
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
@@ -107,7 +105,7 @@
 
         <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations-java5</artifactId>
+            <artifactId>annotations</artifactId>
         </dependency>
         <!-- this one is needed to get SQL configuration from the repository -->
         <dependency>
@@ -117,10 +115,10 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-             <groupId>org.apache.velocity</groupId>
-             <artifactId>velocity</artifactId>
-         </dependency>
-         <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
         </dependency>
@@ -209,7 +207,6 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -296,7 +293,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-<!--             <version>4.8.2</version> -->
+            <!--             <version>4.8.2</version> -->
             <scope>test</scope>
         </dependency>
         <dependency>
