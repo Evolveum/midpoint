@@ -9,7 +9,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <!-- see https://maven.apache.org/developers/conventions/code.html for recommended element order -->
+
+    <!--
+    Notes:
+    - See https://maven.apache.org/developers/conventions/code.html for recommended element order.
+    - Most information is inherited from this parent, no need to repeat license, organization, etc.
+    - Some JAR modules are pure-test, no main sources - deploy/install is skipped for these, otherwise it fails with:
+    "The packaging for this project did not assign a file to the build artifact"
+    - Some modules have explicit maven.test.skip=true to disable test plugins coming from parents.
+    -->
 
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>midpoint</artifactId>
@@ -26,6 +34,11 @@
         <license>
             <name>Apache License v2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+        <license>
+            <name>European Union Public License</name>
+            <url>https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -1083,23 +1096,6 @@
                         <groupId>javax.xml.stream</groupId>
                         <artifactId>stax-api</artifactId>
                     </exclusion>
-                    <!-- use in midPoint 3.2
-                    <exclusion>
-                        <groupId>org.apache.lucene</groupId>
-                        <artifactId>lucene-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.lucene</groupId>
-                        <artifactId>lucene-analyzers-common</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.lucene</groupId>
-                        <artifactId>lucene-queryparser</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>jfree</groupId>
-                        <artifactId>jfreechart</artifactId>
-                    </exclusion> -->
                 </exclusions>
             </dependency>
             <!-- report dependency (needed for microsoft office formats) -->
@@ -1582,8 +1578,8 @@
                             <Organization>Evolveum</Organization>
                             <Organization-URL>http://www.evolveum.com</Organization-URL>
                             <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
-                            <License>Apache License 2.0</License>
-                            <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
+                            <License>dual-licensed under the Apache License 2.0 and European Union Public License</License>
+                            <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
                         </manifestEntries>
                     </archive>
                     <attachClasses>true</attachClasses>
@@ -1893,7 +1889,6 @@
                             <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties
                             </java.util.logging.config.file>
                         </systemPropertyVariables>
-                        <!--argLine>-Xms16g -Xmx16g</argLine-->
                         <argLine>${surefire.args}</argLine>
                         <!--<argLine>-agentpath:/usr/local/yjp-11.0.10/bin/linux-x86-64/libyjpagent.so=alloceach=10,allocsizelimit=1048576,sampling,walltimespec=/home/lazyman/.yjp/config/.walltime,noj2ee,profileruipath=/usr/local/yjp-11.0.10/bin/yjp.sh,onexit=snapshot
                             -Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine> -->

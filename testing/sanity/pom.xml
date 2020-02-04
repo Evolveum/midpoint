@@ -20,11 +20,9 @@
     <name>midPoint Testing - Sanity</name>
 
     <properties>
-        <!--
-        module doesn't have main/src, without this we'd get:
-        The packaging for this project did not assign a file to the build artifact
-        -->
+        <!-- see notes in main midPoint POM -->
         <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <dependencies>
