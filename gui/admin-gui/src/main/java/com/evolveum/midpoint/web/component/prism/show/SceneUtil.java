@@ -36,7 +36,7 @@ public class SceneUtil {
         if (deltas != null) {
             if (deltas.getFocusPrimaryDelta() != null) {
                 ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(deltas.getFocusPrimaryDelta(), prismContext);
-                scenes.add(modelInteractionService.visualizeDelta(delta, objectRef, task, result));
+                scenes.add(modelInteractionService.visualizeDelta(delta, false, objectRef, task, result));
             }
             for (ProjectionObjectDeltaType projectionObjectDelta : deltas.getProjectionPrimaryDelta()) {
                 ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(projectionObjectDelta.getPrimaryDelta(), prismContext);

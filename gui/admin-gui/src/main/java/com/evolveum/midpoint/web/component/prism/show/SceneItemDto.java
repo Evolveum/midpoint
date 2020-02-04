@@ -22,7 +22,7 @@ import java.util.List;
 public class SceneItemDto implements Serializable {
 
     public static final String F_NAME = "name";
-    public static final String F_LINES = "lines";
+    public static final String F_LINES  = "lines";
 
     @NotNull private final SceneItem sceneItem;
     @NotNull private final SceneDto sceneDto;
@@ -101,6 +101,10 @@ public class SceneItemDto implements Serializable {
 
     public boolean isDeltaScene() {
         return sceneDto.containsDeltaItems();
+    }
+
+    public boolean isOperational(){
+        return sceneItem.isOperational();
     }
 
     @Override

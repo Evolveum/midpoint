@@ -99,7 +99,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
             }
 
         };
-        ScenePanel deltaPanel = new ScenePanel(ID_DELTA_PANEL, deltaModel) {
+        ScenePanel deltaPanel = new ScenePanel(ID_DELTA_PANEL, deltaModel, true) {
             @Override
             public void headerOnClickPerformed(AjaxRequestTarget target, IModel<SceneDto> model) {
                 super.headerOnClickPerformed(target, model);
@@ -154,7 +154,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
             throw e;
         }
         try {
-            scene = parentPage.getModelInteractionService().visualizeDelta(delta,
+            scene = parentPage.getModelInteractionService().visualizeDelta(delta, true,
                     parentPage.createSimpleTask(ID_PARAMETERS_DELTA),
                     new OperationResult(ID_PARAMETERS_DELTA));
         } catch (SchemaException | ExpressionEvaluationException e) {

@@ -12,14 +12,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.tools</groupId>
         <artifactId>tools</artifactId>
         <version>4.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.evolveum.midpoint.tools</groupId>
     <artifactId>ninja</artifactId>
-    <version>4.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>ninja</name>
@@ -32,19 +30,6 @@
 
         <main.class>com.evolveum.midpoint.ninja.Main</main.class>
     </properties>
-
-    <repositories>
-        <repository>
-            <id>evolveum</id>
-            <name>Evolveum Public Releases</name>
-            <url>http://nexus.evolveum.com/nexus/content/groups/public</url>
-        </repository>
-        <repository>
-            <id>evolveum-snapshots</id>
-            <name>Evolveum Snapshots</name>
-            <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>

@@ -158,10 +158,20 @@ public class Visualizer {
 
     @NotNull
     public SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
+        return visualizeDelta(objectDelta, objectRef, false, task, parentResult);
+    }
+
+    @NotNull
+    public SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef,
+            boolean includeOperationalItems, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeDelta");
         try {
             resolver.resolve(objectDelta, task, result);
-            return visualizeDelta(objectDelta, null, objectRef, new VisualizationContext(), task, result);
+            VisualizationContext visualizationContext = new VisualizationContext();
+            if (includeOperationalItems){
+                visualizationContext.setIncludeOperationalItems(includeOperationalItems);
+            }
+            return visualizeDelta(objectDelta, null, objectRef, visualizationContext, task, result);
         } catch (RuntimeException | Error | SchemaException | ExpressionEvaluationException e) {
             result.recordFatalError("Couldn't visualize the data structure: " + e.getMessage(), e);
             throw e;
