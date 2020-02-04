@@ -78,6 +78,8 @@
         <git.describe>${describe}</git.describe>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>EEE, d MMM yyyy HH:mm:ss Z</maven.build.timestamp.format>
+        <surefire.args>-Xms1024m -Xmx4096m</surefire.args>
+        <failsafe.args>-Xms1024m -Xmx4096m -Duser.language=en</failsafe.args>
 
         <!-- Dependencies global versions -->
         <commons.io.version>2.6</commons.io.version>
@@ -1892,11 +1894,11 @@
                             </java.util.logging.config.file>
                         </systemPropertyVariables>
                         <!--argLine>-Xms16g -Xmx16g</argLine-->
-                        <argLine>-Xms1024m -Xmx4096m</argLine>
+                        <argLine>${surefire.args}</argLine>
                         <!--<argLine>-agentpath:/usr/local/yjp-11.0.10/bin/linux-x86-64/libyjpagent.so=alloceach=10,allocsizelimit=1048576,sampling,walltimespec=/home/lazyman/.yjp/config/.walltime,noj2ee,profileruipath=/usr/local/yjp-11.0.10/bin/yjp.sh,onexit=snapshot
                             -Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine> -->
 
-                        <!-- it's used for bamboo build to load jdbc libraries which can not
+                        <!-- it's used for CI build to load JDBC libraries which can not
                             be installed to public maven repository (MS SQL, ORACLE) -->
                         <additionalClasspathElements>
                             <additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
@@ -1931,8 +1933,7 @@
                                     <midpoint.home>target/midpoint-home</midpoint.home>
                                     <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
                                 </systemPropertyVariables>
-                                <argLine>-Xms1024m -Xmx4096m -Duser.language=en</argLine>
-                                <!--argLine>-Xms16g -Xmx16g -Duser.language=en</argLine-->
+                                <argLine>${failsafe.args}</argLine>
                                 <suiteXmlFiles>
                                     <suiteXmlFile>testng-integration.xml</suiteXmlFile>
                                 </suiteXmlFiles>
@@ -1946,8 +1947,10 @@
                                         <value>com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener</value>
                                     </property>
                                 </properties>
-                                <!-- it's used for bamboo build to load jdbc libraries which can not
-                                                            be installed to public maven repository (MS SQL, ORACLE) -->
+                                <!--
+                                It's used for CI build to load JDBC libraries which can not
+                                be installed to public maven repository (MS SQL, ORACLE).
+                                -->
                                 <additionalClasspathElements>
                                     <additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
                                     <!-- used running tests on windows machines -->
