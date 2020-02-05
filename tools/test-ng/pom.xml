@@ -11,7 +11,7 @@
 
     <parent>
         <artifactId>tools</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.tools</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
 

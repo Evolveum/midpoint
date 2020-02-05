@@ -792,7 +792,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     @NotNull
-    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException{
+        return visualizer.visualizeDelta(delta, null, includeOperationalItems,  task, result);
+    }
+
+    @Override
+    @NotNull
+    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         return visualizer.visualizeDelta(delta, objectRef, task, result);
     }
 

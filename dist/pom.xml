@@ -20,8 +20,13 @@
 
     <name>midPoint Distribution</name>
 
+    <modules>
+        <module>midpoint-api</module>
+        <module>javadoc</module>
+    </modules>
+
     <dependencies>
-           <dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
             <version>4.1-SNAPSHOT</version>
@@ -50,6 +55,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -92,26 +98,22 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <inherited>false</inherited>
                 <configuration>
-                  <descriptors>
-                    <descriptor>src/main/assembly/dist.xml</descriptor>
-                  </descriptors>
-                  <finalName>midpoint-${project.version}</finalName>
+                    <descriptors>
+                        <descriptor>src/main/assembly/dist.xml</descriptor>
+                    </descriptors>
+                    <finalName>midpoint-${project.version}</finalName>
                     <tarLongFileMode>gnu</tarLongFileMode>
                 </configuration>
                 <executions>
-                  <execution>
-                    <id>dist-assembly</id>
-                    <phase>package</phase> <!-- bind to the packaging phase -->
-                    <goals>
-                      <goal>single</goal>
-                    </goals>
-                  </execution>
+                    <execution>
+                        <id>dist-assembly</id>
+                        <phase>package</phase> <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
-    <modules>
-        <module>midpoint-api</module>
-        <module>javadoc</module>
-    </modules>
 </project>

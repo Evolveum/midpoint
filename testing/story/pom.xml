@@ -11,22 +11,13 @@
 
     <parent>
         <artifactId>testing</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.testing</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.evolveum.midpoint.testing</groupId>
     <artifactId>story</artifactId>
 
     <name>midPoint Testing - Story Tests</name>
-
-    <properties>
-        <!--
-        module doesn't have main/src, without this we'd get:
-        The packaging for this project did not assign a file to the build artifact
-        -->
-        <maven.install.skip>true</maven.install.skip>
-    </properties>
 
     <build>
         <plugins>

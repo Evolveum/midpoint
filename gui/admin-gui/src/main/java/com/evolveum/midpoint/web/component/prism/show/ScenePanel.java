@@ -20,12 +20,15 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -45,6 +48,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
     private static final String ID_ITEM = "item";
     private static final String ID_PARTIAL_SCENES = "partialScenes";
     private static final String ID_PARTIAL_SCENE = "partialScene";
+    private static final String ID_SHOW_OPERATIONAL_ITEMS_LINK = "showOperationalItemsLink";
 
     private static final Trace LOGGER = TraceManager.getTrace(ScenePanel.class);
     public static final String ID_OPTION_BUTTONS = "optionButtons";
@@ -60,8 +64,16 @@ public class ScenePanel extends BasePanel<SceneDto> {
     public static final String ID_NEW_VALUE_LABEL = "newValueLabel";
     public static final String ID_VALUE_LABEL = "valueLabel";
 
+    private boolean showOperationalItems = false;
+    private boolean operationalItemsVisible = false;
+
     public ScenePanel(String id, @NotNull IModel<SceneDto> model) {
+        this(id, model, false);
+    }
+
+    public ScenePanel(String id, @NotNull IModel<SceneDto> model, boolean showOperationalItems) {
         super(id, model);
+        this.showOperationalItems = showOperationalItems;
     }
 
     @Override
@@ -261,6 +273,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
             @Override
             protected void populateItem(ListItem<SceneItemDto> item) {
                 SceneItemPanel panel = new SceneItemPanel(ID_ITEM, item.getModel());
+                panel.add(new VisibleBehaviour(() -> !isOperationalItem(item.getModel()) || isOperationalItemsVisible()));
                 panel.setRenderBodyOnly(true);
                 item.add(panel);
             }
@@ -274,13 +287,43 @@ public class ScenePanel extends BasePanel<SceneDto> {
 
             @Override
             protected void populateItem(ListItem<SceneDto> item) {
-                ScenePanel panel = new ScenePanel(ID_PARTIAL_SCENE, item.getModel());
+                ScenePanel panel = new ScenePanel(ID_PARTIAL_SCENE, item.getModel()){
+                    private static final long serialVersionUID = 1L;
+                    @Override
+                    protected boolean isOperationalItemsVisible(){
+                        ScenePanel parentScenePanel = findParent(ScenePanel.class);
+                        if (parentScenePanel != null) {
+                            return parentScenePanel.isOperationalItemsVisible();
+                        } else {
+                            return ScenePanel.this.operationalItemsVisible;
+                        }
+                    }
+                };
+                panel.add(new VisibleBehaviour(() -> !isOperationalPartialScene(item.getModel()) || operationalItemsVisible));
                 panel.setOutputMarkupPlaceholderTag(true);
                 item.add(panel);
             }
         };
         partialScenes.setReuseItems(true);
         body.add(partialScenes);
+
+        AjaxButton showOperationalItemsLink = new AjaxButton(ID_SHOW_OPERATIONAL_ITEMS_LINK) {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                setOperationalItemsVisible(!operationalItemsVisible);
+                target.add(ScenePanel.this);
+            }
+
+            @Override
+            public IModel<?> getBody() {
+                return getShowOperationalItemsLinkLabel();
+            }
+        };
+        showOperationalItemsLink.setOutputMarkupId(true);
+        showOperationalItemsLink.add(AttributeAppender.append("style", "cursor: pointer;"));
+        showOperationalItemsLink.add(new VisibleBehaviour(() -> showOperationalItems));
+        body.add(showOperationalItemsLink);
     }
 
     protected boolean isExistingViewableObject() {
@@ -326,5 +369,32 @@ public class ScenePanel extends BasePanel<SceneDto> {
                 return "";
             }
         }
+    }
+
+    private void setOperationalItemsVisible(boolean operationalItemsVisible){
+        this.operationalItemsVisible = operationalItemsVisible;
+    }
+
+    protected boolean isOperationalItemsVisible(){
+        return operationalItemsVisible;
+    }
+
+    private IModel<?> getShowOperationalItemsLinkLabel(){
+        return operationalItemsVisible ? PageBase.createStringResourceStatic(ScenePanel.this, "ScenePanel.hideOperationalItemsLink")
+                : PageBase.createStringResourceStatic(ScenePanel.this, "ScenePanel.showOperationalItemsLink");
+    }
+
+    private boolean isOperationalPartialScene(IModel<SceneDto> sceneDtoModel){
+        if (sceneDtoModel == null || sceneDtoModel.getObject() == null){
+            return false;
+        }
+        return sceneDtoModel.getObject().getScene().isOperational();
+    }
+
+    private boolean isOperationalItem(IModel<SceneItemDto> sceneDtoModel){
+        if (sceneDtoModel == null || sceneDtoModel.getObject() == null){
+            return false;
+        }
+        return sceneDtoModel.getObject().isOperational();
     }
 }
