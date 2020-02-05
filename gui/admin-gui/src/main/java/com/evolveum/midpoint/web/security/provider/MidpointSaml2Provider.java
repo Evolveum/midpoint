@@ -78,7 +78,9 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
                 List<Attribute> attributes = ((DefaultSamlAuthentication) authentication).getAssertion().getAttributes();
                 String enteredUsername = "";
                 for (Attribute attribute : attributes) {
-                    if (attribute.getFriendlyName().equals(samlModule.getNamesOfUsernameAttributes().get(samlAuthentication.getAssertingEntityId()))) {
+                    if (attribute != null
+                            && ((attribute.getFriendlyName() != null && attribute.getFriendlyName().equals(samlModule.getNamesOfUsernameAttributes().get(samlAuthentication.getAssertingEntityId())))
+                            || (attribute.getName() != null && attribute.getName().equals(samlModule.getNamesOfUsernameAttributes().get(samlAuthentication.getAssertingEntityId()))))){
                         List<Object> values = attribute.getValues();
                         if (values == null) {
                             LOGGER.error("Saml attribute, which define username don't contains value");

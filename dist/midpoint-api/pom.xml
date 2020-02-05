@@ -14,6 +14,7 @@
         <artifactId>dist</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>4.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>midpoint-api</artifactId>

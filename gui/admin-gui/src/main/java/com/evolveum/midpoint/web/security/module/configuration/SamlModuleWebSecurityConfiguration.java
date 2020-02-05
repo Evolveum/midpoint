@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.util.KeyStoreKey;
+import com.evolveum.midpoint.web.security.util.MidpointSamlLocalServiceProviderConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang3.StringUtils;
@@ -79,7 +80,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             samlConfiguration.setNetwork(network);
         }
         AuthenticationModuleSaml2ServiceProviderType serviceProviderType = modelType.getServiceProvider();
-        LocalServiceProviderConfiguration serviceProvider = new LocalServiceProviderConfiguration();
+        MidpointSamlLocalServiceProviderConfiguration serviceProvider = new MidpointSamlLocalServiceProviderConfiguration();
         serviceProvider.setEntityId(serviceProviderType.getEntityId())
                 .setSignMetadata(Boolean.TRUE.equals(serviceProviderType.isSignRequests()))
                 .setSignRequests(Boolean.TRUE.equals(serviceProviderType.isSignRequests()))
@@ -137,6 +138,8 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             }
         }
         serviceProvider.setKeys(key);
+        serviceProvider.setAlias(serviceProviderType.getAlias());
+        serviceProvider.setAliasForPath(serviceProviderType.getAliasForPath());
 
         List<ExternalIdentityProviderConfiguration> providers = new ArrayList<ExternalIdentityProviderConfiguration>();
         List<AuthenticationModuleSaml2ProviderType> providersType = serviceProviderType.getProvider();
