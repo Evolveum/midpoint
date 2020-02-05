@@ -11,11 +11,10 @@
 
     <parent>
         <artifactId>provisioning</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.provisioning</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.evolveum.midpoint.provisioning</groupId>
     <artifactId>ucf-impl-connid</artifactId>
     <packaging>jar</packaging>
 

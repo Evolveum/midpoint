@@ -12,11 +12,10 @@
 
     <parent>
         <artifactId>infra</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.infra</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.evolveum.midpoint.infra</groupId>
     <artifactId>prism-api</artifactId>
 
     <name>midPoint Infrastructure - prism-api</name>

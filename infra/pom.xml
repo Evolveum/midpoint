@@ -14,6 +14,7 @@
         <version>4.1-SNAPSHOT</version>
     </parent>
 
+    <groupId>com.evolveum.midpoint.infra</groupId>
     <artifactId>infra</artifactId>
     <packaging>pom</packaging>
 

@@ -1051,13 +1051,11 @@ public class ModelRestService {
     }
 
     private Task initRequest(MessageContext mc) {
-        Task task;
         if (isExperimentalEnabled()) {
-            task = RestServiceUtil.initRequest(taskManager);
+            return RestServiceUtil.initRequest(taskManager);
         } else {
-            task = RestServiceUtil.initRequest(mc);
+            return RestServiceUtil.initRequest(mc);
         }
-        return task;
     }
 
     private boolean isExperimentalEnabled() {
