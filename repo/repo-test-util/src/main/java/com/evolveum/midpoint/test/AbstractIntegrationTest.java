@@ -116,6 +116,7 @@ import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.testng.AssertJUnit.assertNotNull;
@@ -2969,5 +2970,22 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     protected void removeGlobalTracingOverride() {
         taskManager.removeGlobalTracingOverride();
+    }
+
+    protected Consumer<PrismObject<TaskType>> workerThreadsCustomizer(int threads) {
+        return taskObject -> {
+            if (threads != 0) {
+                //noinspection unchecked
+                PrismProperty<Integer> workerThreadsProperty = prismContext.getSchemaRegistry()
+                        .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS)
+                        .instantiate();
+                workerThreadsProperty.setRealValue(threads);
+                try {
+                    taskObject.addExtensionItem(workerThreadsProperty);
+                } catch (SchemaException e) {
+                    throw new AssertionError(e);
+                }
+            }
+        };
     }
 }
