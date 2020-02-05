@@ -24,7 +24,7 @@ import java.util.Map;
  * @author semancik
  *
  */
-public interface PrismValue extends Visitable, PathVisitable, Serializable, DebugDumpable, Revivable, Freezable {      // todo ShortDumpable?
+public interface PrismValue extends Visitable, PathVisitable, Serializable, DebugDumpable, Revivable, Freezable, PrismContextSensitive {      // todo ShortDumpable?
 
     void setPrismContext(PrismContext prismContext);
 
@@ -55,8 +55,6 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
      * want to avoid unnecessary cloning.
      */
     void clearParent();
-
-    PrismContext getPrismContext();
 
     void applyDefinition(ItemDefinition definition) throws SchemaException;
 

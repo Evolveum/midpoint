@@ -65,7 +65,7 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
     }
 
     public PrismObjectValue<O> createNewValue() {
-        checkMutability();
+        checkMutable();
         PrismObjectValue<O> newValue = new PrismObjectValueImpl<>(prismContext);
         try {
             add(newValue, false);
@@ -124,7 +124,7 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
     }
 
     public void setOid(String oid) {
-        checkMutability();
+        checkMutable();
         getValue().setOid(oid);
     }
 
@@ -133,7 +133,7 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
     }
 
     public void setVersion(String version) {
-        checkMutability();
+        checkMutable();
         getValue().setVersion(version);
     }
 
@@ -450,11 +450,11 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
     }
 
     @Override
-    public void freeze() {
+    public void performFreeze() {
         if (!this.immutable && values.isEmpty()) {
             createNewValue();
         }
-        super.freeze();
+        super.performFreeze();
     }
 
     public PrismObject<O> cloneIfImmutable() {

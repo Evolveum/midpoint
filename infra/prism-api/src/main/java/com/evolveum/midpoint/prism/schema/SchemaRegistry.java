@@ -27,13 +27,11 @@ import java.util.function.Function;
 /**
  * @author mederly
  */
-public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
+public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, GlobalDefinitionsStore {
 
     DynamicNamespacePrefixMapper getNamespacePrefixMapper();
 
     void registerInvalidationListener(InvalidationListener listener);
-
-    PrismContext getPrismContext();
 
     String getDefaultNamespace();
 

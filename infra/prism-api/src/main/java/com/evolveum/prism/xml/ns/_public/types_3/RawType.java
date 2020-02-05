@@ -31,7 +31,7 @@ import java.util.Objects;
 /**
  * A class used to hold raw XNodes until the definition for such an object is known.
  */
-public class RawType implements Serializable, Cloneable, Equals, Revivable, ShortDumpable, JaxbVisitable {
+public class RawType implements Serializable, Cloneable, Equals, Revivable, ShortDumpable, JaxbVisitable, PrismContextSensitive {
     private static final long serialVersionUID = 4430291958902286779L;
 
     /**

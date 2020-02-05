@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.AbstractFreezable;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.Transformer;
 import org.jetbrains.annotations.Contract;
@@ -20,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  *
  */
-public abstract class XNodeImpl implements XNode {
+public abstract class XNodeImpl extends AbstractFreezable implements XNode {
 
     public static final QName KEY_OID = new QName(null, "oid");
     public static final QName KEY_VERSION = new QName(null, "version");
@@ -231,14 +232,4 @@ public abstract class XNodeImpl implements XNode {
         return this instanceof MapXNodeImpl && ((MapXNodeImpl) this).size() == 1;
     }
 
-    protected void checkMutable() {
-        if (immutable) {
-            throw new IllegalStateException("Cannot modify immutable XNode: " + this);
-        }
-    }
-
-    @Override
-    public void freeze() {
-        immutable = true;
-    }
 }

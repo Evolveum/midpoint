@@ -14,6 +14,8 @@ import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.CloneStrategy;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Item;
@@ -36,7 +38,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -427,10 +428,6 @@ public class DummyReferenceImpl implements PrismReference {
 
     public void freeze() {
         realReference.freeze();
-    }
-
-    public void checkImmutability() {
-        realReference.checkImmutability();
     }
 
     @NotNull

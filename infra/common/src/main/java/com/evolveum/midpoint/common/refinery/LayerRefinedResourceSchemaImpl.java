@@ -262,6 +262,11 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
     }
 
     @Override
+    public boolean isImmutable() {
+        return refinedResourceSchema.isImmutable();
+    }
+
+    @Override
     public void freeze() {
         // TODO should we freeze referenced refinedResourceSchema?
     }
