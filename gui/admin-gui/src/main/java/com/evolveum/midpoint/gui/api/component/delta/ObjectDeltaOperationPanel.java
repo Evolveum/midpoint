@@ -6,14 +6,20 @@
  */
 package com.evolveum.midpoint.gui.api.component.delta;
 
+import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -40,6 +46,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 
     private static final String ID_PARAMETERS_DELTA = "delta";
     private static final String ID_PARAMETERS_EXECUTION_RESULT = "executionResult";
+    private static final String ID_PARAMETERS_FULL_RESULT_LINK = "fullResultLink";
     private static final String ID_PARAMETERS_OBJECT_NAME = "objectName";
     private static final String ID_PARAMETERS_RESOURCE_NAME = "resourceName";
 
@@ -72,6 +79,24 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
                 new PropertyModel(getModel(), "executionResult.status"));
         executionResult.setOutputMarkupId(true);
         objectDeltaOperationMarkup.add(executionResult);
+
+        AjaxButton showFullResultsLink = new AjaxButton(ID_PARAMETERS_FULL_RESULT_LINK) {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showFullResultsPerformed(target);
+            }
+
+            @Override
+            public IModel<?> getBody() {
+                return getPageBase().createStringResource("ObjectDeltaOperationResult.showFullResult");
+            }
+        };
+        showFullResultsLink.setOutputMarkupId(true);
+        showFullResultsLink.add(AttributeAppender.append("style", "cursor: pointer;"));
+        showFullResultsLink.add(new VisibleBehaviour(() -> !WebComponentUtil.isSuccessOrHandledError(getModelObject() != null ?
+                getModelObject().getExecutionResult() : null)));
+        objectDeltaOperationMarkup.add(showFullResultsLink);
 
         Label resourceName = new Label(ID_PARAMETERS_RESOURCE_NAME,
                 new PropertyModel(getModel(), ObjectDeltaOperationType.F_RESOURCE_NAME.getLocalPart()));
@@ -168,4 +193,10 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 
     }
 
+    private void showFullResultsPerformed(AjaxRequestTarget target){
+        OperationResultPopupPanel operationResultPopupPanel = new OperationResultPopupPanel(getPageBase().getMainPopupBodyId(),
+                getModelObject() != null ? Model.of(OperationResult.createOperationResult(getModelObject().getExecutionResult()))
+                        : Model.of());
+        getPageBase().showMainPopup(operationResultPopupPanel, target);
+    }
 }
