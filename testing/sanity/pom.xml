@@ -19,12 +19,6 @@
 
     <name>midPoint Testing - Sanity</name>
 
-    <properties>
-        <!-- see notes in main midPoint POM -->
-        <maven.install.skip>true</maven.install.skip>
-        <maven.deploy.skip>true</maven.deploy.skip>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
