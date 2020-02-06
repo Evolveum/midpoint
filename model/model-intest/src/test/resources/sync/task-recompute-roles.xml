@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="42869247-9bf1-4198-acea-3326f5ab2c34"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <name>Recompute: Roles</name>
+
+    <extension>
+        <ext:objectType>RoleType</ext:objectType>
+        <ext:objectQuery>
+            <q:filter>
+                <q:substring>
+                    <q:path>name</q:path>
+                    <q:value>rx</q:value>
+                    <q:anchorStart>true</q:anchorStart>
+                </q:substring>
+            </q:filter>
+        </ext:objectQuery>
+        <ext:workerThreads>2</ext:workerThreads>
+    </extension>
+
+    <taskIdentifier>42869247-9bf1-4198-acea-3326f5ab2c34</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
+    <workManagement>
+        <buckets>
+            <stringSegmentation>
+                <discriminator>name</discriminator>
+                <boundaryCharacters>r</boundaryCharacters>
+                <boundaryCharacters>x</boundaryCharacters>
+                <boundaryCharacters>0-9</boundaryCharacters>
+                <boundaryCharacters>0-9</boundaryCharacters>
+                <comparisonMethod>prefix</comparisonMethod>
+            </stringSegmentation>
+        </buckets>
+    </workManagement>
+    <recurrence>single</recurrence>
+</task>
