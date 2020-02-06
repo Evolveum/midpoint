@@ -119,10 +119,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
-                    <suiteXmlFiles>
-                        <suiteXmlFile>testng-integration-schrodinger.xml</suiteXmlFile>
-                    </suiteXmlFiles>
-                    <!--<skipITs>true</skipITs>-->
                     <skipITs>${skipTests}</skipITs>
                 </configuration>
                 <executions>
@@ -142,7 +138,6 @@
                         <phase>pre-integration-test</phase>
                         <configuration>
                             <skip>${skipTests}</skip>
-                            <!--<skip>true</skip>-->
                             <target name="Midpoint ${project.version} booting up for integration testing, embedded Tomcat instance configured to listen on port: ${server.port}">
                                 <exec dir="." executable="cmd" osfamily="windows" spawn="true">
                                     <arg value="/c"/>
@@ -174,7 +169,6 @@
                         <phase>post-integration-test</phase>
                         <configuration>
                             <skip>${skipTests}</skip>
-                            <!--<skip>true</skip>-->
                             <target name="Shuting down Midpoint ${project.version} after integration testing, no cleaning up" unless="cleanup">
                                 <exec executable="jps">
                                     <arg value="-l"/>
@@ -208,7 +202,6 @@
                         <phase>post-integration-test</phase>
                         <configuration>
                             <skip>${skipTests}</skip>
-                            <!--<skip>true</skip>-->
                             <target name="Shuting down Midpoint ${project.version} after integration testing, and cleaning up" if="cleanup">
                                 <exec executable="jps">
                                     <arg value="-l"/>

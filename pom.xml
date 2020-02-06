@@ -17,6 +17,9 @@
     - Some JAR modules are pure-test, no main sources - deploy/install is skipped for these, otherwise it fails with:
     "The packaging for this project did not assign a file to the build artifact"
     - Some modules have explicit maven.test.skip=true to disable test plugins coming from parents.
+    - Maven's failsafe plugin is declared in build/plugin only in modules that need it.
+    This by default uses testng-integration.xml suite file, but see property integrationTestSuite
+    for other possibilities (mostly to make build faster by running only most important int-tests).
     -->
 
     <groupId>com.evolveum.midpoint</groupId>
@@ -93,6 +96,12 @@
         <maven.build.timestamp.format>EEE, d MMM yyyy HH:mm:ss Z</maven.build.timestamp.format>
         <surefire.args>-Xms1024m -Xmx4096m</surefire.args>
         <failsafe.args>-Xms1024m -Xmx4096m -Duser.language=en</failsafe.args>
+        <!--
+        Some modules support "full" or "fast" suite for integration tests.
+        This can be used as command line switch for mvn: -DintegrationTestSuite=fast
+        See model/model-intest for example, how to do it.
+        -->
+        <integrationTestSuite>full</integrationTestSuite>
 
         <!-- Dependencies global versions -->
         <commons.io.version>2.6</commons.io.version>
@@ -1853,23 +1862,6 @@
                             <goals>
                                 <goal>test</goal>
                             </goals>
-                            <configuration>
-                                <suiteXmlFiles>
-                                    <suiteXmlFile>testng-unit.xml</suiteXmlFile>
-                                </suiteXmlFiles>
-                                <properties>
-                                    <property>
-                                        <name>suitename</name>
-                                        <value>Unit</value>
-                                    </property>
-                                    <property>
-                                        <name>listener</name>
-                                        <value>
-                                            com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener
-                                        </value>
-                                    </property>
-                                </properties>
-                            </configuration>
                         </execution>
                     </executions>
                     <configuration>
@@ -1900,6 +1892,21 @@
                             <!-- used running tests on windows machines -->
                             <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
                         </additionalClasspathElements>
+                        <suiteXmlFiles>
+                            <suiteXmlFile>testng-unit.xml</suiteXmlFile>
+                        </suiteXmlFiles>
+                        <properties>
+                            <property>
+                                <name>suitename</name>
+                                <value>Unit</value>
+                            </property>
+                            <property>
+                                <name>listener</name>
+                                <value>
+                                    com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener
+                                </value>
+                            </property>
+                        </properties>
                     </configuration>
                     <dependencies>
                         <dependency>
@@ -1921,39 +1928,39 @@
                                 <goal>integration-test</goal>
                                 <goal>verify</goal>
                             </goals>
-                            <configuration>
-                                <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                                <systemPropertyVariables>
-                                    <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
-                                    <midpoint.home>target/midpoint-home</midpoint.home>
-                                    <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
-                                </systemPropertyVariables>
-                                <argLine>${failsafe.args}</argLine>
-                                <suiteXmlFiles>
-                                    <suiteXmlFile>testng-integration.xml</suiteXmlFile>
-                                </suiteXmlFiles>
-                                <properties>
-                                    <property>
-                                        <name>suitename</name>
-                                        <value>Integration</value>
-                                    </property>
-                                    <property>
-                                        <name>listener</name>
-                                        <value>com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener</value>
-                                    </property>
-                                </properties>
-                                <!--
-                                It's used for CI build to load JDBC libraries which can not
-                                be installed to public maven repository (MS SQL, ORACLE).
-                                -->
-                                <additionalClasspathElements>
-                                    <additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
-                                    <!-- used running tests on windows machines -->
-                                    <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
-                                </additionalClasspathElements>
-                            </configuration>
                         </execution>
                     </executions>
+                    <configuration>
+                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        <systemPropertyVariables>
+                            <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
+                            <midpoint.home>target/midpoint-home</midpoint.home>
+                            <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
+                        </systemPropertyVariables>
+                        <argLine>${failsafe.args}</argLine>
+                        <suiteXmlFiles>
+                            <suiteXmlFile>testng-integration.xml</suiteXmlFile>
+                        </suiteXmlFiles>
+                        <properties>
+                            <property>
+                                <name>suitename</name>
+                                <value>Integration</value>
+                            </property>
+                            <property>
+                                <name>listener</name>
+                                <value>com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener</value>
+                            </property>
+                        </properties>
+                        <!--
+                        It's used for CI build to load JDBC libraries which can not
+                        be installed to public maven repository (MS SQL, ORACLE).
+                        -->
+                        <additionalClasspathElements>
+                            <additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
+                            <!-- used running tests on windows machines -->
+                            <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
+                        </additionalClasspathElements>
+                    </configuration>
                 </plugin>
 
                 <plugin>

@@ -121,4 +121,14 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <!-- TODO: reconsider, currently there is just one test commented out in the suite file -->
+    <build>
+        <plugins>
+            <!-- reference failsafe to run integration tests (surefire/units run by default) -->
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

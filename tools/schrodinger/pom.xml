@@ -23,6 +23,10 @@
 
     <name>schrodinger</name>
 
+    <properties>
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.codeborne</groupId>
@@ -67,31 +71,5 @@
             <groupId>dnsjava</groupId>
             <artifactId>dnsjava</artifactId>
         </dependency>
-
-        <!-- POSSIBLY OBSOLETE BEGIN-->
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>schema</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>net.sf.jasperreports</groupId>
-                    <artifactId>jasperreports</artifactId>
-                </exclusion>
-            </exclusions>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
-    <!-- POSSIBLY OBSOLETE END-->
 </project>

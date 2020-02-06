@@ -819,42 +819,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Uncomment following if you want midpoint to be a part of SSO using CAS server-->
-        <!-- SSO CAS Client dependencies -->
-        <!-- <dependency>
-            <groupId>org.jasig.cas.client</groupId>
-            <artifactId>cas-client-integration-tomcat-v7</artifactId>
-            <version>${cas.client.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jasig.cas.client</groupId>
-            <artifactId>cas-client-core</artifactId>
-            <version>${cas.client.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>xercesImpl</artifactId>
-                    <groupId>xerces</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>xmltooling</artifactId>
-                    <groupId>org.opensaml</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>velocity</artifactId>
-                    <groupId>velocity</groupId>
-                </exclusion>
-            </exclusions>
-            <scope>runtime</scope>
-        </dependency>
-         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-cas</artifactId>
-            <version>${spring.security.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-         -->
-
         <!-- testing dependencies -->
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
@@ -942,6 +906,10 @@
                     <verbose>false</verbose>
                     <offline>true</offline>
                 </configuration>
+            </plugin>
+            <!-- reference failsafe to run integration tests (surefire/units run by default) -->
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
