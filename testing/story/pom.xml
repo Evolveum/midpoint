@@ -32,12 +32,6 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>prism-impl</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
             <version>4.1-SNAPSHOT</version>
         </dependency>
@@ -194,15 +188,26 @@
 
         <!-- TEST dependency -->
         <dependency>
-            <groupId>com.evolveum.midpoint</groupId>
-            <artifactId>midpoint-localization</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
             <version>4.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>prism-impl</artifactId>
+            <version>4.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint</groupId>
+            <artifactId>midpoint-localization</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
