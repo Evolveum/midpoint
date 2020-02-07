@@ -61,7 +61,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     protected static final File ROLE_BIG_JUDGE_FILE = new File(TEST_DIR, "role-big-judge.xml");
     protected static final String ROLE_BIG_JUDGE_OID = "12345111-1111-2222-1111-121212111224";
 
-    private static final XMLGregorianCalendar LONG_LONG_TIME_AGO = XmlTypeConverter.createXMLGregorianCalendar(1111, 1, 1, 12, 00, 00);
+    private static final XMLGregorianCalendar LONG_LONG_TIME_AGO = XmlTypeConverter.createXMLGregorianCalendar(1111, 1, 1, 12, 0, 0);
 
     private XMLGregorianCalendar drakeValidFrom;
     private XMLGregorianCalendar drakeValidTo;
