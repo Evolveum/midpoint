@@ -175,6 +175,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         target.add(getFeedbackPanel());
     }
 
+
+
     private void initTaskOperationalButtons(RepeatingView repeatingView) {
 
         AjaxButton suspend = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.suspend")) {
@@ -330,6 +332,11 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     protected AbstractObjectMainPanel<TaskType> createMainPanel(String id) {
 
         return new AbstractObjectMainPanel<TaskType>(id, getObjectModel(), this) {
+
+            @Override
+            protected boolean getOptionsPanelVisibility() {
+                return false;
+            }
 
             @Override
             protected List<ITab> createTabs(PageAdminObjectDetails<TaskType> parentPage) {
