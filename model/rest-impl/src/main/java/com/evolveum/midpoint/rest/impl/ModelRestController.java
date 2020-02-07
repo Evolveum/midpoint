@@ -2,6 +2,8 @@ package com.evolveum.midpoint.rest.impl;
 
 import static com.evolveum.midpoint.model.impl.ModelRestService.OPERATION_SELF;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.evolveum.midpoint.model.impl.ModelCrudService;
 import com.evolveum.midpoint.model.impl.ModelRestService;
+import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -31,6 +34,7 @@ public class ModelRestController {
 
     @Autowired private TaskManager taskManager;
     @Autowired private ModelCrudService model;
+    @Autowired private SecurityHelper securityHelper;
 
     @GetMapping(
             value = "/self",
@@ -39,7 +43,7 @@ public class ModelRestController {
                     MediaType.APPLICATION_JSON_UTF8_VALUE,
                     RestServiceUtil.APPLICATION_YAML
             })
-    public ResponseEntity<?> getSelf() {
+    public ResponseEntity<?> getSelf(HttpServletRequest request) {
         //@Context MessageContext mc){ TODO otazka: toto uz nechceme pouzivat? po novom to uz nepotrebujeme na init requestu?
         LOGGER.debug("model rest service for get operation start");
         // uses experimental version, does not require CXF/JAX-RS
@@ -53,13 +57,13 @@ public class ModelRestController {
             PrismObject<UserType> user = model.getObject(UserType.class, loggedInUser.getOid(), null, task, parentResult);
             response = createResponse(HttpStatus.OK, user, parentResult, true);
             parentResult.recordSuccessIfUnknown();
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException |
+                CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
             e.printStackTrace();
             response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
 
-        // TODO ako tu nahradit mc? ak staci len HSRequest, tak to asi bude trivialne
-        // finishRequest(task, mc.getHttpServletRequest());
+        finishRequest(task, request);
         return response;
     }
 
@@ -82,4 +86,13 @@ public class ModelRestController {
 //        }
 //        return builder.entity(result);
 //    }
+
+    private void finishRequest(Task task, HttpServletRequest request) {
+//        if (isExperimentalEnabled()) {
+//            auditEvent(request);
+//            SecurityContextHolder.getContext().setAuthentication(null);
+//        } else {
+        RestServiceUtil.finishRequest(task, securityHelper);
+//        }
+    }
 }
