@@ -24176,7 +24176,7 @@
             <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:displayName>VirtualContainerItemSpecificationType.display</a:displayName>
+                        <a:displayName>VirtualContainerItemSpecificationType.path</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

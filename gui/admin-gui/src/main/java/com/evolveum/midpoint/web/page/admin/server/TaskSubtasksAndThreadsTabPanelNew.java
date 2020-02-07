@@ -77,12 +77,18 @@ public class TaskSubtasksAndThreadsTabPanelNew extends BasePanel<PrismObjectWrap
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
 
+                String parent = getParentIdentifier();
+                if (parent == null) {
+                    return query;
+                }
+
                 if (query == null) {
                     query = getPrismContext().queryFactory().createQuery();
                 }
+
                 query.addFilter(getPrismContext().queryFor(TaskType.class)
                         .item(TaskType.F_PARENT)
-                        .eq(getParentIdentifier())
+                        .eq(parent)
                         .buildFilter());
 
                 return query;

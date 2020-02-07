@@ -101,18 +101,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         initialize(null);
     }
 
-    @Override
-    protected Collection<SelectorOptions<GetOperationOptions>> buildGetOptions() {
-        return getOperationOptionsBuilder()
-                // retrieve
-                .item(TaskType.F_SUBTASK).retrieve()
-                .item(TaskType.F_NODE_AS_OBSERVED).retrieve()
-                .item(TaskType.F_NEXT_RUN_START_TIMESTAMP).retrieve()
-                .item(TaskType.F_NEXT_RETRY_TIMESTAMP).retrieve()
-                .item(TaskType.F_RESULT).retrieve()         // todo maybe only when it is to be displayed
-                .build();
-    }
-
     public PageTask(final PrismObject<TaskType> taskToEdit) {
         initialize(taskToEdit);
     }
@@ -134,6 +122,18 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     @Override
     protected ObjectSummaryPanel<TaskType> createSummaryPanel() {
         return new TaskSummaryPanelNew(ID_SUMMARY_PANEL, createSummaryPanelModel(), this, this);
+    }
+
+    @Override
+    protected Collection<SelectorOptions<GetOperationOptions>> buildGetOptions() {
+        return getOperationOptionsBuilder()
+                // retrieve
+                .item(TaskType.F_SUBTASK).retrieve()
+                .item(TaskType.F_NODE_AS_OBSERVED).retrieve()
+                .item(TaskType.F_NEXT_RUN_START_TIMESTAMP).retrieve()
+                .item(TaskType.F_NEXT_RETRY_TIMESTAMP).retrieve()
+                .item(TaskType.F_RESULT).retrieve()         // todo maybe only when it is to be displayed
+                .build();
     }
 
     @Override
@@ -360,12 +360,21 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                     public WebMarkupContainer getPanel(String panelId) {
                         return new TaskSubtasksAndThreadsTabPanelNew(panelId, getObjectModel());
                     }
+
+                    @Override
+                    public boolean isVisible() {
+                        return isEditingFocus();
+                    }
                 });
 
                 tabs.add(new AbstractTab(createStringResource("pageTask.operationStats.title")) {
                     @Override
                     public WebMarkupContainer getPanel(String panelId) {
                         return new TaskOperationStatisticsPanel(panelId, getObjectModel());
+                    }
+                    @Override
+                    public boolean isVisible() {
+                        return isEditingFocus();
                     }
                 });
 
@@ -374,12 +383,20 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                     public WebMarkupContainer getPanel(String panelId) {
                         return new TaskInternalPerformanceTabPanelNew(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_OPERATION_STATS));
                     }
+                    @Override
+                    public boolean isVisible() {
+                        return isEditingFocus();
+                    }
                 });
 
                 tabs.add(new AbstractTab(createStringResource("pageTask.result.title")) {
                     @Override
                     public WebMarkupContainer getPanel(String panelId) {
                         return new TaskResultTabPanelNew(panelId, getObjectModel());
+                    }
+                    @Override
+                    public boolean isVisible() {
+                        return isEditingFocus();
                     }
                 });
 
@@ -388,6 +405,10 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                     @Override
                     public WebMarkupContainer getPanel(String panelId) {
                         return new TaskErrorsTabPanelNew(panelId, getObjectModel());
+                    }
+                    @Override
+                    public boolean isVisible() {
+                        return isEditingFocus();
                     }
                 });
 

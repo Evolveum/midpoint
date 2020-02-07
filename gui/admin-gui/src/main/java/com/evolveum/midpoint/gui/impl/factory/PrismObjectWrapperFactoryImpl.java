@@ -198,13 +198,13 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         Task task = context.getTask();
         OperationResult result = context.getResult();
 
-        ObjectReferenceType archetypesToBeAdded = null;
-        if (AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
-            archetypesToBeAdded = listArchetypes((PrismObject) object);
-            if (archetypesToBeAdded != null) {
-                applyArchetypes((PrismObject) object, archetypesToBeAdded);
-            }
-        }
+//        ObjectReferenceType archetypesToBeAdded = null;
+//        if (AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
+//            archetypesToBeAdded = listArchetypes((PrismObject) object);
+//            if (archetypesToBeAdded != null) {
+//                applyArchetypes((PrismObject) object, archetypesToBeAdded);
+//            }
+//        }
 
         try {
             PrismObjectDefinition<O> objectDef = modelInteractionService.getEditObjectDefinition(object, phase, task, result);
@@ -212,11 +212,12 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
                 | CommunicationException | SecurityViolationException e) {
             throw e;
-        } finally {
-            if (archetypesToBeAdded != null) {
-                cleanupArchetypesToBeAdded((PrismObject) object, archetypesToBeAdded);
-            }
         }
+//        finally {
+//            if (archetypesToBeAdded != null) {
+//                cleanupArchetypesToBeAdded((PrismObject) object, archetypesToBeAdded);
+//            }
+//        }
 
     }
 
