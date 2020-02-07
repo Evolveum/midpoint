@@ -78,22 +78,22 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 
         // TODO implement in the standard serializer; also change root name
         QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
-        String xml;
+        String serializedForm;
 
         PrismSerializer<String> serializer = getSerializer()
                 .options(SerializationOptions.createSerializeReferenceNames());
 
         try {
             if (object instanceof PrismObject) {
-                xml = serializer.serialize((PrismObject<?>) object);
+                serializedForm = serializer.serialize((PrismObject<?>) object);
             } else if (object instanceof OperationResult) {
                 Function<LocalizableMessage, String> resolveKeys = msg -> localizationService.translate(msg, Locale.US);
                 OperationResultType operationResultType = ((OperationResult) object).createOperationResultType(resolveKeys);
-                xml = serializer.serializeAnyData(operationResultType, fakeQName);
+                serializedForm = serializer.serializeAnyData(operationResultType, fakeQName);
             } else {
-                xml = serializer.serializeAnyData(object, fakeQName);
+                serializedForm = serializer.serializeAnyData(object, fakeQName);
             }
-            entityStream.write(xml.getBytes(StandardCharsets.UTF_8));
+            entityStream.write(serializedForm.getBytes(StandardCharsets.UTF_8));
         } catch (SchemaException | RuntimeException e) {
             LoggingUtils.logException(LOGGER, "Couldn't marshal element to string: {}", e, object);
         }
