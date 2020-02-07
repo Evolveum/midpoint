@@ -433,6 +433,10 @@ body .treeview-menu > li > span:hover {
 	#info-box-summary-panel(@object-shadow-color);
 }
 
+.info-box.summary-panel-task {
+	#info-box-summary-panel(@object-task-color);
+}
+
 #info-box-icon-summary-panel(@color){
 	color: #FFF !important;
 	background-color: @color;
@@ -465,6 +469,10 @@ body .treeview-menu > li > span:hover {
 
 .info-box-icon.summary-panel-shadow {
 	#info-box-icon-summary-panel(@object-shadow-color);
+}
+
+.info-box-icon.summary-panel-task {
+	#info-box-icon-summary-panel(@object-task-color);
 }
 
 // other info box enhancements (e.g. role assignment)

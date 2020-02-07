@@ -17,7 +17,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider2;
+import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -81,14 +81,8 @@ public class TaskResultTabPanelNew extends BasePanel<PrismObjectWrapper<TaskType
                 return results;
             }
         };
-        ListDataProvider2<SelectableBean<OperationResult>, OperationResult> provider = new ListDataProvider2<>(this, resultModel);
 
-//        SortableDataProvider<OperationResult, String> provider = new ListDataProvider<>(this,
-//                new PropertyModel<List<OperationResult>>(taskDtoModel, TaskDto.F_OP_RESULT));
-//        TablePanel resultTablePanel = new TablePanel<>(ID_OPERATION_RESULT, provider, initResultColumns(pageBase));
-//        resultTablePanel.setStyle("padding-top: 0px;");
-//        resultTablePanel.setShowPaging(false);
-//        resultTablePanel.setOutputMarkupId(true);
+        SelectableListDataProvider<SelectableBean<OperationResult>, OperationResult> provider = new SelectableListDataProvider<>(this, resultModel);
         BoxedTablePanel<SelectableBean<OperationResult>> resultTablePanel = new BoxedTablePanel<>(ID_OPERATION_RESULT, provider, initResultColumns());
         resultTablePanel.setOutputMarkupId(true);
         add(resultTablePanel);

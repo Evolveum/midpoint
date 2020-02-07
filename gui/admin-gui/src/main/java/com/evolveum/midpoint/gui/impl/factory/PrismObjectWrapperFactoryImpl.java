@@ -78,7 +78,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             context.setObjectStatus(status);
         }
 
-        List<VirtualContainersSpecificationType> virtualContainers = determineVirtualContainers(object.getDefinition().getTypeName(), context);
+        List<VirtualContainersSpecificationType> virtualContainers = determineVirtualContainers(object, context);
         context.setVirtualContainers(virtualContainers);
 
         PrismObjectWrapper<O> objectWrapper = createObjectWrapper(object, status);
@@ -148,8 +148,31 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         return objectValueWrapper;
     }
 
-    private List<VirtualContainersSpecificationType> determineVirtualContainers(QName objectType, WrapperContext context) {
+    private List<VirtualContainersSpecificationType> determineVirtualContainers(PrismObject<O> object, WrapperContext context) {
+
         OperationResult result = context.getResult().createMinorSubresult(OPERATION_DETERMINE_VIRTUAL_CONTAINERS);
+        if (AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
+
+            try {
+                ArchetypePolicyType archetypePolicyType = modelInteractionService.determineArchetypePolicy((PrismObject) object, result);
+                if (archetypePolicyType != null) {
+                    ArchetypeAdminGuiConfigurationType archetyAdminGui = archetypePolicyType.getAdminGuiConfiguration();
+                    if (archetyAdminGui != null) {
+                        GuiObjectDetailsPageType guiDetails = archetyAdminGui.getObjectDetails();
+                        if (guiDetails != null) {
+                            return guiDetails.getContainer();
+                        }
+                    }
+                }
+            } catch (SchemaException | ConfigurationException e) {
+                LOGGER.error("Cannot determine virtual containers for {}, reason: {}", object, e.getMessage(), e);
+                result.recordPartialError("Cannot determine virtual containers for " + object + ", reason: " + e.getMessage(), e);
+                return null;
+            }
+
+        }
+
+        QName objectType = object.getDefinition().getTypeName();
         try {
             CompiledUserProfile userProfile = modelInteractionService.getCompiledUserProfile(context.getTask(), context.getResult());
             GuiObjectDetailsSetType objectDetailsSetType = userProfile.getObjectDetails();

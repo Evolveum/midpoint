@@ -154,6 +154,8 @@ public class WrapperContext {
         ctx.setResource(resource);
         ctx.setDiscriminator(discriminator);
         ctx.setCreateOperational(createOperational);
+        ctx.setVirtualContainers(virtualContainers);
+        ctx.setVirtualItemSpecification(virtualItemSpecification);
         return ctx;
     }
 }

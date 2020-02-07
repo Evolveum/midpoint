@@ -13,16 +13,18 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-<body>
-<wicket:extend>
-    <wicket:child />
-    <div class="row">
-        <div class="col-xs-12">
-            <span wicket:id="buttons"/>
+<wicket:panel>
+    <div class="box">
+        <div class="box-body">
+            <div class="main-button-bar">
+                <span class="button-group">
+                     <span class="btn " wicket:id="buttons"/>
+                </span>
+            </div>
         </div>
     </div>
-</wicket:extend>
-</body>
+</wicket:panel>
 </html>

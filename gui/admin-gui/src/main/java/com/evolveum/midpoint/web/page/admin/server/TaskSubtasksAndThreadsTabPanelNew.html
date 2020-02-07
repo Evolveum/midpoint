@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2017 Evolveum
   ~
@@ -13,16 +14,19 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:wicket="http://wicket.apache.org">
 <body>
-<wicket:extend>
-    <wicket:child />
-    <div class="row">
-        <div class="col-xs-12">
-            <span wicket:id="buttons"/>
-        </div>
-    </div>
-</wicket:extend>
+<wicket:panel>
+
+    <h3><span wicket:id="subtasksLabel" /></h3>
+    <div wicket:id="subtasksPanel"/>
+
+    <h3><div wicket:id="workerThreadsTableLabel"/></h3>
+    <div wicket:id="workerThreadsTable"/>
+
+</wicket:panel>
 </body>
 </html>
+

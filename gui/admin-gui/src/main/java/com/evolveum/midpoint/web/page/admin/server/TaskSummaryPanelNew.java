@@ -63,34 +63,34 @@ public class TaskSummaryPanelNew extends ObjectSummaryPanel<TaskType> {
         super.onInitialize();
 
 
-        AutoRefreshPanel refreshTag = new AutoRefreshPanel(ID_TAG_REFRESH, createRefreshModel()) {
-
-            @Override
-            protected void refreshPerformed(AjaxRequestTarget target) {
-                refreshable.refresh(target);
-            }
-
-        };
-        AbstractAjaxTimerBehavior refreshingBehavior = new AbstractAjaxTimerBehavior(Duration.milliseconds(refreshable.getRefreshInterval())) {
-            @Override
-            protected void onTimer(AjaxRequestTarget ajaxRequestTarget) {
-                LOGGER.trace("onTimer called for {}; enabled = {}", this, refreshTag.getModelObject().isEnabled());
-                refreshable.refresh(ajaxRequestTarget);
-
-            }
-
-            @Override
-            protected boolean shouldTrigger() {
-                return refreshTag.getModelObject().isEnabled();
-            }
-        };
-
-        refreshTag.add(new AttributeModifier("class", "summary-tag"));
-
-        refreshTag.add(refreshingBehavior);
-        refreshTag.setOutputMarkupId(true);
-
-        getSummaryBoxPanel().add(refreshTag);
+//        AutoRefreshPanel refreshTag = new AutoRefreshPanel(ID_TAG_REFRESH, createRefreshModel()) {
+//
+//            @Override
+//            protected void refreshPerformed(AjaxRequestTarget target) {
+//                refreshable.refresh(target);
+//            }
+//
+//        };
+//        AbstractAjaxTimerBehavior refreshingBehavior = new AbstractAjaxTimerBehavior(Duration.milliseconds(refreshable.getRefreshInterval())) {
+//            @Override
+//            protected void onTimer(AjaxRequestTarget ajaxRequestTarget) {
+//                LOGGER.trace("onTimer called for {}; enabled = {}", this, refreshTag.getModelObject().isEnabled());
+//                refreshable.refresh(ajaxRequestTarget);
+//
+//            }
+//
+//            @Override
+//            protected boolean shouldTrigger() {
+//                return refreshTag.getModelObject().isEnabled();
+//            }
+//        };
+//
+//        refreshTag.add(new AttributeModifier("class", "summary-tag"));
+//
+//        refreshTag.add(refreshingBehavior);
+//        refreshTag.setOutputMarkupId(true);
+//
+//        getSummaryBoxPanel().add(refreshTag);
     }
 
     private IModel<AutoRefreshDto> createRefreshModel() {
