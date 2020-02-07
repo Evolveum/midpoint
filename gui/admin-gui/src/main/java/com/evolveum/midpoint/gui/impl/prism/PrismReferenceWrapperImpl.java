@@ -7,8 +7,9 @@
 package com.evolveum.midpoint.gui.impl.prism;
 
 import java.util.List;
-
 import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -17,10 +18,10 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 
 /**
  * @author katka
- *
  */
-public class PrismReferenceWrapperImpl<R extends Referencable> extends ItemWrapperImpl<PrismReferenceValue, PrismReference, PrismReferenceDefinition, PrismReferenceValueWrapperImpl<R>> implements PrismReferenceWrapper<R> {
-
+public class PrismReferenceWrapperImpl<R extends Referencable>
+        extends ItemWrapperImpl<PrismReferenceValue, PrismReference, PrismReferenceDefinition, PrismReferenceValueWrapperImpl<R>>
+        implements PrismReferenceWrapper<R> {
 
     private ObjectFilter filter;
 
@@ -50,11 +51,13 @@ public class PrismReferenceWrapperImpl<R extends Referencable> extends ItemWrapp
         return getItemDefinition().clone();
     }
 
+    @NotNull
     @Override
     public PrismReference instantiate() {
         return getItemDefinition().instantiate();
     }
 
+    @NotNull
     @Override
     public PrismReference instantiate(QName name) {
         return getItemDefinition().instantiate(name);
@@ -75,10 +78,10 @@ public class PrismReferenceWrapperImpl<R extends Referencable> extends ItemWrapp
         return WebComponentUtil.createSupportedTargetTypeList(getTargetTypeName());
     }
 
-
     @Override
     protected boolean isEmpty() {
         if (super.isEmpty()) return true;
+
         List<PrismReferenceValue> pVals = getItem().getValues();
         boolean allEmpty = true;
         for (PrismReferenceValue pVal : pVals) {
