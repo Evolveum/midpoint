@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2014-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -18,20 +18,14 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.AttributeValueCompleteness;
-import org.identityconnectors.framework.common.objects.ConnectorObject;
-import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.OperationalAttributes;
-import org.identityconnectors.framework.common.objects.PredefinedAttributes;
-import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.*;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -69,11 +63,13 @@ public class ConnIdConvertor {
     private String resourceSchemaNamespace;
     private Protector protector;
     private ConnIdNameMapper connIdNameMapper;
+    private LocalizationService localizationService;
 
-    public ConnIdConvertor(Protector protector, String resourceSchemaNamespace) {
+    ConnIdConvertor(Protector protector, String resourceSchemaNamespace, LocalizationService localizationService) {
         super();
         this.protector = protector;
         this.resourceSchemaNamespace = resourceSchemaNamespace;
+        this.localizationService = localizationService;
     }
 
     public ConnIdNameMapper getConnIdNameMapper() {
@@ -162,37 +158,29 @@ public class ConnIdConvertor {
 
             for (Attribute connIdAttr : co.getAttributes()) {
                 @NotNull List<Object> values = emptyIfNull(connIdAttr.getValue());
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Reading ICF attribute {}: {}", connIdAttr.getName(), values);
-                }
-                if (connIdAttr.getName().equals(Uid.NAME)) {
+                String connIdAttrName = connIdAttr.getName();
+                LOGGER.trace("Reading ICF attribute {}: {}", connIdAttrName, values);
+                if (connIdAttrName.equals(Uid.NAME)) {
                     // UID is handled specially (see above)
-                    continue;
-                }
-                if (connIdAttr.is(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME)) {
+                } else if (connIdAttr.is(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME)) {
                     // Already processed
-                    continue;
-                }
-                if (connIdAttr.getName().equals(OperationalAttributes.PASSWORD_NAME)) {
+                } else if (connIdAttrName.equals(OperationalAttributes.PASSWORD_NAME)) {
                     // password has to go to the credentials section
                     ProtectedStringType password = getSingleValue(connIdAttr, ProtectedStringType.class);
                     if (password == null) {
                         // equals() instead of == is needed. The AttributeValueCompleteness enum may be loaded by different classloader
-                        if (!AttributeValueCompleteness.INCOMPLETE.equals(connIdAttr.getAttributeValueCompleteness())) {
-                            continue;
+                        if (AttributeValueCompleteness.INCOMPLETE.equals(connIdAttr.getAttributeValueCompleteness())) {
+                            // There is no password value in the ConnId attribute. But it was indicated that
+                            // that attribute is incomplete. Therefore we can assume that there in fact is a value.
+                            // We just do not know it.
+                            ShadowUtil.setPasswordIncomplete(shadow);
+                            LOGGER.trace("Converted password: (incomplete)");
                         }
-                        // There is no password value in the ConnId attribute. But it was indicated that
-                        // that attribute is incomplete. Therefore we can assume that there in fact is a value.
-                        // We just do not know it.
-                        ShadowUtil.setPasswordIncomplete(shadow);
-                        LOGGER.trace("Converted password: (incomplete)");
                     } else {
                         ShadowUtil.setPassword(shadow, password);
                         LOGGER.trace("Converted password: {}", password);
                     }
-                    continue;
-                }
-                if (connIdAttr.getName().equals(OperationalAttributes.ENABLE_NAME)) {
+                } else if (connIdAttrName.equals(OperationalAttributes.ENABLE_NAME)) {
                     Boolean enabled = getSingleValue(connIdAttr, Boolean.class);
                     if (enabled == null) {
                         continue;
@@ -207,30 +195,21 @@ public class ConnIdConvertor {
                     activationType.setAdministrativeStatus(activationStatusType);
                     activationType.setEffectiveStatus(activationStatusType);
                     LOGGER.trace("Converted activation administrativeStatus: {}", activationStatusType);
-                    continue;
-                }
-
-                if (connIdAttr.getName().equals(OperationalAttributes.ENABLE_DATE_NAME)) {
+                } else if (connIdAttrName.equals(OperationalAttributes.ENABLE_DATE_NAME)) {
                     Long millis = getSingleValue(connIdAttr, Long.class);
                     if (millis == null) {
                         continue;
                     }
                     ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
                     activationType.setValidFrom(XmlTypeConverter.createXMLGregorianCalendar(millis));
-                    continue;
-                }
-
-                if (connIdAttr.getName().equals(OperationalAttributes.DISABLE_DATE_NAME)) {
+                } else if (connIdAttrName.equals(OperationalAttributes.DISABLE_DATE_NAME)) {
                     Long millis = getSingleValue(connIdAttr, Long.class);
                     if (millis == null) {
                         continue;
                     }
                     ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
                     activationType.setValidTo(XmlTypeConverter.createXMLGregorianCalendar(millis));
-                    continue;
-                }
-
-                if (connIdAttr.getName().equals(OperationalAttributes.LOCK_OUT_NAME)) {
+                } else if (connIdAttrName.equals(OperationalAttributes.LOCK_OUT_NAME)) {
                     Boolean lockOut = getSingleValue(connIdAttr, Boolean.class);
                     if (lockOut == null) {
                         continue;
@@ -244,72 +223,11 @@ public class ConnIdConvertor {
                     }
                     activationType.setLockoutStatus(lockoutStatusType);
                     LOGGER.trace("Converted activation lockoutStatus: {}", lockoutStatusType);
-                    continue;
-                }
-
-                ItemName qname = ItemName.fromQName(connIdNameMapper.convertAttributeNameToQName(connIdAttr.getName(), attributesContainerDefinition));
-                ResourceAttributeDefinition<Object> attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, caseIgnoreAttributeNames);
-
-                if (attributeDefinition == null) {
-                    // Try to locate definition in auxiliary object classes
-                    for (ObjectClassComplexTypeDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
-                        attributeDefinition = auxiliaryObjectClassDefinition
-                                .findAttributeDefinition(qname, caseIgnoreAttributeNames);
-                        if (attributeDefinition != null) {
-                            break;
-                        }
-                    }
-                    if (attributeDefinition == null) {
-                        throw new SchemaException(
-                                "Unknown attribute " + qname + " in definition of object class " + attributesContainerDefinition
-                                        .getTypeName()
-                                        + ". Original ConnId name: " + connIdAttr.getName() + " in resource object identified by "
-                                        + co.getName(), qname);
-                    }
-                }
-
-                if (caseIgnoreAttributeNames) {
-                    qname = attributeDefinition.getItemName();            // normalized version
-                }
-
-                ResourceAttribute<Object> resourceAttribute = attributeDefinition.instantiate(qname);
-
-                resourceAttribute
-                        .setIncomplete(connIdAttr.getAttributeValueCompleteness() == AttributeValueCompleteness.INCOMPLETE);
-
-                // Note: we skip uniqueness checks here because the attribute in the resource object is created from scratch.
-                // I.e. its values will be unique (assuming that values coming from the resource are unique).
-
-                // if full == true, we need to convert whole connector object to the
-                // resource object also with the null-values attributes
-                if (full) {
-                    // Convert the values. While most values do not need conversions, some of them may need it (e.g. GuardedString)
-                    for (Object connIdValue : values) {
-                        Object value = convertValueFromConnId(connIdValue, qname);
-                        resourceAttribute.addRealValueSkipUniquenessCheck(value);
-                    }
-
-                    LOGGER.trace("Converted attribute {}", resourceAttribute);
-                    attributesContainer.getValue().add(resourceAttribute);
-
-                    // in this case when false, we need only the attributes with the
-                    // non-null values.
                 } else {
-                    // Convert the values. While most values do not need
-                    // conversions, some of them may need it (e.g. GuardedString)
-                    for (Object connIdValue : values) {
-                        if (connIdValue != null) {
-                            Object value = convertValueFromConnId(connIdValue, qname);
-                            resourceAttribute.addRealValueSkipUniquenessCheck(value);
-                        }
-                    }
-
-                    if (!resourceAttribute.getValues().isEmpty() || resourceAttribute.isIncomplete()) {
-                        LOGGER.trace("Converted attribute {}", resourceAttribute);
-                        attributesContainer.getValue().add(resourceAttribute);
-                    }
+                    convertStandardAttribute(connIdAttr, connIdAttrName, values, full, caseIgnoreAttributeNames, attributesContainer,
+                            attributesContainerDefinition,
+                            auxiliaryObjectClassDefinitions, co.getName());
                 }
-
             }
 
             // Add Uid if it is not there already. It can be already present,
@@ -337,6 +255,88 @@ public class ConnIdConvertor {
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    private void convertStandardAttribute(Attribute connIdAttr, String connIdAttrName, List<Object> values, boolean full,
+            boolean caseIgnoreAttributeNames, ResourceAttributeContainer attributesContainer,
+            ResourceAttributeContainerDefinition attributesContainerDefinition,
+            List<ObjectClassComplexTypeDefinition> auxiliaryObjectClassDefinitions, Name coName) throws SchemaException {
+        ItemName convertedAttrName = ItemName.fromQName(
+                connIdNameMapper.convertAttributeNameToQName(connIdAttrName, attributesContainerDefinition));
+        ResourceAttributeDefinition<Object> attributeDefinition = findAttributeDefinition(connIdAttrName, convertedAttrName,
+                caseIgnoreAttributeNames, attributesContainerDefinition, auxiliaryObjectClassDefinitions, coName);
+
+        QName normalizedAttributeName;
+        if (caseIgnoreAttributeNames) {
+            normalizedAttributeName = attributeDefinition.getItemName();            // normalized version
+        } else {
+            normalizedAttributeName = convertedAttrName;
+        }
+
+        ResourceAttribute<Object> resourceAttribute = attributeDefinition.instantiate(normalizedAttributeName);
+
+        resourceAttribute
+                .setIncomplete(connIdAttr.getAttributeValueCompleteness() == AttributeValueCompleteness.INCOMPLETE);
+
+        // Note: we skip uniqueness checks here because the attribute in the resource object is created from scratch.
+        // I.e. its values will be unique (assuming that values coming from the resource are unique).
+
+        // if full == true, we need to convert whole connector object to the
+        // resource object also with the null-values attributes
+        if (full) {
+            // Convert the values. While most values do not need conversions, some of them may need it (e.g. GuardedString)
+            for (Object connIdValue : values) {
+                Object value = convertValueFromConnId(connIdValue, normalizedAttributeName);
+                resourceAttribute.addRealValueSkipUniquenessCheck(value);
+            }
+
+            LOGGER.trace("Converted attribute {}", resourceAttribute);
+            attributesContainer.getValue().add(resourceAttribute);
+
+            // in this case when false, we need only the attributes with the
+            // non-null values.
+        } else {
+            // Convert the values. While most values do not need
+            // conversions, some of them may need it (e.g. GuardedString)
+            for (Object connIdValue : values) {
+                if (connIdValue != null) {
+                    Object value = convertValueFromConnId(connIdValue, normalizedAttributeName);
+                    resourceAttribute.addRealValueSkipUniquenessCheck(value);
+                }
+            }
+
+            if (!resourceAttribute.getValues().isEmpty() || resourceAttribute.isIncomplete()) {
+                LOGGER.trace("Converted attribute {}", resourceAttribute);
+                attributesContainer.getValue().add(resourceAttribute);
+            }
+        }
+    }
+
+    @NotNull
+    private ResourceAttributeDefinition<Object> findAttributeDefinition(String connIdAttrName, ItemName convertedAttrName,
+            boolean caseIgnoreAttributeNames,
+            ResourceAttributeContainerDefinition attributesContainerDefinition,
+            List<ObjectClassComplexTypeDefinition> auxiliaryObjectClassDefinitions, Name coName)
+            throws SchemaException {
+        ResourceAttributeDefinition<Object> attributeDefinition = attributesContainerDefinition
+                .findAttributeDefinition(convertedAttrName, caseIgnoreAttributeNames);
+
+        if (attributeDefinition == null) {
+            // Try to locate definition in auxiliary object classes
+            for (ObjectClassComplexTypeDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+                attributeDefinition = auxiliaryObjectClassDefinition
+                        .findAttributeDefinition(convertedAttrName, caseIgnoreAttributeNames);
+                if (attributeDefinition != null) {
+                    break;
+                }
+            }
+            if (attributeDefinition == null) {
+                throw new SchemaException("Unknown attribute " + convertedAttrName + " in definition of object class "
+                        + attributesContainerDefinition.getTypeName() + ". Original ConnId name: " + connIdAttrName
+                        + " in resource object identified by " + coName, convertedAttrName);
+            }
+        }
+        return attributeDefinition;
     }
 
     Set<Attribute> convertFromResourceObjectToConnIdAttributes(ResourceAttributeContainer attributesPrism,
@@ -450,11 +450,16 @@ public class ConnIdConvertor {
                 lang.put(key, connIdMapEntry.getValue());
             }
         }
-        if (orig == null) {
+        if (orig != null) {
+            return new PolyString(orig, null, null, lang);
+        } else if (lang == null || lang.isEmpty()) {
             return null;
+        } else {
+            // No orig -- we need to determine it from lang.
+            String language = localizationService.getDefaultLocale().getLanguage();
+            String origForDefaultLanguage = lang.get(language);
+            String computedOrig = origForDefaultLanguage != null ? origForDefaultLanguage : lang.values().iterator().next();
+            return new PolyString(computedOrig, null, null, lang);
         }
-        PolyString polyString = new PolyString(orig);
-        polyString.setLang(lang);
-        return polyString;
     }
 }

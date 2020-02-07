@@ -47,7 +47,7 @@ public class MidpointSamlAuthenticationResponseFilter extends SamlAuthentication
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             moduleAuthentication = (Saml2ModuleAuthentication) mpAuthentication.getProcessingModuleAuthentication();
-            if (RequestState.SENDED.equals(moduleAuthentication.getRequestState())) {
+            if (moduleAuthentication != null && RequestState.SENDED.equals(moduleAuthentication.getRequestState())) {
                 sendedRequest = true;
             }
             boolean requiresAuthentication = requiresAuthentication((HttpServletRequest) req, (HttpServletResponse) res);
@@ -57,7 +57,7 @@ public class MidpointSamlAuthenticationResponseFilter extends SamlAuthentication
                 unsuccessfulAuthentication((HttpServletRequest) req, (HttpServletResponse) res, exception);
                 return;
             } else {
-                if (requiresAuthentication && sendedRequest) {
+                if (moduleAuthentication != null && requiresAuthentication && sendedRequest) {
                     moduleAuthentication.setRequestState(RequestState.RECEIVED);
                 }
                 super.doFilter(req, res, chain);

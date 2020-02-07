@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2014 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -13,7 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * This class does nothing. It just takes place when no real Lens Context is available.
- * @see ModelExpressionThreadLocalHolder
+ * @see com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder
  *
  * @author semancik
  *

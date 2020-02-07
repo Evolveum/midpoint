@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.processor;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.util.DOMUtil;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -23,21 +24,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  */
 public class ResourceSchemaImpl extends PrismSchemaImpl implements MutableResourceSchema {
 
-    protected ResourceSchemaImpl(PrismContext prismContext) {
-        super(prismContext);
-    }
-
     public ResourceSchemaImpl(String namespace, PrismContext prismContext) {
         super(namespace, prismContext);
     }
 
     private ResourceSchemaImpl(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
-        super(prismContext);
+        super(DOMUtil.getSchemaTargetNamespace(element), prismContext);
+        parseThis(element, shortDesc, prismContext);
+    }
+
+    private ResourceSchemaImpl(Element element, String namespace, String shortDesc, PrismContext prismContext) throws SchemaException {
+        super(namespace, prismContext);
         parseThis(element, shortDesc, prismContext);
     }
 
     public static ResourceSchemaImpl parse(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
         return new ResourceSchemaImpl(element, shortDesc, prismContext);
+    }
+
+    public static ResourceSchemaImpl parse(Element element, String namespace, String shortDesc, PrismContext prismContext) throws SchemaException {
+        return new ResourceSchemaImpl(element, namespace, shortDesc, prismContext);
     }
 
     @Override
@@ -47,7 +53,7 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements MutableResour
 
     @Override
     public ObjectClassComplexTypeDefinition findObjectClassDefinition(QName qName) {
-        ComplexTypeDefinition complexTypeDefinition = findComplexTypeDefinition(qName);
+        ComplexTypeDefinition complexTypeDefinition = findComplexTypeDefinitionByType(qName);
         if (complexTypeDefinition == null) {
             return null;
         }

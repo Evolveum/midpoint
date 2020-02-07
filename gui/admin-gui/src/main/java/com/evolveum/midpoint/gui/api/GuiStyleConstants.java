@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -215,6 +215,7 @@ public class GuiStyleConstants {
 
     public static final String CLASS_ICON_SIGN_OUT = "fa fa-sign-out";
     public static final String CLASS_ICON_CLAIM = "fa fa-paper-plane-o";
+    public static final String CLASS_ICON_TEXT = "fa fa-text-width";
 
 
 }

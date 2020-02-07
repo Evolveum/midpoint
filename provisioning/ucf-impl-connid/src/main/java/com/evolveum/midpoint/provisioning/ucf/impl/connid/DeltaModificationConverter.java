@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeDelta;
 import org.identityconnectors.framework.common.objects.AttributeDeltaBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
@@ -64,7 +62,7 @@ public class DeltaModificationConverter extends AbstractModificationConverter {
                 // Update attribute to no values. This will efficiently clean up the attribute.
                 // It should also make no substantial difference in such case.
                 // But it is working around some connector bugs.
-                // update with EMTPY value. The connIdAttributeValues is NOT used in this branch
+                // update with EMPTY value. The connIdAttributeValues is NOT used in this branch
                 // Explicitly replace with empty list. Passing null here would mean "no replace in this delta".
                 deltaBuilder.addValueToReplace(Collections.EMPTY_LIST);
             }

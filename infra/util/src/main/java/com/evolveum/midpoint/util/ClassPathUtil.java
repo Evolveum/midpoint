@@ -4,10 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
-/**
- *
- */
 package com.evolveum.midpoint.util;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -40,12 +36,12 @@ public class ClassPathUtil {
 
     public static final Trace LOGGER = TraceManager.getTrace(ClassPathUtil.class);
 
-    public static Set<Class> listClasses(Package pkg) {
+    public static Set<Class<?>> listClasses(Package pkg) {
         return listClasses(pkg.getName());
     }
 
-    public static Set<Class> listClasses(String packageName) {
-        Set<Class> classes = new HashSet<>();
+    public static Set<Class<?>> listClasses(String packageName) {
+        Set<Class<?>> classes = new HashSet<>();
         searchClasses(packageName, c -> classes.add(c));
         return classes;
     }
@@ -54,7 +50,7 @@ public class ClassPathUtil {
      * This is not entirely reliable method.
      * Maybe it would be better to rely on Spring ClassPathScanningCandidateComponentProvider
      */
-    public static void searchClasses(String packageName, Consumer<Class> consumer) {
+    public static void searchClasses(String packageName, Consumer<Class<?>> consumer) {
         ConfigurationBuilder builder = new ConfigurationBuilder();
         builder.setScanners(new SubTypesScanner(false));
         builder.setUrls(ClasspathHelper.forPackage(packageName, LOGGER.getClass().getClassLoader()));
@@ -83,7 +79,7 @@ public class ClassPathUtil {
 
         for (String type : types) {
             try {
-                Class clazz = Class.forName(type);
+                Class<?> clazz = Class.forName(type);
                 consumer.accept(clazz);
             } catch (ClassNotFoundException e) {
                 LOGGER.error("Error during loading class {}. ", type);
@@ -109,7 +105,7 @@ public class ClassPathUtil {
     }
 
     public static boolean copyFile(InputStream srcStream, String srcName, String dstPath) {
-        OutputStream dstStream = null;
+        OutputStream dstStream;
         try {
             dstStream = new FileOutputStream(dstPath);
         } catch (FileNotFoundException e) {
@@ -120,7 +116,7 @@ public class ClassPathUtil {
     }
 
     public static boolean copyFile(InputStream srcStream, String srcName, File dstFile) {
-        OutputStream dstStream = null;
+        OutputStream dstStream;
         try {
             dstStream = new FileOutputStream(dstFile);
         } catch (FileNotFoundException e) {
@@ -176,7 +172,7 @@ public class ClassPathUtil {
 
         String[] parts = srcUrl.toString().split("!/");
         if (parts.length == 3
-                &&  parts[1].equals("WEB-INF/classes")) {
+                && parts[1].equals("WEB-INF/classes")) {
             // jar:file:<ABSOLUTE_PATH>/midpoint.war!/WEB-INF/classes!/initial-midpoint-home
             srcUrl = URI.create(parts[0] + "!/" + parts[1] + "/" + parts[2]);
         }

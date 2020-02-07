@@ -48,6 +48,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
@@ -278,7 +279,7 @@ public class PageImportObject extends PageAdminConfiguration {
     private InputDescription getInputDescription(boolean editor) throws Exception {
         if (editor) {
             return new InputDescription(
-                    IOUtils.toInputStream(xmlEditorModel.getObject(), "utf-8"),
+                    IOUtils.toInputStream(xmlEditorModel.getObject(), StandardCharsets.UTF_8),
                     dataLanguage);
         }
         File newFile = null;

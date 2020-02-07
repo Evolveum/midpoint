@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -12,7 +12,6 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
  * @author Radovan semancik
- *
  */
 public class PrismPropertyDefinitionAsserter<T,RA> extends PrismDefinitionAsserter<RA> {
 

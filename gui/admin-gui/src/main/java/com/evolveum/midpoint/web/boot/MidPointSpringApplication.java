@@ -10,9 +10,9 @@ package com.evolveum.midpoint.web.boot;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.impl.factory.TextAreaPanelFactory;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.catalina.Context;
 import org.apache.catalina.Manager;
 import org.apache.catalina.Valve;
@@ -21,7 +21,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.Banner;
-import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -46,8 +45,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -83,17 +80,17 @@ import java.util.List;
 })
 @Profile("!test")
 @SpringBootConfiguration
-@ComponentScan(basePackages = {"com.evolveum.midpoint.web.security.factory","com.evolveum.midpoint.gui","com.evolveum.midpoint.gui.api"}, basePackageClasses = {TextAreaPanelFactory.class, GuiComponentRegistryImpl.class})
+@ComponentScan(basePackages = {"com.evolveum.midpoint.web.security.factory", "com.evolveum.midpoint.gui", "com.evolveum.midpoint.gui.api"}, basePackageClasses = {TextAreaPanelFactory.class, GuiComponentRegistryImpl.class})
 @EnableScheduling
 public class MidPointSpringApplication extends AbstractSpringBootApplication {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
 
     private static ConfigurableApplicationContext applicationContext = null;
     private Context tomcatContext;
 
     public static void main(String[] args) {
-        System.out.println("ClassPath: "+ System.getProperty("java.class.path"));
+        System.out.println("ClassPath: " + System.getProperty("java.class.path"));
 
         System.setProperty("xml.catalog.className", "com.evolveum.midpoint.prism.impl.schema.CatalogImpl");
         String mode = args != null && args.length > 0 ? args[0] : null;
@@ -103,15 +100,8 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
                     " Application mode:" + mode + " context:" + applicationContext);
         }
 
-        if (applicationContext != null && mode != null && "stop".equals(mode)) {
-            System.exit(SpringApplication.exit(applicationContext, new ExitCodeGenerator() {
-
-                @Override
-                public int getExitCode() {
-
-                    return 0;
-                }
-            }));
+        if (applicationContext != null && "stop".equals(mode)) {
+            System.exit(SpringApplication.exit(applicationContext, () -> 0));
 
         } else {
 
@@ -232,7 +222,7 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
                     setTomcatContext(context);
                 }
             };
-            List<TomcatContextCustomizer> contextCustomizers = new ArrayList<TomcatContextCustomizer>();
+            List<TomcatContextCustomizer> contextCustomizers = new ArrayList<>();
             contextCustomizers.add(contextCustomizer);
             tomcatFactory.setTomcatContextCustomizers(contextCustomizers);
 
@@ -243,16 +233,16 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
 
             if (useForwardHeaders) {
                 RemoteIpValve remoteIpValve = new RemoteIpValve();
-                if(StringUtils.isNotEmpty(internalProxies)) {
+                if (StringUtils.isNotEmpty(internalProxies)) {
                     remoteIpValve.setInternalProxies(internalProxies);
                 }
-                if(StringUtils.isNotEmpty(protocolHeader)) {
+                if (StringUtils.isNotEmpty(protocolHeader)) {
                     remoteIpValve.setProtocolHeader(protocolHeader);
                 }
-                if(StringUtils.isNotEmpty(protocolHeaderHttpsValue)) {
+                if (StringUtils.isNotEmpty(protocolHeaderHttpsValue)) {
                     remoteIpValve.setProtocolHeaderHttpsValue(protocolHeaderHttpsValue);
                 }
-                if(StringUtils.isNotEmpty(portHeader)) {
+                if (StringUtils.isNotEmpty(portHeader)) {
                     remoteIpValve.setPortHeader(portHeader);
                 }
                 tomcatFactory.addEngineValves(remoteIpValve);

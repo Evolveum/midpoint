@@ -25,7 +25,7 @@ import java.io.IOException;
  */
 public class AccountTests extends TestBase {
 
-    private static File CSV_TARGET_FILE;
+    private static File csvTargetFile;
 
     private static final File CSV_RESOURCE_MEDIUM = new File("./src/test/resources/csv/resource-csv-username.xml");
 
@@ -57,8 +57,8 @@ public class AccountTests extends TestBase {
 
         initTestDirectory(DIRECTORY_CURRENT_TEST);
 
-        CSV_TARGET_FILE = new File(CSV_TARGET_DIR, FILE_RESOUCE_NAME);
-        FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE,CSV_TARGET_FILE);
+        csvTargetFile = new File(csvTargetDir, FILE_RESOUCE_NAME);
+        FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE, csvTargetFile);
 
         UserPage user = basicPage.newUser();
 
@@ -101,7 +101,7 @@ public class AccountTests extends TestBase {
                 .clickByName(CSV_RESOURCE_NAME)
                     .clickEditResourceConfiguration()
                         .form()
-                        .changeAttributeValue(CSV_RESOURCE_ATTR_FILE_PATH, ScenariosCommons.CSV_SOURCE_OLDVALUE,CSV_TARGET_FILE.getAbsolutePath())
+                        .changeAttributeValue(CSV_RESOURCE_ATTR_FILE_PATH, ScenariosCommons.CSV_SOURCE_OLDVALUE, csvTargetFile.getAbsolutePath())
                         .changeAttributeValue(CSV_RESOURCE_ATTR_UNIQUE,"","username")
                     .and()
                 .and()

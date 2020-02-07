@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2016 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -17,7 +17,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
  * @author semancik
- *
  */
 public class RoleSummaryPanel extends FocusSummaryPanel<RoleType> {
     private static final long serialVersionUID = 8087858942603720878L;

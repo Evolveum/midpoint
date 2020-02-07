@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.*;
@@ -26,7 +25,7 @@ import java.util.Collection;
  * @author Radovan Semancik
  * @see ObjectDelta
  */
-public interface PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> {
+public interface PropertyDelta<T> extends ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> {
 
     PrismPropertyDefinition<T> getPropertyDefinition();
 

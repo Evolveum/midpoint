@@ -21,6 +21,7 @@ public interface MutableComplexTypeDefinition extends ComplexTypeDefinition, Mut
     void add(ItemDefinition<?> definition);
 
     MutablePrismPropertyDefinition<?> createPropertyDefinition(QName name, QName typeName);
+
     MutablePrismPropertyDefinition<?> createPropertyDefinition(String name, QName typeName);
 
     @NotNull

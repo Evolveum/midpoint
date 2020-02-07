@@ -56,7 +56,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -66,6 +65,7 @@ import org.apache.wicket.model.util.ListModel;
 import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.*;
@@ -169,13 +169,6 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         repositoryQueryLabel.setOutputMarkupId(true);
         mainForm.add(repositoryQueryLabel);
 
-//        List<QName> objectTypeList = WebComponentUtil.createObjectTypeList();
-//        Collections.sort(objectTypeList, new Comparator<QName>() {
-//            @Override
-//            public int compare(QName o1, QName o2) {
-//                return String.CASE_INSENSITIVE_ORDER.compare(o1.getLocalPart(), o2.getLocalPart());
-//            }
-//        });
         DropDownChoicePanel<QName> objectTypeChoice = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
             new PropertyModel<>(model, RepoQueryDto.F_OBJECT_TYPE),
                 new ListModel<>(WebComponentUtil.createObjectTypeList()),
@@ -270,7 +263,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         });
         midPointQueryButtonBar.add(useInObjectList);
 
-        final DropDownChoicePanel<String> sampleChoice = new DropDownChoicePanel<String>(ID_QUERY_SAMPLE,
+        final DropDownChoicePanel<String> sampleChoice = new DropDownChoicePanel<>(ID_QUERY_SAMPLE,
                 Model.of(""), Model.ofList(SAMPLES),
                 new StringResourceChoiceRenderer("PageRepositoryQuery.sample"), true);
         sampleChoice.getBaseFormComponent().setNullValid(true);
@@ -287,7 +280,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                     try {
                         String localTypeName = StringUtils.substringBefore(sampleName, "_");
                         model.getObject().setObjectType(new QName(SchemaConstants.NS_C, localTypeName));
-                        model.getObject().setMidPointQuery(IOUtils.toString(is, "UTF-8"));
+                        model.getObject().setMidPointQuery(IOUtils.toString(is, StandardCharsets.UTF_8));
                         model.getObject().setHibernateQuery("");
                         model.getObject().setHibernateParameters("");
                         model.getObject().setQueryResultObject(null);

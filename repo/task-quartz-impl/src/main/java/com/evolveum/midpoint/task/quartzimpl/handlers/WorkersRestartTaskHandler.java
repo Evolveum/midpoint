@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -33,12 +32,11 @@ import java.util.stream.Collectors;
 
 /**
  * @author mederly
- *
  */
 @Component
 public class WorkersRestartTaskHandler implements TaskHandler {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(WorkersRestartTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(WorkersRestartTaskHandler.class);
     public static final String HANDLER_URI = TaskConstants.WORKERS_RESTART_TASK_HANDLER_URI;
 
     @Autowired private TaskManager taskManager;

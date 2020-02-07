@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.security.provider;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.context.SecurityQuestionsAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -23,7 +24,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import java.util.Collection;
 import java.util.List;
@@ -46,20 +46,24 @@ public class SecurityQuestionProvider extends AbstractCredentialProvider<Securit
     }
 
     @Override
-    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment) throws AuthenticationException {
+    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment, AuthenticationChannel channel) throws AuthenticationException {
         if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof MidPointUserProfilePrincipal) {
             return authentication;
         }
         String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
+        ConnectionEnvironment connEnv = createEnviroment(channel);
 
         try {
             Authentication token;
             if (authentication instanceof SecurityQuestionsAuthenticationToken) {
                 Map<String, String> answers = (Map<String, String>) authentication.getCredentials();
-                token = getEvaluator().authenticate(connEnv, new SecurityQuestionsAuthenticationContext(enteredUsername, answers));
+                SecurityQuestionsAuthenticationContext authContext = new SecurityQuestionsAuthenticationContext(enteredUsername, answers, requireAssignment);
+                if (channel != null) {
+                    authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
+                }
+                token = getEvaluator().authenticate(connEnv, authContext);
             } else {
                 LOGGER.error("Unsupported authentication {}", authentication);
                 throw new AuthenticationServiceException("web.security.provider.unavailable");

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.report.report_3.ProcessReportType;
 @Service
 public class ReportWebServiceRaw implements Provider<DOMSource> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ReportWebService.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ReportWebService.class);
 
     public static final String NS_SOAP11_ENV = "http://schemas.xmlsoap.org/soap/envelope/";
     public static final String NS_SOAP11_ENV_PREFIX = "SOAP-ENV";

@@ -179,7 +179,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     // fixme " how to properly initialize handler executer for jobexecutor?
     @Autowired private HandlerExecutor handlerExecutor;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
 
     // how long to wait after TaskManager shutdown, if using JDBC Job Store (in order to give the jdbc thread pool a chance
     // to close, before embedded H2 database server would be closed by the SQL repo shutdown procedure)

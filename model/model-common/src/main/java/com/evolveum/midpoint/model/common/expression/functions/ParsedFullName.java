@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.common.expression.functions;
 
 /**
  * @author semancik
- *
  */
 public class ParsedFullName {
 

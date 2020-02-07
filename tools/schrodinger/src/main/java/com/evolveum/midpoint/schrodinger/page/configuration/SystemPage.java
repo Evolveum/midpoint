@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.schrodinger.page.configuration;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
 import com.evolveum.midpoint.schrodinger.component.configuration.*;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -35,8 +38,7 @@ public class SystemPage extends BasicPage {
     }
 
     public NotificationsTab notificationsTab() {
-        //todo implement
-        SelenideElement element = null;
+        SelenideElement element = findTabPanel().clickTab("pageSystemConfiguration.notifications.title");
         return new NotificationsTab(this, element);
     }
 
@@ -58,7 +60,18 @@ public class SystemPage extends BasicPage {
         return new AdminGuiTab(this, element);
     }
 
+    public InfrastructureTab infrastructureTab() {
+        SelenideElement element = findTabPanel().clickTab("pageSystemConfiguration.infrastructure.title");
+        return new InfrastructureTab(this, element);
+    }
+
     public RoleManagementTab roleManagementTab(){
         return new RoleManagementTab(this, null);
+    }
+
+    protected TabPanel findTabPanel() {
+        SelenideElement tabPanelElement = $(Schrodinger.byDataId("div", "tabPanel"))
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+        return new TabPanel<>(this, tabPanelElement);
     }
 }

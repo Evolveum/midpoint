@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -12,6 +12,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
@@ -22,13 +23,19 @@ import static com.codeborne.selenide.Selenide.*;
  */
 public class FormLoginPage extends LoginPage {
 
-    public FormLoginPage register() {
-        // todo implement
-        return this;
+    public SelfRegistrationPage register() {
+        $(Schrodinger.byDataId("selfRegistration")).click();
+        return new SelfRegistrationPage();
     }
 
-    public FormLoginPage forgotPassword() {
-        // todo implement
+    public LoginPage forgotPassword() {
+        $(Schrodinger.byDataId("forgetpassword")).click();
+        String url = getCurrentUrl();
+        if (url.endsWith(SecurityQuestionsPage.getBasePath())) {
+            return new SecurityQuestionsPage();
+        } else if (url.endsWith(MailNoncePage.getBasePath())) {
+            return new MailNoncePage();
+        }
         return this;
     }
 
@@ -62,5 +69,9 @@ public class FormLoginPage extends LoginPage {
     public FeedbackBox<? extends FormLoginPage> feedback() {
         SelenideElement feedback = $(By.cssSelector("div.feedbackContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);
         return new FeedbackBox<>(this, feedback);
+    }
+
+    public static String getBasePath() {
+        return "/login";
     }
 }

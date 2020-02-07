@@ -156,7 +156,10 @@ public class ClassDefinitionParser {
                 itemPath = ItemPath.create(ParentPathSegment.QNAME, IdentifierPathSegment.QNAME);
             }
 
-            JpaPropertyDefinition propertyDefinition = new JpaPropertyDefinition(jpaClass, jaxbClass, lob, enumerated, indexed, count);
+            boolean neverNull = method.isAnnotationPresent(NeverNull.class);
+
+            JpaPropertyDefinition propertyDefinition = new JpaPropertyDefinition(jpaClass, jaxbClass, lob, enumerated,
+                    indexed, count, neverNull);
             // Note that properties are considered to be embedded
             linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(itemPath, jpaName, collectionSpecification, true,
                     propertyDefinition);

@@ -40,12 +40,6 @@ public interface DynamicNamespacePrefixMapper extends DebugDumpable {
 
     DynamicNamespacePrefixMapper clone();
 
-    // Follwing two methods are kind of a hack to force JAXB to always use prefixes.
-    // This works around the JAXB bug with default namespaces
-    boolean isAlwaysExplicit();
-
-    void setAlwaysExplicit(boolean alwaysExplicit);
-
     // Specifies that this prefix should be declared by default (at top of XML files)
     void addDeclaredByDefault(String prefix);
 

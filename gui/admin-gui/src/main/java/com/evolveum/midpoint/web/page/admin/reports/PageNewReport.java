@@ -44,6 +44,7 @@ import org.apache.wicket.util.file.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author lazyman
@@ -214,12 +215,10 @@ public class PageNewReport extends PageAdmin {
                 newFile.delete();
             }
             // Save file
-//            Task task = createSimpleTask(OPERATION_IMPORT_FILE);
             newFile.createNewFile();
             FileUtils.copyInputStreamToFile(uploadedFile.getInputStream(), newFile);
 
-            InputStreamReader reader = new InputStreamReader(new FileInputStream(newFile), "utf-8");
-//            reader.
+            InputStreamReader reader = new InputStreamReader(new FileInputStream(newFile), StandardCharsets.UTF_8);
             stream = new ReaderInputStream(reader, reader.getEncoding());
             byte[] reportIn = IOUtils.toByteArray(stream);
 
@@ -250,17 +249,11 @@ public class PageNewReport extends PageAdmin {
         }
 
         OperationResult result = new OperationResult(OPERATION_IMPORT_REPORT_XML);
-        InputStream stream = null;
         try {
-
             setResponsePage(new PageReport(new ReportDto(Base64.encodeBase64(xml.getBytes()))));
         } catch (Exception ex) {
             result.recordFatalError(getString("PageNewReport.message.importReportFromStreamPerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Error occured during xml import", ex);
-        } finally {
-            if (stream != null) {
-                IOUtils.closeQuietly(stream);
-            }
         }
 
         if (result.isSuccess()) {

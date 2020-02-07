@@ -34,8 +34,7 @@ import javax.xml.namespace.QName;
 
 import java.io.File;
 import java.io.IOException;
-
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author lazyman
@@ -183,7 +182,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
         sb.append("givenName: ").append("John").append('\n');
         sb.append("cn: ").append("John " + sn).append('\n');
         sb.append("sn: ").append(sn).append('\n');
-        LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(sb.toString(), "utf-8"));
+        LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(sb.toString(), StandardCharsets.UTF_8));
         LDIFReader ldifReader = new LDIFReader(importConfig);
         Entry ldifEntry = ldifReader.readEntry();
         return ldifEntry;
@@ -196,7 +195,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
         sb.append("objectClass: organizationalUnit\n");
         sb.append("ou: ").append(ou).append("\n");
         sb.append("description: ").append("This is sparta! ...or " + ou).append("\n");
-        LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(sb.toString(), "utf-8"));
+        LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(sb.toString(), StandardCharsets.UTF_8));
         LDIFReader ldifReader = new LDIFReader(importConfig);
         Entry ldifEntry = ldifReader.readEntry();
         return ldifEntry;

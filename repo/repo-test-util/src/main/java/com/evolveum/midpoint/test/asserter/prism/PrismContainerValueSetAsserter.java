@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,22 +6,13 @@
  */
 package com.evolveum.midpoint.test.asserter.prism;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismValue;
-
-
 /**
  * @author semancik
- *
  */
 public class PrismContainerValueSetAsserter<C extends Containerable,RA>
         extends PrismValueSetAsserter<PrismContainerValue<C>, PrismContainerValueAsserter<C, PrismContainerValueSetAsserter<C,RA>>, RA> {

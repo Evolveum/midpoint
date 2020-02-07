@@ -31,7 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
@@ -105,7 +107,7 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.FocusValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -214,7 +216,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected ProvisioningService provisioningService;
     @Autowired protected HookRegistry hookRegistry;
     @Autowired protected Clock clock;
-    @Autowired protected PrismContext prismContext;
     @Autowired protected SchemaHelper schemaHelper;
     @Autowired protected DummyTransport dummyTransport;
     @Autowired protected SecurityEnforcer securityEnforcer;
@@ -668,9 +669,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void modifyUserChangePassword(String userOid, String newPassword, Task task, OperationResult result) throws CommonException {
-        ProtectedStringType userPasswordPs = new ProtectedStringType();
-        userPasswordPs.setClearValue(newPassword);
-        modifyUserReplace(userOid, PASSWORD_VALUE_PATH, task,  result, userPasswordPs);
+        modifyFocusChangePassword(UserType.class, userOid, newPassword, task, result);
+    }
+
+    protected void modifyFocusChangePassword(Class<? extends ObjectType> type, String oid, String newPassword, Task task, OperationResult result) throws CommonException {
+        ProtectedStringType passwordPs = new ProtectedStringType();
+        passwordPs.setClearValue(newPassword);
+        modifyObjectReplaceProperty(type, oid, PASSWORD_VALUE_PATH, task, result, passwordPs);
     }
 
     protected void modifyUserSetPassword(String userOid, String newPassword, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -3071,6 +3076,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
+    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
+        return waitForTaskFinish(taskOid, checkSubresult, 0, DEFAULT_TASK_WAIT_TIMEOUT, false, 0, customizer);
+    }
+
     protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws CommonException {
         return waitForTaskFinish(taskOid, checkSubresult, timeout, false);
     }
@@ -3080,13 +3089,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final int timeout, final boolean errorOk) throws CommonException {
-        return waitForTaskFinish(taskOid, checkSubresult, startTime, timeout, errorOk, 0);
+        return waitForTaskFinish(taskOid, checkSubresult, startTime, timeout, errorOk, 0, null);
     }
 
-    protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final int timeout, final boolean errorOk, int showProgressEach) throws CommonException {
+    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult, long startTime, int timeout, boolean errorOk,
+            int showProgressEach, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
         long realStartTime = startTime != 0 ? startTime : System.currentTimeMillis();
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
-        TaskFinishChecker checker = new TaskFinishChecker(taskOid, waitResult, checkSubresult, errorOk, timeout, showProgressEach);
+        TaskFinishChecker.Builder builder = new TaskFinishChecker.Builder()
+                .taskManager(taskManager)
+                .taskOid(taskOid)
+                .waitResult(waitResult)
+                .checkSubresult(checkSubresult)
+                .errorOk(errorOk)
+                .timeout(timeout)
+                .showProgressEach(showProgressEach)
+                .verbose(verbose);
+        if (customizer != null) {
+            builder = customizer.apply(builder);
+        }
+        TaskFinishChecker checker = builder.build();
         IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, realStartTime, timeout, DEFAULT_TASK_SLEEP_TIME);
         return checker.getLastTask();
     }
@@ -3187,68 +3209,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 fail("Photo is different than expected.\nExpected = " + Arrays.toString(expectedValue)
                         + "\nActual value = " + Arrays.toString(actualValue));
             }
-        }
-    }
-
-    private class TaskFinishChecker implements Checker {
-        private final String taskOid;
-        private final OperationResult waitResult;
-        private final boolean checkSubresult;
-        private final boolean errorOk;
-        private final int timeout;
-        private final int showProgressEach;
-        private Task freshTask;
-        private long progressLastShown;
-
-        public TaskFinishChecker(String taskOid, OperationResult waitResult, boolean checkSubresult,
-                boolean errorOk, int timeout, int showProgressEach) {
-            super();
-            this.taskOid = taskOid;
-            this.waitResult = waitResult;
-            this.checkSubresult = checkSubresult;
-            this.errorOk = errorOk;
-            this.timeout = timeout;
-            this.showProgressEach = showProgressEach;
-        }
-
-        @Override
-        public boolean check() throws CommonException {
-            freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
-            long currentProgress = freshTask.getProgress();
-            if (showProgressEach != 0 && currentProgress - progressLastShown >= showProgressEach) {
-                System.out.println("Task progress: " + currentProgress);
-                progressLastShown = currentProgress;
-            }
-            OperationResult result = freshTask.getResult();
-            if (verbose) display("Check result", result);
-            if (isError(result, checkSubresult)) {
-                if (errorOk) {
-                    return true;
-                } else {
-                    AssertJUnit.fail("Error in "+freshTask+": "+TestUtil.getErrorMessage(result));
-                }
-            }
-            if (isUnknown(result, checkSubresult)) {
-                return false;
-            }
-//            assert !isUnknown(result, checkSubresult) : "Unknown result in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
-            return !isInProgress(result, checkSubresult);
-        }
-
-        @Override
-        public void timeout() {
-            try {
-                Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
-                OperationResult result = freshTask.getResult();
-                LOGGER.debug("Result of timed-out task:\n{}", result != null ? result.debugDump() : null);
-                assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" to finish. Last result "+result;
-            } catch (ObjectNotFoundException | SchemaException e) {
-                LOGGER.error("Exception during task refresh: {}", e,e);
-            }
-        }
-
-        public Task getLastTask() {
-            return freshTask;
         }
     }
 
@@ -3445,9 +3405,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
             long waiting = (System.currentTimeMillis() - start) / 1000;
             String description =
-                    freshRootTask.getName().getOrig() + " (" + freshRootTask.getExecutionStatus() + "/" + freshRootTask
-                            .getNode() + "/" + freshRootTask.getProgress() + ") ["
-                            + waiting + "]";
+                    freshRootTask.getName().getOrig() + " [es:" + freshRootTask.getExecutionStatus() + ", rs:" +
+                            freshRootTask.getResultStatus() + ", p:" + freshRootTask.getProgress() + ", n:" +
+                            freshRootTask.getNode() + "] (waiting for: " + waiting + ")";
             // was the whole task tree refreshed at least once after we were called?
             if (!triggered.getValue() && (freshRootTask.getLastRunStartTimestamp() == null
                     || freshRootTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
@@ -3550,22 +3510,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return longTime.toString();
     }
 
-    private boolean isError(OperationResult result, boolean checkSubresult) {
+    public static boolean isError(OperationResult result, boolean checkSubresult) {
         OperationResult subresult = getSubresult(result, checkSubresult);
-        return subresult != null ? subresult.isError() : false;
+        return subresult != null && subresult.isError();
     }
 
-    private boolean isUnknown(OperationResult result, boolean checkSubresult) {
+    public static boolean isUnknown(OperationResult result, boolean checkSubresult) {
         OperationResult subresult = getSubresult(result, checkSubresult);
-        return subresult != null ? subresult.isUnknown() : false;            // TODO or return true?
+        return subresult != null && subresult.isUnknown();            // TODO or return true if null?
     }
 
-    private boolean isInProgress(OperationResult result, boolean checkSubresult) {
+    public static boolean isInProgress(OperationResult result, boolean checkSubresult) {
         OperationResult subresult = getSubresult(result, checkSubresult);
-        return subresult != null ? subresult.isInProgress() : true;        // "true" if there are no subresults
+        return subresult == null || subresult.isInProgress();        // "true" if there are no subresults
     }
 
-    private OperationResult getSubresult(OperationResult result, boolean checkSubresult) {
+    private static OperationResult getSubresult(OperationResult result, boolean checkSubresult) {
         if (checkSubresult) {
             return result != null ? result.getLastSubresult() : null;
         }
@@ -5672,11 +5632,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected UserValuePolicyOriginResolver createUserOriginResolver(PrismObject<UserType> user) {
-        if (user == null) {
+    protected FocusValuePolicyOriginResolver<UserType> createUserOriginResolver(PrismObject<UserType> user) {
+        if (user != null) {
+            return new FocusValuePolicyOriginResolver<>(user, modelObjectResolver);
+        } else {
             return null;
         }
-        return new UserValuePolicyOriginResolver(user, modelObjectResolver);
     }
 
     protected List<PrismObject<TaskType>> getTasksForObject(String oid, QName type,
@@ -5725,6 +5686,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         } else {
             return rv.get(0);
         }
+    }
+
+    @SuppressWarnings("unused")     // maybe in the future :)
+    protected Consumer<Task> createShowTaskTreeConsumer(long period) {
+        AtomicLong lastTimeShown = new AtomicLong(0);
+        return task -> {
+            try {
+                if (lastTimeShown.get() + period < System.currentTimeMillis()) {
+                    dumpTaskTree(task.getOid(), getResult());
+                    lastTimeShown.set(System.currentTimeMillis());
+                }
+            } catch (CommonException e) {
+                throw new AssertionError(e);
+            }
+        };
     }
 
     // highly experimental

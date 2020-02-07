@@ -25,8 +25,8 @@ public class RefinedConnectorSchemaImpl extends ConnectorSchemaImpl implements R
 
     private static final String USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA = RefinedConnectorSchemaImpl.class.getName()+".parsedConnectorSchema";
 
-    protected RefinedConnectorSchemaImpl(PrismContext prismContext) {
-        super(prismContext);
+    public RefinedConnectorSchemaImpl(String namespace, PrismContext prismContext) {
+        super(namespace, prismContext);
     }
 
     public static ConnectorSchema getConnectorSchema(ConnectorType connectorType, PrismContext prismContext) throws SchemaException {

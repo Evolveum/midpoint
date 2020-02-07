@@ -67,6 +67,24 @@
     <locality></locality>
     <emailAddress></emailAddress>
 
+    <credentials>
+        <password>
+            <value>
+                <t:encryptedData>
+                    <t:encryptionMethod>
+                        <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes256-cbc"</t:algorithm>
+                    </t:encryptionMethod>
+                    <t:keyInfo>
+                        <t:keyName>HF6JRsNMeJt6alihT44CXKgpe0c=</t:keyName>
+                    </t:keyInfo>
+                    <t:cipherData>
+                        <t:cipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</t:cipherValue>
+                    </t:cipherData>
+                </t:encryptedData>
+            </value>
+        </password>
+    </credentials>
+
     <fullName>
         <t:orig>Jack Sparrow</t:orig>
         <t:norm>jack sparrow</t:norm>
@@ -92,23 +110,4 @@
         <t:orig>Davie Jones' Locker</t:orig>
         <t:norm>davie jones locker</t:norm>
     </organizationalUnit>
-
-    <credentials>
-        <password>
-            <value>
-            <t:encryptedData>
-                <t:encryptionMethod>
-                    <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes256-cbc"</t:algorithm>
-                </t:encryptionMethod>
-                <t:keyInfo>
-                    <t:keyName>HF6JRsNMeJt6alihT44CXKgpe0c=</t:keyName>
-                 </t:keyInfo>
-                <t:cipherData>
-                    <t:cipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</t:cipherValue>
-                </t:cipherData>
-            </t:encryptedData>
-            </value>
-        </password>
-    </credentials>
-
 </object>

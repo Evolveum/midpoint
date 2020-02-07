@@ -12,12 +12,9 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ShadowPanel;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -25,8 +22,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class ShadowDetailsTabPanel extends AbstractObjectTabPanel<ShadowType> {
 
     private static final long serialVersionUID = 1L;
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(ShadowDetailsTabPanel.class);
 
     private static final String ID_ACCOUNT = "account";
 

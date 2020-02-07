@@ -9,14 +9,11 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -52,22 +49,32 @@ public class TaskTypeUtil {
     }
 
     //moved from GUI
-    public static boolean isCoordinator(TaskType taskType) {
-        TaskWorkManagementType workMngType = taskType.getWorkManagement();
-        if (taskType.getWorkManagement() == null) {
-            return false;
-        }
-
-        return TaskKindType.COORDINATOR == workMngType.getTaskKind();
-
+    public static boolean isCoordinator(TaskType task) {
+        return getKind(task) == TaskKindType.COORDINATOR;
     }
 
-    public static boolean isPartitionedMaster(TaskType taskType) {
-        TaskWorkManagementType workMngType = taskType.getWorkManagement();
-        if (taskType.getWorkManagement() == null) {
-            return false;
-        }
+    public static boolean isPartitionedMaster(TaskType task) {
+        return getKind(task) == TaskKindType.PARTITIONED_MASTER;
+    }
 
-        return TaskKindType.PARTITIONED_MASTER == workMngType.getTaskKind();
+    @NotNull
+    public static TaskKindType getKind(TaskType task) {
+        if (task.getWorkManagement() != null && task.getWorkManagement().getTaskKind() != null) {
+            return task.getWorkManagement().getTaskKind();
+        } else {
+            return TaskKindType.STANDALONE;
+        }
+    }
+
+    public static int getObjectsProcessed(TaskType task) {
+        OperationStatsType stats = task.getOperationStats();
+        if (stats == null) {
+            return 0;
+        }
+        IterativeTaskInformationType iterativeStats = stats.getIterativeTaskInformation();
+        if (iterativeStats == null) {
+            return 0;
+        }
+        return iterativeStats.getTotalSuccessCount() + iterativeStats.getTotalFailureCount();
     }
 }

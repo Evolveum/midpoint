@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,26 +6,28 @@
  */
 package com.evolveum.midpoint.schema.util;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.Validate;
 
-import javax.xml.namespace.QName;
-
 public class SecurityPolicyUtil {
 
     public static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_USER_URI;
     public static final String DEFAULT_MODULE_NAME = "loginForm";
+    public static final String HTTP_BASIC_MODULE_NAME = "httpBasic";
     public static final String DEFAULT_SEQUENCE_NAME = "admin-gui-default";
-    public static final String HTTP_BASIC_MODULE_NAME = "htpBasic";
     public static final String REST_SEQUENCE_NAME = "rest-default";
     public static final String ACTUATOR_SEQUENCE_NAME = "actuator-default";
+    private static final List<String> IGNORED_LOCAL_PATH;
+    static {
+        List<String> list = new ArrayList<String>();
+        list.add("/actuator");
+        list.add("/actuator/health");
+        IGNORED_LOCAL_PATH = Collections.unmodifiableList(list);
+    }
 
     public static AbstractAuthenticationPolicyType getAuthenticationPolicy(String authPolicyName,
             SecurityPolicyType securityPolicy) throws SchemaException {
@@ -193,6 +195,9 @@ public class SecurityPolicyUtil {
         authenticationPolicy.sequence(createDefaultSequence());
         authenticationPolicy.sequence(createRestSequence());
         authenticationPolicy.sequence(createActuatorSequence());
+        for (String ignoredPath : IGNORED_LOCAL_PATH) {
+            authenticationPolicy.ignoredLocalPath(ignoredPath);
+        }
         return authenticationPolicy;
     }
 

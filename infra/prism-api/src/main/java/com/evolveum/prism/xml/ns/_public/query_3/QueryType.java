@@ -1,10 +1,9 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.prism.xml.ns._public.query_3;
 
 import java.io.ByteArrayInputStream;
@@ -317,7 +316,7 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
                     return ((Locale) o).clone();
                 }
                 if (o instanceof Element) {
-                    return ((Element)((Element) o).cloneNode(true));
+                    return ((Element) o).cloneNode(true);
                 }
                 if (o instanceof JAXBElement) {
                     return copyOf(((JAXBElement) o));

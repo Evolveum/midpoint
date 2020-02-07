@@ -8,9 +8,7 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
-import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -88,11 +86,9 @@ public class PageUser extends PageAdminFocus<UserType> {
     private static final String OPERATION_LOAD_DELEGATED_BY_ME_ASSIGNMENTS = DOT_CLASS + "loadDelegatedByMeAssignments";
     private static final String OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST = DOT_CLASS + "createAssignmentPreviewDtoList";
 
-    private static final String ID_TASK_TABLE = "taskTable";
-    private static final String ID_TASKS = "tasks";
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
     private LoadableModel<List<AssignmentInfoDto>> privilegesListModel;
-    private UserDelegationsTabPanel userDelegationsTabPanel = null;
+    private UserDelegationsTabPanel<?> userDelegationsTabPanel = null;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 
@@ -145,24 +141,8 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     protected void cancelPerformed(AjaxRequestTarget target) {
-        // uncoment later -> check for changes to not allow leave the page when
-        // some changes were made
-        // try{
-        // if (userModel.getObject().getOldDelta() != null &&
-        // !userModel.getObject().getOldDelta().isEmpty() ||
-        // userModel.getObject().getFocusPrimaryDelta() != null &&
-        // !userModel.getObject().getFocusPrimaryDelta().isEmpty()){
-        // showModalWindow(MODAL_ID_CONFIRM_CANCEL, target);
-        // } else{
         redirectBack();
-
-        // }
-        // }catch(Exception ex){
-        // LoggingUtils.logUnexpectedException(LOGGER, "Could not return to user list",
-        // ex);
-        // }
     }
-
 
     @Override
     protected UserType createNewObject() {
@@ -170,12 +150,12 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     @Override
-    protected Class getRestartResponsePage() {
+    protected Class<PageUsers> getRestartResponsePage() {
         return PageUsers.class;
     }
 
     @Override
-    public Class getCompileTimeClass() {
+    public Class<UserType> getCompileTimeClass() {
         return UserType.class;
     }
 
@@ -186,10 +166,9 @@ public class PageUser extends PageAdminFocus<UserType> {
 
             @Override
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
-                FocusTabVisibleBehavior<UserType> authorization;
                 tabs.add(
                         new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.personas"),
-                                getTabVisibility(ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, parentPage)){
+                                getTabVisibility(ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, parentPage)) {
 
                             private static final long serialVersionUID = 1L;
 
@@ -200,13 +179,13 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                             @Override
                             public String getCount() {
-                                if(getObjectWrapper() == null || getObjectWrapper().getObject() == null) {
+                                if (getObjectWrapper() == null || getObjectWrapper().getObject() == null) {
                                     return Integer.toString(0);
                                 }
                                 List<ObjectReferenceType> personasRefList = getObjectWrapper().getObject().asObjectable().getPersonaRef();
                                 int count = 0;
-                                for(ObjectReferenceType object : personasRefList) {
-                                    if(object != null && !object.asReferenceValue().isEmpty()) {
+                                for (ObjectReferenceType object : personasRefList) {
+                                    if (object != null && !object.asReferenceValue().isEmpty()) {
                                         count++;
                                     }
                                 }
@@ -216,10 +195,8 @@ public class PageUser extends PageAdminFocus<UserType> {
                         });
 
                 tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegations"),
-                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL, false, parentPage))
-                {
+                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL, false, parentPage)) {
                     private static final long serialVersionUID = 1L;
-
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
@@ -237,7 +214,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                 tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"),
                         getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL, true, parentPage)){
 
-                private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
@@ -269,8 +246,6 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                         };
                     }
-
-
 
                     @Override
                     public String getCount() {
@@ -438,7 +413,7 @@ public class PageUser extends PageAdminFocus<UserType> {
         userAssignmentsDtos.add(dto);
 
         deltas.add(delta);
-        PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+        PrismContainerDefinition<?> def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
         handleAssignmentDeltas(delta, userAssignmentsDtos, def, true);
         return deltas;
     }

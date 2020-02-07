@@ -200,7 +200,7 @@ public class SyncTaskHelper {
             opResult.recordFatalError("Unspecified error: "+t.getMessage(), t);
             setRunResultStatus(t, partition, CriticalityType.FATAL, runResult);
         } else {
-            LOGGER.error("{}: Internal Error: {}", ctx, t, t.getMessage());
+            LOGGER.error("{}: Internal Error: {}", ctx, t.getMessage(), t);
             // Can be anything ... but we can't recover from that.
             // It is most likely a programming error. Does not make much sense to retry.
             opResult.recordFatalError("Internal Error: "+t.getMessage(), t);

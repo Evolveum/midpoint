@@ -21,12 +21,12 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author katka
@@ -36,7 +36,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 
     private static final long serialVersionUID = 1L;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperImpl.class);
 
     private boolean expanded;
 
@@ -125,7 +125,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
     }
 
     @Override
-    public <ID extends ItemDefinition> ID findLocalItemDefinition(QName name, Class<ID> clazz, boolean caseInsensitive) {
+    public <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive) {
         return getItemDefinition().findLocalItemDefinition(name, clazz, caseInsensitive);
     }
 
@@ -361,5 +361,27 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
     @Override
     public boolean isVirtual() {
         return virtual;
+    }
+
+    @Override
+    public boolean isImmutable() {
+        // TODO
+        return false;
+    }
+
+    @Override
+    public void freeze() {
+        // TODO
+    }
+
+    @Override
+    public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
+        // TODO
+        return false;
+    }
+
+    @Override
+    public void accept(Visitor<Definition> visitor) {
+        // TODO
     }
 }

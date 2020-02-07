@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -62,7 +62,7 @@ import static org.testng.AssertJUnit.*;
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestWrapperDelta.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestWrapperDelta.class);
 
     private static final String TEST_DIR = "src/test/resources/delta";
 

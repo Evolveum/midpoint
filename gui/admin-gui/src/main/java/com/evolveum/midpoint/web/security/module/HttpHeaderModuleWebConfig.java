@@ -6,12 +6,9 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
-import com.evolveum.midpoint.web.security.MidPointAccessDeniedHandler;
 import com.evolveum.midpoint.web.security.MidpointAuthenticationFauileHandler;
 import com.evolveum.midpoint.web.security.MidpointProviderManager;
-import com.evolveum.midpoint.web.security.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.web.security.filter.MidpointRequestHeaderAuthenticationFilter;
-import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.module.configuration.HttpHeaderModuleWebSecurityConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

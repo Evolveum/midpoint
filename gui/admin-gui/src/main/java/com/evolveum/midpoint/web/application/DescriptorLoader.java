@@ -105,13 +105,13 @@ public final class DescriptorLoader implements DebugDumpable {
         for (String pac : PACKAGES_TO_SCAN) {
             LOGGER.debug("Scanning package package {} for page annotations", new Object[]{pac});
 
-            Set<Class> classes = ClassPathUtil.listClasses(pac);
-            for (Class clazz : classes) {
+            Set<Class<?>> classes = ClassPathUtil.listClasses(pac);
+            for (Class<?> clazz : classes) {
                 if (!WebPage.class.isAssignableFrom(clazz)) {
                     continue;
                 }
 
-                PageDescriptor descriptor = (PageDescriptor) clazz.getAnnotation(PageDescriptor.class);
+                PageDescriptor descriptor = clazz.getAnnotation(PageDescriptor.class);
                 if (descriptor == null) {
                     continue;
                 }

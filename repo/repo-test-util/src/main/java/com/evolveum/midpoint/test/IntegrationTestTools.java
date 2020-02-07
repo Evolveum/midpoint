@@ -1115,6 +1115,33 @@ public class IntegrationTestTools {
         }
     }
 
+    public static void assertHasProtectedString(String message, ProtectedStringType actualValue, CredentialsStorageTypeType storageType, Protector protector) throws EncryptionException, SchemaException {
+        switch (storageType) {
+
+            case NONE:
+                assertNull(message+": unexpected value: "+actualValue, actualValue);
+                break;
+
+            case ENCRYPTION:
+                assertNotNull(message+": no value", actualValue);
+                assertTrue(message+": unencrypted value: "+actualValue, actualValue.isEncrypted());
+                protector.decryptString(actualValue);           // just checking it can be decrypted
+                assertFalse(message+": unexpected hashed value: "+actualValue, actualValue.isHashed());
+                assertNull(message+": unexpected clear value: "+actualValue, actualValue.getClearValue());
+                break;
+
+            case HASHING:
+                assertNotNull(message+": no value", actualValue);
+                assertTrue(message+": value not hashed: "+actualValue, actualValue.isHashed());
+                assertFalse(message+": unexpected encrypted value: "+actualValue, actualValue.isEncrypted());
+                assertNull(message+": unexpected clear value: "+actualValue, actualValue.getClearValue());
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unknown storage "+storageType);
+        }
+    }
+
     public static boolean isSilentConsole() {
         return silentConsole;
     }

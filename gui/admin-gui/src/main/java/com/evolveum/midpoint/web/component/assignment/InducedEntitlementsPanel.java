@@ -337,7 +337,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
             }
             return expressionType;
         } catch (SchemaException ex) {
-            LOGGER.error("Unable to find association container in the construction, ", ex.getLocalizedMessage());
+            LOGGER.error("Unable to find association container in the construction: {}", ex.getLocalizedMessage());
         }
         return null;
     }

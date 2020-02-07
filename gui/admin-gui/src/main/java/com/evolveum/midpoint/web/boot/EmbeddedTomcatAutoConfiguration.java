@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -22,6 +22,7 @@ import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactor
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -42,6 +43,7 @@ public class EmbeddedTomcatAutoConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(EmbeddedTomcatAutoConfiguration.class);
 
+    @Profile("!test")
     @Configuration
     @ConditionalOnClass({ Servlet.class, Tomcat.class, UpgradeProtocol.class })
     @ConditionalOnMissingBean(value = TomcatServletWebServerFactory.class, search = SearchStrategy.CURRENT)
@@ -70,5 +72,4 @@ public class EmbeddedTomcatAutoConfiguration {
         }
 
     }
-
 }

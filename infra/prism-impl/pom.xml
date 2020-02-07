@@ -7,58 +7,56 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.evolveum.midpoint.infra</groupId>
-    <artifactId>prism-impl</artifactId>
-    <name>midPoint Infrastructure - prism-impl</name>
+
     <parent>
         <artifactId>infra</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.infra</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>prism-impl</artifactId>
+
+    <name>midPoint Infrastructure - prism-impl</name>
+
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
             <version>4.1-SNAPSHOT</version>
-        <exclusions>
-        <exclusion>
-            <groupId>javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-        </exclusion>
-        </exclusions>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-    <dependency>
-        <groupId>com.evolveum.midpoint.infra</groupId>
-        <artifactId>prism-api</artifactId>
-        <version>4.1-SNAPSHOT</version>
-        <exclusions>
-        <exclusion>
-            <groupId>javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-        </exclusion>
-        </exclusions>
-    </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>prism-api</artifactId>
+            <version>4.1-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-xjc</artifactId>
-<!--             <version>${jaxb-xjc.version}</version> -->
+            <!--             <version>${jaxb-xjc.version}</version> -->
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-wsdl</artifactId>
-        <exclusions>
-        <exclusion>
-            <groupId>javax.xml.stream</groupId>
-                <artifactId>stax-api</artifactId>
-        </exclusion>
-        </exclusions>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.xml.stream</groupId>
+                    <artifactId>stax-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -74,24 +72,12 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations-java5</artifactId>
+            <artifactId>annotations</artifactId>
         </dependency>
-        <!-- Uncomment for JSON support (experimental) -->
-<!--         <dependency> -->
-<!--     <groupId>org.codehaus.jackson</groupId> -->
-<!--     <artifactId>jackson-core-asl</artifactId> -->
-<!--     <version>1.9.13</version> -->
-<!-- </dependency> -->
-<!--             <dependency> -->
-<!--     <groupId>org.codehaus.jackson</groupId> -->
-<!--     <artifactId>jackson-mapper-asl</artifactId> -->
-<!--     <version>1.9.13</version> -->
-<!-- </dependency> -->
-<!-- <dependency> -->
-<!--   <groupId>com.fasterxml.jackson.module</groupId> -->
-<!--   <artifactId>jackson-module-jaxb-annotations</artifactId> -->
-<!--   <version>2.0.5</version> -->
-<!-- </dependency> -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
         <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
@@ -105,34 +91,34 @@
             <artifactId>snakeyaml</artifactId>
         </dependency>
         <dependency>
-          <groupId>org.springframework</groupId>
-          <artifactId>spring-beans</artifactId>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
         </dependency>
         <dependency>
-          <groupId>xml-resolver</groupId>
-          <artifactId>xml-resolver</artifactId>
+            <groupId>xml-resolver</groupId>
+            <artifactId>xml-resolver</artifactId>
         </dependency>
         <dependency>
-          <groupId>commons-codec</groupId>
-          <artifactId>commons-codec</artifactId>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
         </dependency>
         <dependency>
-          <groupId>commons-io</groupId>
-          <artifactId>commons-io</artifactId>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
         </dependency>
         <dependency>
-          <groupId>org.jvnet.jaxb2_commons</groupId>
-          <artifactId>jaxb2-basics-runtime</artifactId>
+            <groupId>org.jvnet.jaxb2_commons</groupId>
+            <artifactId>jaxb2-basics-runtime</artifactId>
         </dependency>
-<!--        <dependency>-->
-<!--            &lt;!&ndash; make this dependency explicit to detect conflicts with older versions &ndash;&gt;-->
-<!--          <groupId>org.codehaus.woodstox</groupId>-->
-<!--          <artifactId>stax2-api</artifactId>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            &lt;!&ndash; make this dependency explicit to detect conflicts with older versions &ndash;&gt;-->
+        <!--          <groupId>org.codehaus.woodstox</groupId>-->
+        <!--          <artifactId>stax2-api</artifactId>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>stax</groupId>
             <artifactId>stax-api</artifactId>
@@ -143,22 +129,22 @@
         </dependency>
 
         <dependency>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
         </dependency>
-    <dependency>
-        <groupId>com.fasterxml.jackson.module</groupId>
-        <artifactId>jackson-module-jaxb-annotations</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>com.fasterxml.jackson.dataformat</groupId>
-        <artifactId>jackson-dataformat-yaml</artifactId>
-    </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-jaxb-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
 
-    <dependency>
-        <groupId>javax.xml.soap</groupId>
-        <artifactId>javax.xml.soap-api</artifactId>
-    </dependency>
+        <dependency>
+            <groupId>javax.xml.soap</groupId>
+            <artifactId>javax.xml.soap-api</artifactId>
+        </dependency>
 
         <!-- TEST -->
         <dependency>
@@ -166,64 +152,10 @@
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.tools</groupId>
+            <artifactId>test-ng</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <!-- Code generator may be used in Prism in the "pure" form without any prism-specific plugins.
-             This creates the classes for basic (almost-primitive) data types such as PolyStringType.
-             But ... the JAXB-generated classes are not that useful. They may reflect the schema well, but
-             there are glitches. E.g. the JAXB classes generated for query namespace are completely useless.
-             The default JAXB-generated class for PolyStringType is also useless. Therefore the classes that
-             were generated from the schema are copied to the "main" source tree in the form that suits us
-             better than just blindly following the schema. Therefore the following plugin is commented out.
-             It may be used in case that the schemas change and we need to re-generate and re-tweak them.
-             But the plugin should be disabled during normal build. -->
-            <!-- <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.8.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <verbose>true</verbose>
-                            <catalog>src/main/resources/META-INF/catalog.xml</catalog>
-                            <extension>true</extension>
-                            <schemaDirectory>src/main/resources/xml/ns/public</schemaDirectory>
-                            <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>  -->
-            <!--
-             Following plugin generates the JAXB classes for prism tests.
-             We can't really test full JAXB capabilities here as we get the proper JAXB plugin code
-             only after Prism is compiled.
-             This plugin is not really needed during normal build.
-             The classes that we need are hard-copied into the prism test source tree.
-             Disabling this plugin speeds up the compilation. -->
-             <!--
-            <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.8.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <verbose>true</verbose>
-                            <catalog>src/main/resources/META-INF/catalog.xml</catalog>
-                            <extension>true</extension>
-                            <schemaDirectory>src/main/resources/xml/ns/test</schemaDirectory>
-                            <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>  -->
-        </plugins>
-    </build>
 </project>

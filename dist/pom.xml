@@ -8,37 +8,25 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Distribution</name>
-    <artifactId>dist</artifactId>
-    <packaging>pom</packaging>
+
     <parent>
-        <artifactId>parent</artifactId>
+        <artifactId>midpoint</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>4.1-SNAPSHOT</version>
-        <relativePath>../build-system/pom.xml</relativePath>
     </parent>
-    <organization>
-        <name>Evolveum</name>
-        <url>http://www.evolveum.com</url>
-    </organization>
-    <licenses>
-        <license>
-            <name>Apache License v2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    <issueManagement>
-        <system>Atlassian JIRA</system>
-        <url>http://jira.evolveum.com/</url>
-    </issueManagement>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>dist</artifactId>
+    <packaging>pom</packaging>
+
+    <name>midPoint Distribution</name>
+
+    <modules>
+        <module>midpoint-api</module>
+        <module>javadoc</module>
+    </modules>
+
     <dependencies>
-           <dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
             <version>4.1-SNAPSHOT</version>
@@ -67,6 +55,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -109,26 +98,22 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <inherited>false</inherited>
                 <configuration>
-                  <descriptors>
-                    <descriptor>src/main/assembly/dist.xml</descriptor>
-                  </descriptors>
-                  <finalName>midpoint-${project.version}</finalName>
+                    <descriptors>
+                        <descriptor>src/main/assembly/dist.xml</descriptor>
+                    </descriptors>
+                    <finalName>midpoint-${project.version}</finalName>
                     <tarLongFileMode>gnu</tarLongFileMode>
                 </configuration>
                 <executions>
-                  <execution>
-                    <id>dist-assembly</id>
-                    <phase>package</phase> <!-- bind to the packaging phase -->
-                    <goals>
-                      <goal>single</goal>
-                    </goals>
-                  </execution>
+                    <execution>
+                        <id>dist-assembly</id>
+                        <phase>package</phase> <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
-    <modules>
-        <module>midpoint-api</module>
-        <module>javadoc</module>
-    </modules>
 </project>

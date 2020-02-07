@@ -194,7 +194,7 @@ public class ShadowCache {
             if (refreshShadowOperation != null) {
                 repositoryShadow = refreshShadowOperation.getRefreshedShadow();
             }
-            LOGGER.trace("Refreshed repository shadow:\n{}", DebugUtil.debugDumpLazily(repositoryShadow,1));
+            LOGGER.trace("Refreshed repository shadow:\n{}", DebugUtil.debugDumpLazily(repositoryShadow, 1));
         }
         if (repositoryShadow == null) {
             // Dead shadow was just removed
@@ -291,7 +291,9 @@ public class ShadowCache {
             resourceObject.asObjectable().setIntent(repositoryShadow.asObjectable().getIntent());
             ProvisioningContext shadowCtx = ctx.spawn(resourceObject);
 
-            resourceManager.modifyResourceAvailabilityStatus(resource.getOid(), AvailabilityStatusType.UP, false, task, parentResult);
+            String operationCtx = "getting " + repositoryShadow + " was successfull.";
+
+            resourceManager.modifyResourceAvailabilityStatus(resource.getOid(), AvailabilityStatusType.UP, operationCtx, task, parentResult, false);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.debugDump(1));
@@ -874,7 +876,7 @@ public class ShadowCache {
     }
 
     private ResourceOperationDescription createSuccessOperationDescription(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadowType, ObjectDelta delta, OperationResult parentResult)
+            PrismObject<ShadowType> shadowType, ObjectDelta<? extends ShadowType> delta, OperationResult parentResult)
                     throws ObjectNotFoundException, SchemaException, CommunicationException,
                     ConfigurationException, ExpressionEvaluationException {
         ResourceOperationDescription operationDescription = new ResourceOperationDescription();
@@ -990,7 +992,7 @@ public class ShadowCache {
                         shadowManager.recordModifyResult(ctx, repoShadow, modifications, opState, now, parentResult);
                         return repoShadow.getOid();
                     } else {
-                        LOGGER.trace("Shadow exists: ", repoShadow.debugDump());
+                        LOGGER.trace("Shadow exists: {}", repoShadow.debugDump());
                     }
 
                     AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncReturnValue =
@@ -1242,7 +1244,8 @@ public class ShadowCache {
                             .deleteResourceObject(ctx, repoShadow, scripts, connOptions, parentResult);
                     opState.processAsyncResult(asyncReturnValue);
 
-                    resourceManager.modifyResourceAvailabilityStatus(ctx.getResourceOid(), AvailabilityStatusType.UP, false, task, parentResult);
+                    String operationCtx = "deleting " + repoShadow + " finished successfully.";
+                    resourceManager.modifyResourceAvailabilityStatus(ctx.getResourceOid(), AvailabilityStatusType.UP, operationCtx, task, parentResult, false);
 
                 } catch (Exception ex) {
                     try {

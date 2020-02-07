@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -53,7 +53,6 @@ import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
- *
  */
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
@@ -108,7 +107,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             OrgType.F_ADMIN_GUI_CONFIGURATION,
             OrgType.F_DATA_PROTECTION,
             OrgType.F_TRIGGER,
-            OrgType.F_AUTOASSIGN);
+            OrgType.F_AUTOASSIGN,
+            ShadowType.F_CREDENTIALS);
 
     private String userWallyOid;
     private String accountWallyOid;

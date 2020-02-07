@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.api.authentication;
 
+import com.evolveum.midpoint.security.api.Authorization;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
@@ -28,5 +29,11 @@ public interface AuthenticationChannel {
 
     public boolean isDefault();
 
-    public Collection<? extends GrantedAuthority> resolveAuthorities(Collection<? extends GrantedAuthority> authorities);
+    public Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities);
+
+    public void postSuccessAuthenticationProcessing();
+
+    public String getSpecificLoginUrl();
+
+    public boolean isSupportActivationByChannel();
 }

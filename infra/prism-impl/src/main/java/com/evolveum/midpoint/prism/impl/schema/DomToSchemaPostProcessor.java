@@ -20,12 +20,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.sun.xml.xsom.*;
-import com.sun.xml.xsom.impl.AnnotationImpl;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xml.sax.Locator;
 
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.namespace.QName;
@@ -304,8 +302,7 @@ class DomToSchemaPostProcessor {
         if (annotation == null) {
             return;
         }
-        Element documentationElement = SchemaProcessorUtil.getAnnotationElement(annotation,
-                DOMUtil.XSD_DOCUMENTATION_ELEMENT);
+        Element documentationElement = SchemaProcessorUtil.getAnnotationElement(annotation, DOMUtil.XSD_DOCUMENTATION_ELEMENT);
         if (documentationElement != null) {
             // The documentation may be HTML-formatted. Therefore we want to
             // keep the formatting and tag names
@@ -336,11 +333,10 @@ class DomToSchemaPostProcessor {
 
         XSParticle[] particles = group.getChildren();
         for (XSParticle p : particles) {
-            boolean particleInherited = inherited != null ? inherited : (p != explicitContent);
+            boolean particleInherited = inherited != null ? inherited : p != explicitContent;
             XSTerm pterm = p.getTerm();
             if (pterm.isModelGroup()) {
-                addItemDefinitionListFromGroup(pterm.asModelGroup(), ctd, particleInherited,
-                        explicitContent);
+                addItemDefinitionListFromGroup(pterm.asModelGroup(), ctd, particleInherited, explicitContent);
             }
 
             // xs:element inside complex type
@@ -873,8 +869,7 @@ class DomToSchemaPostProcessor {
 
         SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 
-        Collection<? extends DisplayableValue<T>> allowedValues = parseEnumAllowedValues(typeName, ctd,
-                xsType);
+        Collection<? extends DisplayableValue<T>> allowedValues = parseEnumAllowedValues(typeName, ctd, xsType);
 
         Object defaultValue = parseDefaultValue(elementParticle, typeName);
 
@@ -976,10 +971,8 @@ class DomToSchemaPostProcessor {
                     enumerations.size());
                 for (XSFacet facet : enumerations) {
                     String value = facet.getValue().value;
-                    Element descriptionE = SchemaProcessorUtil.getAnnotationElement(facet.getAnnotation(),
-                            SCHEMA_DOCUMENTATION);
-                    Element appInfo = SchemaProcessorUtil.getAnnotationElement(facet.getAnnotation(),
-                            SCHEMA_APP_INFO);
+                    Element descriptionE = SchemaProcessorUtil.getAnnotationElement(facet.getAnnotation(), SCHEMA_DOCUMENTATION);
+                    Element appInfo = SchemaProcessorUtil.getAnnotationElement(facet.getAnnotation(), SCHEMA_APP_INFO);
                     Element valueE = null;
                     if (appInfo != null) {
                         NodeList list = appInfo.getElementsByTagNameNS(
@@ -1034,8 +1027,7 @@ class DomToSchemaPostProcessor {
         return null;
     }
 
-    private void parseItemDefinitionAnnotations(MutableItemDefinition itemDef, XSAnnotation annotation)
-            throws SchemaException {
+    private void parseItemDefinitionAnnotations(MutableItemDefinition itemDef, XSAnnotation annotation) throws SchemaException {
         if (annotation == null || annotation.getAnnotation() == null) {
             return;
         }
@@ -1166,39 +1158,21 @@ class DomToSchemaPostProcessor {
     }
 
     private XSAnnotation selectAnnotationToUse(XSAnnotation particleAnnotation, XSAnnotation termAnnotation) {
-        boolean useParticleAnnotation = false;
-        if (particleAnnotation != null && particleAnnotation.getAnnotation() != null) {
-            if (testAnnotationAppinfo(particleAnnotation)) {
-                useParticleAnnotation = true;
-            }
-        }
-
-        boolean useTermAnnotation = false;
-        if (termAnnotation != null && termAnnotation.getAnnotation() != null) {
-            if (testAnnotationAppinfo(termAnnotation)) {
-                useTermAnnotation = true;
-            }
-        }
-
-        if (useParticleAnnotation) {
-            return particleAnnotation;
-        }
-
-        if (useTermAnnotation) {
+        // It is not quite clear when particle vs. term annotation is present.
+        // So let's do the selection intuitively.
+        if (particleAnnotation == null || particleAnnotation.getAnnotation() == null) {
             return termAnnotation;
+        } else if (termAnnotation == null || termAnnotation.getAnnotation() == null) {
+            return particleAnnotation;
+        } else {
+            // both are non-null; let's decide by appinfo presence
+            return hasAnnotationAppinfo(particleAnnotation) ? particleAnnotation : termAnnotation;
         }
-
-        return null;
     }
 
-    private boolean testAnnotationAppinfo(XSAnnotation annotation) {
-        Element appinfo = SchemaProcessorUtil.getAnnotationElement(annotation,
-                new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));
-        if (appinfo != null) {
-            return true;
-        }
-
-        return false;
+    private boolean hasAnnotationAppinfo(XSAnnotation annotation) {
+        Element appinfo = SchemaProcessorUtil.getAnnotationElement(annotation, SCHEMA_APP_INFO);
+        return appinfo != null;
     }
 
     private void markRuntime(Definition def) {
@@ -1206,5 +1180,4 @@ class DomToSchemaPostProcessor {
             def.toMutable().setRuntimeSchema(true);
         }
     }
-
 }

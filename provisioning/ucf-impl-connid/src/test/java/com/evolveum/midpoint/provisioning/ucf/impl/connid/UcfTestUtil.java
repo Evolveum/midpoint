@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -10,7 +10,6 @@ import java.io.File;
 
 /**
  * @author semancik
- *
  */
 public class UcfTestUtil {
 

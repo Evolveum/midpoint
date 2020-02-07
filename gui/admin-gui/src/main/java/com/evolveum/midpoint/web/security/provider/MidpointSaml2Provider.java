@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.security.provider;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
@@ -19,7 +20,6 @@ import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -67,9 +67,8 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
         }
     }
 
-    @Override
-    protected Authentication internalAuthentication(Authentication authentication, List requireAssignment) throws AuthenticationException {
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
+    protected Authentication internalAuthentication(Authentication authentication, List requireAssignment, AuthenticationChannel channel) throws AuthenticationException {
+        ConnectionEnvironment connEnv = createEnviroment(channel);
 
         try {
             Authentication token;
@@ -77,9 +76,11 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
                 DefaultSamlAuthentication samlAuthentication = (DefaultSamlAuthentication) authentication;
                 Saml2ModuleAuthentication samlModule = (Saml2ModuleAuthentication) SecurityUtils.getProcessingModule(true);
                 List<Attribute> attributes = ((DefaultSamlAuthentication) authentication).getAssertion().getAttributes();
-                String enteredUsername = null;
+                String enteredUsername = "";
                 for (Attribute attribute : attributes) {
-                    if (attribute.getFriendlyName().equals(samlModule.getNamesOfUsernameAttributes().get(samlAuthentication.getAssertingEntityId()))) {
+                    if (attribute != null
+                            && ((attribute.getFriendlyName() != null && attribute.getFriendlyName().equals(samlModule.getNamesOfUsernameAttributes().get(samlAuthentication.getAssertingEntityId())))
+                            || (attribute.getName() != null && attribute.getName().equals(samlModule.getNamesOfUsernameAttributes().get(samlAuthentication.getAssertingEntityId()))))){
                         List<Object> values = attribute.getValues();
                         if (values == null) {
                             LOGGER.error("Saml attribute, which define username don't contains value");
@@ -92,8 +93,11 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
                         enteredUsername = (String) values.iterator().next();
                     }
                 }
-                Validate.notBlank(enteredUsername);
-                token = authenticationEvaluator.authenticateUserPreAuthenticated(connEnv, new PreAuthenticationContext(enteredUsername, requireAssignment));
+                PreAuthenticationContext authContext = new PreAuthenticationContext(enteredUsername, requireAssignment);
+                if (channel != null) {
+                    authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
+                }
+                token = authenticationEvaluator.authenticateUserPreAuthenticated(connEnv, authContext);
             } else {
                 LOGGER.error("Unsupported authentication {}", authentication);
                 throw new AuthenticationServiceException("web.security.provider.unavailable");

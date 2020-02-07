@@ -9,6 +9,7 @@ package com.evolveum.midpoint.notifications.impl.api.transports;
 
 import static com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil.formatToFileOld;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -99,22 +100,6 @@ public class MailTransport implements Transport {
 
         SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
 
-//        if (systemConfiguration == null) {
-//            String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
-//             LOGGER.warn(msg) ;
-//             result.recordWarning(msg);
-//             return;
-//        }
-//
-//        MailConfigurationType mailConfigurationType = null;
-//        SecurityPolicyType securityPolicyType = NotificationFuctionsImpl.getSecurityPolicyConfiguration(systemConfiguration.getGlobalSecurityPolicyRef(), cacheRepositoryService, result);
-//        if (securityPolicyType != null && securityPolicyType.getAuthentication() != null && securityPolicyType.getAuthentication().getMailAuthentication() != null) {
-//            for (MailAuthenticationPolicyType mailAuthenticationPolicy : securityPolicyType.getAuthentication().getMailAuthentication()) {
-//                if (mailAuthenticationPolicy.getNotificationConfiguration() != null ){
-//                    mailConfigurationType = mailAuthenticationPolicy.getNotificationConfiguration().getMail();
-//                }
-//            }
-//        }
         if (systemConfiguration == null  || systemConfiguration.getNotificationConfiguration() == null
                 || systemConfiguration.getNotificationConfiguration().getMail() == null) {
             String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
@@ -132,12 +117,12 @@ public class MailTransport implements Transport {
         String redirectToFile = mailConfigurationType.getRedirectToFile();
         int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(mailConfigurationType);
 
-        List<String> allowedRecipientTo = new ArrayList<String>();
-        List<String> forbiddenRecipientTo = new ArrayList<String>();
-        List<String> allowedRecipientCc = new ArrayList<String>();
-        List<String> forbiddenRecipientCc = new ArrayList<String>();
-        List<String> allowedRecipientBcc = new ArrayList<String>();
-        List<String> forbiddenRecipientBcc = new ArrayList<String>();
+        List<String> allowedRecipientTo = new ArrayList<>();
+        List<String> forbiddenRecipientTo = new ArrayList<>();
+        List<String> allowedRecipientCc = new ArrayList<>();
+        List<String> forbiddenRecipientCc = new ArrayList<>();
+        List<String> allowedRecipientBcc = new ArrayList<>();
+        List<String> forbiddenRecipientBcc = new ArrayList<>();
 
         if (optionsForFilteringRecipient != 0) {
             TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, mailMessage.getTo(), mailConfigurationType, task, result,
@@ -245,7 +230,7 @@ public class MailTransport implements Transport {
                 for (String recipientBcc : mailMessage.getBcc()) {
                     mimeMessage.addRecipient(javax.mail.Message.RecipientType.BCC, new InternetAddress(recipientBcc));
                 }
-                mimeMessage.setSubject(mailMessage.getSubject(), "utf-8");
+                mimeMessage.setSubject(mailMessage.getSubject(), StandardCharsets.UTF_8.name());
                 String contentType = mailMessage.getContentType();
                 if (StringUtils.isEmpty(contentType)) {
                     contentType = "text/plain; charset=UTF-8";
@@ -257,7 +242,7 @@ public class MailTransport implements Transport {
                 for(NotificationMessageAttachmentType attachment : mailMessage.getAttachments()) {
 
                     if(attachment.getContent() != null || attachment.getContentFromFile() != null) {
-                        String fileName = null;
+                        String fileName;
                         BodyPart attachmentBody = new MimeBodyPart();
                         if(attachment.getContent() != null) {
                                 try {

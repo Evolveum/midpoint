@@ -116,6 +116,7 @@ import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.testng.AssertJUnit.assertNotNull;
@@ -819,19 +820,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     protected void assumeResourceAssigmentPolicy(String resourceOid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
         ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
-        syncSettings.setLegalize(Boolean.valueOf(legalize));
+        syncSettings.setLegalize(legalize);
         applySyncSettings(ResourceType.class, resourceOid, ResourceType.F_PROJECTION, syncSettings);
     }
 
     protected void deleteResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
         ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
-        syncSettings.setLegalize(Boolean.valueOf(legalize));
+        syncSettings.setLegalize(legalize);
         ContainerDelta<ProjectionPolicyType> deleteAssigmentEnforcement = prismContext.deltaFactory().container()
                 .createModificationDelete(ResourceType.F_PROJECTION, ResourceType.class,
                         syncSettings.clone());
 
-        Collection<ItemDelta> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add(deleteAssigmentEnforcement);
 
         OperationResult result = new OperationResult("Aplying sync settings");
@@ -1658,12 +1659,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     }
 
-    protected void assertPasswordHistoryEntries(PrismObject<UserType> user, String... changedPasswords) {
-        CredentialsType credentials = user.asObjectable().getCredentials();
-        assertNotNull("Null credentials in "+user, credentials);
+    protected <F extends FocusType> void assertPasswordHistoryEntries(PrismObject<F> focus, String... changedPasswords) {
+        CredentialsType credentials = focus.asObjectable().getCredentials();
+        assertNotNull("Null credentials in "+focus, credentials);
         PasswordType passwordType = credentials.getPassword();
-        assertNotNull("Null passwordType in "+user, passwordType);
-        assertPasswordHistoryEntries(user.toString(), passwordType.getHistoryEntry(), getPasswordHistoryStorageType(), changedPasswords);
+        assertNotNull("Null passwordType in "+focus, passwordType);
+        assertPasswordHistoryEntries(focus.toString(), passwordType.getHistoryEntry(), getPasswordHistoryStorageType(), changedPasswords);
     }
 
     protected void assertPasswordHistoryEntries(PasswordType passwordType, String... changedPasswords) {
@@ -2969,5 +2970,22 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     protected void removeGlobalTracingOverride() {
         taskManager.removeGlobalTracingOverride();
+    }
+
+    protected Consumer<PrismObject<TaskType>> workerThreadsCustomizer(int threads) {
+        return taskObject -> {
+            if (threads != 0) {
+                //noinspection unchecked
+                PrismProperty<Integer> workerThreadsProperty = prismContext.getSchemaRegistry()
+                        .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS)
+                        .instantiate();
+                workerThreadsProperty.setRealValue(threads);
+                try {
+                    taskObject.addExtensionItem(workerThreadsProperty);
+                } catch (SchemaException e) {
+                    throw new AssertionError(e);
+                }
+            }
+        };
     }
 }

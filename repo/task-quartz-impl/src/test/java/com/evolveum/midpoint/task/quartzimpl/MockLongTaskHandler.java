@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
  */
 public class MockLongTaskHandler implements TaskHandler {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MockLongTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MockLongTaskHandler.class);
 
     private TaskManagerQuartzImpl taskManager;
 

@@ -6,13 +6,11 @@
  */
 package com.evolveum.midpoint.web.security.factory.module;
 
-import com.evolveum.midpoint.model.api.authentication.AuthModule;
+import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.model.api.authentication.AuthModuleImpl;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.web.security.util.AuthModuleImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -38,14 +36,16 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence,
                                          ServletRequest request, Map<Class<? extends Object>, Object> sharedObjects,
-                                         AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy) throws Exception {
+                                         AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
 
         if (!(moduleType instanceof AbstractCredentialAuthenticationModuleType)) {
             LOGGER.error("This factory support only AbstractPasswordAuthenticationModuleType, but modelType is " + moduleType);
             return null;
         }
 
-        C configuration = createConfiguration(moduleType, prefixOfSequence);
+        isSupportedChannel(authenticationChannel);
+
+        C configuration = createConfiguration(moduleType, prefixOfSequence, authenticationChannel);
 
         configuration.addAuthenticationProvider(getProvider((AbstractCredentialAuthenticationModuleType)moduleType, credentialPolicy));
 
@@ -103,7 +103,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
 
     protected abstract ModuleAuthentication createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, C configuration);
 
-    protected abstract C createConfiguration (AbstractAuthenticationModuleType moduleType, String prefixOfSequence);
+    protected abstract C createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel);
 
     protected abstract ModuleWebSecurityConfig createModule (C configuration);
 

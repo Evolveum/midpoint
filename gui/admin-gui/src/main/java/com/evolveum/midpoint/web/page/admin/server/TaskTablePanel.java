@@ -81,7 +81,7 @@ import java.util.stream.Collectors;
                         description = "PageTasks.auth.tasks.description")})
 public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskTablePanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskTablePanel.class);
 
     private static final String DOT_CLASS = TaskTablePanel.class.getName() + ".";
     public static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTasks";
@@ -190,7 +190,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         refreshTable(TaskType.class, target);
         target.add(getTable());
     }
-    
+
     private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, oid);

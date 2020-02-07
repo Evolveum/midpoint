@@ -123,7 +123,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
 
     @SuppressWarnings("unused")
     public ReconciliationTaskResultListener getReconciliationTaskResultListener() {
@@ -531,7 +531,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
             OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative");
 
-            handler.createWorkerThreads(localCoordinatorTask, searchResult);
+            handler.createWorkerThreads(localCoordinatorTask);
             // note that progress is incremented within the handler, as it extends AbstractSearchIterativeResultHandler
             try {
                 provisioningService

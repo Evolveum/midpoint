@@ -20,6 +20,7 @@ import java.util.Collection;
  * @author mederly
  */
 public interface PrismPropertyDefinition<T> extends ItemDefinition<PrismProperty<T>> {
+
     Collection<? extends DisplayableValue<T>> getAllowedValues();
 
     T defaultValue();

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -51,7 +52,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 
     private static final long serialVersionUID = 1L;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ItemWrapperImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ItemWrapperImpl.class);
 
     private PrismContainerValueWrapper<?> parent;
 
@@ -540,11 +541,13 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
         getItemDefinition().adoptElementDefinitionFrom(otherDef);
     }
 
+    @NotNull
     @Override
     public I instantiate() throws SchemaException {
         return getItemDefinition().instantiate();
     }
 
+    @NotNull
     @Override
     public I instantiate(QName name) throws SchemaException {
         return getItemDefinition().instantiate();
@@ -688,11 +691,11 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
         return getItemDefinition().getSchemaMigrations();
     }
 
-    @Override
-    public void accept(Visitor visitor) {
-        getItemDefinition().accept(visitor);
-    }
-
+//    @Override
+//    public void accept(Visitor visitor) {
+//        getItemDefinition().accept(visitor);
+//    }
+//
 
     @Override
     public void setReadOnly(boolean readOnly) {

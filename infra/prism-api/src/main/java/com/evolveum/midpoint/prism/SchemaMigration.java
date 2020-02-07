@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -12,7 +12,6 @@ import javax.xml.namespace.QName;
 
 /**
  * @author semancik
- *
  */
 public class SchemaMigration implements Serializable {
     private static final long serialVersionUID = 1L;

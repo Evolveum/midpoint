@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -24,11 +23,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * @author Pavol Mederly
- *
  */
 public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(NoOpTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(NoOpTaskHandler.class);
 
     private static NoOpTaskHandler instance = null;
     private TaskManagerQuartzImpl taskManagerImpl;

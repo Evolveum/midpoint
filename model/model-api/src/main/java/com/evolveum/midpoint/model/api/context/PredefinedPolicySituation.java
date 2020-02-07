@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -11,7 +11,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKind
 
 /**
  * @author semancik
- *
  */
 public enum PredefinedPolicySituation {
 

@@ -82,7 +82,7 @@ public interface AccessCertificationEventListener {
     void onReviewDeadlineApproaching(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
             List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result);
 
-    /**
+    /*
      * This method is called by certification module when a certification case is decided.
      * I.e. when there we don't expect any changes in the state of this case as part of the approval processes.
      * (Either when it's finally rejected or when last stage is closed.)

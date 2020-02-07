@@ -151,7 +151,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
             "sk", "Kapitán Džek Sperou"
         };
 
-    private static Trace LOGGER = TraceManager.getTrace(TestOpenDj.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestOpenDj.class);
 
     private String groupSailorOid;
 
@@ -3134,7 +3134,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(descriptionDelta);
 
-        display("Modifications",modifications);
+        display("Modifications", modifications);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -3266,6 +3266,59 @@ public class TestOpenDj extends AbstractOpenDjTest {
             .assertOrig(descriptionBefore.getOrig())
             .assertLangs(JACK_FULL_NAME_LANG_CZ_HR);
 
+
+        assertShadows(25);
+    }
+
+    /**
+     * Deletion of a PolyString value.
+     * MID-5970
+     */
+    @Test
+    public void test478bModifyAccountJackDeleteDescription() throws Exception {
+        final String TEST_NAME = "test478bModifyAccountJackDeleteDescription";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PolyString descriptionBefore = new PolyString(USER_JACK_FULL_NAME);
+        descriptionBefore.setLang(MiscUtil.paramsToMap(JACK_FULL_NAME_LANG_CZ_HR));
+
+        PropertyDelta<PolyString> descriptionDelta = prismContext.deltaFactory().property().create(
+                ItemPath.create(ShadowType.F_ATTRIBUTES, ATTRIBUTE_DESCRIPTION_QNAME),
+                null);
+        descriptionDelta.addRealValuesToDelete(descriptionBefore);
+
+        Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(descriptionDelta);
+
+        display("Modifications", modifications);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        provisioningService.modifyObject(ShadowType.class, ACCOUNT_JACK_OID,
+                modifications, null, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        Entry entry = openDJController.searchByUid("rename");
+        display("LDAP Entry", entry);
+        assertDescription(entry, null);
+
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
+                ACCOUNT_JACK_OID, null, taskManager.createTaskInstance(), result);
+
+        display("Object after change", shadow);
+
+        PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+        PrismProperty<PolyString> descAttr = attributesContainer.findProperty(ATTRIBUTE_DESCRIPTION_QNAME);
+        if (descAttr != null) {
+            assertEquals("Wrong # of values in description: " + descAttr, 0, descAttr.getValues().size());
+        } else {
+            // ok, attribute is not there
+        }
 
         assertShadows(25);
     }

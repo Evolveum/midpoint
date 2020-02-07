@@ -95,24 +95,6 @@ public class EventHandlerType implements Serializable, Cloneable, Equals, HashCo
     }
 
     /**
-     * Gets the value of the description property.
-     *
-     * @return
-     *     possible object is
-     *     {@link String }
-     *
-     */
-
-    /**
-     * Sets the value of the description property.
-     *
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *
-     */
-
-    /**
      * Gets the value of the name property.
      *
      * @return

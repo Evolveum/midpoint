@@ -33,6 +33,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Radovan Semancik
@@ -130,13 +131,12 @@ public class ModelClientUtil {
     }
 
     public static QName getTypeQName(Class<? extends ObjectType> type) {
-//        QName typeQName = JAXBUtil.getTypeQName(type);
         QName typeQName = new QName(NS_COMMON, type.getSimpleName());
         return typeQName;
     }
 
     public static Element parseElement(String stringXml) throws SAXException, IOException {
-        Document document = domDocumentBuilder.parse(IOUtils.toInputStream(stringXml, "utf-8"));
+        Document document = domDocumentBuilder.parse(IOUtils.toInputStream(stringXml, StandardCharsets.UTF_8));
         return getFirstChildElement(document);
     }
 

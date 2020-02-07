@@ -82,7 +82,7 @@ import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 @PageDescriptor(urls = {
         @Url(mountUrl = "/securityquestions", matchUrlForSecurity = "/securityquestions")
 }, permitAll = true, loginPage = true)
-public class PageSecurityQuestions extends PageRegistrationBase {
+public class PageSecurityQuestions extends PageAuthenticationBase {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSecurityQuestions.class);
@@ -130,7 +130,7 @@ public class PageSecurityQuestions extends PageRegistrationBase {
 
         initStaticLayout(form);
 
-        initDynamicLayout(form);
+        initDynamicLayout(form, PageSecurityQuestions.this);
 
         initButtons(form);
 
@@ -272,59 +272,6 @@ public class PageSecurityQuestions extends PageRegistrationBase {
         staticLayout.add(visibleUsername);
     }
 
-    private void initDynamicLayout(final org.apache.wicket.markup.html.form.Form<?> mainForm) {
-        WebMarkupContainer dynamicLayout = new WebMarkupContainer(ID_DYNAMIC_LAYOUT);
-        dynamicLayout.setOutputMarkupId(true);
-        mainForm.add(dynamicLayout);
-
-        dynamicLayout.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !showedQuestions && isDynamicForm();
-            }
-        });
-
-        DynamicFormPanel<UserType> searchAttributesForm = runPrivileged(
-                () -> {
-                    ObjectReferenceType formRef = getResetPasswordPolicy().getFormRef();
-                    if (formRef == null) {
-                        return null;
-                    }
-                    Task task = createAnonymousTask(OPERATION_LOAD_DYNAMIC_FORM);
-                    return new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM, UserType.COMPLEX_TYPE,
-                            formRef.getOid(), mainForm, task, PageSecurityQuestions.this, true);
-                });
-
-        if (searchAttributesForm != null) {
-            dynamicLayout.add(searchAttributesForm);
-        }
-
-    }
-
-    private boolean isDynamicForm() {
-        return getResetPasswordPolicy().getFormRef() != null;
-    }
-
-    private AjaxButton createBackButton(String id){
-        AjaxButton back = new AjaxButton(id) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                cancelPerformed();
-            }
-        };
-        return back;
-    }
-
-    private void cancelPerformed() {
-        setResponsePage(getMidpointApplication().getHomePage());
-    }
-
     private void showQuestions(AjaxRequestTarget target) {
         UserType user = searchUser();
 
@@ -408,84 +355,7 @@ public class PageSecurityQuestions extends PageRegistrationBase {
         return (PageBase) getPage();
     }
 
-    private UserType searchUser() {
-        ObjectQuery query = null;
-
-        if (isDynamicForm()) {
-            query = createDynamicFormQuery();
-        } else {
-            query = createStaticFormQuery();
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Searching for user with query:\n{}", query.debugDump(1));
-        }
-
-        return searchUserPrivileged(query);
-
-    }
-
-    private UserType searchUserPrivileged(ObjectQuery query) {
-        UserType userType = runPrivileged(new Producer<UserType>() {
-
-            @Override
-            public UserType run() {
-
-                Task task = createAnonymousTask("load user");
-                OperationResult result = new OperationResult("search user");
-
-                SearchResultList<PrismObject<UserType>> users;
-                try {
-                    users = getModelService().searchObjects(UserType.class, query, null, task, result);
-                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-                        | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-                    LoggingUtils.logException(LOGGER, "failed to search user", e);
-                    return null;
-                }
-
-                if ((users == null) || (users.isEmpty())) {
-                    LOGGER.trace("Empty user list in ForgetPassword");
-                    return null;
-                }
-
-                if (users.size() > 1) {
-                    LOGGER.trace("Problem while seeking for user");
-                    return null;
-                }
-
-                UserType user = users.iterator().next().asObjectable();
-                LOGGER.trace("User found for ForgetPassword: {}", user);
-
-                return user;
-            }
-
-        });
-        return userType;
-    }
-
-    private ObjectQuery createDynamicFormQuery() {
-        DynamicFormPanel<UserType> userDynamicPanel = getDynamicForm();
-        List<ItemPath> filledItems = userDynamicPanel.getChangedItems();
-        PrismObject<UserType> user;
-        try {
-            user = userDynamicPanel.getObject();
-        } catch (SchemaException e1) {
-            getSession().error(getString("pageForgetPassword.message.usernotfound"));
-            throw new RestartResponseException(PageForgotPassword.class);
-        }
-
-        List<EqualFilter> filters = new ArrayList<>();
-        QueryFactory queryFactory = getPrismContext().queryFactory();
-        for (ItemPath path : filledItems) {
-            PrismProperty property = user.findProperty(path);
-            EqualFilter filter = queryFactory.createEqual(path, property.getDefinition(), null);
-            filter.setValue(property.getAnyValue().clone());
-            filters.add(filter);
-        }
-        return queryFactory.createQuery(queryFactory.createAnd((List) filters));
-    }
-
-    private ObjectQuery createStaticFormQuery() {
+    protected ObjectQuery createStaticFormQuery() {
         RequiredTextField<String> usernameTextFiled = getVisibleUsername();
         String username = usernameTextFiled != null ? usernameTextFiled.getModelObject() : null;
         LOGGER.debug("Reset Password user info form submitted. username={}", username);
@@ -517,7 +387,7 @@ public class PageSecurityQuestions extends PageRegistrationBase {
         return (HiddenField) getMainForm().get(ID_ANSWER_FIELD);
     }
 
-    private DynamicFormPanel getDynamicForm(){
+    protected DynamicFormPanel getDynamicForm(){
         return (DynamicFormPanel) getMainForm().get(createComponentPath(ID_DYNAMIC_LAYOUT, ID_DYNAMIC_FORM));
     }
 

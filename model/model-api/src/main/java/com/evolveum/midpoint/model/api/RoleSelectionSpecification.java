@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -20,7 +20,6 @@ import javax.xml.namespace.QName;
 
 /**
  * @author semancik
- *
  */
 public class RoleSelectionSpecification implements DebugDumpable {
 

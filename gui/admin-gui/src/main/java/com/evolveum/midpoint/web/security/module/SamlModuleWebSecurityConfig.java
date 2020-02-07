@@ -17,7 +17,10 @@ import com.evolveum.midpoint.web.security.filter.MidpointSamlAuthenticationRespo
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.SamlAuthenticationEntryPoint;
+import com.evolveum.midpoint.web.security.util.KeyStoreKey;
+import org.opensaml.security.credential.impl.KeyStoreCredentialResolver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,9 +28,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.saml.key.SimpleKey;
 import org.springframework.security.saml.provider.SamlProviderLogoutFilter;
 import org.springframework.security.saml.provider.SamlServerConfiguration;
+import org.springframework.security.saml.provider.provisioning.HostBasedSamlServiceProviderProvisioning;
+import org.springframework.security.saml.provider.provisioning.SamlProviderProvisioning;
+import org.springframework.security.saml.provider.service.ServiceProviderService;
 import org.springframework.security.saml.provider.service.config.SamlServiceProviderServerBeanConfiguration;
+import org.springframework.security.saml.spi.SpringSecuritySaml;
+import org.springframework.security.saml.spi.opensaml.OpenSamlImplementation;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
@@ -36,12 +45,14 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 
 import javax.servlet.Filter;
 
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.security.saml.util.StringUtils.stripEndingSlases;
-
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author skublik
@@ -51,19 +62,10 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
 
     private static final Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfig.class);
 
-    @Autowired
-    private SessionRegistry sessionRegistry;
-
-    @Autowired
-    private MidPointGuiAuthorizationEvaluator accessDecisionManager;
-
-    private SamlServerConfiguration saml2Configuration;
-
     private MidpointSamlProviderServerBeanConfiguration beanConfiguration;
 
     public SamlModuleWebSecurityConfig(C configuration) {
         super(configuration);
-        this.saml2Configuration = configuration.getSamlConfiguration();
         this.beanConfiguration = new MidpointSamlProviderServerBeanConfiguration(configuration);
     }
 
@@ -71,7 +73,6 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
     protected void configure(HttpSecurity http) throws Exception {
         getObjectPostProcessor().postProcess(getBeanConfiguration());
         super.configure(http);
-        String prefix = getPrefix();
 
         http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
         http.csrf().disable();
@@ -107,9 +108,6 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
 
     private class MidpointSamlProviderServerBeanConfiguration extends SamlServiceProviderServerBeanConfiguration {
 
-        @Autowired
-        private UserProfileService userProfileService;
-
 //        @Autowired
 //        private AuditedLogoutHandler auditedLogoutHandler;
 
@@ -120,6 +118,25 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
         public MidpointSamlProviderServerBeanConfiguration(SamlModuleWebSecurityConfiguration configuration) {
             this.configuration = configuration;
             this.saml2Config = configuration.getSamlConfiguration();
+        }
+
+        @Override
+        @Bean(name = "samlServiceProviderProvisioning")
+        public SamlProviderProvisioning<ServiceProviderService> getSamlProvisioning() {
+            return new MidpointHostBasedSamlServiceProviderProvisioning(
+                    samlConfigurationRepository(),
+                    samlTransformer(),
+                    samlValidator(),
+                    samlMetadataCache(),
+                    authenticationRequestEnhancer()
+            );
+        }
+
+        @Bean
+        public SpringSecuritySaml samlImplementation() {
+            OpenSamlImplementation springSaml = new MidpointOpenSamlImplementation(samlTime()).init();
+            springSaml.setSamlKeyStoreProvider(new MidpointSamlKeyStoreProvider());
+            return springSaml;
         }
 
         @Override

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -19,7 +19,7 @@ import java.util.*;
 @Component
 public class AuthModuleRegistryImpl {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AuthModuleRegistryImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AuthModuleRegistryImpl.class);
 
     List<AbstractModuleFactory> moduleFactories = new ArrayList<>();
 

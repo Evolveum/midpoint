@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2014-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -34,7 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author Radovan Semancik
- *
  */
 public interface SecurityEnforcer {
 
@@ -47,8 +46,17 @@ public interface SecurityEnforcer {
     AccessDecision decideAccess(MidPointPrincipal principal, List<String> requiredActions, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
-     * Produces authorization error with proper message and logs it using proper logger.
+     * Simple access control decision similar to that used by spring security.
+     * It is practically applicable for REST authorization with user from 'switch-to-principal' in parameters.
+     * However, it supports authorization hierarchies. Therefore the ordering of elements in
+     * required actions is important.
      */
+    <O extends ObjectType, T extends ObjectType> AccessDecision decideAccess(MidPointPrincipal principal, List<String> requiredActions, AuthorizationParameters<O,T> params, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+
+
+        /**
+         * Produces authorization error with proper message and logs it using proper logger.
+         */
     <O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl, AuthorizationPhaseType phase,
             AuthorizationParameters<O,T> params, OperationResult result)
             throws SecurityViolationException;

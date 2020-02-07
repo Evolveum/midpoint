@@ -6,56 +6,42 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.*;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author katka
- *
  */
 @Component
 public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismContainerWrapperFactoryImpl<O> implements PrismObjectWrapperFactory<O> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(PrismObjectWrapperFactoryImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismObjectWrapperFactoryImpl.class);
 
     private static final String DOT_CLASS = PrismObjectWrapperFactoryImpl.class.getName() + ".";
     private static final String OPERATION_DETERMINE_VIRTUAL_CONTAINERS = DOT_CLASS + "determineVirtualContainers";
@@ -85,7 +71,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         if (context.getReadOnly() != null) {
             objectWrapper.setReadOnly(context.getReadOnly().booleanValue());
         }
-        context.setShowEmpty(ItemStatus.ADDED == status ? true : false);
+        context.setShowEmpty(ItemStatus.ADDED == status);
         PrismContainerValueWrapper<O> valueWrapper = createValueWrapper(objectWrapper, object.getValue(), ItemStatus.ADDED == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
         objectWrapper.getValues().add(valueWrapper);
 
@@ -111,7 +97,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             return objectValueWrapper;
         }
 
-        for (VirtualContainersSpecificationType virtualContainer : context.getVirtualContainers()){
+        for (VirtualContainersSpecificationType virtualContainer : context.getVirtualContainers()) {
 
             MutableComplexTypeDefinition mCtd = getPrismContext().definitionFactory().createComplexTypeDefinition(VIRTUAL_CONTAINER_COMPLEX_TYPE);
             DisplayType display = virtualContainer.getDisplay();
@@ -136,12 +122,10 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             ctx.setVirtualItemSpecification(virtualContainer.getItem());
             ItemWrapper iw = factory.createWrapper(objectValueWrapper, def, ctx);
 
-
             if (iw == null) {
                 continue;
             }
-            ((List)objectValueWrapper.getItems()).add(iw);
-
+            ((List) objectValueWrapper.getItems()).add(iw);
 
         }
 
@@ -204,14 +188,10 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             return null;
         }
 
-
     }
 
     /**
-     *
-     * @param object
-     *
-     * apply security constraint to the object, update wrapper context with additional information, e.g. shadow related attributes, ...
+     * @param object apply security constraint to the object, update wrapper context with additional information, e.g. shadow related attributes, ...
      */
     protected void applySecurityConstraints(PrismObject<O> object, WrapperContext context) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         AuthorizationPhaseType phase = context.getAuthzPhase();
@@ -230,7 +210,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             PrismObjectDefinition<O> objectDef = modelInteractionService.getEditObjectDefinition(object, phase, task, result);
             object.applyDefinition(objectDef, true);
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
-            | CommunicationException | SecurityViolationException e) {
+                | CommunicationException | SecurityViolationException e) {
             throw e;
         } finally {
             if (archetypesToBeAdded != null) {
@@ -254,7 +234,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         archetypeRef.getValues().add(ref.asReferenceValue());
     }
 
-    private <AH extends  AssignmentHolderType> void cleanupArchetypesToBeAdded(PrismObject<AH> object, ObjectReferenceType ref) throws SchemaException {
+    private <AH extends AssignmentHolderType> void cleanupArchetypesToBeAdded(PrismObject<AH> object, ObjectReferenceType ref) throws SchemaException {
         //Now we expect thet object can have just one archetyperef, so if something was added, we just remove it.
 
         PrismReference archetype = object.findReference(AssignmentHolderType.F_ARCHETYPE_REF);
@@ -299,15 +279,12 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 
         return null;
 
-
     }
-
 
     @Override
     public boolean match(ItemDefinition<?> def) {
         return def instanceof PrismObjectDefinition;
     }
-
 
     @Override
     @PostConstruct

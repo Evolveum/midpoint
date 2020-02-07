@@ -52,13 +52,13 @@
                     <expression>
                         <script>
                             <code>
-                                import com.evolveum.midpoint.model.intest.sync.TestLiveSyncTaskMechanics
+                                import com.evolveum.midpoint.model.intest.sync.DummyInterruptedSyncImpreciseResource
 
-                                if (input == TestLiveSyncTaskMechanics.errorOn) {
+                                if (input == DummyInterruptedSyncImpreciseResource.errorOn) {
                                     throw new IllegalStateException("Got error!")
                                 } else {
                                     try {
-                                        Thread.sleep(TestLiveSyncTaskMechanics.delay)
+                                        Thread.sleep(DummyInterruptedSyncImpreciseResource.delay)
                                     } catch (InterruptedException e) {
                                         log.warn('sleep interrupted', e)
                                     }

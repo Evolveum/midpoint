@@ -10,6 +10,8 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.util.KeyStoreKey;
+import com.evolveum.midpoint.web.security.util.MidpointSamlLocalServiceProviderConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +45,7 @@ import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 
 public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigurationImpl {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfiguration.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfiguration.class);
     private static Protector protector;
 
     private SamlServerConfiguration samlConfiguration;
@@ -57,7 +59,6 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
     }
 
     public static SamlModuleWebSecurityConfiguration build(AuthenticationModuleSaml2Type modelType, String prefixOfSequence, ServletRequest request){
-        Validate.notNull(request);
         SamlModuleWebSecurityConfiguration configuration = buildInternal((AuthenticationModuleSaml2Type)modelType, prefixOfSequence, request);
         configuration.validate();
         return configuration;
@@ -79,7 +80,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             samlConfiguration.setNetwork(network);
         }
         AuthenticationModuleSaml2ServiceProviderType serviceProviderType = modelType.getServiceProvider();
-        LocalServiceProviderConfiguration serviceProvider = new LocalServiceProviderConfiguration();
+        MidpointSamlLocalServiceProviderConfiguration serviceProvider = new MidpointSamlLocalServiceProviderConfiguration();
         serviceProvider.setEntityId(serviceProviderType.getEntityId())
                 .setSignMetadata(Boolean.TRUE.equals(serviceProviderType.isSignRequests()))
                 .setSignRequests(Boolean.TRUE.equals(serviceProviderType.isSignRequests()))
@@ -98,28 +99,47 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             serviceProvider.setDefaultSigningAlgorithm(AlgorithmMethod.fromUrn(serviceProviderType.getDefaultSigningAlgorithm().value()));
         }
         AuthenticationModuleSaml2KeyType keysType = serviceProviderType.getKeys();
-//        if (keysType != null) {
-            RotatingKeys key = new RotatingKeys();
-            AuthenticationModuleSaml2SimpleKeyType activeKeyType = keysType.getActive();
-//            if (activeKeyType != null) {
+        RotatingKeys key = new RotatingKeys();
+        if (keysType != null) {
+            ModuleSaml2SimpleKeyType activeSimpleKey = keysType.getActiveSimpleKey();
+            if (activeSimpleKey != null) {
                 try {
-                    key.setActive(createSimpleKey(activeKeyType));
+                    key.setActive(createSimpleKey(activeSimpleKey));
                 } catch (EncryptionException e) {
-                    LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + activeKeyType);
+                    LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + activeSimpleKey);
                 }
-//            }
+            }
+            ModuleSaml2KeyStoreKeyType activeKeyStoreKey = keysType.getActiveKeyStoreKey();
+            if (activeKeyStoreKey != null) {
+                try {
+                    key.setActive(createKeyStoreKey(activeKeyStoreKey));
+                } catch (EncryptionException e) {
+                    LOGGER.error("Couldn't obtain clear string for configuration of KeyStoreKey from " + activeKeyStoreKey);
+                }
+            }
 
-//            if (keysType.getStandBy() != null && !keysType.getStandBy().isEmpty()) {
-                for (AuthenticationModuleSaml2SimpleKeyType standByKey : keysType.getStandBy()) {
+            if (keysType.getStandBySimpleKey() != null && !keysType.getStandBySimpleKey().isEmpty()) {
+                for (ModuleSaml2SimpleKeyType standByKey : keysType.getStandBySimpleKey()) {
                     try {
                         key.getStandBy().add(createSimpleKey(standByKey));
                     } catch (EncryptionException e) {
                         LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + standByKey);
                     }
                 }
-//            }
-            serviceProvider.setKeys(key);
-//        }
+            }
+            if (keysType.getStandByKeyStoreKey() != null && !keysType.getStandByKeyStoreKey().isEmpty()) {
+                for (ModuleSaml2KeyStoreKeyType standByKey : keysType.getStandByKeyStoreKey()) {
+                    try {
+                        key.getStandBy().add(createKeyStoreKey(standByKey));
+                    } catch (EncryptionException e) {
+                        LOGGER.error("Couldn't obtain clear string for configuration of SimpleKey from " + standByKey);
+                    }
+                }
+            }
+        }
+        serviceProvider.setKeys(key);
+        serviceProvider.setAlias(serviceProviderType.getAlias());
+        serviceProvider.setAliasForPath(serviceProviderType.getAliasForPath());
 
         List<ExternalIdentityProviderConfiguration> providers = new ArrayList<ExternalIdentityProviderConfiguration>();
         List<AuthenticationModuleSaml2ProviderType> providersType = serviceProviderType.getProvider();
@@ -189,7 +209,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         return new String(encoded);
     }
 
-    private static SimpleKey createSimpleKey(AuthenticationModuleSaml2SimpleKeyType simpleKeyType) throws EncryptionException {
+    private static SimpleKey createSimpleKey(ModuleSaml2SimpleKeyType simpleKeyType) throws EncryptionException {
         SimpleKey key = new SimpleKey();
         key.setName(simpleKeyType.getName());
 //        Protector protector = ((MidPointApplication) Application.get()).getProtector();
@@ -201,6 +221,22 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         key.setCertificate(certificate);
         if (simpleKeyType.getType() != null) {
             key.setType(KeyType.fromTypeName(simpleKeyType.getType().name()));
+        }
+        return key;
+    }
+
+    private static KeyStoreKey createKeyStoreKey(ModuleSaml2KeyStoreKeyType keyStoreKeyType) throws EncryptionException {
+        KeyStoreKey key = new KeyStoreKey();
+        key.setKeyAlias(keyStoreKeyType.getKeyAlias());
+        //        Protector protector = ((MidPointApplication) Application.get()).getProtector();
+        String keyPassword = protector.decryptString(keyStoreKeyType.getKeyPassword());
+        key.setKeyPassword(keyPassword);
+        String keyStorePath = keyStoreKeyType.getKeyStorePath();
+        key.setKeyStorePath(keyStorePath);
+        String keyStorePassword = protector.decryptString(keyStoreKeyType.getKeyStorePassword());
+        key.setKeyStorePassword(keyStorePassword);
+        if (keyStoreKeyType.getType() != null) {
+            key.setType(KeyType.fromTypeName(keyStoreKeyType.getType().name()));
         }
         return key;
     }

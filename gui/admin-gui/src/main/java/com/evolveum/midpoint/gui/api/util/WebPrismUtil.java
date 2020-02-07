@@ -30,7 +30,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  */
 public class WebPrismUtil {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(WebPrismUtil.class);
+    private static final Trace LOGGER = TraceManager.getTrace(WebPrismUtil.class);
 
     private static final String DOT_CLASS = WebPrismUtil.class.getName() + ".";
     private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";

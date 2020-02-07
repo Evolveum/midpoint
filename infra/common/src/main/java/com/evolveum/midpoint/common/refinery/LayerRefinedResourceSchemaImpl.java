@@ -40,14 +40,15 @@ import java.util.List;
  */
 public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchema {
 
-    private final RefinedResourceSchema refinedResourceSchema;
-    private final LayerType layer;
+    @NotNull private final RefinedResourceSchema refinedResourceSchema;
+    @NotNull private final LayerType layer;
 
-    LayerRefinedResourceSchemaImpl(RefinedResourceSchema refinedResourceSchema, LayerType layer) {
+    LayerRefinedResourceSchemaImpl(@NotNull RefinedResourceSchema refinedResourceSchema, @NotNull LayerType layer) {
         this.refinedResourceSchema = refinedResourceSchema;
         this.layer = layer;
     }
 
+    @NotNull
     @Override
     public LayerType getLayer() {
         return layer;
@@ -69,6 +70,7 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
                 .wrap(refinedResourceSchema.getRefinedDefinition(kind, shadow), layer);
     }
 
+    @NotNull
     @Override
     public String getNamespace() {
         return refinedResourceSchema.getNamespace();
@@ -210,8 +212,8 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((layer == null) ? 0 : layer.hashCode());
-        result = prime * result + ((refinedResourceSchema == null) ? 0 : refinedResourceSchema.hashCode());
+        result = prime * result + layer.hashCode();
+        result = prime * result + refinedResourceSchema.hashCode();
         return result;
     }
 
@@ -222,9 +224,7 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
         if (getClass() != obj.getClass()) return false;
         LayerRefinedResourceSchemaImpl other = (LayerRefinedResourceSchemaImpl) obj;
         if (layer != other.layer) return false;
-        if (refinedResourceSchema == null) {
-            if (other.refinedResourceSchema != null) return false;
-        } else if (!refinedResourceSchema.equals(other.refinedResourceSchema)) {
+        if (!refinedResourceSchema.equals(other.refinedResourceSchema)) {
             return false;
         }
         return true;
@@ -259,5 +259,10 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
     @Override
     public MutableResourceSchema toMutable() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void freeze() {
+        // TODO should we freeze referenced refinedResourceSchema?
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +23,6 @@ import net.sf.jasperreports.engine.xml.JRXmlWriter;
 import org.apache.commons.codec.binary.Base64;
 
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
-//import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class JasperReportDto implements Serializable{
@@ -39,7 +38,6 @@ public class JasperReportDto implements Serializable{
 
     public JasperReportDto(byte[] jasperReportxml, boolean onlyForPromptingParams) {
         this.jasperReportXml = jasperReportxml;
-        String st = new String(jasperReportxml);
         initFileds(onlyForPromptingParams);
     }
 
@@ -159,10 +157,10 @@ public class JasperReportDto implements Serializable{
             q.setText(query);
             oldDesign.setQuery(q);
 
-            String reportAsString = JRXmlWriter.writeReport(oldDesign, "UTF-8");
-            return reportAsString.getBytes("UTF-8");
+            String reportAsString = JRXmlWriter.writeReport(oldDesign, StandardCharsets.UTF_8.name());
+            return reportAsString.getBytes(StandardCharsets.UTF_8);
 
-        } catch (JRException | ClassNotFoundException | SchemaException | UnsupportedEncodingException ex) {
+        } catch (JRException | ClassNotFoundException | SchemaException ex) {
             throw new IllegalStateException(ex.getMessage(), ex.getCause());
         }
 

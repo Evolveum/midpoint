@@ -208,6 +208,15 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             throw new AccessDeniedException("Not authorized");
         }
 
+
+        MidPointPrincipal principal = getPrincipalFromAuthentication(authentication, object, configAttributes);
+
+        Task task = taskManager.createTaskInstance(MidPointGuiAuthorizationEvaluator.class.getName() + ".decide");
+
+        decideInternal(principal, requiredActions, authentication, object, task);
+    }
+
+    protected MidPointPrincipal getPrincipalFromAuthentication(Authentication authentication, Object object, Object configAttributes) {
         Object principalObject = authentication.getPrincipal();
         if (!(principalObject instanceof MidPointPrincipal)) {
             if (authentication.getPrincipal() instanceof String && AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principalObject)) {
@@ -221,11 +230,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             throw new IllegalArgumentException("Expected that spring security principal will be of type "+
                     MidPointPrincipal.class.getName()+" but it was "+(principalObject == null ? null :principalObject.getClass()));
         }
-        MidPointPrincipal principal = (MidPointPrincipal)principalObject;
-
-        Task task = taskManager.createTaskInstance(MidPointGuiAuthorizationEvaluator.class.getName() + ".decide");
-
-        decideInternal(principal, requiredActions, authentication, object, task);
+        return (MidPointPrincipal) principalObject;
     }
 
     protected void decideInternal(MidPointPrincipal principal, List<String> requiredActions, Authentication authentication, Object object, Task task) {
@@ -290,6 +295,11 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         return securityEnforcer.decideAccess(principal, requiredActions, task, result);
+    }
+
+    @Override
+    public <O extends ObjectType, T extends ObjectType> AccessDecision decideAccess(MidPointPrincipal principal, List<String> requiredActions, AuthorizationParameters<O, T> params, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return securityEnforcer.decideAccess(principal, requiredActions, params, task, result);
     }
 
     @Override

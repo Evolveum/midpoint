@@ -729,7 +729,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                 + "." + TEST_NAME);
 
         // WHEN
-        PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);;
+        PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 
         // THEN
         result.computeStatus();

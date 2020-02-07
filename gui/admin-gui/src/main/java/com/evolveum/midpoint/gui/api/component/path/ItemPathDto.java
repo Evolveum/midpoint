@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -25,6 +25,8 @@ public class ItemPathDto implements Serializable{
     private ItemDefinition<?> itemDef;
 
     private ItemPath path;
+
+    private String pathStringValue;
 
     public ItemPathDto() {
         // TODO Auto-generated constructor stub
@@ -90,6 +92,14 @@ public class ItemPathDto implements Serializable{
 
     public boolean isPathDefined() {
         return (path != null && itemDef == null && parentPath == null);
+    }
+
+    public String getPathStringValue(){
+        return pathStringValue;
+    }
+
+    public void setPathStringValue(String pathStringValue){
+        this.pathStringValue = pathStringValue;
     }
 
     @Override

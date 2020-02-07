@@ -54,27 +54,18 @@ public class ResourceTasksPanel extends Panel implements Popupable{
     private static final String ID_RESUME = "resume";
     private static final String ID_SUSPEND = "suspend";
 
-
     private PageBase pageBase;
 
-    private boolean editable;
-
-//    private ListModel<TaskType> model;
-
-
-    public ResourceTasksPanel(String id, boolean editable, ListModel<TaskType> tasks, PageBase pageBase) {
+    public ResourceTasksPanel(String id, ListModel<TaskType> tasks, PageBase pageBase) {
         super(id);
         this.pageBase = pageBase;
-        this.editable = editable;
-
 
         initLayout(tasks);
     }
 
-    public ResourceTasksPanel(String id, boolean editable, final IModel<PrismObject<ResourceType>> resourceModel, PageBase pageBase) {
+    public ResourceTasksPanel(String id, final IModel<PrismObject<ResourceType>> resourceModel, PageBase pageBase) {
         super(id);
         this.pageBase = pageBase;
-        this.editable = editable;
 
         ListModel<TaskType> model = createTaskModel(resourceModel.getObject());
         initLayout(model);
@@ -103,19 +94,16 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 
             @Override
             protected BaseSortableDataProvider<SelectableBean<TaskType>> initProvider() {
-                return new SelectableListDataProvider(pageBase, tasks);
+                return new SelectableListDataProvider<>(pageBase, tasks);
             }
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
-                // TODO Auto-generated method stub
                 return null;
             }
 
             @Override
             public void objectDetailsPerformed(AjaxRequestTarget target, TaskType task) {
-                // TODO Auto-generated method stub
-//                super.objectDetailsPerformed(target, task);
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, task.getOid());
                 getPageBase().navigateToNext(PageTask.class, parameters);
@@ -132,28 +120,6 @@ public class ResourceTasksPanel extends Panel implements Popupable{
                 return ColumnUtils.getDefaultTaskColumns();
             }
         };
-//        final ObjectListPanel<TaskType> tasksPanel = new ObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, pageBase){
-//
-//            @Override
-//            protected BaseSortableDataProvider<SelectableBean<TaskType>> getProvider() {
-//                return new ListDataProvider2(pageBase, tasks);
-//            }
-//
-//            @Override
-//            public boolean isEditable() {
-//                return ResourceTasksPanel.this.editable;
-//            }
-//
-//            @Override
-//            public void objectDetailsPerformed(AjaxRequestTarget target, TaskType task) {
-//                // TODO Auto-generated method stub
-//                super.objectDetailsPerformed(target, task);
-//                PageParameters parameters = new PageParameters();
-//                parameters.add(OnePageParameterEncoder.PARAMETER, task.getOid());
-//                setResponsePage(new PageTaskEdit(parameters));
-//            }
-//        };
-//        tasksPanel.setEditable(false);
         tasksPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_TASK_BOX_CSS_CLASSES);
         add(tasksPanel);
 
@@ -214,6 +180,7 @@ public class ResourceTasksPanel extends Panel implements Popupable{
     }
 
     private ObjectListPanel<TaskType> getTaskListPanel(){
+        //noinspection unchecked
         return (ObjectListPanel<TaskType>) get(ID_TASKS_TABLE);
     }
 

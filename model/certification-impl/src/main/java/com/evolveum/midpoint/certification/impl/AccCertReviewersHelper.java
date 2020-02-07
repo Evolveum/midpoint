@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 @Component
 public class AccCertReviewersHelper {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AccCertReviewersHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccCertReviewersHelper.class);
 
     @Autowired
     @Qualifier("cacheRepositoryService")

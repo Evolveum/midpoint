@@ -16,8 +16,8 @@ public class TaskConstants {
     public static final String WORKERS_RESTART_TASK_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/workers-restart/handler-3";
     public static final String WORKERS_CREATION_TASK_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3";
     public static final String GENERIC_PARTITIONING_TASK_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/generic-partitioning/handler-3";
-    public static final String LIGHTWEIGTH_PARTITIONING_TASK_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/lightweigth-partitioning/handler-3";
-
+    public static final String LIGHTWEIGHT_PARTITIONING_TASK_HANDLER_URI_DEPRECATED = "http://midpoint.evolveum.com/xml/ns/public/task/lightweigth-partitioning/handler-3";
+    public static final String LIGHTWEIGHT_PARTITIONING_TASK_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/lightweight-partitioning/handler-3";
 
     public static final String NOOP_TASK_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3";
     public static final String NOOP_TASK_HANDLER_URI_1 = NOOP_TASK_HANDLER_URI + "#1";

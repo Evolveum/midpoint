@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -271,7 +271,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
             try {
                 getWorkflowService().cancelCase(caseObject.getOid(), task, result);
             } catch (Exception ex){
-                LOGGER.error("Couldn't stop case process, ", ex.getLocalizedMessage());
+                LOGGER.error("Couldn't stop case process: {}", ex.getLocalizedMessage());
                 result.recordFatalError(createStringResource("PageCases.message.stopCaseProcessConfirmed.fatalError").getString(), ex);
             }
         });

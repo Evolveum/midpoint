@@ -115,29 +115,31 @@ public class PageLogin extends PageBase {
         if (securityPolicy != null && securityPolicy.getCredentialsReset() != null
             && StringUtils.isNotBlank(securityPolicy.getCredentialsReset().getAuthenticationSequenceName())) {
             AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
-            if (sequence == null) {
-                throw new IllegalArgumentException("Couldn't find sequence with name " + securityPolicy.getCredentialsReset().getAuthenticationSequenceName());
-            }
-            if (sequence.getChannel() == null || StringUtils.isBlank(sequence.getChannel().getUrlSuffix())) {
-                throw new IllegalArgumentException("Sequence with name " + securityPolicy.getCredentialsReset().getAuthenticationSequenceName() + " doesn't contain urlSuffix");
-            }
-            link.add(AttributeModifier.replace("href", new IModel<String>() {
-                @Override
-                public String getObject() {
-                    return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
+            if (sequence != null) {
+//                throw new IllegalArgumentException("Couldn't find sequence with name " + securityPolicy.getCredentialsReset().getAuthenticationSequenceName());
+
+                if (sequence.getChannel() == null || StringUtils.isBlank(sequence.getChannel().getUrlSuffix())) {
+                    throw new IllegalArgumentException("Sequence with name " + securityPolicy.getCredentialsReset().getAuthenticationSequenceName() + " doesn't contain urlSuffix");
                 }
-            }));
+                link.add(AttributeModifier.replace("href", new IModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
+                    }
+                }));
+            }
         }
         form.add(link);
 
-        AjaxLink<String> registration = new AjaxLink<String>(ID_SELF_REGISTRATION) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                setResponsePage(PageSelfRegistration.class);
-            }
-        };
+//        AjaxLink<String> registration = new AjaxLink<String>(ID_SELF_REGISTRATION) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                setResponsePage(PageSelfRegistration.class);
+//            }
+//        };
+        BookmarkablePageLink<String> registration = new BookmarkablePageLink<>(ID_SELF_REGISTRATION, PageSelfRegistration.class);
         registration.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -167,6 +169,19 @@ public class PageLogin extends PageBase {
                 return linkIsVisible;
             }
         });
+        if (securityPolicy != null && securityPolicy.getRegistration() != null && securityPolicy.getRegistration().getSelfRegistration() != null
+                && StringUtils.isNotBlank(securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName())) {
+            AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName(),
+                    securityPolicy.getAuthentication());
+            if (sequence != null) {
+                registration.add(AttributeModifier.replace("href", new IModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + sequence.getChannel().getUrlSuffix();
+                    }
+                }));
+            }
+        }
         form.add(registration);
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);

@@ -58,23 +58,19 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     }
 
     /**
-     * Disposes of the {@link CSVFileConnector}'s resources.
+     * Disposes of the {@link DummyConnector}'s resources.
      *
      * @see Connector#dispose()
      */
     public void dispose() {
     }
 
-    /******************
-     * SPI Operations
-     *
-     * Implement the following operations using the contract and
-     * description found in the Javadoc for these methods.
-     ******************/
-
-    /**
-     * {@inheritDoc}
-     */
+    /////////////////////
+    // SPI Operations
+    //
+    // Implement the following operations using the contract and
+    // description found in the Javadoc for these methods.
+    /////////////////////
 
     /**
      * {@inheritDoc}

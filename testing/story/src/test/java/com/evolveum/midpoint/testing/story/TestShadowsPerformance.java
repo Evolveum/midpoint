@@ -7,6 +7,19 @@
 
 package com.evolveum.midpoint.testing.story;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -16,21 +29,11 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.*;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Tests creation and deletion of shadows.
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestShadowsPerformance extends AbstractStoryTest {
 
@@ -59,7 +62,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     private static final String SUMMARY_LINE_FORMAT = "%50s: %5d ms (%4d ms/user)\n";
     private static final String REPO_LINE_FORMAT = "%6d (%8.1f/%s)\n";
 
-    private Map<String,Long> durations = new LinkedHashMap<>();
+    private Map<String, Long> durations = new LinkedHashMap<>();
 
     protected DummyResourceContoller dummyResourceCtl;
 
@@ -160,7 +163,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 
         // THEN
         displayThen(TEST_NAME);
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILIATION_OID, true, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILIATION_OID, true, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100, null);
 
         display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
 
@@ -191,7 +194,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 
         // THEN
         displayThen(TEST_NAME);
-        Task taskAfter = waitForTaskFinish(TASK_BULK_DELETE_OID, true, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100);
+        Task taskAfter = waitForTaskFinish(TASK_BULK_DELETE_OID, true, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100, null);
 
         display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
 
@@ -204,7 +207,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     }
 
     @Test
-    public void test900Summarize() throws Exception {
+    public void test900Summarize() {
         final String TEST_NAME = "test900Summarize";
         displayTestTitle(TEST_NAME);
 
@@ -215,7 +218,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
         for (Map.Entry<String, Long> entry : durations.entrySet()) {
             sb.append(summary(entry.getKey(), entry.getValue()));
         }
-        display("Summary ("+NUMBER_OF_GENERATED_USERS+" users)", sb.toString());
+        display("Summary (" + NUMBER_OF_GENERATED_USERS + " users)", sb.toString());
 
         // THEN
         displayThen(TEST_NAME);
@@ -230,7 +233,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     }
 
     private Object summary(String label, long duration) {
-        return String.format(SUMMARY_LINE_FORMAT, label, duration, duration/NUMBER_OF_GENERATED_USERS);
+        return String.format(SUMMARY_LINE_FORMAT, label, duration, duration / NUMBER_OF_GENERATED_USERS);
     }
 
 }

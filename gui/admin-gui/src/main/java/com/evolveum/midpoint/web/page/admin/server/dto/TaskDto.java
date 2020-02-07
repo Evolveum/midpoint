@@ -50,11 +50,9 @@ import com.evolveum.midpoint.web.page.admin.server.handlers.HandlerDtoFactory;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.HandlerDto;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.ResourceRelatedHandlerDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -77,7 +75,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String CLASS_DOT = TaskDto.class.getName() + ".";
     public static final String OPERATION_NEW = CLASS_DOT + "new";
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskDto.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskDto.class);
     public static final String F_MODEL_OPERATION_STATUS = "modelOperationStatus";
     public static final String F_SUBTASKS = "subtasks";
     public static final String F_NAME = "name";
@@ -629,7 +627,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     private Integer getPartitionSequentialNumber() {
-        return taskType.getWorkManagement() != null ? taskType.getWorkManagement().getPartitionSequentialNumber() : null;
+        return TaskWorkStateTypeUtil.getPartitionSequentialNumber(taskType);
     }
 
     private String getBucketedTaskProgressDescription() {
@@ -643,10 +641,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     private Integer getExpectedBuckets() {
-        return taskType.getWorkState() != null ? taskType.getWorkState().getNumberOfBuckets() : null;
+        return TaskWorkStateTypeUtil.getExpectedBuckets(taskType);
     }
 
-    private Integer getCompleteBuckets() {
+    private int getCompleteBuckets() {
         return TaskWorkStateTypeUtil.getCompleteBucketsNumber(taskType);
     }
 

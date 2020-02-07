@@ -4,10 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
-/**
- *
- */
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
@@ -20,6 +16,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -48,11 +45,12 @@ import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author Radovan Semancik
- *
  */
 public class TestSchemaRegistry {
 
+    @SuppressWarnings("unused") // for the future
     private static final String FOO_NAMESPACE = "http://example.com/xml/ns/foo";
+    @SuppressWarnings("unused") // for the future
     private static final String USER_EXT_NAMESPACE = "http://example.com/xml/ns/user-extension";
     private static final String EXTENSION_SCHEMA_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/test/extension";
 
@@ -154,9 +152,9 @@ public class TestSchemaRegistry {
                 LookupTableType.COMPLEX_TYPE, preferredLanguageValueEnumerationRef.getTargetType());
 
         // Just make sure this does not end with NPE or stack overflow
-        PrismObjectDefinition<UserType> shallowClone = userDefinition.clone();
-        PrismObjectDefinition<UserType> deepClone = userDefinition.deepClone(false, null);
-        PrismObjectDefinition<UserType> ultraDeepClone = userDefinition.deepClone(true, null);
+        userDefinition.clone();
+        userDefinition.deepClone(false, null);
+        userDefinition.deepClone(true, null);
     }
 
     @Test
@@ -190,9 +188,9 @@ public class TestSchemaRegistry {
         assertNull("Unexpected schema migrations in role definition", schemaMigrations);
 
         // Just make sure this does not end with NPE or stack overflow
-        PrismObjectDefinition<RoleType> shallowClone = roleDefinition.clone();
-        PrismObjectDefinition<RoleType> deepClone = roleDefinition.deepClone(false, null);
-        PrismObjectDefinition<RoleType> ultraDeepClone = roleDefinition.deepClone(true, null);
+        roleDefinition.clone();
+        roleDefinition.deepClone(false, null);
+        roleDefinition.deepClone(true, null);
     }
 
     @Test
@@ -228,9 +226,9 @@ public class TestSchemaRegistry {
         assertEquals("Wrong number of schema migrations in AbstractRoleType definition (CTD)", 8, schemaMigrations.size());
 
         // Just make sure this does not end with NPE or stack overflow
-        PrismObjectDefinition<AbstractRoleType> shallowClone = abstractRoleDefinition.clone();
-        PrismObjectDefinition<AbstractRoleType> deepClone = abstractRoleDefinition.deepClone(false, null);
-        PrismObjectDefinition<AbstractRoleType> ultraDeepClone = abstractRoleDefinition.deepClone(true, null);
+        abstractRoleDefinition.clone();
+        abstractRoleDefinition.deepClone(false, null);
+        abstractRoleDefinition.deepClone(true, null);
     }
 
     @Test
@@ -285,6 +283,24 @@ public class TestSchemaRegistry {
         assertTrue("Expected object definition for legacy account, but got "+accountDef, accountDef instanceof  PrismObjectDefinition);
 
         assertEquals("Unexpected element name in legacy account definition", SchemaConstants.C_SHADOW, accountDef.getItemName());
+    }
+
+    @Test
+    public void testAuditTimestampDocumentation() throws SchemaException, SAXException, IOException {
+        System.out.println("\n\n===[ testAuditTimestampDocumentation ]===");
+
+        MidPointPrismContextFactory factory = getContextFactory();
+        PrismContext context = factory.createInitializedPrismContext();
+        SchemaRegistry schemaRegistry = context.getSchemaRegistry();
+
+        PrismSchema auditSchema = schemaRegistry.findSchemaByCompileTimeClass(AuditEventRecordType.class);
+        assertNotNull("No audit schema", auditSchema);
+        ItemDefinition<?> timestampDef = auditSchema.findComplexTypeDefinitionByType(AuditEventRecordType.COMPLEX_TYPE)
+                .findItemDefinition(AuditEventRecordType.F_TIMESTAMP);
+        assertNotNull("No timestamp definition", timestampDef);
+
+        System.out.println("timestamp: " + timestampDef.debugDump());
+        assertNotNull("No timestamp documentation", timestampDef.getDocumentation());
     }
 
     private MidPointPrismContextFactory getContextFactory() {

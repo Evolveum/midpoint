@@ -72,6 +72,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
     @Override
     public void addPrimaryIdentifier(ResourceAttributeDefinition<?> identifier) {
+        checkMutable();
         identifiers.add(identifier);
     }
 
@@ -83,6 +84,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
     @Override
     public void addSecondaryIdentifier(ResourceAttributeDefinition<?> identifier) {
+        checkMutable();
         secondaryIdentifiers.add(identifier);
     }
 
@@ -93,6 +95,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
     @Override
     public void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute) {
+        checkMutable();
         this.descriptionAttribute = descriptionAttribute;
     }
 
@@ -103,6 +106,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
     @Override
     public void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute) {
+        checkMutable();
         this.namingAttribute = namingAttribute;
     }
 
@@ -118,6 +122,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
     @Override
     public void setNativeObjectClass(String nativeObjectClass) {
+        checkMutable();
         this.nativeObjectClass = nativeObjectClass;
     }
 
@@ -128,6 +133,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
     @Override
     public void setAuxiliary(boolean auxiliary) {
+        checkMutable();
         this.auxiliary = auxiliary;
     }
 
@@ -138,6 +144,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
     @Override
     public void setKind(ShadowKindType kind) {
+        checkMutable();
         this.kind = kind;
     }
 
@@ -148,6 +155,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
     @Override
     public void setDefaultInAKind(boolean defaultAccountType) {
+        checkMutable();
         this.defaultInAKind = defaultAccountType;
     }
 
@@ -158,6 +166,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
     @Override
     public void setIntent(String intent) {
+        checkMutable();
         this.intent = intent;
     }
 
@@ -168,6 +177,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
     @Override
     public void setDisplayNameAttribute(ResourceAttributeDefinition<?> displayName) {
+        checkMutable();
         this.displayNameAttribute = displayName;
     }
 
@@ -371,6 +381,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
     @Override
     public MutableObjectClassComplexTypeDefinition toMutable() {
+        checkMutableOnExposing();
         return this;
     }
 }

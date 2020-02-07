@@ -7,19 +7,17 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.tools</groupId>
         <artifactId>tools</artifactId>
         <version>4.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.evolveum.midpoint.tools</groupId>
     <artifactId>ninja</artifactId>
-    <version>4.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>ninja</name>
@@ -32,19 +30,6 @@
 
         <main.class>com.evolveum.midpoint.ninja.Main</main.class>
     </properties>
-
-    <repositories>
-        <repository>
-            <id>evolveum</id>
-            <name>Evolveum Public Releases</name>
-            <url>http://nexus.evolveum.com/nexus/content/groups/public</url>
-        </repository>
-        <repository>
-            <id>evolveum-snapshots</id>
-            <name>Evolveum Snapshots</name>
-            <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>
@@ -232,6 +217,7 @@
         <!-- TEST DEPENDENCIES -->
 
         <dependency>
+            <!-- Required for surefire plugin not to complain -->
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -245,7 +231,6 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -287,14 +272,12 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- reference failsafe and surefire from build-system plugin management in order for tests to be running -->
+
+            <!-- reference failsafe to run integration tests (surefire/units run by default) -->
+            <!-- TODO: both suite XMLs are empty, so no tests are run during build -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

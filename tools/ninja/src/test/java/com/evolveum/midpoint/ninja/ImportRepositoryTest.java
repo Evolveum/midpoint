@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,16 +6,17 @@
  */
 package com.evolveum.midpoint.ninja;
 
+import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Method;
+import java.util.List;
+
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import java.io.ByteArrayOutputStream;
-import java.lang.reflect.Method;
-import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).

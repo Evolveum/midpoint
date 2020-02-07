@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2014-2017 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0

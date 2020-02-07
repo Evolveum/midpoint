@@ -172,6 +172,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
                 LocalQueryCache.debugDump(LOCAL_QUERY_CACHE_INSTANCE);
     }
 
+    @NotNull
     @Override
     public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
@@ -399,6 +400,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
         }
     }
 
+    @NotNull
     private <T extends ObjectType> PrismObject<T> getObjectInternal(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         Long startTime = repoOpStart();

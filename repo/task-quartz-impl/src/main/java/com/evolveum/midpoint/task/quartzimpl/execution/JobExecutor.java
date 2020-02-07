@@ -48,7 +48,7 @@ public class JobExecutor implements InterruptableJob {
         taskManagerImpl = managerImpl;
     }
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(JobExecutor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(JobExecutor.class);
 
     private static final long WATCHFUL_SLEEP_INCREMENT = 500;
 
@@ -797,11 +797,10 @@ mainCycle:
 
     @Override
     public void interrupt() {
-        LOGGER.trace("Trying to shut down the task {}, executing in thread {}", task, task.getExecutingThread());
-
         boolean interruptsAlways = taskManagerImpl.getConfiguration().getUseThreadInterrupt() == UseThreadInterrupt.ALWAYS;
         boolean interruptsMaybe = taskManagerImpl.getConfiguration().getUseThreadInterrupt() != UseThreadInterrupt.NEVER;
         if (task != null) {
+            LOGGER.trace("Trying to shut down the task {}, executing in thread {}", task, task.getExecutingThread());
             task.unsetCanRun();
             for (RunningTaskQuartzImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
                 subtask.unsetCanRun();
@@ -809,9 +808,9 @@ mainCycle:
                 // because after calling cancel(false) subsequent calls to cancel(true) have no effect whatsoever
                 subtask.getLightweightHandlerFuture().cancel(interruptsMaybe);
             }
-        }
-        if (interruptsAlways) {
-            sendThreadInterrupt(false);         // subtasks were interrupted by their futures
+            if (interruptsAlways) {
+                sendThreadInterrupt(false);         // subtasks were interrupted by their futures
+            }
         }
     }
 

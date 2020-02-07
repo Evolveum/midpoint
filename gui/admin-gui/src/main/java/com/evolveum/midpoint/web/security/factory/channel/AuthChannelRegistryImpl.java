@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -8,8 +8,6 @@ package com.evolveum.midpoint.web.security.factory.channel;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.factory.module.AbstractModuleFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -23,7 +21,7 @@ import java.util.Optional;
 @Component
 public class AuthChannelRegistryImpl {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AuthChannelRegistryImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AuthChannelRegistryImpl.class);
 
     List<AbstractChannelFactory> moduleFactories = new ArrayList<>();
 

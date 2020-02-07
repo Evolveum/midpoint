@@ -157,6 +157,7 @@ public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject>
             }
         };
 
+        // FIXME: MID-5151: If validateSchema is false we are not validating unknown attributes on import
         LegacyValidator validator = new LegacyValidator(prismContext, handler);
         validator.setValidateSchema(false);
 

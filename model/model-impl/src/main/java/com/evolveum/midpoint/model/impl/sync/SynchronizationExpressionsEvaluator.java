@@ -63,7 +63,7 @@ import java.util.Set;
 @Component
 public class SynchronizationExpressionsEvaluator {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(SynchronizationExpressionsEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SynchronizationExpressionsEvaluator.class);
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;

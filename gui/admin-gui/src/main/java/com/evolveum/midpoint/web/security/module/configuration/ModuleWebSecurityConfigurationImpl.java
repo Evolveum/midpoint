@@ -26,6 +26,7 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
     private String prefixOfSequence;
     private String nameOfModule;
     private String defaultSuccessLogoutURL;
+    private String specificLogin;
 
     protected ModuleWebSecurityConfigurationImpl(){
     }
@@ -66,6 +67,14 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
 
     public void setNameOfModule(String nameOfModule) {
         this.nameOfModule = nameOfModule;
+    }
+
+    public void setSpecificLoginUrl(String specificLogin) {
+        this.specificLogin = specificLogin;
+    }
+
+    public String getSpecificLoginUrl() {
+        return specificLogin;
     }
 
     public String getPrefix() {

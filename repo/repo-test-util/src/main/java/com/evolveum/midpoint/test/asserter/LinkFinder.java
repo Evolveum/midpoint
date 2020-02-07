@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -9,7 +9,6 @@ package com.evolveum.midpoint.test.asserter;
 import static org.testng.AssertJUnit.assertEquals;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.bouncycastle.util.Arrays;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.PrismObject;

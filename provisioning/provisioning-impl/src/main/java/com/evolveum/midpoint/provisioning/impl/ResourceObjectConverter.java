@@ -2573,7 +2573,8 @@ public class ResourceObjectConverter {
                 Object returnedValue = connector.executeScript(operation, reporter, result);
 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("PROVISIONING SCRIPT EXECUTION {} {} successful, returned value: {}", returnedValue);
+                    LOGGER.debug("PROVISIONING SCRIPT EXECUTION {} {} successful, returned value: {}",
+                            beforeAfter.value(), provisioningOperationType.value(), returnedValue);
                 }
 
             } catch (CommunicationException ex) {

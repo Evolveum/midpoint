@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
@@ -37,6 +38,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createExecuteIfNoChanges;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+
 import static java.util.Collections.emptySet;
 import static org.testng.AssertJUnit.*;
 
@@ -78,6 +81,7 @@ public class SearchTest extends BaseSQLRepoTest {
         objects.addAll(prismContext.parserFor(new File(FOLDER_BASIC, "objects-2.xml")).parseObjects());
 
         for (PrismObject object : objects) {
+            //noinspection unchecked
             repositoryService.addObject(object, null, result);
         }
 
@@ -89,7 +93,7 @@ public class SearchTest extends BaseSQLRepoTest {
     public void iterateEmptySet() throws Exception {
         OperationResult result = new OperationResult("search empty");
 
-        ResultHandler handler = (object, parentResult) -> {
+        ResultHandler<UserType> handler = (object, parentResult) -> {
             fail();
             return false;
         };
@@ -110,7 +114,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
         final List<PrismObject> objects = new ArrayList<>();
 
-        ResultHandler handler = (object, parentResult) -> {
+        ResultHandler<UserType> handler = (object, parentResult) -> {
             objects.add(object);
             return true;
         };
@@ -136,11 +140,11 @@ public class SearchTest extends BaseSQLRepoTest {
 
         final List<PrismObject> objects = new ArrayList<>();
 
-        ResultHandler handler = new ResultHandler() {
+        ResultHandler<UserType> handler = new ResultHandler<UserType>() {
 
-            int index = 0;
+            private int index = 0;
             @Override
-            public boolean handle(PrismObject object, OperationResult parentResult) {
+            public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
                 objects.add(object);
                 assertEquals("Incorrect object name was read", names[index++], object.asObjectable().getName().getOrig());
                 return true;
@@ -148,7 +152,7 @@ public class SearchTest extends BaseSQLRepoTest {
         };
 
         SqlRepositoryConfiguration config = ((SqlRepositoryServiceImpl) repositoryService).getConfiguration();
-        int oldbatch = config.getIterativeSearchByPagingBatchSize();
+        int oldBatchSize = config.getIterativeSearchByPagingBatchSize();
         config.setIterativeSearchByPagingBatchSize(batch);
 
         LOGGER.trace(">>>>>> iterateGeneral: offset = " + offset + ", size = " + size + ", batch = " + batch + " <<<<<<");
@@ -158,7 +162,7 @@ public class SearchTest extends BaseSQLRepoTest {
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, false, result);
         result.recomputeStatus();
 
-        config.setIterativeSearchByPagingBatchSize(oldbatch);
+        config.setIterativeSearchByPagingBatchSize(oldBatchSize);
 
         assertTrue(result.isSuccess());
         assertEquals(size, objects.size());
@@ -1171,5 +1175,36 @@ public class SearchTest extends BaseSQLRepoTest {
 
         assertTrue(result.isSuccess());
         assertEquals(1, count.get());
+    }
+
+    // MID-5515
+    @Test
+    public void testSearchNameNull() throws Exception {
+        OperationResult result = new OperationResult("testSearchNameNull");
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(F_NAME).isNull()
+                .build();
+
+        SearchResultList<PrismObject<UserType>> objects = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+
+        assertTrue(result.isSuccess());
+        assertEquals("Wrong # of objects found", 0, objects.size());
+    }
+
+    // MID-5515
+    @Test
+    public void testSearchNameNotNull() throws Exception {
+        OperationResult result = new OperationResult("testSearchNameNotNull");
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .not().item(F_NAME).isNull()
+                .build();
+
+        SearchResultList<PrismObject<UserType>> objects = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+
+        int users = repositoryService.countObjects(UserType.class, null, null, result);
+        assertEquals("Wrong # of objects found", users, objects.size());
     }
 }

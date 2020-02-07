@@ -10,14 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -28,13 +20,18 @@ import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author katka
@@ -42,7 +39,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  */
 public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends PrismValue, I extends Item, VW extends PrismValueWrapper> implements ItemWrapperFactory<IW, VW, PV> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ItemWrapperFactoryImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ItemWrapperFactoryImpl.class);
 
     @Autowired private GuiComponentRegistryImpl registry;
     @Autowired private PrismContext prismContext;
@@ -159,13 +156,13 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         }
 
         if (ItemStatus.ADDED == context.getObjectStatus() && !def.canAdd()) {
-            LOGGER.trace("Skipping creating wrapper for {}, becasue ADD operation is not supported");
+            LOGGER.trace("Skipping creating wrapper for {}, because ADD operation is not supported.", def);
             return false;
         }
 
         if (ItemStatus.NOT_CHANGED == context.getObjectStatus()) {
             if (!def.canRead()) {
-                LOGGER.trace("Skipping creating wrapper for {}, because read operation is not supported");
+                LOGGER.trace("Skipping creating wrapper for {}, because read operation is not supported.", def);
                 return false;
             }
 
@@ -195,7 +192,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
         if (ItemStatus.NOT_CHANGED == objectStatus) {
             if (!itemWrapper.canModify()) {
-                LOGGER.trace("Setting {} as readonly because authZ said so");
+                LOGGER.trace("Setting {} as readonly because authZ said so.", itemWrapper);
                 return true;
             }
         }

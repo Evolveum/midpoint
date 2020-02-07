@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2017 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -36,7 +36,6 @@ import java.util.Map;
 
 /**
  * @author semancik
- *
  */
 public class ProvisioningContext extends StateReporter {
 

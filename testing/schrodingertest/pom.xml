@@ -7,14 +7,15 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <artifactId>testing</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.testing</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <artifactId>schrodingertest</artifactId>
 
@@ -92,6 +93,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -108,7 +110,6 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
             </dependency>
-
         </dependencies>
     </dependencyManagement>
 
@@ -117,12 +118,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>${failsafe.version}</version>
                 <configuration>
-                    <suiteXmlFiles>
-                        <suiteXmlFile>testng-integration-schrodinger.xml</suiteXmlFile>
-                    </suiteXmlFiles>
-                    <!--<skipITs>true</skipITs>-->
                     <skipITs>${skipTests}</skipITs>
                 </configuration>
                 <executions>
@@ -142,9 +138,8 @@
                         <phase>pre-integration-test</phase>
                         <configuration>
                             <skip>${skipTests}</skip>
-                            <!--<skip>true</skip>-->
                             <target name="Midpoint ${project.version} booting up for integration testing, embedded Tomcat instance configured to listen on port: ${server.port}">
-                                <exec dir="." executable="cmd" osfamily="windows"  spawn="true">
+                                <exec dir="." executable="cmd" osfamily="windows" spawn="true">
                                     <arg value="/c"/>
                                     <arg value="mvn"/>
                                     <arg value="-f"/>
@@ -174,30 +169,29 @@
                         <phase>post-integration-test</phase>
                         <configuration>
                             <skip>${skipTests}</skip>
-                            <!--<skip>true</skip>-->
                             <target name="Shuting down Midpoint ${project.version} after integration testing, no cleaning up" unless="cleanup">
                                 <exec executable="jps">
-                                    <arg value="-l" />
+                                    <arg value="-l"/>
                                     <redirector outputproperty="process.pid">
                                         <outputfilterchain>
                                             <linecontains>
-                                                <contains value="${project.app.package.name}" />
+                                                <contains value="${project.app.package.name}"/>
                                             </linecontains>
-                                            <replacestring from="${project.app.package.name}" />
+                                            <replacestring from="${project.app.package.name}"/>
                                             <trim/>
                                         </outputfilterchain>
                                     </redirector>
                                 </exec>
                                 <exec executable="taskkill" osfamily="windows" failonerror="true">
-                                    <arg value="/PID" />
-                                    <arg value="${process.pid}" />
-                                    <arg value="/F" />
+                                    <arg value="/PID"/>
+                                    <arg value="${process.pid}"/>
+                                    <arg value="/F"/>
                                 </exec>
                                 <exec executable="kill" osfamily="unix" failonerror="true">
-                                    <arg value="-15" />
-                                    <arg value="${process.pid}" />
+                                    <arg value="-15"/>
+                                    <arg value="${process.pid}"/>
                                 </exec>
-                        </target>
+                            </target>
                         </configuration>
                         <goals>
                             <goal>run</goal>
@@ -208,36 +202,35 @@
                         <phase>post-integration-test</phase>
                         <configuration>
                             <skip>${skipTests}</skip>
-                            <!--<skip>true</skip>-->
                             <target name="Shuting down Midpoint ${project.version} after integration testing, and cleaning up" if="cleanup">
                                 <exec executable="jps">
-                                    <arg value="-l" />
+                                    <arg value="-l"/>
                                     <redirector outputproperty="process.pid">
                                         <outputfilterchain>
                                             <linecontains>
-                                                <contains value="${project.app.package.name}" />
+                                                <contains value="${project.app.package.name}"/>
                                             </linecontains>
-                                            <replacestring from="${project.app.package.name}" />
+                                            <replacestring from="${project.app.package.name}"/>
                                             <trim/>
                                         </outputfilterchain>
                                     </redirector>
                                 </exec>
                                 <exec executable="taskkill" osfamily="windows" failonerror="true">
-                                    <arg value="/PID" />
-                                    <arg value="${process.pid}" />
-                                    <arg value="/F" />
+                                    <arg value="/PID"/>
+                                    <arg value="${process.pid}"/>
+                                    <arg value="/F"/>
                                 </exec>
                                 <exec executable="kill" osfamily="unix" failonerror="true">
-                                    <arg value="-15" />
+                                    <arg value="-15"/>
                                     <arg value="${process.pid}"/>
                                 </exec>
-                                <waitfor maxwait="20"  maxwaitunit="second" checkevery="500">
+                                <waitfor maxwait="20" maxwaitunit="second" checkevery="500">
                                     <not>
                                         <socket port="${server.port}" server="${midpoint.host}"/>
                                     </not>
                                 </waitfor>
                                 <property environment="env"/>
-                                <condition property ="e.home" value="${env.HOMEPATH}\midpoint" else="${env.HOME}/midpoint">
+                                <condition property="e.home" value="${env.HOMEPATH}\midpoint" else="${env.HOME}/midpoint">
                                     <and>
                                         <os family="windows"/>
                                         <not>
@@ -245,7 +238,7 @@
                                         </not>
                                     </and>
                                 </condition>
-                                <condition property ="home" value="${midpoint.home}" else="${e.home}">
+                                <condition property="home" value="${midpoint.home}" else="${e.home}">
                                     <and>
                                         <isset property="midpoint.home"/>
                                         <not>
@@ -257,7 +250,7 @@
                                     <arg line=' /c rmdir "${home}" /S /Q '/>
                                 </exec>
                                 <!--<exec executable="rm" osfamily="unix" failonerror="true">-->
-                                    <!--<arg line="-rf ${home}"/>-->
+                                <!--<arg line="-rf ${home}"/>-->
                                 <!--</exec>-->
                             </target>
                         </configuration>
@@ -269,5 +262,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

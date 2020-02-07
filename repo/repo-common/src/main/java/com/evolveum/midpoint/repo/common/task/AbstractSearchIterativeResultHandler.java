@@ -54,8 +54,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType> implements ResultHandler<O> {
 
-    public static final int WORKER_THREAD_WAIT_FOR_REQUEST = 500;
-    protected static final long REQUEST_QUEUE_OFFER_TIMEOUT = 1000L;
+    private static final int WORKER_THREAD_WAIT_FOR_REQUEST = 500;
+    private static final long REQUEST_QUEUE_OFFER_TIMEOUT = 1000L;
 
     private final TaskManager taskManager;
     private final RunningTask coordinatorTask;
@@ -77,7 +77,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
     private AtomicBoolean stopRequestedByAnyWorker = new AtomicBoolean(false);
     private final long startTime;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeResultHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeResultHandler.class);
     private volatile boolean allItemsSubmitted = false;
 
     private List<OperationResult> workerSpecificResults;
@@ -128,35 +128,28 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
         return coordinatorTask;
     }
 
-    public String getTaskOperationPrefix() {
-        return taskOperationPrefix;
-    }
-
-    public boolean isLogObjectProgress() {
-        return logObjectProgress;
-    }
-
     public void setLogObjectProgress(boolean logObjectProgress) {
         this.logObjectProgress = logObjectProgress;
     }
 
-    public boolean isRecordIterationStatistics() {
+    private boolean isRecordIterationStatistics() {
         return recordIterationStatistics;
     }
 
-    public void setRecordIterationStatistics(boolean recordIterationStatistics) {
+    @SuppressWarnings("SameParameterValue")
+    protected void setRecordIterationStatistics(boolean recordIterationStatistics) {
         this.recordIterationStatistics = recordIterationStatistics;
     }
 
-    public boolean isEnableIterationStatistics() {
+    private boolean isEnableIterationStatistics() {
         return enableIterationStatistics;
     }
 
-    public void setEnableIterationStatistics(boolean enableIterationStatistics) {
+    void setEnableIterationStatistics(boolean enableIterationStatistics) {
         this.enableIterationStatistics = enableIterationStatistics;
     }
 
-    public boolean isEnableSynchronizationStatistics() {
+    private boolean isEnableSynchronizationStatistics() {
         return enableSynchronizationStatistics;
     }
 
@@ -164,7 +157,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
         this.enableSynchronizationStatistics = enableSynchronizationStatistics;
     }
 
-    public boolean isEnableActionsExecutedStatistics() {
+    private boolean isEnableActionsExecutedStatistics() {
         return enableActionsExecutedStatistics;
     }
 
@@ -217,7 +210,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
         LOGGER.warn("{} {} interrupted", getProcessShortNameCapitalized(), getContextDesc());
     }
 
-    public void signalAllItemsSubmitted() {
+    private void signalAllItemsSubmitted() {
         allItemsSubmitted = true;
     }
 
@@ -240,15 +233,15 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
         }
     }
 
-    public long getWallTime() {
+    long getWallTime() {
         return System.currentTimeMillis() - startTime;
     }
 
-    public void waitForCompletion(OperationResult opResult) {
+    private void waitForCompletion(OperationResult opResult) {
         taskManager.waitForTransientChildren(coordinatorTask, opResult);
     }
 
-    public void updateOperationResult(OperationResult opResult) {
+    private void updateOperationResult(OperationResult opResult) {
         if (workerSpecificResults != null) {                                // not null in the parallel case
             for (OperationResult workerSpecificResult : workerSpecificResults) {
                 workerSpecificResult.computeStatus();
@@ -272,7 +265,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
     class WorkerHandler implements LightweightTaskHandler {
         private OperationResult workerSpecificResult;
 
-        public WorkerHandler(OperationResult workerSpecificResult) {
+        private WorkerHandler(OperationResult workerSpecificResult) {
             this.workerSpecificResult = workerSpecificResult;
         }
 
@@ -490,7 +483,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
     /**
      * @return the stageType
      */
-    public TaskPartitionDefinitionType getStageType() {
+    protected TaskPartitionDefinitionType getStageType() {
         return stageType;
     }
 
@@ -507,19 +500,12 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
         return errors.get();
     }
 
-    public boolean isStopOnError() {
-        return stopOnError;
-    }
-
     public void setStopOnError(boolean stopOnError) {
         this.stopOnError = stopOnError;
     }
 
-    public boolean isLogErrors() {
-        return logErrors;
-    }
-
-    public void setLogErrors(boolean logErrors) {
+    @SuppressWarnings("SameParameterValue")
+    protected void setLogErrors(boolean logErrors) {
         this.logErrors = logErrors;
     }
 
@@ -528,12 +514,12 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
     public class ProcessingRequest {
         public PrismObject<O> object;
 
-        public ProcessingRequest(PrismObject<O> object) {
+        private ProcessingRequest(PrismObject<O> object) {
             this.object = object;
         }
     }
 
-    public void createWorkerThreads(RunningTask coordinatorTask, OperationResult opResult) {
+    public void createWorkerThreads(RunningTask coordinatorTask) {
         Integer threadsCount = getWorkerThreadsCount(coordinatorTask);
         if (threadsCount == null || threadsCount == 0) {
             return;             // nothing to do

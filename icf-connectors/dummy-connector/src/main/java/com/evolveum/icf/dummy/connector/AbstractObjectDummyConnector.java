@@ -55,12 +55,12 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
     }
 
 
-    /******************
-     * SPI Operations
-     *
-     * Implement the following operations using the contract and
-     * description found in the Javadoc for these methods.
-     ******************/
+    /////////////////////
+    // SPI Operations
+    //
+    // Implement the following operations using the contract and
+    // description found in the Javadoc for these methods.
+    /////////////////////
 
     /**
      * {@inheritDoc}

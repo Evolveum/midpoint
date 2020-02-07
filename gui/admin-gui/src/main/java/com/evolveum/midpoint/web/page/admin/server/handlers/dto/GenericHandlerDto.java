@@ -114,7 +114,6 @@ public class GenericHandlerDto extends HandlerDto {
         //noinspection unchecked
         container.setDefinition(containerDefinition);
         Task task = pageBase.createSimpleTask("Adding new container wrapper");
-        //noinspection unchecked
         ItemWrapperFactory factory = pageBase.findWrapperFactory(containerDefinition);
         if (factory instanceof PrismContainerWrapperFactory) {
 

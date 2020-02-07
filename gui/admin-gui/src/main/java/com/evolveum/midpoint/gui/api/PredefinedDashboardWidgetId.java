@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2017 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -12,7 +12,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 
 /**
  * @author semancik
- *
  */
 public enum PredefinedDashboardWidgetId {
 
@@ -26,7 +25,7 @@ public enum PredefinedDashboardWidgetId {
     private final QName qname;
     private final String uri;
 
-    private PredefinedDashboardWidgetId(String localPart) {
+    PredefinedDashboardWidgetId(String localPart) {
         this.qname = new QName(ComponentConstants.NS_DASHBOARD_WIDGET, localPart);
         this.uri = QNameUtil.qNameToUri(qname);
     }

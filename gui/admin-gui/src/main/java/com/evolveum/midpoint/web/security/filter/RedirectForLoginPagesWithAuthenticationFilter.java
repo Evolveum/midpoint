@@ -12,6 +12,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.DefaultRedirectStrategy;
+import org.springframework.security.web.RedirectStrategy;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -23,17 +25,16 @@ import java.io.IOException;
 /**
  * @author skublik
  */
-
 public class RedirectForLoginPagesWithAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(RedirectForLoginPagesWithAuthenticationFilter.class);
+    private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication instanceof MidpointAuthentication && authentication.isAuthenticated() && SecurityUtils.isLoginPage(request)) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            response.sendRedirect(mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication());
+            redirectStrategy.sendRedirect(request, response, mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication());
         } else {
             filterChain.doFilter(request, response);
         }

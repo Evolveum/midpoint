@@ -28,14 +28,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -68,17 +66,15 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
     private UserProfileService userDetailsService;
     private SecurityEnforcer securityEnforcer;
     private SecurityHelper securityHelper;
-    private ActivationComputer activationComputer;
     private TaskManager taskManager;
 
     public SpringAuthenticationInjectorInterceptor(UserProfileService userDetailsService,
-            SecurityEnforcer securityEnforcer, SecurityHelper securityHelper, ActivationComputer activationComputer,
+            SecurityEnforcer securityEnforcer, SecurityHelper securityHelper,
             TaskManager taskManager) {
         super();
         this.userDetailsService = userDetailsService;
         this.securityEnforcer = securityEnforcer;
         this.securityHelper = securityHelper;
-        this.activationComputer = activationComputer;
         this.taskManager = taskManager;
         id = getClass().getName();
         phase = Phase.PRE_PROTOCOL;

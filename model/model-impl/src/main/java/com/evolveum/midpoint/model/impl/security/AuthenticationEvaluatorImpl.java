@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -93,7 +93,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         checkEnteredCredentials(connEnv, authnCtx);
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(), true);
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(), authnCtx.isSupportActivationByChannel());
 
         UserType userType = principal.getUser();
         CredentialsType credentials = userType.getCredentials();
@@ -265,7 +265,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     @Override
     public PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, AbstractAuthenticationContext authnCtx) {
 
-        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(), true);
+        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(), authnCtx.isSupportActivationByChannel());
 
         // Authorizations
         if (!hasAnyAuthorization(principal)) {

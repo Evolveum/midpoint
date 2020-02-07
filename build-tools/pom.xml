@@ -11,7 +11,14 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- NO PARENT - by purpose -->
+    <!--
+    This can't be parent, because build-tools is used again in checkstyle plugin configuration.
+    <parent>
+        <groupId>com.evolveum.midpoint</groupId>
+        <artifactId>midpoint</artifactId>
+        <version>4.1-SNAPSHOT</version>
+    </parent>
+    -->
 
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>build-tools</artifactId>
@@ -20,18 +27,10 @@
 
     <name>midPoint build tools</name>
 
-    <repositories>
-        <repository>
-            <id>evolveum</id>
-            <name>Evolveum Public Releases</name>
-            <url>http://nexus.evolveum.com/nexus/content/groups/public</url>
-        </repository>
-        <repository>
-            <id>evolveum-snapshots</id>
-            <name>Evolveum Snapshots</name>
-            <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
-        </repository>
-    </repositories>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
 
     <distributionManagement>
         <repository>
@@ -46,7 +45,26 @@
         </snapshotRepository>
     </distributionManagement>
 
-    <build>
-    </build>
+    <repositories>
+        <repository>
+            <id>evolveum</id>
+            <name>Evolveum Public Releases</name>
+            <url>http://nexus.evolveum.com/nexus/content/groups/public</url>
+        </repository>
+        <repository>
+            <id>evolveum-snapshots</id>
+            <name>Evolveum Snapshots</name>
+            <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.1.0</version>
+            </plugin>
+        </plugins>
+    </build>
 </project>

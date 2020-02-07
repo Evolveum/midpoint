@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016 Evolveum and contributors
  * <p>
  * This work is dual-licensed under the Apache License 2.0
@@ -11,7 +11,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
 
 /**
  * Tab that contains a singleton panel.

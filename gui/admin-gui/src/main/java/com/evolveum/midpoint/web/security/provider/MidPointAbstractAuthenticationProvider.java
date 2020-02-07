@@ -7,10 +7,14 @@
 
 package com.evolveum.midpoint.web.security.provider;
 
+import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -55,6 +59,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
     public Authentication authenticate(Authentication originalAuthentication) throws AuthenticationException {
 
         List<ObjectReferenceType> requireAssignment = null;
+        AuthenticationChannel channel = null;
         try {
             Authentication processingAuthentication = originalAuthentication;
             if (originalAuthentication instanceof MidpointAuthentication) {
@@ -69,13 +74,15 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
             Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
             if (actualAuthentication instanceof MidpointAuthentication) {
                 requireAssignment = ((MidpointAuthentication) actualAuthentication).getSequence().getRequireAssignmentTarget();
+                channel = ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel();
             }
-            Authentication token = internalAuthentication(processingAuthentication, requireAssignment);
+            Authentication token = internalAuthentication(processingAuthentication, requireAssignment, channel);
 
             if (actualAuthentication instanceof MidpointAuthentication) {
                 MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
                 ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
-                token = createNewAuthenticationToken(token, mpAuthentication.getAuthenticationChannel().resolveAuthorities(token.getAuthorities()));
+                MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
+                token = createNewAuthenticationToken(token, mpAuthentication.getAuthenticationChannel().resolveAuthorities(principal.getAuthorities()));
                 writeAutentication(originalAuthentication, mpAuthentication, moduleAuthentication, token);
 
                 return mpAuthentication;
@@ -109,7 +116,20 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         return moduleAuthentication;
     }
 
-    protected abstract Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment) throws AuthenticationException;
+    protected ConnectionEnvironment createEnviroment(AuthenticationChannel channel) {
+        if (channel != null) {
+            ConnectionEnvironment connEnv = ConnectionEnvironment.create(channel.getChannelId());
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication instanceof MidpointAuthentication) {
+                connEnv.setSessionIdOverride(((MidpointAuthentication) authentication).getSessionId());
+            }
+            return connEnv;
+        } else {
+            return ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
+        }
+    }
+
+    protected abstract Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment, AuthenticationChannel channel) throws AuthenticationException;
 
     protected abstract Authentication createNewAuthenticationToken(Authentication actualAuthentication, Collection<? extends GrantedAuthority> newAuthorities);
 

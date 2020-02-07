@@ -7,15 +7,16 @@
 package com.evolveum.midpoint.web.security.factory.module;
 
 import com.evolveum.midpoint.model.api.authentication.AuthModule;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.provider.MidpointSaml2Provider;
-import com.evolveum.midpoint.model.api.authentication.AuthModuleImpl;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.module.SamlModuleWebSecurityConfig;
+import com.evolveum.midpoint.web.security.util.AuthModuleImpl;
 import com.evolveum.midpoint.web.security.util.IdentityProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModuleSaml2Type;
@@ -48,7 +49,7 @@ import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 @Component
 public class Saml2ModuleFactory extends AbstractModuleFactory {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(Saml2ModuleFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(Saml2ModuleFactory.class);
 
     @Autowired
     private Protector protector;
@@ -63,11 +64,13 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
 
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, ServletRequest request,
-                                         Map<Class<? extends Object>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy) throws Exception {
+                                         Map<Class<? extends Object>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
         if (!(moduleType instanceof AuthenticationModuleSaml2Type)) {
             LOGGER.error("This factory support only AuthenticationModuleSaml2Type, but modelType is " + moduleType);
             return null;
         }
+
+        isSupportedChannel(authenticationChannel);
 
         SamlModuleWebSecurityConfiguration.setProtector(protector);
         SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build((AuthenticationModuleSaml2Type)moduleType, prefixOfSequence, request);

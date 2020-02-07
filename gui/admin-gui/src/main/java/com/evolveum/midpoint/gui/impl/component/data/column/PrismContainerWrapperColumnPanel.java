@@ -49,7 +49,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 public class PrismContainerWrapperColumnPanel<C extends Containerable> extends AbstractItemWrapperColumnPanel<PrismContainerWrapper<C>, PrismContainerValueWrapper<C>> {
 
     private static final long serialVersionUID = 1L;
-    private static final transient Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperColumn.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperColumn.class);
 
     PrismContainerWrapperColumnPanel(String id, IModel<PrismContainerWrapper<C>> model, ColumnType columnType) {
         super(id, model, columnType);
@@ -111,7 +111,7 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
         try {
             lifecycle = assignmentModel.findProperty(AssignmentType.F_LIFECYCLE_STATE);
         } catch (SchemaException e) {
-            LOGGER.error("Cannot find lifecycle property: ", e.getMessage(), e);
+            LOGGER.error("Cannot find lifecycle property: {}", e.getMessage(), e);
         }
 
         String lifecycleState = getLifecycleState(lifecycle);

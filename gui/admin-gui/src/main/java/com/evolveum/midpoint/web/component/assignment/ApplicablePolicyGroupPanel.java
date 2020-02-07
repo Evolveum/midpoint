@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,8 +30,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -45,7 +41,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ApplicablePolicyGroupPanel.class);
     private static final String DOT_CLASS = ApplicablePolicyGroupPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_POLICY_GROUP_MEMBERS = DOT_CLASS + "loadPolicyGroupMembers";
     private static final String OPERATION_LOAD_POLICY_GROUP_NAME = DOT_CLASS + "loadPolicyGroupName";
@@ -79,13 +74,10 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
                         .isChildOf(policyGroupObject.getOid())
                         .build();
                 List<PrismObject<AbstractRoleType>> policiesList = WebModelServiceUtils.searchObjects(AbstractRoleType.class, membersQuery, result, getPageBase());
-                Collections.sort(policiesList, new Comparator<PrismObject<AbstractRoleType>>() {
-                    @Override
-                    public int compare(PrismObject<AbstractRoleType> o1, PrismObject<AbstractRoleType> o2) {
-                        String displayName1 = WebComponentUtil.getDisplayNameOrName(o1);
-                        String displayName2 = WebComponentUtil.getDisplayNameOrName(o2);
-                        return String.CASE_INSENSITIVE_ORDER.compare(displayName1, displayName2);
-                    }
+                policiesList.sort((o1, o2) -> {
+                    String displayName1 = WebComponentUtil.getDisplayNameOrName(o1);
+                    String displayName2 = WebComponentUtil.getDisplayNameOrName(o2);
+                    return String.CASE_INSENSITIVE_ORDER.compare(displayName1, displayName2);
                 });
                 return policiesList;
             }

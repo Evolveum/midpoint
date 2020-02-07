@@ -115,7 +115,7 @@ public class SimpleValueExpressionPanel extends BasePanel<ExpressionType>{
         try {
             return ExpressionUtil.isLiteralExpressionValueNotEmpty(SimpleValueExpressionPanel.this.getModelObject());
         } catch (SchemaException ex){
-            LOGGER.error("Unable to load literal expression value, ", ex.getLocalizedMessage());
+            LOGGER.error("Unable to load literal expression value: {}", ex.getLocalizedMessage());
         }
         return false;
     }

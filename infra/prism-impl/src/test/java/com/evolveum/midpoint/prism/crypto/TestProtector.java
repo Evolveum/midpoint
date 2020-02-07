@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,21 +6,16 @@
  */
 package com.evolveum.midpoint.prism.crypto;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.*;
+
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.AbstractPrismTest;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-public class TestProtector {
-
-    private static transient Trace LOGGER = TraceManager.getTrace(TestProtector.class);
+public class TestProtector extends AbstractPrismTest {
 
     @Test
     public void testProtectorEncryptionRoundTrip() throws Exception {

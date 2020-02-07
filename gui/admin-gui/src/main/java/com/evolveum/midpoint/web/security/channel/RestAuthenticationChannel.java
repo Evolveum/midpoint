@@ -37,35 +37,25 @@ public class RestAuthenticationChannel extends AuthenticationChannelImpl {
         return "/ws/rest/self";
     }
 
-    public Collection<? extends GrantedAuthority> resolveAuthorities(Collection<? extends GrantedAuthority> authorities) {
-        ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
-        for (GrantedAuthority authority : authorities) {
-            List<String> authoritiesString = new ArrayList<String>();
-            if (authority instanceof Authorization) {
-                Authorization clone = ((Authorization) authority).clone();
-                authoritiesString = clone.getAction();
-                List<String> newAction = new ArrayList<String>();
-                for (String authorityString : authoritiesString) {
-                    if (authorityString.startsWith(AuthorizationConstants.NS_AUTHORIZATION_REST)
-                    || authorityString.equals(AuthorizationConstants.AUTZ_ALL_URL)) {
-                        newAction.add(authorityString);
-                    }
-                }
-                if (!newAction.isEmpty()) {
-                    clone.getAction().clear();
-                    clone.getAction().addAll(newAction);
-                    newAuthorities.add(clone);
-                }
-            } else {
-                if (authority.getAuthority().startsWith(AuthorizationConstants.NS_AUTHORIZATION_REST)) {
-                    newAuthorities.add(authority);
-                }
-                if (authority.getAuthority().equals(AuthorizationConstants.AUTZ_ALL_URL)) {
-                    newAuthorities.add(authority);
-                }
-            }
-
-        }
-        return newAuthorities;
-    }
+//    public Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities) {
+//        ArrayList<Authorization> newAuthorities = new ArrayList<Authorization>();
+//        for (GrantedAuthority authority : authorities) {
+//            List<String> authoritiesString = new ArrayList<String>();
+//                Authorization clone = ((Authorization) authority).clone();
+//                authoritiesString = clone.getAction();
+//                List<String> newAction = new ArrayList<String>();
+//                for (String authorityString : authoritiesString) {
+//                    if (authorityString.startsWith(AuthorizationConstants.NS_AUTHORIZATION_REST)
+//                    || authorityString.equals(AuthorizationConstants.AUTZ_ALL_URL)) {
+//                        newAction.add(authorityString);
+//                    }
+//                }
+//                if (!newAction.isEmpty()) {
+//                    clone.getAction().clear();
+//                    clone.getAction().addAll(newAction);
+//                    newAuthorities.add(clone);
+//                }
+//        }
+//        return newAuthorities;
+//    }
 }

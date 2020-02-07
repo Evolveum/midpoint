@@ -12,7 +12,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.wicket.model.IModel;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author skublik
@@ -37,25 +37,18 @@ public class JasperTemplateModel implements IModel<String> {
             obj = model.getObject();
         }
 
-        try {
-            return new String(obj, "utf-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new SystemException(e);
-        }
+        return new String(obj, StandardCharsets.UTF_8);
     }
 
     @Override
     public void setObject(String object) {
         if (object == null) {
             model.setObject(null);
+            return;
         }
 
-        try {
-            byte[] val = object.getBytes("utf-8");
-            model.setObject(val);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        byte[] val = object.getBytes(StandardCharsets.UTF_8);
+        model.setObject(val);
     }
 
     @Override

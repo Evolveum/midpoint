@@ -9,42 +9,32 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint JavaDoc</name>
-    <artifactId>javadoc</artifactId>
-    <packaging>jar</packaging>
+
     <parent>
-        <artifactId>parent</artifactId>
+        <artifactId>dist</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>4.1-SNAPSHOT</version>
-        <relativePath>../../build-system/pom.xml</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
-    <organization>
-        <name>Evolveum</name>
-        <url>http://www.evolveum.com</url>
-    </organization>
-    <licenses>
-        <license>
-            <name>Apache License v2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    <issueManagement>
-        <system>Atlassian JIRA</system>
-        <url>http://jira.evolveum.com/</url>
-    </issueManagement>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>javadoc</artifactId>
+    <packaging>jar</packaging>
+
+    <name>midPoint JavaDoc</name>
+
+    <properties>
+        <!-- see notes in main midPoint POM -->
+        <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
+
     <dependencies>
-           <dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
             <version>4.1-SNAPSHOT</version>
             <type>war</type>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
@@ -56,34 +46,15 @@
             <artifactId>tomcat-annotations-api</artifactId>
             <scope>provided</scope>
         </dependency>
-           <dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-impl</artifactId>
             <version>4.1-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <!-- Default (main) jar is empty. We do not want to build it. -->
-                        <id>default-jar</id>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <!-- Test jar is empty. We do not want to build it. -->
-                        <id>test-jar</id>
-                        <phase>none</phase>
-                        <configuration>
-                            <skipIfEmpty>true</skipIfEmpty>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
@@ -95,7 +66,7 @@
                     <isOffline>true</isOffline>
                     <doctitle>midPoint Aggregate JavaDoc</doctitle>
                     <windowtitle>midPoint Aggregate JavaDoc</windowtitle>
-                     <doclint>none</doclint>
+                    <doclint>none</doclint>
                     <quiet>true</quiet>
                     <debug>false</debug>
                 </configuration>
@@ -135,30 +106,31 @@
             </plugin>
         </plugins>
     </build>
+
     <profiles>
         <profile>
             <id>java8</id>
             <activation>
-              <jdk>(,1.8]</jdk>
+                <jdk>(,1.8]</jdk>
             </activation>
             <build>
                 <plugins>
-                     <plugin>
-                       <groupId>org.apache.maven.plugins</groupId>
-                       <artifactId>maven-javadoc-plugin</artifactId>
-                       <executions>
-                         <execution>
-                             <id>javadoc-jar</id>
-                             <phase>none</phase>
-                             <goals>
-                                 <goal>jar</goal>
-                             </goals>
-                             <configuration>
-                                 <skip>true</skip>
-                             </configuration>
-                         </execution>
-                     </executions>
-                 </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>javadoc-jar</id>
+                                <phase>none</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <skip>true</skip>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                 </plugins>
             </build>
         </profile>

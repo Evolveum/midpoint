@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2017-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -569,9 +569,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             // Evaluate assignment. This follows to the assignment targets, follows to the inducements,
             // evaluates all the expressions, etc.
             EvaluatedAssignmentImpl<AH> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, mode, evaluateOld, source, assignmentPlacementDesc, smartAssignment.isVirtual(), task, subResult);
-            context.rememberResources(evaluatedAssignment.getResources(task, subResult));
             subResult.recordSuccess();
-               LOGGER.trace("Evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
+            LOGGER.trace("Evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
             evaluatedAssignment.setPresentInCurrentObject(smartAssignment.isCurrent());
             evaluatedAssignment.setPresentInOldObject(smartAssignment.isOld());
             if (evaluatedAssignment.getTarget() != null) {

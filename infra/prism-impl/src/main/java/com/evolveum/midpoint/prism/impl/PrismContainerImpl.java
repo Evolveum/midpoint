@@ -734,7 +734,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 
     @Override
     protected void propagateDeepCloneDefinition(boolean ultraDeep, PrismContainerDefinition<C> clonedDef, Consumer<ItemDefinition> postCloneAction) {
-        for(PrismContainerValue<C> cval: getValues()) {
+        for (PrismContainerValue<C> cval: getValues()) {
             ((PrismContainerValueImpl<C>) cval).deepCloneDefinition(ultraDeep, clonedDef, postCloneAction);
         }
     }

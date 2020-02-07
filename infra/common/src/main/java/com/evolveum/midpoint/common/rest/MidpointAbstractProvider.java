@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -42,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 public abstract class MidpointAbstractProvider<T> extends AbstractConfigurableProvider implements MessageBodyReader<T>, MessageBodyWriter<T>{
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(MidpointAbstractProvider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MidpointAbstractProvider.class);
 
     @Autowired protected PrismContext prismContext;
     @Autowired protected LocalizationService localizationService;
@@ -77,23 +78,22 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 
         // TODO implement in the standard serializer; also change root name
         QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
-        String xml;
+        String serializedForm;
 
         PrismSerializer<String> serializer = getSerializer()
                 .options(SerializationOptions.createSerializeReferenceNames());
 
         try {
             if (object instanceof PrismObject) {
-                xml = serializer.serialize((PrismObject<?>) object);
+                serializedForm = serializer.serialize((PrismObject<?>) object);
             } else if (object instanceof OperationResult) {
-//                OperationResultType operationResultType = ((OperationResult) object).createOperationResultType();
                 Function<LocalizableMessage, String> resolveKeys = msg -> localizationService.translate(msg, Locale.US);
                 OperationResultType operationResultType = ((OperationResult) object).createOperationResultType(resolveKeys);
-                xml = serializer.serializeAnyData(operationResultType, fakeQName);
+                serializedForm = serializer.serializeAnyData(operationResultType, fakeQName);
             } else {
-                xml = serializer.serializeAnyData(object, fakeQName);
+                serializedForm = serializer.serializeAnyData(object, fakeQName);
             }
-            entityStream.write(xml.getBytes("utf-8"));
+            entityStream.write(serializedForm.getBytes(StandardCharsets.UTF_8));
         } catch (SchemaException | RuntimeException e) {
             LoggingUtils.logException(LOGGER, "Couldn't marshal element to string: {}", e, object);
         }

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.util;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -31,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -244,7 +246,7 @@ public class DOMUtil {
     public static Document parseDocument(String doc) {
         try {
             DocumentBuilder loader = createDocumentBuilder();
-            return loader.parse(IOUtils.toInputStream(doc, "utf-8"));
+            return loader.parse(IOUtils.toInputStream(doc, StandardCharsets.UTF_8));
         } catch (SAXException | IOException ex) {
             throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
         }
@@ -463,6 +465,15 @@ public class DOMUtil {
 
     public static boolean isMarkedAsIncomplete(Element element) {
         return Boolean.parseBoolean(DOMUtil.getAttribute(element, DOMUtil.IS_INCOMPLETE_ATTRIBUTE_NAME));
+    }
+
+    public static String getSchemaTargetNamespace(Element xsdSchema) throws SchemaException {
+        String targetNamespace = getAttribute(xsdSchema, XSD_ATTR_TARGET_NAMESPACE);
+        if (StringUtils.isNotEmpty(targetNamespace)) {
+            return targetNamespace;
+        } else {
+            throw new SchemaException("Schema does not have targetNamespace specification");
+        }
     }
 
     @FunctionalInterface

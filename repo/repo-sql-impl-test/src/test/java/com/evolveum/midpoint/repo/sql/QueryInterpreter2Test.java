@@ -2872,9 +2872,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             SchemaRegistry registry = prismContext.getSchemaRegistry();
-            PrismObjectDefinition userDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-            PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(F_ASSIGNMENT);
-            PrismPropertyDefinition propDef = assignmentDef.toMutable().createPropertyDefinition(
+            PrismPropertyDefinition propDef = prismContext.definitionFactory().createPropertyDefinition(
                     SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN);
 
             ObjectQuery objectQuery = prismContext.queryFor(UserType.class)
@@ -4919,6 +4917,28 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     + "    c2.targetOid = :targetOid and\n"
                     + "    c2.relation in (:relation)\n"
                     + "  )";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    // MID-5515
+    @Test
+    public void test1443QueryNameNull() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery q = prismContext.queryFor(UserType.class)
+                    .item(F_NAME).isNull()
+                    .build();
+            String real = getInterpretedQuery2(session, UserType.class, q, false);
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "where\n"
+                    + "  1=0\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);

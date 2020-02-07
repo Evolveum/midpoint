@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -18,7 +17,7 @@ import org.apache.wicket.model.IModel;
 
 public class SearchFilterTypeModel implements IModel<String> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(SearchFilterTypeModel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SearchFilterTypeModel.class);
 
         private static final long serialVersionUID = 1L;
 

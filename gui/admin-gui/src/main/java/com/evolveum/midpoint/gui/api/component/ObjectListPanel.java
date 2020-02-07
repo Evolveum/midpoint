@@ -743,7 +743,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     public void refreshTable(Class<O> newTypeClass, AjaxRequestTarget target) {
         BoxedTablePanel<SelectableBean<O>> table = getTable();
-        if (!getType().equals(newTypeClass)) {
+        if (isTypeChanged(newTypeClass)) {
             ObjectTypes newType = newTypeClass != null ? ObjectTypes.getObjectType(newTypeClass) : null;
 
             BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
@@ -765,6 +765,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         target.add((Component) table);
         target.add(getPageBase().getFeedbackPanel());
 
+    }
+
+    protected boolean isTypeChanged(Class<O> newTypeClass){
+        return !getType().equals(newTypeClass);
     }
 
     public void resetSearchModel(){

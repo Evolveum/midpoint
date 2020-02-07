@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2017-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -29,7 +29,6 @@ import java.util.Collection;
  * part of main code. That does not hurt much.
  *
  * @author Radovan Semancik
- *
  */
 public class RepoObjectResolver implements ObjectResolver {
 

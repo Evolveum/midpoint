@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.testing.rest;
 
-import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
-
 import java.io.File;
+
+import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
 
 public class TestRestServiceYaml extends TestAbstractRestService {
 
