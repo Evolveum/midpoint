@@ -122,7 +122,7 @@ public class AuditEventRecord implements DebugDumpable {
      * for the operation. Although initiator is always a user in midPoint 3.7 and earlier,
      * the initiator may be an organization in later midPoint versions.
      */
-    private PrismObject<UserType> initiator;
+    private PrismObject<? extends FocusType> initiator;
 
     /**
      * Attorney is the (physical) user who have executed the action.
@@ -130,7 +130,7 @@ public class AuditEventRecord implements DebugDumpable {
      * pressed the button to execute the action. This is always identity of a user and
      * it will always be a user. It cannot be a company or any other virtual entity.
      */
-    private PrismObject<UserType> attorney;
+    private PrismObject<? extends FocusType> attorney;
 
     /**
      *  (primary) target (object, the thing acted on): store OID, type, name.
@@ -279,11 +279,11 @@ public class AuditEventRecord implements DebugDumpable {
      * for the operation. Although initiator is always a user in midPoint 3.7 and earlier,
      * the initiator may be an organization in later midPoint versions.
      */
-    public PrismObject<UserType> getInitiator() {
+    public PrismObject<? extends FocusType> getInitiator() {
         return initiator;
     }
 
-    public void setInitiator(PrismObject<UserType> initiator) {
+    public void setInitiator(PrismObject<? extends FocusType> initiator) {
         this.initiator = initiator;
     }
 
@@ -293,11 +293,11 @@ public class AuditEventRecord implements DebugDumpable {
      * pressed the button to execute the action. This is always identity of a user and
      * it will always be a user. It cannot be a company or any other virtual entity.
      */
-    public PrismObject<UserType> getAttorney() {
+    public PrismObject<? extends FocusType> getAttorney() {
         return attorney;
     }
 
-    public void setAttorney(PrismObject<UserType> attorney) {
+    public void setAttorney(PrismObject<? extends FocusType> attorney) {
         this.attorney = attorney;
     }
 
@@ -714,7 +714,7 @@ public class AuditEventRecord implements DebugDumpable {
         }
     }
 
-    public void setInitiatorAndLoginParameter(PrismObject<UserType> initiator) {
+    public void setInitiatorAndLoginParameter(PrismObject<? extends FocusType> initiator) {
         setInitiator(initiator);
         String parameter = null;
         if (initiator != null) {

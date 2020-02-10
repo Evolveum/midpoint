@@ -14,6 +14,8 @@ import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.interceptor.Fault;
@@ -28,7 +30,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.evolveum.midpoint.model.api.authentication.UserProfileService;
+import com.evolveum.midpoint.model.api.authentication.FocusProfileService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -63,16 +65,16 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
     private Set<String> after = new HashSet<>();
     private String id;
 
-    private UserProfileService userDetailsService;
+    private FocusProfileService focusDetailsService;
     private SecurityEnforcer securityEnforcer;
     private SecurityHelper securityHelper;
     private TaskManager taskManager;
 
-    public SpringAuthenticationInjectorInterceptor(UserProfileService userDetailsService,
+    public SpringAuthenticationInjectorInterceptor(FocusProfileService focusDetailsService,
             SecurityEnforcer securityEnforcer, SecurityHelper securityHelper,
             TaskManager taskManager) {
         super();
-        this.userDetailsService = userDetailsService;
+        this.focusDetailsService = focusDetailsService;
         this.securityEnforcer = securityEnforcer;
         this.securityHelper = securityHelper;
         this.taskManager = taskManager;
@@ -130,7 +132,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 
             MidPointPrincipal principal = null;
             try {
-                principal = userDetailsService.getPrincipal(username);
+                principal = focusDetailsService.getPrincipal(username, UserType.class);
             } catch (SchemaException e) {
                 handlePrincipalException(message, username, connEnv, "Schema error", e);
             } catch (CommunicationException e) {
@@ -162,7 +164,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
                 LOGGER.debug("Access to web service denied for user '{}': SOAP error: {}",
                         username, e.getMessage(), e);
                 message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-                securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "SOAP error: "+e.getMessage());
+                securityHelper.auditLoginFailure(username, principal.getFocus(), connEnv, "SOAP error: "+e.getMessage());
                 throw new Fault(e);
             }
 
@@ -179,7 +181,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
                 LOGGER.debug("Access to web service denied for user '{}': internal error: {}",
                         username, e.getMessage(), e);
                 message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-                securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "Schema error: "+e.getMessage());
+                securityHelper.auditLoginFailure(username, principal.getFocus(), connEnv, "Schema error: "+e.getMessage());
                 throw createFault(WSSecurityException.ErrorCode.FAILURE);
             }
             if (!isAuthorized) {
@@ -191,14 +193,14 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
                     LOGGER.debug("Access to web service denied for user '{}': schema error: {}",
                             username, e.getMessage(), e);
                     message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-                    securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "Internal error: "+e.getMessage());
+                    securityHelper.auditLoginFailure(username, principal.getFocus(), connEnv, "Internal error: "+e.getMessage());
                     throw createFault(WSSecurityException.ErrorCode.FAILURE);
                 }
             }
             if (!isAuthorized) {
                 LOGGER.debug("Access to web service denied for user '{}': not authorized", username);
                 message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-                securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "Not authorized");
+                securityHelper.auditLoginFailure(username, principal.getFocus(), connEnv, "Not authorized");
                 throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
             }
 

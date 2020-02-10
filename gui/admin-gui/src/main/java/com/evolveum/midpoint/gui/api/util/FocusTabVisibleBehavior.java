@@ -68,7 +68,7 @@ public class FocusTabVisibleBehavior<O extends ObjectType> extends VisibleEnable
         }
 
         Task task = WebModelServiceUtils.createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION,
-                SecurityUtils.getPrincipalUser().getUser().asPrismObject(), getTaskManager());
+                SecurityUtils.getPrincipalUser().getFocus().asPrismObject(), getTaskManager());
         OperationResult result = task.getResult();
 
         CompiledUserProfile config;

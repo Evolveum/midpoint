@@ -84,6 +84,7 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
         setSharedObjects(http, sharedObjects);
 
         ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication(module.getBeanConfiguration(), configuration);
+        moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }

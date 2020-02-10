@@ -90,7 +90,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
         try {
             List<PcpStartInstruction> instructions = new ArrayList<>();
             if (objectTreeDeltas.getFocusChange() != null) {
-                PrismObject<UserType> requester = ctx.getRequestor(result);
+                PrismObject<? extends FocusType> requester = ctx.getRequestor(result);
                 assignmentPolicyAspectPart
                         .extractAssignmentBasedInstructions(objectTreeDeltas, requester, instructions, ctx, result);
                 objectPolicyAspectPart.extractObjectBasedInstructions(objectTreeDeltas, requester, instructions, ctx, result);

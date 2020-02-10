@@ -15,6 +15,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleTaskNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -89,9 +90,13 @@ public class SimpleTaskNotifier extends GeneralNotifier {
         body.append("Notification created on: ").append(new Date()).append("\n\n");
 
         if (task.getOwner() != null) {
-            UserType owner = task.getOwner().asObjectable();
+            FocusType owner = task.getOwner().asObjectable();
             body.append("Task owner: ");
-            body.append(owner.getFullName()).append(" (").append(owner.getName()).append(")");
+            if (owner instanceof UserType) {
+                body.append(((UserType)owner).getFullName()).append(" (").append(owner.getName()).append(")");
+            } else {
+                body.append(owner.getName());
+            }
             body.append("\n");
         }
         body.append("Channel: ").append(event.getChannel()).append("\n\n");

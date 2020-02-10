@@ -255,7 +255,8 @@ public class PageAccountActivation extends PageBase {
         ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
         UsernamePasswordAuthenticationToken token;
         try {
-            token = authenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(userModel.getObject().getName().getOrig(), value));
+            token = authenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(userModel.getObject().getName().getOrig(), value,
+                    userModel.getObject().getClass() ));
         } catch (Exception ex) {
             LOGGER.error("Failed to authenticate user, reason {}", ex.getMessage());
             getSession().error(getString("PageAccountActivation.authentication.failed"));

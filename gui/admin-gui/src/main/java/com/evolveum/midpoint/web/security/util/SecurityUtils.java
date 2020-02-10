@@ -75,7 +75,7 @@ public class SecurityUtils {
     private static final Trace LOGGER = TraceManager.getTrace(SecurityUtils.class);
     private static final String PROXY_USER_OID_HEADER = "Switch-To-Principal";
 
-    public static MidPointUserProfilePrincipal getPrincipalUser() {
+    public static MidPointFocusProfilePrincipal getPrincipalUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         return getPrincipalUser(authentication);
@@ -91,7 +91,7 @@ public class SecurityUtils {
         LOCAL_PATH_AND_CHANNEL = Collections.unmodifiableMap(map);
     }
 
-    public static MidPointUserProfilePrincipal getPrincipalUser(Authentication authentication) {
+    public static MidPointFocusProfilePrincipal getPrincipalUser(Authentication authentication) {
         if (authentication == null) {
             LOGGER.trace("Authentication not available in security context.");
             return null;
@@ -101,15 +101,15 @@ public class SecurityUtils {
         if (principal == null) {
             return null;
         }
-        if (principal instanceof MidPointUserProfilePrincipal) {
-            return (MidPointUserProfilePrincipal) principal;
+        if (principal instanceof MidPointFocusProfilePrincipal) {
+            return (MidPointFocusProfilePrincipal) principal;
         }
         if (AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principal)) {
             // silently ignore to avoid filling the logs
             return null;
         }
         LOGGER.debug("Principal user in security context holder is {} ({}) but not type of {}",
-                principal, principal.getClass(), MidPointUserProfilePrincipal.class.getName());
+                principal, principal.getClass(), MidPointFocusProfilePrincipal.class.getName());
         return null;
     }
 

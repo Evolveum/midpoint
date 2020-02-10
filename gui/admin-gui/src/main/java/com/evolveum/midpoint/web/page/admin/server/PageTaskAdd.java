@@ -16,7 +16,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -677,7 +676,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
         ObjectReferenceType ownerRef = new ObjectReferenceType();
         ownerRef.setOid(owner.getOid());
-        ownerRef.setType(owner.getUser().COMPLEX_TYPE);
+        ownerRef.setType(owner.getFocus().COMPLEX_TYPE);
         task.setOwnerRef(ownerRef);
 
         task.setCategory(dto.getCategory());

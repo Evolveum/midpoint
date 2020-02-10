@@ -189,6 +189,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="focusType" type="xsd:QName" minOccurs="0" default="UserType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of focal object that this assignment/inducement applies to. E.g UserType, RoleType, OrgType, ...
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

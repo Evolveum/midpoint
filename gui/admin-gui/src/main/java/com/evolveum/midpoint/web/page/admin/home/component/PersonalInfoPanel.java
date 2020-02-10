@@ -15,6 +15,7 @@ import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -60,7 +61,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     }
 
     private PersonalInfoDto loadPersonalInfo() {
-        UserType user = SecurityUtils.getPrincipalUser().getUser();
+        FocusType user = SecurityUtils.getPrincipalUser().getFocus();
         CredentialsType credentials = user.getCredentials();
         PersonalInfoDto dto = new PersonalInfoDto();
         if (credentials != null) {

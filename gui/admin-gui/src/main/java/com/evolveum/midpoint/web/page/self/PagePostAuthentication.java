@@ -221,7 +221,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
         } else {
             MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
             try {
-                getModelInteractionService().refreshPrincipal(principal.getOid());
+                getModelInteractionService().refreshPrincipal(principal.getOid(), principal.getFocus().getClass());
                 navigateToNext(getMidpointApplication().getHomePage());
             } catch (CommonException e) {
                 LOGGER.error("Error while refreshing user: ", e);

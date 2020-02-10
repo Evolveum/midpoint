@@ -199,7 +199,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private ActivationComputer activationComputer;
     @Autowired private Clock clock;
     @Autowired private HookRegistry hookRegistry;
-    @Autowired private UserProfileService userProfileService;
+    @Autowired private FocusProfileService focusProfileService;
     @Autowired private UserProfileCompiler userProfileCompiler;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private OperationalDataManager metadataManager;
@@ -619,7 +619,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public RegistrationsPolicyType getFlowPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult)
+    public RegistrationsPolicyType getFlowPolicy(PrismObject<? extends FocusType> user, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         // TODO: check for user membership in an organization (later versions)
         OperationResult result = parentResult.createMinorSubresult(GET_REGISTRATIONS_POLICY);
@@ -629,14 +629,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 
     @Override
-    public CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public CredentialsPolicyType getCredentialsPolicy(PrismObject<? extends FocusType> focus, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         // TODO: check for user membership in an organization (later versions)
 
         OperationResult result = parentResult.createMinorSubresult(GET_CREDENTIALS_POLICY);
-        return resolvePolicyTypeFromSecurityPolicy(CredentialsPolicyType.class, SecurityPolicyType.F_CREDENTIALS, user, task, result);
+        return resolvePolicyTypeFromSecurityPolicy(CredentialsPolicyType.class, SecurityPolicyType.F_CREDENTIALS, focus, task, result);
     }
 
-    private <C extends Containerable> C  resolvePolicyTypeFromSecurityPolicy(Class<C> type, QName path, PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private <C extends Containerable> C  resolvePolicyTypeFromSecurityPolicy(Class<C> type, QName path, PrismObject<? extends FocusType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         SecurityPolicyType securityPolicyType = getSecurityPolicy(user, task, parentResult);
         if (securityPolicyType == null) {
@@ -687,11 +687,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.warn("Security violation while getting principlal to get GUI config: {}", e.getMessage(), e);
         }
 
-        if (principal == null || !(principal instanceof MidPointUserProfilePrincipal)) {
+        if (principal == null || !(principal instanceof MidPointFocusProfilePrincipal)) {
             // May be used for unathenticated user, error pages and so on
             return userProfileCompiler.getGlobalCompiledUserProfile(task, parentResult);
         } else {
-            return ((MidPointUserProfilePrincipal)principal).getCompiledUserProfile();
+            return ((MidPointFocusProfilePrincipal)principal).getCompiledUserProfile();
         }
     }
 
@@ -1624,9 +1624,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 
     @Override
-    public void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public void refreshPrincipal(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         try {
-            MidPointPrincipal principal = userProfileService.getPrincipalByOid(oid);
+            MidPointPrincipal principal = focusProfileService.getPrincipalByOid(oid, clazz);
             securityContextManager.setupPreAuthenticatedSecurityContext(principal);
         } catch (Throwable e) {
             LOGGER.error("Cannot refresh authentication for user identified with" + oid);
@@ -1655,7 +1655,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
             newTask.setOid(null);
             newTask.setTaskIdentifier(null);
-            newTask.setOwnerRef(createObjectRef(principal.getUser(), prismContext));
+            newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
             newTask.setExecutionStatus(RUNNABLE);
             for (Item<?, ?> extensionItem : extensionItems) {
                 newTask.asPrismObject().getExtension().add(extensionItem.clone());

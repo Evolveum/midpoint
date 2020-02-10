@@ -6,26 +6,13 @@
  */
 package com.evolveum.midpoint.model.api.authentication;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-
-import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.security.core.userdetails.UserDetails;
 
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.ShortDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Principal that extends simple MidPointPrincipal with user interface concepts (user profile).
@@ -33,14 +20,14 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @since 4.0
  * @author Radovan Semancik
  */
-public class MidPointUserProfilePrincipal extends MidPointPrincipal {
+public class MidPointFocusProfilePrincipal extends MidPointPrincipal {
     private static final long serialVersionUID = 1L;
 
     private CompiledUserProfile compiledUserProfile;
 
     private transient int activeSessions = 0;
 
-    public MidPointUserProfilePrincipal(@NotNull UserType user) {
+    public MidPointFocusProfilePrincipal(@NotNull FocusType user) {
         super(user);
     }
 
@@ -59,13 +46,13 @@ public class MidPointUserProfilePrincipal extends MidPointPrincipal {
     /**
      * Semi-shallow clone.
      */
-    public MidPointUserProfilePrincipal clone() {
-        MidPointUserProfilePrincipal clone = new MidPointUserProfilePrincipal(this.getUser());
+    public MidPointFocusProfilePrincipal clone() {
+        MidPointFocusProfilePrincipal clone = new MidPointFocusProfilePrincipal(this.getFocus());
         copyValues(clone);
         return clone;
     }
 
-    protected void copyValues(MidPointUserProfilePrincipal clone) {
+    protected void copyValues(MidPointFocusProfilePrincipal clone) {
         super.copyValues(clone);
         // No need to clone user profile here. It is essentially read-only.
         clone.compiledUserProfile = this.compiledUserProfile;
@@ -88,14 +75,14 @@ public class MidPointUserProfilePrincipal extends MidPointPrincipal {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof MidPointUserProfilePrincipal)) {
+        if (!(obj instanceof MidPointFocusProfilePrincipal)) {
             return false;
         }
-        return getUser().equals(((MidPointUserProfilePrincipal) obj).getUser());
+        return getFocus().equals(((MidPointFocusProfilePrincipal) obj).getFocus());
     }
 
     @Override
     public int hashCode() {
-        return getUser().hashCode();
+        return getFocus().hashCode();
     }
 }

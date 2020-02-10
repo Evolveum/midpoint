@@ -658,7 +658,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         // orgRelation
         if (specOrgRelation != null) {
             boolean match = false;
-            for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
+            for (ObjectReferenceType subjectParentOrgRef: principal.getFocus().getParentOrgRef()) {
                 if (matchesOrgRelation(object, subjectParentOrgRef, specOrgRelation, autzHumanReadableDesc, desc)) {
                     LOGGER.trace("    org {} applicable for {}, object OID {} because subject org {} matches",
                             autzHumanReadableDesc, desc, object.getOid(), subjectParentOrgRef.getOid());
@@ -676,7 +676,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         // roleRelation
         if (specRoleRelation != null) {
             boolean match = false;
-            for (ObjectReferenceType subjectRoleMembershipRef: principal.getUser().getRoleMembershipRef()) {
+            for (ObjectReferenceType subjectRoleMembershipRef: principal.getFocus().getRoleMembershipRef()) {
                 if (matchesRoleRelation(object, subjectRoleMembershipRef, specRoleRelation)) {
                     LOGGER.trace("    {} applicable for {}, object OID {} because subject role relation {} matches",
                             autzHumanReadableDesc, desc, object.getOid(), subjectRoleMembershipRef.getOid());
@@ -827,7 +827,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             TenantSelectorType tenantSpec = ownedObjectSelector.getTenant();
             if (tenantSpec != null) {
                 if (BooleanUtils.isTrue(tenantSpec.isSameAsSubject())) {
-                    ObjectReferenceType subjectTenantRef = principal.getUser().getTenantRef();
+                    ObjectReferenceType subjectTenantRef = principal.getFocus().getTenantRef();
                     if (subjectTenantRef == null || subjectTenantRef.getOid() == null) {
                         LOGGER.trace("    {}: tenant object spec not applicable for {}, object OID {} because subject does not have tenantRef",
                                 autzHumanReadableDesc, desc, object.getOid());
@@ -952,12 +952,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                 return null;
             }
             ExpressionVariables variables = new ExpressionVariables();
-            PrismObject<UserType> subject = principal != null ? principal.getUser().asPrismObject() : null;
-            PrismObjectDefinition<UserType> def;
+            PrismObject<? extends FocusType> subject = principal != null ? principal.getFocus().asPrismObject() : null;
+            PrismObjectDefinition<? extends FocusType> def;
             if (subject != null) {
                 def = subject.getDefinition();
             } else {
-                def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+                def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(subject.asObjectable().getClass());
             }
             variables.addVariableDefinition(ExpressionConstants.VAR_SUBJECT, subject, def);
             return ExpressionUtil.evaluateFilterExpressions(filter, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory, prismContext,
@@ -1601,7 +1601,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                             if (specOrgRelation != null) {
                                 ObjectFilter objSpecOrgRelationFilter = null;
                                 QName subjectRelation = specOrgRelation.getSubjectRelation();
-                                for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
+                                for (ObjectReferenceType subjectParentOrgRef: principal.getFocus().getParentOrgRef()) {
                                     if (prismContext.relationMatches(subjectRelation, subjectParentOrgRef.getRelation())) {
                                         S_FilterEntryOrEmpty q = prismContext.queryFor(ObjectType.class);
                                         S_AtomicFilterExit q2;
@@ -1949,7 +1949,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             } else {
                 List<QName> subjectRelation = specRoleRelation.getSubjectRelation();
                 boolean isRoleOidOk = false;
-                for (ObjectReferenceType subjectRoleMembershipRef: principal.getUser().getRoleMembershipRef()) {
+                for (ObjectReferenceType subjectRoleMembershipRef: principal.getFocus().getRoleMembershipRef()) {
                     if (!prismContext.relationMatches(subjectRelation, subjectRoleMembershipRef.getRelation())) {
                         continue;
                     }
@@ -1976,7 +1976,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             TenantSelectorType specTenant, AutzItemPaths queryItemsSpec, ObjectFilter origFilter) {
         ObjectFilter tenantFilter = null;
         if (BooleanUtils.isTrue(specTenant.isSameAsSubject())) {
-            ObjectReferenceType subjectTenantRef = principal.getUser().getTenantRef();
+            ObjectReferenceType subjectTenantRef = principal.getFocus().getTenantRef();
             if (subjectTenantRef == null || subjectTenantRef.getOid() == null) {
                 LOGGER.trace("    subject tenant empty (none filter)");
                 tenantFilter = FilterCreationUtil.createNone(prismContext);
@@ -2026,9 +2026,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     private <T extends ObjectType> ObjectFilter applyOwnerFilterOwnerRef(ItemPath ownerRefPath, ObjectFilter objSpecSecurityFilter, MidPointPrincipal principal, PrismObjectDefinition<T> objectDefinition) {
         PrismReferenceDefinition ownerRefDef = objectDefinition.findReferenceDefinition(ownerRefPath);
         S_AtomicFilterExit builder = prismContext.queryFor(AbstractRoleType.class)
-                .item(ownerRefPath, ownerRefDef).ref(principal.getUser().getOid());
+                .item(ownerRefPath, ownerRefDef).ref(principal.getFocus().getOid());
         // TODO don't understand this code
-        for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
+        for (ObjectReferenceType subjectParentOrgRef: principal.getFocus().getParentOrgRef()) {
             if (prismContext.isDefaultRelation(subjectParentOrgRef.getRelation())) {
                 builder = builder.or().item(ownerRefPath, ownerRefDef).ref(subjectParentOrgRef.getOid());
             }
@@ -2187,7 +2187,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         }
 
         MidPointPrincipal donorPrincipal = securityContextManager.getUserProfileService().getPrincipal(donor, limitationsCollector, result);
-        donorPrincipal.setAttorney(attorneyPrincipal.getUser());
+        donorPrincipal.setAttorney(attorneyPrincipal.getFocus());
 
         // chain principals so we can easily drop the power of attorney and return back to original identity
         donorPrincipal.setPreviousPrincipal(attorneyPrincipal);

@@ -37,7 +37,7 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 public abstract class PageDashboard extends PageAdminHome {
     private static final long serialVersionUID = 1L;
 
-    private final Model<PrismObject<UserType>> principalModel = new Model<>();
+    private final Model<PrismObject<? extends FocusType>> principalModel = new Model<>();
 
     public PageDashboard() {
         principalModel.setObject(loadUserSelf());

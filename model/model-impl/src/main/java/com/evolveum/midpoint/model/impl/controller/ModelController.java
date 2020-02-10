@@ -12,7 +12,7 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.*;
-import com.evolveum.midpoint.model.api.authentication.UserProfileService;
+import com.evolveum.midpoint.model.api.authentication.FocusProfileService;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
@@ -138,7 +138,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Autowired private AuditHelper auditHelper;
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private SecurityContextManager securityContextManager;
-    @Autowired private UserProfileService userProfileService;
+    @Autowired private FocusProfileService focusProfileService;
     @Autowired private Protector protector;
     @Autowired private LocalizationService localizationService;
     @Autowired private ContextFactory contextFactory;
@@ -1615,7 +1615,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             throw new SystemException(e.getMessage(), e);
         }
 
-        securityContextManager.setUserProfileService(userProfileService);
+        securityContextManager.setUserProfileService(focusProfileService);
 
         taskManager.postInit(result);
 

@@ -1659,7 +1659,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random()*10000)));
         newTask.setOid(null);
         newTask.setTaskIdentifier(null);
-        newTask.setOwnerRef(createObjectRef(principal.getUser(), prismContext));
+        newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
         newTask.setExecutionStatus(RUNNABLE);
         newTask.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
         if (deltas.isEmpty()) {

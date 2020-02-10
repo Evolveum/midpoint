@@ -1304,14 +1304,14 @@ public class TaskQuartzImpl implements InternalTaskInterface {
      */
 
     @Override
-    public PrismObject<UserType> getOwner() {
+    public PrismObject<? extends FocusType> getOwner() {
         PrismReferenceValue ownerRef = getReferenceValue(TaskType.F_OWNER_REF);
         //noinspection unchecked
         return ownerRef != null ? ownerRef.getObject() : null;
     }
 
     @Override
-    public void setOwner(PrismObject<UserType> owner) {
+    public void setOwner(PrismObject<? extends FocusType> owner) {
         if (isPersistent()) {
             throw new IllegalStateException("setOwner method can be called only on transient tasks!");
         }

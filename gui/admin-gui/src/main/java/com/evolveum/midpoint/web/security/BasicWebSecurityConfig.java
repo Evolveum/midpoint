@@ -183,6 +183,8 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/less/**");
 
         web.ignoring().antMatchers("/wicket/resource/**");
+
+        web.ignoring().antMatchers("/favicon.ico");
     }
 
     @Override

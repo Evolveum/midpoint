@@ -85,7 +85,7 @@ public class AssignmentPolicyAspectPart {
     @Autowired protected LocalizationService localizationService;
     @Autowired protected ModelInteractionService modelInteractionService;
 
-    void extractAssignmentBasedInstructions(ObjectTreeDeltas<?> objectTreeDeltas, PrismObject<UserType> requester,
+    void extractAssignmentBasedInstructions(ObjectTreeDeltas<?> objectTreeDeltas, PrismObject<? extends FocusType> requester,
             List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException {
 
@@ -158,7 +158,7 @@ public class AssignmentPolicyAspectPart {
 
     private PcpStartInstruction createInstructionFromAssignment(
             EvaluatedAssignment<?> evaluatedAssignment, PlusMinusZero assignmentMode, @NotNull ObjectTreeDeltas<?> objectTreeDeltas,
-            PrismObject<UserType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
+            PrismObject<? extends FocusType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
 
         // We collect all target rules; hoping that only relevant ones are triggered.
         // For example, if we have assignment policy rule on induced role, it will get here.
@@ -308,7 +308,7 @@ public class AssignmentPolicyAspectPart {
     private PcpStartInstruction prepareAssignmentRelatedStartInstruction(
             ApprovalSchemaBuilder.Result builderResult,
             EvaluatedAssignment<?> evaluatedAssignment, ObjectDelta<? extends ObjectType> deltaToApprove,
-            PlusMinusZero assignmentMode, PrismObject<UserType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
+            PlusMinusZero assignmentMode, PrismObject<? extends FocusType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
 
         ModelContext<?> modelContext = ctx.modelContext;
         @SuppressWarnings("unchecked")

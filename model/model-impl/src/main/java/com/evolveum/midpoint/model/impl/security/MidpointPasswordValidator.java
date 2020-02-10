@@ -6,16 +6,14 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.model.api.authentication.UserProfileService;
+import com.evolveum.midpoint.model.api.authentication.FocusProfileService;
+import com.evolveum.midpoint.model.api.authentication.MidPointFocusProfilePrincipal;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.dom.handler.RequestData;
 import org.apache.wss4j.dom.message.token.UsernameToken;
@@ -28,7 +26,7 @@ import org.springframework.stereotype.Service;
 public class MidpointPasswordValidator extends UsernameTokenValidator {
 
     @Autowired private PasswordAuthenticationEvaluatorImpl passwdEvaluator;
-    @Autowired private UserProfileService userService;
+    @Autowired private FocusProfileService userService;
 
     @Override
     public Credential validate(Credential credential, RequestData data) throws WSSecurityException {
@@ -71,9 +69,9 @@ public class MidpointPasswordValidator extends UsernameTokenValidator {
         UsernameToken usernameToken = credential.getUsernametoken();
         String username = usernameToken.getName();
 
-        MidPointUserProfilePrincipal principal = null;
+        MidPointFocusProfilePrincipal principal = null;
         try {
-            principal = userService.getPrincipal(username);
+            principal = userService.getPrincipal(username, UserType.class);
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
 
             throw new WSSecurityException(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION, e);
@@ -83,7 +81,7 @@ public class MidpointPasswordValidator extends UsernameTokenValidator {
     }
 
     private PasswordType resolvePassowrd(MidPointPrincipal principal) {
-        UserType user = principal.getUser();
+        FocusType user = principal.getFocus();
         PasswordType passwordType = null;
         if (user.getCredentials() != null) {
             passwordType = user.getCredentials().getPassword();

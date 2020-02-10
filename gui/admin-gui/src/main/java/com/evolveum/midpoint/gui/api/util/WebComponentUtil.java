@@ -611,7 +611,7 @@ public final class WebComponentUtil {
 
         ObjectReferenceType ownerRef = new ObjectReferenceType();
         ownerRef.setOid(owner.getOid());
-        ownerRef.setType(owner.getUser().COMPLEX_TYPE);
+        ownerRef.setType(owner.getFocus().COMPLEX_TYPE);
         task.setOwnerRef(ownerRef);
 
         task.setBinding(TaskBindingType.LOOSE);
@@ -657,7 +657,7 @@ public final class WebComponentUtil {
             ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase) throws SchemaException {
 
         MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
-        operationalTask.setOwner(owner.getUser().asPrismObject());
+        operationalTask.setOwner(owner.getFocus().asPrismObject());
 
         operationalTask.setBinding(TaskBinding.LOOSE);
         operationalTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);

@@ -206,7 +206,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
                 if (user == null) {
                     throw new IllegalStateException("No authenticated user");
                 }
-                return WebModelServiceUtils.createSimpleTask(operationName, SchemaConstants.CHANNEL_GUI_USER_URI, user.getUser().asPrismObject(), taskManager);
+                return WebModelServiceUtils.createSimpleTask(operationName, SchemaConstants.CHANNEL_GUI_USER_URI, user.getFocus().asPrismObject(), taskManager);
             }
 
             @Override

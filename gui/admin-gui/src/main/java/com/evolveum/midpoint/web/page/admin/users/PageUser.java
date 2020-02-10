@@ -282,10 +282,6 @@ public class PageUser extends PageAdminFocus<UserType> {
         };
     }
 
-    protected boolean isSelfProfile(){
-        return false;
-    }
-
     private List<AssignmentEditorDto> loadDelegatedByMeAssignments() {
         OperationResult result = new OperationResult(OPERATION_LOAD_DELEGATED_BY_ME_ASSIGNMENTS);
         List<AssignmentEditorDto> list = new ArrayList<>();
@@ -421,7 +417,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     public boolean isLoggedInUserPage(){
         return getObjectWrapper() != null && getObjectWrapper().getObject() != null &&
                 StringUtils.isNotEmpty(getObjectWrapper().getObject().asObjectable().getOid()) &&
-                getObjectWrapper().getObject().asObjectable().getOid().equals(WebModelServiceUtils.getLoggedInUserOid());
+                getObjectWrapper().getObject().asObjectable().getOid().equals(WebModelServiceUtils.getLoggedInFocusOid());
     }
 
     protected int countConsents() {

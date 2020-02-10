@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.web.security.module;
 
-import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -17,9 +16,7 @@ import com.evolveum.midpoint.web.security.filter.MidpointSamlAuthenticationRespo
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.SamlAuthenticationEntryPoint;
-import com.evolveum.midpoint.web.security.util.KeyStoreKey;
-import org.opensaml.security.credential.impl.KeyStoreCredentialResolver;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
@@ -27,11 +24,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.saml.key.SimpleKey;
 import org.springframework.security.saml.provider.SamlProviderLogoutFilter;
 import org.springframework.security.saml.provider.SamlServerConfiguration;
-import org.springframework.security.saml.provider.provisioning.HostBasedSamlServiceProviderProvisioning;
 import org.springframework.security.saml.provider.provisioning.SamlProviderProvisioning;
 import org.springframework.security.saml.provider.service.ServiceProviderService;
 import org.springframework.security.saml.provider.service.config.SamlServiceProviderServerBeanConfiguration;
@@ -45,11 +39,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 
 import javax.servlet.Filter;
 
-import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static org.springframework.security.saml.util.StringUtils.stripEndingSlases;
 import static org.springframework.util.StringUtils.hasText;

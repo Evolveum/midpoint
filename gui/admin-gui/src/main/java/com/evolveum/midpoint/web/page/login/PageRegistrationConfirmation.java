@@ -123,7 +123,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
         OperationResult result = parentResult.createSubresult(OPERATION_CHECK_CREDENTIALS);
         try {
             ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
-            return getAuthenticationEvaluator().checkCredentials(connEnv, new NonceAuthenticationContext(username,
+            return (UserType) getAuthenticationEvaluator().checkCredentials(connEnv, new NonceAuthenticationContext(username, UserType.class,
                     nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
         } catch (AuthenticationException ex) {
             getSession().error(getString(ex.getMessage()));

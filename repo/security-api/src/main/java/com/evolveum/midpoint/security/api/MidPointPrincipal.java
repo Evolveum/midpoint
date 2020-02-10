@@ -9,8 +9,7 @@ package com.evolveum.midpoint.security.api;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -19,10 +18,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -36,18 +31,18 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
     private static final long serialVersionUID = 8299738301872077768L;
 
     // TODO: user may be switched to FocusType later (MID-4205)
-    @NotNull private final UserType user;
+    @NotNull private final FocusType focus;
     private Collection<Authorization> authorizations = new ArrayList<>();
     private ActivationStatusType effectiveActivationStatus;
     private SecurityPolicyType applicableSecurityPolicy;
     // TODO: or a set?
     @NotNull private final Collection<DelegatorWithOtherPrivilegesLimitations> delegatorWithOtherPrivilegesLimitationsCollection = new ArrayList<>();
-    private UserType attorney;
+    private FocusType attorney;
     private MidPointPrincipal previousPrincipal;
 
-    public MidPointPrincipal(@NotNull UserType user) {
-        Validate.notNull(user, "User must not be null.");
-        this.user = user;
+    public MidPointPrincipal(@NotNull FocusType focus) {
+        Validate.notNull(focus, "Focus must not be null.");
+        this.focus = focus;
     }
 
     /* (non-Javadoc)
@@ -72,7 +67,7 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
      */
     @Override
     public String getUsername() {
-        return getUser().getName().getOrig();
+        return getFocus().getName().getOrig();
     }
 
     /* (non-Javadoc)
@@ -108,13 +103,13 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
     @Override
     public boolean isEnabled() {
         if (effectiveActivationStatus == null) {
-            ActivationType activation = user.getActivation();
+            ActivationType activation = focus.getActivation();
             if (activation == null) {
                 effectiveActivationStatus = ActivationStatusType.ENABLED;
             } else {
                 effectiveActivationStatus = activation.getEffectiveStatus();
                 if (effectiveActivationStatus == null) {
-                    throw new IllegalArgumentException("Null effective activation status in "+user);
+                    throw new IllegalArgumentException("Null effective activation status in "+ focus);
                 }
             }
         }
@@ -129,31 +124,16 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
      * and the real logged-in user may be the attorney.
      */
     @NotNull
-    public UserType getUser() {
-        return user;
+    public FocusType getFocus() {
+        return focus;
     }
 
     public PolyStringType getName() {
-        return getUser().getName();
-    }
-
-    public String getFamilyName() {
-        PolyStringType string = getUser().getFamilyName();
-        return string != null ? string.getOrig() : null;
-    }
-
-    public String getFullName() {
-        PolyStringType string = getUser().getFullName();
-        return string != null ? string.getOrig() : null;
-    }
-
-    public String getGivenName() {
-        PolyStringType string = getUser().getGivenName();
-        return string != null ? string.getOrig() : null;
+        return getFocus().getName();
     }
 
     public String getOid() {
-        return getUser().getOid();
+        return getFocus().getOid();
     }
 
     /**
@@ -165,11 +145,11 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
      * attorney is in this property. The user that was the target of the
      * switch is stored in the "user" property.
      */
-    public UserType getAttorney() {
+    public FocusType getAttorney() {
         return attorney;
     }
 
-    public void setAttorney(UserType attorney) {
+    public void setAttorney(FocusType attorney) {
         this.attorney = attorney;
     }
 
@@ -206,7 +186,7 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
      * Semi-shallow clone.
      */
     public MidPointPrincipal clone() {
-        MidPointPrincipal clone = new MidPointPrincipal(this.user);
+        MidPointPrincipal clone = new MidPointPrincipal(this.focus);
         copyValues(clone);
         return clone;
     }
@@ -236,7 +216,7 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
     }
 
     protected void debugDumpInternal(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelLn(sb, "User", user.asPrismObject(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Focus", focus.asPrismObject(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Authorizations", authorizations, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Delegators with other privilege limitations", delegatorWithOtherPrivilegesLimitationsCollection, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "Attorney", attorney==null?null:attorney.asPrismObject(), indent + 1);
@@ -246,7 +226,7 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(this.getClass().getSimpleName()).append("(");
-        sb.append(user);
+        sb.append(focus);
         if (attorney != null) {
             sb.append(" [").append(attorney).append("]");
         }
@@ -256,18 +236,18 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
     }
 
     public ObjectReferenceType toObjectReference() {
-        if (user.getOid() == null) {
+        if (focus.getOid() == null) {
             return null;
         }
         ObjectReferenceType rv = new ObjectReferenceType();
         rv.setType(UserType.COMPLEX_TYPE);
-        rv.setOid(user.getOid());
+        rv.setOid(focus.getOid());
         return rv;
     }
 
     @Override
     public void shortDump(StringBuilder sb) {
-        sb.append(user);
+        sb.append(focus);
         if (attorney != null) {
             sb.append("[").append(attorney).append("]");
         }

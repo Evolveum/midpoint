@@ -33,7 +33,7 @@ import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.MidPointFocusProfilePrincipal;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
@@ -61,10 +61,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
@@ -689,21 +686,21 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return formValidatorRegistry;
     }
 
-    public MidPointUserProfilePrincipal getPrincipal() {
+    public MidPointFocusProfilePrincipal getPrincipal() {
         return SecurityUtils.getPrincipalUser();
     }
 
-    public UserType getPrincipalUser() {
+    public FocusType getPrincipalFocus() {
         MidPointPrincipal principal = getPrincipal();
         if (principal == null) {
             return null;
         }
-        return principal.getUser();
+        return principal.getFocus();
     }
 
     public boolean hasSubjectRoleRelation(String oid, List<QName> subjectRelations) {
-        UserType userType = getPrincipalUser();
-        if (userType == null) {
+        FocusType focusType = getPrincipalFocus();
+        if (focusType == null) {
             return false;
         }
 
@@ -711,7 +708,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             return false;
         }
 
-        for (ObjectReferenceType roleMembershipRef : userType.getRoleMembershipRef()) {
+        for (ObjectReferenceType roleMembershipRef : focusType.getRoleMembershipRef()) {
             if (oid.equals(roleMembershipRef.getOid()) &&
                     getPrismContext().relationMatches(subjectRelations, roleMembershipRef.getRelation())) {
                 return true;
@@ -747,7 +744,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         if (user == null) {
             throw new RestartResponseException(PageLogin.class);
         }
-        return WebModelServiceUtils.createSimpleTask(operation, channel, user.getUser().asPrismObject(), getTaskManager());
+        return WebModelServiceUtils.createSimpleTask(operation, channel, user.getFocus().asPrismObject(), getTaskManager());
     }
 
     public MidpointConfiguration getMidpointConfiguration() {
@@ -791,7 +788,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         menuToggle.add(createUserStatusBehaviour(true));
         container.add(menuToggle);
 
-        UserMenuPanel rightMenu = new UserMenuPanel(ID_RIGHT_MENU);
+        UserMenuPanel rightMenu = new UserMenuPanel(ID_RIGHT_MENU, this);
         rightMenu.add(createUserStatusBehaviour(true));
         container.add(rightMenu);
 
@@ -2051,8 +2048,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageSelfProfile.class);
         addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CREDENTIALS, "PageAdmin.menu.credentials",
                 PageSelfCredentials.class);
-        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_REQUEST, "PageAdmin.menu.request",
-                PageAssignmentShoppingCart.class);
+        if (WebModelServiceUtils.getLoggedInFocus() instanceof UserType) {
+            addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_REQUEST, "PageAdmin.menu.request",
+                    PageAssignmentShoppingCart.class);
+        }
 
         //GDPR feature.. temporary disabled MID-4281
 //        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CONSENT, "PageAdmin.menu.consent",
@@ -2375,16 +2374,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         menu.addAll(collectionMenuItems);
     }
 
-    public PrismObject<UserType> loadUserSelf() {
+    public PrismObject<? extends FocusType> loadUserSelf() {
         Task task = createSimpleTask(OPERATION_LOAD_USER);
         OperationResult result = task.getResult();
-        PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class,
-                WebModelServiceUtils.getLoggedInUserOid(), PageBase.this, task, result);
+        PrismObject<? extends FocusType> focus = WebModelServiceUtils.loadObject(FocusType.class,
+                WebModelServiceUtils.getLoggedInFocusOid(), PageBase.this, task, result);
         result.computeStatus();
 
         showResult(result, null, false);
 
-        return user;
+        return focus;
     }
 
     private VisibleEnableBehaviour createVisibleDisabledBehaviorForEditMenu(final Class<? extends WebPage> page) {
@@ -2538,9 +2537,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected void setTimeZone(PageBase page) {
-        PrismObject<UserType> user = loadUserSelf();
+        PrismObject<? extends FocusType> user = loadUserSelf();
         String timeZone = null;
-        MidPointUserProfilePrincipal principal = SecurityUtils.getPrincipalUser();
+        MidPointFocusProfilePrincipal principal = SecurityUtils.getPrincipalUser();
         if (user != null && user.asObjectable().getTimezone() != null) {
             timeZone = user.asObjectable().getTimezone();
         } else if (principal != null && principal.getCompiledUserProfile() != null) {

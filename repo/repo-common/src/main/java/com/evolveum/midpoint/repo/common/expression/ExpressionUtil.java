@@ -968,27 +968,27 @@ public class ExpressionUtil {
         // For other scripts we do it just before the execution, to catch all
         // possible places where scripts can be executed.
 
-        PrismObject<UserType> oldActor = (PrismObject<UserType>) scriptVariables.get(ExpressionConstants.VAR_ACTOR);
+        PrismObject<? extends FocusType> oldActor = (PrismObject<? extends FocusType>) scriptVariables.get(ExpressionConstants.VAR_ACTOR);
         if (oldActor != null) {
             return;
         }
 
-        PrismObject<UserType> actor = null;
+        PrismObject<? extends FocusType> actor = null;
         try {
             if (securityContextManager != null) {
                 if (!securityContextManager.isAuthenticated()) {
                     // This is most likely evaluation of role
                     // condition before
                     // the authentication is complete.
-                    PrismObjectDefinition<UserType> actorDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+                    PrismObjectDefinition<? extends FocusType> actorDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
                     scriptVariables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, null, actorDef);
                     return;
                 }
                 MidPointPrincipal principal = securityContextManager.getPrincipal();
                 if (principal != null) {
-                    UserType principalUser = principal.getUser();
-                    if (principalUser != null) {
-                        actor = principalUser.asPrismObject();
+                    FocusType principalFocus = principal.getFocus();
+                    if (principalFocus != null) {
+                        actor = principalFocus.asPrismObject();
                     }
                 }
             }
@@ -999,9 +999,9 @@ public class ExpressionUtil {
             LoggingUtils.logUnexpectedException(LOGGER,
                     "Couldn't get principal information - the 'actor' variable is set to null", e);
         }
-        PrismObjectDefinition<UserType> actorDef;
+        PrismObjectDefinition<? extends FocusType> actorDef;
         if (actor == null) {
-            actorDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+            actorDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(actor.asObjectable().getClass());
         } else {
             actorDef = actor.getDefinition();
         }

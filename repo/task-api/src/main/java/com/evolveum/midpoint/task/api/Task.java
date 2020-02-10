@@ -86,7 +86,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      *
      * @return task owner
      */
-    PrismObject<UserType> getOwner();
+    PrismObject<? extends FocusType> getOwner();
 
     /**
      * Sets the task owner.
@@ -94,7 +94,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * BEWARE: sets the owner only for in-memory information. So do not call this method for persistent tasks!
      * (until fixed)
      */
-    void setOwner(PrismObject<UserType> owner);
+    void setOwner(PrismObject<? extends FocusType> owner);
 
     /**
      * Returns human-readable name of the task.
