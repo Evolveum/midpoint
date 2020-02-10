@@ -39,6 +39,7 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
     private static final String ID_KEEP_DISPLAYING_RESULTS_CONTAINER = "keepDisplayingResultsContainer";
     private static final String ID_TRACING = "tracing";
     private static final String ID_TRACING_CONTAINER = "tracingContainer";
+    private static final String ID_SAVE_IN_BACKGROUND_CONTAINER = "saveInBackgroundContainer";
 
     private static final String FORCE_LABEL = "ExecuteChangeOptionsPanel.label.force";
     private static final String FORCE_HELP = "ExecuteChangeOptionsPanel.label.force.help";
@@ -50,6 +51,8 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
     private static final String EXECUTE_AFTER_ALL_APPROVALS_HELP = "ExecuteChangeOptionsPanel.label.executeAfterAllApprovals.help";
     private static final String KEEP_DISPLAYING_RESULTS_LABEL = "ExecuteChangeOptionsPanel.label.keepDisplayingResults";
     private static final String KEEP_DISPLAYING_RESULTS_HELP = "ExecuteChangeOptionsPanel.label.keepDisplayingResults.help";
+    private static final String SAVE_IN_BACKGROUND_LABEL = "ExecuteChangeOptionsPanel.label.saveInBackgroundLabel";
+    private static final String SAVE_IN_BACKGROUND_HELP = "ExecuteChangeOptionsPanel.label.saveInBackground.help";
 
     private final boolean showReconcile;
     private final boolean showReconcileAffected;
@@ -106,6 +109,12 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
                 new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_KEEP_DISPLAYING_RESULTS),
                 KEEP_DISPLAYING_RESULTS_LABEL,
                 KEEP_DISPLAYING_RESULTS_HELP,
+                showKeepDisplayingResults);
+
+        createContainer(ID_SAVE_IN_BACKGROUND_CONTAINER,
+                new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_SAVE_IN_BACKGROUND),
+                SAVE_IN_BACKGROUND_LABEL,
+                SAVE_IN_BACKGROUND_HELP,
                 showKeepDisplayingResults);
 
         WebMarkupContainer tracingContainer = new WebMarkupContainer(ID_TRACING_CONTAINER);
