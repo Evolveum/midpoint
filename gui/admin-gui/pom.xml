@@ -677,12 +677,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>asm</artifactId>
-                    <groupId>org.ow2.asm</groupId>
-                </exclusion>
-            </exclusions>
             <scope>test</scope>
         </dependency>
 
@@ -734,7 +728,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
             <scope>test</scope>
         </dependency>
 
@@ -818,42 +811,6 @@
             <artifactId>servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
-
-        <!-- Uncomment following if you want midpoint to be a part of SSO using CAS server-->
-        <!-- SSO CAS Client dependencies -->
-        <!-- <dependency>
-            <groupId>org.jasig.cas.client</groupId>
-            <artifactId>cas-client-integration-tomcat-v7</artifactId>
-            <version>${cas.client.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jasig.cas.client</groupId>
-            <artifactId>cas-client-core</artifactId>
-            <version>${cas.client.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>xercesImpl</artifactId>
-                    <groupId>xerces</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>xmltooling</artifactId>
-                    <groupId>org.opensaml</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>velocity</artifactId>
-                    <groupId>velocity</groupId>
-                </exclusion>
-            </exclusions>
-            <scope>runtime</scope>
-        </dependency>
-         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-cas</artifactId>
-            <version>${spring.security.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-         -->
 
         <!-- testing dependencies -->
         <dependency>
@@ -941,6 +898,32 @@
                 <configuration>
                     <verbose>false</verbose>
                     <offline>true</offline>
+                </configuration>
+            </plugin>
+            <!-- reference failsafe to run integration tests (surefire/units run by default) -->
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+
+            <!--
+            We use both main and test classes downstream.
+            We can't use JAR plugin for main classes, Maven requires different classifier than for
+            the main artifact (which is WAR for admin-gui).
+            -->
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <attachClasses>true</attachClasses>
                 </configuration>
             </plugin>
         </plugins>

@@ -19,11 +19,15 @@
 
     <name>midPoint Repository - test utils</name>
 
+    <properties>
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.xml.bind</groupId>
@@ -34,7 +38,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-impl</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.xml.bind</groupId>
@@ -45,42 +49,42 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-cache</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-api</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>test-util</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -135,21 +139,11 @@
         <dependency>
             <groupId>com.evolveum.icf</groupId>
             <artifactId>dummy-resource</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

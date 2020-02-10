@@ -293,7 +293,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <!--             <version>4.8.2</version> -->
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -312,4 +311,13 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- reference failsafe to run integration tests (surefire/units run by default) -->
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

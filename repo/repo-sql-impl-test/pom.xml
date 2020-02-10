@@ -199,6 +199,15 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <!-- reference failsafe to run integration tests (surefire/units run by default) -->
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
     <profiles>
         <profile>
             <id>dbtest</id>

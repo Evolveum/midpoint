@@ -16,61 +16,30 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.security.Key;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
 import javax.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
-import com.evolveum.midpoint.util.MiscUtil;
 import org.apache.commons.configuration2.Configuration;
 import org.identityconnectors.common.Version;
 import org.identityconnectors.common.security.Encryptor;
 import org.identityconnectors.common.security.EncryptorFactory;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.api.APIConfiguration;
-import org.identityconnectors.framework.api.ConfigurationProperties;
-import org.identityconnectors.framework.api.ConfigurationProperty;
-import org.identityconnectors.framework.api.ConnectorFacadeFactory;
-import org.identityconnectors.framework.api.ConnectorInfo;
-import org.identityconnectors.framework.api.ConnectorInfoManager;
-import org.identityconnectors.framework.api.ConnectorInfoManagerFactory;
-import org.identityconnectors.framework.api.ConnectorKey;
-import org.identityconnectors.framework.api.RemoteFrameworkConnectionInfo;
-import org.identityconnectors.framework.api.operations.APIOperation;
-import org.identityconnectors.framework.api.operations.AuthenticationApiOp;
-import org.identityconnectors.framework.api.operations.CreateApiOp;
-import org.identityconnectors.framework.api.operations.DeleteApiOp;
-import org.identityconnectors.framework.api.operations.GetApiOp;
-import org.identityconnectors.framework.api.operations.SchemaApiOp;
-import org.identityconnectors.framework.api.operations.ScriptOnConnectorApiOp;
-import org.identityconnectors.framework.api.operations.ScriptOnResourceApiOp;
-import org.identityconnectors.framework.api.operations.SearchApiOp;
-import org.identityconnectors.framework.api.operations.SyncApiOp;
-import org.identityconnectors.framework.api.operations.TestApiOp;
-import org.identityconnectors.framework.api.operations.UpdateApiOp;
-import org.identityconnectors.framework.api.operations.UpdateDeltaApiOp;
-import org.identityconnectors.framework.api.operations.ValidateApiOp;
+import org.identityconnectors.framework.api.*;
+import org.identityconnectors.framework.api.operations.*;
 import org.identityconnectors.framework.common.FrameworkUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -80,6 +49,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -96,7 +66,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  *
  * @author Radovan Semancik
  */
-
 @Component
 public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
@@ -157,9 +126,11 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryConnIdImpl.class);
 
-    // This is not really used in the code. It is here just to make sure that the JUL logger is loaded
-    // by the parent classloader so we can correctly adjust the log levels from the main code
-    static final java.util.logging.Logger JUL_LOGGER = java.util.logging.Logger.getLogger(ConnectorFactoryConnIdImpl.class.getName());
+    static {
+        // Forces JUL logger to be loaded by the parent classloader so we can correctly
+        // adjust the log levels from the main code.
+        java.util.logging.Logger.getLogger(ConnectorFactoryConnIdImpl.class.getName());
+    }
 
     private ConnectorInfoManagerFactory connectorInfoManagerFactory;
     private ConnectorInfoManager localConnectorInfoManager;
@@ -209,14 +180,10 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
     /**
      * Creates new connector instance.
-     *
+     * <p>
      * It will initialize the connector by taking the XML Resource definition,
      * transforming it to the ICF configuration and applying that to the new
      * connector instance.
-     *
-     * @throws ObjectNotFoundException
-     * @throws SchemaException
-     *
      */
     @Override
     public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String instanceName, String instanceDescription)
@@ -237,7 +204,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                 }
             }
             throw new ObjectNotFoundException("The classes (JAR) of " + ObjectTypeUtil.toShortString(connectorType)
-                    + " were not found by the ICF framework; bundle="+connectorType.getConnectorBundle()+" connector type=" + connectorType.getConnectorType() + ", version="+connectorType.getConnectorVersion());
+                    + " were not found by the ICF framework; bundle=" + connectorType.getConnectorBundle() + " connector type=" + connectorType.getConnectorType() + ", version=" + connectorType.getConnectorVersion());
         }
 
         PrismSchema connectorSchema = UcfUtil.getConnectorSchema(connectorType, prismContext);
@@ -255,8 +222,6 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
     /**
      * Returns a list XML representation of the ICF connectors.
-     *
-     * @throws CommunicationException
      */
     @Override
     public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentResult)
@@ -301,7 +266,6 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             // Lazy initialize connector list
             localConnectorTypes = new HashSet<>();
 
-
             // Fetch list of local connectors from ICF
             List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
 
@@ -340,11 +304,10 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
     /**
      * Converts ICF ConnectorInfo into a midPoint XML connector representation.
-     *
+     * <p>
      * TODO: schema transformation
      *
-     * @param hostType
-     *            host that this connector runs on or null for local connectors
+     * @param hostType host that this connector runs on or null for local connectors
      */
     private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType) throws SchemaException {
         ConnectorType connectorType = new ConnectorType();
@@ -375,25 +338,23 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
     /**
      * Converts ICF connector key to a simple string.
-     *
+     * <p>
      * The string may be used as an OID.
      */
     private String keyToNamespaceSuffix(ConnectorKey key) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(key.getBundleName());
-        sb.append(CONNECTOR_IDENTIFIER_SEPARATOR);
-        // Don't include version. It is lesser evil.
-        // sb.append(key.getBundleVersion());
-        // sb.append(CONNECTOR_IDENTIFIER_SEPARATOR);
-        sb.append(key.getConnectorName());
-        return sb.toString();
+        return key.getBundleName()
+                + CONNECTOR_IDENTIFIER_SEPARATOR
+                // Don't include version. It is lesser evil.
+                // + key.getBundleVersion();
+                // + CONNECTOR_IDENTIFIER_SEPARATOR;
+                + key.getConnectorName();
     }
 
     @Override
     public PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType) throws ObjectNotFoundException {
         ConnectorInfo cinfo = getConnectorInfo(connectorType);
         if (cinfo == null) {
-            throw new ObjectNotFoundException("Connector "+connectorType+" cannot be found by ConnId framework");
+            throw new ObjectNotFoundException("Connector " + connectorType + " cannot be found by ConnId framework");
         }
         return generateConnectorConfigurationSchema(cinfo, connectorType);
     }
@@ -484,7 +445,6 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         return connectorSchema;
     }
 
-
     /**
      * Returns ICF connector info manager that manages local connectors. The
      * manager will be created if it does not exist yet.
@@ -513,7 +473,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         try {
             key = new GuardedString(protector.decryptString(hostType.getSharedSecret()).toCharArray());
         } catch (EncryptionException e) {
-            throw new SystemException("Shared secret decryption error: "+e.getMessage(),e);
+            throw new SystemException("Shared secret decryption error: " + e.getMessage(), e);
         }
         Integer timeout = hostType.getTimeout();
         if (timeout == null) {
@@ -525,7 +485,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         }
         List<TrustManager> trustManagers = protector.getTrustManagers();
         LOGGER.trace("Creating RemoteFrameworkConnectionInfo: hostname={}, port={}, key={}, useSSL={}, trustManagers={}, timeout={}",
-                new Object[] {hostname, port, key, useSSL, trustManagers, timeout});
+                hostname, port, key, useSSL, trustManagers, timeout);
         RemoteFrameworkConnectionInfo remoteFramewrorkInfo = new RemoteFrameworkConnectionInfo(hostname, port, key, useSSL, trustManagers, timeout);
         return connectorInfoManagerFactory.getRemoteManager(remoteFramewrorkInfo);
     }
@@ -544,7 +504,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             // Search all jars in classpath
             en = ConnectorFactoryConnIdImpl.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
         } catch (IOException ex) {
-            LOGGER.debug("Error during reding content from class path");
+            LOGGER.debug("Error during reading content from class path");
+            // TODO return? or NPE on the while bellow?
         }
 
         // Find which one is ICF connector
@@ -593,10 +554,10 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                             LOGGER.error(e.getMessage(), e);
                         }
                     } else {
-                        LOGGER.warn("Skip loading ICF bundle {} due error occured", tmp);
+                        LOGGER.warn("Skip loading ICF bundle {} due error occurred", tmp);
                     }
                 } catch (MalformedURLException e) {
-                    LOGGER.error("This never happend we hope. URL:" + u.getPath(), e);
+                    LOGGER.error("This never happened we hope. URL:" + u.getPath(), e);
                     throw new SystemException(e);
                 }
             }
@@ -613,11 +574,10 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         return "file:" + string;
     }
 
+    // TODO: what is lval? does it return "bundle" or "bundles"?
+
     /**
      * Scan directory for bundles only on first lval we do the scan
-     *
-     * @param path
-     * @return
      */
     private Set<URI> scanDirectory(String path) {
 
@@ -628,17 +588,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
         // Test if this path is single jar or need to do deep examination
         if (isThisJarFileBundle(dir)) {
-            try {
-                final URI uri = dir.toURI();
-                if (isThisBundleCompatible(uri.toURL())) {
-                    bundle.add(uri);
-                } else {
-                    LOGGER.warn("Skip loading bundle {} due error occurred", uri.toURL());
-                }
-            } catch (MalformedURLException e) {
-                LOGGER.error("This never happened we hope.", e);
-                throw new SystemException(e);
-            }
+            addBundleIfEligible(bundle, dir);
             return bundle;
         }
 
@@ -655,33 +605,38 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         }
 
         // test all entries for bundle
-        for (int i = 0; i < dirEntries.length; i++) {
-            if (isThisJarFileBundle(dirEntries[i])) {
-                try {
-                    final URI uri = dirEntries[i].toURI();
-                    if (isThisBundleCompatible(uri.toURL())) {
-                        bundle.add(uri);
-                    } else {
-                        LOGGER.warn("Skip loading bundle {} due error occurred", uri.toURL());
-                    }
-                } catch (MalformedURLException e) {
-                    LOGGER.error("This never happened we hope.", e);
-                    throw new SystemException(e);
-                }
+        for (File dirEntry : dirEntries) {
+            if (isThisJarFileBundle(dirEntry)) {
+                addBundleIfEligible(bundle, dirEntry);
             }
         }
         return bundle;
     }
 
+    private void addBundleIfEligible(Set<URI> bundle, File dirEntry) {
+        try {
+            final URI uri = dirEntry.toURI();
+            if (isThisBundleCompatible(uri.toURL())) {
+                bundle.add(uri);
+            } else {
+                LOGGER.warn("Skip loading bundle {} due error occurred", uri.toURL());
+            }
+        } catch (MalformedURLException e) {
+            LOGGER.error("This never happened we hope.", e);
+            throw new SystemException(e);
+        }
+    }
+
     /**
      * Test if bundle internal configuration and dependencies are OK
-     * @param bundleUrl
-     *             tested bundle URL
+     *
+     * @param bundleUrl tested bundle URL
      * @return true if OK
      */
     private Boolean isThisBundleCompatible(URL bundleUrl) {
-        if (null == bundleUrl)
+        if (null == bundleUrl) {
             return false;
+        }
         try {
             ConnectorInfoManager localManager = ConnectorInfoManagerFactory.getInstance().getLocalManager(bundleUrl);
             List<ConnectorInfo> connectorInfos = localManager.getConnectorInfos();
@@ -694,9 +649,9 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             }
         } catch (Exception ex) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.error("Error instantiating ICF bundle using URL '{}': {}-{}", new Object[] { bundleUrl, ex.getMessage(), ex});
+                LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", bundleUrl, ex.getMessage(), ex);
             } else {
-                LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage()});
+                LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", bundleUrl, ex.getMessage());
             }
             return false;
         }
@@ -705,8 +660,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     /**
      * Test if provided file is connector bundle
      *
-     * @param file
-     *            tested file
+     * @param file tested file
      * @return boolean
      */
     private Boolean isThisJarFileBundle(File file) {
@@ -722,7 +676,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         }
 
         Properties prop = new Properties();
-        JarFile jar = null;
+        JarFile jar;
         // Open jar file
         try {
             jar = new JarFile(file);
@@ -745,10 +699,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         // Parse jar file
         try {
             prop.load(is);
-        } catch (IOException ex) {
-            LOGGER.debug("Unable to parse jar file: " + file.getAbsolutePath() + " [" + ex.getMessage() + "]");
-            return false;
-        } catch (NullPointerException ex) {
+        } catch (IOException | NullPointerException ex) {
             LOGGER.debug("Unable to parse jar file: " + file.getAbsolutePath() + " [" + ex.getMessage() + "]");
             return false;
         }
@@ -765,11 +716,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     }
 
     /**
-     * Get contect informations
-     *
-     * @param connectorType
-     * @return
-     * @throws ObjectNotFoundException
+     * Get connector information.
      */
     private ConnectorInfo getConnectorInfo(ConnectorType connectorType) throws ObjectNotFoundException {
         if (!SchemaConstants.ICF_FRAMEWORK_URI.equals(connectorType.getFramework())) {
@@ -831,16 +778,10 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                 keyField.setAccessible(true);
                 Key key = (Key) keyField.get(encryptor);
                 subresult.addReturn("keyAlgorithm", key.getAlgorithm());
-                subresult.addReturn("keyLength", key.getEncoded().length*8);
+                subresult.addReturn("keyLength", key.getEncoded().length * 8);
                 subresult.addReturn("keyFormat", key.getFormat());
                 subresult.recordSuccess();
-            } catch (IllegalArgumentException e) {
-                subresult.recordPartialError("Reflection introspection failed", e);
-            } catch (IllegalAccessException e) {
-                subresult.recordPartialError("Reflection introspection failed", e);
-            } catch (NoSuchFieldException e) {
-                subresult.recordPartialError("Reflection introspection failed", e);
-            } catch (SecurityException e) {
+            } catch (IllegalArgumentException | SecurityException | NoSuchFieldException | IllegalAccessException e) {
                 subresult.recordPartialError("Reflection introspection failed", e);
             }
         }
@@ -852,15 +793,14 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             byte[] decryptedBytes = encryptor.decrypt(encryptedBytes);
             String decryptedString = new String(decryptedBytes);
             if (!plainString.equals(decryptedString)) {
-                encryptorSubresult.recordFatalError("Encryptor roundtrip failed; encrypted="+plainString+", decrypted="+decryptedString);
+                encryptorSubresult.recordFatalError("Encryptor roundtrip failed; encrypted=" + plainString + ", decrypted=" + decryptedString);
             } else {
                 encryptorSubresult.recordSuccess();
             }
         } catch (Throwable e) {
             LOGGER.error("Encryptor operation error: {}", e.getMessage(), e);
-            encryptorSubresult.recordFatalError("Encryptor opeation error: " + e.getMessage(), e);
+            encryptorSubresult.recordFatalError("Encryptor operation error: " + e.getMessage(), e);
         }
-
 
         final OperationResult guardedStringSubresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.guardedString");
         // try to encrypt and decrypt GuardedString
@@ -873,14 +813,14 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                 @Override
                 public void access(char[] decryptedChars) {
                     if (!(new String(decryptedChars)).equals(origString)) {
-                        guardedStringSubresult.recordFatalError("GuardeString roundtrip failed; encrypted="+origString+", decrypted="+(new String(decryptedChars)));
+                        guardedStringSubresult.recordFatalError("GuardedString roundtrip failed; encrypted=" + origString + ", decrypted=" + (new String(decryptedChars)));
                     }
                 }
             });
             guardedStringSubresult.recordSuccessIfUnknown();
         } catch (Throwable e) {
             LOGGER.error("GuardedString operation error: {}", e.getMessage(), e);
-            guardedStringSubresult.recordFatalError("GuardedString opeation error: " + e.getMessage(), e);
+            guardedStringSubresult.recordFatalError("GuardedString operation error: " + e.getMessage(), e);
         }
 
         result.computeStatus();

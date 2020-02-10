@@ -15,38 +15,20 @@
         <version>4.1-SNAPSHOT</version>
     </parent>
 
+    <groupId>com.evolveum.icf</groupId>
     <artifactId>icf-connectors</artifactId>
     <packaging>pom</packaging>
 
     <name>midPoint Icf Connectors</name>
+
+    <properties>
+        <!-- No test in any of submodules at the moment -->
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
 
     <modules>
         <module>dummy-connector</module>
         <module>dummy-connector-fake</module>
         <module>dummy-resource</module>
     </modules>
-
-    <dependencies>
-        <!-- Required for surefire plugin not to complain -->
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>test-ng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <!-- reference failsafe to run integration tests (surefire/units run by default) -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 </project>
