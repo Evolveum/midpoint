@@ -1001,7 +1001,7 @@ public class ExpressionUtil {
         }
         PrismObjectDefinition<? extends FocusType> actorDef;
         if (actor == null) {
-            actorDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(actor.asObjectable().getClass());
+            actorDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         } else {
             actorDef = actor.getDefinition();
         }
