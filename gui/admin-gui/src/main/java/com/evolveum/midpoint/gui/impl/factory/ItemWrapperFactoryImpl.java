@@ -201,7 +201,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
     }
 
     private boolean determineShowInVirtualContainer(IW itemWrapper, WrapperContext context) {
-        List<VirtualContainersSpecificationType> virtualContainers = context.getVirtualContainers();
+        Collection<VirtualContainersSpecificationType> virtualContainers = context.getVirtualContainers();
 
         if (virtualContainers == null) {
             return false;

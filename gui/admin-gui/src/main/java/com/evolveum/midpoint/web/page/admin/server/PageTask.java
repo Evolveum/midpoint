@@ -4,12 +4,14 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -344,14 +346,32 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 tabs.add(new AbstractTab(createStringResource("pageTask.basic.title")) {
                     @Override
                     public WebMarkupContainer getPanel(String panelId) {
-                        return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, getObjectModel());
+                        ItemVisibilityHandler visibilityHandler = wrapper -> getBasicTabVisibility(wrapper.getPath());
+                        return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, getObjectModel(), visibilityHandler);
                     }
                 });
 
                 tabs.add(new AbstractTab(createStringResource("pageTask.schedule.title")) {
                     @Override
                     public WebMarkupContainer getPanel(String panelId) {
-                        return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_SCHEDULE));
+                        ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
+                        return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_SCHEDULE), visibilityHandler);
+                    }
+                });
+
+                tabs.add(new AbstractTab(createStringResource("pageTask.workManagement.title")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
+                        return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_WORK_MANAGEMENT), visibilityHandler);
+                    }
+                });
+
+                tabs.add(new AbstractTab(createStringResource("pageTask.cleanupPolicies.title")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
+                        return createContainerPanel(panelId, TaskType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES)), visibilityHandler);
                     }
                 });
 
@@ -419,10 +439,10 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
 
 
-    private <C extends Containerable> Panel createContainerPanel(String id, QName typeName, IModel<? extends PrismContainerWrapper<C>> model) {
+    private <C extends Containerable> Panel createContainerPanel(String id, QName typeName, IModel<? extends PrismContainerWrapper<C>> model, ItemVisibilityHandler visibilityHandler) {
             try {
                 ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
-                        .visibilityHandler(wrapper -> getVisibility(wrapper.getPath()))
+                        .visibilityHandler(visibilityHandler)
                         .showOnTopLevel(true);
                 Panel panel = initItemPanel(id, typeName, model, builder.build());
                 return panel;
@@ -434,7 +454,10 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             return null;
     }
 
-    private ItemVisibility getVisibility(ItemPath path) {
+    private ItemVisibility getBasicTabVisibility(ItemPath path) {
+        if (ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES).equivalent(path)) {
+            return ItemVisibility.HIDDEN;
+        }
         return ItemVisibility.AUTO;
     }
 

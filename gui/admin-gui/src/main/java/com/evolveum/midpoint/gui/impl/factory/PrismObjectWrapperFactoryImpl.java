@@ -64,7 +64,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             context.setObjectStatus(status);
         }
 
-        List<VirtualContainersSpecificationType> virtualContainers = determineVirtualContainers(object, context);
+        Collection<VirtualContainersSpecificationType> virtualContainers = modelInteractionService.determineVirtualContainers(object, context.getTask(), context.getResult());
         context.setVirtualContainers(virtualContainers);
 
         PrismObjectWrapper<O> objectWrapper = createObjectWrapper(object, status);
@@ -132,63 +132,63 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         return objectValueWrapper;
     }
 
-    private List<VirtualContainersSpecificationType> determineVirtualContainers(PrismObject<O> object, WrapperContext context) {
-
-        OperationResult result = context.getResult().createMinorSubresult(OPERATION_DETERMINE_VIRTUAL_CONTAINERS);
-        if (AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
-
-            try {
-                ArchetypePolicyType archetypePolicyType = modelInteractionService.determineArchetypePolicy((PrismObject) object, result);
-                if (archetypePolicyType != null) {
-                    ArchetypeAdminGuiConfigurationType archetyAdminGui = archetypePolicyType.getAdminGuiConfiguration();
-                    if (archetyAdminGui != null) {
-                        GuiObjectDetailsPageType guiDetails = archetyAdminGui.getObjectDetails();
-                        if (guiDetails != null) {
-                            return guiDetails.getContainer();
-                        }
-                    }
-                }
-            } catch (SchemaException | ConfigurationException e) {
-                LOGGER.error("Cannot determine virtual containers for {}, reason: {}", object, e.getMessage(), e);
-                result.recordPartialError("Cannot determine virtual containers for " + object + ", reason: " + e.getMessage(), e);
-                return null;
-            }
-
-        }
-
-        QName objectType = object.getDefinition().getTypeName();
-        try {
-            CompiledUserProfile userProfile = modelInteractionService.getCompiledUserProfile(context.getTask(), context.getResult());
-            GuiObjectDetailsSetType objectDetailsSetType = userProfile.getObjectDetails();
-            if (objectDetailsSetType == null) {
-                result.recordSuccess();
-                return null;
-            }
-            List<GuiObjectDetailsPageType> detailsPages = objectDetailsSetType.getObjectDetailsPage();
-            for (GuiObjectDetailsPageType detailsPage : detailsPages) {
-                if (objectType == null) {
-                    LOGGER.trace("Object type is not known, skipping considering custom details page settings.");
-                    continue;
-                }
-                if (detailsPage.getType() == null) {
-                    LOGGER.trace("Object type for details page {} not know, skipping considering custom details page settings.", detailsPage);
-                    continue;
-                }
-
-                if (QNameUtil.match(objectType, detailsPage.getType())) {
-                    result.recordSuccess();
-                    return detailsPage.getContainer();
-                }
-            }
-            result.recordSuccess();
-            return null;
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
-            LOGGER.error("Cannot determine virtual containers for {}, reason: {}", objectType, e.getMessage(), e);
-            result.recordPartialError("Cannot determine virtual containers for " + objectType + ", reason: " + e.getMessage(), e);
-            return null;
-        }
-
-    }
+//    private List<VirtualContainersSpecificationType> determineVirtualContainers(PrismObject<O> object, WrapperContext context) {
+//
+//        OperationResult result = context.getResult().createMinorSubresult(OPERATION_DETERMINE_VIRTUAL_CONTAINERS);
+//        if (AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
+//
+//            try {
+//                ArchetypePolicyType archetypePolicyType = modelInteractionService.determineArchetypePolicy((PrismObject) object, result);
+//                if (archetypePolicyType != null) {
+//                    ArchetypeAdminGuiConfigurationType archetyAdminGui = archetypePolicyType.getAdminGuiConfiguration();
+//                    if (archetyAdminGui != null) {
+//                        GuiObjectDetailsPageType guiDetails = archetyAdminGui.getObjectDetails();
+//                        if (guiDetails != null) {
+//                            return guiDetails.getContainer();
+//                        }
+//                    }
+//                }
+//            } catch (SchemaException | ConfigurationException e) {
+//                LOGGER.error("Cannot determine virtual containers for {}, reason: {}", object, e.getMessage(), e);
+//                result.recordPartialError("Cannot determine virtual containers for " + object + ", reason: " + e.getMessage(), e);
+//                return null;
+//            }
+//
+//        }
+//
+//        QName objectType = object.getDefinition().getTypeName();
+//        try {
+//            CompiledUserProfile userProfile = modelInteractionService.getCompiledUserProfile(context.getTask(), context.getResult());
+//            GuiObjectDetailsSetType objectDetailsSetType = userProfile.getObjectDetails();
+//            if (objectDetailsSetType == null) {
+//                result.recordSuccess();
+//                return null;
+//            }
+//            List<GuiObjectDetailsPageType> detailsPages = objectDetailsSetType.getObjectDetailsPage();
+//            for (GuiObjectDetailsPageType detailsPage : detailsPages) {
+//                if (objectType == null) {
+//                    LOGGER.trace("Object type is not known, skipping considering custom details page settings.");
+//                    continue;
+//                }
+//                if (detailsPage.getType() == null) {
+//                    LOGGER.trace("Object type for details page {} not know, skipping considering custom details page settings.", detailsPage);
+//                    continue;
+//                }
+//
+//                if (QNameUtil.match(objectType, detailsPage.getType())) {
+//                    result.recordSuccess();
+//                    return detailsPage.getContainer();
+//                }
+//            }
+//            result.recordSuccess();
+//            return null;
+//        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
+//            LOGGER.error("Cannot determine virtual containers for {}, reason: {}", objectType, e.getMessage(), e);
+//            result.recordPartialError("Cannot determine virtual containers for " + objectType + ", reason: " + e.getMessage(), e);
+//            return null;
+//        }
+//
+//    }
 
     /**
      * @param object apply security constraint to the object, update wrapper context with additional information, e.g. shadow related attributes, ...
