@@ -15,6 +15,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
+import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil.Channel;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
@@ -65,6 +66,8 @@ public class AuditSearchDto implements Serializable {
     private List<ObjectType> valueRefTargetNames;
     private ObjectCollectionType collection;
     private String resourceOid;
+
+    private ItemPathPanel.ItemPathPanelMode changedItemPanelMode = ItemPathPanel.ItemPathPanelMode.NAMESPACE_MODE;
 
     public AuditSearchDto() {
     }
@@ -199,5 +202,13 @@ public class AuditSearchDto implements Serializable {
 
     public void setResourceOid(String resourceOid) {
         this.resourceOid = resourceOid;
+    }
+
+    public ItemPathPanel.ItemPathPanelMode getChangedItemPanelMode() {
+        return changedItemPanelMode;
+    }
+
+    public void setChangedItemPanelMode(ItemPathPanel.ItemPathPanelMode changedItemPanelMode) {
+        this.changedItemPanelMode = changedItemPanelMode;
     }
 }

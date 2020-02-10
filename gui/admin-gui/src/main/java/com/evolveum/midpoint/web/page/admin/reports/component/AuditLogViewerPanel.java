@@ -220,7 +220,18 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         resourceOidContainer.add(getHelpComponent(ID_RESOURCE_OID_FIELD_HELP, ""));
 
         ItemPathPanel changedItemPanel = new ItemPathPanel(ID_CHANGED_ITEM, new PropertyModel<>(getModel(),
-            AuditSearchDto.F_CHANGED_ITEM));
+            AuditSearchDto.F_CHANGED_ITEM), true, getAuditLogStorage() != null ?
+                getAuditLogStorage().getSearchDto().getChangedItemPanelMode() : ItemPathPanel.ItemPathPanelMode.NAMESPACE_MODE){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void switchButtonClickPerformed(AjaxRequestTarget target){
+                super.switchButtonClickPerformed(target);
+                if (getAuditLogStorage() != null){
+                    getAuditLogStorage().getSearchDto().setChangedItemPanelMode(getPanelMode());
+                }
+            }
+        };
         changedItemPanel.setOutputMarkupId(true);
         parametersPanel.add(changedItemPanel);
         parametersPanel.add(getHelpComponent(ID_CHANGED_ITEM_FIELD_HELP, ""));
@@ -534,7 +545,10 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         if (!targetOids.isEmpty()) {
             parameters.put(AuditEventRecordProvider.PARAMETER_TARGET_NAMES, targetOids);
         }
-        if (search.getChangedItem().toItemPath() != null) {
+        if (getAuditLogStorage() != null &&
+                ItemPathPanel.ItemPathPanelMode.TEXT_MODE.equals(getAuditLogStorage().getSearchDto().getChangedItemPanelMode())) {
+            parameters.put(AuditEventRecordProvider.PARAMETER_CHANGED_ITEM, search.getChangedItem().getPathStringValue());
+        } else if (search.getChangedItem().toItemPath() != null) {
             ItemPath itemPath = search.getChangedItem().toItemPath();
             parameters.put(AuditEventRecordProvider.PARAMETER_CHANGED_ITEM, getPrismContext().createCanonicalItemPath(itemPath).asString());
         }
@@ -825,5 +839,9 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             LOGGER.error("Cannot load audit configuration: {}", ex.getMessage());
         }
         return false;
+    }
+
+    private ItemPathPanel getChangedItemPanel(){
+        return (ItemPathPanel) get(getPageBase().createComponentPath(ID_MAIN_FORM, ID_PARAMETERS_PANEL, ID_CHANGED_ITEM));
     }
 }

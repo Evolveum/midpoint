@@ -9,7 +9,33 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <!-- see https://maven.apache.org/developers/conventions/code.html for recommended element order -->
+
+    <!--
+    Notes:
+    - See https://maven.apache.org/developers/conventions/code.html for recommended element order.
+    - Most information is inherited from this parent, no need to repeat license, organization, etc.
+    - Some JAR modules are pure-test, no main sources - deploy/install is skipped for these, otherwise it fails with:
+    "The packaging for this project did not assign a file to the build artifact"
+    - Some modules have explicit maven.test.skip=true to disable test plugins coming from parents.
+    - Maven's failsafe plugin is declared in build/plugin only in modules that need it.
+    This by default uses testng-integration.xml suite file, but see property integrationTestSuite
+    for other possibilities (mostly to make build faster by running only most important int-tests).
+    - Test JARs of some modules are created, installed/deployed and used downstream (search for test-jar).
+
+    VARIOUS MVN COMMANDS
+
+    Quick run without any tests:
+    mvn clean install -P -dist -DskipTests -Dmaven.javadoc.skip -Dcheckstyle.skip
+
+    "Quick" build with unit tests only and checkstyle:
+    mvn clean install -P -dist -DskipITs -Dmaven.javadoc.skip
+
+    "Quick" build with smaller integration test set:
+    mvn clean install -P -dist -DintegrationTestSuite=fast -Dmaven.javadoc.skip
+
+    Long test run (with 16g on CI server, but this should work too - isn't Xmx even unnecessary?), runs just under 900 tests:
+    mvn -P tomcat,extratest clean install -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
+    -->
 
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>midpoint</artifactId>
@@ -26,6 +52,11 @@
         <license>
             <name>Apache License v2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+        <license>
+            <name>European Union Public License</name>
+            <url>https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -78,6 +109,14 @@
         <git.describe>${describe}</git.describe>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>EEE, d MMM yyyy HH:mm:ss Z</maven.build.timestamp.format>
+        <surefire.args>-Xms1024m -Xmx4096m</surefire.args>
+        <failsafe.args>-Xms1024m -Xmx4096m -Duser.language=en</failsafe.args>
+        <!--
+        Some modules support "full" or "fast" suite for integration tests.
+        This can be used as command line switch for mvn: -DintegrationTestSuite=fast
+        See model/model-intest for example, how to do it.
+        -->
+        <integrationTestSuite>full</integrationTestSuite>
 
         <!-- Dependencies global versions -->
         <commons.io.version>2.6</commons.io.version>
@@ -91,7 +130,6 @@
         <jaxb-api.version>2.3.1</jaxb-api.version>
         <jaxb.version>2.3.0.1</jaxb.version>
         <jaxb-xjc.version>2.3.0.1</jaxb-xjc.version>
-        <junit.version>4.8.2</junit.version>
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.0.e3</quartz.version>
         <selenium.version>3.141.59</selenium.version>
@@ -168,12 +206,31 @@
             </dependency>
 
             <dependency>
+                <!-- TODO: if we have this import, consider removing other Spring declarations -->
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring.boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <version>${spring.boot.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm</artifactId>
+                    </exclusion>
+                    <!--
+                    I'd love to do it, WicketTester from wicket-core (and perhaps others) uses it, so we rather leave it here.
+                    <exclusion>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                    </exclusion>
+                    -->
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -271,6 +328,24 @@
                 <artifactId>groovy-all</artifactId>
                 <version>${groovy.version}</version>
                 <type>pom</type>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-ant</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-test-junit5</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-test</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-testng</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.groovy</groupId>
@@ -1081,23 +1156,6 @@
                         <groupId>javax.xml.stream</groupId>
                         <artifactId>stax-api</artifactId>
                     </exclusion>
-                    <!-- use in midPoint 3.2
-                    <exclusion>
-                        <groupId>org.apache.lucene</groupId>
-                        <artifactId>lucene-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.lucene</groupId>
-                        <artifactId>lucene-analyzers-common</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.lucene</groupId>
-                        <artifactId>lucene-queryparser</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>jfree</groupId>
-                        <artifactId>jfreechart</artifactId>
-                    </exclusion> -->
                 </exclusions>
             </dependency>
             <!-- report dependency (needed for microsoft office formats) -->
@@ -1580,8 +1638,8 @@
                             <Organization>Evolveum</Organization>
                             <Organization-URL>http://www.evolveum.com</Organization-URL>
                             <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
-                            <License>Apache License 2.0</License>
-                            <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
+                            <License>dual-licensed under the Apache License 2.0 and European Union Public License</License>
+                            <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
                         </manifestEntries>
                     </archive>
                     <attachClasses>true</attachClasses>
@@ -1855,23 +1913,6 @@
                             <goals>
                                 <goal>test</goal>
                             </goals>
-                            <configuration>
-                                <suiteXmlFiles>
-                                    <suiteXmlFile>testng-unit.xml</suiteXmlFile>
-                                </suiteXmlFiles>
-                                <properties>
-                                    <property>
-                                        <name>suitename</name>
-                                        <value>Unit</value>
-                                    </property>
-                                    <property>
-                                        <name>listener</name>
-                                        <value>
-                                            com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener
-                                        </value>
-                                    </property>
-                                </properties>
-                            </configuration>
                         </execution>
                     </executions>
                     <configuration>
@@ -1891,18 +1932,32 @@
                             <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties
                             </java.util.logging.config.file>
                         </systemPropertyVariables>
-                        <!--argLine>-Xms16g -Xmx16g</argLine-->
-                        <argLine>-Xms1024m -Xmx4096m</argLine>
+                        <argLine>${surefire.args}</argLine>
                         <!--<argLine>-agentpath:/usr/local/yjp-11.0.10/bin/linux-x86-64/libyjpagent.so=alloceach=10,allocsizelimit=1048576,sampling,walltimespec=/home/lazyman/.yjp/config/.walltime,noj2ee,profileruipath=/usr/local/yjp-11.0.10/bin/yjp.sh,onexit=snapshot
                             -Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine> -->
 
-                        <!-- it's used for bamboo build to load jdbc libraries which can not
+                        <!-- it's used for CI build to load JDBC libraries which can not
                             be installed to public maven repository (MS SQL, ORACLE) -->
                         <additionalClasspathElements>
                             <additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
                             <!-- used running tests on windows machines -->
                             <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
                         </additionalClasspathElements>
+                        <suiteXmlFiles>
+                            <suiteXmlFile>testng-unit.xml</suiteXmlFile>
+                        </suiteXmlFiles>
+                        <properties>
+                            <property>
+                                <name>suitename</name>
+                                <value>Unit</value>
+                            </property>
+                            <property>
+                                <name>listener</name>
+                                <value>
+                                    com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener
+                                </value>
+                            </property>
+                        </properties>
                     </configuration>
                     <dependencies>
                         <dependency>
@@ -1924,38 +1979,39 @@
                                 <goal>integration-test</goal>
                                 <goal>verify</goal>
                             </goals>
-                            <configuration>
-                                <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                                <systemPropertyVariables>
-                                    <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
-                                    <midpoint.home>target/midpoint-home</midpoint.home>
-                                    <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
-                                </systemPropertyVariables>
-                                <argLine>-Xms1024m -Xmx4096m -Duser.language=en</argLine>
-                                <!--argLine>-Xms16g -Xmx16g -Duser.language=en</argLine-->
-                                <suiteXmlFiles>
-                                    <suiteXmlFile>testng-integration.xml</suiteXmlFile>
-                                </suiteXmlFiles>
-                                <properties>
-                                    <property>
-                                        <name>suitename</name>
-                                        <value>Integration</value>
-                                    </property>
-                                    <property>
-                                        <name>listener</name>
-                                        <value>com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener</value>
-                                    </property>
-                                </properties>
-                                <!-- it's used for bamboo build to load jdbc libraries which can not
-                                                            be installed to public maven repository (MS SQL, ORACLE) -->
-                                <additionalClasspathElements>
-                                    <additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
-                                    <!-- used running tests on windows machines -->
-                                    <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
-                                </additionalClasspathElements>
-                            </configuration>
                         </execution>
                     </executions>
+                    <configuration>
+                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        <systemPropertyVariables>
+                            <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
+                            <midpoint.home>target/midpoint-home</midpoint.home>
+                            <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
+                        </systemPropertyVariables>
+                        <argLine>${failsafe.args}</argLine>
+                        <suiteXmlFiles>
+                            <suiteXmlFile>testng-integration.xml</suiteXmlFile>
+                        </suiteXmlFiles>
+                        <properties>
+                            <property>
+                                <name>suitename</name>
+                                <value>Integration</value>
+                            </property>
+                            <property>
+                                <name>listener</name>
+                                <value>com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener</value>
+                            </property>
+                        </properties>
+                        <!--
+                        It's used for CI build to load JDBC libraries which can not
+                        be installed to public maven repository (MS SQL, ORACLE).
+                        -->
+                        <additionalClasspathElements>
+                            <additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
+                            <!-- used running tests on windows machines -->
+                            <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
+                        </additionalClasspathElements>
+                    </configuration>
                 </plugin>
 
                 <plugin>

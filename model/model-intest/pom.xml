@@ -21,11 +21,9 @@
     <name>midPoint Model - integration tests</name>
 
     <properties>
-        <!--
-        module doesn't have main/src, without this we'd get:
-        The packaging for this project did not assign a file to the build artifact
-        -->
+        <!-- see notes in main midPoint POM -->
         <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <dependencies>
@@ -360,6 +358,19 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>testng-integration-${integrationTestSuite}.xml</suiteXmlFile>
+                    </suiteXmlFiles>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <profiles>
         <profile>
             <id>dbtest</id>
@@ -369,20 +380,12 @@
             <build>
                 <plugins>
                     <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <suiteXmlFiles>
-                                <suiteXmlFile>testng-integration.xml</suiteXmlFile>
-                                <suiteXmlFile>testng-db-specific.xml</suiteXmlFile>        <!-- these tests cannot be run under H2 -->
-                            </suiteXmlFiles>
-                        </configuration>
-                    </plugin>
-                    <plugin>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
                             <suiteXmlFiles>
-                                <suiteXmlFile>testng-integration.xml</suiteXmlFile>
-                                <suiteXmlFile>testng-db-specific.xml</suiteXmlFile>        <!-- these tests cannot be run under H2 -->
+                                <suiteXmlFile>testng-integration-${integrationTestSuite}.xml</suiteXmlFile>
+                                <!-- these tests cannot be run under H2 -->
+                                <suiteXmlFile>testng-db-specific.xml</suiteXmlFile>
                             </suiteXmlFiles>
                         </configuration>
                     </plugin>

@@ -17,11 +17,21 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="itemPath">
-        <div wicket:id="namespace"/>
-        <div wicket:id="definition"/>
-        <button wicket:id="plus" class="btn btn-box-tool" trigger="hover"><i class="fa fa-plus-circle"></i></button>
-        <button wicket:id="minus" class="btn btn-box-tool" trigger="hover"><i class="fa fa-minus-circle"></i></button>
+    <div class="row" wicket:id="itemPath">
+        <div class="pull-left" style="width: 90%;">
+            <div wicket:id="namespaceModeConteiner">
+                <div wicket:id="namespace"/>
+                <div wicket:id="definition"/>
+                <button wicket:id="plus" class="btn btn-box-tool" trigger="hover"><i class="fa fa-plus-circle"></i></button>
+                <button wicket:id="minus" class="btn btn-box-tool" trigger="hover"><i class="fa fa-minus-circle"></i></button>
+            </div>
+            <div wicket:id="itemPathTextField"/>
+        </div>
+        <div>
+            <button wicket:id="switchToTextFieldButton" class="btn switch-button" trigger="hover">
+                <i class="fa fa-share-square-o"></i>
+            </button>
+        </div>
     </div>
 
     <div wicket:id="itemPathContainer">

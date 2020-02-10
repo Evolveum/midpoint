@@ -75,12 +75,16 @@
             <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>
@@ -148,64 +152,10 @@
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.tools</groupId>
+            <artifactId>test-ng</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <!-- Code generator may be used in Prism in the "pure" form without any prism-specific plugins.
-             This creates the classes for basic (almost-primitive) data types such as PolyStringType.
-             But ... the JAXB-generated classes are not that useful. They may reflect the schema well, but
-             there are glitches. E.g. the JAXB classes generated for query namespace are completely useless.
-             The default JAXB-generated class for PolyStringType is also useless. Therefore the classes that
-             were generated from the schema are copied to the "main" source tree in the form that suits us
-             better than just blindly following the schema. Therefore the following plugin is commented out.
-             It may be used in case that the schemas change and we need to re-generate and re-tweak them.
-             But the plugin should be disabled during normal build. -->
-            <!-- <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.8.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <verbose>true</verbose>
-                            <catalog>src/main/resources/META-INF/catalog.xml</catalog>
-                            <extension>true</extension>
-                            <schemaDirectory>src/main/resources/xml/ns/public</schemaDirectory>
-                            <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>  -->
-            <!--
-             Following plugin generates the JAXB classes for prism tests.
-             We can't really test full JAXB capabilities here as we get the proper JAXB plugin code
-             only after Prism is compiled.
-             This plugin is not really needed during normal build.
-             The classes that we need are hard-copied into the prism test source tree.
-             Disabling this plugin speeds up the compilation. -->
-            <!--
-           <plugin>
-               <groupId>org.jvnet.jaxb2.maven2</groupId>
-               <artifactId>maven-jaxb2-plugin</artifactId>
-               <version>0.8.0</version>
-               <executions>
-                   <execution>
-                       <goals>
-                           <goal>generate</goal>
-                       </goals>
-                       <configuration>
-                           <verbose>true</verbose>
-                           <catalog>src/main/resources/META-INF/catalog.xml</catalog>
-                           <extension>true</extension>
-                           <schemaDirectory>src/main/resources/xml/ns/test</schemaDirectory>
-                           <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
-                       </configuration>
-                   </execution>
-               </executions>
-           </plugin>  -->
-        </plugins>
-    </build>
 </project>

@@ -19,30 +19,6 @@
 
     <name>midPoint Testing - Story Tests</name>
 
-    <properties>
-        <!--
-        module doesn't have main/src, without this we'd get:
-        The packaging for this project did not assign a file to the build artifact
-        -->
-        <maven.install.skip>true</maven.install.skip>
-    </properties>
-
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <runOrder>alphabetical</runOrder>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <configuration>
-                    <runOrder>alphabetical</runOrder>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -53,12 +29,6 @@
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
             <version>4.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>prism-impl</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -218,9 +188,8 @@
 
         <!-- TEST dependency -->
         <dependency>
-            <groupId>com.evolveum.midpoint</groupId>
-            <artifactId>midpoint-localization</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -230,15 +199,27 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>prism-impl</artifactId>
+            <version>4.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint</groupId>
+            <artifactId>midpoint-localization</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.polygon</groupId>
             <artifactId>connector-ldap</artifactId>
             <scope>test</scope>
             <exclusions>
                 <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
-              <exclusion>
-                <groupId>org.slf4j</groupId>
-                  <artifactId>slf4j-jdk14</artifactId>
-              </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-jdk14</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -311,7 +292,7 @@
             <artifactId>jaxb-api</artifactId>
             <scope>test</scope>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>org.apache.directory.api</groupId>
             <artifactId>api-all</artifactId>
             <scope>test</scope>
@@ -324,21 +305,25 @@
         </dependency>
     </dependencies>
 
+    <!-- surefire/failsafe only for profile extratest - see lower -->
+
     <profiles>
         <profile>
             <id>extratest</id>
             <build>
                 <plugins>
                     <plugin>
-                      <artifactId>maven-surefire-plugin</artifactId>
-                      <configuration>
-                        <skip>false</skip>
-                      </configuration>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skip>false</skip>
+                            <runOrder>alphabetical</runOrder>
+                        </configuration>
                     </plugin>
                     <plugin>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
                             <skip>false</skip>
+                            <runOrder>alphabetical</runOrder>
                         </configuration>
                     </plugin>
                 </plugins>

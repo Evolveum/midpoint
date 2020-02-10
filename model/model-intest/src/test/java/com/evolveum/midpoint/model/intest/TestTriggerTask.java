@@ -48,7 +48,7 @@ import java.util.List;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
-    private static final XMLGregorianCalendar LONG_LONG_TIME_AGO = XmlTypeConverter.createXMLGregorianCalendar(1111, 1, 1, 12, 00, 00);
+    private static final XMLGregorianCalendar LONG_LONG_TIME_AGO = XmlTypeConverter.createXMLGregorianCalendar(1111, 1, 1, 12, 0, 0);
 
     private MockTriggerHandler testTriggerHandler;
     private MockMultipleTriggersHandler testMultipleTriggersHandler;

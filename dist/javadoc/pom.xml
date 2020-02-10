@@ -9,10 +9,12 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <artifactId>dist</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>4.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>javadoc</artifactId>
@@ -21,11 +23,9 @@
     <name>midPoint JavaDoc</name>
 
     <properties>
-        <!--
-        module doesn't have main/src, without this we'd get:
-        The packaging for this project did not assign a file to the build artifact
-        -->
+        <!-- see notes in main midPoint POM -->
         <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
         <maven.test.skip>true</maven.test.skip>
     </properties>
 
@@ -106,6 +106,7 @@
             </plugin>
         </plugins>
     </build>
+
     <profiles>
         <profile>
             <id>java8</id>

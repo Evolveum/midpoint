@@ -6,11 +6,14 @@
  */
 package com.evolveum.midpoint.web.security;
 
+import com.evolveum.midpoint.web.security.util.MidpointSamlLocalServiceProviderConfiguration;
+
 import org.springframework.security.saml.SamlMetadataCache;
 import org.springframework.security.saml.SamlTransformer;
 import org.springframework.security.saml.SamlValidator;
 import org.springframework.security.saml.key.KeyType;
 import org.springframework.security.saml.key.SimpleKey;
+import org.springframework.security.saml.provider.config.LocalProviderConfiguration;
 import org.springframework.security.saml.provider.config.SamlConfigurationRepository;
 import org.springframework.security.saml.provider.provisioning.HostBasedSamlServiceProviderProvisioning;
 import org.springframework.security.saml.provider.service.AuthenticationRequestEnhancer;
@@ -89,5 +92,16 @@ public class MidpointHostBasedSamlServiceProviderProvisioning extends HostBasedS
                 getCache(),
                 authnRequestEnhancer
         );
+    }
+
+    @Override
+    protected String getAliasPath(LocalProviderConfiguration configuration) {
+        if (configuration instanceof MidpointSamlLocalServiceProviderConfiguration) {
+            String alias = ((MidpointSamlLocalServiceProviderConfiguration) configuration).getAliasForPath();
+            if (hasText(alias)) {
+                return alias;
+            }
+        }
+        return super.getAliasPath(configuration);
     }
 }

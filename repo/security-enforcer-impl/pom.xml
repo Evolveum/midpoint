@@ -20,6 +20,10 @@
 
     <name>midPoint Security Enforcer - impl</name>
 
+    <properties>
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -95,76 +99,6 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-        </dependency>
-
-        <!--  Testing dependecies  -->
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>common</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-sql-impl</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint</groupId>
-            <artifactId>midpoint-localization</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>test-util</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-test-util</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>system-init</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>audit-impl</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

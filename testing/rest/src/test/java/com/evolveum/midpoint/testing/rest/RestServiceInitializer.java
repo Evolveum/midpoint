@@ -6,6 +6,21 @@
  */
 package com.evolveum.midpoint.testing.rest;
 
+import static org.testng.AssertJUnit.assertEquals;
+
+import java.io.File;
+import java.util.Arrays;
+import javax.ws.rs.core.Response;
+
+import org.apache.cxf.jaxrs.client.ClientConfiguration;
+import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.transport.local.LocalConduit;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+
 import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
 import com.evolveum.midpoint.common.rest.MidpointJsonProvider;
 import com.evolveum.midpoint.common.rest.MidpointXmlProvider;
@@ -29,24 +44,6 @@ import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.apache.cxf.jaxrs.client.ClientConfiguration;
-import org.apache.cxf.jaxrs.client.WebClient;
-import org.apache.cxf.transport.local.LocalConduit;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.web.context.WebApplicationContext;
-
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.util.Arrays;
-
-import static org.testng.AssertJUnit.assertEquals;
 
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
@@ -143,7 +140,8 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
         addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, result);
 
-        dummyAuditService = getDummyAuditService().getInstance();
+        // TODO remove in 2021 - this should be covered in super.super.initSystem(...)
+//        dummyAuditService = DummyAuditService.getInstance();
 
         InternalMonitor.reset();
 
@@ -154,8 +152,7 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
 
     protected WebClient prepareClient(String username, String password) {
 
-        WebClient client = WebClient.create(ENDPOINT_ADDRESS, Arrays.asList(getProvider()));// ,
-                                                                            // provider);
+        WebClient client = WebClient.create(ENDPOINT_ADDRESS, Arrays.asList(getProvider()));
         ClientConfiguration clientConfig = WebClient.getConfig(client);
 
         clientConfig.getRequestContext().put(LocalConduit.DIRECT_DISPATCH, Boolean.TRUE);
