@@ -200,7 +200,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
     }
 
     @Override
-    public List<PrismContainerDefinition<C>> getChildContainers() {
+    public List<PrismContainerDefinition<C>> getChildContainers() throws SchemaException {
         List<PrismContainerDefinition<C>> childContainers = new ArrayList<>();
         for (ItemDefinition<?> def : getContainerDefinition().getDefinitions()) {
             if (!(def instanceof PrismContainerDefinition)) {
@@ -218,6 +218,12 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
                 case DELETING:
                     allowed = def.canModify();
             }
+
+            //do not allow to add already existing singel value container
+            if (def.isSingleValue() && findContainer(def.getItemName()) != null) {
+                allowed = false;
+            }
+
 
             if (allowed) {
                 childContainers.add((PrismContainerDefinition<C>)def);

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.api.util;
 
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ItemPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.*;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import javax.xml.namespace.QName;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * @author katka
@@ -139,5 +141,4 @@ public class WebPrismUtil {
             return null;
         }
     }
-
 }

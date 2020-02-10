@@ -2731,7 +2731,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public <ID extends ItemDefinition, IW extends ItemWrapper> IW createItemWrapper(ID def, PrismContainerValueWrapper<?> parent, WrapperContext ctx) throws SchemaException {
 
         ItemWrapperFactory<IW, ?,?> factory = (ItemWrapperFactory<IW, ?,?>) registry.findWrapperFactory(def);
-
+        ctx.setShowEmpty(true);
         ctx.setCreateIfEmpty(true);
         return factory.createWrapper(parent, def, ctx);
 

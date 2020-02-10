@@ -54,7 +54,7 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
         PrismContainer<C> childItem = parent.getNewValue().findContainer(name);
         ItemStatus status = ItemStatus.NOT_CHANGED;
         if (childItem == null) {
-            childItem = (PrismContainer<C>) def.instantiate();
+            childItem = (PrismContainer<C>)parent.getNewValue().findOrCreateContainer(name);
             status = ItemStatus.ADDED;
         }
 
@@ -157,7 +157,7 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
         List<? extends ItemDefinition> defs = containerDef.getDefinitions();
         int containers = 0;
         for (ItemDefinition<?> itemDef : defs) {
-            if (itemDef instanceof PrismContainerDefinition<?> && itemDef.isMultiValue()) {
+            if (itemDef instanceof PrismContainerDefinition<?>) { // && itemDef.isMultiValue()) {
                 containers++;
             }
         }

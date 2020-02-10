@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.prism;
 
 import java.text.Collator;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -14,6 +15,11 @@ import java.util.Locale;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -23,6 +29,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListItemModel;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -37,11 +44,6 @@ import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -83,17 +85,46 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     @Override
+    public boolean isVisible() {
+        CVW modelObject = getModelObject();
+        if (modelObject == null) {
+            return false;
+        }
+
+        ItemWrapper parent = modelObject.getParent();
+        if (!PrismContainerWrapper.class.isAssignableFrom(parent.getClass())) {
+            return false;
+        }
+
+        if (!((PrismContainerWrapper) parent).isExpanded() && parent.isMultiValue()) {
+            return false;
+        }
+
+        return parent.isSingleValue();
+    }
+
+    @Override
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
         setOutputMarkupId(true);
+
+        add(AttributeModifier.append("class", () -> {
+            String cssClasses = "";
+            if (getModelObject() != null && ValueStatus.ADDED == getModelObject().getStatus()) {
+                cssClasses = " added-value-background";
+            }
+            if (getModelObject() != null && ValueStatus.DELETED == getModelObject().getStatus()) {
+                cssClasses = " removed-value-background";
+            }
+            return cssClasses;
+        }));
+
     }
 
     private void initLayout() {
-
         initHeader();
         initValues();
-
     }
 
     private void initHeader() {
@@ -119,7 +150,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
         initButtons();
 
-        add(new VisibleBehaviour(() -> getModelObject() != null && ValueStatus.DELETED != getModelObject().getStatus()));
         //TODO always visible if isObject
     }
 
@@ -192,7 +222,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             }
         };
 
-        containers.setReuseItems(true);
+//        containers.setReuseItems(true);
         containers.setOutputMarkupId(true);
         add(containers);
 
@@ -282,16 +312,16 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     private void populateContainer(ListItem<PrismContainerWrapper> container) {
-        container.setOutputMarkupId(true);
+//        container.setOutputMarkupId(true);
         PrismContainerWrapper itemWrapper = container.getModelObject();
         try {
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(visibilityHandler);
             Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), builder.build());
             panel.setOutputMarkupId(true);
-            panel.add(new VisibleBehaviour(() -> {
-                CVW parent = PrismContainerValuePanel.this.getModelObject();
-                return container.getModelObject().isVisible(parent, visibilityHandler);
-            }));
+//            panel.add(new VisibleBehaviour(() -> {
+//                CVW parent = PrismContainerValuePanel.this.getModelObject();
+//                return container.getModelObject().isVisible(parent, visibilityHandler);
+//            }));
             container.add(panel);
         } catch (SchemaException e) {
             throw new SystemException("Cannot instantiate panel for: " + itemWrapper.getDisplayName());
@@ -482,8 +512,14 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                removeValuePerformed(target);
+//                removeValuePerformed(target);
+                try {
+                    removePerformed(PrismContainerValuePanel.this.getModelObject(), target);
+                } catch (SchemaException e) {
+                    e.printStackTrace();
+                }
             }
+
         };
 
         removeContainerButton.add(new VisibleEnableBehaviour() {
@@ -511,11 +547,37 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     }
 
-    private void removeValuePerformed(AjaxRequestTarget target) {
-        CVW containerValueWrapper = getModelObject();
-        containerValueWrapper.setStatus(ValueStatus.DELETED);
-        refreshPanel(target);
+    protected void removePerformed(CVW containerValueWrapper, AjaxRequestTarget target) throws SchemaException {
+
     }
+//
+//    private void removeValuePerformed(AjaxRequestTarget target) {
+//        CVW valueToRemove = getModelObject();
+//
+//        PrismContainerWrapper<?> parent = getModelObject().getParent();
+//
+//        switch (valueToRemove.getStatus()) {
+//            case ADDED:
+//                parent.getValues().remove(valueToRemove);
+//
+//                parent.getItem().remove((PrismContainerValue) valueToRemove.getOldValue());
+//                parent.getItem().remove((PrismContainerValue) valueToRemove.getNewValue());
+//                break;
+//            case DELETED:
+//                valueToRemove.setStatus(ValueStatus.NOT_CHANGED);
+//                break;
+//            case NOT_CHANGED:
+//                valueToRemove.setStatus(ValueStatus.DELETED);
+//                break;
+//        }
+
+//        if (parent.getValues().isEmpty()) {
+//            WebPrismUtil.createNewValueWrapper(parent, parent.getItem().createNewValue(), getPageBase(), target);
+//        }
+//
+//        refreshPanel(target);
+//    }
+
 
     private boolean shouldBeButtonsShown() {
         return getModelObject().isExpanded();

@@ -49,7 +49,6 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
     public IW createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException {
         ItemName name = def.getItemName();
 
-
         I childItem = null;
         ItemStatus status = null;
         if (CollectionUtils.isNotEmpty(context.getVirtualItemSpecification())) {

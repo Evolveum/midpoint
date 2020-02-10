@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import org.apache.wicket.model.IModel;
 
