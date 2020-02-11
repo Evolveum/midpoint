@@ -1728,12 +1728,34 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public <O extends AbstractRoleType> AssignmentCandidatesSpecification determineAssignmentHolderSpecification(PrismObject<O> assignmentTarget, OperationResult result)
             throws SchemaException, ConfigurationException {
+
+        if (assignmentTarget == null) {
+            return null;
+        }
+
+        // assignmentRelation statements in the assignment - we want to control what objects can be assigned to the archetype definition
+        if (ArchetypeType.class.isAssignableFrom(assignmentTarget.getCompileTimeClass())) {
+            ArchetypeType archetypeType = (ArchetypeType) assignmentTarget.asObjectable();
+            return determineArchetypeAssignmentCandidateSpecification(archetypeType.getAssignment(), archetypeType.getArchetypePolicy());
+        }
+
+
+        // apply assignmentRelation to "archetyped" objects
         PrismObject<ArchetypeType> targetArchetype = determineArchetype(assignmentTarget, result);
-        AssignmentCandidatesSpecification spec = new AssignmentCandidatesSpecification();
-        if (targetArchetype != null) {
-            ArchetypeType archetypeObj = targetArchetype.asObjectable();
+        if (targetArchetype == null) {
+            return null;
+        }
+
+        // TODO: empty list vs null: default setting
+        ArchetypeType targetArchetypeType = targetArchetype.asObjectable();
+        return determineArchetypeAssignmentCandidateSpecification(targetArchetypeType.getInducement(), targetArchetypeType.getArchetypePolicy());
+
+    }
+
+    private AssignmentCandidatesSpecification determineArchetypeAssignmentCandidateSpecification(List<AssignmentType> archetypeAssigmentsOrInducements, ArchetypePolicyType archetypePolicy) {
+            AssignmentCandidatesSpecification spec = new AssignmentCandidatesSpecification();
             List<AssignmentObjectRelation> assignmentHolderRelations = new ArrayList<>();
-            for (AssignmentType inducement : archetypeObj.getInducement()) {
+            for (AssignmentType inducement : archetypeAssigmentsOrInducements) {
                 for (AssignmentRelationType assignmentRelation : inducement.getAssignmentRelation()) {
                     AssignmentObjectRelation holderRelation = new AssignmentObjectRelation();
                     holderRelation.addObjectTypes(ObjectTypes.canonizeObjectTypes(assignmentRelation.getHolderType()));
@@ -1744,10 +1766,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 }
             }
             spec.setAssignmentObjectRelations(assignmentHolderRelations);
-            spec.setSupportGenericAssignment(archetypeObj.getArchetypePolicy() == null
-                    || !AssignmentRelationApproachType.CLOSED.equals(archetypeObj.getArchetypePolicy().getAssignmentRelationApproach()));
-        }
-        // TODO: empty list vs null: default setting
+            spec.setSupportGenericAssignment(archetypePolicy == null
+                    || AssignmentRelationApproachType.CLOSED != archetypePolicy.getAssignmentRelationApproach());
         return spec;
     }
 
