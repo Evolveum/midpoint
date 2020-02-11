@@ -1,17 +1,8 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 
 $(window).load(function() {
@@ -47,11 +38,11 @@ function fixContentHeight() {
 
 function clickFuncWicket6(eventData) {
     var clickedElement = (window.event) ? event.srcElement : eventData.target;
-    if ((clickedElement.tagName.toUpperCase() == 'BUTTON' 
-        || clickedElement.tagName.toUpperCase() == 'A' 
+    if ((clickedElement.tagName.toUpperCase() == 'BUTTON'
+        || clickedElement.tagName.toUpperCase() == 'A'
         || clickedElement.parentNode.tagName.toUpperCase() == 'A'
-        || (clickedElement.tagName.toUpperCase() == 'INPUT' 
-        && (clickedElement.type.toUpperCase() == 'BUTTON' 
+        || (clickedElement.tagName.toUpperCase() == 'INPUT'
+        && (clickedElement.type.toUpperCase() == 'BUTTON'
         || clickedElement.type.toUpperCase() == 'SUBMIT')))
         && clickedElement.parentNode.id.toUpperCase() != 'NOBUSY'
         && clickedElement.disabled == 'false') {
@@ -185,7 +176,7 @@ function initPageSizePopover(buttonId, popoverId, positionId) {
 
 /**
  * Used in SearchPanel for advanced search, if we want to store resized textarea dimensions.
- * 
+ *
  * @param textAreaId
  */
 function storeTextAreaSize(textAreaId) {
@@ -194,7 +185,7 @@ function storeTextAreaSize(textAreaId) {
     var area = $('#' + textAreaId);
     $.textAreaSize = [];
     $.textAreaSize[textAreaId] = {
-        height: area.height(), 
+        height: area.height(),
         width: area.width(),
         position: area.prop('selectionStart')
     }
@@ -202,7 +193,7 @@ function storeTextAreaSize(textAreaId) {
 
 /**
  * Used in SearchPanel for advanced search, if we want to store resized textarea dimensions.
- * 
+ *
  * @param textAreaId
  */
 function restoreTextAreaSize(textAreaId) {
@@ -269,7 +260,7 @@ function toggleSearchPopover(buttonId, popoverId, paddingRight) {
 
 /**
  * used in DropDownMultiChoice.java
- * 
+ *
  * @param compId
  * @param options
  */
