@@ -80,4 +80,9 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
     public boolean isSupportActivationByChannel() {
         return true;
     }
+
+    @Override
+    public String getUrlSuffix() {
+        return this.channel.getUrlSuffix();
+    }
 }

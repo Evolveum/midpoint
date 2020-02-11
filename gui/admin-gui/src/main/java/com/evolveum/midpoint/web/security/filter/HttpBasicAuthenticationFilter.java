@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.security.filter;
 import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.util.MidpointHttpServletRequest;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
@@ -45,7 +46,7 @@ public class HttpBasicAuthenticationFilter extends HttpAuthenticationFilter {
             chain.doFilter(request, response);
             return;
         }
-
+        HttpServletRequest newRequest = request;
         try {
             int startIndex = NameOfModuleType.HTTP_BASIC.getName().length()+1;
             String[] tokens = extractAndDecodeHeader(header, request, startIndex);
@@ -71,6 +72,7 @@ public class HttpBasicAuthenticationFilter extends HttpAuthenticationFilter {
 
                 onSuccessfulAuthentication(request, response, authResult);
             }
+            newRequest = new MidpointHttpServletRequest(request);
 
         }
         catch (AuthenticationException failed) {
@@ -84,6 +86,6 @@ public class HttpBasicAuthenticationFilter extends HttpAuthenticationFilter {
             return;
         }
 
-        chain.doFilter(request, response);
+        chain.doFilter(newRequest, response);
     }
 }

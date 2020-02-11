@@ -36,4 +36,6 @@ public interface AuthenticationChannel {
     public String getSpecificLoginUrl();
 
     public boolean isSupportActivationByChannel();
+
+    public String getUrlSuffix();
 }
