@@ -19,6 +19,10 @@
 
     <artifactId>midpoint-war-layout</artifactId>
 
+    <properties>
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -27,12 +31,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-loader-tools</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -11,11 +11,11 @@ The most important features of midPoint are:
 - Organizational structure management
 - Credential Management
 - Request approval
-- Entitlement Management 
+- Entitlement Management
 
 Read more about these features at https://evolveum.com/midpoint/about-midpoint/
 
-Other features: 
+Other features:
 
 - User provisioning and deprovisioning
 - Administration GUI
@@ -38,19 +38,19 @@ Other features:
 - High availability (HA) support
 
 For more information about midPoint identity manager please go to:
-http://midpoint.evolveum.com/
+https://midpoint.evolveum.com/
 
 For bugtracking system please go to:
-http://jira.evolveum.com/
+https://jira.evolveum.com/
 
 MidPoint source code is maintained on github:
-https://github.com/Evolveum/midpoint 
+https://github.com/Evolveum/midpoint
 
-Latest source code can be obtained from our Git repository using one of the 
+Latest source code can be obtained from our Git repository using one of the
 following repository locations:
 https://github.com/Evolveum/midpoint.git
 
 git@github.com:Evolveum/midpoint.git
 
-This project is dual-licensed under Apache License 2.0 
+This project is dual-licensed under Apache License 2.0
 and European Union Public License. See LICENSE file for details.

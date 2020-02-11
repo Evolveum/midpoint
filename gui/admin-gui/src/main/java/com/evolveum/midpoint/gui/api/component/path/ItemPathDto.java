@@ -26,6 +26,8 @@ public class ItemPathDto implements Serializable{
 
     private ItemPath path;
 
+    private String pathStringValue;
+
     public ItemPathDto() {
         // TODO Auto-generated constructor stub
     }
@@ -90,6 +92,14 @@ public class ItemPathDto implements Serializable{
 
     public boolean isPathDefined() {
         return (path != null && itemDef == null && parentPath == null);
+    }
+
+    public String getPathStringValue(){
+        return pathStringValue;
+    }
+
+    public void setPathStringValue(String pathStringValue){
+        this.pathStringValue = pathStringValue;
     }
 
     @Override

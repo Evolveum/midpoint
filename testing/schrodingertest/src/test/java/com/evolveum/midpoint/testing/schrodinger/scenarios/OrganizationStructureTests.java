@@ -54,7 +54,7 @@ public class OrganizationStructureTests extends TestBase {
 
         initTestDirectory(DIRECTORY_CURRENT_TEST);
 
-        csvTargetFile = new File(CSV_TARGET_DIR, FILE_RESOUCE_NAME);
+        csvTargetFile = new File(csvTargetDir, FILE_RESOUCE_NAME);
         FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE, csvTargetFile);
 
         ImportObjectPage importPage = basicPage.importObject();

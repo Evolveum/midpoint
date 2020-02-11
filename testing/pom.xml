@@ -28,27 +28,12 @@
 <!--         <module>rest</module> -->
     </modules>
 
-    <dependencies>
-        <!-- Required for surefire plugin not to complain -->
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>test-ng</artifactId>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <!-- reference failsafe to run integration tests (surefire/units run by default) -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
+    <properties>
+        <!-- see notes in main midPoint POM -->
+        <!-- This applies to all testing submodules, all of them have only src/test, not main. -->
+        <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
 
     <profiles>
         <profile>

@@ -53,6 +53,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 
     private ResourceObjectChangeListener objectChangeListener;
     private String resourceOid;
+    // TODO Is PCV really not thread safe for reading?! Even now, after Xerces-related issues were eliminated?
     private ThreadLocal<ResourceType> resourceWorkingCopy = new ThreadLocal<>();       // because PrismContainer is not thread safe even for reading, each thread must have its own copy
     private ResourceType resourceReadOnly;                // this is a "master copy", not to be touched by getters - its content is copied into resourceWorkingCopy content when needed
     private ObjectClassComplexTypeDefinition objectClassDef;
@@ -73,20 +74,12 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
                                                     // we are not called via AbstractSearchIterativeResultHandler.processRequest
     }
 
-    public void setIntentIsNull(boolean intentIsNull) {
+    void setIntentIsNull(boolean intentIsNull) {
         this.intentIsNull = intentIsNull;
-    }
-
-    public boolean isForceAdd() {
-        return forceAdd;
     }
 
     public void setForceAdd(boolean forceAdd) {
         this.forceAdd = forceAdd;
-    }
-
-    public QName getSourceChannel() {
-        return sourceChannel;
     }
 
     public void setSourceChannel(QName sourceChannel) {
@@ -97,19 +90,20 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
         return resourceOid;
     }
 
-    public ResourceType getResourceWorkingCopy() {
-        ResourceType retval = resourceWorkingCopy.get();
-        if (retval == null) {
-            retval = resourceReadOnly.clone();
-            resourceWorkingCopy.set(retval);
+    private ResourceType getResourceWorkingCopy() {
+        ResourceType existingWorkingCopy = resourceWorkingCopy.get();
+        if (existingWorkingCopy != null) {
+            return existingWorkingCopy;
+        } else {
+            ResourceType newWorkingCopy = resourceReadOnly.clone();
+            resourceWorkingCopy.set(newWorkingCopy);
+            return newWorkingCopy;
         }
-        return retval;
     }
 
     public ObjectClassComplexTypeDefinition getObjectClass() {
         return objectClassDef;
     }
-
 
     /**
      * This methods will be called for each search result. It means it will be
@@ -135,7 +129,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
         }
     }
 
-    protected boolean handleObjectInternal(PrismObject<ShadowType> accountShadow, RunningTask workerTask, OperationResult result) {
+    private boolean handleObjectInternal(PrismObject<ShadowType> accountShadow, RunningTask workerTask, OperationResult result) {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("{} considering object:\n{}", getProcessShortNameCapitalized(), accountShadow.debugDump(1));
@@ -188,11 +182,10 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
             shadowDelta.setOid(accountShadow.getOid());
             change.setObjectDelta(shadowDelta);
             // Need to also set current shadow. This will get reflected in "old" object in lens context
-            change.setCurrentShadow(accountShadow);
         } else {
             // No change, therefore the delta stays null. But we will set the current
-            change.setCurrentShadow(accountShadow);
         }
+        change.setCurrentShadow(accountShadow);
 
         try {
             change.checkConsistence();
@@ -212,14 +205,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
     }
 
     private boolean isShadowUnknown(ShadowType shadowType) {
-        if (ShadowKindType.UNKNOWN == shadowType.getKind()) {
-            return true;
-        }
-
-        if (SchemaConstants.INTENT_UNKNOWN.equals(shadowType.getIntent())) {
-            return true;
-        }
-
-        return false;
+        return ShadowKindType.UNKNOWN == shadowType.getKind()
+                || SchemaConstants.INTENT_UNKNOWN.equals(shadowType.getIntent());
     }
 }

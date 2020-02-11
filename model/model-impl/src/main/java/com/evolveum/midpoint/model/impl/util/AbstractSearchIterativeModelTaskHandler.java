@@ -110,61 +110,39 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
             return null;
         }
 
-        T objectType;
         try {
-
-            objectType = modelObjectResolver.getObject(type, objectOid, null, task, opResult);
-
+            return modelObjectResolver.getObject(type, objectOid, null, task, opResult);
         } catch (ObjectNotFoundException ex) {
-            LOGGER.error("Import: {} {} not found: {}", typeName, objectOid, ex.getMessage(), ex);
+            LOGGER.error("Handler: {} {} not found: {}", typeName, objectOid, ex.getMessage(), ex);
             // This is bad. The resource does not exist. Permanent problem.
             opResult.recordFatalError(typeName+" not found " + objectOid, ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
         } catch (SchemaException ex) {
-            LOGGER.error("Import: Error dealing with schema: {}", ex.getMessage(), ex);
+            LOGGER.error("Handler: Error dealing with schema: {}", ex.getMessage(), ex);
             // Not sure about this. But most likely it is a misconfigured resource or connector
             // It may be worth to retry. Error is fatal, but may not be permanent.
             opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
             return null;
         } catch (RuntimeException ex) {
-            LOGGER.error("Import: Internal Error: {}", ex.getMessage(), ex);
+            LOGGER.error("Handler: Internal Error: {}", ex.getMessage(), ex);
             // Can be anything ... but we can't recover from that.
             // It is most likely a programming error. Does not make much sense to retry.
             opResult.recordFatalError("Internal Error: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
         } catch (CommunicationException ex) {
-            LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
+            LOGGER.error("Handler: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
             opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
             return null;
-        } catch (ConfigurationException ex) {
-            LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
-            opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return null;
-        } catch (SecurityViolationException ex) {
-            LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
-            opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return null;
-        } catch (ExpressionEvaluationException ex) {
-            LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
+        } catch (ConfigurationException | ExpressionEvaluationException | SecurityViolationException ex) {
+            LOGGER.error("Handler: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
             opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
         }
-
-        if (objectType == null) {
-            LOGGER.error("Import: No "+typeName+" specified");
-            opResult.recordFatalError("No "+typeName+" specified");
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return null;
-        }
-
-        return objectType;
     }
 
     protected ModelExecuteOptions getExecuteOptionsFromTask(Task task) {

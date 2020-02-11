@@ -20,7 +20,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.common.util.ProfilingModelInspector;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -31,8 +30,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -63,8 +60,6 @@ public class TestOperationPerf extends AbstractStoryTest {
     private static final int NUMBER_OF_USER_EXTENSION_PROPERTIES = 30;
     private static final String USER_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/samples/gen";
     private static final String USER_EXTENSION_PROPERTY_NAME_FORMAT = "prop%04d";
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestOperationPerf.class);
 
     @Autowired ClockworkMedic clockworkMedic;
     @Autowired RepositoryCache repositoryCache;

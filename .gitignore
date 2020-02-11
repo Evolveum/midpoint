@@ -2,11 +2,11 @@
 .project
 .classpath
 .settings
-.idea
+/.idea/
 *.iml
 *.log
 *.versionsBackup
-target
+target/
 rebel.xml
 samples/model-client-sample-dotnet/ModelClientSample/ModelClientSample/bin
 samples/model-client-sample-dotnet/ModelClientSample/ModelClientSample/obj
@@ -22,7 +22,7 @@ dependency-reduced-pom.xml
 tools/schrodinger/build
 testing/schrodingertest/build
 
-test-output
+test-output/
 
 _mess
 .checkstyle
