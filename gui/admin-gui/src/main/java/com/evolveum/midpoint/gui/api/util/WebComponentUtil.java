@@ -1361,7 +1361,7 @@ public final class WebComponentUtil {
             return null;
         }
         String displayName = getDisplayName(ref, translate);
-        return displayName != null ? displayName : getName(ref);
+        return StringUtils.isNotEmpty(displayName) ? displayName : getName(ref);
     }
 
     // <display-name> (<name>) OR simply <name> if there's no display name
