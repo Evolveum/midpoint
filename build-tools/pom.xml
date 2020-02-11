@@ -49,12 +49,12 @@
         <repository>
             <id>evolveum</id>
             <name>Evolveum Public Releases</name>
-            <url>http://nexus.evolveum.com/nexus/content/groups/public</url>
+            <url>https://nexus.evolveum.com/nexus/content/groups/public</url>
         </repository>
         <repository>
             <id>evolveum-snapshots</id>
             <name>Evolveum Snapshots</name>
-            <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+            <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
         </repository>
     </repositories>
 
