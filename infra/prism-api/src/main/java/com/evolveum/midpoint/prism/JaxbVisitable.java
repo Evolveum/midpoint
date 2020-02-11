@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
@@ -13,6 +14,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  *
  *  EXPERIMENTAL. Consider merging with traditional prism Visitable.
  */
+@Experimental
 @FunctionalInterface
 public interface JaxbVisitable {
 

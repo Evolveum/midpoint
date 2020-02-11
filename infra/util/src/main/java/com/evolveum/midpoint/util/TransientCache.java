@@ -8,6 +8,9 @@
 package com.evolveum.midpoint.util;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * EXPERIMENTAL
  */
+@Experimental
 @ThreadSafe
 public class TransientCache<K, V> implements Serializable {
 

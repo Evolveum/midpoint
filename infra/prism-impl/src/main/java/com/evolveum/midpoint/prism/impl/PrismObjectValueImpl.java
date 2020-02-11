@@ -60,7 +60,7 @@ public class PrismObjectValueImpl<O extends Objectable> extends PrismContainerVa
     }
 
     public void setOid(String oid) {
-        checkMutability();
+        checkMutable();
         this.oid = oid;
     }
 
@@ -69,7 +69,7 @@ public class PrismObjectValueImpl<O extends Objectable> extends PrismContainerVa
     }
 
     public void setVersion(String version) {
-        checkMutability();
+        checkMutable();
         this.version = version;
     }
 

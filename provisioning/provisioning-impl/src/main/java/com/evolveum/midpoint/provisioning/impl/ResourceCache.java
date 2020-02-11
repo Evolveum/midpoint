@@ -119,7 +119,7 @@ public class ResourceCache implements Cacheable {
             cache.remove(oid);
             resourceToReturn = null;
         } else if (readOnly) {
-            cachedResource.checkImmutability();
+            cachedResource.checkImmutable();
             LOGGER.trace("HIT(read only) for {}", cachedResource);
             resourceToReturn = cachedResource;
         } else {

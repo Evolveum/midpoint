@@ -7,20 +7,28 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.*;
-import java.util.function.Function;
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * Item is a common abstraction of Property, Reference and Container.
@@ -33,7 +41,7 @@ import java.util.function.Function;
  * @author Radovan Semancik
  */
 public interface Item<V extends PrismValue, D extends ItemDefinition> extends Itemable, DebugDumpable, Visitable, PathVisitable,
-        ParentVisitable, Serializable, Revivable, Freezable {
+        ParentVisitable, Serializable, Revivable, Freezable, PrismContextSensitive {
 
     /**
      * Returns applicable definition.
@@ -78,6 +86,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * TODO consider removing this method
      */
+    @VisibleForTesting
     void setElementName(QName elementName);
 
     /**
@@ -87,6 +96,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * TODO consider removing this method
      */
+    @VisibleForTesting
     void setDefinition(@Nullable D definition);
 
     /**
@@ -131,6 +141,8 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     /**
      * Flags the item as incomplete.
      * @see Item#isIncomplete()
+     *
+     * FIXME: Should be package-visible to implementation
      *
      * @param incomplete The new value
      */
@@ -551,7 +563,6 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     boolean isImmutable();
 
-    void checkImmutability();
 
     @NotNull
     static <V extends PrismValue> Collection<V> getValues(Item<V, ?> item) {
@@ -568,10 +579,8 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
         return item != null ? item.getAllValues(path) : Collections.emptySet();
     }
 
-    @Override
-    PrismContext getPrismContext();
-
     // Primarily for testing
+    @VisibleForTesting
     PrismContext getPrismContextLocal();
 
     void setPrismContext(PrismContext prismContext);        // todo remove

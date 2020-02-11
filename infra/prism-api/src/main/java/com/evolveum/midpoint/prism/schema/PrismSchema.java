@@ -30,7 +30,7 @@ import java.util.List;
  * @author semancik
  * @author mederly
  */
-public interface PrismSchema extends DebugDumpable, GlobalDefinitionsStore, DefinitionSearchImplementation, Freezable {
+public interface PrismSchema extends DebugDumpable, GlobalDefinitionsStore, DefinitionSearchImplementation, PrismContextSensitive, Freezable {
 
     /**
      * Returns schema namespace.
@@ -71,9 +71,6 @@ public interface PrismSchema extends DebugDumpable, GlobalDefinitionsStore, Defi
     default List<ComplexTypeDefinition> getComplexTypeDefinitions() {
         return getDefinitions(ComplexTypeDefinition.class);
     }
-
-    // TODO nullability?
-    PrismContext getPrismContext();
 
     @NotNull
     Document serializeToXsd() throws SchemaException;

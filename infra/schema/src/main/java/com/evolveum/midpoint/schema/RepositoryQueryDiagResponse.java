@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema;
 
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +21,7 @@ import java.util.Map;
  *
  * @author mederly
  */
+@Experimental
 public class RepositoryQueryDiagResponse {
 
     public static class ParameterValue {

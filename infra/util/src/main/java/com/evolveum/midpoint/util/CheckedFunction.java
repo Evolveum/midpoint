@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.util;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 import java.io.Serializable;
@@ -15,7 +16,9 @@ import java.io.Serializable;
  * Almost the same as Function but this one is Serializable and can throw CommonException.
  * EXPERIMENTAL
  */
+@Experimental
 @FunctionalInterface
 public interface CheckedFunction<T, R> extends Serializable {
+
     R apply(T argument) throws CommonException;
 }

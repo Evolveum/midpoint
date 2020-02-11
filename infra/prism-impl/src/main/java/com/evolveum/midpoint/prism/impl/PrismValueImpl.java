@@ -27,7 +27,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  * @author semancik
  *
  */
-public abstract class PrismValueImpl implements PrismValue {
+public abstract class PrismValueImpl extends AbstractFreezable implements PrismValue {
 
     private OriginType originType;
     private Objectable originObject;
@@ -157,13 +157,13 @@ public abstract class PrismValueImpl implements PrismValue {
 
     @Override
     public void applyDefinition(ItemDefinition definition) throws SchemaException {
-        checkMutability();        // TODO reconsider
+        checkMutable();        // TODO reconsider
         applyDefinition(definition, true);
     }
 
     @Override
     public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
-        checkMutability();        // TODO reconsider
+        checkMutable();        // TODO reconsider
         // Do nothing by default
     }
 
@@ -329,21 +329,6 @@ public abstract class PrismValueImpl implements PrismValue {
                 builder.append(":");
                 builder.append(getOriginObject());
             }
-        }
-    }
-
-    @Override
-    public boolean isImmutable() {
-        return immutable;
-    }
-
-    public void freeze() {
-        this.immutable = true;
-    }
-
-    protected void checkMutability() {
-        if (immutable) {
-            throw new IllegalStateException("An attempt to modify an immutable value of " + toHumanReadableString());
         }
     }
 

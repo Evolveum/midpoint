@@ -25,3 +25,4 @@ testing/schrodingertest/build
 test-output/
 
 _mess
+.checkstyle

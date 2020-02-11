@@ -91,7 +91,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
      * @param definition the definition to set
      */
     public void setDefinition(PrismPropertyDefinition<T> definition) {
-        checkMutability();
+        checkMutable();
         this.definition = definition;
     }
 
@@ -232,7 +232,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
     }
 
     public void addValue(PrismPropertyValue<T> pValueToAdd, boolean checkUniqueness) {
-        checkMutability();
+        checkMutable();
         ((PrismPropertyValueImpl<T>) pValueToAdd).checkValue();
         if (checkUniqueness) {
             Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
@@ -266,7 +266,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
     }
 
     public boolean deleteValues(Collection<PrismPropertyValue<T>> pValuesToDelete) {
-        checkMutability();
+        checkMutable();
         boolean changed = false;
         for (PrismPropertyValue<T> pValue: pValuesToDelete) {
             if (!changed) {
@@ -279,7 +279,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
     }
 
     public boolean deleteValue(PrismPropertyValue<T> pValueToDelete) {
-        checkMutability();
+        checkMutable();
         Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
         boolean found = false;
         while (iterator.hasNext()) {
