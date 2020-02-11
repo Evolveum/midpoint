@@ -13,6 +13,10 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionsDefinitionType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -144,6 +148,10 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
     public boolean match(ItemDefinition<?> def) {
         QName defName = def.getTypeName();
 
+        if (TaskPartitionsDefinitionType.COMPLEX_TYPE.equals(defName)) {
+            return true;
+        }
+
         if (!(def instanceof PrismContainerDefinition)) {
             return false;
         }
@@ -157,7 +165,7 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
         List<? extends ItemDefinition> defs = containerDef.getDefinitions();
         int containers = 0;
         for (ItemDefinition<?> itemDef : defs) {
-            if (itemDef instanceof PrismContainerDefinition<?>) { // && itemDef.isMultiValue()) {
+            if (itemDef instanceof PrismContainerDefinition<?> && itemDef.isMultiValue()) {
                 containers++;
             }
         }

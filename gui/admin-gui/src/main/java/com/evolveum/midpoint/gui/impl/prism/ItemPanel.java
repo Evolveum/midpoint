@@ -219,6 +219,8 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
             switch (valueToRemove.getStatus()) {
                 case ADDED:
                     values.remove(valueToRemove);
+                    getModelObject().getItem().remove(valueToRemove.getOldValue());
+                    getModelObject().getItem().remove(valueToRemove.getNewValue());
                     break;
                 case DELETED:
                     valueToRemove.setStatus(ValueStatus.NOT_CHANGED);
@@ -227,9 +229,6 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
                     valueToRemove.setStatus(ValueStatus.DELETED);
                     break;
             }
-
-            getModelObject().getItem().remove(valueToRemove.getOldValue());
-            getModelObject().getItem().remove(valueToRemove.getNewValue());
 
             int count = countUsableValues(values);
 
@@ -243,9 +242,9 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
         private int countUsableValues(List<VW> values) {
             int count = 0;
             for (VW value : values) {
-                if (ValueStatus.DELETED.equals(value.getStatus())) {
-                    continue;
-                }
+//                if (ValueStatus.DELETED.equals(value.getStatus())) {
+//                    continue;
+//                }
                 if (ValueStatus.ADDED.equals(value.getStatus())) {
                     continue;
                 }

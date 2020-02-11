@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
@@ -68,6 +70,10 @@ public class ContainerOfSystemConfigurationPanel<C extends Containerable> extend
     }
 
     protected ItemVisibility getVisibity(ItemPath itemPath) {
+        ItemName name = itemPath.firstToNameOrNull();
+        if (name == null) {
+            return ItemVisibility.HIDDEN;
+        }
         if (itemPath.firstToName().equals(SystemConfigurationType.F_WORKFLOW_CONFIGURATION)) {
             if (itemPath.lastName().equals(WfConfigurationType.F_APPROVER_COMMENTS_FORMATTING)) {
                 return ItemVisibility.HIDDEN;

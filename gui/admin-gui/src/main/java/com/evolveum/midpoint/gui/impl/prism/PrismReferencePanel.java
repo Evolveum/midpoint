@@ -161,7 +161,7 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 
     @Override
     public boolean isEnabled() {
-        return getModelObject().isReadOnly() || isLink(getModelObject());
+        return !getModelObject().isReadOnly() || isLink(getModelObject());
     }
 
     private boolean isLink(PrismReferenceWrapper<R> iw){

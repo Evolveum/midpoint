@@ -60,10 +60,10 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 
     }
 
-//    @Override
-//    public boolean isVisible() {
-//        return getModelObject()!= null && getModelObject().isVisible(getModelObject().getParent(), getVisibilityHandler());
-//    }
+    @Override
+    public boolean isVisible() {
+        return getModelObject()!= null && getModelObject().isVisible(getModelObject().getParent(), getVisibilityHandler());
+    }
 
     @Override
     protected Panel createHeaderPanel() {

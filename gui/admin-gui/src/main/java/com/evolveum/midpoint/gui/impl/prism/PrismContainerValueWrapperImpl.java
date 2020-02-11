@@ -52,7 +52,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
     private static final Trace LOGGER = TraceManager.getTrace(PrismContainerValueWrapperImpl.class);
 
     private boolean expanded;
-    private boolean showMetadata = false;
+    private boolean showMetadata;
     private boolean sorted;
     private boolean showEmpty;
     private boolean readOnly;

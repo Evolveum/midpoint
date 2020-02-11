@@ -52,6 +52,9 @@ public class WebPrismUtil {
     private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
 
     public static <ID extends ItemDefinition<I>, I extends Item<V, ID>, V extends PrismValue> String getHelpText(ID def) {
+        if (def == null) {
+            return null;
+        }
         String doc = def.getHelp();
         if (StringUtils.isEmpty(doc)) {
             doc = def.getDocumentation();
