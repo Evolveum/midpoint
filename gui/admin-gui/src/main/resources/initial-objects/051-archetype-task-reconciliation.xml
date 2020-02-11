@@ -21,23 +21,23 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>c:TaskType</type>
-                <container id="11">
+                <container>
                     <display>
                         <label>Resource related options</label>
                     </display>
-                    <item id="12">
+                    <item>
                         <c:path>objectRef</c:path>
                     </item>
-                    <item id="13">
+                    <item>
                         <c:path >extension/mext:objectclass</c:path>
                     </item>
-                    <item id="14">
+                    <item>
                         <c:path>extension/mext:kind</c:path>
                     </item>
-                    <item id="15">
+                    <item>
                         <c:path>extension/mext:intent</c:path>
                     </item>
-                    <item id="16">
+                    <item>
                         <c:path>extension/mext:objectQuery</c:path>
                     </item>
                 </container>
@@ -49,4 +49,30 @@
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>weak</strength>
+                <expression>
+                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/partitioned-reconciliation/handler-3</value>
+                </expression>
+                <target>
+                    <c:path>handlerUri</c:path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>weak</strength>
+                <expression>
+                    <value>Reconciliation</value>
+                </expression>
+                <target>
+                    <c:path>category</c:path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
 </archetype>

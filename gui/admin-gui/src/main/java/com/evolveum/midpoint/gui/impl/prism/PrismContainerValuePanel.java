@@ -98,14 +98,13 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             return false;
         }
 
+        if (MetadataType.COMPLEX_TYPE.equals(parent.getTypeName()) && (modelObject.isShowMetadata())) {
+            return false;
+        }
+
         if (!((PrismContainerWrapper) parent).isExpanded() && parent.isMultiValue()) {
             return false;
         }
-
-        if (MetadataType.COMPLEX_TYPE.equals(parent.getTypeName()) && !modelObject.isShowMetadata()) {
-            return false;
-        }
-
         return true;
     }
 

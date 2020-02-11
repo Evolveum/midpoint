@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.factory;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Iterator;
 import javax.annotation.PostConstruct;
@@ -34,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TaskIntentFactory extends AbstractGuiComponentFactory<String> {
+public class TaskIntentFactory extends AbstractGuiComponentFactory<String> implements Serializable {
 
     @PostConstruct
     public void register() {

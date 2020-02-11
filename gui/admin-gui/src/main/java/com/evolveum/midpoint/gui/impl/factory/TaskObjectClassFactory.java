@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.factory;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import javax.annotation.PostConstruct;
@@ -41,9 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @Component
-public class TaskObjectClassFactory extends AbstractGuiComponentFactory<QName> {
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskObjectClassFactory.class);
+public class TaskObjectClassFactory extends AbstractGuiComponentFactory<QName> implements Serializable {
 
 
     @PostConstruct
