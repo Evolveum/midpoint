@@ -152,8 +152,9 @@ public class MockParallelTaskHandler implements TaskHandler {
 
     @Override
     public Long heartbeat(Task task) {
-        return 0L;
+        return null;
     }
+
     @Override
     public void refreshStatus(Task task) {
     }
