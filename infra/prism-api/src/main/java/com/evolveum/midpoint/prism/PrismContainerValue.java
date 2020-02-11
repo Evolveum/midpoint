@@ -11,6 +11,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.google.common.annotations.VisibleForTesting;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -33,10 +35,8 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
         return value != null ? value.asContainerable() : null;
     }
 
-    @Override
-    PrismContext getPrismContext();
-
     // Primarily for testing
+    @VisibleForTesting
     PrismContext getPrismContextLocal();
 
     /**

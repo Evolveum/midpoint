@@ -49,6 +49,7 @@ public abstract class AbstractPolyStringNormalizer implements PolyStringNormaliz
         return pattern.matcher(s).replaceAll("");
     }
 
+    // TODO: Should be named keepOnly
     protected String removeAll(String s, int lowerCode, int upperCode) {
         StringBuilder out = new StringBuilder(s.length());
         for (int i = 0; i < s.length(); i++) {

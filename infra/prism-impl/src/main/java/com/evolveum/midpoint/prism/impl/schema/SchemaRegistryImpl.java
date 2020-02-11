@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.schema.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -765,7 +766,8 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     //endregion
 
     //region Finding items - cached (frequent cases) - EXPERIMENTAL
-
+    // FIXME: Rework cache function to getOrCreate
+    @Experimental
     @Override
     public <O extends Objectable> PrismObjectDefinition<O> findObjectDefinitionByCompileTimeClass(
             @NotNull Class<O> compileTimeClass) {

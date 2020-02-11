@@ -35,6 +35,9 @@
 
     Long test run (with 16g on CI server, but this should work too - isn't Xmx even unnecessary?), runs just under 900 tests:
     mvn -P tomcat,extratest clean install -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
+
+    Comprehensive quick build/dist with normally excluded modules including checkstyle, but no tests/javadoc:
+    mvn clean install -P dist,extratest,conntest,schrodinger -DskipTests -Dmaven.javadoc.skip
     -->
 
     <groupId>com.evolveum.midpoint</groupId>
@@ -46,12 +49,12 @@
     <description>Utility module to compile all of the maven based midPoint projects.</description>
     <organization>
         <name>evolveum</name>
-        <url>http://www.evolveum.com</url>
+        <url>https://www.evolveum.com</url>
     </organization>
     <licenses>
         <license>
             <name>Apache License v2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
             <distribution>repo</distribution>
         </license>
         <license>
@@ -1618,10 +1621,10 @@
                             <Version-Number>${project.version}</Version-Number>
                             <SCM-Revision>${git.describe}</SCM-Revision>
                             <Organization>Evolveum</Organization>
-                            <Organization-URL>http://www.evolveum.com</Organization-URL>
-                            <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
+                            <Organization-URL>https://www.evolveum.com</Organization-URL>
+                            <Bugtracking-System>https://jira.evolveum.com</Bugtracking-System>
                             <License>dual-licensed under the Apache License 2.0 and European Union Public License</License>
-                            <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
+                            <License-URL>https://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -1636,10 +1639,10 @@
                             <Version-Number>${project.version}</Version-Number>
                             <SCM-Revision>${git.describe}</SCM-Revision>
                             <Organization>Evolveum</Organization>
-                            <Organization-URL>http://www.evolveum.com</Organization-URL>
-                            <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
+                            <Organization-URL>https://www.evolveum.com</Organization-URL>
+                            <Bugtracking-System>https://jira.evolveum.com</Bugtracking-System>
                             <License>dual-licensed under the Apache License 2.0 and European Union Public License</License>
-                            <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
+                            <License-URL>https://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
                         </manifestEntries>
                     </archive>
                     <attachClasses>true</attachClasses>
@@ -2118,50 +2121,6 @@
         </profile>
         <profile>
             <id>conntest</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <!-- Skip all tests by default. We only want selected tests to run. -->
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${surefire.version}</version>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${failsafe.version}</version>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>wstest</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <!-- Skip all tests by default. We only want selected tests to run. -->
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${surefire.version}</version>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${failsafe.version}</version>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>guitest</id>
             <build>
                 <plugins>
                     <plugin>

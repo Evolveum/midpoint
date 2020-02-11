@@ -7,19 +7,27 @@
 
 package com.evolveum.midpoint.prism.impl;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.AbstractFreezable;
+import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.ItemProcessing;
+import com.evolveum.midpoint.prism.MutableDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.SchemaMigration;
+import com.evolveum.midpoint.prism.SmartVisitation;
+import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
  * Abstract definition in the schema.
@@ -43,7 +51,7 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  *
  */
-public abstract class DefinitionImpl implements MutableDefinition {
+public abstract class DefinitionImpl extends AbstractFreezable implements MutableDefinition {
 
     private static final long serialVersionUID = -2643332934312107274L;
     @NotNull protected QName typeName;
@@ -78,11 +86,6 @@ public abstract class DefinitionImpl implements MutableDefinition {
      * interfaces (even if they are empty), they will always be included in the dumps, etc.
      */
     protected boolean emphasized = false;
-
-    /**
-     * True if this definition cannot be changed.
-     */
-    protected boolean immutable;
 
     protected transient PrismContext prismContext;
 
@@ -390,26 +393,11 @@ public abstract class DefinitionImpl implements MutableDefinition {
     @Override
     public abstract Definition clone();
 
-    protected void checkMutable() {
-        if (immutable) {
-            throw new IllegalStateException("Definition couldn't be changed because it is immutable: " + this);
-        }
-    }
 
     protected void checkMutableOnExposing() {
-        if (immutable) {
+        if (!isMutable()) {
             throw new IllegalStateException("Definition couldn't be exposed as mutable because it is immutable: " + this);
         }
-    }
-
-    @Override
-    public boolean isImmutable() {
-        return immutable;
-    }
-
-    @Override
-    public void freeze() {
-        immutable = true;
     }
 
     @Override

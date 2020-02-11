@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.prism.impl.schema;
 
+import com.evolveum.midpoint.prism.AbstractFreezable;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -23,9 +24,7 @@ import java.io.InputStream;
  *
  * TODO Make this class "initializable at once" i.e. that it would not need to be in semi-finished state e.g. during parsing.
  */
-public final class SchemaDescriptionImpl implements SchemaDescription {
-
-    private boolean immutable;
+public final class SchemaDescriptionImpl extends AbstractFreezable implements SchemaDescription {
 
     private final String path;
     private final String sourceDescription;
@@ -176,18 +175,12 @@ public final class SchemaDescriptionImpl implements SchemaDescription {
         return sb.toString();
     }
 
-    private void checkMutable() {
-        if (immutable) {
-            throw new IllegalStateException("Couldn't modify immutable SchemaDescription: " + this);
-        }
-    }
 
     @Override
-    public void freeze() {
+    protected void performFreeze() {
         if (schema != null) {
             schema.freeze();
         }
-        immutable = true;
     }
 
     @Override public String toString() {
