@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
@@ -92,5 +93,6 @@ public interface StatisticsCollector {
 
     // EXPERIMENTAL - TODO: replace by something more serious
     @NotNull
+    @Experimental
     List<String> getLastFailures();
 }

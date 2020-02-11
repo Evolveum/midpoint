@@ -9,6 +9,7 @@ package com.evolveum.midpoint.util.statistics;
 
 import ch.qos.logback.classic.Level;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import org.aopalliance.intercept.MethodInvocation;
 import org.slf4j.MDC;
@@ -24,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * EXPERIMENTAL.
  */
+@Experimental
 public final class OperationInvocationRecord implements Serializable {
 
     private static final long serialVersionUID = 6805648677427302932L;

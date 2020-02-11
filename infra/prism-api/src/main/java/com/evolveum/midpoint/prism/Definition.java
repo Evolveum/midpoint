@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 /**
  *
@@ -186,6 +187,7 @@ public interface Definition extends PrismContextSensitive, Serializable, DebugDu
      * They are somehow transient. E.g. they are not serialized to
      * XSD schema definitions (yet).
      */
+    @Experimental
     <A> A getAnnotation(QName qname);
     <A> void setAnnotation(QName qname, A value);
 

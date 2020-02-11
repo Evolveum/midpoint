@@ -10,6 +10,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,6 +46,7 @@ public interface ItemDefinition<I extends Item> extends Definition {
      * EXPERIMENTAL. If true, this item is not stored in XML representation in repo.
      * TODO better name
      */
+    @Experimental
     boolean isIndexOnly();
 
     /**
@@ -104,11 +106,13 @@ public interface ItemDefinition<I extends Item> extends Definition {
      * Returns the name of an element this one can be substituted for (e.g. c:user -&gt; c:object,
      * s:pipeline -&gt; s:expression, etc). EXPERIMENTAL
      */
+    @Experimental
     QName getSubstitutionHead();
 
     /**
      * Can be used in heterogeneous lists as a list item. EXPERIMENTAL.
      */
+    @Experimental
     boolean isHeterogeneousListItem();
 
     PrismReferenceValue getValueEnumerationRef();

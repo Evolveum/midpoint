@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.Checks;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -800,9 +801,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         if (tolarateRawValues && isRaw()) {
             return;
         }
-        if (definition == null) {
-            throw new SchemaException("No definition in "+this+" in "+sourceDescription);
-        }
+        Checks.checkSchemaNotNull(definition, "No definition in {} in {}", this, sourceDescription);
     }
 
     /**

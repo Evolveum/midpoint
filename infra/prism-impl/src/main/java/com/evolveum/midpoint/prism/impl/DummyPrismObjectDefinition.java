@@ -11,6 +11,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -21,6 +23,7 @@ import java.util.function.Consumer;
 /**
  * EXPERIMENTAL
  */
+@Experimental
 public class DummyPrismObjectDefinition implements PrismObjectDefinition<Objectable> {
 
     @NotNull

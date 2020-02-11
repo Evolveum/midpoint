@@ -8,12 +8,14 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 import javax.xml.namespace.QName;
 
 /**
  *  EXPERIMENTAL
  */
+@Experimental
 public class ObjectFactory {
 
     public static <T> ResourceAttribute<T> createResourceAttribute(QName name, ResourceAttributeDefinition<T> definition, PrismContext prismContext) {

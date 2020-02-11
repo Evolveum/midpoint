@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -155,6 +156,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
     /**
      * TEMPORARY. EXPERIMENTAL. DO NOT USE.
      */
+    @Experimental
     public String extractString() {
         if (xnode instanceof PrimitiveXNode) {
             return ((PrimitiveXNode<?>) xnode).getStringValue();

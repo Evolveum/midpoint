@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -1586,6 +1587,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
     // EXPERIMENTAL. TODO write some tests
     // BEWARE, it expects that definitions for items are present. Otherwise definition-less single valued items will get overwritten.
+    @Experimental
     @SuppressWarnings("unchecked")
     public void mergeContent(@NotNull PrismContainerValue<?> other, @NotNull List<QName> overwrite) throws SchemaException {
         List<ItemName> remainingToOverwrite = overwrite.stream().map(ItemName::fromQName).collect(Collectors.toList());

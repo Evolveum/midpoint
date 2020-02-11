@@ -580,6 +580,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     }
 
     // Primarily for testing
+    @VisibleForTesting
     PrismContext getPrismContextLocal();
 
     void setPrismContext(PrismContext prismContext);        // todo remove
