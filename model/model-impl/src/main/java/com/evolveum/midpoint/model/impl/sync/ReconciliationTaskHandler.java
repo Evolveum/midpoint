@@ -815,8 +815,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
     @Override
     public Long heartbeat(Task task) {
-        // TODO Auto-generated method stub
-        return 0L;
+        return null;
     }
 
     @Override

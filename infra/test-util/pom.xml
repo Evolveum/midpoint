@@ -25,7 +25,7 @@
             <!-- We need this for Sleepycat JE -->
             <id>oracle</id>
             <name>Oracle</name>
-            <url>http://download.oracle.com/maven/</url>
+            <url>https://download.oracle.com/maven/</url>
         </repository>
     </repositories>
 

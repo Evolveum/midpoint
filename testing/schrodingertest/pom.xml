@@ -116,19 +116,23 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
+                <!--
+                TODO remove in 2021 if it works - all the configuration/executions should already come from parent
+                and skip works this way anyway.
+                -->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <configuration>
-                    <skipITs>${skipTests}</skipITs>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <!--<configuration>-->
+                <!--    <skipITs>${skipTests}</skipITs>-->
+                <!--</configuration>-->
+                <!--<executions>-->
+                <!--    <execution>-->
+                <!--        <goals>-->
+                <!--            <goal>integration-test</goal>-->
+                <!--            <goal>verify</goal>-->
+                <!--        </goals>-->
+                <!--    </execution>-->
+                <!--</executions>-->
             </plugin>
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
@@ -169,7 +173,7 @@
                         <phase>post-integration-test</phase>
                         <configuration>
                             <skip>${skipTests}</skip>
-                            <target name="Shuting down Midpoint ${project.version} after integration testing, no cleaning up" unless="cleanup">
+                            <target name="Shutting down Midpoint ${project.version} after integration testing, no cleaning up" unless="cleanup">
                                 <exec executable="jps">
                                     <arg value="-l"/>
                                     <redirector outputproperty="process.pid">
@@ -202,7 +206,7 @@
                         <phase>post-integration-test</phase>
                         <configuration>
                             <skip>${skipTests}</skip>
-                            <target name="Shuting down Midpoint ${project.version} after integration testing, and cleaning up" if="cleanup">
+                            <target name="Shutting down Midpoint ${project.version} after integration testing, and cleaning up" if="cleanup">
                                 <exec executable="jps">
                                     <arg value="-l"/>
                                     <redirector outputproperty="process.pid">

@@ -677,12 +677,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>asm</artifactId>
-                    <groupId>org.ow2.asm</groupId>
-                </exclusion>
-            </exclusions>
             <scope>test</scope>
         </dependency>
 
@@ -734,7 +728,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
             <scope>test</scope>
         </dependency>
 
@@ -911,6 +904,12 @@
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
             </plugin>
+
+            <!--
+            We use both main and test classes downstream.
+            We can't use JAR plugin for main classes, Maven requires different classifier than for
+            the main artifact (which is WAR for admin-gui).
+            -->
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
                 <executions>
@@ -920,6 +919,12 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <attachClasses>true</attachClasses>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -42,10 +42,10 @@
                             <Version-Number>${project.version}</Version-Number>
                             <SCM-Revision>${git.describe}</SCM-Revision>
                             <Organization>Evolveum</Organization>
-                            <Organization-URL>http://www.evolveum.com</Organization-URL>
-                            <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
+                            <Organization-URL>https://www.evolveum.com</Organization-URL>
+                            <Bugtracking-System>https://jira.evolveum.com</Bugtracking-System>
                             <License>Apache License v2.0</License>
-                            <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
+                            <License-URL>https://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
                             <Bundle-Name>Dummy Connector</Bundle-Name>
                             <ConnectorBundle-FrameworkVersion>1.1</ConnectorBundle-FrameworkVersion>
                             <ConnectorBundle-Name>com.evolveum.icf.dummy</ConnectorBundle-Name>
