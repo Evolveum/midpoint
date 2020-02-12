@@ -560,7 +560,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                             return;
                         }
                         if (isSaveInBackground()){
-                            progressPanel.executeChangesInBackground(delta, previewOnly, options, task, result, target);
+                            progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
                         }
@@ -609,7 +609,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                             return;
                         }
                         if (isSaveInBackground()){
-                            progressPanel.executeChangesInBackground(delta, previewOnly, options, task, result, target);
+                            progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
                         }
@@ -619,13 +619,13 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                             return;
                         }
                         if (isSaveInBackground()){
-                            progressPanel.executeChangesInBackground(delta, previewOnly, options, task, result, target);
+                            progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
                         }
                     } else if (previewOnly && delta.isEmpty() && delegationChangesExist){
                         if (isSaveInBackground()){
-                            progressPanel.executeChangesInBackground(delta, previewOnly, options, task, result, target);
+                            progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
                         }
@@ -813,46 +813,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     public boolean isForcedPreview() {
         GuiObjectDetailsPageType objectDetails = getCompiledUserProfile().findObjectDetailsConfiguration(getCompileTimeClass());
         return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());
-    }
-
-    private void runExecutionChangesTask(ObjectDelta<? extends ObjectType> delta, boolean previewOnly, AjaxRequestTarget target){
-        OperationResult result = new OperationResult(OPERATION_EXECUTE_CHANGES);
-        try {
-            TaskManager taskManager = getTaskManager();
-            Task task = taskManager.createTaskInstance(OPERATION_EXECUTE_CHANGES);
-            MidPointPrincipal user = SecurityUtils.getPrincipalUser();
-            if (user == null) {
-                throw new RestartResponseException(PageLogin.class);
-            } else {
-                task.setOwner(user.getUser().asPrismObject());
-            }
-            task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
-            task.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
-            task.setName("Execute changes");
-
-
-            ObjectDeltaType deltaBean = DeltaConvertor.toObjectDeltaType(delta);
-            task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, deltaBean);
-            taskManager.switchToBackground(task, result);
-            result.setBackgroundTaskOid(task.getOid());
-        } catch (SchemaException|RuntimeException e) {
-            result.recordFatalError(e);
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-        if (WebComponentUtil.isSuccessOrHandledError(result)
-                    || OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
-                result.setMessage(createStringResource("PageAdminObjectDetails.saveChangesInBackgroundSuccess").getString());
-                if (!isKeepDisplayingResults()) {
-                    setResponsePage(getRestartResponsePage());
-                }
-            } else {
-                result.setMessage(createStringResource("PageAdminObjectDetails.saveChangesInBackgroundError").getString());
-                target.add(getFeedbackPanel());
-                target.add(PageAdminObjectDetails.this);
-            }
-        showResult(result);
-        target.add(getFeedbackPanel());
     }
 
 }

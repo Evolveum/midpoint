@@ -15,8 +15,12 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -26,6 +30,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -43,9 +48,10 @@ import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -61,6 +67,7 @@ import org.apache.wicket.util.time.Duration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -68,7 +75,11 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto.ResourceOperationResult;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
+
+import static java.util.Collections.singleton;
 
 /**
  * @author mederly
@@ -421,7 +432,7 @@ public class ProgressPanel extends BasePanel {
         }
     }
 
-    public void executeChangesInBackground(ObjectDelta<? extends ObjectType> delta, boolean previewOnly,
+    public void executeChangesInBackground(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly,
                                ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target) {
         PageBase page = getPageBase();
         ProgressReporter reporter = reporterModel.getProcessData();
@@ -433,16 +444,30 @@ public class ProgressPanel extends BasePanel {
             } else {
                 task.setOwner(user.getUser().asPrismObject());
             }
+
+            List<ObjectDeltaType> deltasBeans = new ArrayList<>();
+            for (ObjectDelta<?> delta : deltas) {
+                deltasBeans.add(DeltaConvertor.toObjectDeltaType((ObjectDelta<? extends com.evolveum.prism.xml.ns._public.types_3.ObjectType>) delta));
+            }
+            PrismPropertyDefinition<ObjectDeltaType> deltasDefinition = page.getPrismContext().getSchemaRegistry()
+                    .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
+            PrismProperty<ObjectDeltaType> deltasProperty = deltasDefinition.instantiate();
+            deltasProperty.setRealValues(deltasBeans.toArray(new ObjectDeltaType[0]));
+            task.addExtensionProperty(deltasProperty);
+            if (options != null) {
+                PrismPropertyDefinition<ModelExecuteOptionsType> optionsDefinition = page.getPrismContext().getSchemaRegistry()
+                        .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+                PrismProperty<ModelExecuteOptionsType> optionsProperty = optionsDefinition.instantiate();
+                optionsProperty.setRealValue(options.toModelExecutionOptionsType());
+                task.addExtensionProperty(optionsProperty);
+            }
             task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
             task.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
             task.setName("Execute changes");
-
-
-            ObjectDeltaType deltaBean = DeltaConvertor.toObjectDeltaType(delta);
-            task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, deltaBean);
+            task.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
             taskManager.switchToBackground(task, result);
             result.setBackgroundTaskOid(task.getOid());
-        } catch (SchemaException |RuntimeException e) {
+        } catch (Exception e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();
