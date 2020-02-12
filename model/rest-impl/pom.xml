@@ -11,13 +11,13 @@
 
     <parent>
         <artifactId>model</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.midpoint.model</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
 
-    <name>midPoint REST-ish service implementation</name>
-    <groupId>com.evolveum.midpoint.model</groupId>
     <artifactId>rest-impl</artifactId>
+
+    <name>midPoint REST-ish service implementation</name>
 
     <properties>
         <maven.test.skip>true</maven.test.skip>
@@ -70,6 +70,22 @@
        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -44,7 +44,7 @@ public class ModelRestController {
                     RestServiceUtil.APPLICATION_YAML
             })
     public ResponseEntity<?> getSelf(HttpServletRequest request) {
-        //@Context MessageContext mc){ TODO otazka: toto uz nechceme pouzivat? po novom to uz nepotrebujeme na init requestu?
+        //@Context MessageContext mc){ TODO: do we need it in init request in new erea?
         LOGGER.debug("model rest service for get operation start");
         // uses experimental version, does not require CXF/JAX-RS
         Task task = RestServiceUtil.initRequest(taskManager);

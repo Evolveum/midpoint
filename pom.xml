@@ -1720,8 +1720,7 @@
                             <ignoredUnusedDeclaredDependencies>
                                 <!-- Unreliable detection -->
                                 <ignoredUnusedDeclaredDependency>javax.xml.bind:jaxb-api</ignoredUnusedDeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>com.sun.activation:javax.activation
-                                </ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>com.sun.activation:javax.activation</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>javax.activation:activation</ignoredUnusedDeclaredDependency>
 
                                 <!-- There are dependencies in this master POM. So they are projected
@@ -1730,16 +1729,14 @@
                                 <ignoredUnusedDeclaredDependency>org.springframework.boot</ignoredUnusedDeclaredDependency>
 
                                 <!-- Common "drill" for all modules. -->
-                                <ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng
-                                </ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>org.testng:testng</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>commons-lang:commons-lang</ignoredUnusedDeclaredDependency>
 
                                 <!-- There is some kind of conflict between these. TODO: clean up -->
                                 <ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>org.springframework.ldap:spring-ldap-core
-                                </ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUnusedDeclaredDependency>
 
                                 <!-- We are making this dependency explicit to detect conflicts early -->
                                 <ignoredUnusedDeclaredDependency>org.codehaus.woodstox:stax2-api</ignoredUnusedDeclaredDependency>
@@ -1751,28 +1748,28 @@
                             <ignoredUsedUndeclaredDependencies>
                                 <!-- Unreliable detection -->
                                 <ignoredUsedUndeclaredDependency>javax.xml.bind:jaxb-api</ignoredUsedUndeclaredDependency>
-                                <ignoredUsedUndeclaredDependency>com.sun.activation:javax.activation
-                                </ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>com.sun.activation:javax.activation</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>javax.activation:activation</ignoredUsedUndeclaredDependency>
 
                                 <!-- There is some kind of conflict between these. TODO: clean up -->
                                 <ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>stax:stax-api</ignoredUsedUndeclaredDependency>
-                                <ignoredUsedUndeclaredDependency>org.springframework.ldap:spring-ldap-core
-                                </ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUsedUndeclaredDependency>
 
                                 <!-- needs to much exclusions, used by apache-cxf (xjc plugin, prism-impl, schema, ..) -->
-                                <ignoredUsedUndeclaredDependency>jakarta.activation:jakarta.activation-api
-                                </ignoredUsedUndeclaredDependency>
-                                <ignoredUsedUndeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api
-                                </ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>jakarta.activation:jakarta.activation-api</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.glassfish.jaxb:xsom</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.glassfish.jaxb:jaxb-runtime</ignoredUsedUndeclaredDependency>
 
-                                <ignoredUsedUndeclaredDependency>org.danekja:jdk-serializable-functional
-                                </ignoredUsedUndeclaredDependency>
-                                <ignoredUsedUndeclaredDependency>org.springframework.boot:spring-boot-test
-                                </ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.danekja:jdk-serializable-functional</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.springframework.boot:spring-boot-test</ignoredUsedUndeclaredDependency>
+
+                                <!--
+                                in rest-impl it started to complain about this missing and then it was reported unused,
+                                probably because servlet-api classes in both dependencies (split-package)
+                                -->
+                                <ignoredUsedUndeclaredDependency>org.apache.tomcat.embed:tomcat-embed-core</ignoredUsedUndeclaredDependency>
                             </ignoredUsedUndeclaredDependencies>
                         </configuration>
                     </execution>
