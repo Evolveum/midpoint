@@ -95,7 +95,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     }
 
     public void setValue(T value) {
-        checkMutability();
+        checkMutable();
         this.value = value;
         this.rawElement = null;
         checkValue();
@@ -209,7 +209,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
         if (realValue == null) {
             return;
         }
-        checkMutability();            // TODO reconsider this
+        checkMutable();            // TODO reconsider this
         PrismUtil.recomputeRealValue(realValue, prismContext);
     }
 
@@ -627,7 +627,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     }
 
     @Override
-    public void freeze() {
+    public void performFreeze() {
         if (value instanceof Freezable) {
             ((Freezable) value).freeze();
         } else if (value instanceof JaxbVisitable) {
@@ -643,6 +643,6 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
         if (expression != null) {
             expression.freeze();
         }
-        super.freeze();
+        super.performFreeze();
     }
 }

@@ -68,6 +68,11 @@ public class TaskWorkStateTypeUtil {
         }
     }
 
+    @Nullable
+    public static Integer getExpectedBuckets(TaskType task) {
+        return task.getWorkState() != null ? task.getWorkState().getNumberOfBuckets() : null;
+    }
+
     private static Integer getFirstBucketNumber(@NotNull TaskWorkStateType workState) {
         return workState.getBucket().stream()
                 .map(WorkBucketType::getSequentialNumber)
@@ -106,5 +111,10 @@ public class TaskWorkStateTypeUtil {
         } else {
             throw new AssertionError("Unsupported bucket content: " + bucket.getContent());
         }
+    }
+
+    @Nullable
+    public static Integer getPartitionSequentialNumber(@NotNull TaskType taskType) {
+        return taskType.getWorkManagement() != null ? taskType.getWorkManagement().getPartitionSequentialNumber() : null;
     }
 }

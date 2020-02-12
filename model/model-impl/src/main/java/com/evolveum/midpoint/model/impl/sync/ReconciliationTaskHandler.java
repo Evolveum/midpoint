@@ -531,7 +531,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
             OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative");
 
-            handler.createWorkerThreads(localCoordinatorTask, searchResult);
+            handler.createWorkerThreads(localCoordinatorTask);
             // note that progress is incremented within the handler, as it extends AbstractSearchIterativeResultHandler
             try {
                 provisioningService
@@ -815,8 +815,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
     @Override
     public Long heartbeat(Task task) {
-        // TODO Auto-generated method stub
-        return 0L;
+        return null;
     }
 
     @Override

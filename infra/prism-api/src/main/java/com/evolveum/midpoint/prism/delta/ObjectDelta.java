@@ -36,7 +36,7 @@ import java.util.List;
  * @author Radovan Semancik
  * @see PropertyDelta
  */
-public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visitable, PathVisitable, Serializable, Freezable {
+public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismContextSensitive, Visitable, PathVisitable, Serializable, Freezable {
 
     void accept(Visitor visitor, boolean includeOldValues);
 
@@ -68,8 +68,6 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
     String getOid();
 
     void setOid(String oid);
-
-    PrismContext getPrismContext();
 
     void setPrismContext(PrismContext prismContext);
 

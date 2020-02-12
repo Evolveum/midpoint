@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="integration" parallel="false">
+    <listeners>
+        <listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
+    </listeners>
+    <test name="Model Integration" preserve-order="true" parallel="false" verbose="10">
+        <classes>
+            <class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
+            <!--
+            <class name="com.evolveum.midpoint.model.intest.TestModelServiceContractCaching"/>
+            <class name="com.evolveum.midpoint.model.intest.TestModelCrudService"/>
+            <class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
+            <class name="com.evolveum.midpoint.model.intest.multi.TestMultiResource"/>
+            <class name="com.evolveum.midpoint.model.intest.multi.TestMultiAccount"/>
+            <class name="com.evolveum.midpoint.model.intest.multi.TestMultiConnectorResources"/>
+            <class name="com.evolveum.midpoint.model.intest.TestUserTemplate"/>
+            <class name="com.evolveum.midpoint.model.intest.TestUserTemplateWithRanges"/>
+            <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStruct"/>
+            <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructMeta"/>
+            <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructCaribbean"/>
+            <class name="com.evolveum.midpoint.model.intest.TestSchemalessResource"/>
+            <class name="com.evolveum.midpoint.model.intest.TestActivation"/>
+            <class name="com.evolveum.midpoint.model.intest.TestConnectorDummyFake"/>
+            <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
+            <class name="com.evolveum.midpoint.model.intest.TestResources"/>
+            <class name="com.evolveum.midpoint.model.intest.mapping.TestMapping"/>
+            <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingInbound"/>
+            <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAutoInbound"/>
+            <class name="com.evolveum.midpoint.model.intest.TestInbounds"/>
+            <class name="com.evolveum.midpoint.model.intest.TestVolatility"/>
+            <class name="com.evolveum.midpoint.model.intest.TestTriggerTask"/>
+            <class name="com.evolveum.midpoint.model.intest.TestOptimizingTriggerCreator"/>
+            <class name="com.evolveum.midpoint.model.intest.TestIteration"/>
+            <class name="com.evolveum.midpoint.model.intest.TestTolerantAttributes"/>
+            <class name="com.evolveum.midpoint.model.intest.TestScriptHooks"/>
+            <class name="com.evolveum.midpoint.model.intest.TestEntitlements"/>
+            <class name="com.evolveum.midpoint.model.intest.TestCaseIgnore"/>
+            <class name="com.evolveum.midpoint.model.intest.TestIntent"/>
+            <class name="com.evolveum.midpoint.model.intest.gensync.TestEditSchema"/>
+            <class name="com.evolveum.midpoint.model.intest.gensync.TestRoleEntitlement"/>
+            <class name="com.evolveum.midpoint.model.intest.TestConsistencySimple"/>
+            <class name="com.evolveum.midpoint.model.intest.TestConnectorMultiInstance"/>
+            <class name="com.evolveum.midpoint.model.intest.TestMerge"/>
+            <class name="com.evolveum.midpoint.model.intest.TestAudit"/>
+            <class name="com.evolveum.midpoint.model.intest.TestDeputy"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestSegregationOfDuties"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestAssignmentValidity"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestMetaMeta"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestAutoassign"/>
+            <class name="com.evolveum.midpoint.model.intest.TestRaceConditions"/>
+            <class name="com.evolveum.midpoint.model.intest.TestNotifications"/>
+            <class name="com.evolveum.midpoint.model.intest.persona.TestPersona"/>
+            <class name="com.evolveum.midpoint.model.intest.persona.TestPersonaPassword"/>
+            <class name="com.evolveum.midpoint.model.intest.TestLifecycle"/>
+            <class name="com.evolveum.midpoint.model.intest.archetypes.TestArchetypes"/>
+            <class name="com.evolveum.midpoint.model.intest.archetypes.TestCollections"/>
+            <class name="com.evolveum.midpoint.model.intest.misc.TestMisc"/>
+            <class name="com.evolveum.midpoint.model.intest.misc.TestUuidNonUniqueName"/>
+            <class name="com.evolveum.midpoint.model.intest.misc.TestMigration"/>
+            -->
+        </classes>
+    </test>
+    <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
+        <classes>
+            <!--
+            <class name="com.evolveum.midpoint.model.intest.sync.TestLiveSyncTask"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestReconTask"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestRecomputeTask"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestImportRecon"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestImportReconAuthorizations"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTaskPartitioned"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestInboundLiveSyncTask"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestInboundReconTask"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestUuid"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestObjTemplateLiveSyncTask"/>
+            -->
+        </classes>
+    </test>
+    <test name="Async updates" preserve-order="true" parallel="false" verbose="10">
+        <classes>
+            <!--
+            <class name="com.evolveum.midpoint.model.intest.async.TestNotifyChange"/>
+            <class name="com.evolveum.midpoint.model.intest.async.TestAsyncUpdateUcf"/>
+            <class name="com.evolveum.midpoint.model.intest.async.TestAsyncUpdateGrouperJson"/>
+            -->
+        </classes>
+    </test>
+    <test name="Importer" preserve-order="true" parallel="false" verbose="10">
+        <classes>
+            <!--
+            <class name="com.evolveum.midpoint.model.intest.importer.XmlImportTest"/>
+            <class name="com.evolveum.midpoint.model.intest.importer.JsonImportTest"/>
+            <class name="com.evolveum.midpoint.model.intest.importer.YamlImportTest"/>
+            -->
+        </classes>
+    </test>
+    <test name="Scripting" preserve-order="true" parallel="false" verbose="10" enabled="true">
+        <classes>
+            <!--<class name="com.evolveum.midpoint.model.intest.scripting.TestScriptingBasic"/>-->
+        </classes>
+    </test>
+    <test name="Password" preserve-order="true" parallel="false" verbose="10" enabled="true">
+        <classes>
+            <!--
+            <class name="com.evolveum.midpoint.model.intest.password.TestPasswordDefault"/>
+            <class name="com.evolveum.midpoint.model.intest.password.TestPasswordDefaultHashing"/>
+            -->
+            <!-- TestPasswordNone works only partially. It needs to be updated. -->
+            <!-- <class name="com.evolveum.midpoint.model.intest.password.TestPasswordNone"/>  -->
+        </classes>
+    </test>
+    <!--
+        Some tests moved to the end of suite, because they change logging configuration.
+        TODO: Logging configuration should be refreshed from file during spring context reloading.
+    -->
+    <test name="Model Integration 2" preserve-order="true" parallel="false" verbose="10">
+        <classes>
+            <!--
+            <class name="com.evolveum.midpoint.model.intest.TestLoggingConfiguration"/>
+            <class name="com.evolveum.midpoint.model.intest.negative.TestBrokenResources"/>
+            <class name="com.evolveum.midpoint.model.intest.negative.TestAssignmentErrors"/>
+            <class name="com.evolveum.midpoint.model.intest.negative.TestModelWebServiceNegative"/>
+            -->
+        </classes>
+    </test>
+    <test name="Manual" preserve-order="true" parallel="false" verbose="10">
+        <classes>
+            <!--
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManual"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManualCapabilities"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManual"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisable"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManualGrouping"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualGrouping"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualGroupingProposed"/>
+            -->
+            <!--  DISABLED MID-4166
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualSlowProposed"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisableSlowProposed"/> -->
+            <class name="com.evolveum.midpoint.model.intest.manual.TestDummyItsmIntegration"/>
+        </classes>
+    </test>
+</suite>

@@ -330,13 +330,13 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
     }
 
     @Override
-    public void freeze() {
+    public void performFreeze() {
         for (Map.Entry<QName, XNodeImpl> subnode : subnodes.entrySet()) {
             if (subnode.getValue() != null) {
                 subnode.getValue().freeze();
             }
         }
-        super.freeze();
+        super.performFreeze();
     }
 
     // TODO reconsider performance of this method

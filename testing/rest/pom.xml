@@ -110,9 +110,16 @@
         <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <type>jar</type>
-            <classifier>tests</classifier>
+            <version>${project.version}</version>
+            <classifier>classes</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.gui</groupId>
+            <artifactId>admin-gui</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>javax.xml.bind</groupId>
@@ -153,22 +160,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <type>jar</type>
-            <classifier>sources</classifier>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>asm</artifactId>
-                    <groupId>org.ow2.asm</groupId>
-                </exclusion>
-            </exclusions>
             <scope>test</scope>
         </dependency>
 
@@ -363,6 +356,8 @@
             <scope>runtime</scope>
         </dependency>
     </dependencies>
+
+    <!-- surefire/failsafe only for profile extratest - see lower -->
 
     <profiles>
         <profile>

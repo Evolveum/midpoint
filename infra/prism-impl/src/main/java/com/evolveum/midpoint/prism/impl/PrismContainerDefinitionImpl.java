@@ -543,8 +543,8 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     }
 
     @Override
-    public void freeze() {
+    public void performFreeze() {
         // We do not "own" complex type definition so we do not freeze it here
-        super.freeze();
+        super.performFreeze();
     }
 }

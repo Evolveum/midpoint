@@ -142,10 +142,10 @@ public class RootXNodeImpl extends XNodeImpl implements RootXNode {
     }
 
     @Override
-    public void freeze() {
+    public void performFreeze() {
         if (subnode != null) {
             subnode.freeze();
         }
-        super.freeze();
+        super.performFreeze();
     }
 }

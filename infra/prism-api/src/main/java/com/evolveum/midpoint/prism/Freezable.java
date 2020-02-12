@@ -7,10 +7,27 @@
 
 package com.evolveum.midpoint.prism;
 
+import org.jvnet.jaxb2_commons.lang.ToString;
+
 /**
  *  Something that can be made immutable.
  */
 public interface Freezable {
 
+    boolean isImmutable();
+
     void freeze();
+
+    default void checkMutable() {
+        if (isImmutable()) {
+            throw new IllegalStateException("An attempt to modify an immutable: " + toString());
+        }
+    }
+
+    default void checkImmutable() {
+        if (!isImmutable()) {
+            throw new IllegalStateException("Item is not immutable even if it should be: " + toString());
+        }
+    }
+
 }

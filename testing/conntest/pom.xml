@@ -164,11 +164,6 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.polygon</groupId>
-            <artifactId>connector-powershell</artifactId>
-            <version>1.0-M1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.polygon</groupId>
             <artifactId>connector-databasetable</artifactId>
             <scope>test</scope>
         </dependency>
@@ -229,22 +224,7 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <runOrder>alphabetical</runOrder>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <configuration>
-                    <runOrder>alphabetical</runOrder>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <!-- surefire/failsafe only for profile conntest - see lower -->
 
     <profiles>
         <profile>
@@ -255,12 +235,14 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <skip>false</skip>
+                            <runOrder>alphabetical</runOrder>
                         </configuration>
                     </plugin>
                     <plugin>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
                             <skip>false</skip>
+                            <runOrder>alphabetical</runOrder>
                         </configuration>
                     </plugin>
                 </plugins>

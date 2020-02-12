@@ -7,20 +7,23 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.util.DebugDumpable;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.IdentityHashMap;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 /**
  *
  */
-public interface Definition extends Serializable, DebugDumpable, Revivable, Cloneable, Freezable, SmartVisitable<Definition> {
+public interface Definition extends PrismContextSensitive, Serializable, DebugDumpable, Revivable, Cloneable, Freezable, SmartVisitable<Definition> {
 
     /**
      * Returns a name of the type for this definition.
@@ -155,9 +158,6 @@ public interface Definition extends Serializable, DebugDumpable, Revivable, Clon
      */
     String getDocumentationPreview();
 
-    @Contract(pure = true)
-    PrismContext getPrismContext();
-
     default SchemaRegistry getSchemaRegistry() {
         PrismContext prismContext = getPrismContext();
         return prismContext != null ? prismContext.getSchemaRegistry() : null;
@@ -187,6 +187,7 @@ public interface Definition extends Serializable, DebugDumpable, Revivable, Clon
      * They are somehow transient. E.g. they are not serialized to
      * XSD schema definitions (yet).
      */
+    @Experimental
     <A> A getAnnotation(QName qname);
     <A> void setAnnotation(QName qname, A value);
 
@@ -200,8 +201,6 @@ public interface Definition extends Serializable, DebugDumpable, Revivable, Clon
     }
 
     MutableDefinition toMutable();
-
-    boolean isImmutable();
 
     // TODO reconsider/fix this
     default String getMutabilityFlag() {

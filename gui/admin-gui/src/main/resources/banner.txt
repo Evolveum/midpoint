@@ -6,8 +6,8 @@
   | | | | | | | (_| | |  | (_) | | | | | |_
   |_| |_| |_|_|\____|_|  \____/|_|_| |_|\__|  by Evolveum and partners
 
-  Licensed under the Apache License, Version 2.0 see: http://www.apache.org/licenses/LICENSE-2.0
+  Dual-licensed under Apache License 2.0 and European Union Public License.
   Version: ${project.version}
   Sources: ${project.scm.connection}, branch: ${git.branch}, build: ${git.describe}
   Bug reporting system: ${project.issueManagement.url}
-  Product information: http://wiki.evolveum.com/display/midPoint
+  Product information: https://midpoint.evolveum.com

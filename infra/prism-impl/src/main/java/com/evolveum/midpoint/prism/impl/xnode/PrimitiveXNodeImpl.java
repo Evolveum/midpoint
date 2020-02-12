@@ -380,13 +380,13 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
     }
 
     @Override
-    public void freeze() {
+    public void performFreeze() {
         if (value instanceof Freezable) {
             ((Freezable) value).freeze();
         }
         if (valueParser != null) {
             valueParser = valueParser.freeze();
         }
-        super.freeze();
+        super.performFreeze();
     }
 }

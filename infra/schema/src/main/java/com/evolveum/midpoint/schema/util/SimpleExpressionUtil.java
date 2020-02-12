@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import javax.xml.bind.JAXBElement;
@@ -20,6 +21,7 @@ import javax.xml.bind.JAXBElement;
  *
  * @author mederly
  */
+@Experimental
 public class SimpleExpressionUtil {
 
     public static Object getConstantIfPresent(ExpressionType expression) {

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.AbstractFreezable;
 import com.evolveum.midpoint.prism.Freezable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -23,7 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class RefinedAssociationDefinition implements Serializable, Visitable, Freezable {
+public class RefinedAssociationDefinition extends AbstractFreezable implements Serializable, Visitable, Freezable {
     private static final long serialVersionUID = 1L;
 
     private Map<LayerType, PropertyLimitations> limitationsMap;
@@ -157,14 +158,4 @@ public class RefinedAssociationDefinition implements Serializable, Visitable, Fr
         clone.associationTarget = this.associationTarget;
     }
 
-    @Override
-    public void freeze() {
-        immutable = true;
-    }
-
-    private void checkMutable() {
-        if (immutable) {
-            throw new IllegalStateException("Definition couldn't be changed because it is immutable: " + this);
-        }
-    }
 }

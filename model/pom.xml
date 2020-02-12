@@ -38,28 +38,4 @@
         <!-- TODO separate rest-api after PoC is finished -->
         <module>rest-impl</module>
     </modules>
-
-    <dependencies>
-        <!-- Required for surefire plugin not to complain -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>test-ng</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <!-- reference failsafe to run integration tests (surefire/units run by default) -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 </project>

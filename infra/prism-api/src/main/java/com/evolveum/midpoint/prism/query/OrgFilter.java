@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.prism.query;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 /**
  *
@@ -17,7 +18,7 @@ public interface OrgFilter extends ObjectFilter {
     enum Scope {
         ONE_LEVEL,
         SUBTREE,
-        ANCESTORS       // EXPERIMENTAL; OID has to belong to an OrgType!
+        @Experimental ANCESTORS       // EXPERIMENTAL; OID has to belong to an OrgType!
     }
 
     PrismReferenceValue getOrgRef();
