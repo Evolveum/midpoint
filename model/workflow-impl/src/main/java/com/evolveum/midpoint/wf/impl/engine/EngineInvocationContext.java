@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.engine.helpers.DelayedNotification;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -127,8 +128,12 @@ public class EngineInvocationContext implements DebugDumpable {
         }
     }
 
-    public String getProcessInstanceName() {
+    public String getProcessInstanceNameOrig() {
         return currentCase.getName().getOrig();
+    }
+
+    public PolyStringType getProcessInstanceName() {
+        return currentCase.getName();
     }
 
     public void addAuditRecord(AuditEventRecord record) {

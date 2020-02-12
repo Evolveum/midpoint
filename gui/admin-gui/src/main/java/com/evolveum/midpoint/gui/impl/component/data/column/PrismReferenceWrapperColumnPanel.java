@@ -41,7 +41,7 @@ public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends Ab
 
     @Override
     protected String createLabel(PrismValueWrapper<R, PrismReferenceValue> object) {
-        return WebComponentUtil.getReferencedObjectDisplayNamesAndNames(object.getRealValue(), false);
+        return WebComponentUtil.getReferencedObjectDisplayNamesAndNames(object.getRealValue(), false, true);
     }
 
     @Override

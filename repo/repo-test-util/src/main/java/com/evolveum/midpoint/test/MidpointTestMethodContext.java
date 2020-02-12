@@ -18,6 +18,11 @@ public final class MidpointTestMethodContext {
     private static final ThreadLocal<MidpointTestMethodContext> TEST_CONTEXT_THREAD_LOCAL = new ThreadLocal<>();
 
     /**
+     * Test method name.
+     */
+    private final String methodName;
+
+    /**
      * Task used to execute the test.
      */
     private final Task task;
@@ -27,9 +32,14 @@ public final class MidpointTestMethodContext {
      */
     private final OperationResult result;
 
-    private MidpointTestMethodContext(Task task, OperationResult result) {
+    private MidpointTestMethodContext(String methodName, Task task, OperationResult result) {
+        this.methodName = methodName;
         this.task = task;
         this.result = result;
+    }
+
+    public String getMethodName() {
+        return methodName;
     }
 
     public Task getTask() {
@@ -44,8 +54,8 @@ public final class MidpointTestMethodContext {
         return TEST_CONTEXT_THREAD_LOCAL.get();
     }
 
-    public static MidpointTestMethodContext setup(Task task, OperationResult result) {
-        MidpointTestMethodContext ctx = new MidpointTestMethodContext(task, result);
+    public static MidpointTestMethodContext setup(String methodName, Task task, OperationResult result) {
+        MidpointTestMethodContext ctx = new MidpointTestMethodContext(methodName, task, result);
         TEST_CONTEXT_THREAD_LOCAL.set(ctx);
         return ctx;
     }

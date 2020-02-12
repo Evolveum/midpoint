@@ -10,9 +10,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.web.component.data.column.PolyStringPropertyColumn;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -28,6 +32,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectListPanel<O> {
@@ -84,6 +89,15 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
                 private static final long serialVersionUID = 1L;
 
                 @Override
+                protected IModel createLinkModel(IModel<SelectableBean<O>> rowModel) {
+                    IModel linkModel = new PropertyModel(rowModel, getPropertyExpression());
+                    if (linkModel.getObject() != null && linkModel.getObject() instanceof PolyStringType){
+                        return Model.of(WebComponentUtil.getTranslatedPolyString((PolyStringType)linkModel.getObject()));
+                    }
+                    return linkModel;
+                }
+
+                @Override
                 public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
                     O object = rowModel.getObject().getValue();
                     onSelectPerformed(target, object);
@@ -93,11 +107,14 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
         }
 
         else {
-            return new PropertyColumn(
-                    columnNameModel == null ? createStringResource("userBrowserDialog.name") : columnNameModel,
-                    StringUtils.isEmpty(itemPath) ? ObjectType.F_NAME.getLocalPart() : itemPath,
-                    SelectableBean.F_VALUE + "." +
-                            (StringUtils.isEmpty(itemPath) ? "name" : itemPath));
+            if (StringUtils.isEmpty(itemPath) || ObjectType.F_NAME.getLocalPart().equals(itemPath)){
+                return new PolyStringPropertyColumn<SelectableBean<O>>(columnNameModel == null ? createStringResource("userBrowserDialog.name") : columnNameModel,
+                        ObjectType.F_NAME.getLocalPart(), "value.name");
+            } else {
+                return new PropertyColumn(
+                        columnNameModel == null ? createStringResource("userBrowserDialog.name") : columnNameModel,
+                        itemPath,SelectableBean.F_VALUE + "." + itemPath);
+            }
         }
     }
 

@@ -281,7 +281,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             CaseWorkItemType workItem = new CaseWorkItemType(getPrismContext())
                     .originalAssigneeRef(operator.clone())
                     .assigneeRef(operator.clone())
-                    .name(caseType.getName().getOrig())
+                    .name(caseType.getName())
                     .createTimestamp(now)
                     .deadline(deadline);
             caseType.getWorkItem().add(workItem);

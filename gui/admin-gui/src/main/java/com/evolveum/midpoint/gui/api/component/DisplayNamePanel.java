@@ -12,6 +12,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import org.apache.commons.lang3.StringUtils;
@@ -168,11 +169,11 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
             sb.append(objectTemplateNameValue);
             return Model.of(sb.toString());
         }
-        PrismProperty<String> name = getModelObject().asPrismContainerValue().findProperty(ObjectType.F_NAME);
+        PrismProperty<PolyString> name = getModelObject().asPrismContainerValue().findProperty(ObjectType.F_NAME);
         if (name == null || name.isEmpty()) {
             return Model.of("");
         }
-        return Model.of(name.getRealValue());
+        return Model.of(WebComponentUtil.getTranslatedPolyString(name.getRealValue()));
     }
 
     private IModel<String> createIdentifierModel() {

@@ -61,7 +61,7 @@ public class MockTaskHandler implements TaskHandler {
 
     @Override
     public Long heartbeat(Task task) {
-        return 0L;
+        return null;
     }
 
     @Override

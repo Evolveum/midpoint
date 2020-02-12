@@ -99,9 +99,10 @@ public class AuditReindexTaskHandler implements TaskHandler {
                 params.put("setFirstResult", firstResult);
                 params.put("setMaxResults", maxResults);
                 List<AuditEventRecord> records = auditService.listRecords(null, params, opResult);
-                if (CollectionUtils.isNotEmpty(records)){
+                if (CollectionUtils.isNotEmpty(records)) {
                     for (AuditEventRecord record : records) {
                         resultHandler.handle(record);
+                        // TODO increase task progress!
                         runResult.setProgress((long) resultHandler.getProgress());
                     }
                     firstResult += maxResults;
@@ -155,12 +156,11 @@ public class AuditReindexTaskHandler implements TaskHandler {
 
     @Override
     public Long heartbeat(Task task) {
-        return task.getProgress();
+        return null;
     }
 
     @Override
     public void refreshStatus(Task task) {
-        // TODO Auto-generated method stub
     }
 
     @Override

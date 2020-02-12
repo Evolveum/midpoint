@@ -635,14 +635,11 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
 
     @Override
     public Long heartbeat(Task task) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public void refreshStatus(Task task) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
