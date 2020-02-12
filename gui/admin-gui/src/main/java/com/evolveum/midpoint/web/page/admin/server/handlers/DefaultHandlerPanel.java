@@ -35,25 +35,25 @@ public class DefaultHandlerPanel<D extends HandlerDto> extends BasePanel<D> {
 
     private void initLayout(final PageBase parentPage) {
         WebMarkupContainer objectRefContainer = new WebMarkupContainer(ID_OBJECT_REF_CONTAINER);
-        objectRefContainer.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return getModelObject().getTaskDto().getObjectRef() != null;
-            }
-        });
+//        objectRefContainer.add(new VisibleEnableBehaviour() {
+//            @Override
+//            public boolean isVisible() {
+//                return getModelObject().getTaskDto().getObjectRef() != null;
+//            }
+//        });
 
         final LinkPanel objectRef = new LinkPanel(ID_OBJECT_REF, new PropertyModel<>(getModel(), HandlerDto.F_OBJECT_REF_NAME)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ObjectReferenceType ref = getModelObject().getObjectRef();
-                if (ref != null) {
-                    WebComponentUtil.dispatchToObjectDetailsPage(ref, parentPage, false);
-                }
+//                ObjectReferenceType ref = getModelObject().getObjectRef();
+//                if (ref != null) {
+//                    WebComponentUtil.dispatchToObjectDetailsPage(ref, parentPage, false);
+//                }
             }
-            @Override
-            public boolean isEnabled() {
-                return WebComponentUtil.hasDetailsPage(getModelObject().getObjectRef());
-            }
+//            @Override
+//            public boolean isEnabled() {
+//                return WebComponentUtil.hasDetailsPage(getModelObject().getObjectRef());
+//            }
         };
         objectRefContainer.add(objectRef);
         add(objectRefContainer);

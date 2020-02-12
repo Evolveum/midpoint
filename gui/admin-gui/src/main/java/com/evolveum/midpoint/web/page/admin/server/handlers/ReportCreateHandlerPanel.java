@@ -85,21 +85,21 @@ public class ReportCreateHandlerPanel extends DefaultHandlerPanel<ReportCreateHa
             }
         };
         downloadContainer.add(download);
-        downloadContainer.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                ReportOutputType reportObject = getReportOutput(parentPage);
-                return getModelObject().getReportOutputOid() != null && reportObject != null;
-            }
-        });
+//        downloadContainer.add(new VisibleEnableBehaviour() {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public boolean isVisible() {
+//                ReportOutputType reportObject = getReportOutput(parentPage);
+//                return getModelObject().getReportOutputOid() != null && reportObject != null;
+//            }
+//        });
         add(downloadContainer);
     }
 
     private ReportOutputType getReportOutput(PageBase parentPage) {
-        String outputOid = getModelObject().getReportOutputOid();
+        String outputOid = null;//getModelObject().getReportOutputOid();
 
         if (outputOid == null) {
             return null;

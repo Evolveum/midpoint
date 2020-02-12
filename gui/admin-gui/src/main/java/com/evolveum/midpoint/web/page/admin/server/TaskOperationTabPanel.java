@@ -69,6 +69,9 @@ public class TaskOperationTabPanel extends BasePanel<PrismContainerWrapper<LensC
                 ModelContext ctx;
                 try {
                     LensContextType lensContextType = getModelObject().getValue().getRealValue();
+                    if (lensContextType.getState() == null) {
+                        return null;
+                    }
                     ctx = ModelContextUtil.unwrapModelContext(lensContextType, getPageBase().getModelInteractionService(), task, result);
                 } catch (SchemaException | ObjectNotFoundException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unexpected error, cannot get real value for model context", e, e.getMessage());
@@ -87,6 +90,18 @@ public class TaskOperationTabPanel extends BasePanel<PrismContainerWrapper<LensC
         ModelOperationStatusPanel panel = new ModelOperationStatusPanel(ID_MODEL_OPERATION_STATUS_PANEL, operationStatusModel);
         panel.add(modelOpBehaviour);
         add(panel);
+    }
+
+    //TODO correc visibility
+    @Override
+    public boolean isVisible() {
+        try {
+            return getModelObject().getValue().getRealValue() != null && getModelObject().getValue().getRealValue().getState() != null;
+        } catch (SchemaException e) {
+            //TODO what to do?
+        }
+
+        return false;
     }
 
     @Override
