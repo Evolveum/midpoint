@@ -10,13 +10,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.evolveum.midpoint.tools</groupId>
     <artifactId>xjc-plugin</artifactId>
-    <version>4.0.2</version>
+    <version>4.0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>midPoint Infrastructure - xjc plugin</name>
     <parent>
         <artifactId>tools</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.0.2</version>
+        <version>4.0.3-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -31,12 +31,12 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.0.2</version>
+            <version>4.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-impl</artifactId>
-            <version>4.0.2</version>
+            <version>4.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
@@ -65,7 +65,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.0.2</version>
+            <version>4.0.3-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

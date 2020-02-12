@@ -15,7 +15,7 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.0.2</version>
+        <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../build-system/pom.xml</relativePath>
     </parent>
     <organization>
@@ -42,7 +42,7 @@
            <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
-            <version>4.0.2</version>
+            <version>4.0.3-SNAPSHOT</version>
             <type>war</type>
             <scope>compile</scope>
         </dependency>
@@ -59,7 +59,7 @@
            <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-impl</artifactId>
-            <version>4.0.2</version>
+            <version>4.0.3-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
