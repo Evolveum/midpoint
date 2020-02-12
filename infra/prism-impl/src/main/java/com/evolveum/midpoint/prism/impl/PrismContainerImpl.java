@@ -183,7 +183,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     public void setValue(@NotNull PrismContainerValue<C> value) throws SchemaException {
-        checkMutability();
+        checkMutable();
         if (getDefinition() != null) {
             if (getDefinition().isSingleValue()) {
                 clear();
@@ -199,7 +199,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 
     @Override
     public boolean add(@NotNull PrismContainerValue newValue, boolean checkUniqueness) throws SchemaException {
-        checkMutability();
+        checkMutable();
         // when a context-less item is added to a contextful container, it is automatically adopted
         if (newValue.getPrismContext() == null && this.prismContext != null) {
             prismContext.adopt(newValue);
@@ -233,13 +233,13 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     public <T> void setPropertyRealValue(QName propertyName, T realValue) throws SchemaException {
-        checkMutability();
+        checkMutable();
         PrismProperty<T> property = findOrCreateProperty(ItemName.fromQName(propertyName));
         property.setRealValue(realValue);
     }
 
     public <X extends Containerable> void setContainerRealValue(QName itemName, X realValue) throws SchemaException {
-        checkMutability();
+        checkMutable();
         if (realValue != null) {
             PrismContainer<Containerable> container = findOrCreateContainer(ItemName.fromQName(itemName));
             //noinspection unchecked
@@ -250,7 +250,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     public <T> void setPropertyRealValues(QName propertyName, T... realValues) throws SchemaException {
-        checkMutability();
+        checkMutable();
         PrismProperty<T> property = findOrCreateProperty(ItemName.fromQName(propertyName));
         property.setRealValues(realValues);
     }
@@ -267,12 +267,12 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
      * Convenience method. Works only on single-valued containers.
      */
     public void add(Item<?,?> item) throws SchemaException {
-        checkMutability();
+        checkMutable();
         this.getValue().add(item);
     }
 
     public PrismContainerValue<C> createNewValue() {
-        checkMutability();
+        checkMutable();
         PrismContainerValue<C> pValue = new PrismContainerValueImpl<>(prismContext);
         try {
             // No need to check uniqueness, we know that this value is new and therefore
@@ -298,7 +298,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     public void mergeValue(PrismContainerValue<C> otherValue) throws SchemaException {
-        checkMutability();
+        checkMutable();
         Iterator<PrismContainerValue<C>> iterator = getValues().iterator();
         while (iterator.hasNext()) {
             PrismContainerValue<C> thisValue = iterator.next();
@@ -326,7 +326,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
         while (iterator.hasNext()) {
             PrismContainerValue<C> pval = iterator.next();
             if (pval.isEmpty()) {
-                checkMutability();
+                checkMutable();
                 iterator.remove();
             }
         }
@@ -350,7 +350,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
      * @param definition the definition to set
      */
     public void setDefinition(PrismContainerDefinition<C> definition) {
-        checkMutability();
+        checkMutable();
         if (definition != null) {
             for (PrismContainerValue<C> value : getValues()) {
                 // TODO reconsider this - sometimes we want to change CTDs, sometimes not
@@ -369,7 +369,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 
     @Override
     public void applyDefinition(PrismContainerDefinition<C> definition) throws SchemaException {
-        checkMutability();
+        checkMutable();
         if (definition == null) {
             return;
         }

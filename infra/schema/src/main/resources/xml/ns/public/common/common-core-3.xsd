@@ -4675,7 +4675,7 @@
                     <xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The set of user's credentials (such as passwords).
+                                The set of focus's credentials (such as passwords).
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>UserType.credentials</a:displayName>
@@ -25737,6 +25737,21 @@
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:displayName>InfrastructureConfigurationType.remoteHostAddressHeader</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="publicHttpUrlPattern" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Pattern for HTTP/HTTPS communication with client. This specifies the URL
+                        that is used by midPoint when it creates redirect URL for client.
+                        The pattern is in fact an URL prefix pointing to root URL of the application.
+                        Specific paths will be appended to the URL.
+                        Example: https://$host/midpoint
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                        <a:displayName>InfrastructureConfigurationType.publicHttpUrlPattern</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

@@ -54,4 +54,20 @@ public class SystemConfigurationTypeUtil {
             return null;
         }
     }
+
+    public static String getPublicHttpUrlPattern(SystemConfigurationType sysconfig) {
+        if (sysconfig == null) {
+            return null;
+        } else if (sysconfig.getInfrastructure() != null && sysconfig.getInfrastructure().getPublicHttpUrlPattern() != null) {
+
+            String publicHttpUrlPattern = sysconfig.getInfrastructure().getPublicHttpUrlPattern();
+            String defaultHostname = getDefaultHostname(sysconfig);
+            if (defaultHostname != null) {
+                String url = publicHttpUrlPattern.replace("$host", defaultHostname);
+            }
+            return publicHttpUrlPattern;
+        } else {
+            return null;
+        }
+    }
 }

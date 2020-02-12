@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.processor;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.MutableComplexTypeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.google.common.annotations.VisibleForTesting;
 
 import javax.xml.namespace.QName;
 
@@ -44,9 +45,12 @@ public interface MutableObjectClassComplexTypeDefinition extends ObjectClassComp
 
     void setDisplayNameAttribute(QName displayName);
 
+    @VisibleForTesting
     <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(QName name, QName typeName);
 
+    @VisibleForTesting
     <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(String localName, QName typeName);
 
+    @VisibleForTesting
     <X> ResourceAttributeDefinition<X> createAttributeDefinition(String localName, String localTypeName);
 }

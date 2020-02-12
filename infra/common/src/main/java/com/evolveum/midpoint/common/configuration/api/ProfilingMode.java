@@ -7,9 +7,12 @@
 
 package com.evolveum.midpoint.common.configuration.api;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 /**
  *  EXPERIMENTAL
  */
+@Experimental
 public enum ProfilingMode {
 
     /**

@@ -148,6 +148,10 @@
             <artifactId>geronimo-ws-metadata_2.0_spec</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
         <!--  Testing dependencies  -->
         <dependency>
             <groupId>org.testng</groupId>

@@ -9,10 +9,6 @@ package com.evolveum.midpoint.testing.story;
 import java.io.File;
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -22,13 +18,16 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -85,21 +84,6 @@ public class TestOperationPerf extends AbstractStoryTest {
         clockworkMedic.setDiagnosticContextManager(profilingModelInspectorManager);
 
         InternalMonitor.setCloneTimingEnabled(true);
-
-        extendUserSchema(NUMBER_OF_USER_EXTENSION_PROPERTIES);
-    }
-
-    private void extendUserSchema(int numberOfProperties) {
-        PrismObjectDefinition<UserType> userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        MutablePrismContainerDefinition<?> userExtensionDefinition = userDefinition.getExtensionDefinition().toMutable();
-
-        for (int i=0; i<numberOfProperties; i++) {
-            String propName = String.format(USER_EXTENSION_PROPERTY_NAME_FORMAT, i);
-            userExtensionDefinition.createPropertyDefinition(
-                    new QName(USER_EXTENSION_NS, propName), DOMUtil.XSD_STRING);
-        }
-
-        display("User extension definition", userExtensionDefinition);
     }
 
     @Test

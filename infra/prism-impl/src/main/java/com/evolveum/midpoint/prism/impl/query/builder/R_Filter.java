@@ -12,6 +12,8 @@ import com.evolveum.midpoint.prism.impl.query.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +26,8 @@ import java.util.List;
  *
  * @author mederly
  */
+// FIXME: Add better names
+@Experimental
 public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
 
     final private QueryBuilder queryBuilder;

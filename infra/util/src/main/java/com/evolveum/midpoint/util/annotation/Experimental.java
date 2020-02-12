@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.util.annotation;
 
+import java.lang.annotation.Documented;
+
 /**
  * Marks experimental code.
  * The code marked with this annotation is not officially supported.
@@ -13,6 +15,7 @@ package com.evolveum.midpoint.util.annotation;
  *
  * @author Radovan Semancik
  */
+@Documented
 public @interface Experimental {
 
 }

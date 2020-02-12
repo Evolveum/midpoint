@@ -9,9 +9,12 @@ package com.evolveum.midpoint.prism;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 /**
  *  EXPERIMENTAL
  */
+@Experimental
 public interface MutableItemDefinition<I extends Item> extends ItemDefinition<I>, MutableDefinition {
 
     void setMinOccurs(int value);

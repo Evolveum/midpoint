@@ -7,10 +7,13 @@
 
 package com.evolveum.midpoint.prism.xnode;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 /**
  * This is a marker that a given prism item is incomplete.
  *
  * EXPERIMENTAL
  */
+@Experimental
 public interface IncompleteMarkerXNode extends XNode {
 }

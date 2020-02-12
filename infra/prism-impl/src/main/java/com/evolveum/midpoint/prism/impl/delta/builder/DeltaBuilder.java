@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.impl.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.impl.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.impl.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,6 +35,7 @@ import java.util.*;
  *
  * @author mederly
  */
+@Experimental
 public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
 
     final private Class<T> objectClass;

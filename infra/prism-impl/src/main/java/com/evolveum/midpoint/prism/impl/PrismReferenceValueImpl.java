@@ -90,7 +90,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
     }
 
     public void setOid(String oid) {
-        checkMutability();
+        checkMutable();
         this.oid = oid;
     }
 
@@ -108,7 +108,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
     }
 
     public void setObject(PrismObject object) {
-        checkMutability();
+        checkMutable();
         this.object = object;
     }
 
@@ -138,7 +138,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
      * @param allowEmptyNamespace This is an ugly hack. See comment in DOMUtil.validateNonEmptyQName.
      */
     public void setTargetType(QName targetType, boolean allowEmptyNamespace) {
-        checkMutability();
+        checkMutable();
         // Null value is OK
         if (targetType != null) {
             // But non-empty is not ..
@@ -168,12 +168,12 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
     }
 
     public void setTargetName(PolyString name) {
-        checkMutability();
+        checkMutable();
         this.targetName = name;
     }
 
     public void setTargetName(PolyStringType name) {
-        checkMutability();
+        checkMutable();
         if (name == null) {
             this.targetName = null;
         } else {
@@ -202,7 +202,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
     }
 
     public void setRelation(QName relation) {
-        checkMutability();
+        checkMutable();
         this.relation = relation;
     }
 
@@ -216,7 +216,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
     }
 
     public void setDescription(String description) {
-        checkMutability();
+        checkMutable();
         this.description = description;
     }
 
@@ -225,7 +225,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
     }
 
     public void setFilter(SearchFilterType filter) {
-        checkMutability();
+        checkMutable();
         this.filter = filter;
     }
 
@@ -234,7 +234,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
     }
 
     public void setResolutionTime(EvaluationTimeType resolutionTime) {
-        checkMutability();
+        checkMutable();
         this.resolutionTime = resolutionTime;
     }
 
@@ -245,7 +245,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 
     @Override
     public void setReferentialIntegrity(ReferentialIntegrityType referentialIntegrity) {
-        checkMutability();
+        checkMutable();
         this.referentialIntegrity = referentialIntegrity;
     }
 
