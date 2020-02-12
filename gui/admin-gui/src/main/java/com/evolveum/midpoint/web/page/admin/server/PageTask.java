@@ -13,10 +13,8 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -24,28 +22,21 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.*;
-import com.evolveum.midpoint.web.component.data.column.LinkIconPanel;
-import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
-import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
 import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.apache.wicket.AttributeModifier;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
-import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -123,7 +114,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     @Override
     protected ObjectSummaryPanel<TaskType> createSummaryPanel() {
-        return new TaskSummaryPanelNew(ID_SUMMARY_PANEL, createSummaryPanelModel(), this, this);
+        return new TaskSummaryPanel(ID_SUMMARY_PANEL, createSummaryPanelModel(), this, this);
     }
 
     @Override
@@ -378,7 +369,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 tabs.add(new AbstractTab(createStringResource("pageTask.subtasks.title")) {
                     @Override
                     public WebMarkupContainer getPanel(String panelId) {
-                        return new TaskSubtasksAndThreadsTabPanelNew(panelId, getObjectModel());
+                        return new TaskSubtasksAndThreadsTabPanel(panelId, getObjectModel());
                     }
 
                     @Override
@@ -401,7 +392,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 tabs.add(new AbstractTab(createStringResource("pageTask.internalPerformane.title")) {
                     @Override
                     public WebMarkupContainer getPanel(String panelId) {
-                        return new TaskInternalPerformanceTabPanelNew(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_OPERATION_STATS));
+                        return new TaskInternalPerformanceTabPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_OPERATION_STATS));
                     }
                     @Override
                     public boolean isVisible() {
@@ -412,7 +403,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 tabs.add(new AbstractTab(createStringResource("pageTask.result.title")) {
                     @Override
                     public WebMarkupContainer getPanel(String panelId) {
-                        return new TaskResultTabPanelNew(panelId, getObjectModel());
+                        return new TaskResultTabPanel(panelId, getObjectModel());
                     }
                     @Override
                     public boolean isVisible() {
@@ -424,7 +415,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 tabs.add(new AbstractTab(createStringResource("pageTask.errors.title")) {
                     @Override
                     public WebMarkupContainer getPanel(String panelId) {
-                        return new TaskErrorsTabPanelNew(panelId, getObjectModel());
+                        return new TaskErrorsTabPanel(panelId, getObjectModel());
                     }
                     @Override
                     public boolean isVisible() {

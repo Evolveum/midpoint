@@ -101,8 +101,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
     private TaskDto currentTaskDto, previousTaskDto;
 
-    private PageTaskController controller = new PageTaskController(this);
-
     private TaskMainPanel mainPanel;
     private IModel<AutoRefreshDto> refreshModel;
     private IModel<Boolean> showAdvancedFeaturesModel;
@@ -214,13 +212,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
         refreshModel = new Model<>(new AutoRefreshDto());
         refreshModel.getObject().setInterval(getRefreshInterval());
 
-
-
-        final TaskSummaryPanel summaryPanel = new TaskSummaryPanel(ID_SUMMARY_PANEL,
-                Model.of(objectWrapperModel.getObject().getObject().asObjectable()), refreshModel, this);
-        summaryPanel.setOutputMarkupId(true);
-        add(summaryPanel);
-
         mainPanel = new TaskMainPanel(ID_MAIN_PANEL, objectWrapperModel, taskDtoModel, showAdvancedFeaturesModel, this);
         mainPanel.setOutputMarkupId(true);
         add(mainPanel);
@@ -247,19 +238,12 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
     public void refresh(AjaxRequestTarget target) {
         TaskTabsVisibility tabsVisibilityOld = new TaskTabsVisibility();
         tabsVisibilityOld.computeAll(this);
-        TaskButtonsVisibility buttonsVisibilityOld = new TaskButtonsVisibility();
-        buttonsVisibilityOld.computeAll(this);
 
         refreshTaskModels();
 
         TaskTabsVisibility tabsVisibilityNew = new TaskTabsVisibility();
         tabsVisibilityNew.computeAll(this);
-        TaskButtonsVisibility buttonsVisibilityNew = new TaskButtonsVisibility();
-        buttonsVisibilityNew.computeAll(this);
 
-        if (!buttonsVisibilityNew.equals(buttonsVisibilityOld)) {
-            target.add(mainPanel.getButtonPanel());
-        }
         if (tabsVisibilityNew.equals(tabsVisibilityOld)) {
             // soft version
             for (Component component : mainPanel.getTabPanel()) {
@@ -273,7 +257,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
             // hard version
             target.add(mainPanel.getTabPanel());
         }
-        target.add(getSummaryPanel());
 
         AutoRefreshDto refreshDto = refreshModel.getObject();
         refreshDto.recordRefreshed();
@@ -294,7 +277,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
     @Override
     public Component getRefreshingBehaviorParent() {
-        return getRefreshPanel();
+        return null;
     }
 
     private void refreshTaskModels() {
@@ -371,18 +354,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
     public TaskDto getTaskDto() {
         return taskDtoModel.getObject();
-    }
-
-    public PageTaskController getController() {
-        return controller;
-    }
-
-    public TaskSummaryPanel getSummaryPanel() {
-        return (TaskSummaryPanel) get(ID_SUMMARY_PANEL);
-    }
-
-    public AutoRefreshPanel getRefreshPanel() {
-        return getSummaryPanel().getRefreshPanel();
     }
 
     public boolean isShowAdvanced() {

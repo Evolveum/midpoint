@@ -7,23 +7,24 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
-import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
+import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
-import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,30 +37,57 @@ import java.util.List;
 public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     private static final long serialVersionUID = -5077637168906420769L;
 
+    private static final transient Trace LOGGER = TraceManager.getTrace(TaskSummaryPanel.class);
+
     private static final String ID_TAG_REFRESH = "refreshTag";
 
-    private PageTaskEdit parentPage;
-    private IModel<AutoRefreshDto> refreshModel;
+    private Refreshable refreshable;
 
-    public TaskSummaryPanel(String id, IModel<TaskType> model, IModel<AutoRefreshDto> refreshModel, final PageTaskEdit parentPage) {
+    public TaskSummaryPanel(String id, IModel<TaskType> model, Refreshable refreshable, final PageBase parentPage) {
         super(id, TaskType.class, model, parentPage);
-        this.parentPage = parentPage;
-        this.refreshModel = refreshModel;
+        this.refreshable = refreshable;
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
 
-        final AutoRefreshPanel refreshTag = new AutoRefreshPanel(ID_TAG_REFRESH, refreshModel);
-        refreshTag.setOutputMarkupId(true);
-        refreshTag.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return parentPage.getTaskDto().getWorkflowOutcome() == null;        // because otherwise there are too many tags to fit into window
-            }
-        } );
-        getSummaryBoxPanel().add(refreshTag);
+
+//        AutoRefreshPanel refreshTag = new AutoRefreshPanel(ID_TAG_REFRESH, createRefreshModel()) {
+//
+//            @Override
+//            protected void refreshPerformed(AjaxRequestTarget target) {
+//                refreshable.refresh(target);
+//            }
+//
+//        };
+//        AbstractAjaxTimerBehavior refreshingBehavior = new AbstractAjaxTimerBehavior(Duration.milliseconds(refreshable.getRefreshInterval())) {
+//            @Override
+//            protected void onTimer(AjaxRequestTarget ajaxRequestTarget) {
+//                LOGGER.trace("onTimer called for {}; enabled = {}", this, refreshTag.getModelObject().isEnabled());
+//                refreshable.refresh(ajaxRequestTarget);
+//
+//            }
+//
+//            @Override
+//            protected boolean shouldTrigger() {
+//                return refreshTag.getModelObject().isEnabled();
+//            }
+//        };
+//
+//        refreshTag.add(new AttributeModifier("class", "summary-tag"));
+//
+//        refreshTag.add(refreshingBehavior);
+//        refreshTag.setOutputMarkupId(true);
+//
+//        getSummaryBoxPanel().add(refreshTag);
+    }
+
+    private IModel<AutoRefreshDto> createRefreshModel() {
+        AutoRefreshDto dto = new AutoRefreshDto();
+        dto.setEnabled(true);
+        dto.setInterval(refreshable.getRefreshInterval());
+        return Model.of(dto);
     }
 
     @Override
@@ -77,12 +105,12 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
             @Override
             public String getIconCssClass() {
-                return getTaskExecutionIcon(parentPage.getTaskDto().getTaskType());
+                return getTaskExecutionIcon(getModelObject());
             }
 
             @Override
             public String getLabel() {
-                return getTaskExecutionLabel(parentPage.getTaskDto().getTaskType());
+                return getTaskExecutionLabel(getModelObject());
             }
         };
         summaryTagList.add(tagExecutionStatus);
@@ -99,44 +127,15 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
             @Override
             public String getIconCssClass() {
-                return getTaskResultIcon(parentPage.getTaskDto().getTaskType());
+                return getTaskResultIcon(getModelObject());
             }
 
             @Override
             public String getLabel() {
-                return getTaskResultLabel(parentPage.getTaskDto().getTaskType());
+                return getTaskResultLabel(getModelObject());
             }
         };
         summaryTagList.add(tagResult);
-
-        SummaryTag<TaskType> tagOutcome = new SummaryTag<TaskType>(ID_SUMMARY_TAG, getModel()) {
-            @Override
-            protected void initialize(TaskType taskType) {
-                String icon, name;
-                if (parentPage.getTaskDto().getWorkflowOutcome() == null) {
-                    // shouldn't occur!
-                    return;
-                }
-
-                if (parentPage.getTaskDto().getWorkflowOutcome()) {
-                    icon = ApprovalOutcomeIcon.APPROVED.getIcon();
-                    name = "approved";
-                } else {
-                    icon = ApprovalOutcomeIcon.REJECTED.getIcon();
-                    name = "rejected";
-                }
-                setIconCssClass(icon);
-                setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, "TaskSummaryPanel." + name).getString());
-            }
-        };
-        tagOutcome.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return parentPage.getTaskDto().getWorkflowOutcome() != null;
-            }
-        });
-        summaryTagList.add(tagOutcome);
-
         return summaryTagList;
     }
 
@@ -145,6 +144,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
             return "fa fa-fw fa-question-circle text-warning";
         }
         switch (status) {
+            //TODO move to the GUI style constants?
             case RUNNING: return "fa fa-fw fa-spinner";
             case RUNNABLE: return "fa fa-fw fa-hand-o-up";
             case SUSPENDED: return "fa fa-fw fa-bed";
@@ -180,30 +180,10 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return "summary-tag-box-wide";
     }
 
-    private String getStageInfo() {
-//        return WfContextUtil.getStageInfo(parentPage.getTaskDto().getApprovalContext());
-        // TODO determine from Case
-        return null;
-    }
-
-    public String getRequestedOn() {
-        return WebComponentUtil.getLongDateTimeFormattedValue(parentPage.getTaskDto().getRequestedOn(), parentPage);
-    }
-
     @Override
     protected IModel<String> getDisplayNameModel() {
-        return new ReadOnlyModel<>(() -> {
-            // temporary code
-            TaskDto taskDto = parentPage.getTaskDto();
-            String name = WfGuiUtil.getLocalizedProcessName(taskDto.getApprovalContext(), TaskSummaryPanel.this);
-            if (name == null) {
-                name = WfGuiUtil.getLocalizedTaskName(taskDto.getApprovalContext(), TaskSummaryPanel.this);
-            }
-            if (name == null) {
-                name = taskDto.getName();
-            }
-            return name;
-        });
+        //TODO temporary
+        return new PropertyModel<>(getModel(), "name.orig");
     }
 
     @Override
@@ -211,11 +191,12 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return new IModel<String>() {
             @Override
             public String getObject() {
-                TaskDto taskDto = parentPage.getTaskDto();
-                if (taskDto.isWorkflow()) {
-                    return getString("TaskSummaryPanel.requestedBy", taskDto.getRequestedBy());
-                } else {
-                    TaskType taskType = parentPage.getTaskDto().getTaskType();
+//                TaskDto taskDto = getModelObject();
+                //TODO what to do with WF?
+//                if (taskDto.isWorkflow()) {
+//                    return getString("TaskSummaryPanel.requestedBy", taskDto.getRequestedBy());
+//                } else {
+                    TaskType taskType = getModelObject();
 
                     String rv;
                     if (taskType.getExpectedTotal() != null) {
@@ -224,17 +205,23 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
                     } else {
                         rv = createStringResource("TaskSummaryPanel.progressWithTotalUnknown", taskType.getProgress()).getString();
                     }
-                    if (taskDto.isSuspended()) {
-                        rv += " " + getString("TaskSummaryPanel.progressIfSuspended");
-                    } else if (taskDto.isClosed()) {
-                        rv += " " + getString("TaskSummaryPanel.progressIfClosed");
-                    } else if (taskDto.isWaiting()) {
-                        rv += " " + getString("TaskSummaryPanel.progressIfWaiting");
-                    } else if (taskDto.getStalledSince() != null) {
-                        rv += " " + getString("TaskSummaryPanel.progressIfStalled", WebComponentUtil.formatDate(new Date(parentPage.getTaskDto().getStalledSince())));
+                    switch (taskType.getExecutionStatus()) {
+                        case SUSPENDED:
+                            rv += " " + getString("TaskSummaryPanel.progressIfSuspended");
+                            break;
+                        case CLOSED:
+                            rv += " " + getString("TaskSummaryPanel.progressIfClosed");
+                            break;
+                        case WAITING:
+                            rv += " " + getString("TaskSummaryPanel.progressIfWaiting");
+                            break;
+                    }
+                    Long stalledSince = WebComponentUtil.xgc2long(taskType.getStalledSince());
+                    if (stalledSince != null) {
+                        rv += " " + getString("TaskSummaryPanel.progressIfStalled", WebComponentUtil.formatDate(new Date(stalledSince)));
                     }
                     return rv;
-                }
+//                }
             }
         };
     }
@@ -244,10 +231,11 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return new IModel<String>() {
             @Override
             public String getObject() {
-                if (parentPage.getTaskDto().isWorkflow()) {
-                    return getString("TaskSummaryPanel.requestedOn", getRequestedOn());
-                } else {
-                    TaskType taskType = parentPage.getTaskDto().getTaskType();
+                //TODO what to do with WF?
+//                if (parentPage.getTaskDto().isWorkflow()) {
+//                    return getString("TaskSummaryPanel.requestedOn", getRequestedOn());
+//                } else {
+                    TaskType taskType = getModelObject();
                     if (taskType.getOperationStats() != null && taskType.getOperationStats().getIterativeTaskInformation() != null &&
                             taskType.getOperationStats().getIterativeTaskInformation().getLastSuccessObjectName() != null) {
                         return createStringResource("TaskSummaryPanel.lastProcessed",
@@ -255,7 +243,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
                     } else {
                         return "";
                     }
-                }
+//                }
             }
         };
     }
@@ -265,16 +253,17 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return new IModel<String>() {
             @Override
             public String getObject() {
-                if (parentPage.getTaskDto().isWorkflow()) {
-                    String stageInfo = getStageInfo();
-                    if (stageInfo != null) {
-                        return getString("TaskSummaryPanel.stage", stageInfo);
-                    } else {
-                        return null;
-                    }
-                }
+                //TODO what to do with WF?
+//                if (parentPage.getTaskDto().isWorkflow()) {
+//                    String stageInfo = getStageInfo();
+//                    if (stageInfo != null) {
+//                        return getString("TaskSummaryPanel.stage", stageInfo);
+//                    } else {
+//                        return null;
+//                    }
+//                }
 
-                TaskType taskType = parentPage.getTaskDto().getTaskType();
+                TaskType taskType = getModelObject();
                 if (taskType == null) {
                     return null;
                 }
@@ -287,23 +276,19 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
                         || finished == 0 || finished < started) {
 
                     return getString("TaskStatePanel.message.executionTime.notFinished",
-                            WebComponentUtil.getShortDateTimeFormattedValue(new Date(started), parentPage),
+                            WebComponentUtil.getShortDateTimeFormattedValue(new Date(started), getPageBase()),
                             DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - started));
                 } else {
                     return getString("TaskStatePanel.message.executionTime.finished",
-                            WebComponentUtil.getShortDateTimeFormattedValue(new Date(started), parentPage),
-                            WebComponentUtil.getShortDateTimeFormattedValue(new Date(finished), parentPage),
+                            WebComponentUtil.getShortDateTimeFormattedValue(new Date(started), getPageBase()),
+                            WebComponentUtil.getShortDateTimeFormattedValue(new Date(finished), getPageBase()),
                             DurationFormatUtils.formatDurationHMS(finished - started));
                 }
             }
         };
     }
 
-    public AutoRefreshPanel getRefreshPanel() {
-        return (AutoRefreshPanel) getSummaryBoxPanel().get(ID_TAG_REFRESH);
-    }
-
-    private String getTaskExecutionLabel(TaskType task){
+    private String getTaskExecutionLabel(TaskType task) {
         TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
         if (status != null){
             return PageBase.createStringResourceStatic(TaskSummaryPanel.this, status).getString();
@@ -311,12 +296,12 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return "";
     }
 
-    private String getTaskExecutionIcon(TaskType task){
+    private String getTaskExecutionIcon(TaskType task) {
         TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
         return getIconForExecutionStatus(status);
     }
 
-    private String getTaskResultLabel(TaskType task){
+    private String getTaskResultLabel(TaskType task) {
         OperationResultStatusType resultStatus = task.getResultStatus();
         if (resultStatus != null){
             return PageBase.createStringResourceStatic(TaskSummaryPanel.this, resultStatus).getString();
@@ -324,7 +309,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return "";
     }
 
-    private String getTaskResultIcon(TaskType task){
+    private String getTaskResultIcon(TaskType task) {
         OperationResultStatusType resultStatus = task.getResultStatus();
         return OperationResultStatusPresentationProperties.parseOperationalResultStatus(resultStatus).getIcon();
     }

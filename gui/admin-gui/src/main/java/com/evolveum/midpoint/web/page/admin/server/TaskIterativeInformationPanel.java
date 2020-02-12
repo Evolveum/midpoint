@@ -74,24 +74,6 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
         Label lastProcessedSuccess = new Label(ID_LAST_OBJECT_PROCESSED_SUCCESS, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_LAST_SUCCESS_OBJECT_DISPLAY_NAME.getLocalPart()));
         add(lastProcessedSuccess);
 
-//                (IModel<String>) () -> {
-//            TaskCurrentStateDto dto = getModelObject();
-//            if (dto == null) {
-//                return null;
-//            }
-//            IterativeTaskInformationType info = dto.getIterativeTaskInformationType();
-//            if (info == null) {
-//                return null;
-//            }
-//            if (info.getLastSuccessObjectDisplayName() == null) {
-//                return null;
-//            } else {
-//                return getString("TaskStatePanel.message.lastObjectProcessed",
-//                        info.getLastSuccessObjectDisplayName());
-//            }
-//        });
-
-
         Label lastProcessedSuccessTime = new Label(ID_LAST_OBJECT_PROCESSED_SUCCESS_TIME, (IModel<String>) () -> {
             IterativeTaskInformationType info = getModelObject();
             if (info == null) {
@@ -116,22 +98,6 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
         add(lastProcessedSuccessTime);
 
         Label processedFailure = new Label(ID_OBJECTS_PROCESSED_FAILURE, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT.getLocalPart()));
-
-//                new IModel<String>() {
-//            @Override
-//            public String getObject() {
-//                IterativeTaskInformationType info = dto.getIterativeTaskInformationType();
-//                if (info == null) {
-//                    return null;
-//                }
-//                if (info.getTotalFailureCount() == 0) {
-//                    return "0";
-//                } else {
-//                    return getString("TaskStatePanel.message.objectsProcessed",
-//                            info.getTotalFailureCount());
-//                }
-//            }
-//        });
         add(processedFailure);
 
         Label processedFailureTime = new Label(ID_OBJECTS_PROCESSED_FAILURE_TIME, (IModel<String>) () -> {
@@ -150,26 +116,6 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
         add(processedFailureTime);
 
         Label lastProcessedFailure = new Label(ID_LAST_OBJECT_PROCESSED_FAILURE, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_LAST_FAILURE_OBJECT_DISPLAY_NAME.getLocalPart()));
-
-//                new IModel<String>() {
-//            @Override
-//            public String getObject() {
-//                TaskCurrentStateDto dto = getModelObject();
-//                if (dto == null) {
-//                    return null;
-//                }
-//                IterativeTaskInformationType info = dto.getIterativeTaskInformationType();
-//                if (info == null) {
-//                    return null;
-//                }
-//                if (info.getLastFailureObjectDisplayName() == null) {
-//                    return null;
-//                } else {
-//                    return getString("TaskStatePanel.message.lastObjectProcessed",
-//                            info.getLastFailureObjectDisplayName());
-//                }
-//            }
-//        });
         add(lastProcessedFailure);
 
         Label lastProcessedFailureTime = new Label(ID_LAST_OBJECT_PROCESSED_FAILURE_TIME, (IModel<String>) () -> {
@@ -196,39 +142,9 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
         add(lastProcessedFailureTime);
 
         Label lastError = new Label(ID_LAST_ERROR, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_LAST_FAILURE_EXCEPTION_MESSAGE.getLocalPart()));
-
-//                new IModel<String>() {
-//            @Override
-//            public String getObject() {
-//                TaskCurrentStateDto dto = getModelObject();
-//                if (dto == null) {
-//                    return null;
-//                }
-//                IterativeTaskInformationType info = dto.getIterativeTaskInformationType();
-//                if (info == null) {
-//                    return null;
-//                }
-//                return info.getLastFailureExceptionMessage();
-//            }
-//        });
         add(lastError);
 
         Label currentObjectProcessed = new Label(ID_CURRENT_OBJECT_PROCESSED, new PropertyModel<>(getModel(), IterativeTaskInformationType.F_CURRENT_OBJECT_DISPLAY_NAME.getLocalPart()));
-
-//                new IModel<String>() {
-//            @Override
-//            public String getObject() {
-//                TaskCurrentStateDto dto = getModelObject();
-//                if (dto == null) {
-//                    return null;
-//                }
-//                IterativeTaskInformationType info = dto.getIterativeTaskInformationType();
-//                if (info == null) {
-//                    return null;
-//                }
-//                return info.getCurrentObjectDisplayName();
-//            }
-//        });
         add(currentObjectProcessed);
 
         Label currentObjectProcessedTime = new Label(ID_CURRENT_OBJECT_PROCESSED_TIME, (IModel<String>) () -> {
@@ -253,15 +169,12 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
                 return null;
             }
             int objectsTotal1 = info.getTotalSuccessCount() + info.getTotalFailureCount();
-//            if (WALL_CLOCK_AVG_CATEGORIES.contains(dto.getTaskDto().getCategory())) {
-//            if (canComputeWallClockAvg()) {
                 Long avg = getWallClockAverage(objectsTotal1);
                 if (avg != null) {
                     long throughput = avg != 0 ? 60000 / avg : 0;       // TODO what if avg == 0?
                     return getString("TaskStatePanel.message.objectsTotal",
                             objectsTotal1, avg, throughput);
                 }
-//            }
             return String.valueOf(objectsTotal1);
         });
         add(objectsTotal);
@@ -289,25 +202,5 @@ public class TaskIterativeInformationPanel extends BasePanel<IterativeTaskInform
 
     protected Long getWallClockAverage(int objectsTotal) {
         return null;
-//        if (objectsTotal == 0) {
-//            return null;
-//        }
-//        if (dto == null || dto.getTaskDto() == null) {
-//            return null;
-//        }
-//        Long started = dto.getTaskDto().getLastRunStartTimestampLong();
-//        if (started == null) {
-//            return null;
-//        }
-//        Long finished = dto.getTaskDto().getLastRunFinishTimestampLong();
-//        if (finished == null || finished < started) {
-//            finished = System.currentTimeMillis();
-//        }
-//        return (finished - started) / objectsTotal;
     }
-
-//    protected boolean canComputeWallClockAvg() {
-//        return false;
-//    }
-
 }
