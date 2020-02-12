@@ -25722,6 +25722,21 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="publicHttpUrlPattern" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Pattern for HTTP/HTTPS communication with client. This is specifies the URL
+                        that is used by midPoint when it create redirect URL for client.
+                        The pattern is in fact an URL prefix pointing to root URL of the application.
+                        Specific paths will be appended to the URL.
+                        Example: https://$host/midpoint
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                        <a:displayName>InfrastructureConfigurationType.publicHttpUrlPattern</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
