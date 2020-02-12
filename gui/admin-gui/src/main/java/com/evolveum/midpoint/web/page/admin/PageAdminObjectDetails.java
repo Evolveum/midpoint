@@ -547,7 +547,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                             return;
                         }
                         if (isSaveInBackground()){
-                            runExecutionChangesTask(delta, previewOnly, target);
+                            progressPanel.executeChangesInBackground(delta, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
                         }
@@ -596,7 +596,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                             return;
                         }
                         if (isSaveInBackground()){
-                            runExecutionChangesTask(delta, previewOnly, target);
+                            progressPanel.executeChangesInBackground(delta, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
                         }
@@ -606,13 +606,13 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                             return;
                         }
                         if (isSaveInBackground()){
-                            runExecutionChangesTask(delta, previewOnly, target);
+                            progressPanel.executeChangesInBackground(delta, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
                         }
                     } else if (previewOnly && delta.isEmpty() && delegationChangesExist){
                         if (isSaveInBackground()){
-                            runExecutionChangesTask(delta, previewOnly, target);
+                            progressPanel.executeChangesInBackground(delta, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
                         }
@@ -813,7 +813,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             } else {
                 task.setOwner(user.getUser().asPrismObject());
             }
-//            authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
             task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
             task.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
             task.setName("Execute changes");
@@ -831,7 +830,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         if (WebComponentUtil.isSuccessOrHandledError(result)
                     || OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
                 result.setMessage(createStringResource("PageAdminObjectDetails.saveChangesInBackgroundSuccess").getString());
-                setResponsePage(getRestartResponsePage());
+                if (!isKeepDisplayingResults()) {
+                    setResponsePage(getRestartResponsePage());
+                }
             } else {
                 result.setMessage(createStringResource("PageAdminObjectDetails.saveChangesInBackgroundError").getString());
                 target.add(getFeedbackPanel());

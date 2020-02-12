@@ -197,7 +197,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
     private CheckBoxPanel createOptionCheckbox(String id, IModel<Boolean> model, String labelKey, String helpKey) {
 
-          return new CheckBoxPanel(id, model, null, createStringResource(labelKey), createStringResource(helpKey)) {
+          return new CheckBoxPanel(id, model, createStringResource(labelKey), createStringResource(helpKey)) {
 
             private static final long serialVersionUID = 1L;
 

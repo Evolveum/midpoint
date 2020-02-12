@@ -9,18 +9,26 @@ package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -29,13 +37,19 @@ import com.evolveum.midpoint.web.application.AsyncWebProcessModel;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -402,6 +416,38 @@ public class ProgressPanel extends BasePanel {
         }
 
         if (!reporter.isAsynchronousExecution() && page instanceof ProgressReportingAwarePage) {
+            ProgressReportingAwarePage aware = (ProgressReportingAwarePage) page;
+            aware.finishProcessing(target, result, reporter.isAsynchronousExecution());
+        }
+    }
+
+    public void executeChangesInBackground(ObjectDelta<? extends ObjectType> delta, boolean previewOnly,
+                               ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target) {
+        PageBase page = getPageBase();
+        ProgressReporter reporter = reporterModel.getProcessData();
+        try {
+            TaskManager taskManager = page.getTaskManager();
+            MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+            if (user == null) {
+                throw new RestartResponseException(PageLogin.class);
+            } else {
+                task.setOwner(user.getUser().asPrismObject());
+            }
+            task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+            task.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
+            task.setName("Execute changes");
+
+
+            ObjectDeltaType deltaBean = DeltaConvertor.toObjectDeltaType(delta);
+            task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, deltaBean);
+            taskManager.switchToBackground(task, result);
+            result.setBackgroundTaskOid(task.getOid());
+        } catch (SchemaException |RuntimeException e) {
+            result.recordFatalError(e);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+        if (page instanceof ProgressReportingAwarePage) {
             ProgressReportingAwarePage aware = (ProgressReportingAwarePage) page;
             aware.finishProcessing(target, result, reporter.isAsynchronousExecution());
         }
