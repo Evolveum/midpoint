@@ -12,7 +12,17 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
@@ -80,6 +90,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     protected static final String OPERATION_PREVIEW_CHANGES = DOT_CLASS + "previewChanges";
     protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
     protected static final String OPERATION_LOAD_ARCHETYPE_REF = DOT_CLASS + "loadArchetypeRef";
+    protected static final String OPERATION_EXECUTE_CHANGES = DOT_CLASS + "executeChangesTask";
 
     protected static final String ID_SUMMARY_PANEL = "summaryPanel";
     protected static final String ID_MAIN_PANEL = "mainPanel";
@@ -548,7 +559,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        if (isSaveInBackground()){
+                            progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
+                        } else {
+                            progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        }
                     } else {
                         result.recordSuccess();
                     }
@@ -593,15 +608,27 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        if (isSaveInBackground()){
+                            progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
+                        } else {
+                            progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        }
                     } else if (!deltas.isEmpty()) {
                         Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        if (isSaveInBackground()){
+                            progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
+                        } else {
+                            progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        }
                     } else if (previewOnly && delta.isEmpty() && delegationChangesExist){
-                        progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        if (isSaveInBackground()){
+                            progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
+                        } else {
+                            progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        }
                     } else {
                         progressPanel.clearProgressPanel();            // from previous attempts (useful only if we would call finishProcessing at the end, but that's not the case now)
                         if (!previewOnly) {
@@ -703,6 +730,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return getMainPanel().getExecuteChangeOptionsDto().isKeepDisplayingResults();
     }
 
+    protected boolean isSaveInBackground(){
+        return getMainPanel().getExecuteChangeOptionsDto().isSaveInBackground();
+    }
 
     protected Collection<SimpleValidationError> performCustomValidation(PrismObject<O> object,
             Collection<ObjectDelta<? extends ObjectType>> deltas) throws SchemaException {

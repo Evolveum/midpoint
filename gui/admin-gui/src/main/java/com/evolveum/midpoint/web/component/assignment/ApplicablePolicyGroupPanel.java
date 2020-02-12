@@ -97,7 +97,6 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
                 PrismObject<AbstractRoleType> abstractRole = listItem.getModelObject();
                 CheckBoxPanel policyCheckBox = new CheckBoxPanel(ID_POLICY_CHECK_BOX,
                         getCheckboxModel(abstractRole),
-                        null, // visibility
                         Model.of(WebComponentUtil.getDisplayNameOrName(abstractRole)), // label
                         null // tooltip
                         ) {
