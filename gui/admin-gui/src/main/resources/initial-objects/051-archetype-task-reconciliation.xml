@@ -54,7 +54,7 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/partitioned-reconciliation/handler-3</value>
+                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</value>
                 </expression>
                 <target>
                     <c:path>handlerUri</c:path>
