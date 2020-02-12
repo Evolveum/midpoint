@@ -35,7 +35,6 @@ import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -131,8 +130,8 @@ public class WorkItemDto extends Selectable {
         deltas = new SceneDto(deltasScene);
 
         ObjectTreeDeltas deltas = ObjectTreeDeltas.fromObjectTreeDeltasType(actx.getDeltasToApprove(), prismContext);
-        changes = TaskDto.createChangesToBeApproved(deltas, modelInteractionService,
-                prismContext, objectRef, opTask, result);
+//        changes = TaskDto.createChangesToBeApproved(deltas, modelInteractionService,
+//                prismContext, objectRef, opTask, result);
     }
 
     @Nullable

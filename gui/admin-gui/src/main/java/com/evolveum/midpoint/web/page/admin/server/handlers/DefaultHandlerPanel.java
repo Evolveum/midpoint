@@ -7,10 +7,10 @@
 package com.evolveum.midpoint.web.page.admin.server.handlers;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.HandlerDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -27,13 +27,13 @@ public class DefaultHandlerPanel<D extends HandlerDto> extends BasePanel<D> {
     private static final String ID_OBJECT_REF_CONTAINER = "objectRefContainer";
     private static final String ID_OBJECT_REF = "objectRef";
 
-    public DefaultHandlerPanel(String id, IModel<D> model, PageTaskEdit parentPage) {
+    public DefaultHandlerPanel(String id, IModel<D> model, PageBase parentPage) {
         super(id, model);
         initLayout(parentPage);
         setOutputMarkupId(true);
     }
 
-    private void initLayout(final PageTaskEdit parentPage) {
+    private void initLayout(final PageBase parentPage) {
         WebMarkupContainer objectRefContainer = new WebMarkupContainer(ID_OBJECT_REF_CONTAINER);
         objectRefContainer.add(new VisibleEnableBehaviour() {
             @Override

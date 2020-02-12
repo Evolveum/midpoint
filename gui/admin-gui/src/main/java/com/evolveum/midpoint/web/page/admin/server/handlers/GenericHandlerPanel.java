@@ -6,12 +6,13 @@
  */
 package com.evolveum.midpoint.web.page.admin.server.handlers;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.GenericHandlerDto;
 
 /**
@@ -22,14 +23,14 @@ public class GenericHandlerPanel extends BasePanel<GenericHandlerDto> {
 
     public static final String ID_CONTAINER = "container";
 
-    public GenericHandlerPanel(String id, IModel<GenericHandlerDto> model, PageTaskEdit parentPage) {
+    public GenericHandlerPanel(String id, IModel<GenericHandlerDto> model, PageBase parentPage) {
         super(id, model);
-        initLayout(parentPage);
+        initLayout();
         setOutputMarkupId(true);
     }
 
     //TODO refactor to use registry
-    private void initLayout(final PageTaskEdit parentPage) {
+    private void initLayout() {
         PrismContainerPanel containerPanel = new PrismContainerPanel(
                 ID_CONTAINER, new PropertyModel<>(getModel(), GenericHandlerDto.F_CONTAINER), null);
         add(containerPanel);

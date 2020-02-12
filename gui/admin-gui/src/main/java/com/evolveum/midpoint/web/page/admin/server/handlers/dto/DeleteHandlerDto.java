@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.web.page.admin.server.handlers.dto;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-
 /**
  * TODO use composition instead of inheritance
  *
@@ -19,11 +16,5 @@ public class DeleteHandlerDto extends QueryBasedHandlerDto {
 
     public static final String F_RAW = "raw";
 
-    public DeleteHandlerDto(TaskDto taskDto) {
-        super(taskDto);
-    }
 
-    public boolean isRaw() {
-        return Boolean.TRUE.equals(taskDto.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OPTION_RAW, Boolean.class));
-    }
 }

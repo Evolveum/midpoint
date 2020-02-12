@@ -119,6 +119,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     @Override
     protected Collection<SelectorOptions<GetOperationOptions>> buildGetOptions() {
+        //TODO use full options as defined in TaskDtoProviderOptions.fullOptions()
+
         return getOperationOptionsBuilder()
                 // retrieve
                 .item(TaskType.F_SUBTASK).retrieve()
@@ -164,7 +166,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         showResult(result);
         getObjectModel().reset();
         refresh(target);
-//        target.add(PageTask.this);
         target.add(getFeedbackPanel());
     }
 
@@ -324,6 +325,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     @Override
     protected AbstractObjectMainPanel<TaskType> createMainPanel(String id) {
 
+        //TODO add visibility for each tab, look at the TaskTabsVisibility
         return new AbstractObjectMainPanel<TaskType>(id, getObjectModel(), this) {
 
             @Override
@@ -388,6 +390,30 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                         return isEditingFocus();
                     }
                 });
+
+                tabs.add(new AbstractTab(parentPage.createStringResource("pageTask.environmentalPerformance.title")) {
+                            @Override
+                            public WebMarkupContainer getPanel(String panelId) {
+                                return new TaskPerformanceTabPanel(panelId, getObjectModel());
+                            }
+
+                    @Override
+                    public boolean isVisible() {
+                        return isEditingFocus();
+                    }
+                });
+
+                tabs.add(
+                        new AbstractTab(parentPage.createStringResource("pageTaskEdit.operation")) {
+                            @Override
+                            public WebMarkupContainer getPanel(String panelId) {
+                                return new TaskOperationTabPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_MODEL_OPERATION_CONTEXT));
+                            }
+                            @Override
+                            public boolean isVisible() {
+                                return isEditingFocus();
+                            }
+                        });
 
                 tabs.add(new AbstractTab(createStringResource("pageTask.internalPerformane.title")) {
                     @Override

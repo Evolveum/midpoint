@@ -13,6 +13,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -53,7 +55,6 @@ import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
@@ -221,7 +222,7 @@ public class ResourceDetailsTabPanel extends Panel {
     private void taskDetailsPerformed(AjaxRequestTarget target, String taskOid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-        ((PageBase) getPage()).navigateToNext(PageTaskEdit.class, parameters);
+        ((PageBase) getPage()).navigateToNext(PageTask.class, parameters);
     }
 
     private BasicInfoBoxPanel createSourceTargetInfo(ResourceType resource) {
