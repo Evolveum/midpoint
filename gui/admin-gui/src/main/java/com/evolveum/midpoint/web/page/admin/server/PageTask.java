@@ -411,7 +411,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                             }
                             @Override
                             public boolean isVisible() {
-                                return isEditingFocus();
+                                return false;
                             }
                         });
 

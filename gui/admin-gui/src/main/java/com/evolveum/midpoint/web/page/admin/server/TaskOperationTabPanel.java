@@ -35,6 +35,8 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 /**
  * @author semancik
  */
+
+//TODO implement correctly
 public class TaskOperationTabPanel extends BasePanel<PrismContainerWrapper<LensContextType>> implements TaskTabPanel {
     private static final long serialVersionUID = 1L;
 
@@ -58,37 +60,50 @@ public class TaskOperationTabPanel extends BasePanel<PrismContainerWrapper<LensC
 
     }
 
+    private LensContextType getLensContextType() {
+        try{
+            LensContextType lensContextType = getModelObject().getValue().getRealValue();
+            if (lensContextType.getState() == null) {
+                return null;
+            }
+            return lensContextType;
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Unexpected error, cannot get real value for model context", e, e.getMessage());
+            return null;
+        }
+    }
+
     private void initLayout() {
+        final LensContextType lensContextType = getLensContextType();
 
-        final LoadableModel<ModelOperationStatusDto> operationStatusModel = new LoadableModel<ModelOperationStatusDto>() {
-            @Override
-            protected ModelOperationStatusDto load() {
-                Task task = getPageBase().createSimpleTask(OPERATION_LOAD_SCENE_DTO);
-                OperationResult result = task.getResult();
+        LoadableModel<ModelOperationStatusDto> operationStatusModel = null;
+        if (lensContextType != null) {
+            operationStatusModel = new LoadableModel<ModelOperationStatusDto>() {
+                @Override
+                protected ModelOperationStatusDto load() {
+                    Task task = getPageBase().createSimpleTask(OPERATION_LOAD_SCENE_DTO);
+                    OperationResult result = task.getResult();
 
-                ModelContext ctx;
-                try {
-                    LensContextType lensContextType = getModelObject().getValue().getRealValue();
-                    if (lensContextType.getState() == null) {
+                    ModelContext ctx;
+                    try {
+                        ctx = ModelContextUtil.unwrapModelContext(lensContextType, getPageBase().getModelInteractionService(), task, result);
+                    } catch (ObjectNotFoundException e) {
+                        LoggingUtils.logUnexpectedException(LOGGER, "Unexpected error, cannot get real value for model context", e, e.getMessage());
                         return null;
                     }
-                    ctx = ModelContextUtil.unwrapModelContext(lensContextType, getPageBase().getModelInteractionService(), task, result);
-                } catch (SchemaException | ObjectNotFoundException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Unexpected error, cannot get real value for model context", e, e.getMessage());
-                    return null;
-                }
 
-                return new ModelOperationStatusDto(ctx, getPageBase().getModelInteractionService(), task, result);
-            }
-        };
-        VisibleEnableBehaviour modelOpBehaviour = new VisibleEnableBehaviour() {
+                    return new ModelOperationStatusDto(ctx, getPageBase().getModelInteractionService(), task, result);
+                }
+            };
+        }
+
+        ModelOperationStatusPanel panel = new ModelOperationStatusPanel(ID_MODEL_OPERATION_STATUS_PANEL, operationStatusModel);
+        panel.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return operationStatusModel.getObject() != null;
+                return lensContextType != null;
             }
-        };
-        ModelOperationStatusPanel panel = new ModelOperationStatusPanel(ID_MODEL_OPERATION_STATUS_PANEL, operationStatusModel);
-        panel.add(modelOpBehaviour);
+        });
         add(panel);
     }
 
