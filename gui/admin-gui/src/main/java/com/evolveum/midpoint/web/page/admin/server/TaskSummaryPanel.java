@@ -51,7 +51,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     protected void onInitialize(){
         super.onInitialize();
 
-        final AutoRefreshPanel refreshTag = new AutoRefreshPanel(ID_TAG_REFRESH, refreshModel, parentPage, true);
+        final AutoRefreshPanel refreshTag = new AutoRefreshPanel(ID_TAG_REFRESH, refreshModel);
         refreshTag.setOutputMarkupId(true);
         refreshTag.add(new VisibleEnableBehaviour() {
             @Override

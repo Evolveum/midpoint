@@ -1490,11 +1490,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     private String createBaseConfirmationLink(String prefix, UserType userType) {
-        return getDefaultHostname() + prefix + "?" + SchemaConstants.USER_ID + "=" + userType.getName().getOrig();
+        return getPublicHttpUrlPattern() + prefix + "?" + SchemaConstants.USER_ID + "=" + userType.getName().getOrig();
     }
 
     private String createBaseConfirmationLink(String prefix, String oid) {
-        return getDefaultHostname() + prefix + "?" + SchemaConstants.USER_ID + "=" + oid;
+        return getPublicHttpUrlPattern() + prefix + "?" + SchemaConstants.USER_ID + "=" + oid;
     }
 
     private String createTokenConfirmationLink(String prefix, UserType userType) {
@@ -1549,7 +1549,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return securityPolicy;
     }
 
-    private String getDefaultHostname() {
+    private String getPublicHttpUrlPattern() {
         SystemConfigurationType systemConfiguration;
         try {
             systemConfiguration = modelInteractionService.getSystemConfiguration(getCurrentResult());
@@ -1561,12 +1561,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             LOGGER.trace("No system configuration defined. Skipping link generation.");
             return null;
         }
-        String defautlHostname = SystemConfigurationTypeUtil.getDefaultHostname(systemConfiguration);
-        if (StringUtils.isBlank(defautlHostname)) {
-            LOGGER.error("No hostname defined. It can break link generation.");
+        String publicHttpUrlPattern = SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfiguration);
+        if (StringUtils.isBlank(publicHttpUrlPattern)) {
+            LOGGER.error("No patern defined. It can break link generation.");
         }
 
-        return defautlHostname;
+        return publicHttpUrlPattern;
 
     }
 

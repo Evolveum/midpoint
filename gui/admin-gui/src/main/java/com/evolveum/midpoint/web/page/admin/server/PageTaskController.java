@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -45,6 +47,7 @@ public class PageTaskController implements Serializable {
 
     private PageTaskEdit parentPage;
 
+    public PageTaskController() {}
     public PageTaskController(PageTaskEdit parentPage) {
         this.parentPage = parentPage;
     }
@@ -207,6 +210,9 @@ public class PageTaskController implements Serializable {
         OperationResult result = TaskOperationUtils.runNowPerformed(parentPage.getTaskService(), Collections.singletonList(oid), parentPage);
         afterStateChangingOperation(target, result);
     }
+
+
+
 
     private void afterStateChangingOperation(AjaxRequestTarget target, OperationResult result) {
         parentPage.showResult(result);

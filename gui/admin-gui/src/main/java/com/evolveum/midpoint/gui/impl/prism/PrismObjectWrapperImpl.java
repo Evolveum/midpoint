@@ -142,4 +142,14 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
     public void accept(Visitor<Definition> visitor) {
         // TODO
     }
+
+    @Override
+    public boolean isVisible(PrismContainerValueWrapper parent, ItemVisibilityHandler visibilityHandler) {
+        return true;
+    }
+
+    @Override
+    public boolean isExpanded() {
+        return super.isExpanded();
+    }
 }

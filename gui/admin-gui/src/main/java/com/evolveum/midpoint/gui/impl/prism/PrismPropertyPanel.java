@@ -14,7 +14,7 @@ import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.factory.PrismPropertyPanelContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -221,7 +221,10 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
             LOGGER.error("Cannot apply deltas to object for validation: {}", e.getMessage(), e);
             return null;
         }
+    }
 
-
+    @Override
+    protected <PV extends PrismValue> PV createNewValue(PrismPropertyWrapper<T> itemWrapper) {
+        return (PV) getPrismContext().itemFactory().createPropertyValue();
     }
 }

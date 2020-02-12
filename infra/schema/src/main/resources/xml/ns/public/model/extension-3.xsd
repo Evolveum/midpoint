@@ -43,6 +43,42 @@
         </xsd:annotation>
     </xsd:import>
 
+    <xsd:complexType name="TaskExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:TaskType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:freshnessInterval" minOccurs="0"/>
+            <xsd:element ref="tns:dryRun" minOccurs="0"/>
+            <xsd:element ref="tns:retryLiveSyncErrors" minOccurs="0"/>
+            <xsd:element ref="tns:finishOperationsOnly" minOccurs="0"/>
+            <xsd:element ref="tns:lastScanTimestamp" minOccurs="0"/>
+            <xsd:element ref="tns:objectQuery" minOccurs="0"/>
+            <xsd:element ref="tns:searchOptions" minOccurs="0"/>
+            <xsd:element ref="tns:useRepositoryDirectly" minOccurs="0"/>
+            <xsd:element ref="tns:objectType" minOccurs="0"/>
+            <xsd:element ref="tns:iterationMethod" minOccurs="0"/>
+            <xsd:element ref="tns:objectDelta" minOccurs="0"/>
+            <xsd:element ref="tns:objectDeltas" minOccurs="0"/>
+            <xsd:element ref="tns:executeOptions" minOccurs="0"/>
+            <xsd:element ref="tns:workerThreads" minOccurs="0"/>
+            <xsd:element ref="tns:objectclass" minOccurs="0"/>
+            <xsd:element ref="tns:kind" minOccurs="0"/>
+            <xsd:element ref="tns:intent" minOccurs="0"/>
+            <xsd:element ref="tns:filename" minOccurs="0"/>
+            <xsd:element ref="tns:endpoint" minOccurs="0"/>
+            <xsd:element ref="tns:optionRaw" minOccurs="0"/>
+            <xsd:element ref="tns:diagnose" minOccurs="0"/>
+            <xsd:element ref="tns:fix" minOccurs="0"/>
+            <xsd:element ref="tns:duplicateShadowsResolver" minOccurs="0"/>
+            <xsd:element ref="tns:checkDuplicatesOnPrimaryIdentifiersOnly" minOccurs="0"/>
+            <xsd:element ref="tns:cleanupPolicies" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
     <xsd:element name="freshnessInterval" type="xsd:long">
         <xsd:annotation>
             <xsd:documentation>

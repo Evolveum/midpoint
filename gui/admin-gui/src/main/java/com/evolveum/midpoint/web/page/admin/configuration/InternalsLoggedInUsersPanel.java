@@ -11,19 +11,16 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.ClusterExecutionOptions;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.ListDataProvider2;
+import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -33,14 +30,10 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
 public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<F> {
 
@@ -88,7 +81,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
                     }
                 };
 
-                return new ListDataProvider2<SelectableBean<F>, UserSessionManagementType>(InternalsLoggedInUsersPanel.this, principals) {
+                return new SelectableListDataProvider<SelectableBean<F>, UserSessionManagementType>(InternalsLoggedInUsersPanel.this, principals) {
 
                     @Override
                     protected SelectableBean<F> createObjectWrapper(UserSessionManagementType principal) {

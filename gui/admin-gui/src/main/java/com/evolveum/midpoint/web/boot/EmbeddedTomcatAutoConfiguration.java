@@ -8,9 +8,12 @@ package com.evolveum.midpoint.web.boot;
 
 import javax.servlet.Servlet;
 
+import com.evolveum.midpoint.model.common.SystemObjectCache;
+
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.coyote.UpgradeProtocol;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -55,9 +58,15 @@ public class EmbeddedTomcatAutoConfiguration {
         @Value( "${server.tomcat.ajp.port:9090}" )
         private int port;
 
+        @Value("${server.servlet.context-path}")
+        private String servletPath;
+
+        @Autowired
+        private SystemObjectCache systemObjectCache;
+
         @Bean
         public TomcatServletWebServerFactory tomcatEmbeddedServletContainerFactory() {
-            MidPointTomcatServletWebServerFactory tomcat = new MidPointTomcatServletWebServerFactory();
+            MidPointTomcatServletWebServerFactory tomcat = new MidPointTomcatServletWebServerFactory(servletPath, systemObjectCache);
 
             if(enableAjp) {
                 Connector ajpConnector = new Connector("AJP/1.3");

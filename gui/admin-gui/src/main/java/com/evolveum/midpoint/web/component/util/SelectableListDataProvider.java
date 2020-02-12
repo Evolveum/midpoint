@@ -30,12 +30,12 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author lazyman
  */
-public class ListDataProvider2<W extends Serializable, T extends Serializable>
+public class SelectableListDataProvider<W extends Serializable, T extends Serializable>
         extends BaseSortableDataProvider<W> {
 
     private IModel<List<T>> model;
 
-    public ListDataProvider2(Component Component, IModel<List<T>> model) {
+    public SelectableListDataProvider(Component Component, IModel<List<T>> model) {
         super(Component);
 
         Validate.notNull(model);

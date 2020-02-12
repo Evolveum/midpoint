@@ -28,6 +28,7 @@ import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
@@ -210,6 +211,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
+    private static final String OPERATION_DETERMINE_VIRTUAL_CONTAINERS = ModelInteractionService.class.getName() + ".determineVirtualContainers";
 
     /* (non-Javadoc)
      * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)
@@ -1726,12 +1728,34 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public <O extends AbstractRoleType> AssignmentCandidatesSpecification determineAssignmentHolderSpecification(PrismObject<O> assignmentTarget, OperationResult result)
             throws SchemaException, ConfigurationException {
+
+        if (assignmentTarget == null) {
+            return null;
+        }
+
+        // assignmentRelation statements in the assignment - we want to control what objects can be assigned to the archetype definition
+        if (ArchetypeType.class.isAssignableFrom(assignmentTarget.getCompileTimeClass())) {
+            ArchetypeType archetypeType = (ArchetypeType) assignmentTarget.asObjectable();
+            return determineArchetypeAssignmentCandidateSpecification(archetypeType.getAssignment(), archetypeType.getArchetypePolicy());
+        }
+
+
+        // apply assignmentRelation to "archetyped" objects
         PrismObject<ArchetypeType> targetArchetype = determineArchetype(assignmentTarget, result);
-        AssignmentCandidatesSpecification spec = new AssignmentCandidatesSpecification();
-        if (targetArchetype != null) {
-            ArchetypeType archetypeObj = targetArchetype.asObjectable();
+        if (targetArchetype == null) {
+            return null;
+        }
+
+        // TODO: empty list vs null: default setting
+        ArchetypeType targetArchetypeType = targetArchetype.asObjectable();
+        return determineArchetypeAssignmentCandidateSpecification(targetArchetypeType.getInducement(), targetArchetypeType.getArchetypePolicy());
+
+    }
+
+    private AssignmentCandidatesSpecification determineArchetypeAssignmentCandidateSpecification(List<AssignmentType> archetypeAssigmentsOrInducements, ArchetypePolicyType archetypePolicy) {
+            AssignmentCandidatesSpecification spec = new AssignmentCandidatesSpecification();
             List<AssignmentObjectRelation> assignmentHolderRelations = new ArrayList<>();
-            for (AssignmentType inducement : archetypeObj.getInducement()) {
+            for (AssignmentType inducement : archetypeAssigmentsOrInducements) {
                 for (AssignmentRelationType assignmentRelation : inducement.getAssignmentRelation()) {
                     AssignmentObjectRelation holderRelation = new AssignmentObjectRelation();
                     holderRelation.addObjectTypes(ObjectTypes.canonizeObjectTypes(assignmentRelation.getHolderType()));
@@ -1742,10 +1766,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 }
             }
             spec.setAssignmentObjectRelations(assignmentHolderRelations);
-            spec.setSupportGenericAssignment(archetypeObj.getArchetypePolicy() == null
-                    || !AssignmentRelationApproachType.CLOSED.equals(archetypeObj.getArchetypePolicy().getAssignmentRelationApproach()));
-        }
-        // TODO: empty list vs null: default setting
+            spec.setSupportGenericAssignment(archetypePolicy == null
+                    || AssignmentRelationApproachType.CLOSED != archetypePolicy.getAssignmentRelationApproach());
         return spec;
     }
 
@@ -1815,4 +1837,63 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         return collectionProcessor.determineCollectionStats(collectionView, task, result);
     }
+
+    @Override
+    public <O extends ObjectType> Collection<VirtualContainersSpecificationType> determineVirtualContainers(PrismObject<O> object, @NotNull Task task, @NotNull  OperationResult parentResult) {
+
+        OperationResult result = parentResult.createMinorSubresult(OPERATION_DETERMINE_VIRTUAL_CONTAINERS);
+        Collection<VirtualContainersSpecificationType> virtualContainers = new ArrayList<>();
+        if (AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
+
+            try {
+                ArchetypePolicyType archetypePolicyType = determineArchetypePolicy((PrismObject) object, result);
+                if (archetypePolicyType != null) {
+                    ArchetypeAdminGuiConfigurationType archetypeAdminGui = archetypePolicyType.getAdminGuiConfiguration();
+                    if (archetypeAdminGui != null) {
+                        GuiObjectDetailsPageType guiDetails = archetypeAdminGui.getObjectDetails();
+                        if (guiDetails != null && guiDetails.getContainer() != null) {
+                            virtualContainers.addAll(guiDetails.getContainer()) ;
+                        }
+                    }
+                }
+            } catch (SchemaException | ConfigurationException e) {
+                LOGGER.error("Cannot determine virtual containers for {}, reason: {}", object, e.getMessage(), e);
+                result.recordPartialError("Cannot determine virtual containers for " + object + ", reason: " + e.getMessage(), e);
+            }
+
+        }
+
+        QName objectType = object.getDefinition().getTypeName();
+        try {
+            CompiledUserProfile userProfile = getCompiledUserProfile(task, result);
+            GuiObjectDetailsSetType objectDetailsSetType = userProfile.getObjectDetails();
+            if (objectDetailsSetType == null) {
+                result.recordSuccess();
+                return virtualContainers;
+            }
+            List<GuiObjectDetailsPageType> detailsPages = objectDetailsSetType.getObjectDetailsPage();
+            for (GuiObjectDetailsPageType detailsPage : detailsPages) {
+                if (objectType == null) {
+                    LOGGER.trace("Object type is not known, skipping considering custom details page settings.");
+                    continue;
+                }
+                if (detailsPage.getType() == null) {
+                    LOGGER.trace("Object type for details page {} not know, skipping considering custom details page settings.", detailsPage);
+                    continue;
+                }
+
+                if (QNameUtil.match(objectType, detailsPage.getType()) && detailsPage.getContainer() != null) {
+                    virtualContainers.addAll(detailsPage.getContainer());
+                }
+            }
+            result.recordSuccess();
+            return virtualContainers;
+        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
+            LOGGER.error("Cannot determine virtual containers for {}, reason: {}", objectType, e.getMessage(), e);
+            result.recordPartialError("Cannot determine virtual containers for " + objectType + ", reason: " + e.getMessage(), e);
+            return virtualContainers;
+        }
+
+    }
+
 }

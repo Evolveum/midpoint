@@ -8,13 +8,10 @@ package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.LocaleUtils;
@@ -67,6 +64,8 @@ import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Utility class that contains methods that interact with ModelService and other
@@ -232,6 +231,20 @@ public class WebModelServiceUtils {
 //            return null;
 //        }
 
+    }
+
+    public static <O extends ObjectType> PrismObject<O> loadObject(PrismReferenceValue objectRef, QName expectedTargetType, PageBase pageBase, Task task, OperationResult result) {
+        if (objectRef == null) {
+            return null;
+        }
+
+        if (QNameUtil.match(expectedTargetType, objectRef.getTargetType())) {
+            Class<O> type = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(objectRef.getTargetType());
+            PrismObject<O> resourceType = WebModelServiceUtils.loadObject(type, objectRef.getOid(), GetOperationOptions.createNoFetchCollection(), pageBase, task, result);
+            return resourceType;
+        }
+
+        return null;
     }
 
     @Nullable

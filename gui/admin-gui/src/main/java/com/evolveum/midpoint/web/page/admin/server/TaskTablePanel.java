@@ -194,7 +194,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        navigateToNext(PageTaskEdit.class, parameters);
+        navigateToNext(PageTask.class, parameters);
     }
 
     private List<IColumn<SelectableBean<TaskType>, String>> initTaskColumns() {

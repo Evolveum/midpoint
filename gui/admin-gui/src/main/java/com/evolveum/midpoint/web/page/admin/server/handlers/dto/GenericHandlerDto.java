@@ -52,6 +52,16 @@ public class GenericHandlerDto extends HandlerDto {
             this.name = name;
             this.type = type;
         }
+
+        @NotNull
+        public QName getName() {
+            return name;
+        }
+
+        @NotNull
+        public Class<?> getType() {
+            return type;
+        }
     }
 
     public static ExtensionItem extensionItem(QName name, Class<?> type) {

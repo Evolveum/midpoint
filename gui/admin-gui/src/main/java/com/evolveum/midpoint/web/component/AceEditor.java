@@ -54,9 +54,9 @@ public class AceEditor extends TextArea<String> {
         StringBuilder sb = new StringBuilder();
         sb.append("initEditor('").append(getMarkupId());
         sb.append("',").append(readonly.getObject());
-        sb.append(",").append(resizeToMaxHeight);
-        sb.append(",").append(height);
-        sb.append(",").append(minHeight);
+        sb.append(",").append(isResizeToMaxHeight());
+        sb.append(",").append(getHeight());
+        sb.append(",").append(getMinHeight());
         sb.append(",").append(mode != null ? "'"+mode+"'" : "null");
         sb.append(");");
 

@@ -93,8 +93,8 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
@@ -206,7 +206,7 @@ public final class WebComponentUtil {
         objectDetailsPageMap.put(RoleType.class, PageRole.class);
         objectDetailsPageMap.put(ServiceType.class, PageService.class);
         objectDetailsPageMap.put(ResourceType.class, PageResource.class);
-        objectDetailsPageMap.put(TaskType.class, PageTaskEdit.class);
+        objectDetailsPageMap.put(TaskType.class, PageTask.class);
         objectDetailsPageMap.put(ReportType.class, PageReport.class);
         objectDetailsPageMap.put(ValuePolicyType.class, PageValuePolicy.class);
         objectDetailsPageMap.put(CaseType.class, PageCase.class);
@@ -217,7 +217,6 @@ public final class WebComponentUtil {
     static{
         createNewObjectPageMap = new HashMap<>();
         createNewObjectPageMap.put(ResourceType.class, PageResourceWizard.class);
-        createNewObjectPageMap.put(TaskType.class, PageTaskAdd.class);
     }
 
     // only pages that support 'advanced search' are currently listed here (TODO: generalize)
@@ -229,6 +228,7 @@ public final class WebComponentUtil {
         objectListPageMap.put(RoleType.class, PageRoles.class);
         objectListPageMap.put(ServiceType.class, PageServices.class);
         objectListPageMap.put(ResourceType.class, PageResources.class);
+        objectListPageMap.put(TaskType.class, PageTasks.class);
     }
 
     private static Map<TableId, String> storageTableIdMap;
@@ -2299,9 +2299,6 @@ public final class WebComponentUtil {
             if (ResourceType.class.equals(obj.getCompileTimeClass())) {
                 constructor = newObjectPageClass.getConstructor(PageParameters.class);
                 page = (PageBase) constructor.newInstance(new PageParameters());
-            } else if (TaskType.class.equals(obj.getCompileTimeClass())){
-                constructor = newObjectPageClass.getConstructor();
-                page = (PageBase) constructor.newInstance();
             } else {
                 constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
                 page = (PageBase) constructor.newInstance(obj, isNewObject);
@@ -2364,7 +2361,7 @@ public final class WebComponentUtil {
     }
 
     public static Class<? extends PageBase> getNewlyCreatedObjectPage(Class<? extends ObjectType> type) {
-        if (ResourceType.class.equals(type) || TaskType.class.equals(type)) {
+        if (ResourceType.class.equals(type)) {
             return createNewObjectPageMap.get(type);
         } else {
             return objectDetailsPageMap.get(type);
@@ -4204,4 +4201,38 @@ public final class WebComponentUtil {
         }
         return false;
     }
+
+    public static Long xgc2long(XMLGregorianCalendar gc) {
+        return gc != null ? XmlTypeConverter.toMillis(gc) : null;
+    }
+
+    public static String getSimpleChannel(String chanelUri) {
+        if (chanelUri == null) {
+            return null;
+        }
+        int i = chanelUri.indexOf('#');
+        if (i < 0) {
+            return chanelUri;
+        }
+        return chanelUri.substring(i + 1);
+    }
+
+    public static List<String> getIntensForKind(PrismObject<ResourceType> resource, ShadowKindType kind, PageBase parentPage) {
+
+        RefinedResourceSchema refinedSchema = null;
+        try {
+            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
+                    parentPage.getPrismContext());
+
+        } catch (SchemaException e) {
+            return Collections.emptyList();
+        }
+
+        if (kind == null) {
+            return Collections.emptyList();
+        }
+
+        return RefinedResourceSchemaImpl.getIntentsForKind(refinedSchema, kind);
+    }
+
 }

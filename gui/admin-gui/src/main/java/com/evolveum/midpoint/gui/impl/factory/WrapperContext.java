@@ -43,7 +43,7 @@ public class WrapperContext {
     //used e.g. for metadata - opertionsla attributes but want to create wrappers for them
     private boolean createOperational;
 
-    private List<VirtualContainersSpecificationType> virtualContainers;
+    private Collection<VirtualContainersSpecificationType> virtualContainers;
     private List<VirtualContainerItemSpecificationType>  virtualItemSpecification;
 
     public WrapperContext(Task task, OperationResult result) {
@@ -128,11 +128,11 @@ public class WrapperContext {
         this.createOperational = createOperational;
     }
 
-    public List<VirtualContainersSpecificationType> getVirtualContainers() {
+    public Collection<VirtualContainersSpecificationType> getVirtualContainers() {
         return virtualContainers;
     }
 
-    public void setVirtualContainers(List<VirtualContainersSpecificationType> virtualContainers) {
+    public void setVirtualContainers(Collection<VirtualContainersSpecificationType> virtualContainers) {
         this.virtualContainers = virtualContainers;
     }
 
@@ -154,6 +154,8 @@ public class WrapperContext {
         ctx.setResource(resource);
         ctx.setDiscriminator(discriminator);
         ctx.setCreateOperational(createOperational);
+        ctx.setVirtualContainers(virtualContainers);
+        ctx.setVirtualItemSpecification(virtualItemSpecification);
         return ctx;
     }
 }

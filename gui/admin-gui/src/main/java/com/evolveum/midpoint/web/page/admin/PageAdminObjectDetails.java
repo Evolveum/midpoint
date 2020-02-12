@@ -243,7 +243,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     public void initialize(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
         initializeModel(objectToEdit, isNewObject, isReadonly);
-        initLayout();
+//        initLayout();
     }
 
     protected void initializeModel(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
@@ -276,6 +276,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     protected abstract O createNewObject();
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
 
     protected void initLayout() {
         initLayoutSummaryPanel();
@@ -327,6 +333,10 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return oid;
     }
 
+    protected ObjectSummaryPanel<O> getSummaryPanel() {
+        return (ObjectSummaryPanel<O>) get(ID_SUMMARY_PANEL);
+    }
+
     public boolean isOidParameterExists() {
         return getObjectOidParameter() != null;
     }
@@ -335,7 +345,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
         OperationResult result = task.getResult();
         PrismObject<O> object = null;
-        Collection<SelectorOptions<GetOperationOptions>> loadOptions = null;
         try {
             if (!isOidParameterExists()) {
                 if (objectToEdit == null) {
@@ -353,11 +362,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                     object = objectToEdit;
                 }
             } else {
-                loadOptions = getOperationOptionsBuilder()
-                        .item(UserType.F_JPEG_PHOTO).retrieve()
-                        .build();
+
                 String focusOid = getObjectOidParameter();
-                object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, loadOptions, this, task, result);
+                object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, buildGetOptions(), this, task, result);
                 LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, object);
             }
 
@@ -411,6 +418,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         }
 
         return wrapper;
+    }
+
+    protected Collection<SelectorOptions<GetOperationOptions>> buildGetOptions() {
+        return getOperationOptionsBuilder()
+                .item(UserType.F_JPEG_PHOTO).retrieve()
+                .build();
     }
 
 //    private void loadParentOrgs(PrismObjectWrapper<O> wrapper, Task task, OperationResult result) {
