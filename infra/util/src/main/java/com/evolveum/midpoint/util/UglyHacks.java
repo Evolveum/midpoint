@@ -20,7 +20,9 @@ import org.w3c.dom.Node;
 /**
  * @author semancik
  *
+ *
  */
+@Deprecated
 public class UglyHacks {
 
     // We hope that nobody will chose a crazy name like this. We don't want to use namespaces
