@@ -23,9 +23,7 @@
 
     <modules>
         <module>sanity</module>
-        <!-- DO NOT include longtest and story by default, this runs too long for
-        ordinary build -->
-<!--         <module>rest</module> -->
+        <!-- DO NOT include other testing submodules by default, it runs too long for ordinary build -->
     </modules>
 
     <properties>
