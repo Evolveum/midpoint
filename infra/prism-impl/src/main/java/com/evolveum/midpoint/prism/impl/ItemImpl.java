@@ -896,10 +896,12 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
             return false;
         }
         ItemImpl<?,?> second = (ItemImpl<?,?>) obj;
+        @SuppressWarnings("unchecked")
+        Collection<V> secondValues = (Collection<V>) second.values;
         return (!parameterizedEquivalenceStrategy.isConsideringDefinitions() || Objects.equals(definition, second.definition)) &&
                 (!parameterizedEquivalenceStrategy.isConsideringElementNames() || Objects.equals(elementName, second.elementName)) &&
                 incomplete == second.incomplete &&
-                MiscUtil.unorderedCollectionEquals(values, second.values, parameterizedEquivalenceStrategy::equals);
+                MiscUtil.unorderedCollectionEquals(values, secondValues, parameterizedEquivalenceStrategy::equals);
         // Do not compare parents at all. They are not relevant.
     }
 

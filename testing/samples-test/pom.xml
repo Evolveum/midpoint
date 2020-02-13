@@ -20,15 +20,6 @@
     <name>midPoint Samples - Test</name>
 
     <dependencies>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-beans</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-        </dependency>
-
         <!-- TEST dependency -->
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>

@@ -259,6 +259,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>javax.xml.ws</groupId>
