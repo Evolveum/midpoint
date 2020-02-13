@@ -495,11 +495,11 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      */
     Item cloneComplex(CloneStrategy strategy);
 
-    static <T extends Item> Collection<T> cloneCollection(Collection<T> items) {
+    static <T extends Item<?,?>> Collection<T> cloneCollection(Collection<T> items) {
         Collection<T> clones = new ArrayList<>(items.size());
         for (T item: items) {
             //noinspection unchecked
-            clones.add((T)item.clone());
+            clones.add((T)((Item<?,?>)item).clone());
         }
         return clones;
     }
