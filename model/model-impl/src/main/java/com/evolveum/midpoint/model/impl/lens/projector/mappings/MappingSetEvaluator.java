@@ -101,12 +101,15 @@ public class MappingSetEvaluator {
             // Used to populate autoassign assignments
             mapping.setMappingPreExpression(request);
 
+            mappingEvaluator.evaluateMapping(mapping, context, task, result);
+
+            // We need to update nextRecompute even for mappings with "time valid" state.
+            nextRecompute = NextRecompute.update(mapping, nextRecompute);
+
             if (!mapping.evaluateTimeConstraintValid(task, result)) {
-                nextRecompute = NextRecompute.update(mapping, nextRecompute);
                 continue;
             }
 
-            mappingEvaluator.evaluateMapping(mapping, context, task, result);
             if (mappingConsumer != null) {
                 mappingConsumer.accept(mapping, request);
             }
