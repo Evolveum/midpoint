@@ -120,6 +120,8 @@
         See model/model-intest for example, how to do it.
         -->
         <integrationTestSuite>full</integrationTestSuite>
+        <!-- Controls both surefire and failsafe config/redirectTestOutputToFile setting. -->
+        <redirectTestOutputToFile>true</redirectTestOutputToFile>
 
         <!-- Dependencies global versions -->
         <commons.io.version>2.6</commons.io.version>
@@ -1660,6 +1662,7 @@
                                     <excludes>
                                         <!-- replaced by org.slf4j:jcl-over-slf4j -->
                                         <exclude>commons-logging:commons-logging</exclude>
+                                        <exclude>org.springframework:spring-jcl</exclude>
                                     </excludes>
                                 </bannedDependencies>
                             </rules>
@@ -1727,6 +1730,8 @@
                                 <ignoredUsedUndeclaredDependency>org.danekja:jdk-serializable-functional</ignoredUsedUndeclaredDependency>
                                 <!-- TODO: scope test can help with this kind (runtime for non-test starters) -->
                                 <ignoredUsedUndeclaredDependency>org.springframework.boot:spring-boot-test</ignoredUsedUndeclaredDependency>
+                                <!-- This is falsely reported, we never use it explicitly, only on runtime. -->
+                                <ignoredUsedUndeclaredDependency>org.slf4j:jcl-over-slf4j</ignoredUsedUndeclaredDependency>
                             </ignoredUsedUndeclaredDependencies>
                         </configuration>
                     </execution>
@@ -1877,7 +1882,7 @@
                         <parallel>false</parallel>
                         <forkCount>1</forkCount>
                         <reuseForks>true</reuseForks>
-                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        <redirectTestOutputToFile>${redirectTestOutputToFile}</redirectTestOutputToFile>
                         <!-- <threadCount>1</threadCount> -->
                         <!-- <perCoreThreadCount>false</perCoreThreadCount> -->
                         <!-- <reportFormat>plain</reportFormat> -->
@@ -1940,7 +1945,7 @@
                         </execution>
                     </executions>
                     <configuration>
-                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        <redirectTestOutputToFile>${redirectTestOutputToFile}</redirectTestOutputToFile>
                         <systemPropertyVariables>
                             <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
                             <midpoint.home>target/midpoint-home</midpoint.home>
