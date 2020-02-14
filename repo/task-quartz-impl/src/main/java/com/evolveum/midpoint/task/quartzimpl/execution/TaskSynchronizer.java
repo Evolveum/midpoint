@@ -58,13 +58,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  *
  * @author Pavol Mederly
  */
-public class TaskSynchronizer {
+class TaskSynchronizer {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskSynchronizer.class);
 
+    private static final String OP_SYNCHRONIZE_TASK = TaskSynchronizer.class.getName() + ".synchronizeTask";
+
     private TaskManagerQuartzImpl taskManager;
 
-    public TaskSynchronizer(TaskManagerQuartzImpl taskManager) {
+    TaskSynchronizer(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
     }
 
@@ -171,16 +173,16 @@ public class TaskSynchronizer {
      *
      * @return true if task info in Quartz was updated
      */
-    public boolean synchronizeTask(Task task, OperationResult parentResult) {
+    boolean synchronizeTask(Task task, OperationResult parentResult) {
 
         if (!task.isPersistent()) {
             return false;               // transient tasks are not scheduled via Quartz!
         }
 
         boolean changed = false;
-        String message = "";
+        StringBuilder message = new StringBuilder();
 
-        OperationResult result = parentResult.createSubresult(TaskSynchronizer.class.getName() + ".synchronizeTask");
+        OperationResult result = parentResult.createSubresult(OP_SYNCHRONIZE_TASK);
         result.addArbitraryObjectAsParam("task", task);
 
         try {
@@ -193,13 +195,14 @@ public class TaskSynchronizer {
             JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(task);
             TriggerKey standardTriggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(task);
 
-            boolean waitingOrClosedOrSuspended = task.getExecutionStatus() == TaskExecutionStatus.WAITING
-                    || task.getExecutionStatus() == TaskExecutionStatus.CLOSED
-                    || task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED;
+            TaskExecutionStatus executionStatus = task.getExecutionStatus();
+            boolean waitingOrClosedOrSuspended = executionStatus == TaskExecutionStatus.WAITING
+                    || executionStatus == TaskExecutionStatus.CLOSED
+                    || executionStatus == TaskExecutionStatus.SUSPENDED;
 
             if (!scheduler.checkExists(jobKey) && !waitingOrClosedOrSuspended) {
                 String m1 = "Quartz job does not exist for a task, adding it. Task = " + task;
-                message += "[" + m1 + "] ";
+                message.append("[").append(m1).append("] ");
                 LOGGER.trace(" - {}", m1);
                 scheduler.addJob(TaskQuartzImplUtil.createJobDetailForTask(task), false);
                 changed = true;
@@ -211,9 +214,9 @@ public class TaskSynchronizer {
             boolean standardTriggerExists = triggers.stream().anyMatch(t -> t.getKey().equals(standardTriggerKey));
             if (waitingOrClosedOrSuspended) {
                 for (Trigger trigger : triggers) {
-                    if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED || !trigger.getKey().equals(standardTriggerKey)) {
+                    if (executionStatus == TaskExecutionStatus.CLOSED || !trigger.getKey().equals(standardTriggerKey)) {
                         String m1 = "Removing Quartz trigger " + trigger.getKey() + " for WAITING/CLOSED/SUSPENDED task " + task;
-                        message += "[" + m1 + "] ";
+                        message.append("[").append(m1).append("] ");
                         LOGGER.trace(" - {}", m1);
                         scheduler.unscheduleJob(trigger.getKey());
                         changed = true;
@@ -227,7 +230,7 @@ public class TaskSynchronizer {
                         // 2) If a trigger has wrong parameters, this will be corrected on task resume/unpause.
                     }
                 }
-            } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+            } else if (executionStatus == TaskExecutionStatus.RUNNABLE) {
                 Trigger triggerToBe;
                 try {
                     triggerToBe = TaskQuartzImplUtil.createTriggerForTask(task);
@@ -243,7 +246,7 @@ public class TaskSynchronizer {
                         // TODO what about non-standard triggers?
                         // These may be legal here (e.g. for a manually-run recurring task waiting to get a chance to run)
                         String m1 = "Removing standard Quartz trigger for RUNNABLE task that should not have it; task = " + task;
-                        message += "[" + m1 + "] ";
+                        message.append("[").append(m1).append("] ");
                         LOGGER.trace(" - " + m1);
                         scheduler.unscheduleJob(TriggerKey.triggerKey(oid));
                         changed = true;
@@ -253,7 +256,7 @@ public class TaskSynchronizer {
                     if (!standardTriggerExists) {
                         String m1 = "Creating standard trigger for a RUNNABLE task " + task;
                         LOGGER.trace(" - " + m1);
-                        message += "[" + m1 + "] ";
+                        message.append("[").append(m1).append("] ");
                         scheduler.scheduleJob(triggerToBe);
                         changed = true;
                     } else {
@@ -262,18 +265,18 @@ public class TaskSynchronizer {
                         if (isRecreateQuartzTrigger(task) || TaskQuartzImplUtil.triggersDiffer(triggerAsIs, triggerToBe)) {
                             String m1 = "Existing trigger has incompatible parameters or was explicitly requested to be recreated; recreating it. Task = " + task;
                             LOGGER.trace(" - " + m1);
-                            message += "[" + m1 + "] ";
+                            message.append("[").append(m1).append("] ");
                             scheduler.rescheduleJob(standardTriggerKey, triggerToBe);
                             changed = true;
                         } else {
                             String m1 = "Existing trigger is OK, leaving it as is; task = " + task;
                             LOGGER.trace(" - " + m1);
-                            message += "[" + m1 + "] ";
+                            message.append("[").append(m1).append("] ");
                             Trigger.TriggerState state = scheduler.getTriggerState(standardTriggerKey);
                             if (state == Trigger.TriggerState.PAUSED) {
                                 String m2 = "However, the trigger is paused, resuming it; task = " + task;
                                 LOGGER.trace(" - " + m2);
-                                message += "[" + m2 + "] ";
+                                message.append("[").append(m2).append("] ");
                                 scheduler.resumeTrigger(standardTriggerKey);
                                 changed = true;
                             }
@@ -289,7 +292,7 @@ public class TaskSynchronizer {
 
         if (result.isUnknown()) {
             result.computeStatus();
-            result.recordStatus(result.getStatus(), message);
+            result.recordStatus(result.getStatus(), message.toString());
         }
 
         return changed;
@@ -302,6 +305,4 @@ public class TaskSynchronizer {
     private RepositoryService getRepositoryService() {
         return taskManager.getRepositoryService();
     }
-
-
 }

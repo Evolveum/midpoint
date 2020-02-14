@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -45,11 +44,27 @@ public class SystemConfigurationTypeUtil {
         return sysconfigObject.asObjectable().getInternals().getMaxModelClicks();
     }
 
-    public static String getDefaultHostname(SystemConfigurationType sysconfig) {
+    private static String getDefaultHostname(SystemConfigurationType sysconfig) {
+        if (sysconfig != null && sysconfig.getInfrastructure() != null) {
+            return sysconfig.getInfrastructure().getDefaultHostname();
+        } else {
+            return null;
+        }
+    }
+
+    // TODO check the method name
+    public static String getPublicHttpUrlPattern(SystemConfigurationType sysconfig) {
         if (sysconfig == null) {
             return null;
-        } else if (sysconfig.getInfrastructure() != null && sysconfig.getInfrastructure().getDefaultHostname() != null) {
-            return sysconfig.getInfrastructure().getDefaultHostname();
+        } else if (sysconfig.getInfrastructure() != null && sysconfig.getInfrastructure().getPublicHttpUrlPattern() != null) {
+            String publicHttpUrlPattern = sysconfig.getInfrastructure().getPublicHttpUrlPattern();
+            String defaultHostname = getDefaultHostname(sysconfig);
+            if (defaultHostname != null) {
+                return publicHttpUrlPattern.replace("$host", defaultHostname);
+            } else {
+                // TODO What if $host is specified but default hostname is not? Then we should use the current hostname.
+                return publicHttpUrlPattern;
+            }
         } else {
             return null;
         }

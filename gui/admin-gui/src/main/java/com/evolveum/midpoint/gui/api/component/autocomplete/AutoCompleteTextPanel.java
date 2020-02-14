@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,11 +7,8 @@
 
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.model.LookupPropertyModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import java.util.Iterator;
+import java.util.Locale;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -27,8 +24,10 @@ import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.util.time.Duration;
 
-import java.util.Iterator;
-import java.util.Locale;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.model.LookupPropertyModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 /**
  * Autocomplete field for Strings.
@@ -73,47 +72,18 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes){
                 super.updateAjaxAttributes(attributes);
-                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ONE_SECOND, true));
+                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ONE_SECOND, true)); //TODO move to the autocompelete settings
             }
 
             @Override
             public <C> IConverter<C> getConverter(Class<C> type) {
-                return new IConverter<C>() {
+                IConverter<C> converter = super.getConverter(type);
+                if (lookupTable == null) {
+                    return converter;
+                }
 
-                    private static final long serialVersionUID = 1L;
+                return new LookupTableConverter<>(converter);
 
-                    @Override
-                    public C convertToObject(String value, Locale arg1) throws ConversionException {
-                        if (lookupTable == null) {
-                            return (C) value;
-                        }
-
-                        for (LookupTableRowType row : lookupTable.getRow()) {
-                            if (value.equals(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null))) {
-                                return (C) row.getKey();
-                            }
-                        }
-
-                        if (strict) {
-                            throw new ConversionException("Cannot convert " + value);
-                        }
-
-                        return (C) value;
-
-                    }
-
-                    @Override
-                    public String convertToString(C key, Locale arg1) {
-                        if (lookupTable != null) {
-                            for (LookupTableRowType row : lookupTable.getRow()) {
-                                if (key.equals(row.getKey())) {
-                                    return (String) WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null);
-                                }
-                            }
-                        }
-                        return (String) key;
-                    }
-                };
             }
         };
 
@@ -187,11 +157,46 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
         }
     }
 
-    protected void updateFeedbackPanel(AutoCompleteTextField input, boolean isError, AjaxRequestTarget target){
+    class LookupTableConverter<C> implements IConverter<C> {
 
+            private static final long serialVersionUID = 1L;
+            IConverter<C> originConverter;
 
+            public LookupTableConverter(IConverter<C> originConverter) {
+                this.originConverter = originConverter;
+            }
+
+            @Override
+            public C convertToObject(String value, Locale locale) throws ConversionException {
+                for (LookupTableRowType row : lookupTable.getRow()) {
+                    if (value.equals(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null))) {
+                        return originConverter.convertToObject(row.getKey(), locale);
+                    }
+                }
+
+                if (strict) {
+                    throw new ConversionException("Cannot convert " + value);
+                }
+
+                return originConverter.convertToObject(value, locale);
+
+            }
+
+            @Override
+            public String convertToString(C key, Locale arg1) {
+                if (lookupTable != null) {
+                    for (LookupTableRowType row : lookupTable.getRow()) {
+                        if (key.toString().equals(row.getKey())) {
+                            return WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null);
+                        }
+                    }
+                }
+                return key.toString();
+            }
     }
 
+    protected void updateFeedbackPanel(AutoCompleteTextField input, boolean isError, AjaxRequestTarget target){
 
+    }
 }
 

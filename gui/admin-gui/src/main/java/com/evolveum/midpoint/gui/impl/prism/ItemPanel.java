@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.prism;
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismValue;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -29,7 +31,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
@@ -69,6 +70,10 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 
     private void initLayout() {
 
+        if (getModelObject() != null) {
+            getModelObject().revive(getPrismContext());
+        }
+
         Panel headerPanel = createHeaderPanel();
         headerPanel.add(new VisibleBehaviour(() -> getHeaderVisibility()));
         add(headerPanel);
@@ -99,22 +104,20 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
                         .findValuePanelFactory(ItemPanel.this.getModelObject());
 
                 Component panel = createValuePanel(item, componentFactory, getVisibilityHandler());
-                panel.add(getEnableBehaviourOfValuePanel(ItemPanel.this.getModelObject()));
+//                panel.add(getEnableBehaviourOfValuePanel(ItemPanel.this.getModelObject()));
                 createButtons(item);
             }
 
         };
 
-        values.setReuseItems(true);
-        customValuesPanel(values);
+//        values.setReuseItems(true);
+//        customValuesPanel(values);
         return values;
     }
 
-    protected EnableBehaviour getEnableBehaviourOfValuePanel(IW iw) {
-        return new EnableBehaviour(() -> !iw.isReadOnly());
-    }
-
-    protected void customValuesPanel(ListView<VW> values) {
+    @Override
+    public boolean isEnabled() {
+        return !getModelObject().isReadOnly();
     }
 
     // VALUE REGION
@@ -202,10 +205,12 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
             IW propertyWrapper = getModel().getObject();
             PrismPropertyValue<?> newValue = getPrismContext().itemFactory().createPropertyValue();
 
-            WebPrismUtil.createNewValueWrapper(propertyWrapper, newValue, getPageBase(), target);
+         WebPrismUtil.createNewValueWrapper(propertyWrapper, createNewValue(propertyWrapper), getPageBase(), target);
 
             target.add(ItemPanel.this);
         }
+
+        protected abstract <PV extends PrismValue> PV createNewValue(IW itemWrapper);
 
         protected void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException {
             LOGGER.debug("Removing value of {}", valueToRemove);
@@ -214,43 +219,35 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
             switch (valueToRemove.getStatus()) {
                 case ADDED:
                     values.remove(valueToRemove);
+                    getModelObject().getItem().remove(valueToRemove.getOldValue());
+                    getModelObject().getItem().remove(valueToRemove.getNewValue());
                     break;
                 case DELETED:
-                    throw new SchemaException();
+                    valueToRemove.setStatus(ValueStatus.NOT_CHANGED);
+                    break;
                 case NOT_CHANGED:
                     valueToRemove.setStatus(ValueStatus.DELETED);
                     break;
             }
 
-            getModelObject().getItem().remove(valueToRemove.getOldValue());
-            getModelObject().getItem().remove(valueToRemove.getNewValue());
-
             int count = countUsableValues(values);
 
             if (count == 0 && !hasEmptyPlaceholder(values)) {
                 addValue(target);
-
             }
-
 
             target.add(ItemPanel.this);
         }
 
         private int countUsableValues(List<VW> values) {
             int count = 0;
-
-
             for (VW value : values) {
-//                value.normalize(prismContext);
-
-                if (ValueStatus.DELETED.equals(value.getStatus())) {
-                    continue;
-                }
-
+//                if (ValueStatus.DELETED.equals(value.getStatus())) {
+//                    continue;
+//                }
                 if (ValueStatus.ADDED.equals(value.getStatus())) {
                     continue;
                 }
-
                 count++;
             }
             return count;
@@ -258,7 +255,6 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 
         private boolean hasEmptyPlaceholder(List<VW> values) {
             for (VW value : values) {
-//                value.normalize(prismContext);
                 if (ValueStatus.ADDED.equals(value.getStatus()) ) {//&& !value.hasValueChanged()) {
                     return true;
                 }

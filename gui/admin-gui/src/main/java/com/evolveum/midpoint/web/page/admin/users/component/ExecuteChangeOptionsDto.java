@@ -29,12 +29,14 @@ public class ExecuteChangeOptionsDto implements Serializable {
     public static final String F_KEEP_DISPLAYING_RESULTS = "keepDisplayingResults";
     public static final String F_TRACING = "tracing";
     public static final String F_TRACING_CHOICES = "tracingChoices";
+    public static final String F_SAVE_IN_BACKGROUND = "saveInBackground";
 
     private boolean force;
     private boolean reconcile;
     private boolean reconcileAffected;
     private boolean executeAfterAllApprovals = true;
     private boolean keepDisplayingResults;
+    private boolean saveInBackground;
     private TracingProfileType tracing;
     private List<TracingProfileType> tracingChoices;
 
@@ -118,6 +120,14 @@ public class ExecuteChangeOptionsDto implements Serializable {
         this.tracingChoices = tracingChoices;
     }
 
+    public boolean isSaveInBackground() {
+        return saveInBackground;
+    }
+
+    public void setSaveInBackground(boolean saveInBackground) {
+        this.saveInBackground = saveInBackground;
+    }
+
     @NotNull
     public ModelExecuteOptions createOptions() {
         ModelExecuteOptions options = new ModelExecuteOptions();
@@ -136,6 +146,7 @@ public class ExecuteChangeOptionsDto implements Serializable {
         builder.append(",reconcile=").append(isReconcile());
         builder.append(",reconcileAffected=").append(isReconcileAffected());
         builder.append(",keepDisplayingResults=").append(isKeepDisplayingResults());
+        builder.append(",saveInBackground=").append(isSaveInBackground());
         builder.append(",tracing=").append(tracing);
         builder.append('}');
 

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -729,7 +729,7 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
         if (taskOid != null) {
             PageParameters parameters = new PageParameters();
             parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-            navigateToNext(PageTaskEdit.class, parameters);
+            navigateToNext(PageTask.class, parameters);
         } else {
             navigateToNext(PageTasks.class);
         }
@@ -871,7 +871,7 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
         if (taskOid != null) {
             PageParameters parameters = new PageParameters();
             parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-            navigateToNext(PageTaskEdit.class, parameters);
+            navigateToNext(PageTask.class, parameters);
         } else {
             navigateToNext(PageTasks.class);
         }
@@ -980,7 +980,7 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
         if (taskOid != null) {
             PageParameters parameters = new PageParameters();
             parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-            navigateToNext(PageTaskEdit.class, parameters);
+            navigateToNext(PageTask.class, parameters);
         } else {
             navigateToNext(PageTasks.class);
         }

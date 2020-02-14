@@ -441,4 +441,14 @@ public interface ModelInteractionService {
     <O extends ObjectType> CollectionStats determineCollectionStats(@NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
+    /**
+     *
+     * @param object
+     * @param task
+     * @param parentResult
+     * @param <O>
+     * @return virtual containers sepcification if present. Merge virtual container specification from archetype policy
+     *  for concrete object with global settings in systemConfiguration/adminGuiConfig
+     */
+    <O extends ObjectType> Collection<VirtualContainersSpecificationType> determineVirtualContainers(PrismObject<O> object, @NotNull Task task, @NotNull  OperationResult parentResult);
 }

@@ -393,6 +393,10 @@ body .treeview-menu > li > span:hover {
 	#box-thin-object(@object-shadow-color);
 }
 
+.object-task-box-thin {
+  #box-thin-object(@object-task-color);
+}
+
 // Summary panel (panel above the edit user/role/org forms)
 
 #info-box-summary-panel(@color) {
@@ -422,6 +426,10 @@ body .treeview-menu > li > span:hover {
 
 .info-box.summary-panel-shadow {
 	#info-box-summary-panel(@object-shadow-color);
+}
+
+.info-box.summary-panel-task {
+  #info-box-summary-panel(@object-task-color);
 }
 
 #info-box-icon-summary-panel(@color){
@@ -456,6 +464,10 @@ body .treeview-menu > li > span:hover {
 
 .info-box-icon.summary-panel-shadow {
 	#info-box-icon-summary-panel(@object-shadow-color);
+}
+
+.info-box-icon.summary-panel-task {
+  #info-box-icon-summary-panel(@object-task-color);
 }
 
 // other info box enhancements (e.g. role assignment)
@@ -870,8 +882,12 @@ body .treeview-menu > li > span:hover {
 	padding-bottom: 15px;
 }
 
-.multivalue-container > .container-wrapper > div > .new-value-background {
-	background-color: #dff0d8; // green background for new value of multivalue container
+.multivalue-container > .container-wrapper > div > .added-value-background {
+  background-color: #dff0d8; // green background for new value of multivalue container
+}
+
+.multivalue-container > .container-wrapper > div > .removed-value-background {
+  background-color: #f2dede; // green background for new value of multivalue container
 }
 
 .prism-properties {

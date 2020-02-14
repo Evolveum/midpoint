@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.page.admin.server.handlers;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
@@ -14,7 +15,6 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.ReportCreateHandlerDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,14 +37,14 @@ public class ReportCreateHandlerPanel extends DefaultHandlerPanel<ReportCreateHa
     private static final String ID_REPORT_PARAMETERS_CONTAINER = "reportParametersContainer";
     private static final String ID_REPORT_PARAMETERS = "reportParameters";
 
-    private static final String OPERATION_LOAD_REPORT_OUTPUT = PageTaskEdit.DOT_CLASS + "loadReportOutput";
+    private static final String OPERATION_LOAD_REPORT_OUTPUT = ReportCreateHandlerPanel.class.getName() +"." + "loadReportOutput";
 
-    public ReportCreateHandlerPanel(String id, IModel<ReportCreateHandlerDto> model, PageTaskEdit parentPage) {
+    public ReportCreateHandlerPanel(String id, IModel<ReportCreateHandlerDto> model, PageBase parentPage) {
         super(id, model, parentPage);
         initLayout(parentPage);
     }
 
-    private void initLayout(final PageTaskEdit parentPage) {
+    private void initLayout(final PageBase parentPage) {
 
         final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
             private static final long serialVersionUID = 1L;
@@ -66,7 +66,7 @@ public class ReportCreateHandlerPanel extends DefaultHandlerPanel<ReportCreateHa
                 return PageCreatedReports.getReportFileName(reportObject);
             }
         };
-        parentPage.getForm().add(ajaxDownloadBehavior);
+//        parentPage.getForm().add(ajaxDownloadBehavior);
 
         WebMarkupContainer reportParametersContainer = new WebMarkupContainer(ID_REPORT_PARAMETERS_CONTAINER);
         TextArea reportParameters = new TextArea<>(ID_REPORT_PARAMETERS, new PropertyModel<>(getModel(), ReportCreateHandlerDto.F_REPORT_PARAMS));
@@ -85,21 +85,21 @@ public class ReportCreateHandlerPanel extends DefaultHandlerPanel<ReportCreateHa
             }
         };
         downloadContainer.add(download);
-        downloadContainer.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                ReportOutputType reportObject = getReportOutput(parentPage);
-                return getModelObject().getReportOutputOid() != null && reportObject != null;
-            }
-        });
+//        downloadContainer.add(new VisibleEnableBehaviour() {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public boolean isVisible() {
+//                ReportOutputType reportObject = getReportOutput(parentPage);
+//                return getModelObject().getReportOutputOid() != null && reportObject != null;
+//            }
+//        });
         add(downloadContainer);
     }
 
-    private ReportOutputType getReportOutput(PageTaskEdit parentPage) {
-        String outputOid = getModelObject().getReportOutputOid();
+    private ReportOutputType getReportOutput(PageBase parentPage) {
+        String outputOid = null;//getModelObject().getReportOutputOid();
 
         if (outputOid == null) {
             return null;

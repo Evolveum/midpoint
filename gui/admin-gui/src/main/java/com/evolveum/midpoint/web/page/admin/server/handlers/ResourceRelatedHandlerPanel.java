@@ -8,11 +8,11 @@ package com.evolveum.midpoint.web.page.admin.server.handlers;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -23,9 +23,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddResourcesDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.ResourceRelatedHandlerDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -74,10 +72,10 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
     private static final String ID_DRY_RUN_CONTAINER = "dryRunContainer";
     private static final String ID_DRY_RUN = "dryRun";
 
-    private PageTaskEdit parentPage;
+    private PageBase parentPage;
         protected VisibleEnableBehaviour enabledIfEdit;
 
-    public ResourceRelatedHandlerPanel(String id, IModel<D> handlerDtoModel, PageTaskEdit parentPage) {
+    public ResourceRelatedHandlerPanel(String id, IModel<D> handlerDtoModel, PageBase parentPage) {
         super(id, handlerDtoModel);
         this.parentPage = parentPage;
         initLayout();
@@ -85,34 +83,34 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 
     private void initLayout() {
 
-        final VisibleEnableBehaviour visibleIfEdit = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return parentPage.isEdit();
-            }
-        };
-        final VisibleEnableBehaviour visibleIfView = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !parentPage.isEdit();
-            }
-        };
-        enabledIfEdit = new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isEnabled() {
-                return parentPage.isEdit();
-            }
-        };
-        final VisibleEnableBehaviour visibleForResourceCoordinates = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return getTaskDto().configuresResourceCoordinates();
-            }
-        };
+//        final VisibleEnableBehaviour visibleIfEdit = new VisibleEnableBehaviour() {
+//            @Override
+//            public boolean isVisible() {
+//                return parentPage.isEdit();
+//            }
+//        };
+//        final VisibleEnableBehaviour visibleIfView = new VisibleEnableBehaviour() {
+//            @Override
+//            public boolean isVisible() {
+//                return !parentPage.isEdit();
+//            }
+//        };
+//        enabledIfEdit = new VisibleEnableBehaviour() {
+//
+//            @Override
+//            public boolean isEnabled() {
+//                return parentPage.isEdit();
+//            }
+//        };
+//        final VisibleEnableBehaviour visibleForResourceCoordinates = new VisibleEnableBehaviour() {
+//            @Override
+//            public boolean isVisible() {
+//                return getTaskDto().configuresResourceCoordinates();
+//            }
+//        };
 
         final WebMarkupContainer resourceRefContainer = new WebMarkupContainer(ID_RESOURCE_REF_CONTAINER);
-        resourceRefContainer.add(visibleForResourceCoordinates);
+//        resourceRefContainer.add(visibleForResourceCoordinates);
         resourceRefContainer.setOutputMarkupId(true);
         add(resourceRefContainer);
 
@@ -161,7 +159,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
         resourceRefContainer.add(resourceRef);
 
         WebMarkupContainer kindContainer = new WebMarkupContainer(ID_KIND_CONTAINER);
-        kindContainer.add(visibleForResourceCoordinates);
+//        kindContainer.add(visibleForResourceCoordinates);
         add(kindContainer);
 
         final DropDownChoicePanel kind = new DropDownChoicePanel<>(ID_KIND,
@@ -172,7 +170,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
         kindContainer.add(kind);
 
         WebMarkupContainer intentContainer = new WebMarkupContainer(ID_INTENT_CONTAINER);
-        intentContainer.add(visibleForResourceCoordinates);
+//        intentContainer.add(visibleForResourceCoordinates);
         add(intentContainer);
 
         final TextField<String> intent = new TextField<>(ID_INTENT, new PropertyModel<String>(getModel(), ResourceRelatedHandlerDto.F_INTENT));
@@ -181,7 +179,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
         intent.add(enabledIfEdit);
 
         WebMarkupContainer objectClassContainer = new WebMarkupContainer(ID_OBJECT_CLASS_CONTAINER);
-        objectClassContainer.add(visibleForResourceCoordinates);
+//        objectClassContainer.add(visibleForResourceCoordinates);
         add(objectClassContainer);
 
         AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
@@ -199,30 +197,28 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
         objectClassContainer.add(objectClass);
 
         WebMarkupContainer optionsContainer = new WebMarkupContainer(ID_OPTIONS_CONTAINER);
-        optionsContainer.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return getTaskDto().configuresDryRun();
-            }
-        });
+//        optionsContainer.add(new VisibleEnableBehaviour() {
+//            @Override
+//            public boolean isVisible() {
+//                return getTaskDto().configuresDryRun();
+//            }
+//        });
         add(optionsContainer);
 
         WebMarkupContainer dryRunContainer = new WebMarkupContainer(ID_DRY_RUN_CONTAINER);
-        dryRunContainer.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return getTaskDto().configuresDryRun();
-            }
-        });
+//        dryRunContainer.add(new VisibleEnableBehaviour() {
+//            @Override
+//            public boolean isVisible() {
+//                return getTaskDto().configuresDryRun();
+//            }
+//        });
         optionsContainer.add(dryRunContainer);
         CheckBox dryRun = new CheckBox(ID_DRY_RUN, new PropertyModel<>(getModel(), ResourceRelatedHandlerDto.F_DRY_RUN));
         dryRun.add(enabledIfEdit);
         dryRunContainer.add(dryRun);
     }
 
-    private TaskDto getTaskDto() {
-        return parentPage.getTaskDto();
-    }
+
 
     private List<TaskAddResourcesDto> createResourceList() {
         OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);

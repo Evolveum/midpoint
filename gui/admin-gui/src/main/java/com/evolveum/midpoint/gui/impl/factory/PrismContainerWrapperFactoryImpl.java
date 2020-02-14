@@ -151,7 +151,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
             }
         }
 
-        wrapper.setExpanded(expanded);
+        wrapper.setExpanded(expanded || wrapper.isSingleValue());
     }
 
 }

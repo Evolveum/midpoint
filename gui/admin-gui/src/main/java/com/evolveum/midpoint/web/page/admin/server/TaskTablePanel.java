@@ -9,13 +9,11 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -24,7 +22,6 @@ import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -39,14 +36,11 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.time.DurationFormatUtils;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -64,7 +58,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -194,7 +187,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        navigateToNext(PageTaskEdit.class, parameters);
+        navigateToNext(PageTask.class, parameters);
     }
 
     private List<IColumn<SelectableBean<TaskType>, String>> initTaskColumns() {
@@ -213,12 +206,12 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,
                                      final IModel<SelectableBean<TaskType>> rowModel) {
                 item.add(new Label(componentId,
-                        WebComponentUtil.createCategoryNameModel(TaskTablePanel.this, new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + TaskDto.F_CATEGORY))));
+                        WebComponentUtil.createCategoryNameModel(TaskTablePanel.this, new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + TaskType.F_CATEGORY.getLocalPart()))));
             }
 
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                return WebComponentUtil.createCategoryNameModel(TaskTablePanel.this, new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + TaskDto.F_CATEGORY));
+                return WebComponentUtil.createCategoryNameModel(TaskTablePanel.this, new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + TaskType.F_CATEGORY.getLocalPart()));
             }
         };
 
@@ -286,7 +279,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
                         public void onClick(AjaxRequestTarget target) {
                             PageParameters pageParams = new PageParameters();
                             pageParams.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getValue().getOid());
-                            navigateToNext(PageTaskEdit.class, pageParams);
+                            navigateToNext(PageTask.class, pageParams);
                         }
                     });
                 }
@@ -631,7 +624,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
                 @Override
                 public InlineMenuItemAction initAction() {
-                    return new ColumnMenuAction<TaskDto>() {
+                    return new ColumnMenuAction<SelectableBean<TaskType>>() {
                         private static final long serialVersionUID = 1L;
 
                         @Override

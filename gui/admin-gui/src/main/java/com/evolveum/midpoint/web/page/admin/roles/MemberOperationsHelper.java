@@ -15,8 +15,11 @@ import java.util.Set;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ChooseArchetypeMemberPopup;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
@@ -44,13 +47,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel.QueryScope;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
@@ -218,6 +214,32 @@ public class MemberOperationsHelper {
 
             @Override
             protected OrgType getAssignmentTargetRefObject(){
+                return targetRefObject;
+            }
+
+            @Override
+            protected List<QName> getAvailableObjectTypes(){
+                return objectTypes;
+            }
+
+            @Override
+            protected List<ObjectReferenceType> getArchetypeRefList(){
+                return archetypeRefList;
+            }
+        };
+
+        browser.setOutputMarkupId(true);
+        pageBase.showMainPopup(browser, target);
+    }
+
+    public static <O extends AssignmentHolderType> void assignArchetypeMembers(PageBase pageBase, ArchetypeType targetRefObject, AjaxRequestTarget target,
+            AvailableRelationDto availableRelationList, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList) {
+        ChooseArchetypeMemberPopup<O> browser = new ChooseArchetypeMemberPopup<O>(pageBase.getMainPopupBodyId(), availableRelationList) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected ArchetypeType getAssignmentTargetRefObject(){
                 return targetRefObject;
             }
 

@@ -33,7 +33,8 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     private Objectable originObject;
     private Itemable parent;
     private transient Map<String,Object> userData = new HashMap<>();
-    protected boolean immutable;
+
+    // FIXME: allways null
     protected EquivalenceStrategy defaultEquivalenceStrategy;
 
     transient protected PrismContext prismContext;
@@ -171,7 +172,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         if (this.prismContext == null) {
             this.prismContext = prismContext;
         }
-        if (!immutable) {
+        if (isMutable()) {
             recompute(prismContext);
         }
     }
