@@ -391,6 +391,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="presentation" type="tns:PolicyConstraintPresentationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1471,6 +1472,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2202,6 +2204,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="displayName" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2419,6 +2422,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="targetState" type="xsd:string" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2486,6 +2490,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="dataReduction" type="tns:LifecycleStateActionDataReductionType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>

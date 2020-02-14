@@ -1570,7 +1570,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         return getState() + ".e" + getExecutionWave() + "p" + getProjectionWave();
     }
 
-    public ObjectDeltaSchemaLevelUtil.NameResolver getNameResolver() {
+    ObjectDeltaSchemaLevelUtil.NameResolver getNameResolver() {
         return (objectClass, oid) -> {
             if (ResourceType.class.equals(objectClass) || ShadowType.class.equals(objectClass)) {
                 for (LensProjectionContext projectionContext : projectionContexts) {

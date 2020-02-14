@@ -196,6 +196,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1010,6 +1011,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="channel" type="tns:AuthenticationSequenceChannelType" minOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1064,6 +1066,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="default" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1120,6 +1123,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="order" type="xsd:int" minOccurs="0" default="100">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1320,6 +1324,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="authenticationSequenceName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1679,6 +1684,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <!-- later: display (DisplayType) -->
             <!-- later: default: boolean -->
             <xsd:element name="storageMethod" type="c:CredentialsStorageMethodType" minOccurs="0" maxOccurs="1">

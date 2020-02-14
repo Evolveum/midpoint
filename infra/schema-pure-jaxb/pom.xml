@@ -25,12 +25,7 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-        </dependency>
-
-        <!--  Testing dependecies  -->
+        <!-- Testing dependencies -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>

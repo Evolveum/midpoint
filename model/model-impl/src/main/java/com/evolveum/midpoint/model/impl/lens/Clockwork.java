@@ -1429,10 +1429,9 @@ public class Clockwork {
             // We need to clean up so these deltas will not be audited again in next wave
             context.markExecutedDeltasAudited();
             context.setExecutionAudited(true);
-        } else if (stage == AuditEventStage.REQUEST) {
-            context.setRequestAudited(true);
         } else {
-            throw new IllegalStateException("Unknown audit stage "+stage);
+            assert stage == AuditEventStage.REQUEST;
+            context.setRequestAudited(true);
         }
     }
 
