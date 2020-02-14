@@ -42,7 +42,7 @@ public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> implemen
     public <IW extends ItemWrapper> boolean match(IW wrapper) {
         QName type = wrapper.getTypeName();
         return DOMUtil.XSD_STRING.equals(type) || DOMUtil.XSD_DURATION.equals(type) || DOMUtil.XSD_LONG.equals(type)
-                || DOMUtil.XSD_ANYURI.equals(type) || DOMUtil.XSD_INT.equals(type);
+                || DOMUtil.XSD_ANYURI.equals(type) || DOMUtil.XSD_INT.equals(type) || DOMUtil.XSD_INTEGER.equals(type);
     }
 
     @Override

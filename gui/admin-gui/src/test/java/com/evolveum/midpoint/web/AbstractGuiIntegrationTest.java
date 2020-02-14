@@ -217,9 +217,9 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
             @NotNull
             @Override
             public CompiledGuiProfile getCompiledGuiProfile() {
-                Task task = createSimpleTask("getCompiledUserProfile");
+                Task task = createSimpleTask("getCompiledGuiProfile");
                 try {
-                    return getModelInteractionService().getCompiledUserProfile(task, task.getResult());
+                    return getModelInteractionService().getCompiledGuiProfile(task, task.getResult());
                 } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
                     throw new SystemException(e.getMessage(), e);
                 }

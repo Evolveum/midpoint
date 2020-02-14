@@ -154,13 +154,10 @@ public class MockSingleTaskHandler implements TaskHandler {
 
     @Override
     public Long heartbeat(Task task) {
-        // TODO Auto-generated method stub
-        return 0L;
+        return null;
     }
     @Override
     public void refreshStatus(Task task) {
-        // TODO Auto-generated method stub
-
     }
 
     public boolean hasRun() {

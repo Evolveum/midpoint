@@ -403,8 +403,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     }
 
     @Test
-    public void test130GetCompiledUserProfile() throws Exception {
-        final String TEST_NAME = "test130GetCompiledUserProfile";
+    public void test130GetCompiledGuiProfile() throws Exception {
+        final String TEST_NAME = "test130GetCompiledGuiProfile";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -412,12 +412,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         OperationResult result = task.getResult();
 
         // WHEN
-        CompiledGuiProfile compiledGuiProfile = modelInteractionService.getCompiledUserProfile(task, result);
+        CompiledGuiProfile compiledGuiProfile = modelInteractionService.getCompiledGuiProfile(task, result);
 
         // THEN
         assertSuccess(result);
 
-        assertCompiledUserProfile(compiledGuiProfile)
+        assertCompiledGuiProfile(compiledGuiProfile)
             .assertAdditionalMenuLinks(0)
             .assertUserDashboardLinks(1)
             .assertObjectForms(1)

@@ -25,7 +25,7 @@
             <!-- We need this for Sleepycat JE -->
             <id>oracle</id>
             <name>Oracle</name>
-            <url>http://download.oracle.com/maven/</url>
+            <url>https://download.oracle.com/maven/</url>
         </repository>
     </repositories>
 
@@ -59,10 +59,6 @@
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
         </dependency>
         <dependency>
@@ -87,10 +83,6 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.derby</groupId>

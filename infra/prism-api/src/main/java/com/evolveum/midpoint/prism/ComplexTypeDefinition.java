@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.prism.path.ItemName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,6 +48,7 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
      *
      * EXPERIMENTAL
       */
+    @Experimental
     boolean isShared();
 
     /**
@@ -87,6 +89,7 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
     boolean isXsdAnyMarker();
 
     // TODO. EXPERIMENTAL.
+    @Experimental
     boolean isListMarker();
 
     /**

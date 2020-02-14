@@ -6,25 +6,17 @@
  */
 package com.evolveum.midpoint.web.page.admin.home;
 
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.box.InfoBoxType;
@@ -40,7 +32,7 @@ public abstract class PageDashboard extends PageAdminHome {
     private final Model<PrismObject<? extends FocusType>> principalModel = new Model<>();
 
     public PageDashboard() {
-        principalModel.setObject(loadUserSelf());
+        principalModel.setObject(loadFocusSelf());
         setTimeZone(PageDashboard.this);
     }
 

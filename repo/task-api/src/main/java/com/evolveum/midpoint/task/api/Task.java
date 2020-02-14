@@ -306,6 +306,10 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     ScheduleType getSchedule();
 
+    Integer getScheduleInterval();
+
+    boolean hasScheduleInterval();
+
     /**
      * Returns the time when the task last run was started (or null if the task was never started).
      */
@@ -857,9 +861,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     TaskExecutionEnvironmentType getExecutionEnvironment();
 
     void setExecutionEnvironment(TaskExecutionEnvironmentType value);
-
-    @SuppressWarnings("unused")
-    void setExecutionEnvironmentImmediate(TaskExecutionEnvironmentType value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     @SuppressWarnings("unused")
     void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value);

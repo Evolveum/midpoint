@@ -35,6 +35,9 @@
 
     Long test run (with 16g on CI server, but this should work too - isn't Xmx even unnecessary?), runs just under 900 tests:
     mvn -P tomcat,extratest clean install -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
+
+    Comprehensive quick build/dist with normally excluded modules including checkstyle, but no tests/javadoc:
+    mvn clean install -P dist,extratest,conntest,schrodinger -DskipTests -Dmaven.javadoc.skip
     -->
 
     <groupId>com.evolveum.midpoint</groupId>
@@ -46,12 +49,12 @@
     <description>Utility module to compile all of the maven based midPoint projects.</description>
     <organization>
         <name>evolveum</name>
-        <url>http://www.evolveum.com</url>
+        <url>https://www.evolveum.com</url>
     </organization>
     <licenses>
         <license>
             <name>Apache License v2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
             <distribution>repo</distribution>
         </license>
         <license>
@@ -117,6 +120,8 @@
         See model/model-intest for example, how to do it.
         -->
         <integrationTestSuite>full</integrationTestSuite>
+        <!-- Controls both surefire and failsafe config/redirectTestOutputToFile setting. -->
+        <redirectTestOutputToFile>true</redirectTestOutputToFile>
 
         <!-- Dependencies global versions -->
         <commons.io.version>2.6</commons.io.version>
@@ -136,6 +141,7 @@
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
         <spring.boot.version>2.1.8.RELEASE</spring.boot.version>
+        <!-- Check the name sof properties in Spring Boot BOM and let's try to use the same names. -->
         <spring.version>5.1.9.RELEASE</spring.version>
         <spring.security.version>5.1.6.RELEASE</spring.security.version>
         <spring.security.saml2.version>2.0.0.M30</spring.security.saml2.version>
@@ -483,6 +489,11 @@
                 <artifactId>commons-validator</artifactId>
                 <version>1.5.1</version>
                 <exclusions>
+                    <!-- replaced by org.slf4j:jcl-over-slf4j -->
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
                     <exclusion>
                         <groupId>commons-digester</groupId>
                         <artifactId>commons-digester</artifactId>
@@ -493,6 +504,13 @@
                 <groupId>commons-beanutils</groupId>
                 <artifactId>commons-beanutils</artifactId>
                 <version>1.9.4</version>
+                <exclusions>
+                    <!-- replaced by org.slf4j:jcl-over-slf4j -->
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>commons-codec</groupId>
@@ -508,6 +526,13 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-configuration2</artifactId>
                 <version>2.6</version>
+                <exclusions>
+                    <!-- replaced by org.slf4j:jcl-over-slf4j -->
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -539,11 +564,6 @@
                 <groupId>commons-pool</groupId>
                 <artifactId>commons-pool</artifactId>
                 <version>1.5.6</version>
-            </dependency>
-            <dependency> <!-- used in task-quartz-impl. Should not be. TODO: cleanup -->
-                <groupId>commons-logging</groupId>
-                <artifactId>commons-logging</artifactId>
-                <version>1.1.3</version>
             </dependency>
             <dependency>
                 <groupId>commons-javaflow</groupId>
@@ -599,6 +619,13 @@
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
                 <version>4.5.3.e3</version>
+                <exclusions>
+                    <!-- replaced by org.slf4j:jcl-over-slf4j -->
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
@@ -878,6 +905,7 @@
                 <version>1.0.3</version>
             </dependency>
             <dependency>
+                <!-- this replaces commons-logging and spring-jcl (or other JARs with org.apache.commons.logging.Log) -->
                 <groupId>org.slf4j</groupId>
                 <artifactId>jcl-over-slf4j</artifactId>
                 <version>${slf4j.version}</version>
@@ -930,89 +958,25 @@
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
-                <artifactId>spring-beans</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
                 <artifactId>spring-core</artifactId>
                 <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-tx</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-web</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-jdbc</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-jms</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-expression</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-orm</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-aspects</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-aop</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-jcl</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-config</artifactId>
-                <version>${spring.security.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-web</artifactId>
-                <version>${spring.security.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-core</artifactId>
-                <version>${spring.security.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-ldap</artifactId>
-                <version>${spring.security.version}</version>
+                <exclusions>
+                    <!-- replaced with jcl-over-slf4j -->
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-jcl</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.springframework.security.extensions</groupId>
                 <artifactId>spring-security-saml2-core</artifactId>
                 <version>${spring.security.saml2.version}</version>
                 <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
                     <exclusion>
                         <groupId>org.bouncycastle</groupId>
                         <artifactId>bcpkix-jdk15on</artifactId>
@@ -1126,7 +1090,8 @@
                         <groupId>com.fasterxml.jackson.core</groupId>
                         <artifactId>jackson-annotations</artifactId>
                     </exclusion>
-                    <exclusion> <!-- Conflicting version with Spring core -->
+                    <!-- replaced by org.slf4j:jcl-over-slf4j -->
+                    <exclusion>
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
@@ -1151,7 +1116,7 @@
                         <artifactId>bctsp-jdk14</artifactId>
                     </exclusion>
                     <exclusion> <!-- Pulled in by castor-xml. Conflicts with itself (depends both on stax-api 1.0-2 and 1.0.1)
-                                     Note: the 1.0-2 and 1.0.1 have differeng group IDs (but same java packages),
+                                     Note: the 1.0-2 and 1.0.1 have different group IDs (but same java packages),
                                            so dependency convergence will not detect this. -->
                         <groupId>javax.xml.stream</groupId>
                         <artifactId>stax-api</artifactId>
@@ -1463,19 +1428,14 @@
                 <artifactId>cas-client-core</artifactId>
                 <version>3.5.1</version>
             </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-cas</artifactId>
-                <version>${spring.security.version}</version>
-            </dependency>
 
             <!-- Schroedinger -->
             <dependency>
                 <groupId>com.codeborne</groupId>
                 <artifactId>selenide</artifactId>
                 <version>5.3.1</version>
-                <!-- Includes selenium as transitive dependency -->
                 <exclusions>
+                    <!-- Excluding to exclude commons-logging lower -->
                     <exclusion>
                         <groupId>io.netty</groupId>
                         <artifactId>netty-all</artifactId>
@@ -1483,6 +1443,18 @@
                     <exclusion>
                         <groupId>com.google.guava</groupId>
                         <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-java</artifactId>
+                <version>3.14.0</version>
+                <exclusions>
+                    <!-- replaced by org.slf4j:jcl-over-slf4j -->
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1524,11 +1496,6 @@
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
                 <version>${testng.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-test</artifactId>
-                <version>${spring.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.midpoint.tools</groupId>
@@ -1618,10 +1585,10 @@
                             <Version-Number>${project.version}</Version-Number>
                             <SCM-Revision>${git.describe}</SCM-Revision>
                             <Organization>Evolveum</Organization>
-                            <Organization-URL>http://www.evolveum.com</Organization-URL>
-                            <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
+                            <Organization-URL>https://www.evolveum.com</Organization-URL>
+                            <Bugtracking-System>https://jira.evolveum.com</Bugtracking-System>
                             <License>dual-licensed under the Apache License 2.0 and European Union Public License</License>
-                            <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
+                            <License-URL>https://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -1636,10 +1603,10 @@
                             <Version-Number>${project.version}</Version-Number>
                             <SCM-Revision>${git.describe}</SCM-Revision>
                             <Organization>Evolveum</Organization>
-                            <Organization-URL>http://www.evolveum.com</Organization-URL>
-                            <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
+                            <Organization-URL>https://www.evolveum.com</Organization-URL>
+                            <Bugtracking-System>https://jira.evolveum.com</Bugtracking-System>
                             <License>dual-licensed under the Apache License 2.0 and European Union Public License</License>
-                            <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
+                            <License-URL>https://www.apache.org/licenses/LICENSE-2.0.txt and https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
                         </manifestEntries>
                     </archive>
                     <attachClasses>true</attachClasses>
@@ -1659,7 +1626,6 @@
                     </systemProperties>
                     <webApp>
                         <contextPath>/midpoint</contextPath>
-                        <!-- <overrideDescriptor>${basedir}/etc/jetty/web.xml</overrideDescriptor> -->
                     </webApp>
                     <webAppConfig>
                         <allowDuplicateFragmentNames>true</allowDuplicateFragmentNames>
@@ -1692,6 +1658,13 @@
                                     <version>3.6</version>
                                 </requireMavenVersion>
                                 <dependencyConvergence/>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <!-- replaced by org.slf4j:jcl-over-slf4j -->
+                                        <exclude>commons-logging:commons-logging</exclude>
+                                        <exclude>org.springframework:spring-jcl</exclude>
+                                    </excludes>
+                                </bannedDependencies>
                             </rules>
                         </configuration>
                         <goals>
@@ -1717,26 +1690,18 @@
                             <ignoredUnusedDeclaredDependencies>
                                 <!-- Unreliable detection -->
                                 <ignoredUnusedDeclaredDependency>javax.xml.bind:jaxb-api</ignoredUnusedDeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>com.sun.activation:javax.activation
-                                </ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>com.sun.activation:javax.activation</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>javax.activation:activation</ignoredUnusedDeclaredDependency>
 
-                                <!-- There are dependencies in this master POM. So they are projected
-                                    everywhere, used or unused. -->
-                                <ignoredUnusedDeclaredDependency>org.springframework</ignoredUnusedDeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>org.springframework.boot</ignoredUnusedDeclaredDependency>
-
                                 <!-- Common "drill" for all modules. -->
-                                <ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng
-                                </ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>org.testng:testng</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>commons-lang:commons-lang</ignoredUnusedDeclaredDependency>
 
                                 <!-- There is some kind of conflict between these. TODO: clean up -->
                                 <ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>org.springframework.ldap:spring-ldap-core
-                                </ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUnusedDeclaredDependency>
 
                                 <!-- We are making this dependency explicit to detect conflicts early -->
                                 <ignoredUnusedDeclaredDependency>org.codehaus.woodstox:stax2-api</ignoredUnusedDeclaredDependency>
@@ -1748,28 +1713,25 @@
                             <ignoredUsedUndeclaredDependencies>
                                 <!-- Unreliable detection -->
                                 <ignoredUsedUndeclaredDependency>javax.xml.bind:jaxb-api</ignoredUsedUndeclaredDependency>
-                                <ignoredUsedUndeclaredDependency>com.sun.activation:javax.activation
-                                </ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>com.sun.activation:javax.activation</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>javax.activation:activation</ignoredUsedUndeclaredDependency>
 
                                 <!-- There is some kind of conflict between these. TODO: clean up -->
                                 <ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>stax:stax-api</ignoredUsedUndeclaredDependency>
-                                <ignoredUsedUndeclaredDependency>org.springframework.ldap:spring-ldap-core
-                                </ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUsedUndeclaredDependency>
 
                                 <!-- needs to much exclusions, used by apache-cxf (xjc plugin, prism-impl, schema, ..) -->
-                                <ignoredUsedUndeclaredDependency>jakarta.activation:jakarta.activation-api
-                                </ignoredUsedUndeclaredDependency>
-                                <ignoredUsedUndeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api
-                                </ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>jakarta.activation:jakarta.activation-api</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.glassfish.jaxb:xsom</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.glassfish.jaxb:jaxb-runtime</ignoredUsedUndeclaredDependency>
 
-                                <ignoredUsedUndeclaredDependency>org.danekja:jdk-serializable-functional
-                                </ignoredUsedUndeclaredDependency>
-                                <ignoredUsedUndeclaredDependency>org.springframework.boot:spring-boot-test
-                                </ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.danekja:jdk-serializable-functional</ignoredUsedUndeclaredDependency>
+                                <!-- TODO: scope test can help with this kind (runtime for non-test starters) -->
+                                <ignoredUsedUndeclaredDependency>org.springframework.boot:spring-boot-test</ignoredUsedUndeclaredDependency>
+                                <!-- This is falsely reported, we never use it explicitly, only on runtime. -->
+                                <ignoredUsedUndeclaredDependency>org.slf4j:jcl-over-slf4j</ignoredUsedUndeclaredDependency>
                             </ignoredUsedUndeclaredDependencies>
                         </configuration>
                     </execution>
@@ -1844,7 +1806,8 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.6.0</version>        <!-- 3.2 does not work because of some internal error; 3.4+ probably because of some misconfiguration -->
+                    <!-- 3.2 does not work because of some internal error; 3.4+ probably because of some misconfiguration -->
+                    <version>3.6.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -1919,7 +1882,7 @@
                         <parallel>false</parallel>
                         <forkCount>1</forkCount>
                         <reuseForks>true</reuseForks>
-                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        <redirectTestOutputToFile>${redirectTestOutputToFile}</redirectTestOutputToFile>
                         <!-- <threadCount>1</threadCount> -->
                         <!-- <perCoreThreadCount>false</perCoreThreadCount> -->
                         <!-- <reportFormat>plain</reportFormat> -->
@@ -1982,7 +1945,7 @@
                         </execution>
                     </executions>
                     <configuration>
-                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        <redirectTestOutputToFile>${redirectTestOutputToFile}</redirectTestOutputToFile>
                         <systemPropertyVariables>
                             <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
                             <midpoint.home>target/midpoint-home</midpoint.home>
@@ -2022,7 +1985,6 @@
                         <effort>Max</effort>
                         <threshold>Low</threshold>
                         <xmlOutput>true</xmlOutput>
-                        <htmlOutput>true</htmlOutput>
                         <onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
                     </configuration>
                 </plugin>
@@ -2093,7 +2055,11 @@
             </activation>
         </profile>
 
-        <!-- Testing profiles -->
+        <!--
+        Testing profiles - in all cases this skips surefire/failsafe,
+        which is switched on only in specific testing related modules.
+        TODO: How do we run schrodinger? Don't we want it in this mode as well?
+        -->
         <profile>
             <id>extratest</id>
             <build>
@@ -2118,50 +2084,6 @@
         </profile>
         <profile>
             <id>conntest</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <!-- Skip all tests by default. We only want selected tests to run. -->
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${surefire.version}</version>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${failsafe.version}</version>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>wstest</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <!-- Skip all tests by default. We only want selected tests to run. -->
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${surefire.version}</version>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${failsafe.version}</version>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>guitest</id>
             <build>
                 <plugins>
                     <plugin>

@@ -21,7 +21,7 @@ import java.util.Collection;
  * spring-security-enabled purposes.
  *
  * This is using simple  MidPointPrincipal that is NOT GUI-enriched. Therefore it is NOT
- * suitable for use in GUI. See UserProfileService for that purpose.
+ * suitable for use in GUI. See GuiProfiledPrincipalManager for that purpose.
  *
  * @author lazyman
  * @author Igor Farinic

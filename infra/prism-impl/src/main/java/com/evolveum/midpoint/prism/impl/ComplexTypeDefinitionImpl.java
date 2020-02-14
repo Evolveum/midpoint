@@ -560,8 +560,8 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     }
 
     @Override
-    public void freeze() {
+    public void performFreeze() {
         itemDefinitions.forEach(Freezable::freeze);
-        super.freeze();
+        super.performFreeze();
     }
 }

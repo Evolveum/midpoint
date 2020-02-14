@@ -73,7 +73,7 @@ public class FocusTabVisibleBehavior<O extends ObjectType> extends VisibleEnable
 
         CompiledGuiProfile config;
         try {
-            config = getModelInteractionService().getCompiledUserProfile(task, result);
+            config = getModelInteractionService().getCompiledGuiProfile(task, result);
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
             throw new SystemException("Cannot load GUI configuration: " + e.getMessage(), e);
         }

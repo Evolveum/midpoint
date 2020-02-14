@@ -509,7 +509,7 @@ public class AssignmentsUtil {
     public static int loadAssignmentsLimit(OperationResult result, PageBase pageBase){
         int assignmentsLimit = -1;
         try {
-            CompiledGuiProfile adminGuiConfig = pageBase.getModelInteractionService().getCompiledUserProfile(
+            CompiledGuiProfile adminGuiConfig = pageBase.getModelInteractionService().getCompiledGuiProfile(
                     pageBase.createSimpleTask(result.getOperation()), result);//pageBase.loadUserSelf().asObjectable().getAdminGuiConfiguration();
             if (adminGuiConfig != null && adminGuiConfig.getRoleManagement() != null){
                 assignmentsLimit = adminGuiConfig.getRoleManagement().getAssignmentApprovalRequestLimit();

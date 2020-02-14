@@ -283,7 +283,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
     }
 
     private void refreshItemPathPanel(ItemPathDto itemPathDto, boolean isAdd, AjaxRequestTarget target) {
-        ItemPathSegmentPanel pathSegmentPanel = (ItemPathSegmentPanel) get(createComponentPath(ID_ITEM_PATH, ID_DEFINITION));
+        ItemPathSegmentPanel pathSegmentPanel = getItemPathSegmentPanel();
         if (isAdd && !pathSegmentPanel.validate()) {
             return;
         }
@@ -292,7 +292,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
             ItemPathDto newItem = itemPathDto;
             ItemPathDto currentItem = itemPathDto.getParentPath();
             ItemPathDto parentPath = currentItem.getParentPath();
-            ItemPathDto resultingItem = null;
+            ItemPathDto resultingItem;
             if (parentPath == null) {
                 parentPath = new ItemPathDto();
                 parentPath.setObjectType(currentItem.getObjectType());
@@ -303,13 +303,11 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
             newItem.setParentPath(resultingItem);
             itemPathDto = resultingItem;
         }
-        // pathSegmentPanel.refreshModel(itemPathDto);
 
         this.getModel().setObject(itemPathDto);
 
         target.add(this);
         onUpdate(itemPathDto);
-        // target.add(pathSegmentPanel);
 
     }
 
@@ -349,7 +347,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
     }
 
     protected ItemPathSegmentPanel getItemPathSegmentPanel(){
-        return (ItemPathSegmentPanel) get(ID_ITEM_PATH).get(ID_DEFINITION);
+        return (ItemPathSegmentPanel) get(ID_ITEM_PATH).get(ID_NAMESPACE_MODE_CONTAINER).get(ID_DEFINITION);
     }
 
     protected void switchButtonClickPerformed(AjaxRequestTarget target){

@@ -24,9 +24,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author Radovan Semancik
@@ -39,8 +36,6 @@ public class TestConnectorManager extends AbstractIntegrationTest {
 
     @Autowired private ProvisioningService provisioningService;
     @Autowired private ConnectorManager connectorManager;
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestConnectorManager.class);
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

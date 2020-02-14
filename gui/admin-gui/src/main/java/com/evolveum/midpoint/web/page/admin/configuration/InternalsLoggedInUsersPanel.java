@@ -18,7 +18,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.ListDataProvider2;
+import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
@@ -81,7 +81,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
                     }
                 };
 
-                return new ListDataProvider2<SelectableBean<F>, UserSessionManagementType>(InternalsLoggedInUsersPanel.this, principals) {
+                return new SelectableListDataProvider<SelectableBean<F>, UserSessionManagementType>(InternalsLoggedInUsersPanel.this, principals) {
 
                     @Override
                     protected SelectableBean<F> createObjectWrapper(UserSessionManagementType principal) {

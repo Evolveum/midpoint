@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
 import org.apache.commons.collections4.CollectionUtils;
@@ -164,6 +165,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
      *
      * So please consider this option an EXPERIMENTAL, for now.
      */
+    @Experimental
     private Boolean distinct;
 
     /**
@@ -761,6 +763,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
      *
      * So please consider this option an EXPERIMENTAL, for now.
      */
+    @Experimental
     public static GetOperationOptions createDistinct() {
         GetOperationOptions opts = new GetOperationOptions();
         opts.setDistinct(true);

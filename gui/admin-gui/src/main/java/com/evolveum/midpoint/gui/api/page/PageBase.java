@@ -7,10 +7,61 @@
 
 package com.evolveum.midpoint.gui.api.page;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+import javax.management.MBeanServer;
+import javax.management.MBeanServerFactory;
+import javax.management.ObjectName;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.wicket.*;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
+import org.apache.wicket.ajax.AjaxChannel;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.devutils.debugbar.DebugBar;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.feedback.FeedbackMessages;
+import org.apache.wicket.injection.Injector;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.ExternalImage;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.protocol.http.WebSession;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.CssResourceReference;
+import org.apache.wicket.resource.CoreLibrariesContributor;
+import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
-
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
@@ -33,12 +84,11 @@ import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -61,7 +111,10 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
@@ -92,7 +145,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetypes;
 import com.evolveum.midpoint.web.page.admin.cases.*;
@@ -110,16 +162,20 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.*;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
-import com.evolveum.midpoint.web.page.admin.users.*;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicies;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
-import com.evolveum.midpoint.web.page.admin.workflow.*;
+import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAttorney;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.*;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
@@ -129,55 +185,6 @@ import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.wicket.*;
-import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
-import org.apache.wicket.ajax.AjaxChannel;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.devutils.debugbar.DebugBar;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.feedback.FeedbackMessage;
-import org.apache.wicket.feedback.FeedbackMessages;
-import org.apache.wicket.injection.Injector;
-import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.head.CssHeaderItem;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.image.ExternalImage;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.*;
-import org.apache.wicket.protocol.http.WebSession;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.CssResourceReference;
-import org.apache.wicket.resource.CoreLibrariesContributor;
-import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.util.string.StringValue;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
-import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
-import javax.management.ObjectName;
-import javax.xml.namespace.QName;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
 
 /**
  * @author lazyman
@@ -615,9 +622,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public CompiledGuiProfile getCompiledGuiProfile() {
         // TODO: may need to always go to ModelInteractionService to make sure the setting is up to date
         if (compiledGuiProfile == null) {
-            Task task = createSimpleTask(PageBase.DOT_CLASS + "getCompiledUserProfile");
+            Task task = createSimpleTask(PageBase.DOT_CLASS + "getCompiledGuiProfile");
             try {
-                compiledGuiProfile = modelInteractionService.getCompiledUserProfile(task, task.getResult());
+                compiledGuiProfile = modelInteractionService.getCompiledGuiProfile(task, task.getResult());
             } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve compiled user profile", e);
                 if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
@@ -637,6 +644,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             pageTask = createSimpleTask(this.getClass().getName());
         }
         return pageTask;
+    }
+
+    public <O extends ObjectType> boolean isAuthorized(ModelAuthorizationAction action, PrismObject<O> object) {
+        try {
+            return isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)
+                    || isAuthorized(action.getUrl(), null, object, null, null, null);
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine authorization for {}", e, action);
+            return true;            // it is only GUI thing
+        }
     }
 
     public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -1928,17 +1945,25 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         addMenuItem(item, "PageAdmin.menu.top.serverTasks.list", PageTasks.class);
 
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_TASKS_VIEW_URL)) {
+
+            addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE, PageTasks.class);
+        }
+
         addMenuItem(item, "PageAdmin.menu.top.serverTasks.nodes", PageNodes.class);
 
         //should we support archetype view for TaskType?
 //        addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE);
-        MenuItem newTaskMenu = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageTaskAdd.class, null,
+        MenuItem newTaskMenu = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageTask.class, null,
                 new VisibleEnableBehaviour());
         item.getItems().add(newTaskMenu);
 
         MenuItem menuItem = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.edit"),
-                PageTaskEdit.class, null, createVisibleDisabledBehaviorForEditMenu(PageTaskEdit.class));
+                PageTask.class, null, createVisibleDisabledBehaviorForEditMenu(PageTask.class));
         item.getItems().add(menuItem);
+
+
 
         return item;
     }
@@ -2314,7 +2339,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         item.getItems().add(menu);
     }
 
-    private void addCollectionsMenuItems(List<MenuItem> menu, QName type, Class<? extends PageAdminObjectList> redirectToPage) {
+    private void addCollectionsMenuItems(List<MenuItem> menu, QName type, Class<? extends PageBase> redirectToPage) {
         List<CompiledObjectCollectionView> objectViews = getCompiledGuiProfile().findAllApplicableObjectCollectionViews(type);
         List<MenuItem> collectionMenuItems = new ArrayList<>(objectViews.size());
         objectViews.forEach(objectView -> {
@@ -2374,7 +2399,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         menu.addAll(collectionMenuItems);
     }
 
-    public PrismObject<? extends FocusType> loadUserSelf() {
+    public PrismObject<? extends FocusType> loadFocusSelf() {
         Task task = createSimpleTask(OPERATION_LOAD_USER);
         OperationResult result = task.getResult();
         PrismObject<? extends FocusType> focus = WebModelServiceUtils.loadObject(FocusType.class,
@@ -2537,11 +2562,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected void setTimeZone(PageBase page) {
-        PrismObject<? extends FocusType> user = loadUserSelf();
+        PrismObject<? extends FocusType> focus = loadFocusSelf();
         String timeZone = null;
         GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
-        if (user != null && user.asObjectable().getTimezone() != null) {
-            timeZone = user.asObjectable().getTimezone();
+        if (focus != null && focus.asObjectable().getTimezone() != null) {
+            timeZone = focus.asObjectable().getTimezone();
         } else if (principal != null && principal.getCompiledGuiProfile() != null) {
             timeZone = principal.getCompiledGuiProfile().getDefaultTimezone();
         }
@@ -2712,7 +2737,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public <ID extends ItemDefinition, IW extends ItemWrapper> IW createItemWrapper(ID def, PrismContainerValueWrapper<?> parent, WrapperContext ctx) throws SchemaException {
 
         ItemWrapperFactory<IW, ?,?> factory = (ItemWrapperFactory<IW, ?,?>) registry.findWrapperFactory(def);
-
+        ctx.setShowEmpty(true);
         ctx.setCreateIfEmpty(true);
         return factory.createWrapper(parent, def, ctx);
 

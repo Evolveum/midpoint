@@ -666,7 +666,7 @@ mainCycle:
 
                 // Determine how long we need to sleep and hit the bed
 
-                Integer interval = task.getSchedule() != null ? task.getSchedule().getInterval() : null;
+                Integer interval = task.getScheduleInterval();
                 if (interval == null) {
                     LOGGER.error("Tightly bound task " + task + " has no scheduling interval specified.");
                     break;

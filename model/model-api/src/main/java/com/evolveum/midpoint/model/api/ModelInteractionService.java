@@ -220,16 +220,16 @@ public interface ModelInteractionService {
     /**
      * Returns a policy for registration, e.g. type of the supported registrations (self, social,...)
      *
-     * @param user user for who the policy should apply
+     * @param focus focus for who the policy should apply
      * @param task
      * @param parentResult
      * @return applicable credentials policy or null
      * @throws ObjectNotFoundException No system configuration or other major system inconsistency
      * @throws SchemaException Wrong schema or content of security policy
      */
-    RegistrationsPolicyType getFlowPolicy(PrismObject<? extends FocusType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    RegistrationsPolicyType getFlowPolicy(PrismObject<? extends FocusType> focus, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
-        /**
+    /**
      * Returns a credential policy that applies to the specified user. This method is designed to be used
      * during credential reset so the GUI has enough information to set up the credential (e.g. password policies,
      * security questions, etc).
@@ -251,7 +251,7 @@ public interface ModelInteractionService {
      * values applicable for current user, therefore the authorization might be considered to be implicit in this case.
      */
     @NotNull
-    CompiledGuiProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
      * @return list of logged in users with at least 1 active session (clusterwide)
@@ -305,11 +305,11 @@ public interface ModelInteractionService {
 
     <O extends ObjectType> MergeDeltas<O> mergeObjectsPreviewDeltas(Class<O> type,
             String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
-                    throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
 
     <O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type,
             String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
-                    throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
 
     /**
      * TEMPORARY. Need to find out better way how to deal with generated values
@@ -441,4 +441,14 @@ public interface ModelInteractionService {
     <O extends ObjectType> CollectionStats determineCollectionStats(@NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
+    /**
+     *
+     * @param object
+     * @param task
+     * @param parentResult
+     * @param <O>
+     * @return virtual containers sepcification if present. Merge virtual container specification from archetype policy
+     *  for concrete object with global settings in systemConfiguration/adminGuiConfig
+     */
+    <O extends ObjectType> Collection<VirtualContainersSpecificationType> determineVirtualContainers(PrismObject<O> object, @NotNull Task task, @NotNull  OperationResult parentResult);
 }

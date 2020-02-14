@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
@@ -20,6 +22,7 @@ import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author honchar
@@ -53,6 +56,7 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
                     protected OrgType getAbstractRoleTypeObject(){
                         return ChooseOrgMemberPopup.this.getAssignmentTargetRefObject();
                     }
+
                 };
             }
 

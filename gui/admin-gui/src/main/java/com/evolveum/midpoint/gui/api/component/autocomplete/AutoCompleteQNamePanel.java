@@ -49,6 +49,10 @@ public abstract class AutoCompleteQNamePanel<T extends QName> extends AbstractAu
         initLayout(model);
     }
 
+    protected boolean alwaysReload() {
+        return false;
+    }
+
     private void initLayout(final IModel<T> model) {
         setOutputMarkupId(true);
 
@@ -122,7 +126,7 @@ public abstract class AutoCompleteQNamePanel<T extends QName> extends AbstractAu
     }
 
     private Map<String, T> getChoiceMap() {
-        if (choiceMap == null) {
+        if (choiceMap == null || alwaysReload()) {
             Collection<T> choices = loadChoices();
             choiceMap = new HashMap<>();
             for (T choice: choices) {

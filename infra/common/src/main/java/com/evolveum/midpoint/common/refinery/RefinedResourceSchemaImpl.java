@@ -630,6 +630,11 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
     }
 
     @Override
+    public boolean isImmutable() {
+        return originalResourceSchema.isImmutable() && resourceSchema.isImmutable();
+    }
+
+    @Override
     public void freeze() {
         originalResourceSchema.freeze();
         resourceSchema.freeze();

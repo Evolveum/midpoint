@@ -125,7 +125,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
         treeHeader.add(treeTitle);
 
 //        InlineMenu treeMenu = new InlineMenu(ID_TREE_MENU,
-//                new Model((Serializable) createTreeMenuInternal(serviceLocator.getCompiledUserProfile())));
+//                new Model((Serializable) createTreeMenuInternal(serviceLocator.getCompiledGuiProfile())));
         DropdownButtonDto model = new DropdownButtonDto(null, "fa fa-cog", null, createTreeMenuInternal(serviceLocator.getCompiledGuiProfile()));
         DropdownButtonPanel treeMenu = new DropdownButtonPanel(ID_TREE_MENU, model) {
             private static final long serialVersionUID = 1L;

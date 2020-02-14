@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.util;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 import java.io.Serializable;
@@ -14,6 +15,7 @@ import java.io.Serializable;
  * Almost the same as Producer but this one can throw CommonException.
  * EXPERIMENTAL
  */
+@Experimental
 @FunctionalInterface
 public interface CheckedProducer<T> extends Serializable {
     T get() throws CommonException;

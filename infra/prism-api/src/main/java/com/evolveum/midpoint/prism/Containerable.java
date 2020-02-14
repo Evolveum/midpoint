@@ -14,7 +14,6 @@ import java.io.Serializable;
  */
 public interface Containerable extends Serializable {
 
-
     PrismContainerValue asPrismContainerValue();
 
     /**

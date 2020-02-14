@@ -36,7 +36,7 @@ import java.util.*;
  * @author Radovan Semancik
  *
  */
-public class PrismSchemaImpl implements MutablePrismSchema {
+public class PrismSchemaImpl extends AbstractFreezable implements MutablePrismSchema {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismSchema.class);
 
@@ -49,8 +49,6 @@ public class PrismSchemaImpl implements MutablePrismSchema {
     @NotNull private final Map<QName, TypeDefinition> typeDefinitionMap = new HashMap<>();                // key is the type name (always qualified)
     @NotNull protected final String namespace;
     protected PrismContext prismContext;
-
-    private boolean immutable;
 
     // Item definitions that couldn't be created when parsing the schema because of unresolvable CTD.
     // (Caused by the fact that the type resides in another schema.)
@@ -470,15 +468,8 @@ public class PrismSchemaImpl implements MutablePrismSchema {
 
     //endregion
 
-    private void checkMutable() {
-        if (immutable) {
-            throw new IllegalStateException("Couldn't modify immutable schema " + this);
-        }
-    }
-
     @Override
-    public void freeze() {
+    public void performFreeze() {
         definitions.forEach(Freezable::freeze);
-        immutable = true;
     }
 }

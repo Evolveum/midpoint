@@ -33,7 +33,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 
 /**
  * @author mederly
@@ -52,6 +51,16 @@ public class GenericHandlerDto extends HandlerDto {
             this.name = name;
             this.type = type;
         }
+
+        @NotNull
+        public QName getName() {
+            return name;
+        }
+
+        @NotNull
+        public Class<?> getType() {
+            return type;
+        }
     }
 
     public static ExtensionItem extensionItem(QName name, Class<?> type) {
@@ -60,15 +69,14 @@ public class GenericHandlerDto extends HandlerDto {
 
     private PrismContainerWrapper containerWrapper = null;
 
-    public GenericHandlerDto(TaskDto taskDto, @NotNull List<ExtensionItem> extensionItems, PageBase pageBase) {
-        super(taskDto);
+    public GenericHandlerDto(@NotNull List<ExtensionItem> extensionItems, PageBase pageBase) {
         PrismContext prismContext = pageBase.getPrismContext();
 
         PrismContainer container = prismContext.itemFactory().createContainer(new QName("test"));
         ComplexTypeDefinition ctd = prismContext.definitionFactory().createComplexTypeDefinition(new QName("Test"));
         int displayOrder = 1;
         for (ExtensionItem extensionItem : extensionItems) {
-            Item<?,?> item = taskDto.getExtensionItem(extensionItem.name);
+            Item<?,?> item = null;//taskDto.getExtensionItem(extensionItem.name);
             MutableItemDefinition<?> clonedDefinition = null;
             if (item != null) {
                 try {

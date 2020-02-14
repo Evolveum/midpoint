@@ -1304,6 +1304,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1368,6 +1369,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1450,6 +1452,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1485,6 +1488,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1526,6 +1530,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1569,6 +1574,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1631,6 +1637,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -2999,6 +3006,7 @@
             <xsd:appinfo>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3141,6 +3149,9 @@
 
                 EXPERIMENTAL.
             </xsd:documentation>
+           <xsd:appinfo>
+               <a:container>true</a:container>
+           </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="environmentalPerformanceInformation" type="tns:EnvironmentalPerformanceInformationType" minOccurs="0"/>
@@ -3733,6 +3744,9 @@
             <xsd:documentation>
                 Task schedule. Specifies when and how often something should happen.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="earliestStartTime" type="xsd:dateTime" minOccurs="0">
@@ -3857,6 +3871,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3901,6 +3916,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3964,6 +3980,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -4052,6 +4069,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -4657,7 +4675,7 @@
                     <xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The set of user's credentials (such as passwords).
+                                The set of focus's credentials (such as passwords).
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>UserType.credentials</a:displayName>
@@ -24170,7 +24188,7 @@
             <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:displayName>VirtualContainerItemSpecificationType.display</a:displayName>
+                        <a:displayName>VirtualContainerItemSpecificationType.path</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -25719,6 +25737,21 @@
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:displayName>InfrastructureConfigurationType.remoteHostAddressHeader</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="publicHttpUrlPattern" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Pattern for HTTP/HTTPS communication with client. This specifies the URL
+                        that is used by midPoint when it creates redirect URL for client.
+                        The pattern is in fact an URL prefix pointing to root URL of the application.
+                        Specific paths will be appended to the URL.
+                        Example: https://$host/midpoint
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                        <a:displayName>InfrastructureConfigurationType.publicHttpUrlPattern</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

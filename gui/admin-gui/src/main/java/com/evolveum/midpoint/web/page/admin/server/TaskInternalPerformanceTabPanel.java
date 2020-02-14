@@ -6,16 +6,16 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.schema.statistics.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketManagementPerformanceInformationType;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -26,20 +26,18 @@ import java.util.Collections;
 /**
  *
  */
-public class TaskInternalPerformanceTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
+public class TaskInternalPerformanceTabPanel extends BasePanel<PrismContainerWrapper<OperationStatsType>> implements TaskTabPanel {
     private static final long serialVersionUID = 1L;
+
+    private static final transient Trace LOGGER = TraceManager.getTrace(TaskInternalPerformanceTabPanel.class);
 
     private static final String ID_INFORMATION = "information";
 
-    private IModel<TaskDto> taskDtoModel;
 
     //private static final Trace LOGGER = TraceManager.getTrace(TaskInternalPerformanceTabPanel.class);
 
-    TaskInternalPerformanceTabPanel(String id, Form mainForm,
-            LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
-            IModel<TaskDto> taskDtoModel, PageBase pageBase) {
-        super(id, mainForm, taskWrapperModel);
-        this.taskDtoModel = taskDtoModel;
+    public TaskInternalPerformanceTabPanel(String id, IModel<PrismContainerWrapper<OperationStatsType>> statsModel) {
+        super(id, statsModel);
     }
 
     @Override
@@ -50,7 +48,27 @@ public class TaskInternalPerformanceTabPanel extends AbstractObjectTabPanel<Task
     }
 
     private void initLayout() {
-        AceEditor informationText = new AceEditor(ID_INFORMATION, new IModel<String>() {
+        AceEditor informationText = new AceEditor(ID_INFORMATION, createStringModel()) {
+            @Override
+            public int getHeight() {
+                return 300;
+            }
+
+            @Override
+            public boolean isResizeToMaxHeight() {
+                return true;
+            }
+        };
+        informationText.setReadonly(true);
+//        informationText.setHeight(300);
+//        informationText.setResizeToMaxHeight(true);
+        informationText.setMode(null);
+        add(informationText);
+
+    }
+
+    private IModel<String> createStringModel() {
+        return new IModel<String>() {
             @Override
             public String getObject() {
                 return getStatistics();
@@ -60,18 +78,25 @@ public class TaskInternalPerformanceTabPanel extends AbstractObjectTabPanel<Task
             public void setObject(String object) {
                 // nothing to do here
             }
-        });
-        informationText.setReadonly(true);
-        informationText.setHeight(300);
-        informationText.setResizeToMaxHeight(true);
-        informationText.setMode(null);
-        add(informationText);
-
+        };
     }
 
     @SuppressWarnings("Duplicates")
     private String getStatistics() {
-        OperationStatsType statistics = taskDtoModel.getObject().getTaskType().getOperationStats();
+        PrismContainerWrapper<OperationStatsType> statsContainer = getModelObject();
+        if (statsContainer == null) {
+            return "No operation statistics available";
+        }
+
+        OperationStatsType statistics;
+        try {
+            PrismContainerValueWrapper<OperationStatsType> statsValue = statsContainer.getValue();
+            statistics = statsValue.getRealValue();
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot get statistics from task", e);
+            return "No operation statistics available";
+        }
+
         if (statistics == null) {
             return "No operation statistics available";
         }
@@ -127,9 +152,14 @@ public class TaskInternalPerformanceTabPanel extends AbstractObjectTabPanel<Task
         return sb.toString();
     }
 
+
     @Override
     public Collection<Component> getComponentsToUpdate() {
         return Collections.singleton(this);
     }
 
+    @Override
+    protected void detachModel() {
+        super.detachModel();
+    }
 }

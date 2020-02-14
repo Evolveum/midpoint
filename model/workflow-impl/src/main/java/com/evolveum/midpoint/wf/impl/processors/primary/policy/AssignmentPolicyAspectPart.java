@@ -129,7 +129,7 @@ public class AssignmentPolicyAspectPart {
             instructions.addAll(newInstructions);
             CompiledGuiProfile adminGuiConfiguration;
             try {
-                adminGuiConfiguration = modelInteractionService.getCompiledUserProfile(ctx.task, result);
+                adminGuiConfiguration = modelInteractionService.getCompiledGuiProfile(ctx.task, result);
             } catch (CommunicationException | ConfigurationException | SecurityViolationException
                     | ExpressionEvaluationException e) {
                 throw new SystemException(e.getMessage(), e);

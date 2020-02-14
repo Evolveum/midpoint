@@ -104,6 +104,16 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public Integer getScheduleInterval() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean hasScheduleInterval() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public TaskBinding getBinding() {
         throw new UnsupportedOperationException();
     }
@@ -868,10 +878,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void setExecutionEnvironment(TaskExecutionEnvironmentType value) {
-    }
-
-    @Override
-    public void setExecutionEnvironmentImmediate(TaskExecutionEnvironmentType value, OperationResult parentResult) {
     }
 
     @Override

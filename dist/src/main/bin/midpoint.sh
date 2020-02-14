@@ -100,14 +100,12 @@ fi
 
 # ----- Execute The Requested Command -----------------------------------------
 
-#if [ $have_tty -eq 1 ]; then
-#  if [ ! -z "$PID_FILE" ]; then
-#    echo "Using PID_FILE:    $PID_FILE"
-#  fi
-#fi
-
 if [ "$1" = "start" ] ; then
- if [ ! -z "$PID_FILE" ]; then
+  if ! which "$_RUNJAVA" &> /dev/null; then
+    echo "$_RUNJAVA not found (or not executable). Start aborted."
+    exit 1
+  fi
+  if [ ! -z "$PID_FILE" ]; then
     if [ -f "$PID_FILE" ]; then
       if [ -s "$PID_FILE" ]; then
         echo "Existing PID file found during start."
@@ -137,7 +135,7 @@ if [ "$1" = "start" ] ; then
         fi
       else
         rm -f "$PID_FILE" >/dev/null 2>&1
-if [ $? != 0 ]; then
+        if [ $? != 0 ]; then
           if [ ! -w "$PID_FILE" ]; then
             echo "Unable to remove or write to empty PID file. Start aborted."
             exit 1
@@ -150,19 +148,17 @@ if [ $? != 0 ]; then
   shift
   touch "$BOOT_OUT"
 
-echo "Starting midPoint..."
-echo "MIDPOINT_HOME=$MIDPOINT_HOME"
+  echo "Starting midPoint..."
+  echo "MIDPOINT_HOME=$MIDPOINT_HOME"
 
-cd
-eval $_NOHUP "\"$_RUNJAVA\"" -jar $LOGGING_MANAGER $JAVA_OPTS \
-    $SCRIPT_PATH../lib/midpoint.war \
-      >> "$BOOT_OUT" 2>&1 "&"
+  cd
+  eval $_NOHUP "\"$_RUNJAVA\"" -jar $LOGGING_MANAGER $JAVA_OPTS \
+      $SCRIPT_PATH../lib/midpoint.war \
+        >> "$BOOT_OUT" 2>&1 "&"
 
-
-if [ ! -z "$PID_FILE" ]; then
-    echo $! > "$PID_FILE"
-fi
-
+  if [ ! -z "$PID_FILE" ]; then
+      echo $! > "$PID_FILE"
+  fi
 
 elif [ "$1" = "stop" ] ; then
 

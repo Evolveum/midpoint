@@ -301,8 +301,8 @@ public class TestArchetypes extends AbstractArchetypesTest {
     }
 
     @Test
-    public void test104GetGuybryshCompiledUserProfile() throws Exception {
-        final String TEST_NAME = "test104GetGuybryshCompiledUserProfile";
+    public void test104GetGuybryshCompiledGuiProfile() throws Exception {
+        final String TEST_NAME = "test104GetGuybryshCompiledGuiProfile";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -312,14 +312,14 @@ public class TestArchetypes extends AbstractArchetypesTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        CompiledGuiProfile compiledGuiProfile = modelInteractionService.getCompiledUserProfile(task, result);
+        CompiledGuiProfile compiledGuiProfile = modelInteractionService.getCompiledGuiProfile(task, result);
 
         // THEN
         assertSuccess(result);
 
         loginAdministrator();
 
-        ObjectFilter allEmployeesViewFilter = assertCompiledUserProfile(compiledGuiProfile)
+        ObjectFilter allEmployeesViewFilter = assertCompiledGuiProfile(compiledGuiProfile)
             .assertAdditionalMenuLinks(0)
             .assertUserDashboardLinks(0)
             .assertObjectForms(2)
@@ -870,8 +870,8 @@ public class TestArchetypes extends AbstractArchetypesTest {
     }
 
     @Test
-    public void test202GetGuybryshCompiledUserProfileActiveEmployeesView() throws Exception {
-        final String TEST_NAME = "test202GetGuybryshCompiledUserProfileActiveEmployeesView";
+    public void test202GetGuybryshCompiledGuiProfileActiveEmployeesView() throws Exception {
+        final String TEST_NAME = "test202GetGuybryshCompiledGuiProfileActiveEmployeesView";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -881,14 +881,14 @@ public class TestArchetypes extends AbstractArchetypesTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        CompiledGuiProfile compiledGuiProfile = modelInteractionService.getCompiledUserProfile(task, result);
+        CompiledGuiProfile compiledGuiProfile = modelInteractionService.getCompiledGuiProfile(task, result);
 
         // THEN
         assertSuccess(result);
 
         loginAdministrator();
 
-        ObjectFilter activeEmployeesViewFilter = assertCompiledUserProfile(compiledGuiProfile)
+        ObjectFilter activeEmployeesViewFilter = assertCompiledGuiProfile(compiledGuiProfile)
             .objectCollectionViews()
                 .assertViews(3)
                 .by()
@@ -932,8 +932,8 @@ public class TestArchetypes extends AbstractArchetypesTest {
     }
 
     @Test
-    public void test205GetGuybryshCompiledUserProfileActiveEmployeesView() throws Exception {
-        final String TEST_NAME = "test205GetGuybryshCompiledUserProfileActiveEmployeesView";
+    public void test205GetGuybryshCompiledGuiProfileActiveEmployeesView() throws Exception {
+        final String TEST_NAME = "test205GetGuybryshCompiledGuiProfileActiveEmployeesView";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -943,14 +943,14 @@ public class TestArchetypes extends AbstractArchetypesTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        CompiledGuiProfile compiledGuiProfile = modelInteractionService.getCompiledUserProfile(task, result);
+        CompiledGuiProfile compiledGuiProfile = modelInteractionService.getCompiledGuiProfile(task, result);
 
         // THEN
         assertSuccess(result);
 
         loginAdministrator();
 
-        ObjectFilter activeEmployeesViewFilter = assertCompiledUserProfile(compiledGuiProfile)
+        ObjectFilter activeEmployeesViewFilter = assertCompiledGuiProfile(compiledGuiProfile)
             .objectCollectionViews()
                 .assertViews(3)
                 .by()

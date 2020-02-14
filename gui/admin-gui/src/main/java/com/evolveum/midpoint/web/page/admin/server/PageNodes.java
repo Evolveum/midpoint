@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -20,7 +21,6 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
@@ -30,7 +30,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.server.dto.NodeDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -314,7 +313,7 @@ public class PageNodes extends PageAdmin {
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.startSchedulerAction").getString();
-                return PageNodes.this.getNodeConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+                return PageNodes.this.getNodeConfirmationMessageModel((ColumnMenuAction<SelectableBean<NodeType>>) getAction(), actionName);
             }
         });
 
@@ -529,12 +528,12 @@ public class PageNodes extends PageAdmin {
         return (MainObjectListPanel<NodeType>) get(ID_TABLE);
     }
 
-    private IModel<String> getNodeConfirmationMessageModel(ColumnMenuAction action, String actionName) {
+    private IModel<String> getNodeConfirmationMessageModel(ColumnMenuAction<SelectableBean<NodeType>> action, String actionName) {
         if (action.getRowModel() == null) {
             return createStringResource("pageTasks.message.confirmationMessageForMultipleNodeObject", actionName,
                     getTable().getSelectedObjectsCount());
         } else {
-            String objectName = ((NodeDto) (action.getRowModel().getObject())).getName();
+            String objectName = WebComponentUtil.getName(action.getRowModel().getObject().getValue());
             return createStringResource("pageTasks.message.confirmationMessageForSingleNodeObject", actionName, objectName);
         }
 

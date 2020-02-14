@@ -17,7 +17,7 @@ import com.evolveum.midpoint.web.component.data.column.GenericColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -233,7 +233,7 @@ public class ProcessInstancesPanel extends BasePanel {
     private void itemDetailsPerformed(AjaxRequestTarget target, String pid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, pid);
-        getPageBase().navigateToNext(PageTaskEdit.class, parameters);
+        getPageBase().navigateToNext(PageTask.class, parameters);
     }
 
     // copied and adapted from WorkItemsPanel - TODO deduplicate

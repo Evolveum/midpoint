@@ -7,9 +7,12 @@
 
 package com.evolveum.midpoint.util.statistics;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 /**
  *  EXPERIMENTAL.
  */
+@Experimental
 public interface OperationsPerformanceMonitor {
 
     OperationsPerformanceMonitor INSTANCE = OperationsPerformanceMonitorImpl.INSTANCE;

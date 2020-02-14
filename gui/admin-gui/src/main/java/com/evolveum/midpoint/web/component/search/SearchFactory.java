@@ -273,7 +273,7 @@ public class SearchFactory {
     private static <T extends ObjectType> SearchBoxModeType getDefaultSearchType(ModelServiceLocator modelServiceLocator, Class<T> type) {
         OperationResult result = new OperationResult(LOAD_ADMIN_GUI_CONFIGURATION);
         try {
-            CompiledGuiProfile guiConfig = modelServiceLocator.getModelInteractionService().getCompiledUserProfile(null, result);
+            CompiledGuiProfile guiConfig = modelServiceLocator.getModelInteractionService().getCompiledGuiProfile(null, result);
             // TODO: improve: use proper view name
             List<CompiledObjectCollectionView> objectLists = guiConfig.findAllApplicableObjectCollectionViews(type);
             for (CompiledObjectCollectionView objectList : objectLists){

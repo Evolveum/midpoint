@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthentication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -87,7 +87,7 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
                         MidPointPrincipal actualPrincipal = getPrincipalFromAuthentication(authentication, object, configAttributes);
                         decideInternal(actualPrincipal, requiredActions, authentication, object, task, AuthorizationParameters.Builder.buildObject(authorizedUser));
 
-                        MidPointPrincipal principal= securityContextManager.getUserProfileService().getPrincipal(authorizedUser);
+                        MidPointPrincipal principal= securityContextManager.getGuiProfiledPrincipalManager().getPrincipal(authorizedUser);
                         ((MidpointAuthentication) authentication).setPrincipal(principal);
                         ((MidpointAuthentication) authentication).setAuthorities(principal.getAuthorities());
                     } catch (SystemException | SchemaException | CommunicationException | ConfigurationException

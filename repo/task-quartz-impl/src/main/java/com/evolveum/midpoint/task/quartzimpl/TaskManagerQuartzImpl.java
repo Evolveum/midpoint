@@ -1348,7 +1348,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         if (operationStats != null) {
             operationStats.setLiveInformation(true);
         }
-        task.setOperationStatsTransient(operationStats);
+        task.setOperationStatsTransient(operationStats.clone());
         task.setProgressTransient(taskInMemory.getProgress());
 
         OperationResult result = taskInMemory.getResult();

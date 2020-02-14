@@ -232,7 +232,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         assertNotAuthorized(principal, AUTZ_LOOT_URL, null);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 
-        assertCompiledUserProfile(principal)
+        assertCompiledGuiProfile(principal)
             .assertAdditionalMenuLinks(1)
             .assertUserDashboardLinks(2)
             .assertObjectCollectionViews(3)
@@ -263,7 +263,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 
-        assertCompiledUserProfile(principal)
+        assertCompiledGuiProfile(principal)
             .assertAdditionalMenuLinks(0)
             .assertUserDashboardLinks(1)
             .assertObjectCollectionViews(3)

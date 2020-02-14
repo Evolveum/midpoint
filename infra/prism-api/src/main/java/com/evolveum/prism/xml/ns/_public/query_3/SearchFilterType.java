@@ -7,7 +7,34 @@
 
 package com.evolveum.prism.xml.ns._public.query_3;
 
-import com.evolveum.midpoint.prism.*;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jvnet.jaxb2_commons.lang.Equals;
+import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
+import org.jvnet.jaxb2_commons.lang.HashCode;
+import org.jvnet.jaxb2_commons.lang.HashCodeStrategy;
+import org.jvnet.jaxb2_commons.locator.ObjectLocator;
+import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.prism.AbstractFreezable;
+import com.evolveum.midpoint.prism.Freezable;
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
+import com.evolveum.midpoint.prism.ParsingContext;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -19,35 +46,15 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.jetbrains.annotations.NotNull;
-import org.jvnet.jaxb2_commons.lang.Equals;
-import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
-import org.jvnet.jaxb2_commons.lang.HashCode;
-import org.jvnet.jaxb2_commons.lang.HashCodeStrategy;
-import org.jvnet.jaxb2_commons.locator.ObjectLocator;
-import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
-import org.w3c.dom.Element;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 @XmlAccessorType(XmlAccessType.NONE)        // we select getters/fields to expose via JAXB individually
 @XmlType(name = "SearchFilterType", propOrder = {       // no prop order, because we serialize this class manually
                                                         // BTW, the order is the following: description, filterClause
 })
 
-public class SearchFilterType implements Serializable, Cloneable, Equals, HashCode, DebugDumpable, Freezable, JaxbVisitable
+public class SearchFilterType extends AbstractFreezable implements Serializable, Cloneable, Equals, HashCode, DebugDumpable, Freezable, JaxbVisitable
 {
     private final static long serialVersionUID = 201303040000L;
-
-    private boolean immutable = false;
 
     @XmlElement
     protected String description;
@@ -79,12 +86,9 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     public SearchFilterType(final SearchFilterType o) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
         super();
-        if (o == null) {
-            throw new NullPointerException("Cannot create a copy of 'SearchFilterType' from 'null'.");
-        }
+        Objects.requireNonNull(o, "Cannot create a copy of 'SearchFilterType' from 'null'.");
         this.description = o.description;
         this.filterClauseXNode = o.filterClauseXNode.clone();
-        this.immutable = false;
     }
 
     public String getDescription() {
@@ -96,11 +100,6 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         this.description = description;
     }
 
-    private void checkMutable() {
-        if (immutable) {
-            ImmutableUtil.throwImmutable(this);
-        }
-    }
 
     public boolean containsFilterClause() {
         return filterClauseXNode != null && !filterClauseXNode.isEmpty();
@@ -290,11 +289,10 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     }
 
     @Override
-    public void freeze() {
+    protected void performFreeze() {
         if (filterClauseXNode != null) {
             filterClauseXNode.freeze();
         }
-        immutable = true;
     }
 
     @Override

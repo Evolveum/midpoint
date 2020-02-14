@@ -44,6 +44,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionReturnMult
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 
+import org.jetbrains.annotations.NotNull;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 public class CustomFunctions {
 
@@ -121,22 +124,9 @@ public class CustomFunctions {
                 }
             }
 
-            QName returnType = expressionType.getReturnType();
-            if (returnType == null) {
-                returnType = DOMUtil.XSD_STRING;
-            }
+            QName returnType = defaultIfNull(expressionType.getReturnType(), DOMUtil.XSD_STRING);
+            D outputDefinition = prepareOutputDefinition(returnType, expressionType.getReturnMultiplicity());
 
-            //noinspection unchecked
-            D outputDefinition = (D) prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
-            if (outputDefinition == null) {
-                //noinspection unchecked
-                outputDefinition = (D) prismContext.definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, returnType);
-            }
-            if (expressionType.getReturnMultiplicity() != null && expressionType.getReturnMultiplicity() == ExpressionReturnMultiplicityType.MULTI) {
-                outputDefinition.toMutable().setMaxOccurs(-1);
-            } else {
-                outputDefinition.toMutable().setMaxOccurs(1);
-            }
             String shortDesc = "custom function execute";
             Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
                     shortDesc, task, result);
@@ -173,6 +163,25 @@ public class CustomFunctions {
             throw new ExpressionEvaluationException(e.getMessage(), e);
         }
 
+    }
+
+    @NotNull
+    private <D extends ItemDefinition> D prepareOutputDefinition(QName returnType, ExpressionReturnMultiplicityType returnMultiplicity) {
+        D outputDefinition;
+        ItemDefinition<?> existingDefinition = prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
+        if (existingDefinition != null) {
+            //noinspection unchecked
+            outputDefinition = (D) existingDefinition.clone();
+        } else {
+            //noinspection unchecked
+            outputDefinition = (D) prismContext.definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, returnType);
+        }
+        if (returnMultiplicity == ExpressionReturnMultiplicityType.MULTI) {
+            outputDefinition.toMutable().setMaxOccurs(-1);
+        } else {
+            outputDefinition.toMutable().setMaxOccurs(1);
+        }
+        return outputDefinition;
     }
 
     private TypedValue convertInput(Map.Entry<String, Object> entry, ExpressionType expression) throws SchemaException {

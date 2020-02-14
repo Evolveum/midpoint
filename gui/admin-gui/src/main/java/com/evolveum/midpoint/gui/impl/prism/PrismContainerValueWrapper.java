@@ -43,7 +43,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
     boolean isSorted();
     void setSorted(boolean sorted);
 
-    List<PrismContainerDefinition<C>> getChildContainers();
+    List<PrismContainerDefinition<C>> getChildContainers() throws SchemaException;
 
     ValueStatus getStatus();
     void setStatus(ValueStatus status);

@@ -22,17 +22,13 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddResourcesDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -45,7 +41,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
     public static final String F_INTENT = "intent";
     public static final String F_OBJECT_CLASS = "objectClass";
     public static final String F_RESOURCE_REFERENCE = "resourceRef";
-        public static final String F_TOKEN_RETRY_UNHANDLED_ERR = "retryUnhandledErr";
+    public static final String F_TOKEN_RETRY_UNHANDLED_ERR = "retryUnhandledErr";
 
     private static final String CLASS_DOT = ResourceRelatedHandlerDto.class.getName() + ".";
     private static final String OPERATION_LOAD_RESOURCE = CLASS_DOT + "loadResource";
@@ -60,16 +56,6 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
     private TaskAddResourcesDto resourceRef;
         private boolean retryUnhandledErr;
 
-    private ResourceRelatedHandlerDto(TaskDto taskDto) {
-        super(taskDto);
-    }
-
-    public ResourceRelatedHandlerDto(TaskDto taskDto, PageBase pageBase, Task opTask, OperationResult thisOpResult) {
-        super(taskDto);
-        TaskType taskType = taskDto.getTaskType();
-        fillInResourceReference(taskType, pageBase, opTask, thisOpResult);
-        fillFromExtension(taskType);
-    }
 
     private void fillFromExtension(TaskType taskType) {
         PrismObject<TaskType> task = taskType.asPrismObject();
@@ -161,9 +147,9 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 
     private void fillInResourceReference(TaskType task, PageBase pageBase, Task opTask, OperationResult result) {
         ObjectReferenceType ref = task.getObjectRef();
-        if (ref != null && ResourceType.COMPLEX_TYPE.equals(ref.getType())){
-            resourceRef = new TaskAddResourcesDto(ref.getOid(), taskDto.getTaskObjectName(task, pageBase, opTask, result));
-        }
+//        if (ref != null && ResourceType.COMPLEX_TYPE.equals(ref.getType())){
+//            resourceRef = new TaskAddResourcesDto(ref.getOid(), taskDto.getTaskObjectName(task, pageBase, opTask, result));
+//        }
         updateObjectClassList(pageBase);
     }
 
@@ -197,57 +183,10 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 
     public void setResource(TaskAddResourcesDto resource) {
         this.resourceRef = resource;
-        taskDto.setObjectRef(resource != null ? resource.asObjectReferenceType() : null);
+//        taskDto.setObjectRef(resource != null ? resource.asObjectReferenceType() : null);
     }
 
-    @NotNull
-    @Override
-    public Collection<ItemDelta<?, ?>> getDeltasToExecute(HandlerDtoEditableState origState, HandlerDtoEditableState currState, PrismContext prismContext)
-            throws SchemaException {
 
-        List<ItemDelta<?, ?>> rv = new ArrayList<>();
-
-        // we can safely assume this; also that both are non-null
-        ResourceRelatedHandlerDto orig = (ResourceRelatedHandlerDto) origState;
-        ResourceRelatedHandlerDto curr = (ResourceRelatedHandlerDto) currState;
-
-        String origResourceOid = orig.getResourceRef() != null ? orig.getResourceRef().getOid() : null;
-        String currResourceOid = curr.getResourceRef() != null ? curr.getResourceRef().getOid() : null;
-        if (!StringUtils.equals(origResourceOid, currResourceOid)) {
-            ObjectReferenceType resourceObjectRef = new ObjectReferenceType();
-            resourceObjectRef.setOid(curr.getResourceRef().getOid());
-            resourceObjectRef.setType(ResourceType.COMPLEX_TYPE);
-            rv.add(prismContext.deltaFor(TaskType.class)
-                    .item(TaskType.F_OBJECT_REF).replace(resourceObjectRef.asReferenceValue()).asItemDelta());
-        }
-
-        if (orig.isDryRun() != curr.isDryRun()) {
-            addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_DRY_RUN, curr.isDryRun(), prismContext);
-        }
-
-        if (orig.isRetryUnhandledErr() != curr.isRetryUnhandledErr()) {
-            addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS, curr.isRetryUnhandledErr(), prismContext);
-        }
-
-        if (orig.getKind() != curr.getKind()) {
-            addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_KIND, curr.getKind(), prismContext);
-        }
-
-        if (!StringUtils.equals(orig.getIntent(), curr.getIntent())) {
-            addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_INTENT, curr.getIntent(), prismContext);
-        }
-
-        if (!StringUtils.equals(orig.getObjectClass(), curr.getObjectClass())) {
-            QName objectClassQName = null;
-            for (QName q: getObjectClassList()) {
-                if (q.getLocalPart().equals(objectClass)) {
-                    objectClassQName = q;
-                }
-            }
-            addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS, objectClassQName, prismContext);
-        }
-        return rv;
-    }
 
     private void addExtensionDelta(List<ItemDelta<?, ?>> rv, QName itemName, Object realValue, PrismContext prismContext)
             throws SchemaException {
@@ -256,14 +195,10 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
                 .item(ItemPath.create(TaskType.F_EXTENSION, itemName), def).replace(realValue).asItemDelta());
     }
 
-    @Override
-    public HandlerDtoEditableState getEditableState() {
-        return this;
-    }
 
     // TODO implement seriously
     public ResourceRelatedHandlerDto clone() {
-        ResourceRelatedHandlerDto clone = new ResourceRelatedHandlerDto(taskDto);
+        ResourceRelatedHandlerDto clone = new ResourceRelatedHandlerDto();
         clone.dryRun = dryRun;
                 clone.retryUnhandledErr = retryUnhandledErr;
         clone.kind = kind;

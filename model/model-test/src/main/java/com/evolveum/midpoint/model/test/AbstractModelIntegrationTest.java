@@ -5068,7 +5068,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected CompiledGuiProfileAsserter<Void> assertCompiledUserProfile(MidPointPrincipal principal) {
+    protected CompiledGuiProfileAsserter<Void> assertCompiledGuiProfile(MidPointPrincipal principal) {
         if (!(principal instanceof GuiProfiledPrincipal)) {
             fail("Expected GuiProfiledPrincipal, but got "+principal.getClass());
         }
@@ -5079,7 +5079,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return asserter;
     }
 
-    protected CompiledGuiProfileAsserter<Void> assertCompiledUserProfile(CompiledGuiProfile compiledGuiProfile) {
+    protected CompiledGuiProfileAsserter<Void> assertCompiledGuiProfile(CompiledGuiProfile compiledGuiProfile) {
         CompiledGuiProfileAsserter<Void> asserter = new CompiledGuiProfileAsserter<>(compiledGuiProfile, null, null);
         initializeAsserter(asserter);
         asserter.display();

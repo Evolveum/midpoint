@@ -1615,7 +1615,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             throw new SystemException(e.getMessage(), e);
         }
 
-        securityContextManager.setUserProfileService(focusProfileService);
+        securityContextManager.setGuiProfiledPrincipalManager(focusProfileService);
 
         taskManager.postInit(result);
 

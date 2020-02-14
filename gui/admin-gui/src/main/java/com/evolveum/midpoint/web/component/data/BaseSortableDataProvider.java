@@ -376,7 +376,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     private void setExportLimitValue() {
         OperationResult result = new OperationResult(OPERATION_GET_EXPORT_SIZE_LIMIT);
         try {
-            CompiledGuiProfile adminGui = getModelInteractionService().getCompiledUserProfile(null, result);
+            CompiledGuiProfile adminGui = getModelInteractionService().getCompiledGuiProfile(null, result);
             if (adminGui.getDefaultExportSettings() != null && adminGui.getDefaultExportSettings().getSizeLimit() != null) {
                 exportLimit = adminGui.getDefaultExportSettings().getSizeLimit();
             }

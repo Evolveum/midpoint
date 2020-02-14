@@ -310,7 +310,7 @@ public class ContainerDeltaImpl<V extends Containerable> extends ItemDeltaImpl<P
     public static <T extends Containerable,O extends Objectable> ContainerDeltaImpl<T> createModificationReplace(
             ItemPath containerPath,
             Class<O> type, PrismContext prismContext, T containerable) throws SchemaException {
-        return createModificationReplace(containerPath, type, prismContext, containerable.asPrismContainerValue());
+        return createModificationReplace(containerPath, type, prismContext, containerable != null ? containerable.asPrismContainerValue() : null);
     }
 
     public static <T extends Containerable,O extends Objectable> ContainerDeltaImpl<T> createModificationReplace(ItemPath containerPath,
@@ -325,11 +325,15 @@ public class ContainerDeltaImpl<V extends Containerable> extends ItemDeltaImpl<P
     }
 
     public static <T extends Containerable,O extends Objectable> ContainerDeltaImpl<T> createModificationReplace(
-            ItemPath containerPath,
-            Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue) throws SchemaException {
+            ItemPath containerPath, Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue)
+            throws SchemaException {
         ContainerDeltaImpl<T> delta = createDelta(containerPath, type, prismContext);
-        prismContext.adopt(cValue, type, containerPath);
-        delta.setValuesToReplace(cValue);
+        if (cValue != null) {
+            prismContext.adopt(cValue, type, containerPath);
+            delta.setValuesToReplace(cValue);
+        } else {
+            delta.setValuesToReplace();
+        }
         return delta;
     }
 
