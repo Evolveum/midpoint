@@ -31,6 +31,7 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -572,7 +573,7 @@ public class RAuditEventRecord implements Serializable {
                 repo.setInitiatorType(ClassMapper.getHQLTypeForClass(initiator.asObjectable().getClass()));
             }
             if (record.getAttorney() != null) {
-                PrismObject<UserType> attorney = record.getAttorney();
+                PrismObject<? extends FocusType> attorney = record.getAttorney();
                 repo.setAttorneyName(getOrigName(attorney));
                 repo.setAttorneyOid(attorney.getOid());
             }
@@ -737,7 +738,7 @@ public class RAuditEventRecord implements Serializable {
                 queryBulder.addParameter(INITIATOR_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForClass(initiator.asObjectable().getClass()));
             }
             if (record.getAttorney() != null) {
-                PrismObject<UserType> attorney = record.getAttorney();
+                PrismObject<? extends FocusType> attorney = record.getAttorney();
                 queryBulder.addParameter(ATTORNEY_NAME_COLUMN_NAME, getOrigName(attorney));
                 queryBulder.addParameter(ATTORNEY_OID_COLUMN_NAME, attorney.getOid());
             }

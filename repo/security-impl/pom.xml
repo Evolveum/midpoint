@@ -61,10 +61,6 @@
         </dependency>
 
         <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>
@@ -81,7 +77,7 @@
             <artifactId>spring-security-web</artifactId>
         </dependency>
 
-        <!-- Testing dependecies -->
+        <!-- Testing dependencies -->
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>

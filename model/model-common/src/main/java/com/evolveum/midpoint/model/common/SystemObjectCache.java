@@ -143,16 +143,16 @@ public class SystemObjectCache implements Cacheable {
 
     public synchronized PrismObject<SecurityPolicyType> getSecurityPolicy(OperationResult result) throws SchemaException {
         PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
-        if (systemConfiguration == null){
+        if (systemConfiguration == null) {
             securityPolicy = null;
-            return securityPolicy;
+            return null;
         } else if (systemConfiguration.asObjectable().getGlobalSecurityPolicyRef() == null
-        || systemConfiguration.asObjectable().getGlobalSecurityPolicyRef().getOid() == null) {
+                || systemConfiguration.asObjectable().getGlobalSecurityPolicyRef().getOid() == null) {
             securityPolicy = null;
-            String message = "Cache ERROR: System configuration don't contains auth policy";
+            String message = "Cache ERROR: System configuration doesn't contains auth policy";
             LOGGER.trace(message);
             result.recordFatalError(message);
-            return securityPolicy;
+            return null;
         }
 
         String securityPolicyOid = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef().getOid();

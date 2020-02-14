@@ -23,6 +23,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -85,7 +86,7 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
 
     private void auditEvent(HttpServletRequest request, Authentication authentication) {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser(authentication);
-        PrismObject<UserType> user = principal != null ? principal.getUser().asPrismObject() : null;
+        PrismObject<? extends FocusType> user = principal != null ? principal.getFocus().asPrismObject() : null;
 
         String channel = SchemaConstants.CHANNEL_GUI_USER_URI;
         if (authentication instanceof MidpointAuthentication

@@ -36,10 +36,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.stereotype.Service;
 
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.model.api.authentication.UserProfileService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
-import com.evolveum.midpoint.model.impl.UserComputer;
+import com.evolveum.midpoint.model.impl.FocusComputer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -71,10 +71,10 @@ import static java.util.Collections.emptyList;
  * @author lazyman
  * @author semancik
  */
-@Service(value = "userDetailsService")
-public class UserProfileServiceImpl implements UserProfileService, UserDetailsService, UserDetailsContextMapper, MessageSourceAware {
+@Service(value = "guiProfiledPrincipalManager")
+public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalManager, UserDetailsService, UserDetailsContextMapper, MessageSourceAware {
 
-    private static final Trace LOGGER = TraceManager.getTrace(UserProfileServiceImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(GuiProfiledPrincipalManagerImpl.class);
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -84,9 +84,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     @Qualifier("modelObjectResolver")
     private ObjectResolver objectResolver;
     @Autowired
-    private UserProfileCompiler userProfileCompiler;
+    private GuiProfileCompiler guiProfileCompiler;
     @Autowired
-    private UserComputer userComputer;
+    private FocusComputer focusComputer;
     @Autowired
     private PrismContext prismContext;
     @Autowired
@@ -110,14 +110,14 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
 
     @Override
-    public MidPointUserProfilePrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-        PrismObject<UserType> user;
+        PrismObject<FocusType> focus;
         try {
-            user = findByUsername(username, result);
+            focus = findByUsername(username, clazz, result);
 
-            if (user == null) {
-                throw new ObjectNotFoundException("Couldn't find user with name '" + username + "'");
+            if (focus == null) {
+                throw new ObjectNotFoundException("Couldn't find focus with name '" + username + "'");
             }
         } catch (ObjectNotFoundException ex) {
             LOGGER.trace("Couldn't find user with name '{}', reason: {}.", username, ex.getMessage(), ex);
@@ -127,33 +127,33 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        return getPrincipal(user, null, result);
+        return getPrincipal(focus, null, result);
     }
 
     @Override
-    public MidPointUserProfilePrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-        return getPrincipal(getUserByOid(oid, result).asPrismObject());
+        return getPrincipal(getUserByOid(oid, clazz, result).asPrismObject());
     }
 
     @Override
-    public MidPointUserProfilePrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-        return getPrincipal(user, null, result);
+        return getPrincipal(focus, null, result);
     }
 
     @Override
-    public MidPointUserProfilePrincipal getPrincipal(PrismObject<UserType> user, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        if (user == null) {
+    public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        if (focus == null) {
             return null;
         }
-        securityContextManager.setTemporaryPrincipalOid(user.getOid());
+        securityContextManager.setTemporaryPrincipalOid(focus.getOid());
         try {
             PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
-            LifecycleStateModelType lifecycleModel = getLifecycleModel(user, systemConfiguration);
+            LifecycleStateModelType lifecycleModel = getLifecycleModel(focus, systemConfiguration);
 
-            userComputer.recompute(user, lifecycleModel);
-            MidPointUserProfilePrincipal principal = new MidPointUserProfilePrincipal(user.asObjectable());
+            focusComputer.recompute(focus, lifecycleModel);
+            GuiProfiledPrincipal principal = new GuiProfiledPrincipal(focus.asObjectable());
             initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer);
             return principal;
         } finally {
@@ -171,7 +171,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
             List<UserSessionManagementType> loggedPrincipals = new ArrayList<>();
             for (Object principal : loggedInUsers) {
 
-                if (!(principal instanceof MidPointUserProfilePrincipal)) {
+                if (!(principal instanceof GuiProfiledPrincipal)) {
                     continue;
                 }
 
@@ -179,10 +179,10 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
                 if (sessionInfos == null || sessionInfos.isEmpty()) {
                     continue;
                 }
-                MidPointUserProfilePrincipal midPointPrincipal = (MidPointUserProfilePrincipal) principal;
+                GuiProfiledPrincipal midPointPrincipal = (GuiProfiledPrincipal) principal;
 
                 UserSessionManagementType userSessionManagementType = new UserSessionManagementType();
-                userSessionManagementType.setUser(midPointPrincipal.getUser());
+                userSessionManagementType.setFocus(midPointPrincipal.getFocus());
                 userSessionManagementType.setActiveSessions(sessionInfos.size());
                 userSessionManagementType.getNode().add(currentNodeId);
                 loggedPrincipals.add(userSessionManagementType);
@@ -203,11 +203,11 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
             List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
             for (Object principal : loggedInUsers) {
 
-                if (!(principal instanceof MidPointUserProfilePrincipal)) {
+                if (!(principal instanceof GuiProfiledPrincipal)) {
                     continue;
                 }
 
-                MidPointUserProfilePrincipal midPointPrincipal = (MidPointUserProfilePrincipal) principal;
+                GuiProfiledPrincipal midPointPrincipal = (GuiProfiledPrincipal) principal;
                 if (!principalOids.contains(midPointPrincipal.getOid())) {
                     continue;
                 }
@@ -236,33 +236,33 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         return systemConfiguration;
     }
 
-    private LifecycleStateModelType getLifecycleModel(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) {
+    private LifecycleStateModelType getLifecycleModel(PrismObject<? extends FocusType> focus, PrismObject<SystemConfigurationType> systemConfiguration) {
         if (systemConfiguration == null) {
             return null;
         }
         try {
-            return ArchetypeManager.determineLifecycleModel(user, systemConfiguration.asObjectable());
+            return ArchetypeManager.determineLifecycleModel(focus, systemConfiguration.asObjectable());
         } catch (ConfigurationException e) {
             throw new SystemException(e.getMessage(), e);
         }
     }
 
     @Override
-    public void updateUser(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas) {
+    public void updateFocus(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas) {
         OperationResult result = new OperationResult(OPERATION_UPDATE_USER);
         try {
             save(principal, itemDeltas, result);
         } catch (Exception ex) {
-            LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.", principal.getFullName(), principal.getOid(), ex.getMessage(), ex);
+            LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.", principal.getUsername(), principal.getOid(), ex.getMessage(), ex);
         }
     }
 
-    private PrismObject<UserType> findByUsername(String username, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private PrismObject<FocusType> findByUsername(String username, Class<? extends FocusType> clazz, OperationResult result) throws SchemaException, ObjectNotFoundException {
         PolyString usernamePoly = new PolyString(username);
         ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly, prismContext);
         LOGGER.trace("Looking for user, query:\n" + query.debugDump());
 
-        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null, result);
+        List<PrismObject<FocusType>> list = repositoryService.searchObjects((Class<FocusType>) clazz, query, null, result);
         LOGGER.trace("Users found: {}.", list.size());
         if (list.size() != 1) {
             return null;
@@ -270,11 +270,11 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         return list.get(0);
     }
 
-    private void initializePrincipalFromAssignments(MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".initializePrincipalFromAssignments");
+    private void initializePrincipalFromAssignments(GuiProfiledPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        Task task = taskManager.createTaskInstance(GuiProfiledPrincipalManagerImpl.class.getName() + ".initializePrincipalFromAssignments");
         OperationResult result = task.getResult();
         try {
-            userProfileCompiler.compileUserProfile(principal, systemConfiguration, authorizationTransformer, task, result);
+            guiProfileCompiler.compileUserProfile(principal, systemConfiguration, authorizationTransformer, task, result);
         } catch (Throwable e) {
             // Do not let any error stop processing here. This code is used during user login. An error here can stop login procedure. We do not
             // want that. E.g. wrong adminGuiConfig may prohibit login on administrator, therefore ruining any chance of fixing the situation.
@@ -285,12 +285,12 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
     private void save(MidPointPrincipal person, Collection<? extends ItemDelta<?, ?>> itemDeltas,
                       OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        LOGGER.trace("Updating user {} with deltas:\n{}", person.getUser(), DebugUtil.debugDumpLazily(itemDeltas));
-        repositoryService.modifyObject(UserType.class, person.getUser().getOid(), itemDeltas, result);
+        LOGGER.trace("Updating user {} with deltas:\n{}", person.getFocus(), DebugUtil.debugDumpLazily(itemDeltas));
+        repositoryService.modifyObject(FocusType.class, person.getFocus().getOid(), itemDeltas, result);
     }
 
-    private UserType getUserByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        return repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
+    private FocusType getUserByOid(String oid, Class<? extends FocusType> clazz, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        return repositoryService.getObject(clazz, oid, null, result).asObjectable();
     }
 
     @Override
@@ -299,7 +299,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
             return null;
         }
         PrismObject<F> owner = null;
-        OperationResult result = new OperationResult(UserProfileServiceImpl.class + ".resolveOwner");
+        OperationResult result = new OperationResult(GuiProfiledPrincipalManagerImpl.class + ".resolveOwner");
 
         // TODO: what about using LensOwnerResolver here?
 
@@ -344,7 +344,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         if (owner.canRepresent(UserType.class)) {
             PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
             LifecycleStateModelType lifecycleModel = getLifecycleModel((PrismObject<UserType>) owner, systemConfiguration);
-            userComputer.recompute((PrismObject<UserType>) owner, lifecycleModel);
+            focusComputer.recompute((PrismObject<UserType>) owner, lifecycleModel);
         }
         return owner;
     }
@@ -352,7 +352,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         try {
-            return getPrincipal(username);
+            return getPrincipal(username, FocusType.class);
         } catch (ObjectNotFoundException e) {
             throw new UsernameNotFoundException(e.getMessage(), e);
         } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
@@ -369,7 +369,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
             if (ctx != null && ldapNamingAttr != null) {
                 userNameEffective = resolveLdapName(ctx, username);
             }
-            return getPrincipal(userNameEffective);
+            return getPrincipal(userNameEffective, FocusType.class);
 
         } catch (ObjectNotFoundException e) {
             throw new UsernameNotFoundException("UserProfileServiceImpl.unknownUser", e);

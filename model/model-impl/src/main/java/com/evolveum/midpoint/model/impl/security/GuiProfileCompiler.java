@@ -12,14 +12,16 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
@@ -48,30 +50,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractObjectTypeConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationRoleManagementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewAdditionalPanelsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeatureType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Compiles user interface profile for a particular user. The profile contains essential information needed to efficiently render
@@ -84,9 +62,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author Radovan semancik
  */
 @Component
-public class UserProfileCompiler {
+public class GuiProfileCompiler {
 
-    private static final Trace LOGGER = TraceManager.getTrace(UserProfileCompiler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(GuiProfileCompiler.class);
 
     @Autowired private SecurityHelper securityHelper;
     @Autowired private SystemObjectCache systemObjectCache;
@@ -103,25 +81,25 @@ public class UserProfileCompiler {
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    public void compileUserProfile(MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result)
+    public void compileUserProfile(GuiProfiledPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
-        principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getUser().asPrismObject(), systemConfiguration, task, result));
+        principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getFocus().asPrismObject(), systemConfiguration, task, result));
 
         List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
         collect(adminGuiConfigurations, principal, systemConfiguration, authorizationTransformer, task, result);
 
-        CompiledUserProfile compiledUserProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration, task, result);
-        principal.setCompiledUserProfile(compiledUserProfile);
+        CompiledGuiProfile compiledGuiProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration, task, result);
+        principal.setCompiledGuiProfile(compiledGuiProfile);
     }
 
-    private void collect(List<AdminGuiConfigurationType> adminGuiConfigurations, MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException {
-        UserType userType = principal.getUser();
+    private void collect(List<AdminGuiConfigurationType> adminGuiConfigurations, GuiProfiledPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException {
+        FocusType focusType = principal.getFocus();
 
-        Collection<EvaluatedAssignment<UserType>> evaluatedAssignments = assignmentCollector.collect(userType.asPrismObject(), systemConfiguration, true, task, result);
+        Collection<? extends EvaluatedAssignment<? extends FocusType>> evaluatedAssignments = assignmentCollector.collect(focusType.asPrismObject(), systemConfiguration, true, task, result);
         Collection<Authorization> authorizations = principal.getAuthorities();
-        for (EvaluatedAssignment<UserType> assignment : evaluatedAssignments) {
+        for (EvaluatedAssignment<? extends FocusType> assignment : evaluatedAssignments) {
             if (assignment.isValid()) {
                 addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
                 adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
@@ -136,9 +114,9 @@ public class UserProfileCompiler {
             }
         }
 
-        if (userType.getAdminGuiConfiguration() != null) {
+        if (focusType instanceof UserType && ((UserType)focusType).getAdminGuiConfiguration() != null) {
             // config from the user object should go last (to be applied as the last one)
-            adminGuiConfigurations.add(userType.getAdminGuiConfiguration());
+            adminGuiConfigurations.add(((UserType)focusType).getAdminGuiConfiguration());
         }
 
     }
@@ -159,7 +137,7 @@ public class UserProfileCompiler {
         }
     }
 
-    public CompiledUserProfile compileUserProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
+    public CompiledGuiProfile compileUserProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
             PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
@@ -173,7 +151,7 @@ public class UserProfileCompiler {
             return null;
         }
 
-        CompiledUserProfile composite = new CompiledUserProfile();
+        CompiledGuiProfile composite = new CompiledGuiProfile();
         if (globalAdminGuiConfig != null) {
             applyAdminGuiConfiguration(composite, globalAdminGuiConfig, task, result);
         }
@@ -183,7 +161,7 @@ public class UserProfileCompiler {
         return composite;
     }
 
-    private void applyAdminGuiConfiguration(CompiledUserProfile composite, AdminGuiConfigurationType adminGuiConfiguration, Task task, OperationResult result)
+    private void applyAdminGuiConfiguration(CompiledGuiProfile composite, AdminGuiConfigurationType adminGuiConfiguration, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
         if (adminGuiConfiguration == null) {
@@ -264,7 +242,7 @@ public class UserProfileCompiler {
         }
     }
 
-    private void applyViews(CompiledUserProfile composite, GuiObjectListViewsType viewsType, Task task, OperationResult result)
+    private void applyViews(CompiledGuiProfile composite, GuiObjectListViewsType viewsType, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
         if (viewsType == null) {
@@ -287,7 +265,7 @@ public class UserProfileCompiler {
         }
     }
 
-    private void applyView(CompiledUserProfile composite, GuiObjectListViewType objectListViewType, Task task, OperationResult result) {
+    private void applyView(CompiledGuiProfile composite, GuiObjectListViewType objectListViewType, Task task, OperationResult result) {
         try {
             CompiledObjectCollectionView existingView = findOrCreateMatchingView(composite, objectListViewType);
             compileView(existingView, objectListViewType, task, result);
@@ -301,7 +279,7 @@ public class UserProfileCompiler {
     }
 
 
-    private CompiledObjectCollectionView findOrCreateMatchingView(CompiledUserProfile composite, GuiObjectListViewType objectListViewType) {
+    private CompiledObjectCollectionView findOrCreateMatchingView(CompiledGuiProfile composite, GuiObjectListViewType objectListViewType) {
         QName objectType = objectListViewType.getType();
         String viewIdentifier = determineViewIdentifier(objectListViewType);
         CompiledObjectCollectionView existingView = composite.findObjectCollectionView(objectType, viewIdentifier);
@@ -515,7 +493,7 @@ public class UserProfileCompiler {
         return false;
     }
 
-    private void mergeWidget(CompiledUserProfile composite, DashboardWidgetType newWidget) {
+    private void mergeWidget(CompiledGuiProfile composite, DashboardWidgetType newWidget) {
         String newWidgetIdentifier = newWidget.getIdentifier();
         DashboardWidgetType compositeWidget = composite.findUserDashboardWidget(newWidgetIdentifier);
         if (compositeWidget == null) {
@@ -530,7 +508,7 @@ public class UserProfileCompiler {
         // merge other widget properties (in the future)
     }
 
-    private void mergeFeature(CompiledUserProfile composite, UserInterfaceFeatureType newFeature) {
+    private void mergeFeature(CompiledGuiProfile composite, UserInterfaceFeatureType newFeature) {
         String newIdentifier = newFeature.getIdentifier();
         UserInterfaceFeatureType compositeFeature = composite.findFeature(newIdentifier);
         if (compositeFeature == null) {
@@ -565,15 +543,15 @@ public class UserProfileCompiler {
         return UserInterfaceElementVisibilityType.VACANT;
     }
 
-    public CompiledUserProfile getGlobalCompiledUserProfile(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public CompiledGuiProfile getGlobalCompiledGuiProfile(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
         if (systemConfiguration == null) {
             return null;
         }
         List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
-        CompiledUserProfile compiledUserProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration, task, parentResult);
+        CompiledGuiProfile compiledGuiProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration, task, parentResult);
         // TODO: cache compiled profile
-        return compiledUserProfile;
+        return compiledGuiProfile;
     }
 
 

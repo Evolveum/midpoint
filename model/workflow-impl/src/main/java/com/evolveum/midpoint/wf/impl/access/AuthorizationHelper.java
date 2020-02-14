@@ -18,6 +18,7 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,14 +78,14 @@ public class AuthorizationHelper {
     private boolean isEqualOrDeputyOf(MidPointPrincipal principal, String eligibleUserOid,
             RelationRegistry relationRegistry) {
         return principal.getOid().equals(eligibleUserOid)
-                || DeputyUtils.isDelegationPresent(principal.getUser(), eligibleUserOid, relationRegistry);
+                || DeputyUtils.isDelegationPresent(principal.getFocus(), eligibleUserOid, relationRegistry);
     }
 
     // principal != null, principal.getOid() != null, principal.getUser() != null
     private boolean isAmongCandidates(MidPointPrincipal principal, CaseWorkItemType workItem) {
         for (ObjectReferenceType candidateRef : workItem.getCandidateRef()) {
             if (principal.getOid().equals(candidateRef.getOid())
-                    || isMemberOrDeputyOf(principal.getUser(), candidateRef)) {
+                    || isMemberOrDeputyOf(principal.getFocus(), candidateRef)) {
                 return true;
             }
         }
@@ -101,9 +102,9 @@ public class AuthorizationHelper {
         return principal.getOid() != null && isAmongCandidates(principal, workItem);
     }
 
-    private boolean isMemberOrDeputyOf(UserType userType, ObjectReferenceType userOrRoleRef) {
-        return userType.getRoleMembershipRef().stream().anyMatch(ref -> matches(userOrRoleRef, ref))
-                || userType.getDelegatedRef().stream().anyMatch(ref -> matches(userOrRoleRef, ref));
+    private boolean isMemberOrDeputyOf(FocusType focusType, ObjectReferenceType userOrRoleRef) {
+        return focusType.getRoleMembershipRef().stream().anyMatch(ref -> matches(userOrRoleRef, ref))
+                || focusType.getDelegatedRef().stream().anyMatch(ref -> matches(userOrRoleRef, ref));
     }
 
     private boolean matches(ObjectReferenceType userOrRoleRef, ObjectReferenceType targetRef) {

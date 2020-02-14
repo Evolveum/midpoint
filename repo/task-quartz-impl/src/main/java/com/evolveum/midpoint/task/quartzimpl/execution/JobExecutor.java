@@ -173,7 +173,7 @@ public class JobExecutor implements InterruptableJob {
             }
 
             // Setup Spring Security context
-            PrismObject<UserType> taskOwner = task.getOwner();
+            PrismObject<? extends FocusType> taskOwner = task.getOwner();
             try {
                 // just to be sure we won't run the owner-setting login with any garbage security context (see MID-4160)
                 taskManagerImpl.getSecurityContextManager().setupPreAuthenticatedSecurityContext((Authentication) null);

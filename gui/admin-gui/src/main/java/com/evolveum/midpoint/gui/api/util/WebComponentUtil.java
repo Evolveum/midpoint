@@ -27,7 +27,7 @@ import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.*;
@@ -536,7 +536,7 @@ public final class WebComponentUtil {
      */
     @Deprecated
     public static CompiledObjectCollectionView getDefaultGuiObjectListType(PageBase pageBase) {
-        return pageBase.getCompiledUserProfile().getDefaultObjectCollectionView();
+        return pageBase.getCompiledGuiProfile().getDefaultObjectCollectionView();
     }
 
     public enum Channel {
@@ -611,7 +611,7 @@ public final class WebComponentUtil {
 
         ObjectReferenceType ownerRef = new ObjectReferenceType();
         ownerRef.setOid(owner.getOid());
-        ownerRef.setType(owner.getUser().COMPLEX_TYPE);
+        ownerRef.setType(owner.getFocus().COMPLEX_TYPE);
         task.setOwnerRef(ownerRef);
 
         task.setBinding(TaskBindingType.LOOSE);
@@ -657,7 +657,7 @@ public final class WebComponentUtil {
             ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase) throws SchemaException {
 
         MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
-        operationalTask.setOwner(owner.getUser().asPrismObject());
+        operationalTask.setOwner(owner.getFocus().asPrismObject());
 
         operationalTask.setBinding(TaskBinding.LOOSE);
         operationalTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
@@ -1693,7 +1693,7 @@ public final class WebComponentUtil {
     }
 
     public static String getShortDateTimeFormat(PageBase pageBase){
-        AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledUserProfile().getDisplayFormats();
+        AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledGuiProfile().getDisplayFormats();
         if (displayFormats == null || StringUtils.isEmpty(displayFormats.getShortDateTimeFormat())){
             return DateLabelComponent.SHORT_MEDIUM_STYLE;
         } else {
@@ -1702,7 +1702,7 @@ public final class WebComponentUtil {
     }
 
     public static String getLongDateTimeFormat(PageBase pageBase){
-        AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledUserProfile().getDisplayFormats();
+        AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledGuiProfile().getDisplayFormats();
         if (displayFormats == null || StringUtils.isEmpty(displayFormats.getLongDateTimeFormat())){
             return DateLabelComponent.LONG_MEDIUM_STYLE;
         } else {
@@ -4185,7 +4185,7 @@ public final class WebComponentUtil {
     }
 
     public static boolean isRefreshEnabled(PageBase pageBase, QName type) {
-        CompiledUserProfile cup = pageBase.getCompiledUserProfile();
+        CompiledGuiProfile cup = pageBase.getCompiledGuiProfile();
         if (cup == null) {
             return false;
         }

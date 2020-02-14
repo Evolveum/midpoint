@@ -24,7 +24,7 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -159,7 +159,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 //
 //        QName objectType = object.getDefinition().getTypeName();
 //        try {
-//            CompiledUserProfile userProfile = modelInteractionService.getCompiledUserProfile(context.getTask(), context.getResult());
+//            CompiledGuiProfile userProfile = modelInteractionService.getCompiledGuiProfile(context.getTask(), context.getResult());
 //            GuiObjectDetailsSetType objectDetailsSetType = userProfile.getObjectDetails();
 //            if (objectDetailsSetType == null) {
 //                result.recordSuccess();

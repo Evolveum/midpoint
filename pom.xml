@@ -212,7 +212,6 @@
             </dependency>
 
             <dependency>
-                <!-- TODO: if we have this import, consider removing other Spring declarations -->
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -1688,16 +1687,6 @@
                             <failOnWarning>true</failOnWarning>
                             <ignoreNonCompile>true</ignoreNonCompile>
                             <ignoredUnusedDeclaredDependencies>
-                                <!-- Unreliable detection -->
-                                <ignoredUnusedDeclaredDependency>javax.xml.bind:jaxb-api</ignoredUnusedDeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>com.sun.activation:javax.activation</ignoredUnusedDeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>javax.activation:activation</ignoredUnusedDeclaredDependency>
-
-                                <!-- Common "drill" for all modules. -->
-                                <ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>org.testng:testng</ignoredUnusedDeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>commons-lang:commons-lang</ignoredUnusedDeclaredDependency>
-
                                 <!-- There is some kind of conflict between these. TODO: clean up -->
                                 <ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
@@ -1727,11 +1716,9 @@
                                 <ignoredUsedUndeclaredDependency>org.glassfish.jaxb:xsom</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.glassfish.jaxb:jaxb-runtime</ignoredUsedUndeclaredDependency>
 
-                                <ignoredUsedUndeclaredDependency>org.danekja:jdk-serializable-functional</ignoredUsedUndeclaredDependency>
-                                <!-- TODO: scope test can help with this kind (runtime for non-test starters) -->
-                                <ignoredUsedUndeclaredDependency>org.springframework.boot:spring-boot-test</ignoredUsedUndeclaredDependency>
-                                <!-- This is falsely reported, we never use it explicitly, only on runtime. -->
+                                <!-- Falsely reported, not used explicitly, only transient dependency. -->
                                 <ignoredUsedUndeclaredDependency>org.slf4j:jcl-over-slf4j</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.danekja:jdk-serializable-functional</ignoredUsedUndeclaredDependency>
                             </ignoredUsedUndeclaredDependencies>
                         </configuration>
                     </execution>
@@ -1784,13 +1771,6 @@
                     <configuration>
                         <source>${project.source.version}</source>
                         <target>${project.source.version}</target>
-                        <!-- taken from removed build-system/pom.xml, will try to turn it on as needed -->
-                        <!--<fork>true</fork>-->
-                        <!--<meminitial>1024m</meminitial>-->
-                        <!--<maxmem>2048m</maxmem>-->
-                        <!--<showDeprecation>false</showDeprecation>-->
-                        <!--<showWarnings>false</showWarnings>-->
-                        <!--<verbose>false</verbose>-->
                     </configuration>
                 </plugin>
                 <plugin>

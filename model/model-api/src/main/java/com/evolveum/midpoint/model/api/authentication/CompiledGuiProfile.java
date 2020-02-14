@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
  * be required to do any complex processing on this.
  *
  * This idea is to compile the profile just once, on login time. Therefore only the authentication
- * code (UserProfileCompiler) should modify this object. It should be considered read-only for all other
+ * code (GuiProfiledPrincipalManager) should modify this object. It should be considered read-only for all other
  * purposes.
  *
  * Later it may be split to interface and implementation parts.
@@ -38,7 +38,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
  * @author Radovan Semancik
  */
 @Experimental
-public class CompiledUserProfile implements DebugDumpable, Serializable {
+public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private static final long serialVersionUID = 1L;
 
     private String defaultTimezone;
@@ -353,7 +353,7 @@ public class CompiledUserProfile implements DebugDumpable, Serializable {
 
     @Override
     public String debugDump(int indent) {
-        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CompiledUserProfile.class, indent);
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CompiledGuiProfile.class, indent);
         DebugUtil.debugDumpWithLabelLn(sb, "defaultTimezone", defaultTimezone, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "preferredDataLanguage", preferredDataLanguage, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "enableExperimentalFeatures", enableExperimentalFeatures, indent + 1);

@@ -56,7 +56,7 @@ public class LdapSecurityConfig {
 
     @Bean
     public MidPointLdapAuthenticationProvider midPointAuthenticationProvider(
-            @Qualifier("userDetailsService") UserDetailsContextMapper userDetailsContextMapper) {
+            @Qualifier("guiProfiledPrincipalManager") UserDetailsContextMapper userDetailsContextMapper) {
 
         MidPointLdapAuthenticationProvider provider = new MidPointLdapAuthenticationProvider(bindAuthenticator());
         provider.setUserDetailsContextMapper(userDetailsContextMapper);

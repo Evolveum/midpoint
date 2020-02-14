@@ -13,6 +13,7 @@ import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -83,13 +84,13 @@ public class MidPointLdapAuthenticationProvider extends LdapAuthenticationProvid
             throw new BadCredentialsException("LdapAuthentication.incorrect.value");
         }
         MidPointPrincipal midPointPrincipal = (MidPointPrincipal) principal;
-        UserType userType = midPointPrincipal.getUser();
+        FocusType focusType = midPointPrincipal.getFocus();
 
-        if (userType == null) {
+        if (focusType == null) {
             throw new BadCredentialsException("LdapAuthentication.bad.user");
         }
 
-        auditProvider.auditLoginSuccess(userType, ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI));
+        auditProvider.auditLoginSuccess(focusType, ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI));
         return authNCtx;
     }
 }

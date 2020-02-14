@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -33,7 +35,7 @@ public interface AuthenticationEvaluator<T extends AbstractAuthenticationContext
             CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
 
     @NotNull
-    UserType checkCredentials(ConnectionEnvironment connEnv, T authnCtx)
+    FocusType checkCredentials(ConnectionEnvironment connEnv, T authnCtx)
             throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
             CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
 

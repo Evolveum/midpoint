@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.forgetpassword;
 import java.util.Collection;
 import java.util.Iterator;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -124,7 +126,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
     private UsernamePasswordAuthenticationToken authenticateUser(String username, String nonce, OperationResult result) {
         ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
         try {
-            return getAuthenticationEvaluator().authenticate(connEnv, new NonceAuthenticationContext(username,
+            return getAuthenticationEvaluator().authenticate(connEnv, new NonceAuthenticationContext(username, UserType.class,
                     nonce, getResetPasswordPolicy().getNoncePolicy()));
         } catch (AuthenticationException ex) {
             getSession()

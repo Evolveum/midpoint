@@ -405,7 +405,7 @@ public class PageAbout extends PageAdminConfiguration {
             if (user == null) {
                 throw new RestartResponseException(PageLogin.class);
             } else {
-                task.setOwner(user.getUser().asPrismObject());
+                task.setOwner(user.getFocus().asPrismObject());
             }
             authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
             task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);

@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
@@ -25,7 +27,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.authentication.UserProfileService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -63,7 +65,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
 
     private static final Trace LOGGER = TraceManager.getTrace(TestIntegrationSecurity.class);
 
-    @Autowired private UserProfileService userProfileService;
+    @Autowired private GuiProfiledPrincipalManager focusProfileService;
 
     private MidPointGuiAuthorizationEvaluator midPointGuiAuthorizationEvaluator;
 
@@ -97,7 +99,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         display("user before", user);
         login(USER_JACK_USERNAME);
 
-        Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME);
+        Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -125,7 +127,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         display("user before", user);
         login(USER_JACK_USERNAME);
 
-        Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME);
+        Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -153,7 +155,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         display("user before", user);
         login(USER_JACK_USERNAME);
 
-        Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME);
+        Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -185,7 +187,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         display("user before", user);
         login(USER_JACK_USERNAME);
 
-        Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME);
+        Authentication authentication = createPasswordAuthentication(USER_JACK_USERNAME, UserType.class);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -231,8 +233,8 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
 
     }
 
-    private Authentication createPasswordAuthentication(String username) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = userProfileService.getPrincipal(username);
+    private Authentication createPasswordAuthentication(String username, Class<? extends FocusType> focusType) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        MidPointPrincipal principal = focusProfileService.getPrincipal(username, focusType);
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
         return auth;
     }

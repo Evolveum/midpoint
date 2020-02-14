@@ -474,7 +474,7 @@ public class ProvisioningUtil {
         p.setValue(null);
     }
 
-    public static void addPasswordMetadata(PasswordType p, XMLGregorianCalendar now, PrismObject<UserType> owner) {
+    public static void addPasswordMetadata(PasswordType p, XMLGregorianCalendar now, PrismObject<? extends FocusType> owner) {
         MetadataType metadata = p.getMetadata();
         if (metadata != null) {
             return;
