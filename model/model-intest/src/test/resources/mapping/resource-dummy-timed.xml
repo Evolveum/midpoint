@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+            oid="567d9834-4f2c-4e5b-89a6-ebd804c7d469">
+
+    <!-- MID-5874 (timed mappings) -->
+
+    <name>resource-dummy-timed</name>
+
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>timed</icfi:instanceId>
+            <icfi:supportValidity>true</icfi:supportValidity>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:fullname</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <timeFrom>
+                        <expression>
+                            <script>
+                                <code>
+                                    return basic.fromNow("P2M");
+                                </code>
+                            </script>
+                        </expression>
+                    </timeFrom>
+                    <expression>
+                        <script>
+                            <code>
+                                return 'sample value'
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+</resource>

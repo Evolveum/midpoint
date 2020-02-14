@@ -32,7 +32,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -102,17 +101,8 @@ public class MappingSetEvaluator {
             // Used to populate autoassign assignments
             mapping.setMappingPreExpression(request);
 
-            Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(task, result);
-
-            if (timeConstraintValid != null && !timeConstraintValid) {
-                // Delayed mapping. Just schedule recompute time
-                XMLGregorianCalendar mappingNextRecomputeTime = mapping.getNextRecomputeTime();
-                LOGGER.trace("Evaluation of mapping {} delayed to {}", mapping, mappingNextRecomputeTime);
-                if (mappingNextRecomputeTime != null) {
-                    if (nextRecompute == null || nextRecompute.nextRecomputeTime.compare(mappingNextRecomputeTime) == DatatypeConstants.GREATER) {
-                        nextRecompute = new NextRecompute(mappingNextRecomputeTime, mapping.getIdentifier());
-                    }
-                }
+            if (!mapping.evaluateTimeConstraintValid(task, result)) {
+                nextRecompute = NextRecompute.update(mapping, nextRecompute);
                 continue;
             }
 

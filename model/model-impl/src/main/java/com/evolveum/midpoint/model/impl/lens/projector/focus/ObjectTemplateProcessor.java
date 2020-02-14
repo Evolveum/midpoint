@@ -35,11 +35,8 @@ import com.evolveum.midpoint.model.impl.lens.IvwoConsolidator;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.StrengthSelector;
-import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -82,7 +79,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -165,32 +161,7 @@ public class ObjectTemplateProcessor {
         focusContext.applyProjectionWaveSecondaryDeltas(itemDeltas);
 
         if (nextRecompute != null) {
-
-            boolean alreadyHasTrigger = false;
-            PrismObject<AH> objectCurrent = focusContext.getObjectCurrent();
-            if (objectCurrent != null) {
-                for (TriggerType trigger: objectCurrent.asObjectable().getTrigger()) {
-                    if (RecomputeTriggerHandler.HANDLER_URI.equals(trigger.getHandlerUri()) &&
-                            nextRecompute.nextRecomputeTime.equals(trigger.getTimestamp())) {
-                                alreadyHasTrigger = true;
-                                break;
-                    }
-                }
-            }
-
-            if (!alreadyHasTrigger) {
-                PrismObjectDefinition<AH> objectDefinition = focusContext.getObjectDefinition();
-                PrismContainerDefinition<TriggerType> triggerContDef = objectDefinition.findContainerDefinition(ObjectType.F_TRIGGER);
-                ContainerDelta<TriggerType> triggerDelta = triggerContDef.createEmptyDelta(ObjectType.F_TRIGGER);
-                PrismContainerValue<TriggerType> triggerCVal = triggerContDef.createValue();
-                triggerDelta.addValueToAdd(triggerCVal);
-                TriggerType triggerType = triggerCVal.asContainerable();
-                triggerType.setTimestamp(nextRecompute.nextRecomputeTime);
-                triggerType.setHandlerUri(RecomputeTriggerHandler.HANDLER_URI);
-                triggerType.setOriginDescription(nextRecompute.triggerOriginDescription);
-
-                focusContext.swallowToProjectionWaveSecondaryDelta(triggerDelta);
-            }
+            nextRecompute.createTrigger(focusContext);
         }
     }
 

@@ -91,6 +91,10 @@ public class TestMapping extends AbstractMappingTest {
             "resource-dummy-services-inbound-pwd-generate.xml", "ae149e1e-5992-4557-829e-8dfc069276b3");
     private static final String RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE_NAME = "services-inbound-pwd-generate";
 
+    private static final TestResource RESOURCE_DUMMY_TIMED = new TestResource(TEST_DIR,
+            "resource-dummy-timed.xml", "567d9834-4f2c-4e5b-89a6-ebd804c7d469");
+    private static final String RESOURCE_DUMMY_TIMED_NAME = "timed";
+
     private static final File ROLE_ANTINIHILIST_FILE = new File(TEST_DIR, "role-antinihilist.xml");
     private static final String ROLE_ANTINIHILIST_OID = "4c5c6c44-bd7d-11e7-99ef-9b82464da93d";
 
@@ -105,6 +109,8 @@ public class TestMapping extends AbstractMappingTest {
     private static final File ROLE_COBALT_NEVERLAND_FILE = new File(TEST_DIR, "role-cobalt-neverland.xml");
     private static final String ROLE_COBALT_NEVERLAND_OID = "04aca9d6-caca-11e7-9c6a-97b71af3e545";
     private static final String ROLE_COBALT_NEVERLAND_VALUE = "Neverland";
+
+    private static final TestResource ROLE_TIMED = new TestResource(TEST_DIR, "role-timed.xml", "9af2f6d7-564f-45f8-bd8a-2f5cef1596a8");
 
     private static final String CAPTAIN_JACK_FULL_NAME = "Captain Jack Sparrow";
 
@@ -153,11 +159,13 @@ public class TestMapping extends AbstractMappingTest {
                 RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY.file, RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY.oid, initTask, initResult);
         initDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE_NAME,
                 RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE.file, RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE.oid, initTask, initResult);
+        initDummyResource(RESOURCE_DUMMY_TIMED_NAME, RESOURCE_DUMMY_TIMED.file, RESOURCE_DUMMY_TIMED.oid, initTask, initResult);
 
         repoAddObjectFromFile(ROLE_ANTINIHILIST_FILE, initResult);
         repoAddObjectFromFile(ROLE_BLUE_TITANIC_FILE, initResult);
         repoAddObjectFromFile(ROLE_BLUE_POETRY_FILE, initResult);
         repoAddObjectFromFile(ROLE_COBALT_NEVERLAND_FILE, initResult);
+        repoAddObjectFromFile(ROLE_TIMED.file, initResult);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -3420,6 +3428,35 @@ public class TestMapping extends AbstractMappingTest {
                 .display()
                 .assertLinks(1)
                 .assertPassword(clearValueBefore);
+    }
+
+    /**
+     * MID-5874
+     */
+    @Test
+    public void test700TimedOutbound() throws Exception {
+        // GIVEN
+        Task task = getTask();
+        OperationResult result = getResult();
+
+        UserType user = new UserType(prismContext)
+                .name("test700")
+                .beginAssignment()
+                    .targetRef(ROLE_TIMED.oid, RoleType.COMPLEX_TYPE)
+                .end();
+
+        // WHEN
+        displayWhen();
+        String oid = addObject(user.asPrismObject(), task, result);
+
+        // THEN
+        displayThen();
+        assertUser(oid, "user after")
+                .display()
+                .triggers()
+                    .single()
+                        .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                        .assertTimestampFuture("P2M", 20000);
     }
 
     private String rumFrom(String locality) {
