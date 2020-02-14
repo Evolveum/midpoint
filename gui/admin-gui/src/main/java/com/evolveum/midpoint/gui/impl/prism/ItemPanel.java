@@ -117,7 +117,8 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 
     @Override
     public boolean isEnabled() {
-        return !getModelObject().isReadOnly();
+        return !getModelObject().isReadOnly() && (itemPanelSettings.getEditabilityHandler() == null ||
+                itemPanelSettings.getEditabilityHandler().isEditable(getModelObject()));
     }
 
     // VALUE REGION

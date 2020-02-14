@@ -19,6 +19,11 @@ public class ItemPanelSettingsBuilder {
             return this;
         }
 
+        public ItemPanelSettingsBuilder editabilityHandler(ItemEditabilityHandler handler) {
+            settings.setEditabilityHandler(handler);
+            return this;
+        }
+
         public ItemPanelSettingsBuilder showOnTopLevel(boolean showOnTopLevel) {
             settings.setShowOnTopLevel(showOnTopLevel);
             return this;
