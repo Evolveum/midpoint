@@ -833,6 +833,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="time" type="tns:TimedActionTimeSpecificationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -982,6 +983,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
