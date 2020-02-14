@@ -74,7 +74,7 @@ public class ClusterRestService {
 
     public static final String EVENT_INVALIDATION = "/event/invalidation/";
     public static final String EVENT_TERMINATE_SESSION = "/event/terminateSession/";
-    public static final String EVENT_LIST_USER_SESSION = "event/listUserSession";
+    public static final String EVENT_LIST_USER_SESSION = "/event/listUserSession";
 
     @Autowired private SecurityHelper securityHelper;
     @Autowired private TaskManager taskManager;

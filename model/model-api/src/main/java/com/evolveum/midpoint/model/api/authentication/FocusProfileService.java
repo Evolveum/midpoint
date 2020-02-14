@@ -21,7 +21,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.util.Collection;
 import java.util.List;
@@ -30,8 +29,6 @@ import java.util.List;
  * @author semancik
  */
 public interface FocusProfileService extends MidPointPrincipalManager {
-
-    public static final String EVENT_LIST_USER_SESSION = "event/listUserSession";
 
     @Override
     MidPointFocusProfilePrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;

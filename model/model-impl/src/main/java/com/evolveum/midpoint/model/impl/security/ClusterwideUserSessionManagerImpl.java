@@ -69,7 +69,7 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
         // We try to invoke this call also on nodes that are in transition. We want to get
         // information as complete as realistically possible.
         clusterExecutionHelper.execute((client, result1) -> {
-            client.path(FocusProfileService.EVENT_LIST_USER_SESSION);
+            client.path(ClusterRestService.EVENT_LIST_USER_SESSION);
             Response response = client.get();
             LOGGER.info("Remote-node retrieval of user sessions finished with status {}, {}",
                     response.getStatusInfo().getStatusCode(), response.getStatusInfo().getReasonPhrase());
