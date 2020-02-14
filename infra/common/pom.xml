@@ -138,7 +138,7 @@
             <artifactId>spring-beans</artifactId>
         </dependency>
 
-        <!-- Testing dependecies -->
+        <!-- Testing dependencies -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
