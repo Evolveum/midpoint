@@ -56,9 +56,9 @@ public class CasSecurityConfig {
 
     @Profile("cas")
     @Bean
-    public AuthenticationProvider midPointAuthenticationProvider(UserDetailsService focusDetailsService) throws Exception {
+    public AuthenticationProvider midPointAuthenticationProvider(UserDetailsService guiProfiledPrincipalManager) throws Exception {
         CasAuthenticationProvider provider = new CasAuthenticationProvider();
-        provider.setAuthenticationUserDetailsService(new UserDetailsByNameServiceWrapper<>(focusDetailsService));
+        provider.setAuthenticationUserDetailsService(new UserDetailsByNameServiceWrapper<>(guiProfiledPrincipalManager));
         provider.setServiceProperties(serviceProperties());
         provider.setTicketValidator(createTicketValidatorInstance());
         provider.setKey("CAS_ID");

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.api;
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
@@ -251,7 +251,7 @@ public interface ModelInteractionService {
      * values applicable for current user, therefore the authorization might be considered to be implicit in this case.
      */
     @NotNull
-    CompiledUserProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    CompiledGuiProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
      * @return list of logged in users with at least 1 active session (clusterwide)

@@ -39,7 +39,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.authentication.FocusProfileService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -69,7 +69,8 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     @Autowired private SecurityHelper securityHelper;
 
     // Has to be package-private so the tests can manipulate it
-    @Autowired FocusProfileService focusProfileService;
+    @Autowired
+    GuiProfiledPrincipalManager focusProfileService;
 
     protected MessageSourceAccessor messages;
 

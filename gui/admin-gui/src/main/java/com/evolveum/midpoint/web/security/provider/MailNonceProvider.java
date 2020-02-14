@@ -10,7 +10,7 @@ import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
-import com.evolveum.midpoint.model.api.authentication.MidPointFocusProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
@@ -72,7 +72,7 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
     @Override
     protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof MidPointFocusProfilePrincipal) {
+        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
             return authentication;
         }
         String enteredUsername = (String) authentication.getPrincipal();

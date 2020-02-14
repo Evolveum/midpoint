@@ -32,8 +32,8 @@ import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.model.api.authentication.MidPointFocusProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
@@ -331,7 +331,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private LoadableModel<Integer> certWorkItemCountModel;
 
     // No need to store this in the session. Retrieval is cheap.
-    private transient CompiledUserProfile compiledUserProfile;
+    private transient CompiledGuiProfile compiledGuiProfile;
 
     // No need for this to store in session. It is used only during single init and render.
     private transient Task pageTask;
@@ -612,23 +612,23 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @NotNull
     @Override
-    public CompiledUserProfile getCompiledUserProfile() {
+    public CompiledGuiProfile getCompiledGuiProfile() {
         // TODO: may need to always go to ModelInteractionService to make sure the setting is up to date
-        if (compiledUserProfile == null) {
+        if (compiledGuiProfile == null) {
             Task task = createSimpleTask(PageBase.DOT_CLASS + "getCompiledUserProfile");
             try {
-                compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, task.getResult());
+                compiledGuiProfile = modelInteractionService.getCompiledUserProfile(task, task.getResult());
             } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve compiled user profile", e);
                 if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
                     throw new SystemException("Cannot retrieve compiled user profile: " + e.getMessage(), e);
                 } else {
                     // Just return empty admin GUI config, so the GUI can go on (and the problem may get fixed)
-                    return new CompiledUserProfile();
+                    return new CompiledGuiProfile();
                 }
             }
         }
-        return compiledUserProfile;
+        return compiledGuiProfile;
     }
 
     @Override
@@ -686,7 +686,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return formValidatorRegistry;
     }
 
-    public MidPointFocusProfilePrincipal getPrincipal() {
+    public GuiProfiledPrincipal getPrincipal() {
         return SecurityUtils.getPrincipalUser();
     }
 
@@ -1431,7 +1431,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private OperationResult executeResultScriptHook(OperationResult result) {
-        CompiledUserProfile adminGuiConfiguration = getCompiledUserProfile();
+        CompiledGuiProfile adminGuiConfiguration = getCompiledGuiProfile();
         if (adminGuiConfiguration.getFeedbackMessagesHook() == null) {
             return result;
         }
@@ -2059,7 +2059,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private void createAdditionalMenu(SideBarMenuItem menu) {
-        CompiledUserProfile userProfile = getCompiledUserProfile();
+        CompiledGuiProfile userProfile = getCompiledGuiProfile();
         List<RichHyperlinkType> menuList = userProfile.getAdditionalMenuLink();
 
         Map<String, Class> urlClassMap = DescriptorLoader.getUrlClassMap();
@@ -2315,7 +2315,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private void addCollectionsMenuItems(List<MenuItem> menu, QName type, Class<? extends PageAdminObjectList> redirectToPage) {
-        List<CompiledObjectCollectionView> objectViews = getCompiledUserProfile().findAllApplicableObjectCollectionViews(type);
+        List<CompiledObjectCollectionView> objectViews = getCompiledGuiProfile().findAllApplicableObjectCollectionViews(type);
         List<MenuItem> collectionMenuItems = new ArrayList<>(objectViews.size());
         objectViews.forEach(objectView -> {
             CollectionRefSpecificationType collectionRefSpec = objectView.getCollection();
@@ -2539,11 +2539,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     protected void setTimeZone(PageBase page) {
         PrismObject<? extends FocusType> user = loadUserSelf();
         String timeZone = null;
-        MidPointFocusProfilePrincipal principal = SecurityUtils.getPrincipalUser();
+        GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
         if (user != null && user.asObjectable().getTimezone() != null) {
             timeZone = user.asObjectable().getTimezone();
-        } else if (principal != null && principal.getCompiledUserProfile() != null) {
-            timeZone = principal.getCompiledUserProfile().getDefaultTimezone();
+        } else if (principal != null && principal.getCompiledGuiProfile() != null) {
+            timeZone = principal.getCompiledGuiProfile().getDefaultTimezone();
         }
         if (timeZone != null) {
             WebSession.get().getClientInfo().getProperties().
@@ -2663,7 +2663,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected String determineDataLanguage() {
-        CompiledUserProfile config = getCompiledUserProfile();
+        CompiledGuiProfile config = getCompiledGuiProfile();
         if (config.getPreferredDataLanguage() != null) {
             if (PrismContext.LANG_JSON.equals(config.getPreferredDataLanguage())) {
                 return PrismContext.LANG_JSON;

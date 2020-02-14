@@ -10,7 +10,7 @@ import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.FocusProfileService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.impl.security.NodeAuthenticationToken;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
@@ -79,7 +79,7 @@ public class ClusterRestService {
     @Autowired private SecurityHelper securityHelper;
     @Autowired private TaskManager taskManager;
     @Autowired private MidpointConfiguration midpointConfiguration;
-    @Autowired private FocusProfileService focusProfileService;
+    @Autowired private GuiProfiledPrincipalManager focusProfileService;
 
     @Autowired private CacheDispatcher cacheDispatcher;
 

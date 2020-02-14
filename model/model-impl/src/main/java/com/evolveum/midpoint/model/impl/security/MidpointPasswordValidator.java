@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
-import com.evolveum.midpoint.model.api.authentication.FocusProfileService;
-import com.evolveum.midpoint.model.api.authentication.MidPointFocusProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 public class MidpointPasswordValidator extends UsernameTokenValidator {
 
     @Autowired private PasswordAuthenticationEvaluatorImpl passwdEvaluator;
-    @Autowired private FocusProfileService userService;
+    @Autowired private GuiProfiledPrincipalManager userService;
 
     @Override
     public Credential validate(Credential credential, RequestData data) throws WSSecurityException {
@@ -69,7 +69,7 @@ public class MidpointPasswordValidator extends UsernameTokenValidator {
         UsernameToken usernameToken = credential.getUsernametoken();
         String username = usernameToken.getName();
 
-        MidPointFocusProfilePrincipal principal = null;
+        GuiProfiledPrincipal principal = null;
         try {
             principal = userService.getPrincipal(username, UserType.class);
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {

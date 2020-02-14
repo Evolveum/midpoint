@@ -664,12 +664,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
     }
 
     protected List<CompiledObjectCollectionView> getAllApplicableArchetypeViews() {
-        return getPageBase().getCompiledUserProfile().findAllApplicableArchetypeViews(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
+        return getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
     }
 
     protected CompiledObjectCollectionView getObjectCollectionView() {
         String collectionName = getCollectionNameParameterValue().toString();
-        return getPageBase().getCompiledUserProfile().findObjectCollectionView(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()), collectionName);
+        return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()), collectionName);
     }
 
     private StringValue getCollectionNameParameterValue(){

@@ -82,7 +82,7 @@ import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
-import com.evolveum.midpoint.model.impl.security.UserProfileCompiler;
+import com.evolveum.midpoint.model.impl.security.GuiProfileCompiler;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -199,8 +199,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private ActivationComputer activationComputer;
     @Autowired private Clock clock;
     @Autowired private HookRegistry hookRegistry;
-    @Autowired private FocusProfileService focusProfileService;
-    @Autowired private UserProfileCompiler userProfileCompiler;
+    @Autowired private GuiProfiledPrincipalManager focusProfileService;
+    @Autowired private GuiProfileCompiler guiProfileCompiler;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private OperationalDataManager metadataManager;
     @Autowired private Clockwork clockwork;
@@ -679,7 +679,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @NotNull
     @Override
-    public CompiledUserProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public CompiledGuiProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         MidPointPrincipal principal = null;
         try {
             principal = securityContextManager.getPrincipal();
@@ -687,11 +687,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.warn("Security violation while getting principlal to get GUI config: {}", e.getMessage(), e);
         }
 
-        if (principal == null || !(principal instanceof MidPointFocusProfilePrincipal)) {
+        if (principal == null || !(principal instanceof GuiProfiledPrincipal)) {
             // May be used for unathenticated user, error pages and so on
-            return userProfileCompiler.getGlobalCompiledUserProfile(task, parentResult);
+            return guiProfileCompiler.getGlobalCompiledUserProfile(task, parentResult);
         } else {
-            return ((MidPointFocusProfilePrincipal)principal).getCompiledUserProfile();
+            return ((GuiProfiledPrincipal)principal).getCompiledGuiProfile();
         }
     }
 

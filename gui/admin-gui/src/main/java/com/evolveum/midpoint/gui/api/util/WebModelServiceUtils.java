@@ -30,8 +30,8 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.model.api.authentication.MidPointFocusProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -625,7 +625,7 @@ public class WebModelServiceUtils {
     }
 
     public static TimeZone getTimezone(FocusType focus) {
-        MidPointFocusProfilePrincipal principal = SecurityUtils.getPrincipalUser();
+        GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
         if (principal != null && focus == null) {
             focus = principal.getFocus();
         }
@@ -634,8 +634,8 @@ public class WebModelServiceUtils {
         if (focus != null && StringUtils.isNotEmpty(focus.getTimezone())) {
             timeZone = focus.getTimezone();
         } else {
-            timeZone = principal != null && principal.getCompiledUserProfile() != null ?
-                    principal.getCompiledUserProfile().getDefaultTimezone() : "";
+            timeZone = principal != null && principal.getCompiledGuiProfile() != null ?
+                    principal.getCompiledGuiProfile().getDefaultTimezone() : "";
         }
         try {
             if (timeZone != null) {
@@ -731,7 +731,7 @@ public class WebModelServiceUtils {
 
         ModelInteractionService mInteractionService = pageBase.getModelInteractionService();
 
-        CompiledUserProfile adminGuiConfig = null;
+        CompiledGuiProfile adminGuiConfig = null;
         try {
             adminGuiConfig = mInteractionService.getCompiledUserProfile(task, result);
             result.recomputeStatus();
@@ -751,7 +751,7 @@ public class WebModelServiceUtils {
     }
 
     public static boolean isEnableExperimentalFeature(ModelInteractionService modelInteractionService, Task task, OperationResult result) {
-        CompiledUserProfile adminGuiConfig = null;
+        CompiledGuiProfile adminGuiConfig = null;
         try {
             adminGuiConfig = modelInteractionService.getCompiledUserProfile(task, result);
             result.recomputeStatus();

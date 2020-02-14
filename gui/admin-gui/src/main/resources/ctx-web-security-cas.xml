@@ -35,7 +35,7 @@
       class="org.springframework.security.cas.authentication.CasAuthenticationProvider">
     <property name="authenticationUserDetailsService">
       <bean class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
-        <constructor-arg ref="focusDetailsService" />
+        <constructor-arg ref="guiProfiledPrincipalManager" />
       </bean>
     </property>
     <property name="serviceProperties" ref="serviceProperties" />

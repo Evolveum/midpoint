@@ -8,7 +8,7 @@ package com.evolveum.midpoint.web.security.provider;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
-import com.evolveum.midpoint.model.api.authentication.MidPointFocusProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
@@ -51,8 +51,8 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
     protected void writeAutentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication,
                                       ModuleAuthentication moduleAuthentication, Authentication token) {
         Object principal = token.getPrincipal();
-        if (principal != null && principal instanceof MidPointFocusProfilePrincipal) {
-            mpAuthentication.setPrincipal((MidPointFocusProfilePrincipal) principal);
+        if (principal != null && principal instanceof GuiProfiledPrincipal) {
+            mpAuthentication.setPrincipal((GuiProfiledPrincipal) principal);
         }
 
         moduleAuthentication.setAuthentication(originalAuthentication);

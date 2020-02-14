@@ -231,7 +231,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected NotificationManager notificationManager;
 
     @Autowired(required = false)
-    protected FocusProfileService focusProfileService;
+    protected GuiProfiledPrincipalManager focusProfileService;
 
     protected DummyResourceCollection dummyResourceCollection;
 
@@ -5068,19 +5068,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected CompiledUserProfileAsserter<Void> assertCompiledUserProfile(MidPointPrincipal principal) {
-        if (!(principal instanceof MidPointFocusProfilePrincipal)) {
-            fail("Expected MidPointUserProfilePrincipal, but got "+principal.getClass());
+    protected CompiledGuiProfileAsserter<Void> assertCompiledUserProfile(MidPointPrincipal principal) {
+        if (!(principal instanceof GuiProfiledPrincipal)) {
+            fail("Expected GuiProfiledPrincipal, but got "+principal.getClass());
         }
-        CompiledUserProfile compiledUserProfile = ((MidPointFocusProfilePrincipal)principal).getCompiledUserProfile();
-        CompiledUserProfileAsserter<Void> asserter = new CompiledUserProfileAsserter<>(compiledUserProfile, null, "in principal "+principal);
+        CompiledGuiProfile compiledGuiProfile = ((GuiProfiledPrincipal)principal).getCompiledGuiProfile();
+        CompiledGuiProfileAsserter<Void> asserter = new CompiledGuiProfileAsserter<>(compiledGuiProfile, null, "in principal "+principal);
         initializeAsserter(asserter);
         asserter.display();
         return asserter;
     }
 
-    protected CompiledUserProfileAsserter<Void> assertCompiledUserProfile(CompiledUserProfile compiledUserProfile) {
-        CompiledUserProfileAsserter<Void> asserter = new CompiledUserProfileAsserter<>(compiledUserProfile, null, null);
+    protected CompiledGuiProfileAsserter<Void> assertCompiledUserProfile(CompiledGuiProfile compiledGuiProfile) {
+        CompiledGuiProfileAsserter<Void> asserter = new CompiledGuiProfileAsserter<>(compiledGuiProfile, null, null);
         initializeAsserter(asserter);
         asserter.display();
         return asserter;

@@ -24,7 +24,7 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -135,7 +135,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
     private List<VirtualContainersSpecificationType> determineVirtualContainers(QName objectType, WrapperContext context) {
         OperationResult result = context.getResult().createMinorSubresult(OPERATION_DETERMINE_VIRTUAL_CONTAINERS);
         try {
-            CompiledUserProfile userProfile = modelInteractionService.getCompiledUserProfile(context.getTask(), context.getResult());
+            CompiledGuiProfile userProfile = modelInteractionService.getCompiledUserProfile(context.getTask(), context.getResult());
             GuiObjectDetailsSetType objectDetailsSetType = userProfile.getObjectDetails();
             if (objectDetailsSetType == null) {
                 result.recordSuccess();

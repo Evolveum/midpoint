@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.security;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.ClusterwideUserSessionManager;
-import com.evolveum.midpoint.model.api.authentication.FocusProfileService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.impl.ClusterRestService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
@@ -39,12 +39,12 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
     private static final Trace LOGGER = TraceManager.getTrace(ClusterwideUserSessionManagerImpl.class);
 
     @Autowired private ClusterExecutionHelper clusterExecutionHelper;
-    @Autowired private FocusProfileService localFocusProfileService;
+    @Autowired private GuiProfiledPrincipalManager guiProfiledPrincipalManager;
 
     @Override
     public void terminateSessions(TerminateSessionEvent terminateSessionEvent, Task task, OperationResult result) {
 
-        localFocusProfileService.terminateLocalSessions(terminateSessionEvent);
+        guiProfiledPrincipalManager.terminateLocalSessions(terminateSessionEvent);
 
         // We try to invoke this call also on nodes that are in transition. It is quite important
         // that terminate session is executed on as wide scale as realistically possible.
@@ -61,7 +61,7 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
     @NotNull
     public List<UserSessionManagementType> getLoggedInPrincipals(Task task, OperationResult result) {
 
-        List<UserSessionManagementType> loggedUsers = localFocusProfileService.getLocalLoggedInPrincipals();
+        List<UserSessionManagementType> loggedUsers = guiProfiledPrincipalManager.getLocalLoggedInPrincipals();
 
         Map<String, UserSessionManagementType> usersMap = loggedUsers.stream()
                 .collect(Collectors.toMap(key -> key.getFocus().getOid(), value -> value));

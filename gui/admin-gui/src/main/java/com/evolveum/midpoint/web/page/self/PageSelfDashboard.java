@@ -34,7 +34,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -106,10 +106,10 @@ public class PageSelfDashboard extends PageSelf {
     private static final int MAX_REQUESTS = 1000;
 
     private final Model<PrismObject<? extends FocusType>> principalModel = new Model<>();
-    private CompiledUserProfile compiledUserProfile;
+    private CompiledGuiProfile compiledGuiProfile;
 
     public PageSelfDashboard() {
-        compiledUserProfile = getPrincipal().getCompiledUserProfile();
+        compiledGuiProfile = getPrincipal().getCompiledGuiProfile();
         principalModel.setObject(loadFocus());
         setTimeZone(PageSelfDashboard.this);
         initLayout();
@@ -390,7 +390,7 @@ public class PageSelfDashboard extends PageSelf {
         if (focus == null) {
             return new ArrayList<>();
         } else {
-            return ((PageBase) getPage()).getCompiledUserProfile().getUserDashboardLink();
+            return ((PageBase) getPage()).getCompiledGuiProfile().getUserDashboardLink();
         }
     }
 
@@ -649,14 +649,14 @@ public class PageSelfDashboard extends PageSelf {
     }
 
     private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId){
-        if (compiledUserProfile == null || compiledUserProfile.getUserDashboard() == null) {
+        if (compiledGuiProfile == null || compiledGuiProfile.getUserDashboard() == null) {
             return UserInterfaceElementVisibilityType.AUTOMATIC;
         }
-        List<DashboardWidgetType> widgetsList = compiledUserProfile.getUserDashboard().getWidget();
+        List<DashboardWidgetType> widgetsList = compiledGuiProfile.getUserDashboard().getWidget();
         if (widgetsList == null || widgetsList.size() == 0){
             return UserInterfaceElementVisibilityType.VACANT;
         }
-        DashboardWidgetType widget = compiledUserProfile.findUserDashboardWidget(componentId.getUri());
+        DashboardWidgetType widget = compiledGuiProfile.findUserDashboardWidget(componentId.getUri());
         if (widget == null || widget.getVisibility() == null){
             return UserInterfaceElementVisibilityType.HIDDEN;
         } else {

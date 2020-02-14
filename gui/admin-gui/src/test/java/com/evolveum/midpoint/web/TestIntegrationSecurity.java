@@ -27,7 +27,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.authentication.FocusProfileService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -65,7 +65,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
 
     private static final Trace LOGGER = TraceManager.getTrace(TestIntegrationSecurity.class);
 
-    @Autowired private FocusProfileService focusProfileService;
+    @Autowired private GuiProfiledPrincipalManager focusProfileService;
 
     private MidPointGuiAuthorizationEvaluator midPointGuiAuthorizationEvaluator;
 

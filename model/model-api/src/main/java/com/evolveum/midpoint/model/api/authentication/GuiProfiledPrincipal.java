@@ -12,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Principal that extends simple MidPointPrincipal with user interface concepts (user profile).
@@ -20,49 +19,49 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @since 4.0
  * @author Radovan Semancik
  */
-public class MidPointFocusProfilePrincipal extends MidPointPrincipal {
+public class GuiProfiledPrincipal extends MidPointPrincipal {
     private static final long serialVersionUID = 1L;
 
-    private CompiledUserProfile compiledUserProfile;
+    private CompiledGuiProfile compiledGuiProfile;
 
     private transient int activeSessions = 0;
 
-    public MidPointFocusProfilePrincipal(@NotNull FocusType user) {
+    public GuiProfiledPrincipal(@NotNull FocusType user) {
         super(user);
     }
 
     @NotNull
-    public CompiledUserProfile getCompiledUserProfile() {
-        if (compiledUserProfile == null) {
-            compiledUserProfile = new CompiledUserProfile();
+    public CompiledGuiProfile getCompiledGuiProfile() {
+        if (compiledGuiProfile == null) {
+            compiledGuiProfile = new CompiledGuiProfile();
         }
-        return compiledUserProfile;
+        return compiledGuiProfile;
     }
 
-    public void setCompiledUserProfile(CompiledUserProfile compiledUserProfile) {
-        this.compiledUserProfile = compiledUserProfile;
+    public void setCompiledGuiProfile(CompiledGuiProfile compiledGuiProfile) {
+        this.compiledGuiProfile = compiledGuiProfile;
     }
 
     /**
      * Semi-shallow clone.
      */
-    public MidPointFocusProfilePrincipal clone() {
-        MidPointFocusProfilePrincipal clone = new MidPointFocusProfilePrincipal(this.getFocus());
+    public GuiProfiledPrincipal clone() {
+        GuiProfiledPrincipal clone = new GuiProfiledPrincipal(this.getFocus());
         copyValues(clone);
         return clone;
     }
 
-    protected void copyValues(MidPointFocusProfilePrincipal clone) {
+    protected void copyValues(GuiProfiledPrincipal clone) {
         super.copyValues(clone);
         // No need to clone user profile here. It is essentially read-only.
-        clone.compiledUserProfile = this.compiledUserProfile;
+        clone.compiledGuiProfile = this.compiledGuiProfile;
     }
 
     @Override
     protected void debugDumpInternal(StringBuilder sb, int indent) {
         super.debugDumpInternal(sb, indent);
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "compiledUserProfile", compiledUserProfile, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "compiledUserProfile", compiledGuiProfile, indent + 1);
     }
 
     public void setActiveSessions(int activeSessions) {
@@ -75,10 +74,10 @@ public class MidPointFocusProfilePrincipal extends MidPointPrincipal {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof MidPointFocusProfilePrincipal)) {
+        if (!(obj instanceof GuiProfiledPrincipal)) {
             return false;
         }
-        return getFocus().equals(((MidPointFocusProfilePrincipal) obj).getFocus());
+        return getFocus().equals(((GuiProfiledPrincipal) obj).getFocus());
     }
 
     @Override

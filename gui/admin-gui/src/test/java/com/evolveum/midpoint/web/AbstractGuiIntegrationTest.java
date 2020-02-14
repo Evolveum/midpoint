@@ -37,7 +37,7 @@ import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
@@ -216,7 +216,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
             @NotNull
             @Override
-            public CompiledUserProfile getCompiledUserProfile() {
+            public CompiledGuiProfile getCompiledGuiProfile() {
                 Task task = createSimpleTask("getCompiledUserProfile");
                 try {
                     return getModelInteractionService().getCompiledUserProfile(task, task.getResult());

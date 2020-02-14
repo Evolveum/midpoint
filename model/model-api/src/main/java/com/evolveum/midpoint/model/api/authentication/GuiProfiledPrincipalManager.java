@@ -28,19 +28,19 @@ import java.util.List;
 /**
  * @author semancik
  */
-public interface FocusProfileService extends MidPointPrincipalManager {
+public interface GuiProfiledPrincipalManager extends MidPointPrincipalManager {
 
     @Override
-    MidPointFocusProfilePrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     @Override
-    MidPointFocusProfilePrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     @Override
-    MidPointFocusProfilePrincipal getPrincipal(PrismObject<? extends FocusType> focus) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     @Override
-    MidPointFocusProfilePrincipal getPrincipal(PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     @Override
     void updateFocus(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas);

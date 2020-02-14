@@ -20,7 +20,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.LocalizationMessageSource;
-import com.evolveum.midpoint.model.api.authentication.MidPointFocusProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.authentication.FocusProfileService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -87,7 +87,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     protected static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
 
     @Autowired private LocalizationMessageSource messageSource;
-    @Autowired private FocusProfileService focusProfileService;
+    @Autowired private GuiProfiledPrincipalManager focusProfileService;
     @Autowired private Clock clock;
 
     private MessageSourceAccessor messages;
@@ -116,7 +116,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         messages = new MessageSourceAccessor(messageSource);
 
-        ((AuthenticationEvaluatorImpl)getAuthenticationEvaluator()).focusProfileService = new FocusProfileService() {
+        ((AuthenticationEvaluatorImpl)getAuthenticationEvaluator()).focusProfileService = new GuiProfiledPrincipalManager() {
 
             @Override
             public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -129,29 +129,29 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             }
 
             @Override
-            public MidPointFocusProfilePrincipal getPrincipal(PrismObject<? extends FocusType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
                 return getPrincipal(user, null, null);
             }
 
             @Override
-            public MidPointFocusProfilePrincipal getPrincipal(PrismObject<? extends FocusType> user,
+            public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> user,
                     AuthorizationTransformer authorizationLimiter, OperationResult result)
                     throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                MidPointFocusProfilePrincipal principal = focusProfileService.getPrincipal(user);
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(user);
                 addFakeAuthorization(principal);
                 return principal;
             }
 
             @Override
-            public MidPointFocusProfilePrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                MidPointFocusProfilePrincipal principal = focusProfileService.getPrincipal(username, clazz);
+            public GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(username, clazz);
                 addFakeAuthorization(principal);
                 return principal;
             }
 
             @Override
-            public MidPointFocusProfilePrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                MidPointFocusProfilePrincipal principal = focusProfileService.getPrincipalByOid(oid, clazz);
+            public GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipalByOid(oid, clazz);
                 addFakeAuthorization(principal);
                 return principal;
             }

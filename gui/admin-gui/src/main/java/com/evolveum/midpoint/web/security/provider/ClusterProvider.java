@@ -43,7 +43,7 @@ public class ClusterProvider extends MidPointAbstractAuthenticationProvider {
     @Override
     protected Authentication internalAuthentication(Authentication authentication, List requireAssignment,
             AuthenticationChannel channel, Class focusTyp) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof MidPointFocusProfilePrincipal) {
+        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
             return authentication;
         }
         String enteredUsername = (String) authentication.getPrincipal();

@@ -30,7 +30,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.evolveum.midpoint.model.api.authentication.FocusProfileService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -65,16 +65,16 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
     private Set<String> after = new HashSet<>();
     private String id;
 
-    private FocusProfileService focusDetailsService;
+    private GuiProfiledPrincipalManager guiProfiledPrincipalManager;
     private SecurityEnforcer securityEnforcer;
     private SecurityHelper securityHelper;
     private TaskManager taskManager;
 
-    public SpringAuthenticationInjectorInterceptor(FocusProfileService focusDetailsService,
-            SecurityEnforcer securityEnforcer, SecurityHelper securityHelper,
-            TaskManager taskManager) {
+    public SpringAuthenticationInjectorInterceptor(GuiProfiledPrincipalManager guiProfiledPrincipalManager,
+                                                   SecurityEnforcer securityEnforcer, SecurityHelper securityHelper,
+                                                   TaskManager taskManager) {
         super();
-        this.focusDetailsService = focusDetailsService;
+        this.guiProfiledPrincipalManager = guiProfiledPrincipalManager;
         this.securityEnforcer = securityEnforcer;
         this.securityHelper = securityHelper;
         this.taskManager = taskManager;
@@ -132,7 +132,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 
             MidPointPrincipal principal = null;
             try {
-                principal = focusDetailsService.getPrincipal(username, UserType.class);
+                principal = guiProfiledPrincipalManager.getPrincipal(username, UserType.class);
             } catch (SchemaException e) {
                 handlePrincipalException(message, username, connEnv, "Schema error", e);
             } catch (CommunicationException e) {

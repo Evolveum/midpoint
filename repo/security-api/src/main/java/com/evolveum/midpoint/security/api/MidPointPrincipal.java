@@ -23,7 +23,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 /**
  * Simple midPoint principal. This principal should contain only the concepts that are
  * essential for midPoint core to work. It should not contain user interface concepts
- * (e.g. adminGuiConfig). For that see MidPointUserProfilePrincipal.
+ * (e.g. adminGuiConfig). For that see GuiProfiledPrincipal.
  *
  * @author Radovan Semancik
  */

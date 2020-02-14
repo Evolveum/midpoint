@@ -36,8 +36,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.stereotype.Service;
 
-import com.evolveum.midpoint.model.api.authentication.MidPointFocusProfilePrincipal;
-import com.evolveum.midpoint.model.api.authentication.FocusProfileService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.FocusComputer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -71,10 +71,10 @@ import static java.util.Collections.emptyList;
  * @author lazyman
  * @author semancik
  */
-@Service(value = "focusDetailsService")
-public class FocusProfileServiceImpl implements FocusProfileService, UserDetailsService, UserDetailsContextMapper, MessageSourceAware {
+@Service(value = "guiProfiledPrincipalManager")
+public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalManager, UserDetailsService, UserDetailsContextMapper, MessageSourceAware {
 
-    private static final Trace LOGGER = TraceManager.getTrace(FocusProfileServiceImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(GuiProfiledPrincipalManagerImpl.class);
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -84,7 +84,7 @@ public class FocusProfileServiceImpl implements FocusProfileService, UserDetails
     @Qualifier("modelObjectResolver")
     private ObjectResolver objectResolver;
     @Autowired
-    private UserProfileCompiler userProfileCompiler;
+    private GuiProfileCompiler guiProfileCompiler;
     @Autowired
     private FocusComputer focusComputer;
     @Autowired
@@ -110,7 +110,7 @@ public class FocusProfileServiceImpl implements FocusProfileService, UserDetails
     }
 
     @Override
-    public MidPointFocusProfilePrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         PrismObject<FocusType> focus;
         try {
@@ -131,19 +131,19 @@ public class FocusProfileServiceImpl implements FocusProfileService, UserDetails
     }
 
     @Override
-    public MidPointFocusProfilePrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         return getPrincipal(getUserByOid(oid, clazz, result).asPrismObject());
     }
 
     @Override
-    public MidPointFocusProfilePrincipal getPrincipal(PrismObject<? extends FocusType> focus) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         return getPrincipal(focus, null, result);
     }
 
     @Override
-    public MidPointFocusProfilePrincipal getPrincipal(PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (focus == null) {
             return null;
         }
@@ -153,7 +153,7 @@ public class FocusProfileServiceImpl implements FocusProfileService, UserDetails
             LifecycleStateModelType lifecycleModel = getLifecycleModel(focus, systemConfiguration);
 
             focusComputer.recompute(focus, lifecycleModel);
-            MidPointFocusProfilePrincipal principal = new MidPointFocusProfilePrincipal(focus.asObjectable());
+            GuiProfiledPrincipal principal = new GuiProfiledPrincipal(focus.asObjectable());
             initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer);
             return principal;
         } finally {
@@ -171,7 +171,7 @@ public class FocusProfileServiceImpl implements FocusProfileService, UserDetails
             List<UserSessionManagementType> loggedPrincipals = new ArrayList<>();
             for (Object principal : loggedInUsers) {
 
-                if (!(principal instanceof MidPointFocusProfilePrincipal)) {
+                if (!(principal instanceof GuiProfiledPrincipal)) {
                     continue;
                 }
 
@@ -179,7 +179,7 @@ public class FocusProfileServiceImpl implements FocusProfileService, UserDetails
                 if (sessionInfos == null || sessionInfos.isEmpty()) {
                     continue;
                 }
-                MidPointFocusProfilePrincipal midPointPrincipal = (MidPointFocusProfilePrincipal) principal;
+                GuiProfiledPrincipal midPointPrincipal = (GuiProfiledPrincipal) principal;
 
                 UserSessionManagementType userSessionManagementType = new UserSessionManagementType();
                 userSessionManagementType.setFocus(midPointPrincipal.getFocus());
@@ -203,11 +203,11 @@ public class FocusProfileServiceImpl implements FocusProfileService, UserDetails
             List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
             for (Object principal : loggedInUsers) {
 
-                if (!(principal instanceof MidPointFocusProfilePrincipal)) {
+                if (!(principal instanceof GuiProfiledPrincipal)) {
                     continue;
                 }
 
-                MidPointFocusProfilePrincipal midPointPrincipal = (MidPointFocusProfilePrincipal) principal;
+                GuiProfiledPrincipal midPointPrincipal = (GuiProfiledPrincipal) principal;
                 if (!principalOids.contains(midPointPrincipal.getOid())) {
                     continue;
                 }
@@ -270,11 +270,11 @@ public class FocusProfileServiceImpl implements FocusProfileService, UserDetails
         return list.get(0);
     }
 
-    private void initializePrincipalFromAssignments(MidPointFocusProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = taskManager.createTaskInstance(FocusProfileServiceImpl.class.getName() + ".initializePrincipalFromAssignments");
+    private void initializePrincipalFromAssignments(GuiProfiledPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        Task task = taskManager.createTaskInstance(GuiProfiledPrincipalManagerImpl.class.getName() + ".initializePrincipalFromAssignments");
         OperationResult result = task.getResult();
         try {
-            userProfileCompiler.compileUserProfile(principal, systemConfiguration, authorizationTransformer, task, result);
+            guiProfileCompiler.compileUserProfile(principal, systemConfiguration, authorizationTransformer, task, result);
         } catch (Throwable e) {
             // Do not let any error stop processing here. This code is used during user login. An error here can stop login procedure. We do not
             // want that. E.g. wrong adminGuiConfig may prohibit login on administrator, therefore ruining any chance of fixing the situation.
@@ -299,7 +299,7 @@ public class FocusProfileServiceImpl implements FocusProfileService, UserDetails
             return null;
         }
         PrismObject<F> owner = null;
-        OperationResult result = new OperationResult(FocusProfileServiceImpl.class + ".resolveOwner");
+        OperationResult result = new OperationResult(GuiProfiledPrincipalManagerImpl.class + ".resolveOwner");
 
         // TODO: what about using LensOwnerResolver here?
 

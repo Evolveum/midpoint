@@ -8,7 +8,7 @@ package com.evolveum.midpoint.web.security.provider;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
-import com.evolveum.midpoint.model.api.authentication.MidPointFocusProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.SecurityQuestionsAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -48,7 +48,7 @@ public class SecurityQuestionProvider extends AbstractCredentialProvider<Securit
     @Override
     protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof MidPointFocusProfilePrincipal) {
+        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
             return authentication;
         }
         String enteredUsername = (String) authentication.getPrincipal();
