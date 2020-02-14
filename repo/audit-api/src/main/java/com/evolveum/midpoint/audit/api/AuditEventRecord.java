@@ -125,10 +125,14 @@ public class AuditEventRecord implements DebugDumpable {
     private PrismObject<? extends FocusType> initiator;
 
     /**
-     * Attorney is the (physical) user who have executed the action.
-     * This is the user that have logged-in to the user interface. This is the user that
-     * pressed the button to execute the action. This is always identity of a user and
-     * it will always be a user. It cannot be a company or any other virtual entity.
+     * Attorney is the (physical) object who has executed the action. This is the user
+     * (or similar object, e.g. service) that has logged-in to the user interface or REST
+     * or other mechanism. Figuratively speaking, this is the user that pressed the button
+     * to execute the action.
+     *
+     * For the vast majority of cases, this is really an object of UserType. But sometimes it can be
+     * a ServiceType (or, very occasionally, maybe RoleType or OrgType - but this does not make
+     * much sense).
      */
     private PrismObject<? extends FocusType> attorney;
 
