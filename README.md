@@ -13,7 +13,7 @@ The most important features of midPoint are:
 - Request approval
 - Entitlement Management
 
-Read more about these features at https://evolveum.com/midpoint/about-midpoint/
+Read more about these features at https://evolveum.com/midpoint/
 
 Other features:
 
