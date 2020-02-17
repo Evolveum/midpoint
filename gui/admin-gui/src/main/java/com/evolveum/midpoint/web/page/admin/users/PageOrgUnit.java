@@ -144,6 +144,15 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
                 };
             }
 
+            @Override
+            protected boolean getOptionsPanelVisibility() {
+                if (isSelfProfile()){
+                    return false;
+                } else {
+                    return super.getOptionsPanelVisibility();
+                }
+            }
+
 
         };
     }

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -16,9 +17,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public interface ModelAuditRecorder {
 
-    void auditLoginSuccess(UserType user, ConnectionEnvironment connEnv);
+    void auditLoginSuccess(FocusType focus, ConnectionEnvironment connEnv);
 
-    void auditLoginFailure(String username, UserType user, ConnectionEnvironment connEnv, String message);
+    void auditLoginFailure(String username, FocusType focus, ConnectionEnvironment connEnv, String message);
 
     void auditLogout(ConnectionEnvironment connEnv, Task task);
 }

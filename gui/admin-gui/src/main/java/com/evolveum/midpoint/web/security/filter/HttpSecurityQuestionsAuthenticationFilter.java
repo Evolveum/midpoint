@@ -10,6 +10,7 @@ import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.module.authentication.SecurityQuestionsAuthenticationToken;
+import com.evolveum.midpoint.web.security.util.MidpointHttpServletRequest;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.github.openjson.JSONObject;
 import org.springframework.security.authentication.*;
@@ -46,6 +47,7 @@ public class HttpSecurityQuestionsAuthenticationFilter extends HttpAuthenticatio
                                     HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
+        HttpServletRequest newRequest = request;
         try {
             String header = request.getHeader("Authorization");
 
@@ -88,6 +90,8 @@ public class HttpSecurityQuestionsAuthenticationFilter extends HttpAuthenticatio
 
                 getRememberMeServices().loginSuccess(request, response, authResult);
 
+                newRequest = new MidpointHttpServletRequest(request);
+
             }
 
         }
@@ -101,7 +105,7 @@ public class HttpSecurityQuestionsAuthenticationFilter extends HttpAuthenticatio
             return;
         }
 
-        chain.doFilter(request, response);
+        chain.doFilter(newRequest, response);
     }
 
 

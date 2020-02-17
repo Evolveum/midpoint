@@ -19,6 +19,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
@@ -75,14 +76,14 @@ public class ModelInvocationContext<T extends ObjectType> {
         return prism.asObjectable();
     }
 
-    public PrismObject<UserType> getRequestor(OperationResult result) {
+    public PrismObject<? extends FocusType> getRequestor(OperationResult result) {
         if (task.getOwner() == null) {
             LOGGER.warn("No requester in task {} -- continuing, but the situation is suspicious.", task);
             return null;
         }
 
         // let's get fresh data (not the ones read on user login)
-        PrismObject<UserType> requester;
+        PrismObject<? extends FocusType> requester;
         try {
             requester = repositoryService.getObject(UserType.class, task.getOwner().getOid(), null, result);
         } catch (ObjectNotFoundException e) {

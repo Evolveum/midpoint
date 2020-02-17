@@ -682,8 +682,7 @@ public class ExecutionManager {
 
         // for loosely-bound, recurring, interval-based tasks we reschedule the task in order to start immediately
         // and then continue after specified interval (i.e. NOT continue according to original schedule) - MID-1410
-        if (!getConfiguration().isRunNowKeepsOriginalSchedule() && task.isLooselyBound() && task.isRecurring() && task.getSchedule() != null
-                && task.getSchedule().getInterval() != null && task.getSchedule().getInterval() != 0) {
+        if (!getConfiguration().isRunNowKeepsOriginalSchedule() && task.isLooselyBound() && task.isRecurring() && task.hasScheduleInterval()) {
             LOGGER.trace("'Run now' for task invoked: unscheduling and rescheduling it; task = {}", task);
             unscheduleTask(task, result);
             ((InternalTaskInterface) task).setRecreateQuartzTrigger(true);

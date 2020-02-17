@@ -85,7 +85,7 @@ public class AccCertCaseOperationsHelper {
             throw new ObjectNotFoundException("Work item " + workItemId + " was not found in campaign " + toShortString(campaign) + ", case " + caseId);
         }
 
-        ObjectReferenceType responderRef = ObjectTypeUtil.createObjectRef(securityContextManager.getPrincipal().getUser(), prismContext);
+        ObjectReferenceType responderRef = ObjectTypeUtil.createObjectRef(securityContextManager.getPrincipal().getFocus(), prismContext);
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
         ItemPath workItemPath = ItemPath.create(F_CASE, caseId, F_WORK_ITEM, workItemId);
         Collection<ItemDelta<?,?>> deltaList = prismContext.deltaFor(AccessCertificationCampaignType.class)
@@ -128,8 +128,8 @@ public class AccCertCaseOperationsHelper {
         LOGGER.info("Going to delegate {} work item(s) in campaign {}", workItems.size(), campaignOid);
 
         MidPointPrincipal principal = securityContextManager.getPrincipal();
-        result.addContext("user", toShortString(principal.getUser()));
-        ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getUser(), prismContext);
+        result.addContext("user", toShortString(principal.getFocus()));
+        ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getFocus(), prismContext);
         ObjectReferenceType attorney = ObjectTypeUtil.createObjectRef(principal.getAttorney(), prismContext);
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
@@ -195,8 +195,8 @@ public class AccCertCaseOperationsHelper {
             WorkItemEventCauseInformationType causeInformation, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException {
         MidPointPrincipal principal = securityContextManager.getPrincipal();
-        result.addContext("user", toShortString(principal.getUser()));
-        ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getUser(), prismContext);
+        result.addContext("user", toShortString(principal.getFocus()));
+        ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getFocus(), prismContext);
         ObjectReferenceType attorney = ObjectTypeUtil.createObjectRef(principal.getAttorney(), prismContext);
 
         List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(

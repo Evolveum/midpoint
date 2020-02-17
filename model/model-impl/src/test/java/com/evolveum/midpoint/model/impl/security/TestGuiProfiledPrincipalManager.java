@@ -35,7 +35,7 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestUserProfileService extends AbstractInternalModelIntegrationTest {
+public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void test100DeputyNoLimits() throws Exception {

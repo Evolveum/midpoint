@@ -15,7 +15,7 @@ import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -79,7 +79,7 @@ public interface ModelServiceLocator {
      * cache adminGuiConfig in the page (in case many components need it).
      */
     @NotNull
-    CompiledUserProfile getCompiledUserProfile();
+    CompiledGuiProfile getCompiledGuiProfile();
 
     default ObjectResolver getModelObjectResolver() {
         return null;

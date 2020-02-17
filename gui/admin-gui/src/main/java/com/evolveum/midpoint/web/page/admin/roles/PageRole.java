@@ -97,6 +97,15 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
             protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<RoleType> object, String date){
                 PageRole.this.navigateToNext(new PageRoleHistory(object, date));
             }
+
+            @Override
+            protected boolean getOptionsPanelVisibility() {
+                if (isSelfProfile()){
+                    return false;
+                } else {
+                    return super.getOptionsPanelVisibility();
+                }
+            }
         };
     }
 }

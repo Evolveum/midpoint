@@ -55,6 +55,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
         setSharedObjects(http, sharedObjects);
 
         ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication(moduleType, configuration);
+        moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }

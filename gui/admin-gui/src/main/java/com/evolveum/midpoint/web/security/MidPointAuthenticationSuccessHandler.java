@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.gui.api.GuiConstants;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -98,7 +97,7 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
             String channelSavedRequest = null;
             if ((startIndex < endIndex)) {
                 String localePath = savedRequest.getRedirectUrl().substring(startIndex, endIndex);
-                channelSavedRequest = SecurityUtils.findChannelByPath(localePath);
+                channelSavedRequest = SecurityUtils.searchChannelByPath(localePath);
             }
             if (channelSavedRequest == null) {
                 channelSavedRequest = SecurityPolicyUtil.DEFAULT_CHANNEL;

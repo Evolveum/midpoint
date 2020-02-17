@@ -8,10 +8,9 @@ package com.evolveum.midpoint.web.security.provider;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -20,6 +19,7 @@ import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -35,9 +35,9 @@ import java.util.List;
  * @author skublik
  */
 
-public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvider {
+public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MidpointSaml2Provider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(Saml2Provider.class);
 
     @Autowired
     private transient AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
@@ -51,23 +51,16 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
     protected void writeAutentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication,
                                       ModuleAuthentication moduleAuthentication, Authentication token) {
         Object principal = token.getPrincipal();
-        if (principal != null && principal instanceof MidPointUserProfilePrincipal) {
-            mpAuthentication.setPrincipal((MidPointUserProfilePrincipal) principal);
+        if (principal != null && principal instanceof GuiProfiledPrincipal) {
+            mpAuthentication.setPrincipal((GuiProfiledPrincipal) principal);
         }
 
         moduleAuthentication.setAuthentication(originalAuthentication);
     }
 
     @Override
-    protected Authentication createNewAuthenticationToken(Authentication actualAuthentication, Collection newAuthorities) {
-        if (actualAuthentication instanceof PreAuthenticatedAuthenticationToken) {
-            return new PreAuthenticatedAuthenticationToken(actualAuthentication.getPrincipal(), actualAuthentication.getCredentials(), newAuthorities);
-        } else {
-            return actualAuthentication;
-        }
-    }
-
-    protected Authentication internalAuthentication(Authentication authentication, List requireAssignment, AuthenticationChannel channel) throws AuthenticationException {
+    protected Authentication internalAuthentication(Authentication authentication, List requireAssignment,
+            AuthenticationChannel channel, Class focusType) throws AuthenticationException {
         ConnectionEnvironment connEnv = createEnviroment(channel);
 
         try {
@@ -93,7 +86,7 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
                         enteredUsername = (String) values.iterator().next();
                     }
                 }
-                PreAuthenticationContext authContext = new PreAuthenticationContext(enteredUsername, requireAssignment);
+                PreAuthenticationContext authContext = new PreAuthenticationContext(enteredUsername, focusType, requireAssignment);
                 if (channel != null) {
                     authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
                 }
@@ -112,6 +105,15 @@ public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvide
         } catch (AuthenticationException e) {
             LOGGER.info("Authentication with saml module failed: {}", e.getMessage());
             throw e;
+        }
+    }
+
+    @Override
+    protected Authentication createNewAuthenticationToken(Authentication actualAuthentication, Collection newAuthorities) {
+        if (actualAuthentication instanceof PreAuthenticatedAuthenticationToken) {
+            return new PreAuthenticatedAuthenticationToken(actualAuthentication.getPrincipal(), actualAuthentication.getCredentials(), newAuthorities);
+        } else {
+            return actualAuthentication;
         }
     }
 

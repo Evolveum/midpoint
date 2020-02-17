@@ -371,9 +371,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                                     // TODO what if original name (in audit log) differs from the current one (in repo) ?
                                     audit.setInitiator(resolve(localSession, resultList.getString(RAuditEventRecord.INITIATOR_OID_COLUMN_NAME),
                                             resultList.getString(RAuditEventRecord.INITIATOR_NAME_COLUMN_NAME),
-                                            defaultIfNull(RObjectType.values()[resultList.getInt(RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME)], RObjectType.USER)));
+                                            defaultIfNull(RObjectType.values()[resultList.getInt(RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME)], RObjectType.FOCUS)));
                                     audit.setAttorney(resolve(localSession, resultList.getString(RAuditEventRecord.ATTORNEY_OID_COLUMN_NAME),
-                                            resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME), RObjectType.USER));
+                                            resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME), RObjectType.FOCUS));
                                     audit.setTarget(resolve(localSession, resultList.getString(RAuditEventRecord.TARGET_OID_COLUMN_NAME),
                                             resultList.getString(RAuditEventRecord.TARGET_NAME_COLUMN_NAME),
                                             RObjectType.values()[resultList.getInt(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME)]), getPrismContext());

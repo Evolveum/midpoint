@@ -100,6 +100,15 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
                 return PageService.this.isFocusHistoryPage();
             }
 
+            @Override
+            protected boolean getOptionsPanelVisibility() {
+                if (isSelfProfile()){
+                    return false;
+                } else {
+                    return super.getOptionsPanelVisibility();
+                }
+            }
+
         };
     }
 

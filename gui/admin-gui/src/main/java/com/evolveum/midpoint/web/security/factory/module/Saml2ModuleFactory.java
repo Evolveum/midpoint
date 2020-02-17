@@ -11,7 +11,7 @@ import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.provider.MidpointSaml2Provider;
+import com.evolveum.midpoint.web.security.provider.Saml2Provider;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecurityConfiguration;
@@ -75,7 +75,7 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
         SamlModuleWebSecurityConfiguration.setProtector(protector);
         SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build((AuthenticationModuleSaml2Type)moduleType, prefixOfSequence, request);
         configuration.setPrefixOfSequence(prefixOfSequence);
-        configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new MidpointSaml2Provider()));
+        configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new Saml2Provider()));
 //        MidpointSamlProviderServerBeanConfiguration beanConfiguration =getObjectObjectPostProcessor().postProcess(new MidpointSamlProviderServerBeanConfiguration(configuration));
 
         SamlModuleWebSecurityConfig module = getObjectObjectPostProcessor().postProcess(new SamlModuleWebSecurityConfig(configuration));//, beanConfiguration));
@@ -84,6 +84,7 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
         setSharedObjects(http, sharedObjects);
 
         ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication(module.getBeanConfiguration(), configuration);
+        moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }

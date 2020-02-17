@@ -21,6 +21,7 @@ public enum NameOfModuleType {
     HTTP_HEADER("HttpHeader"),
     LOGIN_FORM("LoginForm"),
     SAML_2("Saml2"),
+    LDAP("LDAP"),
     MAIL_NONCE("MailNonce");
 
 

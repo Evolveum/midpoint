@@ -43,7 +43,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -774,9 +774,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     public List<ObjectFormType> getObjectFormTypes() {
         Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);
         OperationResult result = task.getResult();
-        CompiledUserProfile adminGuiConfiguration;
+        CompiledGuiProfile adminGuiConfiguration;
         try {
-            adminGuiConfiguration = getModelInteractionService().getCompiledUserProfile(task, result);
+            adminGuiConfiguration = getModelInteractionService().getCompiledGuiProfile(task, result);
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
             throw new SystemException("Cannot load GUI configuration: "+e.getMessage(), e);
         }
@@ -811,7 +811,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     public boolean isForcedPreview() {
-        GuiObjectDetailsPageType objectDetails = getCompiledUserProfile().findObjectDetailsConfiguration(getCompileTimeClass());
+        GuiObjectDetailsPageType objectDetails = getCompiledGuiProfile().findObjectDetailsConfiguration(getCompileTimeClass());
         return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());
     }
 

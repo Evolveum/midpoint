@@ -74,7 +74,7 @@ public class SecurityHelper implements ModelAuditRecorder {
     @Autowired private SecurityEnforcer securityEnforcer;
 
     @Override
-    public void auditLoginSuccess(@NotNull UserType user, @NotNull ConnectionEnvironment connEnv) {
+    public void auditLoginSuccess(@NotNull FocusType user, @NotNull ConnectionEnvironment connEnv) {
         auditLogin(user.getName().getOrig(), user, connEnv, OperationResultStatus.SUCCESS, null);
     }
 
@@ -83,11 +83,11 @@ public class SecurityHelper implements ModelAuditRecorder {
     }
 
     @Override
-    public void auditLoginFailure(@Nullable String username, @Nullable UserType user, @NotNull ConnectionEnvironment connEnv, String message) {
-        auditLogin(username, user, connEnv, OperationResultStatus.FATAL_ERROR, message);
+    public void auditLoginFailure(@Nullable String username, @Nullable FocusType focus, @NotNull ConnectionEnvironment connEnv, String message) {
+        auditLogin(username, focus, connEnv, OperationResultStatus.FATAL_ERROR, message);
     }
 
-    private void auditLogin(@Nullable String username, @Nullable UserType user, @NotNull ConnectionEnvironment connEnv, @NotNull OperationResultStatus status,
+    private void auditLogin(@Nullable String username, @Nullable FocusType focus, @NotNull ConnectionEnvironment connEnv, @NotNull OperationResultStatus status,
                             @Nullable String message) {
         Task task = taskManager.createTaskInstance();
         task.setChannel(connEnv.getChannel());
@@ -98,8 +98,8 @@ public class SecurityHelper implements ModelAuditRecorder {
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
         record.setParameter(username);
-        if (user != null ) {
-            record.setInitiator(user.asPrismObject());
+        if (focus != null ) {
+            record.setInitiator(focus.asPrismObject());
         }
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(status);

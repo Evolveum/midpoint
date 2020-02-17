@@ -1472,7 +1472,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
-    public PolyString resolveNameIfKnown(Class<? extends ObjectType> objectClass, String oid) {
+    PolyString resolveNameIfKnown(Class<? extends ObjectType> objectClass, String oid) {
         if (ResourceType.class.equals(objectClass)) {
             if (resource != null && oid.equals(resource.getOid())) {
                 return PolyString.toPolyString(resource.getName());

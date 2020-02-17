@@ -248,7 +248,7 @@ public class AuditHelper {
     private void setInitiatorAndAttorneyFromPrincipal(AuditEventRecord record) {
         try {
             MidPointPrincipal principal = securityContextManager.getPrincipal();
-            record.setInitiator(principal.getUser().asPrismObject());
+            record.setInitiator(principal.getFocus().asPrismObject());
             if (principal.getAttorney() != null) {
                 record.setAttorney(principal.getAttorney().asPrismObject());
             }

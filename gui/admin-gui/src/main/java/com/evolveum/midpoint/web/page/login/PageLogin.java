@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.web.security.module.authentication.LdapModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.authentication.LoginFormModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -193,8 +194,10 @@ public class PageLogin extends PageBase {
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-            if (moduleAuthentication != null && moduleAuthentication instanceof LoginFormModuleAuthentication){
-                String prefix = ((LoginFormModuleAuthentication) moduleAuthentication).getPrefix();
+            if (moduleAuthentication != null
+                    && (moduleAuthentication instanceof LoginFormModuleAuthentication
+                    || moduleAuthentication instanceof LdapModuleAuthentication)){
+                String prefix = moduleAuthentication.getPrefix();
                 return stripSlashes(prefix) + "/spring_security_login";
             }
         }

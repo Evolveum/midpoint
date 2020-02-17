@@ -672,6 +672,18 @@ public class DebugUtil {
         };
     }
 
+    public static Object debugDumpLazily(Map<?, ?> dumpables, int indent) {
+        if (dumpables == null || dumpables.isEmpty()) {
+            return dumpables;
+        }
+        return new Object() {
+            @Override
+            public String toString() {
+                return debugDump(dumpables, indent);
+            }
+        };
+    }
+
     public static String shortDump(ShortDumpable sd) {
         if (sd == null) {
             return null;

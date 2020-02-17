@@ -442,7 +442,7 @@ public class ProgressPanel extends BasePanel {
             if (user == null) {
                 throw new RestartResponseException(PageLogin.class);
             } else {
-                task.setOwner(user.getUser().asPrismObject());
+                task.setOwner(user.getFocus().asPrismObject());
             }
 
             List<ObjectDeltaType> deltasBeans = new ArrayList<>();

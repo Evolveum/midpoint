@@ -26,8 +26,9 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthentication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -73,7 +74,7 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
                     Task task = taskManager.createTaskInstance(OPERATION_REST_SERVICE);
                     task.setChannel(SchemaConstants.CHANNEL_REST_URI);
                     List<String> requiredActions = new ArrayList<>();
-                    PrismObject<UserType> authorizedUser = searchUser(oid, task);
+                    PrismObject<? extends FocusType> authorizedUser = searchUser(oid, task);
                     try {
                         if (authorizedUser == null) {
                             SystemException e = new SystemException("Couldn't get proxy user");
@@ -86,7 +87,7 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
                         MidPointPrincipal actualPrincipal = getPrincipalFromAuthentication(authentication, object, configAttributes);
                         decideInternal(actualPrincipal, requiredActions, authentication, object, task, AuthorizationParameters.Builder.buildObject(authorizedUser));
 
-                        MidPointPrincipal principal= securityContextManager.getUserProfileService().getPrincipal(authorizedUser);
+                        MidPointPrincipal principal= securityContextManager.getGuiProfiledPrincipalManager().getPrincipal(authorizedUser);
                         ((MidpointAuthentication) authentication).setPrincipal(principal);
                         ((MidpointAuthentication) authentication).setAuthorities(principal.getAuthorities());
                     } catch (SystemException | SchemaException | CommunicationException | ConfigurationException
@@ -126,13 +127,13 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
         }
     }
 
-    private PrismObject<UserType> searchUser(String oid, Task task) {
-        return securityContextManager.runPrivileged(new Producer<PrismObject<UserType>>() {
+    private PrismObject<? extends FocusType> searchUser(String oid, Task task) {
+        return securityContextManager.runPrivileged(new Producer<PrismObject<? extends FocusType>>() {
             @Override
-            public PrismObject<UserType> run() {
-                PrismObject<UserType> user;
+            public PrismObject<? extends FocusType> run() {
+                PrismObject<? extends FocusType> user;
                 try {
-                    user = model.getObject(UserType.class, oid, null, task, task.getResult());
+                    user = model.getObject(FocusType.class, oid, null, task, task.getResult());
                 } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
                         | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                     return null;

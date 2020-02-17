@@ -50,14 +50,11 @@ public class TaskQuartzImplUtil {
     }
 
     public static JobDetail createJobDetailForTask(Task task) {
-
-        JobDetail job = JobBuilder.newJob(JobExecutor.class)
+        return JobBuilder.newJob(JobExecutor.class)
           .withIdentity(TaskQuartzImplUtil.createJobKeyForTask(task))
           .storeDurably()
           .requestRecovery()
           .build();
-
-        return job;
     }
 
     public static Trigger createTriggerForTask(Task task) throws ParseException {
@@ -66,23 +63,27 @@ public class TaskQuartzImplUtil {
             return null;            // no triggers for such tasks
         }
 
-        // special case - recurrent task with no schedule (means "run on demand only")
-        if (task.isRecurring() && (task.getSchedule() == null ||
-                (task.getSchedule().getInterval() == null && task.getSchedule().getCronLikePattern() == null))) {
+        ScheduleType schedule = task.getSchedule();
+        boolean recurring = task.isRecurring();
+        Integer interval = schedule != null ? schedule.getInterval() : null;
+        String cronLikePattern = schedule != null ? schedule.getCronLikePattern() : null;
+
+        if (recurring && interval == null && cronLikePattern == null) {
+            // special case - recurrent task with no schedule (means "run on demand only")
             return null;
         }
 
         TriggerBuilder<Trigger> tb = createBasicTriggerBuilderForTask(task)
               .withIdentity(createTriggerKeyForTask(task));
 
-        if (task.getSchedule() != null) {
+        if (schedule != null) {
 
-            Date est = task.getSchedule().getEarliestStartTime() != null ?
-                    task.getSchedule().getEarliestStartTime().toGregorianCalendar().getTime() :
+            Date est = schedule.getEarliestStartTime() != null ?
+                    schedule.getEarliestStartTime().toGregorianCalendar().getTime() :
                     null;
 
-            Date lst = task.getSchedule().getLatestStartTime() != null ?
-                    task.getSchedule().getLatestStartTime().toGregorianCalendar().getTime() :
+            Date lst = schedule.getLatestStartTime() != null ?
+                    schedule.getLatestStartTime().toGregorianCalendar().getTime() :
                     null;
 
             // endAt must not be sooner than startAt
@@ -103,50 +104,41 @@ public class TaskQuartzImplUtil {
                 // LST is checked also within JobExecutor (needed mainly for tightly-bound recurrent tasks)
             }
 
-            if (task.getSchedule().getLatestFinishTime() != null) {
-                tb.endAt(task.getSchedule().getLatestFinishTime().toGregorianCalendar().getTime());
+            if (schedule.getLatestFinishTime() != null) {
+                tb.endAt(schedule.getLatestFinishTime().toGregorianCalendar().getTime());
                 // however, it is the responsibility of task handler to finish no later than this time
             }
         }
 
         boolean looselyBoundRecurrent;
 
-        if (task.isRecurring() && task.isLooselyBound()) {
+        if (recurring && task.isLooselyBound()) {
 
             looselyBoundRecurrent = true;
 
-            ScheduleType sch = task.getSchedule();
-            if (sch == null) {
-                return null;
-                //throw new IllegalStateException("Recurrent task " + task + " does not have a schedule.");
-            }
-
-            ScheduleBuilder sb;
-            if (sch.getInterval() != null) {
+            ScheduleBuilder<? extends Trigger> sb;
+            if (interval != null) {
                 SimpleScheduleBuilder ssb = simpleSchedule()
-                        .withIntervalInSeconds(sch.getInterval().intValue())
+                        .withIntervalInSeconds(interval)
                         .repeatForever();
-                if (sch.getMisfireAction() == null || sch.getMisfireAction() == MisfireActionType.EXECUTE_IMMEDIATELY) {
+                if (schedule.getMisfireAction() == null || schedule.getMisfireAction() == MisfireActionType.EXECUTE_IMMEDIATELY) {
                     sb = ssb.withMisfireHandlingInstructionFireNow();
-                } else if (sch.getMisfireAction() == MisfireActionType.RESCHEDULE) {
+                } else if (schedule.getMisfireAction() == MisfireActionType.RESCHEDULE) {
                     sb = ssb.withMisfireHandlingInstructionNextWithRemainingCount();
                 } else {
-                    throw new SystemException("Invalid value of misfireAction: " + sch.getMisfireAction() + " for task " + task);
-                }
-
-            } else if (sch.getCronLikePattern() != null) {
-                CronScheduleBuilder csb = cronScheduleNonvalidatedExpression(sch.getCronLikePattern());            // may throw ParseException
-                if (sch.getMisfireAction() == null || sch.getMisfireAction() == MisfireActionType.EXECUTE_IMMEDIATELY) {
-                    sb = csb.withMisfireHandlingInstructionFireAndProceed();
-                } else if (sch.getMisfireAction() == MisfireActionType.RESCHEDULE) {
-                    sb = csb.withMisfireHandlingInstructionDoNothing();
-                } else {
-                    throw new SystemException("Invalid value of misfireAction: " + sch.getMisfireAction() + " for task " + task);
+                    throw new SystemException("Invalid value of misfireAction: " + schedule.getMisfireAction() + " for task " + task);
                 }
             } else {
-                return null;
+                assert cronLikePattern != null;
+                CronScheduleBuilder csb = cronScheduleNonvalidatedExpression(cronLikePattern);            // may throw ParseException
+                if (schedule.getMisfireAction() == null || schedule.getMisfireAction() == MisfireActionType.EXECUTE_IMMEDIATELY) {
+                    sb = csb.withMisfireHandlingInstructionFireAndProceed();
+                } else if (schedule.getMisfireAction() == MisfireActionType.RESCHEDULE) {
+                    sb = csb.withMisfireHandlingInstructionDoNothing();
+                } else {
+                    throw new SystemException("Invalid value of misfireAction: " + schedule.getMisfireAction() + " for task " + task);
+                }
             }
-
             tb.withSchedule(sb);
         } else {
             // even non-recurrent tasks will be triggered, to check whether they should not be restarted
@@ -155,7 +147,7 @@ public class TaskQuartzImplUtil {
             looselyBoundRecurrent = false;
         }
 
-        tb.usingJobData("schedule", scheduleFingerprint(task.getSchedule()));
+        tb.usingJobData("schedule", scheduleFingerprint(schedule));
         tb.usingJobData("looselyBoundRecurrent", looselyBoundRecurrent);
         tb.usingJobData("handlerUri", task.getHandlerUri());
 
@@ -234,9 +226,7 @@ public class TaskQuartzImplUtil {
         return scheduleDiffer || lbrDiffer || handlersDiffer;
     }
 
-
-    public static ParseException validateCronExpression(String cron) {
-
+    static ParseException validateCronExpression(String cron) {
         try {
             cronScheduleNonvalidatedExpression(cron);            // may throw ParseException
             return null;
@@ -244,5 +234,4 @@ public class TaskQuartzImplUtil {
             return pe;
         }
     }
-
 }
