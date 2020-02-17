@@ -793,7 +793,7 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
     protected Panel getBasicContainerPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>>  model) {
         ItemPath itemPath = getModelObject().getPath();
 //        model.getObject().getParent().setShowOnTopLevel(true);
-        return getPageBase().initContainerValuePanel(idPanel, model, itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath, model));
+        return getPageBase().initContainerValuePanel(idPanel, model, itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath, model), null);
     }
 
     private QName getRelationForDisplayNamePanel(PrismContainerValueWrapper<AssignmentType> modelObject) {

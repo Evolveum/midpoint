@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ItemEditabilityHandler;
@@ -483,7 +484,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private ItemEditabilityHandler getTaskEditabilityHandler(){
         PrismObject<TaskType> task = getObjectWrapper().getObject();
         TaskType taskType = task.asObjectable();
-        ItemEditabilityHandler editableHandler = wrapper -> isRunning(taskType);
+        ItemEditabilityHandler editableHandler = wrapper -> !isRunning(taskType);
         return editableHandler;
     }
 

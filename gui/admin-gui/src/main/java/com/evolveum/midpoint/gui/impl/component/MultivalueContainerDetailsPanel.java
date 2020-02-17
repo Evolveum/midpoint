@@ -67,7 +67,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
         ItemPath itemPath = getModelObject().getPath();
         IModel<PrismContainerValueWrapper<C>> model = getModel();
 //        model.getObject().getContainer().setShowOnTopLevel(true);
-        Panel containerValue = getPageBase().initContainerValuePanel(idPanel, getModel(), wrapper -> getBasicTabVisibity(wrapper, itemPath));
+        Panel containerValue = getPageBase().initContainerValuePanel(idPanel, getModel(), wrapper -> getBasicTabVisibity(wrapper, itemPath), null);
 //        PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> containerValue = new PrismContainerValuePanel<>(idPanel, getModel());
         return containerValue;
 //        return new ContainerValuePanel<C>(idPanel, getModel(), true, form,

@@ -84,7 +84,8 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
     }
 
     @Override
-    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ExpressionType>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
+    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ExpressionType>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler,
+            ItemEditabilityHandler editabilityHandler) {
         ExpressionWrapper expressionWrapper = (ExpressionWrapper) getModelObject();
         Component expressionPanel = null;
         if (expressionWrapper != null && (expressionWrapper.isAssociationExpression() || expressionWrapper.isAttributeExpression())) {
