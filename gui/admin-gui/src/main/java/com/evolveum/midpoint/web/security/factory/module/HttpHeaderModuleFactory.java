@@ -10,7 +10,7 @@ import com.evolveum.midpoint.model.api.authentication.AuthModule;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.module.HttpHeaderModuleWebConfig;
+import com.evolveum.midpoint.web.security.module.HttpHeaderModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.authentication.HttpHeaderModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
@@ -60,7 +60,7 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
 
         HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build((AuthenticationModuleHttpHeaderType)moduleType, prefixOfSequence);
         configuration.addAuthenticationProvider(new PasswordProvider());
-        ModuleWebSecurityConfig module = getObjectObjectPostProcessor().postProcess(new HttpHeaderModuleWebConfig(configuration));
+        ModuleWebSecurityConfig module = getObjectObjectPostProcessor().postProcess(new HttpHeaderModuleWebSecurityConfig(configuration));
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);

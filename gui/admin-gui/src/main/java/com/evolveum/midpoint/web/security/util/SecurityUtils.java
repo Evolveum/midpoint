@@ -372,6 +372,7 @@ public class SecurityUtils {
         modules.addAll(authenticationModulesType.getOidc());
         modules.addAll(authenticationModulesType.getSecurityQuestionsForm());
         modules.addAll(authenticationModulesType.getSmsNonce());
+        modules.addAll(authenticationModulesType.getLdap());
 
         for (AbstractAuthenticationModuleType module: modules) {
             if (module.getName().equals(name)) {

@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.MidpointProviderManager;
 import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.core.AuthenticationException;
@@ -54,6 +56,9 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     @Autowired
     private AuthChannelRegistryImpl authChannelRegistry;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
 //    private SecurityFilterChain authenticatedFilter;
     private AuthenticationsPolicyType authenticationPolicy;
@@ -104,13 +109,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         getPreLogoutFilter().doFilter(request, response);
 
-//        //authenticated request
-//        if (mpAuthentication != null && mpAuthentication.isAuthenticated()) {
-//            internalProcessing(httpRequest, response, chain);
-//            return;
-//        }
-
-        //load security policy with authentication
         AuthenticationsPolicyType authenticationsPolicy;
         CredentialsPolicyType credentialsPolicy = null;
         PrismObject<SecurityPolicyType> authPolicy = null;
@@ -165,6 +163,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         //change sequence of authentication during another sequence
         if (mpAuthentication == null || !sequence.equals(mpAuthentication.getSequence())) {
             SecurityContextHolder.getContext().setAuthentication(null);
+            ((MidpointProviderManager)authenticationManager).getProviders().clear();
             authModules = SecurityUtils.buildModuleFilters(authModuleRegistry, sequence, httpRequest, authenticationsPolicy.getModules(),
                     credentialsPolicy, sharedObjects, authenticationChannel);
         } else {

@@ -13,6 +13,7 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
+import com.evolveum.midpoint.model.api.authentication.MidpointDirContextAdapter;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -99,8 +100,8 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     private SessionRegistry sessionRegistry;
 
     //optional application.yml property for LDAP authentication, marks LDAP attribute name that correlates with midPoint UserType name
-    @Value("${auth.ldap.search.naming-attr:#{null}}")
-    private String ldapNamingAttr;
+//    @Value("${auth.ldap.search.naming-attr:#{null}}")
+//    private String ldapNamingAttr;
 
     private MessageSourceAccessor messages;
 
@@ -366,8 +367,8 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
         String userNameEffective = username;
         try {
-            if (ctx != null && ldapNamingAttr != null) {
-                userNameEffective = resolveLdapName(ctx, username);
+            if (ctx instanceof MidpointDirContextAdapter && ((MidpointDirContextAdapter) ctx).getNamingAttr() != null) {
+                userNameEffective = resolveLdapName(ctx, username, ((MidpointDirContextAdapter) ctx).getNamingAttr());
             }
             return getPrincipal(userNameEffective);
 
@@ -384,7 +385,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
     }
 
-    private String resolveLdapName(DirContextOperations ctx, String username) throws NamingException, ObjectNotFoundException {
+    private String resolveLdapName(DirContextOperations ctx, String username, String ldapNamingAttr) throws NamingException, ObjectNotFoundException {
         Attribute ldapResponse = ctx.getAttributes().get(ldapNamingAttr);
         if (ldapResponse != null) {
             if (ldapResponse.size() == 1) {

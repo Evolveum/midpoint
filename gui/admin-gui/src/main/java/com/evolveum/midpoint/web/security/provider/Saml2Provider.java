@@ -11,7 +11,6 @@ import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -35,9 +34,9 @@ import java.util.List;
  * @author skublik
  */
 
-public class MidpointSaml2Provider extends MidPointAbstractAuthenticationProvider {
+public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MidpointSaml2Provider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(Saml2Provider.class);
 
     @Autowired
     private transient AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
