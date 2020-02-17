@@ -30,9 +30,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
-import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
@@ -61,7 +59,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -225,7 +222,7 @@ public class MappingEvaluator {
             MappingImpl.Builder<V,D> initializedMappingBuilder = params.getInitializer().initialize(mappingBuilder);
 
             MappingImpl<V,D> mapping = initializedMappingBuilder.build();
-            Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(task, result);
+            boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(task, result);
 
             if (params.getEvaluateCurrent() == MappingTimeEval.CURRENT && !timeConstraintValid) {
                 LOGGER.trace("Mapping {} is non-current, but evaluating current mappings, skipping {}", mappingName, params.getContext().getChannel());
@@ -506,30 +503,8 @@ public class MappingEvaluator {
         }
 
         if (nextRecomputeTime != null) {
-
-            boolean alreadyHasTrigger = false;
-            if (params.getAPrioriTargetObject() != null) {
-                for (TriggerType trigger: params.getAPrioriTargetObject().asObjectable().getTrigger()) {
-                    if (RecomputeTriggerHandler.HANDLER_URI.equals(trigger.getHandlerUri()) &&
-                            nextRecomputeTime.equals(trigger.getTimestamp())) {
-                                alreadyHasTrigger = true;
-                                break;
-                    }
-                }
-            }
-
-            if (!alreadyHasTrigger) {
-                PrismContainerDefinition<TriggerType> triggerContDef = targetObjectDefinition.findContainerDefinition(ObjectType.F_TRIGGER);
-                ContainerDelta<TriggerType> triggerDelta = triggerContDef.createEmptyDelta(ObjectType.F_TRIGGER);
-                PrismContainerValue<TriggerType> triggerCVal = triggerContDef.createValue();
-                triggerDelta.addValueToAdd(triggerCVal);
-                TriggerType triggerType = triggerCVal.asContainerable();
-                triggerType.setTimestamp(nextRecomputeTime);
-                triggerType.setHandlerUri(RecomputeTriggerHandler.HANDLER_URI);
-                triggerType.setOriginDescription(triggerOriginDescription);
-
-                targetContext.swallowToSecondaryDelta(triggerDelta);
-            }
+            NextRecompute nextRecompute = new NextRecompute(nextRecomputeTime, triggerOriginDescription);
+            nextRecompute.createTrigger(params.getAPrioriTargetObject(), targetObjectDefinition, targetContext);
         }
 
         return outputTripleMap;

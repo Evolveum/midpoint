@@ -40,7 +40,7 @@ public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticat
 
     @Override
     public PasswordAuthenticationContext getAuthenticationContext(String username, String value) {
-        return new PasswordAuthenticationContext(username, value);
+        return new PasswordAuthenticationContext(username, value, UserType.class);
     }
 
     @Override

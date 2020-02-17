@@ -15,6 +15,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -73,12 +75,6 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupable {
@@ -463,7 +459,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
     }
 
 
-    public Task createSimpleTask(String operation, PrismObject<UserType> owner) {
+    public Task createSimpleTask(String operation, PrismObject<? extends FocusType> owner) {
         Task task = getPageBase().getTaskManager().createTaskInstance(operation);
 
         if (owner == null) {
@@ -471,7 +467,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
             if (user == null) {
                 return task;
             } else {
-                owner = user.getUser().asPrismObject();
+                owner = user.getFocus().asPrismObject();
             }
         }
 
@@ -483,7 +479,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
     public Task createSimpleTask(String operation) {
         MidPointPrincipal user = SecurityUtils.getPrincipalUser();
-        return createSimpleTask(operation, user != null ? user.getUser().asPrismObject() : null);
+        return createSimpleTask(operation, user != null ? user.getFocus().asPrismObject() : null);
     }
 
     private void runConfirmPerformed(AjaxRequestTarget target, IModel<ReportDto> model) {

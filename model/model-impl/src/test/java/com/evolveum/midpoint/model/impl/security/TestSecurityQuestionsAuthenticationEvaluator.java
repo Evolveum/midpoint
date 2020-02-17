@@ -50,7 +50,7 @@ public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAu
     @Override
     public SecurityQuestionsAuthenticationContext getAuthenticationContext(String username,
             Map<String, String> value) {
-        return new SecurityQuestionsAuthenticationContext(username, value);
+        return new SecurityQuestionsAuthenticationContext(username, UserType.class, value);
     }
 
     @Override

@@ -38,10 +38,8 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -1039,7 +1037,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         display("Principal jack", principal);
         assertEquals("wrong username", USER_JACK_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_JACK_OID, principal.getOid());
-        assertJack(principal.getUser());
+        assertJack((UserType) principal.getFocus());
     }
 
     protected void assertJack(UserType userType) {

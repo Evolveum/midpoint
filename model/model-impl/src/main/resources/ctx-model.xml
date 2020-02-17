@@ -378,7 +378,7 @@
     </bean>
 
     <bean id="springAuthenticationInjector" class="com.evolveum.midpoint.model.impl.security.SpringAuthenticationInjectorInterceptor">
-        <constructor-arg name="userDetailsService" ref="userDetailsService"/>
+        <constructor-arg name="guiProfiledPrincipalManager" ref="guiProfiledPrincipalManager"/>
         <constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
         <constructor-arg name="securityHelper" ref="securityHelper"/>
         <constructor-arg name="taskManager" ref="taskManager"/>

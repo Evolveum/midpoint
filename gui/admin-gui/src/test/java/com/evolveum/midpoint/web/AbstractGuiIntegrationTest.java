@@ -37,7 +37,7 @@ import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
@@ -196,7 +196,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
                 if (user == null) {
                     throw new IllegalStateException("No authenticated user");
                 }
-                return WebModelServiceUtils.createSimpleTask(operationName, SchemaConstants.CHANNEL_GUI_USER_URI, user.getUser().asPrismObject(), taskManager);
+                return WebModelServiceUtils.createSimpleTask(operationName, SchemaConstants.CHANNEL_GUI_USER_URI, user.getFocus().asPrismObject(), taskManager);
             }
 
             @Override
@@ -216,10 +216,10 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
             @NotNull
             @Override
-            public CompiledUserProfile getCompiledUserProfile() {
-                Task task = createSimpleTask("getCompiledUserProfile");
+            public CompiledGuiProfile getCompiledGuiProfile() {
+                Task task = createSimpleTask("getCompiledGuiProfile");
                 try {
-                    return getModelInteractionService().getCompiledUserProfile(task, task.getResult());
+                    return getModelInteractionService().getCompiledGuiProfile(task, task.getResult());
                 } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
                     throw new SystemException(e.getMessage(), e);
                 }

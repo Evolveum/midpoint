@@ -1400,7 +1400,7 @@ public class ShadowManager {
             PasswordType passwordType = creds.getPassword();
             if (passwordType != null) {
                 preparePasswordForStorage(passwordType, ctx.getObjectClassDefinition());
-                PrismObject<UserType> owner = null;
+                PrismObject<? extends FocusType> owner = null;
                 if (ctx.getTask() != null) {
                     owner = ctx.getTask().getOwner();
                 }

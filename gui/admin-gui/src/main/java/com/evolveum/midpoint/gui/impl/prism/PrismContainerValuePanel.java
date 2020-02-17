@@ -80,10 +80,12 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
 
     private ItemVisibilityHandler visibilityHandler;
+    private ItemEditabilityHandler editabilityHandler;
 
-    public PrismContainerValuePanel(String id, IModel<CVW> model, ItemVisibilityHandler visibilityHandler) {
+    public PrismContainerValuePanel(String id, IModel<CVW> model, ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
         super(id, model);
         this.visibilityHandler = visibilityHandler;
+        this.editabilityHandler = editabilityHandler;
     }
 
     @Override
@@ -288,7 +290,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 typeName = new QName("ResourceAttributeDefinition");
             }
 
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(visibilityHandler);
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(visibilityHandler).editabilityHandler(editabilityHandler);
             Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), builder.build());
             panel.setOutputMarkupId(true);
             panel.add(new VisibleEnableBehaviour() {

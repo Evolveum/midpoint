@@ -691,9 +691,8 @@ public class ActivationProcessor {
 
         Map<UniformItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap = mappingEvaluator.evaluateMappingSetProjection(params, task, result);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Mapping processing output after {} ({}):\n{}", desc, evaluateCurrent, DebugUtil.debugDump(outputTripleMap, 1));
-        }
+        LOGGER.trace("Mapping processing output after {} ({}):\n{}", desc, evaluateCurrent,
+                DebugUtil.debugDumpLazily(outputTripleMap, 1));
 
         if (projCtx.isDoReconciliation()) {
             reconcileOutboundValue(context, projCtx, outputTripleMap, desc);

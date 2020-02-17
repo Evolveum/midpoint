@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.api.util;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -68,12 +68,12 @@ public class FocusTabVisibleBehavior<O extends ObjectType> extends VisibleEnable
         }
 
         Task task = WebModelServiceUtils.createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION,
-                SecurityUtils.getPrincipalUser().getUser().asPrismObject(), getTaskManager());
+                SecurityUtils.getPrincipalUser().getFocus().asPrismObject(), getTaskManager());
         OperationResult result = task.getResult();
 
-        CompiledUserProfile config;
+        CompiledGuiProfile config;
         try {
-            config = getModelInteractionService().getCompiledUserProfile(task, result);
+            config = getModelInteractionService().getCompiledGuiProfile(task, result);
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
             throw new SystemException("Cannot load GUI configuration: " + e.getMessage(), e);
         }
@@ -105,7 +105,7 @@ public class FocusTabVisibleBehavior<O extends ObjectType> extends VisibleEnable
         return false;
     }
 
-    private List<ObjectFormType> findObjectForm(CompiledUserProfile config, PrismObject<O> object) {
+    private List<ObjectFormType> findObjectForm(CompiledGuiProfile config, PrismObject<O> object) {
         List<ObjectFormType> result = new ArrayList<>();
 
         if (config == null || config.getObjectForms() == null) {

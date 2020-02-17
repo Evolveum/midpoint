@@ -65,7 +65,7 @@ public class PcpStartInstruction extends StartInstruction {
                 ModelExecuteOptions.isExecuteImmediatelyAfterApproval(modelContext.getOptions()));
     }
 
-    public void prepareCommonAttributes(PrimaryChangeAspect aspect, ModelContext<?> modelContext, PrismObject<UserType> requester) {
+    public void prepareCommonAttributes(PrimaryChangeAspect aspect, ModelContext<?> modelContext, PrismObject<? extends FocusType> requester) {
         if (requester != null) {
             setRequesterRef(requester);
         }

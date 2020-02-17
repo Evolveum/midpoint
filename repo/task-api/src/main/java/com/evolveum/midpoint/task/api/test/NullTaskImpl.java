@@ -33,7 +33,7 @@ import static java.util.Collections.emptySet;
  * to be used when task-quartz-impl is not available.
  *
  * TODO move to src/main/test tree.
- * 
+ *
  * @author lazyman
  */
 public class NullTaskImpl implements Task {
@@ -104,6 +104,16 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public Integer getScheduleInterval() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean hasScheduleInterval() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public TaskBinding getBinding() {
         throw new UnsupportedOperationException();
     }
@@ -154,12 +164,12 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public PrismObject<UserType> getOwner() {
+    public PrismObject<? extends FocusType> getOwner() {
         return null;
     }
 
     @Override
-    public void setOwner(PrismObject<UserType> owner) {
+    public void setOwner(PrismObject<? extends FocusType> owner) {
         throw new UnsupportedOperationException();
     }
 
@@ -868,10 +878,6 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void setExecutionEnvironment(TaskExecutionEnvironmentType value) {
-    }
-
-    @Override
-    public void setExecutionEnvironmentImmediate(TaskExecutionEnvironmentType value, OperationResult parentResult) {
     }
 
     @Override

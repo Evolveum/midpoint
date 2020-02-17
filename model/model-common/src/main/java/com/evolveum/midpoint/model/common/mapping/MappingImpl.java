@@ -99,12 +99,12 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
     private PrismValueDeltaSetTriple<V> outputTriple;
     private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionOutputTriple;
-    private Boolean timeConstraintValid = null;
-    private XMLGregorianCalendar nextRecomputeTime = null;
-    private Long evaluationStartTime = null;
-    private Long evaluationEndTime = null;
+    private Boolean timeConstraintValid;
+    private XMLGregorianCalendar nextRecomputeTime;
+    private Long evaluationStartTime;
+    private Long evaluationEndTime;
 
-    private String mappingContextDescription = null;
+    private String mappingContextDescription;
 
     private VariableProducer variableProducer;
 
@@ -475,7 +475,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
     }
 
     // TODO: rename to evaluate -- or evaluatePrepared?
-    public void evaluateBody(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+    private void evaluateBody(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
         assertState(MappingEvaluationState.PREPARED);
 
@@ -793,19 +793,19 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
         return ExpressionUtil.computeConditionResult(booleanPropertyValues);
     }
 
-    public Boolean evaluateTimeConstraintValid(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public boolean evaluateTimeConstraintValid(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (timeConstraintValid == null) {
-            parseTimeConstraints(task, result);
+            timeConstraintValid = parseTimeConstraints(task, result);
         }
         return timeConstraintValid;
     }
 
-    private void parseTimeConstraints(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    // Sets nextRecomputeTime as a side effect.
+    private boolean parseTimeConstraints(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         MappingTimeDeclarationType timeFromType = mappingType.getTimeFrom();
         MappingTimeDeclarationType timeToType = mappingType.getTimeTo();
         if (timeFromType == null && timeToType == null) {
-            timeConstraintValid = true;
-            return;
+            return true;
         }
 
         XMLGregorianCalendar timeFrom = parseTime(timeFromType, task, result);
@@ -816,8 +816,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
             // Time is specified but there is no value for it.
             // This means that event that should start validity haven't happened yet
             // therefore the mapping is not yet valid.
-            timeConstraintValid = false;
-            return;
+            return false;
         }
         XMLGregorianCalendar timeTo = parseTime(timeToType, task, result);
         if (trace != null) {
@@ -827,35 +826,26 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
         if (timeFrom != null && timeFrom.compare(now) == DatatypeConstants.GREATER) {
             // before timeFrom
             nextRecomputeTime = timeFrom;
-            timeConstraintValid = false;
-            return;
+            return false;
         }
 
         if (timeTo == null && timeToType != null) {
             // Time is specified but there is no value for it.
             // This means that event that should stop validity haven't happened yet
             // therefore the mapping is still valid.
-            timeConstraintValid = true;
-            return;
+            return true;
         }
 
         if (timeTo != null && timeTo.compare(now) == DatatypeConstants.GREATER) {
             // between timeFrom and timeTo (also no timeFrom and before timeTo)
             nextRecomputeTime = timeTo;
-            timeConstraintValid = true;
-            return;
+            return true;
         }
 
-        //noinspection RedundantIfStatement
-        if (timeTo == null) {
-            // after timeFrom and no timeTo
-            // no nextRecomputeTime set, there is nothing to recompute in the future
-            timeConstraintValid = true;
-        } else {
-            // after timeTo
-            // no nextRecomputeTime set, there is nothing to recompute in the future
-            timeConstraintValid = false;
-        }
+        // If timeTo is null, we are "in range"
+        // Otherwise it is less than now (so we are after it), i.e. we are "out of range"
+        // In both cases there is nothing to recompute in the future
+        return timeTo == null;
     }
 
     private XMLGregorianCalendar parseTime(MappingTimeDeclarationType timeType, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {

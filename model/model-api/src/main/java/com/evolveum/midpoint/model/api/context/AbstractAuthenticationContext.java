@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import java.util.List;
@@ -14,21 +15,28 @@ public abstract class AbstractAuthenticationContext {
 
     private String username;
 
+    private Class<? extends FocusType> principalType;
+
     private List<ObjectReferenceType> requireAssignments;
 
     private boolean supportActivationByChannel = true;
+
+    public AbstractAuthenticationContext(String username, Class<? extends FocusType> principalType) {
+        this(username, principalType, null);
+    }
+
+    public AbstractAuthenticationContext(String username, Class<? extends FocusType> principalType, List<ObjectReferenceType> requireAssignment){
+        this.username = username;
+        this.requireAssignments = requireAssignment;
+        this.principalType = principalType;
+    }
 
     public String getUsername() {
         return username;
     }
 
-    public AbstractAuthenticationContext(String username) {
-        this(username, null);
-    }
-
-    public AbstractAuthenticationContext(String username, List<ObjectReferenceType> requireAssignment){
-        this.username = username;
-        this.requireAssignments = requireAssignment;
+    public Class<? extends FocusType> getPrincipalType() {
+        return principalType;
     }
 
     public void setSupportActivationByChannel(boolean supportActivationByChannel) {

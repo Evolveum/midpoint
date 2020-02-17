@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.common.util;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,11 +47,11 @@ public abstract class AbstractModelWebService {
         if (authentication == null) {
             throw new SystemException("Failed to get authentication object");
         }
-        UserType userType = ((MidPointPrincipal)(SecurityContextHolder.getContext().getAuthentication().getPrincipal())).getUser();
-        if (userType == null) {
+        FocusType focusType = ((MidPointPrincipal)(SecurityContextHolder.getContext().getAuthentication().getPrincipal())).getFocus();
+        if (focusType == null) {
             throw new SystemException("Failed to get user from authentication object");
         }
-        task.setOwner(userType.asPrismObject());
+        task.setOwner(focusType.asPrismObject());
     }
 
     protected Task createTaskInstance(String operationName) {

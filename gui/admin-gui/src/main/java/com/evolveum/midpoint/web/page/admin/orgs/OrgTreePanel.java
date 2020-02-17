@@ -11,7 +11,7 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -125,8 +125,8 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
         treeHeader.add(treeTitle);
 
 //        InlineMenu treeMenu = new InlineMenu(ID_TREE_MENU,
-//                new Model((Serializable) createTreeMenuInternal(serviceLocator.getCompiledUserProfile())));
-        DropdownButtonDto model = new DropdownButtonDto(null, "fa fa-cog", null, createTreeMenuInternal(serviceLocator.getCompiledUserProfile()));
+//                new Model((Serializable) createTreeMenuInternal(serviceLocator.getCompiledGuiProfile())));
+        DropdownButtonDto model = new DropdownButtonDto(null, "fa fa-cog", null, createTreeMenuInternal(serviceLocator.getCompiledGuiProfile()));
         DropdownButtonPanel treeMenu = new DropdownButtonPanel(ID_TREE_MENU, model) {
             private static final long serialVersionUID = 1L;
 
@@ -330,7 +330,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
         return null;
     }
 
-    private List<InlineMenuItem> createTreeMenuInternal(CompiledUserProfile adminGuiConfig) {
+    private List<InlineMenuItem> createTreeMenuInternal(CompiledGuiProfile adminGuiConfig) {
         List<InlineMenuItem> items = new ArrayList<>();
 
         if (adminGuiConfig.isFeatureVisible(GuiFeature.ORGTREE_COLLAPSE_ALL.getUri())) {

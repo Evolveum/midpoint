@@ -18,27 +18,19 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -309,8 +301,8 @@ public class TestArchetypes extends AbstractArchetypesTest {
     }
 
     @Test
-    public void test104GetGuybryshCompiledUserProfile() throws Exception {
-        final String TEST_NAME = "test104GetGuybryshCompiledUserProfile";
+    public void test104GetGuybryshCompiledGuiProfile() throws Exception {
+        final String TEST_NAME = "test104GetGuybryshCompiledGuiProfile";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -320,14 +312,14 @@ public class TestArchetypes extends AbstractArchetypesTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        CompiledUserProfile compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, result);
+        CompiledGuiProfile compiledGuiProfile = modelInteractionService.getCompiledGuiProfile(task, result);
 
         // THEN
         assertSuccess(result);
 
         loginAdministrator();
 
-        ObjectFilter allEmployeesViewFilter = assertCompiledUserProfile(compiledUserProfile)
+        ObjectFilter allEmployeesViewFilter = assertCompiledGuiProfile(compiledGuiProfile)
             .assertAdditionalMenuLinks(0)
             .assertUserDashboardLinks(0)
             .assertObjectForms(2)
@@ -878,8 +870,8 @@ public class TestArchetypes extends AbstractArchetypesTest {
     }
 
     @Test
-    public void test202GetGuybryshCompiledUserProfileActiveEmployeesView() throws Exception {
-        final String TEST_NAME = "test202GetGuybryshCompiledUserProfileActiveEmployeesView";
+    public void test202GetGuybryshCompiledGuiProfileActiveEmployeesView() throws Exception {
+        final String TEST_NAME = "test202GetGuybryshCompiledGuiProfileActiveEmployeesView";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -889,14 +881,14 @@ public class TestArchetypes extends AbstractArchetypesTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        CompiledUserProfile compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, result);
+        CompiledGuiProfile compiledGuiProfile = modelInteractionService.getCompiledGuiProfile(task, result);
 
         // THEN
         assertSuccess(result);
 
         loginAdministrator();
 
-        ObjectFilter activeEmployeesViewFilter = assertCompiledUserProfile(compiledUserProfile)
+        ObjectFilter activeEmployeesViewFilter = assertCompiledGuiProfile(compiledGuiProfile)
             .objectCollectionViews()
                 .assertViews(3)
                 .by()
@@ -940,8 +932,8 @@ public class TestArchetypes extends AbstractArchetypesTest {
     }
 
     @Test
-    public void test205GetGuybryshCompiledUserProfileActiveEmployeesView() throws Exception {
-        final String TEST_NAME = "test205GetGuybryshCompiledUserProfileActiveEmployeesView";
+    public void test205GetGuybryshCompiledGuiProfileActiveEmployeesView() throws Exception {
+        final String TEST_NAME = "test205GetGuybryshCompiledGuiProfileActiveEmployeesView";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -951,14 +943,14 @@ public class TestArchetypes extends AbstractArchetypesTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        CompiledUserProfile compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, result);
+        CompiledGuiProfile compiledGuiProfile = modelInteractionService.getCompiledGuiProfile(task, result);
 
         // THEN
         assertSuccess(result);
 
         loginAdministrator();
 
-        ObjectFilter activeEmployeesViewFilter = assertCompiledUserProfile(compiledUserProfile)
+        ObjectFilter activeEmployeesViewFilter = assertCompiledGuiProfile(compiledGuiProfile)
             .objectCollectionViews()
                 .assertViews(3)
                 .by()

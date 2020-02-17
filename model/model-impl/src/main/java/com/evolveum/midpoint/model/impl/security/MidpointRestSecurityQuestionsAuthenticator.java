@@ -17,6 +17,8 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -43,10 +45,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -79,7 +78,8 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
     }
 
     @Override
-    protected SecurityQuestionsAuthenticationContext createAuthenticationContext(AuthorizationPolicy policy, ContainerRequestContext requestCtx) {
+    protected SecurityQuestionsAuthenticationContext createAuthenticationContext(AuthorizationPolicy policy, ContainerRequestContext requestCtx,
+            Class<? extends FocusType> clazz) {
         JsonFactory f = new JsonFactory();
         ObjectMapper mapper = new ObjectMapper(f);
         JsonNode node = null;
@@ -154,7 +154,7 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
                 String questionAnswer = answer.findPath("qans").asText();
                 questionAnswers.put(questionId, questionAnswer);
             }
-            return new SecurityQuestionsAuthenticationContext(userName, questionAnswers);
+            return new SecurityQuestionsAuthenticationContext(userName, clazz, questionAnswers);
 
     }
 

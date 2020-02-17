@@ -19,12 +19,12 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
  * @author skublik
  */
 
-public class HttpHeaderModuleWebConfig<C extends HttpHeaderModuleWebSecurityConfiguration> extends LoginFormModuleWebSecurityConfig<C> {
+public class HttpHeaderModuleWebSecurityConfig<C extends HttpHeaderModuleWebSecurityConfiguration> extends LoginFormModuleWebSecurityConfig<C> {
 
     @Autowired
     private MidpointProviderManager authenticationManager;
 
-    public HttpHeaderModuleWebConfig(C configuration) {
+    public HttpHeaderModuleWebSecurityConfig(C configuration) {
         super(configuration);
     }
 

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.AttributeModifier;
@@ -73,7 +74,8 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 
 
     @Override
-    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
+    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory,
+            ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
 
         return createInputPanel(item, factory);
 
@@ -194,6 +196,8 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
                     }
 
                 });
+                formComponent.add(new EnableBehaviour(() -> itemPanelSettings.getEditabilityHandler() == null ||
+                        itemPanelSettings.getEditabilityHandler().isEditable(getModelObject())));
             }
 
 

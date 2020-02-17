@@ -41,49 +41,45 @@ public class ObjectDeltaSchemaLevelUtil {
             if (visitable instanceof PrismReferenceValue) {
                 PrismReferenceValue refVal = ((PrismReferenceValue) visitable);
                 String oid = refVal.getOid();
-                if (oid == null) { // sanity check; should not happen
-                    return;
-                }
-                if (refVal.getTargetName() != null) {
+                if (oid == null) {
+                    // sanity check; should not happen
+                } else if (refVal.getTargetName() != null) {
                     resolvedOids.put(oid, refVal.getTargetName());
-                    return;
-                }
-                if (resolvedOids.containsKey(oid)) {
+                } else if (resolvedOids.containsKey(oid)) {
                     PolyString resolvedName = resolvedOids.get(oid); // may be null
                     refVal.setTargetName(resolvedName);
-                    return;
-                }
-                if (refVal.getObject() != null) {
+                } else if (refVal.getObject() != null) {
                     PolyString name = refVal.getObject().getName();
                     refVal.setTargetName(name);
                     resolvedOids.put(oid, name);
-                    return;
-                }
-                PrismObjectDefinition<? extends ObjectType> objectDefinition = null;
-                if (refVal.getTargetType() != null) {
-                    objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(refVal.getTargetType());
-                }
-                Class<? extends ObjectType> objectClass = null;
-                if (objectDefinition != null) {
-                    objectClass = objectDefinition.getCompileTimeClass();
-                }
-                if (objectClass == null) {
-                    objectClass = ObjectType.class; // the default (shouldn't be needed)
-                }
-                try {
-                    PolyString name = nameResolver.getName(objectClass, oid);
-                    refVal.setTargetName(name);
-                    resolvedOids.put(oid, name);
-                    LOGGER.trace("Resolved {}: {} to {}", objectClass, oid, name);
-                } catch (ObjectNotFoundException e) {
-                    LOGGER.trace("Couldn't determine the name for {}: {} as it does not exist", objectClass, oid, e);
-                    resolvedOids.put(oid, null);
-                } catch (SchemaException | RuntimeException e) {
-                    LOGGER.trace("Couldn't determine the name for {}: {} because of unexpected exception", objectClass, oid, e);
-                    resolvedOids.put(oid, null);
+                } else {
+                    PrismObjectDefinition<? extends ObjectType> objectDefinition = null;
+                    if (refVal.getTargetType() != null) {
+                        objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(refVal.getTargetType());
+                    }
+                    Class<? extends ObjectType> objectClass = null;
+                    if (objectDefinition != null) {
+                        objectClass = objectDefinition.getCompileTimeClass();
+                    }
+                    if (objectClass == null) {
+                        objectClass = ObjectType.class; // the default (shouldn't be needed)
+                    }
+                    try {
+                        PolyString name = nameResolver.getName(objectClass, oid);
+                        refVal.setTargetName(name);
+                        resolvedOids.put(oid, name);
+                        LOGGER.trace("Resolved {}: {} to {}", objectClass, oid, name);
+                    } catch (ObjectNotFoundException e) {
+                        LOGGER.trace("Couldn't determine the name for {}: {} as it does not exist", objectClass, oid, e);
+                        resolvedOids.put(oid, null);
+                    } catch (SchemaException | RuntimeException e) {
+                        LOGGER.trace("Couldn't determine the name for {}: {} because of unexpected exception", objectClass, oid, e);
+                        resolvedOids.put(oid, null);
+                    }
                 }
             }
         };
+        //noinspection unchecked
         delta.accept(namesResolver);
     }
 

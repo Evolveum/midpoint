@@ -590,7 +590,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     private ObjectQuery getTaskQuery(){
         List<String> targetUsersOids = getSessionStorage().getRoleCatalog().isSelfRequest() ?
-                Arrays.asList(getPrincipalUser().getOid()) :
+                Arrays.asList(getPrincipalFocus().getOid()) :
                 getSessionStorage().getRoleCatalog().getTargetUserOidsList();
         QueryFactory queryFactory = getPrismContext().queryFactory();
         return queryFactory.createQuery(queryFactory.createInOid(targetUsersOids));
@@ -647,7 +647,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     private PrismObject<UserType> getTargetUser() throws SchemaException {
         String targetUserOid = getSessionStorage().getRoleCatalog().isSelfRequest() ?
-                getPrincipalUser().getOid() :
+                getPrincipalFocus().getOid() :
                 getSessionStorage().getRoleCatalog().getTargetUserOidsList().get(0);
         Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT);
         OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT);

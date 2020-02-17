@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.security;
 
 import javax.ws.rs.container.ContainerRequestContext;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,8 +30,8 @@ public class MidpointRestPasswordAuthenticator extends MidpointRestAuthenticator
     }
 
     @Override
-    protected PasswordAuthenticationContext createAuthenticationContext(AuthorizationPolicy policy, ContainerRequestContext requestCtx){
-        return new PasswordAuthenticationContext(policy.getUserName(), policy.getPassword());
+    protected PasswordAuthenticationContext createAuthenticationContext(AuthorizationPolicy policy, ContainerRequestContext requestCtx, Class<? extends FocusType> clazz){
+        return new PasswordAuthenticationContext(policy.getUserName(), policy.getPassword(), clazz);
     }
 
 }
