@@ -361,7 +361,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
     @NotNull
     private DataItem resolveTargetItem(@NotNull DataModel model, @NotNull ResourceDataItem currentItem,
             @NotNull MappingType mapping, @NotNull ItemPath path, @Nullable String defaultVariable) {
-        if (!path.startsWithName()) {
+        if (!path.startsWithName() && !path.startsWithVariable()) {
             LOGGER.warn("Probably incorrect path ({}) - does not start with a name - skipping", path);
             return createAdHocDataItem(model, path);
         }
