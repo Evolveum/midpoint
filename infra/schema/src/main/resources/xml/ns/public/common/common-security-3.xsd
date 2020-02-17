@@ -193,7 +193,7 @@
             <xsd:element name="focusType" type="xsd:QName" minOccurs="0" default="UserType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Type of focal object that this assignment/inducement applies to. E.g UserType, RoleType, OrgType, ...
+                        Type of logged object that this authentication module applies to. E.g UserType, RoleType, OrgType, ...
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -342,7 +342,7 @@
     <xsd:complexType name="AuthenticationModuleLdapType">
         <xsd:annotation>
             <xsd:documentation>
-                LDAP authentication module support authentication via LDAP server.
+                LDAP authentication module supports authentication via LDAP server.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -355,7 +355,7 @@
                     <xsd:element name="host" type="xsd:string" minOccurs="1" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                LDAP URL of the form.
+                                Host of the LDAP server.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1156,7 +1156,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="urlSuffix" type="xsd:string" minOccurs="1">
+            <xsd:element name="urlSuffix" type="xsd:string" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         URL suffix that can be used to select this authentication sequence specifically. URL suffix can't contains slash '/'.

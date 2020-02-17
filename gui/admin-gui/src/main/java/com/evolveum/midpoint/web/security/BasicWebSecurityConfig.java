@@ -81,18 +81,6 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private SessionRegistry sessionRegistry;
 
-    @Value("${auth.sso.header:SM_USER}")
-    private String principalRequestHeader;
-
-    @Value("${auth.sso.env:REMOTE_USER}")
-    private String principalRequestEnvVariable;
-
-    @Value("${auth.cas.server.url:}")
-    private String casServerUrl;
-
-    @Value("${auth.logout.url:/}")
-    private String authLogoutUrl;
-
     private ObjectPostProcessor<Object> objectObjectPostProcessor;
 
     public BasicWebSecurityConfig(){
@@ -124,7 +112,7 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public AuditedLogoutHandler logoutHandler() {
         AuditedLogoutHandler handler = new AuditedLogoutHandler();
-        handler.setDefaultTargetUrl(authLogoutUrl);
+        handler.setDefaultTargetUrl("/");
 
         return handler;
     }
@@ -134,7 +122,6 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
         return objectObjectPostProcessor.postProcess(new AuditedAccessDeniedHandler());
     }
 
-    @Profile("!cas")
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
         return new WicketLoginUrlAuthenticationEntryPoint("/login");
@@ -210,72 +197,57 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {
         List<AuthenticationProvider> providers = new ArrayList<AuthenticationProvider>();
-//        providers.add(midPointAuthenticationProvider());
         return new MidpointProviderManager(providers);
     }
 
-//    @ConditionalOnMissingBean(name = "midPointAuthenticationProvider")
+//    TODO not used, don't delete because of possible future implementation authentication module
+//
+//    @Value("${auth.sso.env:REMOTE_USER}")
+//    private String principalRequestEnvVariable;
+//
+//    @Profile("ssoenv")
 //    @Bean
-//    public AuthenticationProvider midPointAuthenticationProvider() throws Exception {
-//        return new MidPointAuthenticationProvider();
-//    }
-
-//    @Override
-//    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-//        auth.authenticationProvider(midPointAuthenticationProvider);
-//    }
-
-
-//    @Profile("sso")
-//    @Bean
-//    public RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter() {
-//        MidpointRequestHeaderAuthenticationFilter filter = new MidpointRequestHeaderAuthenticationFilter();
-//        filter.setPrincipalRequestHeader(principalRequestHeader);
-//        filter.setExceptionIfHeaderMissing(false);
+//    public RequestAttributeAuthenticationFilter requestAttributeAuthenticationFilter() {
+//        MidpointRequestAttributeAuthenticationFilter filter = new MidpointRequestAttributeAuthenticationFilter();
+//        filter.setPrincipalEnvironmentVariable(principalRequestEnvVariable);
+//        filter.setExceptionIfVariableMissing(false);
 //        filter.setAuthenticationManager(authenticationManager);
 //        filter.setAuthenticationFailureHandler(new MidpointAuthenticationFauileHandler());
 //
 //        return filter;
 //    }
 
-    @Profile("ssoenv")
-    @Bean
-    public RequestAttributeAuthenticationFilter requestAttributeAuthenticationFilter() {
-        MidpointRequestAttributeAuthenticationFilter filter = new MidpointRequestAttributeAuthenticationFilter();
-        filter.setPrincipalEnvironmentVariable(principalRequestEnvVariable);
-        filter.setExceptionIfVariableMissing(false);
-        filter.setAuthenticationManager(authenticationManager);
-        filter.setAuthenticationFailureHandler(new MidpointAuthenticationFauileHandler());
-
-        return filter;
-    }
-
-    @Profile("cas")
-    @Bean
-    public CasAuthenticationFilter casFilter() {
-        CasAuthenticationFilter filter = new CasAuthenticationFilter();
-        filter.setAuthenticationManager(authenticationManager);
-
-        return filter;
-    }
-
-    @Profile("cas")
-    @Bean
-    public LogoutFilter requestSingleLogoutFilter() {
-        LogoutFilter filter = new LogoutFilter(casServerUrl + "/logout", new SecurityContextLogoutHandler());
-        filter.setFilterProcessesUrl("/logout");
-
-        return filter;
-    }
-
-    @Profile("cas")
-    @Bean
-    public SingleSignOutFilter singleSignOutFilter() {
-        SingleSignOutFilter filter = new SingleSignOutFilter();
-        filter.setCasServerUrlPrefix(casServerUrl);
-
-        return filter;
-    }
+//    TODO not used, don't delete because of possible future implementation CAS authentication module
+//
+//    @Value("${auth.cas.server.url:}")
+//    private String casServerUrl;
+//
+//    @Profile("cas")
+//    @Bean
+//    public CasAuthenticationFilter casFilter() {
+//        CasAuthenticationFilter filter = new CasAuthenticationFilter();
+//        filter.setAuthenticationManager(authenticationManager);
+//
+//        return filter;
+//    }
+//
+//    @Profile("cas")
+//    @Bean
+//    public LogoutFilter requestSingleLogoutFilter() {
+//        LogoutFilter filter = new LogoutFilter(casServerUrl + "/logout", new SecurityContextLogoutHandler());
+//        filter.setFilterProcessesUrl("/logout");
+//
+//        return filter;
+//    }
+//
+//    @Profile("cas")
+//    @Bean
+//    public SingleSignOutFilter singleSignOutFilter() {
+//        SingleSignOutFilter filter = new SingleSignOutFilter();
+//        filter.setCasServerUrlPrefix(casServerUrl);
+//
+//        return filter;
+//    }
 
     @Bean
     public ServletListenerRegistrationBean httpSessionEventPublisher() {
