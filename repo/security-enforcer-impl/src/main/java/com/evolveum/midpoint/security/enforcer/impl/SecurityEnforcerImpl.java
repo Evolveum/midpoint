@@ -698,7 +698,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             SubjectedObjectSelectorType ownerSpec = ownedObjectSelector.getOwner();
             if (ownerSpec != null) {
                 if (ownerResolver == null) {
-                    ownerResolver = securityContextManager.getGuiProfiledPrincipalManager();
+                    ownerResolver = securityContextManager.getUserProfileService();
                     if (ownerResolver == null) {
                         LOGGER.trace("    {}: owner object spec not applicable for {}, object OID {} because there is no owner resolver",
                                 autzHumanReadableDesc, desc, object.getOid());
@@ -2186,7 +2186,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             failAuthorization(attorneyAuthorizationAction, null, autzParams, result);
         }
 
-        MidPointPrincipal donorPrincipal = securityContextManager.getGuiProfiledPrincipalManager().getPrincipal(donor, limitationsCollector, result);
+        MidPointPrincipal donorPrincipal = securityContextManager.getUserProfileService().getPrincipal(donor, limitationsCollector, result);
         donorPrincipal.setAttorney(attorneyPrincipal.getFocus());
 
         // chain principals so we can easily drop the power of attorney and return back to original identity

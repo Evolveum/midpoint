@@ -87,7 +87,7 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
                         MidPointPrincipal actualPrincipal = getPrincipalFromAuthentication(authentication, object, configAttributes);
                         decideInternal(actualPrincipal, requiredActions, authentication, object, task, AuthorizationParameters.Builder.buildObject(authorizedUser));
 
-                        MidPointPrincipal principal= securityContextManager.getGuiProfiledPrincipalManager().getPrincipal(authorizedUser);
+                        MidPointPrincipal principal= securityContextManager.getUserProfileService().getPrincipal(authorizedUser);
                         ((MidpointAuthentication) authentication).setPrincipal(principal);
                         ((MidpointAuthentication) authentication).setAuthorities(principal.getAuthorities());
                     } catch (SystemException | SchemaException | CommunicationException | ConfigurationException

@@ -50,12 +50,12 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
     private ThreadLocal<String> temporaryPrincipalOidThreadLocal = new ThreadLocal<>();
 
     @Override
-    public MidPointPrincipalManager getGuiProfiledPrincipalManager() {
+    public MidPointPrincipalManager getUserProfileService() {
         return userProfileService;
     }
 
     @Override
-    public void setGuiProfiledPrincipalManager(MidPointPrincipalManager userProfileService) {
+    public void setUserProfileService(MidPointPrincipalManager userProfileService) {
         this.userProfileService = userProfileService;
     }
 
