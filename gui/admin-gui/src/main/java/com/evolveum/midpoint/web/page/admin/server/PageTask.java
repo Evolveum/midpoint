@@ -1,8 +1,10 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ItemEditabilityHandler;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
@@ -166,7 +168,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         showResult(result);
         getObjectModel().reset();
         refresh(target);
-        target.add(getFeedbackPanel());
+        target.add(PageTask.this);
     }
 
 
@@ -460,6 +462,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             try {
                 ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                         .visibilityHandler(visibilityHandler)
+                        .editabilityHandler(getTaskEditabilityHandler())
                         .showOnTopLevel(true);
                 Panel panel = initItemPanel(id, typeName, model, builder.build());
                 return panel;
@@ -476,6 +479,13 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             return ItemVisibility.HIDDEN;
         }
         return ItemVisibility.AUTO;
+    }
+
+    private ItemEditabilityHandler getTaskEditabilityHandler(){
+        PrismObject<TaskType> task = getObjectWrapper().getObject();
+        TaskType taskType = task.asObjectable();
+        ItemEditabilityHandler editableHandler = wrapper -> !isRunning(taskType);
+        return editableHandler;
     }
 
     @Override

@@ -47,7 +47,8 @@ public class PrismObjectValuePanel<O extends ObjectType> extends BasePanel<Prism
 
     protected void createValuePanel(String panelId, IModel<PrismObjectValueWrapper<O>> valueModel) {
 
-        PrismContainerValuePanel<O, PrismObjectValueWrapper<O>> valueWrapper = new PrismContainerValuePanel<>(panelId, valueModel, settings.getVisibilityHandler());
+        PrismContainerValuePanel<O, PrismObjectValueWrapper<O>> valueWrapper = new PrismContainerValuePanel<>(panelId, valueModel,
+                settings.getVisibilityHandler(), settings.getEditabilityHandler());
         valueWrapper.setOutputMarkupId(true);
         add(valueWrapper);
 
