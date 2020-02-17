@@ -54,7 +54,7 @@ public class LdapModuleFactory extends AbstractModuleFactory {
     private Protector protector;
 
     @Autowired
-    @Qualifier("userDetailsService")
+    @Qualifier("guiProfiledPrincipalManager")
     private UserDetailsContextMapper userDetailsContextMapper;
 
     @Override

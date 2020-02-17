@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.model.api.authentication;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.springframework.ldap.core.DirContextAdapter;
 
 /**
@@ -20,11 +23,21 @@ public class MidpointDirContextAdapter extends DirContextAdapter {
 
     private String namingAttr;
 
+    private Class<? extends FocusType> focusType = UserType.class;
+
     public void setNamingAttr(String namingAttr) {
         this.namingAttr = namingAttr;
     }
 
     public String getNamingAttr() {
         return namingAttr;
+    }
+
+    public void setFocusType(Class<? extends FocusType> focusType) {
+        this.focusType = focusType;
+    }
+
+    public Class<? extends FocusType> getFocusType() {
+        return focusType;
     }
 }

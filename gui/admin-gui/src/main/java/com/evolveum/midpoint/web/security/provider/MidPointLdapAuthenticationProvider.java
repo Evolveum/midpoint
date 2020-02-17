@@ -7,12 +7,11 @@
 
 package com.evolveum.midpoint.web.security.provider;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
-import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -20,8 +19,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.module.authentication.LdapAuthenticationToken;
 import com.evolveum.midpoint.web.security.module.authentication.LdapModuleAuthentication;
-import com.evolveum.midpoint.model.api.authentication.MidpointDirContextAdapter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.ldap.core.DirContextAdapter;
@@ -49,6 +47,9 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
 
     @Autowired
     private ModelAuditRecorder auditProvider;
+
+    @Autowired
+    private PrismContext prismContext;
 
     public MidPointLdapAuthenticationProvider(LdapAuthenticator authenticator) {
         this.authenticatorProvider = createAuthenticatorProvider(authenticator);
@@ -80,6 +81,10 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
                                 }
                                 MidpointDirContextAdapter mpDirContextAdapter = new MidpointDirContextAdapter((DirContextAdapter)originalDirContextOperations);
                                 mpDirContextAdapter.setNamingAttr(((LdapModuleAuthentication) moduleAuthentication).getNamingAttribute());
+                                if (moduleAuthentication.getFocusType() != null) {
+                                    Class<FocusType> focusType = WebComponentUtil.qnameToClass(prismContext, moduleAuthentication.getFocusType(), FocusType.class);
+                                    mpDirContextAdapter.setFocusType(focusType);
+                                }
                                 return mpDirContextAdapter;
                             }
                         }
@@ -97,13 +102,13 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
                     throw new BadCredentialsException("LdapAuthentication.incorrect.value");
                 }
                 MidPointPrincipal midPointPrincipal = (MidPointPrincipal) principal;
-                UserType userType = midPointPrincipal.getUser();
+                FocusType focusType = midPointPrincipal.getFocus();
 
-                if (userType == null) {
+                if (focusType == null) {
                     throw new BadCredentialsException("LdapAuthentication.bad.user");
                 }
 
-                auditProvider.auditLoginSuccess(userType, ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI));
+                auditProvider.auditLoginSuccess(focusType, ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI));
                 return authNCtx;
             }
         };
@@ -126,8 +131,13 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
     }
 
     @Override
-    protected Authentication internalAuthentication(Authentication authentication, List requireAssignment, AuthenticationChannel channel) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof MidPointUserProfilePrincipal) {
+    protected AuthenticationEvaluator getEvaluator() {
+        return null;
+    }
+
+    @Override
+    protected Authentication internalAuthentication(Authentication authentication, List requireAssignment, AuthenticationChannel channel, Class focusType) throws AuthenticationException {
+        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
             return authentication;
         }
 
@@ -140,9 +150,6 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
 
             Authentication token;
             if (authentication instanceof LdapAuthenticationToken) {
-                String enteredPassword = (String) authentication.getCredentials();
-
-
                 token = this.authenticatorProvider.authenticate(authentication);
             } else {
                 LOGGER.error("Unsupported authentication {}", authentication);
@@ -169,11 +176,6 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
             auditProvider.auditLoginFailure(authentication.getName(), null, connEnv, "bad credentials");
             throw e;
         }
-    }
-
-    @Override
-    protected AuthenticationEvaluator getEvaluator() {
-        return null;
     }
 
     @Override

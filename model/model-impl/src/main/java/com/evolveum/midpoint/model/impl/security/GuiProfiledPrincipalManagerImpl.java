@@ -366,11 +366,13 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
                                           Collection<? extends GrantedAuthority> authorities) {
 
         String userNameEffective = username;
+        Class<? extends FocusType> focusType = UserType.class;
         try {
             if (ctx instanceof MidpointDirContextAdapter && ((MidpointDirContextAdapter) ctx).getNamingAttr() != null) {
                 userNameEffective = resolveLdapName(ctx, username, ((MidpointDirContextAdapter) ctx).getNamingAttr());
+                focusType = ((MidpointDirContextAdapter) ctx).getFocusType();
             }
-            return getPrincipal(userNameEffective, FocusType.class);
+            return getPrincipal(userNameEffective, focusType);
 
         } catch (ObjectNotFoundException e) {
             throw new UsernameNotFoundException("UserProfileServiceImpl.unknownUser", e);
