@@ -1,0 +1,19 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      oid="9af2f6d7-564f-45f8-bd8a-2f5cef1596a8">
+    <name>role-timed</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="567d9834-4f2c-4e5b-89a6-ebd804c7d469" relation="org:default" type="ResourceType"/>
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+    </inducement>
+</role>

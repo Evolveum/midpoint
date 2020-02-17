@@ -10,6 +10,8 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.message.Message;
@@ -62,7 +64,7 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
     @Autowired private ModelService model;
 
     protected abstract AuthenticationEvaluator<T> getAuthenticationEvaluator();
-    protected abstract T createAuthenticationContext(AuthorizationPolicy policy, ContainerRequestContext requestCtx);
+    protected abstract T createAuthenticationContext(AuthorizationPolicy policy, ContainerRequestContext requestCtx, Class<? extends FocusType> clazz);
 
     public void handleRequest(AuthorizationPolicy policy, Message m, ContainerRequestContext requestCtx) {
 
@@ -71,7 +73,7 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
             return;
         }
 
-        T authenticationContext = createAuthenticationContext(policy, requestCtx);
+        T authenticationContext = createAuthenticationContext(policy, requestCtx, UserType.class);
 
         if (authenticationContext == null) {
             return;
@@ -103,11 +105,11 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
             return;
         }
 
-        UserType user = ((MidPointPrincipal)token.getPrincipal()).getUser();
-        task.setOwner(user.asPrismObject());
+        FocusType focus = ((MidPointPrincipal)token.getPrincipal()).getFocus();
+        task.setOwner(focus.asPrismObject());
 
         //  m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
-        if (!authorizeUser(user, null, enteredUsername, connEnv, requestCtx)){
+        if (!authorizeUser(focus, null, enteredUsername, connEnv, requestCtx)){
             return;
         }
 
@@ -115,9 +117,9 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
         OperationResult result = task.getResult();
         if (StringUtils.isNotBlank(oid)){
             try {
-                PrismObject<UserType> authorizedUser = model.getObject(UserType.class, oid, null, task, result);
+                PrismObject<? extends FocusType> authorizedUser = model.getObject(UserType.class, oid, null, task, result);
                 task.setOwner(authorizedUser);
-                if (!authorizeUser(AuthorizationConstants.AUTZ_REST_PROXY_URL, user, authorizedUser, enteredUsername, connEnv, requestCtx)){
+                if (!authorizeUser(AuthorizationConstants.AUTZ_REST_PROXY_URL, focus, authorizedUser, enteredUsername, connEnv, requestCtx)){
                     return;
                 }
                 authenticateUser(authorizedUser, authorizedUser.getName().getOrig(), connEnv, requestCtx);
@@ -134,38 +136,38 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 
         m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
 
-        LOGGER.trace("Authorized to use REST service ({})", user);
+        LOGGER.trace("Authorized to use REST service ({})", focus);
 
     }
 
-    private boolean authorizeUser(UserType user, PrismObject<UserType> proxyUser, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
-        authenticateUser(user.asPrismObject(), enteredUsername, connEnv, requestCtx);
-        return authorizeUser(AuthorizationConstants.AUTZ_REST_ALL_URL, user, null, enteredUsername, connEnv, requestCtx);
+    private boolean authorizeUser(FocusType focus, PrismObject<? extends FocusType> proxyFocus, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
+        authenticateUser(focus.asPrismObject(), enteredUsername, connEnv, requestCtx);
+        return authorizeUser(AuthorizationConstants.AUTZ_REST_ALL_URL, focus, null, enteredUsername, connEnv, requestCtx);
     }
 
-    private void authenticateUser(PrismObject<UserType> user, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
+    private void authenticateUser(PrismObject<? extends FocusType> focus, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
         try {
-            securityContextManager.setupPreAuthenticatedSecurityContext(user);
+            securityContextManager.setupPreAuthenticatedSecurityContext(focus);
         } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
-            securityHelper.auditLoginFailure(enteredUsername, user.asObjectable(), connEnv, "Schema error: "+e.getMessage());
+            securityHelper.auditLoginFailure(enteredUsername, focus.asObjectable(), connEnv, "Schema error: "+e.getMessage());
             requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
             //                return false;
         }
 
-        LOGGER.trace("Authenticated to REST service as {}", user);
+        LOGGER.trace("Authenticated to REST service as {}", focus);
     }
 
-    private boolean authorizeUser(String authorization, UserType user, PrismObject<UserType> proxyUser, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
+    private boolean authorizeUser(String authorization, FocusType focus, PrismObject<? extends FocusType> proxyFocus, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
         Task task = taskManager.createTaskInstance(MidpointRestAuthenticator.class.getName() + ".authorizeUser");
         try {
             // authorize for proxy
-            securityEnforcer.authorize(authorization, null, AuthorizationParameters.Builder.buildObject(proxyUser), null, task, task.getResult());
+            securityEnforcer.authorize(authorization, null, AuthorizationParameters.Builder.buildObject(proxyFocus), null, task, task.getResult());
         } catch (SecurityViolationException e){
-            securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Not authorized");
+            securityHelper.auditLoginFailure(enteredUsername, focus, connEnv, "Not authorized");
             requestCtx.abortWith(Response.status(Status.FORBIDDEN).build());
             return false;
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
-            securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Internal error: "+e.getMessage());
+            securityHelper.auditLoginFailure(enteredUsername, focus, connEnv, "Internal error: "+e.getMessage());
             requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
             return false;
         }

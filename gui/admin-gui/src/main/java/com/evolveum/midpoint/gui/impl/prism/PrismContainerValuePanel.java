@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.prism;
 
 import java.text.Collator;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -14,6 +15,13 @@ import java.util.Locale;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -23,6 +31,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListItemModel;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -37,11 +46,6 @@ import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -83,17 +87,49 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     @Override
+    public boolean isVisible() {
+        CVW modelObject = getModelObject();
+        if (modelObject == null) {
+            return false;
+        }
+
+        ItemWrapper parent = modelObject.getParent();
+        if (!PrismContainerWrapper.class.isAssignableFrom(parent.getClass())) {
+            return false;
+        }
+
+        if (MetadataType.COMPLEX_TYPE.equals(parent.getTypeName()) && (modelObject.isShowMetadata())) {
+            return false;
+        }
+
+        if (!((PrismContainerWrapper) parent).isExpanded() && parent.isMultiValue()) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
         setOutputMarkupId(true);
+
+        add(AttributeModifier.append("class", () -> {
+            String cssClasses = "";
+            if (getModelObject() != null && ValueStatus.ADDED == getModelObject().getStatus()) {
+                cssClasses = " added-value-background";
+            }
+            if (getModelObject() != null && ValueStatus.DELETED == getModelObject().getStatus()) {
+                cssClasses = " removed-value-background";
+            }
+            return cssClasses;
+        }));
+
     }
 
     private void initLayout() {
-
         initHeader();
         initValues();
-
     }
 
     private void initHeader() {
@@ -119,7 +155,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
         initButtons();
 
-        add(new VisibleBehaviour(() -> getModelObject() != null && ValueStatus.DELETED != getModelObject().getStatus()));
         //TODO always visible if isObject
     }
 
@@ -135,7 +170,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     }
 
-    private <PV extends PrismValue, I extends Item<PV, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper> void createNonContainersPanel() {
+    private <PV extends PrismValue, I extends Item<PV, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper<PV, I, ID, ?>> void createNonContainersPanel() {
         WebMarkupContainer propertiesLabel = new WebMarkupContainer(ID_PROPERTIES_LABEL);
         propertiesLabel.setOutputMarkupId(true);
 
@@ -150,7 +185,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 populateNonContainer(item);
             }
         };
-//        properties.setReuseItems(true);
+        properties.setReuseItems(true);
         properties.setOutputMarkupId(true);
         add(propertiesLabel);
            propertiesLabel.add(properties);
@@ -182,12 +217,12 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         add(labelShowEmpty);
     }
 
-    private <PV extends PrismValue, I extends Item<PV, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper> void createContainersPanel() {
-        ListView<PrismContainerWrapper> containers = new ListView<PrismContainerWrapper>("containers", new PropertyModel<>(getModel(), "containers")) {
+    private void createContainersPanel() {
+        ListView<PrismContainerWrapper<?>> containers = new ListView<PrismContainerWrapper<?>>("containers", new PropertyModel<>(getModel(), "containers")) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(final ListItem<PrismContainerWrapper> item) {
+            protected void populateItem(final ListItem<PrismContainerWrapper<?>> item) {
                 populateContainer(item);
             }
         };
@@ -198,7 +233,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     }
 
-    private <IW extends ItemWrapper> IModel<List<IW>> createNonContainerWrappersModel() {
+    private <IW extends ItemWrapper<?,?,?,?>> IModel<List<IW>> createNonContainerWrappersModel() {
         return new IModel<List<IW>>() {
 
             private static final long serialVersionUID = 1L;
@@ -210,7 +245,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         };
     }
 
-    private <IW extends ItemWrapper> List<IW> getNonContainerWrappers() {
+    private <IW extends ItemWrapper<?,?,?,?>> List<IW> getNonContainerWrappers() {
         CVW containerValueWrapper = getModelObject();
         List<? extends ItemWrapper<?, ?, ?, ?>> nonContainers = containerValueWrapper.getNonContainers();
 
@@ -244,7 +279,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         return (List<IW>) nonContainers;
     }
 
-    private <IW extends ItemWrapper> void populateNonContainer(ListItem<IW> item) {
+    private <IW extends ItemWrapper<?,?,?,?>> void populateNonContainer(ListItem<IW> item) {
         item.setOutputMarkupId(true);
         IW itemWrapper = item.getModelObject();
         try {
@@ -281,17 +316,16 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
     }
 
-    private void populateContainer(ListItem<PrismContainerWrapper> container) {
-        container.setOutputMarkupId(true);
-        PrismContainerWrapper itemWrapper = container.getModelObject();
+    private void populateContainer(ListItem<PrismContainerWrapper<?>> container) {
+        PrismContainerWrapper<?> itemWrapper = container.getModelObject();
         try {
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(visibilityHandler);
             Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), builder.build());
             panel.setOutputMarkupId(true);
-            panel.add(new VisibleBehaviour(() -> {
-                CVW parent = PrismContainerValuePanel.this.getModelObject();
-                return container.getModelObject().isVisible(parent, visibilityHandler);
-            }));
+//            panel.add(new VisibleBehaviour(() -> {
+//                CVW parent = PrismContainerValuePanel.this.getModelObject();
+//                return container.getModelObject().isVisible(parent, visibilityHandler);
+//            }));
             container.add(panel);
         } catch (SchemaException e) {
             throw new SystemException("Cannot instantiate panel for: " + itemWrapper.getDisplayName());
@@ -366,9 +400,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
         };
         showMetadataButton.add(new AttributeModifier("title", new StringResourceModel("PrismContainerValuePanel.showMetadata.${showMetadata}", getModel())));
-//                return PrismContainerValueHeaderPanel.this.getModelObject() == null ? "" : (PrismContainerValueHeaderPanel.this.getModelObject().isShowMetadata() ?
-//                        createStringResource("PrismObjectPanel.hideMetadata").getString() :
-//                        createStringResource("PrismObjectPanel.showMetadata").getString());
         showMetadataButton.add(new VisibleBehaviour(() -> getModelObject().hasMetadata() && shouldBeButtonsShown()));
         showMetadataButton.setOutputMarkupId(true);
         showMetadataButton.setOutputMarkupPlaceholderTag(true);
@@ -482,8 +513,13 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                removeValuePerformed(target);
+                try {
+                    removePerformed(PrismContainerValuePanel.this.getModelObject(), target);
+                } catch (SchemaException e) {
+                    e.printStackTrace();
+                }
             }
+
         };
 
         removeContainerButton.add(new VisibleEnableBehaviour() {
@@ -511,10 +547,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     }
 
-    private void removeValuePerformed(AjaxRequestTarget target) {
-        CVW containerValueWrapper = getModelObject();
-        containerValueWrapper.setStatus(ValueStatus.DELETED);
-        refreshPanel(target);
+    protected void removePerformed(CVW containerValueWrapper, AjaxRequestTarget target) throws SchemaException {
+
     }
 
     private boolean shouldBeButtonsShown() {
@@ -524,8 +558,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private void onSortClicked(AjaxRequestTarget target) {
         CVW wrapper = getModelObject();
         wrapper.setSorted(!wrapper.isSorted());
-
-        //wrapper.sort();
 
         refreshPanel(target);
     }
@@ -538,7 +570,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
 
     private void refreshPanel(AjaxRequestTarget target) {
-
         target.add(PrismContainerValuePanel.this);
         target.add(getPageBase().getFeedbackPanel());
     }

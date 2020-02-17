@@ -13,7 +13,10 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -30,16 +33,6 @@ import com.evolveum.midpoint.model.impl.lens.Construction;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -79,8 +72,9 @@ public class OutboundProcessor {
     @Autowired private MappingFactory mappingFactory;
     @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private ContextLoader contextLoader;
+    @Autowired private Clock clock;
 
-    public <F extends FocusType> void processOutbound(LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result) throws SchemaException,
+    <F extends FocusType> void processOutbound(LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();
@@ -113,15 +107,20 @@ public class OutboundProcessor {
 
         String operation = projCtx.getOperation().getValue();
 
+        NextRecompute nextRecompute = null;
+
         for (QName attributeName : rOcDef.getNamesOfAttributesWithOutboundExpressions()) {
             RefinedAttributeDefinition<?> refinedAttributeDefinition = rOcDef.findAttributeDefinition(attributeName);
+            if (refinedAttributeDefinition == null) {
+                throw new IllegalStateException("No definition for " + attributeName);
+            }
 
             final MappingType outboundMappingType = refinedAttributeDefinition.getOutboundMappingType();
             if (outboundMappingType == null) {
                 continue;
             }
 
-            if (refinedAttributeDefinition.isIgnored(LayerType.MODEL)) {
+            if (refinedAttributeDefinition.getProcessing(LayerType.MODEL) == ItemProcessing.IGNORE) {
                 LOGGER.trace("Skipping processing outbound mapping for attribute {} because it is ignored", attributeName);
                 continue;
             }
@@ -132,9 +131,11 @@ public class OutboundProcessor {
                 projectionOdo = projCtx.getObjectDeltaObject();
             }
 
-            MappingImpl.Builder<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> builder = mappingFactory.createMappingBuilder(outboundMappingType,
-                    "outbound mapping for " + PrettyPrinter.prettyPrint(refinedAttributeDefinition.getItemName())
-                    + " in " + projCtx.getResource());
+            String mappingShortDesc = "outbound mapping for " +
+                    PrettyPrinter.prettyPrint(refinedAttributeDefinition.getItemName()) + " in " + projCtx.getResource();
+            MappingImpl.Builder<PrismPropertyValue<?>, RefinedAttributeDefinition<?>> builder =
+                    mappingFactory.createMappingBuilder(outboundMappingType, mappingShortDesc);
+            //noinspection ConstantConditions
             builder = builder.originObject(projCtx.getResource())
                     .originType(OriginType.OUTBOUND);
             MappingImpl<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> evaluatedMapping = evaluateMapping(builder, attributeName, refinedAttributeDefinition,
@@ -142,6 +143,7 @@ public class OutboundProcessor {
 
             if (evaluatedMapping != null) {
                 outboundConstruction.addAttributeMapping(evaluatedMapping);
+                nextRecompute = NextRecompute.update(evaluatedMapping, nextRecompute);
             }
         }
 
@@ -163,16 +165,20 @@ public class OutboundProcessor {
                     + " in " + projCtx.getResource());
 
             PrismContainerDefinition<ShadowAssociationType> outputDefinition = getAssociationContainerDefinition();
-            MappingImpl<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = (MappingImpl) evaluateMapping(mappingBuilder,
+            MappingImpl<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = evaluateMapping(mappingBuilder,
                     assocName, outputDefinition, focusOdo, projectionOdo, operation, rOcDef,
                     associationDefinition.getAssociationTarget(), context, projCtx, task, result);
 
             if (evaluatedMapping != null) {
                 outboundConstruction.addAssociationMapping(evaluatedMapping);
+                nextRecompute = NextRecompute.update(evaluatedMapping, nextRecompute);
             }
         }
 
         projCtx.setOutboundConstruction(outboundConstruction);
+        if (nextRecompute != null) {
+            nextRecompute.createTrigger(context.getFocusContext());
+        }
     }
 
     // TODO: unify with MappingEvaluator.evaluateOutboundMapping(...)
@@ -222,6 +228,7 @@ public class OutboundProcessor {
 
         mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_LEGAL, projCtx.isLegal());
         mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ASSIGNED, projCtx.isAssigned());
+        mappingBuilder.now(clock.currentTimeXMLGregorianCalendar());
 
         if (assocTargetObjectClassDefinition != null) {
             mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
@@ -232,9 +239,9 @@ public class OutboundProcessor {
         mappingBuilder.refinedObjectClassDefinition(rOcDef);
 
         if (projCtx.isDelete()) {
-                mappingBuilder.originalTargetValues(Collections.EMPTY_LIST);
+            mappingBuilder.originalTargetValues(Collections.emptyList());
         } else if (projCtx.isAdd()) {
-            mappingBuilder.originalTargetValues(Collections.EMPTY_LIST);
+            mappingBuilder.originalTargetValues(Collections.emptyList());
         } else {
             PrismObject<ShadowType> oldObject = projectionOdo.getOldObject();
             if (oldObject != null) {
@@ -242,23 +249,23 @@ public class OutboundProcessor {
                 if (attributeOld == null) {
                     if (projCtx.hasFullShadow()) {
                         // We know that the attribute has no values
-                        mappingBuilder.originalTargetValues(Collections.EMPTY_LIST);
+                        mappingBuilder.originalTargetValues(Collections.emptyList());
                     } else {
                         // We do not have full shadow. Therefore we know nothing about attribute values.
                         // We cannot set originalTargetValues here.
                     }
                 } else {
+                    //noinspection unchecked
                     mappingBuilder.originalTargetValues((Collection<V>) attributeOld.getValues());
                 }
             }
         }
 
         ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
-            private ItemPath outputPath;
             private ItemDefinition outputDefinition;
+
             @Override
             public void setOutputPath(ItemPath outputPath) {
-                this.outputPath = outputPath;
             }
 
             @Override

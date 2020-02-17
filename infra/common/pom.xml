@@ -99,10 +99,20 @@
             <groupId>org.codehaus.staxmate</groupId>
             <artifactId>staxmate</artifactId>
         </dependency>
+        <!-- Adding logging bridges for JUL, commons-logging and log4j (3rd party libs needs). -->
         <dependency>
-            <!-- Some of the the third-party libs are still using JUL. We want them in our logs. -->
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>log4j-over-slf4j</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>javax.annotation</groupId>
@@ -128,7 +138,7 @@
             <artifactId>spring-beans</artifactId>
         </dependency>
 
-        <!-- Testing dependecies -->
+        <!-- Testing dependencies -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>

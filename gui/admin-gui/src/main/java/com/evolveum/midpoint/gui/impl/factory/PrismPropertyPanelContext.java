@@ -6,16 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
-import java.util.Collection;
-
-import org.apache.wicket.model.IModel;
-
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import org.apache.wicket.model.IModel;
 
 /**
  * @author katka
@@ -26,11 +21,6 @@ public class PrismPropertyPanelContext<T> extends ItemPanelContext<T, PrismPrope
 
     public PrismPropertyPanelContext(IModel<PrismPropertyWrapper<T>> itemWrapper) {
         super(itemWrapper);
-    }
-
-
-    public Collection<? extends DisplayableValue<T>> getAllowedValues() {
-        return unwrapWrapperModel().getAllowedValues();
     }
 
     public LookupTableType getPredefinedValues() {

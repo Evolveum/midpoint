@@ -13,6 +13,8 @@ import java.util.List;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -48,12 +50,12 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
     private ThreadLocal<String> temporaryPrincipalOidThreadLocal = new ThreadLocal<>();
 
     @Override
-    public MidPointPrincipalManager getUserProfileService() {
+    public MidPointPrincipalManager getGuiProfiledPrincipalManager() {
         return userProfileService;
     }
 
     @Override
-    public void setUserProfileService(MidPointPrincipalManager userProfileService) {
+    public void setGuiProfiledPrincipalManager(MidPointPrincipalManager userProfileService) {
         this.userProfileService = userProfileService;
     }
 
@@ -106,14 +108,14 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
     }
 
     @Override
-    public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public void setupPreAuthenticatedSecurityContext(PrismObject<? extends FocusType> focus) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         MidPointPrincipal principal;
         if (userProfileService == null) {
             LOGGER.warn("No user profile service set up in SecurityEnforcer. "
                     + "This is OK in low-level tests but it is a serious problem in running system");
-            principal = new MidPointPrincipal(user.asObjectable());
+            principal = new MidPointPrincipal(focus.asObjectable());
         } else {
-            principal = userProfileService.getPrincipal(user);
+            principal = userProfileService.getPrincipal(focus);
         }
         setupPreAuthenticatedSecurityContext(principal);
     }

@@ -60,7 +60,7 @@ public class AuditHelper {
                             .build();
                     try {
                         if (record.getNonExistingReferencedObjects().contains(oid)) {
-                            // This information could get from upper layers (not now, but maybe in the future).
+                            // This information could come from upper layers (not now, but maybe in the future).
                             return null;
                         }
                         if (externalNameResolver != null) {
@@ -69,7 +69,7 @@ public class AuditHelper {
                                 return externallyResolvedName;
                             }
                         }
-                        // we use null options here, in order to utilize the local or global repository cache
+                        // we use only cache-compatible options here, in order to utilize the local or global repository cache
                         Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
                                 .allowNotFound().build();
                         PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, options, result);

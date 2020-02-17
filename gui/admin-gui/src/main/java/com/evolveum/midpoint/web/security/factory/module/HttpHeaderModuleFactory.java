@@ -66,6 +66,7 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
         setSharedObjects(http, sharedObjects);
 
         ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication(configuration);
+        moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }

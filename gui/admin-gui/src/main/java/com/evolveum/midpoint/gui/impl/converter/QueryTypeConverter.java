@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.converter;
 
 import java.util.Locale;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
 
@@ -41,7 +43,7 @@ public class QueryTypeConverter implements IConverter<QueryType> {
     @Override
     public String convertToString(QueryType value, Locale arg1) {
          try {
-             return prismContext.xmlSerializer().serializeAnyData(value);
+             return prismContext.xmlSerializer().serializeAnyData(value, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
          } catch (SchemaException e) {
              throw new SystemException(
                  "Couldn't serialize property value of type: " + value + ": " + e.getMessage(), e);

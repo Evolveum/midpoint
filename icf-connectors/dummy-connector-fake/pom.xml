@@ -25,10 +25,6 @@
             <groupId>net.tirasa.connid</groupId>
             <artifactId>connector-framework</artifactId>
         </dependency>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

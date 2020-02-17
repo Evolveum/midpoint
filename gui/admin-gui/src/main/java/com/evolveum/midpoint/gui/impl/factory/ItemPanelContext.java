@@ -48,23 +48,8 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
         return componentId;
     }
 
-    public PrismReferenceValue getValueEnumerationRef() {
-        return unwrapWrapperModel().getValueEnumerationRef();
-    }
-
-
-    public IModel<IW> getItemWrapperModel() {
-        return itemWrapper;
-    }
-
     public PrismContext getPrismContext() {
         return unwrapWrapperModel().getPrismContext();
-    }
-
-
-
-    public boolean isPropertyReadOnly() {
-        return unwrapWrapperModel().isReadOnly();
     }
 
     public ItemName getDefinitionName() {
@@ -90,8 +75,8 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
         return realValueModel;
     }
 
-    public <V extends PrismValue> void setRealValueModel(IModel<? extends PrismValueWrapper<T, V>> valueWrapper) {
-        this.realValueModel = new ItemRealValueModel<T>(valueWrapper);
+    public <VW extends PrismValueWrapper<T,?>> void setRealValueModel(IModel<VW> valueWrapper) {
+        this.realValueModel = new ItemRealValueModel<>(valueWrapper);
     }
 
 

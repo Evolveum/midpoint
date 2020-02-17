@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -25,14 +25,14 @@ public class StatisticsDtoModel implements IModel<StatisticsDto> {
 
     // at most one of these may be null
     private transient Task task;
-    private IModel<TaskDto> taskModel;
+    private IModel<PrismObjectWrapper<TaskType>> taskModel;
 
     private transient StatisticsDto cachedObject;
 
     public StatisticsDtoModel() {
     }
 
-    public StatisticsDtoModel(IModel<TaskDto> taskModel) {
+    public StatisticsDtoModel(IModel<PrismObjectWrapper<TaskType>> taskModel) {
         this.taskModel = taskModel;
     }
 
@@ -58,8 +58,8 @@ public class StatisticsDtoModel implements IModel<StatisticsDto> {
         if (task != null) {
             return getStatisticsFromTask(task);
         }
-        if (taskModel != null && taskModel.getObject() != null && taskModel.getObject().getTaskType() != null) {
-            return getStatisticsFromTaskType(taskModel.getObject().getTaskType());
+        if (taskModel != null && taskModel.getObject() != null && taskModel.getObject().getObject() != null) {
+            return getStatisticsFromTaskType(taskModel.getObject().getObject().asObjectable());
         }
         return null;
     }

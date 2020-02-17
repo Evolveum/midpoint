@@ -332,7 +332,7 @@ public class ContextLoader {
                 .build();
         FocusLoadedTraceType trace;
         if (result.isTraced()) {
-            trace = new FocusLoadedTraceType();
+            trace = new FocusLoadedTraceType(prismContext);
             if (result.isTracingNormal(FocusLoadedTraceType.class)) {
                 trace.setInputLensContextText(context.debugDump());
             }

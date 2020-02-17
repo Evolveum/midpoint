@@ -227,22 +227,6 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return (WorkItemsStorage)pageStorageMap.get(KEY_WORK_ITEMS);
     }
 
-
-    //TODO remove after removinf TaskDtoTablePanel
-    public TasksStorage getTasks() {
-        if (pageStorageMap.get(KEY_TASKS) == null) {
-            pageStorageMap.put(KEY_TASKS, new TasksStorage());
-        }
-        return (TasksStorage)pageStorageMap.get(KEY_TASKS);
-    }
-
-    public TasksStorage getSubtasks() {
-        if (pageStorageMap.get(KEY_SUBTASKS) == null) {
-            pageStorageMap.put(KEY_SUBTASKS, new TasksStorage());
-        }
-        return (TasksStorage)pageStorageMap.get(KEY_SUBTASKS);
-    }
-
     public CertCampaignsStorage getCertCampaigns() {
         if (pageStorageMap.get(KEY_CERT_CAMPAIGNS) == null) {
             pageStorageMap.put(KEY_CERT_CAMPAIGNS, new CertCampaignsStorage());

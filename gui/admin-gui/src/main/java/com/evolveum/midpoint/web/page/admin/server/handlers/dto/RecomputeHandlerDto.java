@@ -7,15 +7,10 @@
 
 package com.evolveum.midpoint.web.page.admin.server.handlers.dto;
 
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-
 /**
  * @author mederly
  */
 public class RecomputeHandlerDto extends QueryBasedHandlerDto {
 
-    public RecomputeHandlerDto(TaskDto taskDto) {
-        super(taskDto);
-    }
 
 }

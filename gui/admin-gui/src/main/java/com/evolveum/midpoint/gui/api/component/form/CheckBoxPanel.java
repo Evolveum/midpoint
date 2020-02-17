@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.api.component.form;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
@@ -32,14 +33,25 @@ public class CheckBoxPanel extends Panel {
     private static final String ID_CHECK = "check";
     private static final String ID_LABEL = "label";
 
+    IModel<Boolean> checkboxModel;
+    IModel<String> labelModel;
+    IModel<String> tooltipModel;
+
     public CheckBoxPanel(String id, IModel<Boolean> checkboxModel) {
-        this(id, checkboxModel, null, null, null);
+        this(id, checkboxModel, null, null);
     }
 
-    public CheckBoxPanel(String id, IModel<Boolean> checkboxModel, final IModel<Boolean> visibilityModel,
+    public CheckBoxPanel(String id, IModel<Boolean> checkboxModel,
             IModel<String> labelModel, IModel<String> tooltipModel) {
         super(id);
+        this.checkboxModel = checkboxModel;
+        this.labelModel = labelModel;
+        this.tooltipModel = tooltipModel;
+    }
 
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         add(container);
 
@@ -58,16 +70,7 @@ public class CheckBoxPanel extends Panel {
         };
         check.setOutputMarkupId(true);
 
-        if (visibilityModel != null) {
-            check.add(new VisibleEnableBehaviour() {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public boolean isEnabled() {
-                    return visibilityModel.getObject();
-                }
-            });
-        }
+        check.add(new EnableBehaviour(() -> isCheckboxEnabled()));
         container.add(check);
 
         Label label = new Label(ID_LABEL, labelModel);
@@ -97,5 +100,9 @@ public class CheckBoxPanel extends Panel {
         }
 
         return val.booleanValue();
+    }
+
+    protected boolean isCheckboxEnabled(){
+        return true;
     }
 }

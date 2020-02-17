@@ -31,49 +31,44 @@ public class MidpointResponse extends Response {
     private String servletPath;
     private SystemObjectCache systemObjectCache;
 
-    public MidpointResponse(String serlvetPath, SystemObjectCache systemObjectCache) {
-        this(OutputBuffer.DEFAULT_BUFFER_SIZE, serlvetPath, systemObjectCache);
+    public MidpointResponse(String servletPath, SystemObjectCache systemObjectCache) {
+        this(OutputBuffer.DEFAULT_BUFFER_SIZE, servletPath, systemObjectCache);
     }
 
-    public MidpointResponse(int outputBufferSize, String serlvetPath, SystemObjectCache systemObjectCache) {
+    public MidpointResponse(int outputBufferSize, String servletPath, SystemObjectCache systemObjectCache) {
         super(outputBufferSize);
 
-        this.servletPath = serlvetPath;
+        this.servletPath = servletPath;
         this.systemObjectCache = systemObjectCache;
     }
 
     @Override
     public void setHeader(String name, String value) {
-        String pattern = getPattern();
-        if ("Location".equals(name) && pattern != null && StringUtils.isNotBlank(value)) {
+        String publicUrlPrefix = getPublicUrlPrefix();
+        if ("Location".equals(name) && publicUrlPrefix != null && StringUtils.isNotBlank(value)) {
             if (value.startsWith(".")) {
-                value = pattern + value.substring(1);
+                value = publicUrlPrefix + value.substring(1);
             } else if (StringUtils.isBlank(servletPath)) {
-                if(value.startsWith("/")) {
-                    value = pattern + value;
+                if (value.startsWith("/")) {
+                    value = publicUrlPrefix + value;
                 } else {
                     String partAfterSchema = value.substring(value.indexOf("://") + 3);
-                    value = pattern + partAfterSchema.substring(partAfterSchema.indexOf("/"));
+                    value = publicUrlPrefix + partAfterSchema.substring(partAfterSchema.indexOf("/"));
                 }
             } else if (value.contains(servletPath + "/")) {
-                value = pattern + value.substring(value.indexOf(servletPath) + servletPath.length());
+                value = publicUrlPrefix + value.substring(value.indexOf(servletPath) + servletPath.length());
             }
         }
         super.setHeader(name, value);
     }
 
-    private String getPattern() {
-        String pattern = null;
+    private String getPublicUrlPrefix() {
         try {
             PrismObject<SystemConfigurationType> systemConfig = systemObjectCache.getSystemConfiguration(new OperationResult("load system configuration"));
-            String publicHttpUrlPattern = SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfig.asObjectable());
-            if (publicHttpUrlPattern != null) {
-                pattern = publicHttpUrlPattern;
-            }
+            return SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfig.asObjectable());
         } catch (SchemaException e) {
             LOGGER.error("Couldn't load system configuration", e);
+            return null;
         }
-        return pattern;
     }
-
 }

@@ -8,6 +8,7 @@
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
                      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
                      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>SystemConfiguration</name>
@@ -277,7 +278,85 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView id="78">
+                <identifier>recon-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000501" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
         </objectCollectionViews>
+        <objectDetails>
+            <objectDetailsPage>
+                <type>c:TaskType</type>
+                <container>
+                    <display>
+                        <label>Advanced options</label>
+                    </display>
+                    <item>
+                        <c:path>threadStopAction</c:path>
+                    </item>
+                    <item>
+                        <c:path>executionStatus</c:path>
+                    </item>
+                    <item>
+                        <c:path>unpauseAction</c:path>
+                    </item>
+                    <item>
+                        <c:path>recurrence</c:path>
+                    </item>
+                    <item>
+                        <c:path>binding</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:workerThreads</c:path>
+                    </item>
+                    <item>
+                        <c:path>cleanupAfterCompletion</c:path>
+                    </item>
+                </container>
+                <container>
+                    <display>
+                        <label>Operational attributes</label>
+                    </display>
+                    <item>
+                        <c:path>taskIdentifier</c:path>
+                    </item>
+                    <item>
+                        <c:path>parent</c:path>
+                    </item>
+                    <item>
+                        <c:path>waitingReason</c:path>
+                    </item>
+                    <item>
+                        <c:path>stateBeforeSuspend</c:path>
+                    </item>
+                    <item>
+                        <c:path>category</c:path>
+                    </item>
+                    <item>
+                        <c:path>handlerUri</c:path>
+                    </item>
+                    <item>
+                        <c:path>lastRunStartTimestamp</c:path>
+                    </item>
+                    <item>
+                        <c:path>lastRunFinishTimestamp</c:path>
+                    </item>
+                    <item>
+                        <c:path>completionTimestamp</c:path>
+                    </item>
+                    <item>
+                        <c:path>progress</c:path>
+                    </item>
+                    <item>
+                        <c:path>stalledSince</c:path>
+                    </item>
+
+                </container>
+            </objectDetailsPage>
+        </objectDetails>
     </adminGuiConfiguration>
 
     <expressions>

@@ -1137,7 +1137,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         } else if ((pageBase instanceof PageAssignmentDetails || pageBase instanceof PageAssignmentsList) //shopping cart assignment details panels
                 && !pageBase.getSessionStorage().getRoleCatalog().isMultiUserRequest()){
             String targetUserOid = pageBase.getSessionStorage().getRoleCatalog().isSelfRequest() ?
-                    pageBase.getPrincipalUser().getOid() :
+                    pageBase.getPrincipalFocus().getOid() :
                     pageBase.getSessionStorage().getRoleCatalog().getTargetUserOidsList().get(0);
             Task task = pageBase.createSimpleTask(OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT);
             OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT);

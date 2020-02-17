@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -88,7 +87,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
             Task task = connectorInstance.getTaskManager().createTaskInstance(OP_ON_MESSAGE_PREPARATION);
             task.setChannel(CHANGE_CHANNEL_ASYNC_UPDATE_URI);
             if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {
-                task.setOwner(((MidPointPrincipal) authentication.getPrincipal()).getUser().asPrismObject().clone());
+                task.setOwner((PrismObject<FocusType>) ((MidPointPrincipal) authentication.getPrincipal()).getFocus().asPrismObject().clone());
             }
             Tracer tracer = connectorInstance.getTracer();
 

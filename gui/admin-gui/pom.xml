@@ -32,6 +32,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -88,6 +89,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
@@ -100,6 +102,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -524,7 +527,7 @@
             <artifactId>spring-security-ldap</artifactId>
         </dependency>
 
-        <!--  WICKET DEPENDENCIES -->
+        <!-- WICKET DEPENDENCIES -->
         <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-core</artifactId>
@@ -683,6 +686,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -771,17 +779,6 @@
 
         <!-- end connectors -->
 
-        <!-- logging bridges to slf4j -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-            <scope>runtime</scope>
-        </dependency>
         <!-- Jasper reports -->
         <dependency>
             <groupId>net.sf.jasperreports</groupId>
@@ -842,7 +839,7 @@
                     <include>banner.txt</include>
                 </includes>
             </resource>
-            <!--  ICF LOGGING CONFIGURATION -->
+            <!-- ICF LOGGING CONFIGURATION -->
             <resource>
                 <targetPath>../midpoint/META-INF/services</targetPath>
                 <filtering>false</filtering>

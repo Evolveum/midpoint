@@ -6,51 +6,32 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.ResourceModel;
+import org.apache.wicket.model.*;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.WorkerThreadDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import java.util.*;
 
 /**
  * @author semancik
  */
-public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
+public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements TaskTabPanel {
     private static final long serialVersionUID = 1L;
-
-    private static final String ID_WORKER_THREADS = "workerThreads";
-    private static final String ID_THREADS_CONFIGURATION_PANEL = "threadsConfigurationPanel";
 
     private static final String ID_WORKER_THREADS_TABLE = "workerThreadsTable";
     private static final String ID_WORKER_THREADS_TABLE_LABEL = "workerThreadsTableLabel";
@@ -58,65 +39,42 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
     private static final String ID_SUBTASKS_LABEL = "subtasksLabel";
     private static final String ID_SUBTASKS_PANEL = "subtasksPanel";
 
-    private static final Trace LOGGER = TraceManager.getTrace(TaskSubtasksAndThreadsTabPanel.class);
 
-    private PageTaskEdit parentPage;
-
-    public TaskSubtasksAndThreadsTabPanel(String id, Form mainForm,
-            LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
-            IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
-        super(id, mainForm, taskWrapperModel);
-        this.parentPage = parentPage;
-        initLayout(taskDtoModel);
+    public TaskSubtasksAndThreadsTabPanel(String id,
+                                             LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel) {
+        super(id, taskWrapperModel);
         setOutputMarkupId(true);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
     }
 
     private String createTaskKindExpression() {
         return SelectableBeanImpl.F_VALUE + "." + TaskType.F_WORK_MANAGEMENT.getLocalPart() + "." + TaskWorkManagementType.F_TASK_KIND.getLocalPart();
     }
-    private void initLayout(final IModel<TaskDto> taskDtoModel) {
-
-        WebMarkupContainer threadsConfigurationPanel = new WebMarkupContainer(ID_THREADS_CONFIGURATION_PANEL);
-        add(threadsConfigurationPanel);
-
-        threadsConfigurationPanel.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return taskDtoModel.getObject().configuresWorkerThreads();
-            }
-        });
-
-        final TextField<Integer> workerThreads = new TextField<>(ID_WORKER_THREADS, new PropertyModel<Integer>(taskDtoModel, TaskDto.F_WORKER_THREADS));
-        workerThreads.setOutputMarkupId(true);
-        workerThreads.add(new VisibleEnableBehaviour(){
-            @Override
-            public boolean isEnabled() {
-                return parentPage.isEdit();
-            }
-        });
-        threadsConfigurationPanel.add(workerThreads);
-
-        VisibleEnableBehaviour hiddenWhenEditingOrNoSubtasks = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !parentPage.isEdit() && !taskDtoModel.getObject().getSubtasks().isEmpty();
-            }
-        };
-
+    private void initLayout() {
         Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
-        subtasksLabel.add(hiddenWhenEditingOrNoSubtasks);
         add(subtasksLabel);
 
         TaskTablePanel subtasksPanel = new TaskTablePanel(ID_SUBTASKS_PANEL, UserProfileStorage.TableId.TABLE_SUBTASKS, null) {
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
 
+                String parent = getParentIdentifier();
+                if (parent == null) {
+                    return query;
+                }
+
                 if (query == null) {
                     query = getPrismContext().queryFactory().createQuery();
                 }
+
                 query.addFilter(getPrismContext().queryFor(TaskType.class)
                         .item(TaskType.F_PARENT)
-                        .eq(taskDtoModel.getObject().getIdentifier())
+                        .eq(parent)
                         .buildFilter());
 
                 return query;
@@ -125,53 +83,74 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
             @Override
             protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
                 List<IColumn<SelectableBean<TaskType>, String>> columns = super.createColumns();
-                columns.add(2, new EnumPropertyColumn(createStringResource("SubtasksPanel.label.kind"), createTaskKindExpression()) {
+                columns.add(2, new EnumPropertyColumn<SelectableBean<TaskType>>(createStringResource("SubtasksPanel.label.kind"), createTaskKindExpression()) {
 
                     @Override
-                    protected String translate(Enum en) {
+                    protected String translate(Enum<?> en) {
                         return createStringResource(en).getString();
                     }
                 });
                 return columns;
             }
-        };
 
-        subtasksPanel.add(hiddenWhenEditingOrNoSubtasks);
-        add(subtasksPanel);
-
-        VisibleEnableBehaviour hiddenWhenNoSubtasks = new VisibleEnableBehaviour() {
             @Override
-            public boolean isVisible() {
-                TaskDto taskDto = taskDtoModel.getObject();
-                return taskDto != null && !taskDto.getTransientSubtasks().isEmpty();
+            protected WebMarkupContainer createTableButtonToolbar(String id) {
+                return null;
             }
         };
 
-        Label workerThreadsTableLabel = new Label(ID_WORKER_THREADS_TABLE_LABEL, new ResourceModel("TaskStatePanel.workerThreads"));
-        workerThreadsTableLabel.add(hiddenWhenNoSubtasks);
-        add(workerThreadsTableLabel);
-        List<IColumn<WorkerThreadDto, String>> columns = new ArrayList<>();
-        columns.add(new PropertyColumn(createStringResourceStatic(this, "TaskStatePanel.subtaskName"), WorkerThreadDto.F_NAME));
-        columns.add(new EnumPropertyColumn<>(createStringResourceStatic(this, "TaskStatePanel.subtaskState"), WorkerThreadDto.F_EXECUTION_STATUS));
-        columns.add(new PropertyColumn(createStringResourceStatic(this, "TaskStatePanel.subtaskObjectsProcessed"), WorkerThreadDto.F_PROGRESS));
-        ISortableDataProvider<WorkerThreadDto, String> threadsProvider = new ListDataProvider<>(this,
-                new IModel<List<WorkerThreadDto>>() {
-                    @Override
-                    public List<WorkerThreadDto> getObject() {
-                        List<WorkerThreadDto> rv = new ArrayList<>();
-                        TaskDto taskDto = taskDtoModel.getObject();
-                        if (taskDto != null) {
-                            for (TaskDto subtaskDto : taskDto.getTransientSubtasks()) {
-                                rv.add(new WorkerThreadDto(subtaskDto));
-                            }
-                        }
-                        return rv;
-                    }
-                });
-        TablePanel<WorkerThreadDto> workerThreadsTablePanel = new TablePanel<>(ID_WORKER_THREADS_TABLE, threadsProvider , columns);
-        workerThreadsTablePanel.add(hiddenWhenNoSubtasks);
-        add(workerThreadsTablePanel);
+        add(subtasksPanel);
 
+        Label workerThreadsTableLabel = new Label(ID_WORKER_THREADS_TABLE_LABEL, new ResourceModel("TaskStatePanel.workerThreads"));
+        add(workerThreadsTableLabel);
+
+        TaskTablePanel workerThreadsTable = new TaskTablePanel(ID_WORKER_THREADS_TABLE, UserProfileStorage.TableId.TABLE_WORKERS, null) {
+
+            @Override
+            protected BaseSortableDataProvider<SelectableBean<TaskType>> initProvider() {
+                return new SelectableListDataProvider<>(TaskSubtasksAndThreadsTabPanel.this, createWorkersModel());
+            }
+
+            @Override
+            protected WebMarkupContainer createTableButtonToolbar(String id) {
+                return null;
+            }
+
+            @Override
+            protected boolean isHeaderVisible() {
+                return false;
+            }
+        };
+        add(workerThreadsTable);
+    }
+
+    private IModel<List<TaskType>> createWorkersModel() {
+        return (IModel<List<TaskType>>) () -> {
+            PrismObject<TaskType> taskPrism = TaskSubtasksAndThreadsTabPanel.this.getModelObject().getObject();
+            PrismReference subtasks = taskPrism.findReference(TaskType.F_SUBTASK_REF);
+
+            if (subtasks == null) {
+                return new ArrayList<>();
+            }
+
+            List<TaskType> workers = new ArrayList<>();
+            for (PrismReferenceValue val : subtasks.getValues()) {
+                if (val.getOid() == null && val.getObject() != null) {
+                    workers.add((TaskType) val.getObject().asObjectable());
+                }
+            }
+            return workers;
+        };
+    }
+
+    private String getParentIdentifier() {
+        PrismObject<TaskType> taskPrism = getModelObject().getObject();
+        PrismProperty<String> taskIdentifier = taskPrism.findProperty(TaskType.F_TASK_IDENTIFIER);
+        if (taskIdentifier == null) {
+            return null; //TODO is this valid?
+        }
+
+        return taskIdentifier.getRealValue();
     }
 
     @Override

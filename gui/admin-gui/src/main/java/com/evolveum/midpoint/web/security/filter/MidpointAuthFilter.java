@@ -141,7 +141,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         AuthenticationSequenceType sequence;
         // permitAll pages (login, select ID for saml ...) during processing of modules
         if (mpAuthentication != null && SecurityUtils.isLoginPage(httpRequest)) {
-          sequence = mpAuthentication.getSequence();
+            sequence = mpAuthentication.getSequence();
         } else {
             sequence = SecurityUtils.getSequenceByPath(httpRequest, authenticationsPolicy);
         }

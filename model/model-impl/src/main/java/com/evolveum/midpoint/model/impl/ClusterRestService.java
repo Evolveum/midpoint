@@ -10,7 +10,7 @@ import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.UserProfileService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.impl.security.NodeAuthenticationToken;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
@@ -74,12 +74,12 @@ public class ClusterRestService {
 
     public static final String EVENT_INVALIDATION = "/event/invalidation/";
     public static final String EVENT_TERMINATE_SESSION = "/event/terminateSession/";
-    public static final String EVENT_LIST_USER_SESSION = "event/listUserSession";
+    public static final String EVENT_LIST_USER_SESSION = "/event/listUserSession";
 
     @Autowired private SecurityHelper securityHelper;
     @Autowired private TaskManager taskManager;
     @Autowired private MidpointConfiguration midpointConfiguration;
-    @Autowired private UserProfileService userProfileService;
+    @Autowired private GuiProfiledPrincipalManager focusProfileService;
 
     @Autowired private CacheDispatcher cacheDispatcher;
 
@@ -137,7 +137,7 @@ public class ClusterRestService {
         try {
             checkNodeAuthentication();
 
-            userProfileService.terminateLocalSessions(TerminateSessionEvent.fromEventType(event));
+            focusProfileService.terminateLocalSessions(TerminateSessionEvent.fromEventType(event));
 
             result.recordSuccess();
             response = RestServiceUtil.createResponse(Status.OK, result);
@@ -159,7 +159,7 @@ public class ClusterRestService {
         Response response;
         try {
             checkNodeAuthentication();
-            List<UserSessionManagementType> principals = userProfileService.getLocalLoggedInPrincipals();
+            List<UserSessionManagementType> principals = focusProfileService.getLocalLoggedInPrincipals();
 
             UserSessionManagementListType list = new UserSessionManagementListType();
             list.getSession().addAll(principals);

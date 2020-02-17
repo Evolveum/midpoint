@@ -11,6 +11,9 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.schema.SearchResultList;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -25,7 +28,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -38,7 +40,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -71,11 +72,11 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
     private PrismContext prismContext;
 
     @Override
-    public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException {
+    public MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-        PrismObject<UserType> user = null;
+        PrismObject<? extends FocusType> focus = null;
         try {
-            user = findByUsername(username, result);
+            focus = findByUsername(username, clazz, result);
         } catch (ObjectNotFoundException ex) {
             LOGGER.trace("Couldn't find user with name '{}', reason: {}.",
                     new Object[]{username, ex.getMessage(), ex});
@@ -86,34 +87,34 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        return getPrincipal(user, null, result);
+        return getPrincipal(focus, null, result);
     }
 
     @Override
-    public MidPointPrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException {
+    public MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-        UserType user = getUserByOid(oid, result);
-        return getPrincipal(user.asPrismObject());
+        FocusType focus = getUserByOid(oid, clazz, result);
+        return getPrincipal(focus.asPrismObject());
     }
 
     @Override
-    public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {
+    public MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus) throws SchemaException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-        return getPrincipal(user, null, result);
+        return getPrincipal(focus, null, result);
     }
 
 
 
     @Override
-    public MidPointPrincipal getPrincipal(PrismObject<UserType> user,
+    public MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus,
             AuthorizationTransformer authorizationLimiter, OperationResult result) throws SchemaException {
-        if (user == null) {
+        if (focus == null) {
             return null;
         }
 
         PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
 
-        MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
+        MidPointPrincipal principal = new MidPointPrincipal(focus.asObjectable());
         initializePrincipalFromAssignments(principal, systemConfiguration);
         return principal;
     }
@@ -131,22 +132,22 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
     }
 
     @Override
-    public void updateUser(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas) {
+    public void updateFocus(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas) {
         OperationResult result = new OperationResult(OPERATION_UPDATE_USER);
         try {
             save(principal, result);
         } catch (Exception ex) {
             LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.",
-                    new Object[]{principal.getFullName(), principal.getOid(), ex.getMessage()});
+                    new Object[]{principal.getUsername(), principal.getOid(), ex.getMessage()});
         }
     }
 
-    private PrismObject<UserType> findByUsername(String username, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private PrismObject<? extends FocusType> findByUsername(String username, Class<? extends FocusType> focusType,  OperationResult result) throws SchemaException, ObjectNotFoundException {
         PolyString usernamePoly = new PolyString(username);
         ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly, prismContext);
         LOGGER.trace("Looking for user, query:\n" + query.debugDump());
 
-        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null,
+        List<? extends PrismObject<? extends FocusType>> list = repositoryService.searchObjects(focusType, query, null,
                 result);
         LOGGER.trace("Users found: {}.", (list != null ? list.size() : 0));
         if (list == null || list.size() != 1) {
@@ -170,9 +171,9 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
         authorizationType.getAction().add("FAKE");
         principal.getAuthorities().add(new Authorization(authorizationType));
 
-        ActivationType activation = principal.getUser().getActivation();
+        ActivationType activation = principal.getFocus().getActivation();
         if (activation != null) {
-            activationComputer.computeEffective(principal.getUser().getLifecycleState(), activation, null);
+            activationComputer.computeEffective(principal.getFocus().getLifecycleState(), activation, null);
         }
     }
 
@@ -194,20 +195,22 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
     }
 
     private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        UserType oldUserType = getUserByOid(person.getOid(), result);
-        PrismObject<UserType> oldUser = oldUserType.asPrismObject();
+        PrismObject<? extends FocusType> newUser = person.getFocus().asPrismObject();
 
-        PrismObject<UserType> newUser = person.getUser().asPrismObject();
+        FocusType oldUserType = getUserByOid(person.getOid(), newUser.asObjectable().getClass(), result);
+        PrismObject<? extends FocusType> oldUser = oldUserType.asPrismObject();
 
-        ObjectDelta<UserType> delta = oldUser.diff(newUser);
-        repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(),
+
+
+        ObjectDelta<? extends FocusType> delta = ((PrismObject<FocusType>)oldUser).diff((PrismObject<FocusType>)newUser);
+        repositoryService.modifyObject(newUser.asObjectable().getClass(), delta.getOid(), delta.getModifications(),
                 new OperationResult(OPERATION_UPDATE_USER));
 
         return person;
     }
 
-    private UserType getUserByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        ObjectType object = repositoryService.getObject(UserType.class, oid,
+    private FocusType getUserByOid(String oid, Class<? extends FocusType> clazz, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        ObjectType object = repositoryService.getObject(clazz, oid,
                 null, result).asObjectable();
         if (object != null && (object instanceof UserType)) {
             return (UserType) object;
@@ -235,7 +238,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 //         TODO Auto-generated method stub
         try {
-            return getPrincipal(username);
+            return getPrincipal(username, FocusType.class);
         } catch (ObjectNotFoundException e) {
             throw new UsernameNotFoundException(e.getMessage(), e);
         } catch (SchemaException e) {

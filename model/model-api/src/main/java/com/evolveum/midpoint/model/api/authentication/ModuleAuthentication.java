@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api.authentication;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.core.Authentication;
 
+import javax.xml.namespace.QName;
 import java.util.Objects;
 
 /**
@@ -28,6 +29,8 @@ public class ModuleAuthentication {
     private String prefix;
 
     private NameOfModuleType nameOfType;
+
+    private QName focusType;
 
     public ModuleAuthentication(NameOfModuleType nameOfType) {
         Validate.notNull(nameOfType);
@@ -79,6 +82,14 @@ public class ModuleAuthentication {
         this.authentication = authentication;
     }
 
+    public QName getFocusType() {
+        return focusType;
+    }
+
+    public void setFocusType(QName focusType) {
+        this.focusType = focusType;
+    }
+
     public ModuleAuthentication clone() {
         ModuleAuthentication module = new ModuleAuthentication(getNameOfModuleType());
         clone(module);
@@ -91,6 +102,7 @@ public class ModuleAuthentication {
         module.setNameOfModule(this.nameOfModule);
         module.setType(this.getType());
         module.setPrefix(this.getPrefix());
+        module.setFocusType(this.getFocusType());
     }
 
     @Override

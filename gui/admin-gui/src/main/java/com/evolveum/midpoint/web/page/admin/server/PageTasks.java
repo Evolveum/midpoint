@@ -24,7 +24,6 @@ import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -64,6 +63,10 @@ public class PageTasks extends PageAdmin {
     public static final String SELECTED_CATEGORY = "category";
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
+
+    public static final long RUNS_CONTINUALLY = -1L;
+    public static final long ALREADY_PASSED = -2L;
+    public static final long NOW = 0L;
 
     public PageTasks() {
         this(null);
@@ -207,11 +210,11 @@ public class PageTasks extends PageAdmin {
             if (retryAfter == null || retryAfter <= 0) {
                 return "";
             }
-        } else if (scheduledAfter == TaskDto.NOW) { // TODO what about retryTime?
+        } else if (scheduledAfter == NOW) { // TODO what about retryTime?
             return getString(runnable ? "pageTasks.now" : "pageTasks.nowForNotRunningTasks");
-        } else if (scheduledAfter == TaskDto.RUNS_CONTINUALLY) {    // retryTime is probably null here
+        } else if (scheduledAfter == RUNS_CONTINUALLY) {    // retryTime is probably null here
             return getString("pageTasks.runsContinually");
-        } else if (scheduledAfter == TaskDto.ALREADY_PASSED && retryAfter == null) {
+        } else if (scheduledAfter == ALREADY_PASSED && retryAfter == null) {
             return getString(runnable ? "pageTasks.alreadyPassed" : "pageTasks.alreadyPassedForNotRunningTasks");
         }
 
@@ -236,10 +239,6 @@ public class PageTasks extends PageAdmin {
         return PageBase.createStringResourceStatic(this, key, DurationFormatUtils.formatDurationWords(displayTime, true, true))
                 .getString();
     }
-
-    public static final long RUNS_CONTINUALLY = -1L;
-    public static final long ALREADY_PASSED = -2L;
-    public static final long NOW = 0L;
 
     public Long getScheduledToStartAgain(SelectableBean<TaskType> taskBean) {
         long current = System.currentTimeMillis();

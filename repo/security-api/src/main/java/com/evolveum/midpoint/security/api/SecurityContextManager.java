@@ -9,6 +9,8 @@ package com.evolveum.midpoint.security.api;
 import com.evolveum.midpoint.util.CheckedProducer;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 
@@ -57,7 +59,7 @@ public interface SecurityContextManager {
 
     void setupPreAuthenticatedSecurityContext(MidPointPrincipal principal);
 
-    void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    void setupPreAuthenticatedSecurityContext(PrismObject<? extends FocusType> focus) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     <T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
@@ -79,9 +81,9 @@ public interface SecurityContextManager {
 
     // runPrivileged method is in SecurityEnforcer. It needs to be there because it works with authorizations.
 
-    MidPointPrincipalManager getUserProfileService();
+    MidPointPrincipalManager getGuiProfiledPrincipalManager();
 
-    void setUserProfileService(MidPointPrincipalManager userProfileService);
+    void setGuiProfiledPrincipalManager(MidPointPrincipalManager userProfileService);
 
     /**
      * Store connection information for later use within current thread.

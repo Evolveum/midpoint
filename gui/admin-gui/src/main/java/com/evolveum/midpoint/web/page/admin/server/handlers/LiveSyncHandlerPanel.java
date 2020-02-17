@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.web.page.admin.server.handlers;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.data.column.LinkIconPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.LiveSyncHandlerDto;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.ResourceRelatedHandlerDto;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,12 +35,12 @@ public class LiveSyncHandlerPanel extends ResourceRelatedHandlerPanel<LiveSyncHa
     private static final String ID_TOKEN_RETRY_CHECKBOX_CONTAINER = "retryUnhandledErrCheckboxContainer";
     private static final String ID_TOKEN_RETRY_CHECKBOX = "retryUnhandledErrCheckbox";
 
-    public LiveSyncHandlerPanel(String id, IModel<LiveSyncHandlerDto> handlerDtoModel, PageTaskEdit parentPage) {
+    public LiveSyncHandlerPanel(String id, IModel<LiveSyncHandlerDto> handlerDtoModel, PageBase parentPage) {
         super(id, handlerDtoModel, parentPage);
         initLayout(parentPage);
     }
 
-    private void initLayout(final PageTaskEdit parentPage) {
+    private void initLayout(final PageBase parentPage) {
         WebMarkupContainer tokenContainer = new WebMarkupContainer(ID_TOKEN_CONTAINER);
         tokenContainer.add(new VisibleEnableBehaviour() {
             @Override
@@ -53,15 +53,15 @@ public class LiveSyncHandlerPanel extends ResourceRelatedHandlerPanel<LiveSyncHa
         LinkIconPanel deleteTokenPanel = new LinkIconPanel(ID_DELETE_TOKEN, new Model("fa fa-fw fa-trash-o fa-lg text-danger"), createStringResource("LiveSyncHandlerPanel.deleteToken")) {
             @Override
             protected void onClickPerformed(AjaxRequestTarget target) {
-                parentPage.getController().deleteSyncTokenPerformed(target);
+//                parentPage.getController().deleteSyncTokenPerformed(target);
             }
         };
-        deleteTokenPanel.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !parentPage.isEdit() && getModelObject().hasToken();        // TODO ... and security
-            }
-        });
+//        deleteTokenPanel.add(new VisibleEnableBehaviour() {
+//            @Override
+//            public boolean isVisible() {
+//                return !parentPage.isEdit() && getModelObject().hasToken();        // TODO ... and security
+//            }
+//        });
         deleteTokenPanel.setRenderBodyOnly(true);
         tokenContainer.add(deleteTokenPanel);
         add(tokenContainer);

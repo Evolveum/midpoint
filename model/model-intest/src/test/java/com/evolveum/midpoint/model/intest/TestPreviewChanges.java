@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.intest;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.util.Collection;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createEvaluateAllAssignmentRelationsOnRecompute;
-import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecutionOptionsType;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
@@ -404,8 +403,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     }
 
     @Test
-    public void test130GetCompiledUserProfile() throws Exception {
-        final String TEST_NAME = "test130GetCompiledUserProfile";
+    public void test130GetCompiledGuiProfile() throws Exception {
+        final String TEST_NAME = "test130GetCompiledGuiProfile";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -413,23 +412,23 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         OperationResult result = task.getResult();
 
         // WHEN
-        CompiledUserProfile compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, result);
+        CompiledGuiProfile compiledGuiProfile = modelInteractionService.getCompiledGuiProfile(task, result);
 
         // THEN
         assertSuccess(result);
 
-        assertCompiledUserProfile(compiledUserProfile)
+        assertCompiledGuiProfile(compiledGuiProfile)
             .assertAdditionalMenuLinks(0)
             .assertUserDashboardLinks(1)
             .assertObjectForms(1)
             .assertUserDashboardWidgets(0)
             .assertObjectCollectionViews(3);
 
-        RichHyperlinkType link = compiledUserProfile.getUserDashboardLink().get(0);
+        RichHyperlinkType link = compiledGuiProfile.getUserDashboardLink().get(0);
         assertEquals("Bad link label", "Foo", link.getLabel());
         assertEquals("Bad link targetUrl", "/foo", link.getTargetUrl());
 
-        assertEquals("Bad timezone targetUrl", "Jamaica", compiledUserProfile.getDefaultTimezone());
+        assertEquals("Bad timezone targetUrl", "Jamaica", compiledGuiProfile.getDefaultTimezone());
     }
 
     @Test

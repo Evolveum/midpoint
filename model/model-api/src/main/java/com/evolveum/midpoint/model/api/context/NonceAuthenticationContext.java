@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -16,12 +17,12 @@ public class NonceAuthenticationContext extends AbstractAuthenticationContext {
     private String nonce;
     private NonceCredentialsPolicyType policy;
 
-    public NonceAuthenticationContext(String username, String nonce, NonceCredentialsPolicyType policy) {
-        this(username, nonce, policy, null);
+    public NonceAuthenticationContext(String username, Class<? extends FocusType> principalType, String nonce, NonceCredentialsPolicyType policy) {
+        this(username, principalType, nonce, policy, null);
     }
 
-    public NonceAuthenticationContext(String username, String nonce, NonceCredentialsPolicyType policy, List<ObjectReferenceType> requireAssignment) {
-        super(username);
+    public NonceAuthenticationContext(String username, Class<? extends FocusType> principalType, String nonce, NonceCredentialsPolicyType policy, List<ObjectReferenceType> requireAssignment) {
+        super(username, principalType);
         this.nonce = nonce;
         this.policy = policy;
     }

@@ -1271,7 +1271,7 @@ public class ChangeExecutor {
         if (principal == null) {
             return false;
         }
-        UserType loggedInUser = principal.getUser();
+        FocusType loggedInUser = principal.getFocus();
 
         if (!loggedInUser.getOid().equals(focusContext.getOid())) {
             return false;

@@ -75,7 +75,7 @@ public class SecurityUtils {
     private static final Trace LOGGER = TraceManager.getTrace(SecurityUtils.class);
     private static final String PROXY_USER_OID_HEADER = "Switch-To-Principal";
 
-    public static MidPointUserProfilePrincipal getPrincipalUser() {
+    public static GuiProfiledPrincipal getPrincipalUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         return getPrincipalUser(authentication);
@@ -91,7 +91,7 @@ public class SecurityUtils {
         LOCAL_PATH_AND_CHANNEL = Collections.unmodifiableMap(map);
     }
 
-    public static MidPointUserProfilePrincipal getPrincipalUser(Authentication authentication) {
+    public static GuiProfiledPrincipal getPrincipalUser(Authentication authentication) {
         if (authentication == null) {
             LOGGER.trace("Authentication not available in security context.");
             return null;
@@ -101,15 +101,15 @@ public class SecurityUtils {
         if (principal == null) {
             return null;
         }
-        if (principal instanceof MidPointUserProfilePrincipal) {
-            return (MidPointUserProfilePrincipal) principal;
+        if (principal instanceof GuiProfiledPrincipal) {
+            return (GuiProfiledPrincipal) principal;
         }
         if (AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principal)) {
             // silently ignore to avoid filling the logs
             return null;
         }
         LOGGER.debug("Principal user in security context holder is {} ({}) but not type of {}",
-                principal, principal.getClass(), MidPointUserProfilePrincipal.class.getName());
+                principal, principal.getClass(), GuiProfiledPrincipal.class.getName());
         return null;
     }
 
@@ -215,7 +215,7 @@ public class SecurityUtils {
             }
             return sequence;
         }
-        String usedChannel = findChannelByPath(localePath);
+        String usedChannel = searchChannelByPath(localePath);
 
         if (usedChannel == null) {
             usedChannel = SecurityPolicyUtil.DEFAULT_CHANNEL;
@@ -226,7 +226,7 @@ public class SecurityUtils {
 
     }
 
-    public static String findChannelByPath(String localePath) {
+    public static String searchChannelByPath(String localePath) {
         for (String prefix : LOCAL_PATH_AND_CHANNEL.keySet()) {
             if (stripStartingSlashes(localePath).startsWith(prefix)) {
                 return LOCAL_PATH_AND_CHANNEL.get(prefix);
@@ -235,14 +235,23 @@ public class SecurityUtils {
         return null;
     }
 
+    public static String searchPathByChannel(String searchchannel) {
+        for (Map.Entry<String, String> entry : LOCAL_PATH_AND_CHANNEL.entrySet()) {
+            if (entry.getValue().equals(searchchannel)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
     public static String findChannelByRequest(HttpServletRequest httpRequest) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
-        return findChannelByPath(localePath);
+        return searchChannelByPath(localePath);
     }
 
     private static AuthenticationSequenceType getSpecificSequence(HttpServletRequest httpRequest) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
-        String channel = findChannelByPath(localePath);
+        String channel = searchChannelByPath(localePath);
         if (LOCAL_PATH_AND_CHANNEL.get("ws/rest").equals(channel)) {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
@@ -335,7 +344,7 @@ public class SecurityUtils {
     private static List<AuthModule> getSpecificModuleFilter(String urlSuffix, HttpServletRequest httpRequest, Map<Class<?>, Object> sharedObjects,
                                                             AuthenticationModulesType authenticationModulesType, CredentialsPolicyType credentialPolicy) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
-        String channel = findChannelByPath(localePath);
+        String channel = searchChannelByPath(localePath);
         if (LOCAL_PATH_AND_CHANNEL.get("ws/rest").equals(channel)) {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {

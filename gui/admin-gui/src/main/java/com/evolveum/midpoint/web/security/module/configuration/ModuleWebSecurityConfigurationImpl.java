@@ -6,11 +6,15 @@
  */
 package com.evolveum.midpoint.web.security.module.configuration;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +31,7 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
     private String nameOfModule;
     private String defaultSuccessLogoutURL;
     private String specificLogin;
+
 
     protected ModuleWebSecurityConfigurationImpl(){
     }

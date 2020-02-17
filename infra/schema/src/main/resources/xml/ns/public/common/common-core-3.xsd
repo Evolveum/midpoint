@@ -68,14 +68,45 @@
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                Free-form textual description of the object. It is supposed to describe
-                the object or a construct that it is attached to.
+                    Free-form textual description of the object. It is supposed to describe
+                    the object or a construct that it is attached to.
                 </p>
-
                 <p>
-                Anything that the system administrator wants may be here. The system
-                will not interpret the information except for displaying it and allow
-                user to edit it.
+                    This information may be presented to midPoint users, even to ordinary end users.
+                    For example role description may be presented to users when they are selecting
+                    roles to request. Therefore the description should be written in a language that
+                    the users can understand.
+                </p>
+                <p>
+                    Description is assumed to be a plan, non-formatted text.
+                    Amount of white space is considered insignificant. E.g. leading and trailing
+                    white space may be skipped, multiple spaces can be collapsed to one and so on.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="documentation" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Technical documentation for a particular object or construct.
+                </p>
+                <p>
+                    The purpose of this element is to document system configuration and behavior.
+                    The documentation will not be presented to end users. In fact, it will probably
+                    not be presented at all in midPoint user interface. This documentation element
+                    is supposed to be a part of the technical documentation of midPoint deployment.
+                    The tools than generate deployment configuration will look for these elements
+                    and combine them to compiled documentation document.
+                </p>
+                <p>
+                    AsciiDoc formatting is assumed for this element. Any leading or trailing
+                    whitespace is skipped. Indentation equivalent to he indentation of the first
+                    non-blank line of text is also skipped.
                 </p>
             </xsd:documentation>
         </xsd:annotation>
@@ -180,6 +211,20 @@
                     <xsd:appinfo>
                         <a:displayName>ObjectType.description</a:displayName>
                         <a:displayOrder>10</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element ref="tns:documentation" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            AsciiDoc-formatted technical documentation of the object.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectType.documentation</a:displayName>
+                        <a:displayOrder>11</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -531,6 +576,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1304,6 +1350,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1368,6 +1415,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1450,6 +1498,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1485,6 +1534,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1526,6 +1576,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1569,6 +1620,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1631,6 +1683,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -2999,6 +3052,7 @@
             <xsd:appinfo>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3141,6 +3195,9 @@
 
                 EXPERIMENTAL.
             </xsd:documentation>
+           <xsd:appinfo>
+               <a:container>true</a:container>
+           </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="environmentalPerformanceInformation" type="tns:EnvironmentalPerformanceInformationType" minOccurs="0"/>
@@ -3733,6 +3790,9 @@
             <xsd:documentation>
                 Task schedule. Specifies when and how often something should happen.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="earliestStartTime" type="xsd:dateTime" minOccurs="0">
@@ -3857,6 +3917,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3901,6 +3962,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3964,6 +4026,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -4052,6 +4115,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.8</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -4657,7 +4721,7 @@
                     <xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The set of user's credentials (such as passwords).
+                                The set of focus's credentials (such as passwords).
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>UserType.credentials</a:displayName>
@@ -5374,6 +5438,15 @@
                 </xsd:annotation>
             </xsd:element>
 
+            <xsd:element name="documentation" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>AssignmentType.documentation</a:displayName>
+                        <a:help>AssignmentType.documentation.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="subtype" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5779,6 +5852,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+               <xsd:element ref="tns:documentation" minOccurs="0"/>
                <xsd:element name="holderType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
                    <xsd:annotation>
                     <xsd:documentation>
@@ -5820,6 +5894,7 @@
         </xsd:annotation>
            <xsd:sequence>
                <xsd:element ref="tns:description" minOccurs="0"/>
+               <xsd:element ref="tns:documentation" minOccurs="0"/>
                <xsd:element name="mapping" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
                    </xsd:element>
        </xsd:sequence>
@@ -6388,8 +6463,8 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="1" />
-            <xsd:element name="description" type="xsd:string"
-                minOccurs="0" />
+            <xsd:element name="description" type="xsd:string" minOccurs="0" />
+            <xsd:element ref="tns:documentation" minOccurs="0" />
             <xsd:element name="connectorRef" type="c:ObjectReferenceType"
                 minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
@@ -6569,6 +6644,7 @@
             <xsd:element name="intent" type="xsd:string" minOccurs="0"/>
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element name="default" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -7591,6 +7667,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="displayOrder" type="xsd:int" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -9446,6 +9523,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -9659,6 +9737,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="referenceTime" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="1"/>
                <xsd:element name="offset" type="xsd:duration" minOccurs="0"/>
                <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
@@ -9687,6 +9766,7 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
                <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
                    <xsd:annotation>
                        <xsd:documentation>
@@ -9822,6 +9902,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="parameter" type="tns:ExpressionParameterType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
@@ -10073,6 +10154,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <!-- This needs to be a sequence of optional elements instead of choice due to a JAXB "feature" that generates XML not valid with the schema. -->
                <xsd:element name="path" type="t:ItemPathType" minOccurs="0"/>
             <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
@@ -10341,6 +10423,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="trace" type="xsd:boolean" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -10752,6 +10835,7 @@
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1">
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="projectionDiscriminator" type="tns:ShadowDiscriminatorType" minOccurs="0" maxOccurs="1">
             </xsd:element>
         </xsd:sequence>
@@ -10884,6 +10968,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="objectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -11254,6 +11339,7 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="situation" type="tns:SynchronizationSituationType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -11336,6 +11422,7 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="order" type="tns:BeforeAfterType" minOccurs="0" default="before"/>
             <!-- TODO: ordering? -->
@@ -13093,6 +13180,7 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" minOccurs="0" type="tns:AuthorizationDecisionType" default="allow">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -13468,6 +13556,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="type" minOccurs="0" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -13700,6 +13789,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                <xsd:annotation>
                    <xsd:documentation>
@@ -13820,6 +13910,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="all" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -14119,6 +14210,7 @@
                    </xsd:appinfo>
                </xsd:annotation>
            </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
            <xsd:element name="strength" type="tns:ConstructionStrengthType" minOccurs="0" maxOccurs="1" default="strong">
                <xsd:annotation>
                    <xsd:documentation>
@@ -15181,6 +15273,7 @@
 
         <xsd:sequence>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="limitations" type="tns:LimitationsType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
@@ -15242,6 +15335,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="maxOccurs" type="xsd:int" default="-1" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="mustBeFirst" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1"/>
@@ -16237,6 +16331,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="expressionProfile" type="tns:ExpressionProfileType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16294,6 +16389,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16345,10 +16441,11 @@
                         Free-form description (comment).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ExpressionEvaluatorProfileType.name</a:displayName>
+                        <a:displayName>ExpressionEvaluatorProfileType.description</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16406,6 +16503,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16482,6 +16580,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16551,6 +16650,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16598,6 +16698,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16654,6 +16755,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -18877,6 +18979,7 @@
                         </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
+                   <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
                    <xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
                        <xsd:annotation>
                            <xsd:documentation>
@@ -19041,6 +19144,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="icon" type="tns:IconType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -19566,6 +19670,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true"/>
             <xsd:element name="state" type="tns:ModelStateType" minOccurs="0"/>
             <xsd:element name="focusType" type="xsd:QName" minOccurs="0"/>
@@ -20131,6 +20236,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="roleCatalogRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -20236,6 +20342,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="description" type="xsd:string" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="allowSameTarget" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -20340,6 +20447,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -20752,6 +20860,7 @@
                        </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
              <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -23830,6 +23939,7 @@
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
+                   <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
                        <xsd:annotation>
                            <xsd:documentation>
@@ -23941,6 +24051,7 @@
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
+                   <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
                    <xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
                        <xsd:annotation>
                            <xsd:documentation>
@@ -24170,7 +24281,7 @@
             <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:displayName>VirtualContainerItemSpecificationType.display</a:displayName>
+                        <a:displayName>VirtualContainerItemSpecificationType.path</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -24826,6 +24937,7 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="binding" type="tns:VariableBindingDefinitionType" minOccurs="0" />
             <xsd:element name="display" type="tns:FormItemDisplayType" minOccurs="0" />
             <!-- Note: available values are defined by the "set" in the binding. -->
@@ -25335,6 +25447,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="item" type="tns:ItemRefMergeConfigurationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -25560,6 +25673,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="headerColor" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -25725,8 +25839,8 @@
             <xsd:element name="publicHttpUrlPattern" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Pattern for HTTP/HTTPS communication with client. This is specifies the URL
-                        that is used by midPoint when it create redirect URL for client.
+                        Pattern for HTTP/HTTPS communication with client. This specifies the URL
+                        that is used by midPoint when it creates redirect URL for client.
                         The pattern is in fact an URL prefix pointing to root URL of the application.
                         Specific paths will be appended to the URL.
                         Example: https://$host/midpoint

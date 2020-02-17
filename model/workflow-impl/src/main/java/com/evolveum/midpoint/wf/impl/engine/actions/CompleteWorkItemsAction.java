@@ -91,7 +91,7 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
                 }
 
                 ObjectReferenceType performerRef = ObjectTypeUtil
-                        .createObjectRef(ctx.getPrincipal().getUser(), engine.prismContext);
+                        .createObjectRef(ctx.getPrincipal().getFocus(), engine.prismContext);
                 workItem.setOutput(output.clone());
                 workItem.setPerformerRef(performerRef);
                 workItem.setCloseTimestamp(now);

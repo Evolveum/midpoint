@@ -12,7 +12,17 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
@@ -33,7 +43,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -80,6 +90,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     protected static final String OPERATION_PREVIEW_CHANGES = DOT_CLASS + "previewChanges";
     protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
     protected static final String OPERATION_LOAD_ARCHETYPE_REF = DOT_CLASS + "loadArchetypeRef";
+    protected static final String OPERATION_EXECUTE_CHANGES = DOT_CLASS + "executeChangesTask";
 
     protected static final String ID_SUMMARY_PANEL = "summaryPanel";
     protected static final String ID_MAIN_PANEL = "mainPanel";
@@ -232,7 +243,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     public void initialize(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
         initializeModel(objectToEdit, isNewObject, isReadonly);
-        initLayout();
+//        initLayout();
     }
 
     protected void initializeModel(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
@@ -265,6 +276,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     protected abstract O createNewObject();
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
 
     protected void initLayout() {
         initLayoutSummaryPanel();
@@ -316,6 +333,10 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return oid;
     }
 
+    protected ObjectSummaryPanel<O> getSummaryPanel() {
+        return (ObjectSummaryPanel<O>) get(ID_SUMMARY_PANEL);
+    }
+
     public boolean isOidParameterExists() {
         return getObjectOidParameter() != null;
     }
@@ -324,7 +345,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
         OperationResult result = task.getResult();
         PrismObject<O> object = null;
-        Collection<SelectorOptions<GetOperationOptions>> loadOptions = null;
         try {
             if (!isOidParameterExists()) {
                 if (objectToEdit == null) {
@@ -342,11 +362,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                     object = objectToEdit;
                 }
             } else {
-                loadOptions = getOperationOptionsBuilder()
-                        .item(UserType.F_JPEG_PHOTO).retrieve()
-                        .build();
+
                 String focusOid = getObjectOidParameter();
-                object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, loadOptions, this, task, result);
+                object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, buildGetOptions(), this, task, result);
                 LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, object);
             }
 
@@ -400,6 +418,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         }
 
         return wrapper;
+    }
+
+    protected Collection<SelectorOptions<GetOperationOptions>> buildGetOptions() {
+        return getOperationOptionsBuilder()
+                .item(UserType.F_JPEG_PHOTO).retrieve()
+                .build();
     }
 
 //    private void loadParentOrgs(PrismObjectWrapper<O> wrapper, Task task, OperationResult result) {
@@ -535,7 +559,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        if (isSaveInBackground()){
+                            progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
+                        } else {
+                            progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        }
                     } else {
                         result.recordSuccess();
                     }
@@ -580,15 +608,27 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        if (isSaveInBackground()){
+                            progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
+                        } else {
+                            progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        }
                     } else if (!deltas.isEmpty()) {
                         Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        if (isSaveInBackground()){
+                            progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
+                        } else {
+                            progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        }
                     } else if (previewOnly && delta.isEmpty() && delegationChangesExist){
-                        progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        if (isSaveInBackground()){
+                            progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
+                        } else {
+                            progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                        }
                     } else {
                         progressPanel.clearProgressPanel();            // from previous attempts (useful only if we would call finishProcessing at the end, but that's not the case now)
                         if (!previewOnly) {
@@ -690,6 +730,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return getMainPanel().getExecuteChangeOptionsDto().isKeepDisplayingResults();
     }
 
+    protected boolean isSaveInBackground(){
+        return getMainPanel().getExecuteChangeOptionsDto().isSaveInBackground();
+    }
 
     protected Collection<SimpleValidationError> performCustomValidation(PrismObject<O> object,
             Collection<ObjectDelta<? extends ObjectType>> deltas) throws SchemaException {
@@ -731,9 +774,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     public List<ObjectFormType> getObjectFormTypes() {
         Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);
         OperationResult result = task.getResult();
-        CompiledUserProfile adminGuiConfiguration;
+        CompiledGuiProfile adminGuiConfiguration;
         try {
-            adminGuiConfiguration = getModelInteractionService().getCompiledUserProfile(task, result);
+            adminGuiConfiguration = getModelInteractionService().getCompiledGuiProfile(task, result);
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
             throw new SystemException("Cannot load GUI configuration: "+e.getMessage(), e);
         }
@@ -768,7 +811,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     public boolean isForcedPreview() {
-        GuiObjectDetailsPageType objectDetails = getCompiledUserProfile().findObjectDetailsConfiguration(getCompileTimeClass());
+        GuiObjectDetailsPageType objectDetails = getCompiledGuiProfile().findObjectDetailsConfiguration(getCompileTimeClass());
         return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());
     }
 
