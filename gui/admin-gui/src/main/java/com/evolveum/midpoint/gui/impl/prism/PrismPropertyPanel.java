@@ -196,7 +196,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
                     }
 
                 });
-                formComponent.add(new EnableBehaviour(() -> itemPanelSettings.getEditabilityHandler() == null ||
+                formComponent.add(new EnableBehaviour(() -> itemPanelSettings == null || itemPanelSettings.getEditabilityHandler() == null ||
                         itemPanelSettings.getEditabilityHandler().isEditable(getModelObject())));
             }
 
