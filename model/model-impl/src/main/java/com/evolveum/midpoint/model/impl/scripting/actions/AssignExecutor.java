@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -33,6 +35,9 @@ import javax.xml.namespace.QName;
 public class AssignExecutor extends AssignmentOperationsExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignExecutor.class);
+
+    @Autowired
+    protected RelationRegistry relationRegistry;
 
 //    private static final String NAME = "assign";
 //    private static final String PARAM_RESOURCE = "resource";
@@ -139,20 +144,21 @@ public class AssignExecutor extends AssignmentOperationsExecutor {
         List<AssignmentType> assignments = new ArrayList<>();
 
         if (roles != null) {
+            List<RelationDefinitionType> relationDefinitions = relationRegistry.getRelationDefinitions();
             for (ObjectReferenceType roleRef : roles) {
                 AssignmentType assignmentType = new AssignmentType();
-                RelationTypes foundRelation = null;
-                for (RelationTypes relationType : RelationTypes.values()) {
+                RelationDefinitionType foundRelation = null;
+                for (RelationDefinitionType relationDefinitionType : relationDefinitions) {
                     if (prismContext.relationMatches(QNameUtil.uriToQName(relation, true),
-                            relationType.getRelation())) {
-                        foundRelation = relationType;
+                            relationDefinitionType.getRef())) {
+                        foundRelation = relationDefinitionType;
                         break;
                     }
                 }
                 if(foundRelation == null) {
                     throw new IllegalArgumentException("Relation " + relation + " not found");
                 }
-                roleRef.setRelation(foundRelation.getRelation());
+                roleRef.setRelation(foundRelation.getRef());
                 assignmentType.setTargetRef(roleRef);
                 assignments.add(assignmentType);
             }
