@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.security.module;
 
+import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHa
 import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.SamlAuthenticationEntryPoint;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
@@ -53,6 +55,9 @@ import static org.springframework.util.StringUtils.hasText;
 public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfiguration> extends ModuleWebSecurityConfig<C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfig.class);
+
+    @Autowired
+    private ModelAuditRecorder auditProvider;
 
     private MidpointSamlProviderServerBeanConfiguration beanConfiguration;
 
@@ -144,7 +149,7 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
         @Override
         public Filter spAuthenticationResponseFilter() {
             MidpointSamlAuthenticationResponseFilter authenticationFilter =
-                    new MidpointSamlAuthenticationResponseFilter(getSamlProvisioning());
+                    new MidpointSamlAuthenticationResponseFilter(auditProvider, getSamlProvisioning());
             try {
                 authenticationFilter.setAuthenticationManager(new ProviderManager(Collections.emptyList(), authenticationManager()));
             } catch (Exception e) {

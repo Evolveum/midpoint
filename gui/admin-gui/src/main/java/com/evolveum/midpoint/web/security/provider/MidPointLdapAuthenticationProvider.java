@@ -7,18 +7,26 @@
 
 package com.evolveum.midpoint.web.security.provider;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.module.authentication.LdapAuthenticationToken;
 import com.evolveum.midpoint.web.security.module.authentication.LdapModuleAuthentication;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -108,7 +116,13 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
                     throw new BadCredentialsException("LdapAuthentication.bad.user");
                 }
 
-                auditProvider.auditLoginSuccess(focusType, ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI));
+                String channel = SchemaConstants.CHANNEL_GUI_USER_URI;
+                Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
+                if (actualAuthentication instanceof MidpointAuthentication && ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel() != null) {
+                    channel = ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel().getChannelId();
+                }
+
+                auditProvider.auditLoginSuccess(focusType, ConnectionEnvironment.create(channel));
                 return authNCtx;
             }
         };
@@ -148,7 +162,7 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
 
         try {
 
-            Authentication token;
+            Authentication token = null;
             if (authentication instanceof LdapAuthenticationToken) {
                 token = this.authenticatorProvider.authenticate(authentication);
             } else {
@@ -166,10 +180,12 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
             // This sometimes happens ... for unknown reasons the underlying libraries cannot
             // figure out correct exception. Which results to wrong error message (MID-4518)
             // So, be smart here and try to figure out correct error.
+            auditProvider.auditLoginFailure(authentication.getName(), null, connEnv, e.getMessage());
             throw processInternalAuthenticationException(e, e);
 
         } catch (IncorrectResultSizeDataAccessException e) {
             LOGGER.error("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
+            auditProvider.auditLoginFailure(authentication.getName(), null, connEnv, "bad user");
             throw new BadCredentialsException("LdapAuthentication.bad.user", e);
         } catch (RuntimeException e) {
             LOGGER.error("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
