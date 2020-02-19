@@ -30,8 +30,8 @@
     "Quick" build with unit tests only and checkstyle:
     mvn clean install -P -dist -DskipITs -Dmaven.javadoc.skip
 
-    "Quick" build with smaller integration test set:
-    mvn clean install -P -dist -DintegrationTestSuite=fast -Dmaven.javadoc.skip
+    "Quick" build with smaller integration test set and output to stdout:
+    mvn clean install -P -dist -DintegrationTestSuite=fast -Dmaven.javadoc.skip -DredirectTestOutputToFile=false
 
     Long test run (with 16g on CI server, but this should work too - isn't Xmx even unnecessary?), runs just under 900 tests:
     mvn -P tomcat,extratest clean install -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
@@ -891,6 +891,13 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
                 <version>3.0-M1</version>
+                <exclusions>
+                    <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-jdk14</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <!-- End connectors -->
             <dependency>
