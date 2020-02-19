@@ -28,4 +28,9 @@ public class OperationalButtonsPanel extends BasePanel<Void> {
     protected void addButtons(RepeatingView repeatingView) {
 
     }
+
+    public boolean buttonsExist(){
+        RepeatingView repeatingView = (RepeatingView) get(ID_BUTTONS);
+        return repeatingView != null && repeatingView.iterator().hasNext();
+    }
 }

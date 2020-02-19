@@ -18,6 +18,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.OperationalButtonsPanel;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -28,6 +30,9 @@ import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -95,6 +100,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     protected static final String ID_SUMMARY_PANEL = "summaryPanel";
     protected static final String ID_MAIN_PANEL = "mainPanel";
     private static final String ID_PROGRESS_PANEL = "progressPanel";
+    private static final String ID_BUTTONS = "buttons";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAdminObjectDetails.class);
 
@@ -285,6 +291,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     protected void initLayout() {
         initLayoutSummaryPanel();
+        initOperationalButtonsPanel();
 
         mainPanel = createMainPanel(ID_MAIN_PANEL);
         mainPanel.setOutputMarkupId(true);
@@ -314,6 +321,34 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                 return isOidParameterExists() || editingFocus;
             }
         });
+    }
+
+    private void initOperationalButtonsPanel(){
+        OperationalButtonsPanel opButtonPanel = new OperationalButtonsPanel(ID_BUTTONS) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void addButtons(RepeatingView repeatingView) {
+                initOperationalButtons(repeatingView);
+            }
+        };
+        if (getAdditionalOperationalButtonPanelBehaviors() != null && !getAdditionalOperationalButtonPanelBehaviors().isEmpty()){
+            getAdditionalOperationalButtonPanelBehaviors().forEach(this::add);
+        }
+        opButtonPanel.setOutputMarkupId(true);
+        opButtonPanel.add(new VisibleBehaviour(() -> isEditingFocus() && opButtonPanel.buttonsExist()));
+        add(opButtonPanel);
+    }
+
+    protected List<? extends Behavior> getAdditionalOperationalButtonPanelBehaviors(){
+        return new ArrayList<>();
+    }
+
+    protected void initOperationalButtons(RepeatingView repeatingView){
+    }
+
+    protected OperationalButtonsPanel getOperationalButtonsPanel(){
+        return (OperationalButtonsPanel) get(ID_BUTTONS);
     }
 
     protected abstract AbstractObjectMainPanel<O> createMainPanel(String id);
