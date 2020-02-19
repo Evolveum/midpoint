@@ -79,13 +79,16 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private static final String ID_PROPERTIES_LABEL = "propertiesLabel";
     private static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
 
-    private ItemVisibilityHandler visibilityHandler;
-    private ItemEditabilityHandler editabilityHandler;
+//    private ItemVisibilityHandler visibilityHandler;
+//    private ItemEditabilityHandler editabilityHandler;
 
-    public PrismContainerValuePanel(String id, IModel<CVW> model, ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
+    private ItemPanelSettings settings;
+
+    public PrismContainerValuePanel(String id, IModel<CVW> model, ItemPanelSettings settings) {
         super(id, model);
-        this.visibilityHandler = visibilityHandler;
-        this.editabilityHandler = editabilityHandler;
+        this.settings = settings;
+//        this.visibilityHandler = visibilityHandler;
+//        this.editabilityHandler = editabilityHandler;
     }
 
     @Override
@@ -265,7 +268,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             int visibleProperties = 0;
 
             for (ItemWrapper<?,?,?,?> item : nonContainers) {
-                if (item.isVisible(containerValueWrapper, visibilityHandler)) {
+                if (item.isVisible(containerValueWrapper, getVisibilityHandler())) {
                     visibleProperties++;
                 }
 
@@ -281,6 +284,30 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         return (List<IW>) nonContainers;
     }
 
+    private ItemVisibilityHandler getVisibilityHandler() {
+        if (settings == null) {
+            return null;
+        }
+
+        return settings.getVisibilityHandler();
+    }
+
+    private ItemEditabilityHandler getReadabilityHandler() {
+        if (settings == null) {
+            return null;
+        }
+
+        return settings.getEditabilityHandler();
+    }
+
+    private boolean isShowOnTopLevel() {
+        if (settings == null) {
+            return false;
+        }
+
+        return settings.isShowOnTopLevel();
+    }
+
     private <IW extends ItemWrapper<?,?,?,?>> void populateNonContainer(ListItem<IW> item) {
         item.setOutputMarkupId(true);
         IW itemWrapper = item.getModelObject();
@@ -290,7 +317,10 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 typeName = new QName("ResourceAttributeDefinition");
             }
 
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(visibilityHandler).editabilityHandler(editabilityHandler);
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
+                    .visibilityHandler(getVisibilityHandler())
+                    .editabilityHandler(getReadabilityHandler())
+                    .showOnTopLevel(isShowOnTopLevel());
             Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), builder.build());
             panel.setOutputMarkupId(true);
             panel.add(new VisibleEnableBehaviour() {
@@ -307,7 +337,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 @Override
                 public boolean isVisible() {
                     CVW parent = PrismContainerValuePanel.this.getModelObject();
-                    return item.getModelObject().isVisible(parent, visibilityHandler);
+                    return item.getModelObject().isVisible(parent, getVisibilityHandler());
                 }
             });
             item.add(panel);
@@ -321,8 +351,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private void populateContainer(ListItem<PrismContainerWrapper<?>> container) {
         PrismContainerWrapper<?> itemWrapper = container.getModelObject();
         try {
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(visibilityHandler);
-            Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), builder.build());
+//            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(getVisibilityHandler());
+            Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), settings);
             panel.setOutputMarkupId(true);
 //            panel.add(new VisibleBehaviour(() -> {
 //                CVW parent = PrismContainerValuePanel.this.getModelObject();

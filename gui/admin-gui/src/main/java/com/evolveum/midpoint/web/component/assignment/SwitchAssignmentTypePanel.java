@@ -13,9 +13,11 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeAssignmentsTabPanel;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
@@ -111,6 +113,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
                             protected boolean isNewObjectButtonVisible(PrismObject focusObject){
                                 return !isReadonly() && super.isNewObjectButtonVisible(focusObject);
                             }
+
                         };
                 assignmentPanel.setOutputMarkupId(true);
                 switchAssignmentTypePerformed(target, assignmentPanel, ID_ALL_ASSIGNMENTS);
@@ -149,6 +152,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
                             protected boolean isNewObjectButtonVisible(PrismObject focusObject){
                                 return !isReadonly() && super.isNewObjectButtonVisible(focusObject);
                             }
+
                         };
                 assignmentPanel.setOutputMarkupId(true);
                 switchAssignmentTypePerformed(target, assignmentPanel, ID_ROLE_TYPE_ASSIGNMENTS);
