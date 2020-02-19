@@ -8,30 +8,53 @@ package com.evolveum.midpoint.web.page.admin;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.*;
+import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel;
 import com.evolveum.midpoint.web.page.admin.server.OperationalButtonsPanel;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -57,13 +80,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -96,6 +112,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
     protected static final String OPERATION_LOAD_ARCHETYPE_REF = DOT_CLASS + "loadArchetypeRef";
     protected static final String OPERATION_EXECUTE_CHANGES = DOT_CLASS + "executeChangesTask";
+    protected static final String OPERATION_EXECUTE_ARCHETYPE_CHANGES = DOT_CLASS + "executeArchetypeChanges";
 
     protected static final String ID_SUMMARY_PANEL = "summaryPanel";
     protected static final String ID_MAIN_PANEL = "mainPanel";
@@ -167,16 +184,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             DisplayType displayType = WebComponentUtil
                     .getArchetypePolicyDisplayType(assignmentHolderObj, PageAdminObjectDetails.this);
             if (displayType == null){
-                ObjectReferenceType archetypeReference = null;
-                if (assignmentHolderObj.getAssignment() != null){
-                    for (AssignmentType assignment : assignmentHolderObj.getAssignment()){
-                        if (assignment.getTargetRef() != null && assignment.getTargetRef().getType() != null
-                                && QNameUtil.match(assignment.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)){
-                            archetypeReference = assignment.getTargetRef();
-                            break;
-                        }
-                    }
-                }
+                ObjectReferenceType archetypeReference = getObjectArchetypeRef();
                 if (archetypeReference != null){
                     OperationResult result = new OperationResult(OPERATION_LOAD_ARCHETYPE_REF);
                     Task task = createSimpleTask(OPERATION_LOAD_ARCHETYPE_REF);
@@ -276,6 +284,24 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         };
     }
 
+    private ObjectReferenceType getObjectArchetypeRef() {
+        ObjectReferenceType archetypeReference = null;
+        if (getObjectWrapper() != null && getObjectWrapper().getObject() != null
+                && getObjectWrapper().getObject().asObjectable() instanceof AssignmentHolderType) {
+            AssignmentHolderType assignmentHolderObj = (AssignmentHolderType) getObjectWrapper().getObject().asObjectable();
+            if (assignmentHolderObj.getAssignment() != null) {
+                for (AssignmentType assignment : assignmentHolderObj.getAssignment()) {
+                    if (assignment.getTargetRef() != null && assignment.getTargetRef().getType() != null
+                            && QNameUtil.match(assignment.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
+                        archetypeReference = assignment.getTargetRef();
+                        break;
+                    }
+                }
+            }
+        }
+        return archetypeReference;
+    }
+
     protected List<FocusSubwrapperDto<OrgType>> loadOrgWrappers() {
         // WRONG!! TODO: fix
         return null;
@@ -345,10 +371,102 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     protected void initOperationalButtons(RepeatingView repeatingView){
+        AjaxButton changeArchetype = new AjaxButton(repeatingView.newChildId(), createStringResource("PageAdminObjectDetails.button.changeArchetype")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                changeArchetypeButtonClicked(target);
+            }
+        };
+        changeArchetype.add(new VisibleBehaviour(() -> true));  //TODO some authorization check to allew archetypeRef changes ?
+        changeArchetype.add(AttributeAppender.append("class", "btn-default"));
+        repeatingView.add(changeArchetype);
     }
 
     protected OperationalButtonsPanel getOperationalButtonsPanel(){
         return (OperationalButtonsPanel) get(ID_BUTTONS);
+    }
+
+    private void changeArchetypeButtonClicked(AjaxRequestTarget target){
+
+        AssignmentPopup changeArchetypePopup = new AssignmentPopup(getMainPopupBodyId()) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void addPerformed(AjaxRequestTarget target, List newAssignmentsList) {
+                super.addPerformed(target, newAssignmentsList);
+                try {
+                    PrismContainerWrapper<AssignmentType> assignmentsWrapper = getObjectWrapper().findContainer(FocusType.F_ASSIGNMENT);
+                    ((List<AssignmentType>) newAssignmentsList).forEach(assignment -> {
+                        PrismContainerValue<AssignmentType> newAssignment = assignmentsWrapper.getItem().createNewValue();
+                        assignmentsWrapper.getValues().forEach(assignmentValue -> {
+                            if (assignmentValue.getRealValue().getTargetRef() != null
+                            && assignmentValue.getRealValue().getTargetRef().getType() != null
+                            && QNameUtil.match(assignmentValue.getRealValue().getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)){
+                                assignmentValue.setStatus(ValueStatus.DELETED);
+                            }
+                        });
+                        AssignmentType assignmentType = newAssignment.asContainerable();
+                        assignmentType.setTargetRef(assignment.getTargetRef());
+                        WebPrismUtil.createNewValueWrapper(assignmentsWrapper, newAssignment, PageAdminObjectDetails.this, target);
+                        try {
+                            ObjectDelta<O> newDelta = getObjectWrapper().getObjectDelta();
+                            if (!newDelta.isEmpty()) {
+                                newDelta.revive(getPrismContext());
+                                OperationResult result = new OperationResult(OPERATION_EXECUTE_ARCHETYPE_CHANGES);
+                                Task task = createSimpleTask(OPERATION_EXECUTE_ARCHETYPE_CHANGES);
+                                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(newDelta), null, task, result);
+                            }
+                        } catch (Exception e) {
+                            LOGGER.error("Cannot save archetype assignment changes: {}", e.getMessage());
+                        }
+                    });
+                } catch (SchemaException e) {
+                    LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage());
+                }
+            }
+
+            @Override
+            protected List<ITab> createAssignmentTabs() {
+                List<ITab> tabs = new ArrayList<>();
+
+                tabs.add(new PanelTab(getPageBase().createStringResource("ObjectTypes.ROLE"),
+                        new VisibleBehaviour(() -> true)) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new ArchetypeAssignmentPopupTabPanel(panelId) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+                                PrismContainerWrapper<AssignmentType> assignmentsWrapper = null;
+                                try {
+                                    assignmentsWrapper = getObjectWrapper().findContainer(FocusType.F_ASSIGNMENT);
+                                } catch (SchemaException e) {
+                                    LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage());
+                                }
+                                return assignmentsWrapper;
+                            }
+
+                            @Override
+                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ArchetypeType>> rowModel) {
+                                tabLabelPanelUpdate(target);
+                            }
+                        };
+                    }
+
+                });
+
+                return tabs;
+            }
+        };
+
+        changeArchetypePopup.setOutputMarkupPlaceholderTag(true);
+        showMainPopup(changeArchetypePopup, target);
+
     }
 
     protected abstract AbstractObjectMainPanel<O> createMainPanel(String id);
