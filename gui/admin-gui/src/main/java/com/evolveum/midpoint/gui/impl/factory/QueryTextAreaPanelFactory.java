@@ -8,8 +8,9 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
 import java.io.Serializable;
-
 import javax.annotation.PostConstruct;
+
+import com.evolveum.midpoint.web.component.input.QueryTextAreaPanel;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +19,12 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.web.component.input.TextAreaPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 @Component
-public class TextAreaPanelFactory<T extends Serializable> extends AbstractGuiComponentFactory<T> {
+public class QueryTextAreaPanelFactory extends AbstractGuiComponentFactory<QueryType> {
 
     private static final long serialVersionUID = 1L;
 
@@ -38,16 +37,16 @@ public class TextAreaPanelFactory<T extends Serializable> extends AbstractGuiCom
 
     @Override
     public <IW extends ItemWrapper> boolean match(IW wrapper) {
-        return FocusType.F_DESCRIPTION.equals(wrapper.getItemName()); // || QueryType.COMPLEX_TYPE.equals(wrapper.getTypeName()); // || CleanupPoliciesType.COMPLEX_TYPE.equals(wrapper.getTypeName());
+        return QueryType.COMPLEX_TYPE.equals(wrapper.getTypeName()); // || CleanupPoliciesType.COMPLEX_TYPE.equals(wrapper.getTypeName());
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
+    protected Panel getPanel(PrismPropertyPanelContext<QueryType> panelCtx) {
         int size = 10;
         if (FocusType.F_DESCRIPTION.equals(panelCtx.getDefinitionName())) {
             size = 2;
         }
-        return new TextAreaPanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), size);
+        return new QueryTextAreaPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(), size);
     }
 
     @Override

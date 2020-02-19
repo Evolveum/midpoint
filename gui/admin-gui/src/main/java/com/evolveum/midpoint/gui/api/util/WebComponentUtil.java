@@ -54,6 +54,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -653,7 +654,7 @@ public final class WebComponentUtil {
         pageBase.getScriptingService().evaluateIterativeExpressionInBackground(script, task, result);
     }
 
-    public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
+    public static Task createMemberOperationTask(Task operationalTask, QName type, ObjectQuery memberQuery,
             ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase) throws SchemaException {
 
         MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
@@ -689,26 +690,28 @@ public final class WebComponentUtil {
         }
 
         try {
-            iterativeExecuteBulkAction(pageBase, script, operationalTask, parentResult);
-            parentResult.recordInProgress();
-            parentResult.setBackgroundTaskOid(operationalTask.getOid());
-            pageBase.showResult(parentResult);
+            pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(),
+                    null, AuthorizationParameters.EMPTY, null, operationalTask, parentResult);
+            operationalTask.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, script);
+            operationalTask.setHandlerUri(ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI);
+            return operationalTask;
         } catch (ObjectNotFoundException | SchemaException
-            | ExpressionEvaluationException | CommunicationException | ConfigurationException
-            | SecurityViolationException e) {
-            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.submit").getString(), e);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
+                | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                | SecurityViolationException e) {
+            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.createTask").getString(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create bulk action task", e);
         }
+        return null;
+    }
 
-//        ModelExecuteOptions options = TaskCategory.EXECUTE_CHANGES.equals(category)
-//                ? ModelExecuteOptions.createReconcile()        // This was originally in ExecuteChangesTaskHandler, now it's transferred through task extension.
-//                : null;
-//        TaskType task = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation()+2, type,
-//                memberQuery, null, null, TaskCategory.BULK_ACTIONS, pageBase);
-//        PrismObject<TaskType> prismTask = task.asPrismObject();
-//        prismTask.findOrCreateProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SE_EXECUTE_SCRIPT)).setRealValue(script);
-//
-//        WebModelServiceUtils.runTask(task, operationalTask, parentResult, pageBase);
+    public static void executeMemberOperation(Task operationalTask, OperationResult parentResult, PageBase pageBase) {
+
+        OperationResult result = parentResult.createSubresult("evaluateExpressionInBackground");
+        pageBase.getTaskManager().switchToBackground(operationalTask, result);
+        result.computeStatus();
+        parentResult.recordInProgress();
+        parentResult.setBackgroundTaskOid(operationalTask.getOid());
+        pageBase.showResult(parentResult);
     }
 
     public static boolean isAuthorized(String... action) {
