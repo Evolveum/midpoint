@@ -184,13 +184,6 @@
             <groupId>com.evolveum.polygon</groupId>
             <artifactId>connector-ldap</artifactId>
             <scope>test</scope>
-            <exclusions>
-                <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-jdk14</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.polygon</groupId>
