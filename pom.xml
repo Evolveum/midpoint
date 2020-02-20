@@ -1699,12 +1699,11 @@
                                 <ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUnusedDeclaredDependency>
 
-                                <!-- We are making this dependency explicit to detect conflicts early -->
+                                <!--
+                                We are making this dependency explicit to detect conflicts early.
+                                TODO: what conflicts? stax2-api is used by org.codehaus.staxmate:staxmate
+                                -->
                                 <ignoredUnusedDeclaredDependency>org.codehaus.woodstox:stax2-api</ignoredUnusedDeclaredDependency>
-
-                                <!-- The xjc-plugin does not compile without dependency on this -->
-                                <ignoredUnusedDeclaredDependency>org.apache.cxf:cxf-tools-common</ignoredUnusedDeclaredDependency>
-
                             </ignoredUnusedDeclaredDependencies>
                             <ignoredUsedUndeclaredDependencies>
                                 <!-- Unreliable detection -->
