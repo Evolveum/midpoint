@@ -73,6 +73,16 @@ public class DummyContainerImpl<C extends Containerable> extends DummyItem<Prism
         return delegate().getRealValue();
     }
 
+    @Override
+    public <X> X getRealValue(Class<X> type) {
+        return delegate().getRealValue(type);
+    }
+
+    @Override
+    public <X> X[] getRealValuesArray(Class<X> type) {
+        return delegate().getRealValuesArray(type);
+    }
+
     public void setValue(@NotNull PrismContainerValue<C> value) throws SchemaException {
         delegate().setValue(value);
     }

@@ -1824,10 +1824,8 @@
                 (repo objects, resource objects, changes, and so on).
             </xsd:documentation>
             <xsd:appinfo>
-                <a:experimental>true</a:experimental>
                 <a:since>4.0.1</a:since>
-                <!-- not a container because this is used as a connector property in async connector
-                     (but, unfortunately, embedded tracingProfile is a container! -->
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.impl;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -241,6 +242,38 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     public Object getRealValue() {
         V value = getValue();
         return value != null ? value.getRealValue() : null;
+    }
+
+    /**
+     * Type override, also for compatibility.
+     */
+    public <X> X getRealValue(Class<X> type) {
+        if (getValue() == null) {
+            return null;
+        }
+        Object value = getValue().getRealValue();
+        if (value == null) {
+            return null;
+        }
+        if (type.isAssignableFrom(value.getClass())) {
+            //noinspection unchecked
+            return (X)value;
+        } else {
+            throw new ClassCastException("Cannot cast value of item "+ getElementName()+" which is of type "+value.getClass()+" to "+type);
+        }
+    }
+
+    /**
+     * Type override, also for compatibility.
+     */
+    public <X> X[] getRealValuesArray(Class<X> type) {
+        //noinspection unchecked
+        X[] valuesArray = (X[]) Array.newInstance(type, getValues().size());
+        for (int j = 0; j < getValues().size(); ++j) {
+            Object value = getValues().get(j).getRealValue();
+            Array.set(valuesArray, j, value);
+        }
+        return valuesArray;
     }
 
     @NotNull
