@@ -3800,6 +3800,9 @@
                     <xsd:documentation>
                         Earliest time when the task is allowed to start.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>200</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="latestStartTime" type="xsd:dateTime" minOccurs="0">
@@ -3807,6 +3810,9 @@
                     <xsd:documentation>
                         Latest time when the task is allowed to start.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>210</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="latestFinishTime" type="xsd:dateTime" minOccurs="0">
@@ -3818,6 +3824,10 @@
 
                         NOTE: This attribute is currently not used; its use is planned.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>220</a:displayOrder>
+                        <a:ignore>true</a:ignore>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="interval" type="xsd:int" minOccurs="0">
@@ -3825,6 +3835,9 @@
                     <xsd:documentation>
                         Interval in seconds between task runs.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>100</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="cronLikePattern" type="xsd:string" minOccurs="0">
@@ -3833,6 +3846,9 @@
                         Cron-like pattern specifying time(s) when the task is to be run.
                         Currently only loosely-bound recurring tasks can use this feature.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>110</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="misfireAction" type="tns:MisfireActionType" minOccurs="0">
@@ -3841,6 +3857,9 @@
                         What is to be done when the planned start time arrives without
                         the task actually starting.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>300</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -20890,7 +20909,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Policy threshold specification. It determines thresholds settings
-                        such as count after which the action is beeing executed, refresh
+                        such as count after which the action is being executed, refresh
                         interval for counter, ...
                     </xsd:documentation>
                     <xsd:appinfo>
