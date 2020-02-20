@@ -8,7 +8,12 @@ package com.evolveum.midpoint.web.security.factory.module;
 
 import com.evolveum.midpoint.model.api.authentication.AuthModule;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.provider.Saml2Provider;
@@ -18,10 +23,8 @@ import com.evolveum.midpoint.web.security.module.configuration.SamlModuleWebSecu
 import com.evolveum.midpoint.web.security.module.SamlModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.util.AuthModuleImpl;
 import com.evolveum.midpoint.web.security.util.IdentityProvider;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModuleSaml2Type;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.saml.provider.config.ExternalProviderConfiguration;
@@ -54,6 +57,9 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
     @Autowired
     private Protector protector;
 
+    @Autowired
+    private SystemObjectCache systemObjectCache;
+
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
         if (moduleType instanceof AuthenticationModuleSaml2Type) {
@@ -73,7 +79,7 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
         isSupportedChannel(authenticationChannel);
 
         SamlModuleWebSecurityConfiguration.setProtector(protector);
-        SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build((AuthenticationModuleSaml2Type)moduleType, prefixOfSequence, request);
+        SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build((AuthenticationModuleSaml2Type)moduleType, prefixOfSequence, getPublicUrlPrefix(), request);
         configuration.setPrefixOfSequence(prefixOfSequence);
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new Saml2Provider()));
 //        MidpointSamlProviderServerBeanConfiguration beanConfiguration =getObjectObjectPostProcessor().postProcess(new MidpointSamlProviderServerBeanConfiguration(configuration));
@@ -126,5 +132,15 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
         IdentityProviderMetadata metadata = provider.getRemoteProvider(p);
         builder.queryParam("idp", UriUtils.encode(metadata.getEntityId(), UTF_8.toString()));
         return builder.build().toUriString();
+    }
+
+    private String getPublicUrlPrefix() {
+        try {
+            PrismObject<SystemConfigurationType> systemConfig = systemObjectCache.getSystemConfiguration(new OperationResult("load system configuration"));
+            return SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfig.asObjectable());
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't load system configuration", e);
+            return null;
+        }
     }
 }
