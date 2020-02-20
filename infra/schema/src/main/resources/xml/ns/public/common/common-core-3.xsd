@@ -25843,7 +25843,7 @@
                         that is used by midPoint when it creates redirect URL for client.
                         The pattern is in fact an URL prefix pointing to root URL of the application.
                         Specific paths will be appended to the URL.
-                        Example: https://$host/midpoint
+                        Example: 'https://$host/midpoint', where 'defaultHostname' element is used as '$host'.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.1</a:since>
