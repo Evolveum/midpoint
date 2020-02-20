@@ -167,7 +167,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      * API class instead.
      */
     @Override
-    public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) {
         DeltaSetTriple<EvaluatedConstruction> rv = prismContext.deltaFactory().createDeltaSetTriple();
         for (PlusMinusZero whichSet : PlusMinusZero.values()) {
             Collection<Construction<AH>> constructionSet = constructionTriple.getSet(whichSet);
@@ -243,17 +243,9 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return orgRefVals;
     }
 
-    void addOrgRefVal(PrismReferenceValue org) {
-        orgRefVals.add(org);
-    }
-
     @NotNull
     public Collection<PrismReferenceValue> getArchetypeRefVals() {
         return archetypeRefVals;
-    }
-
-    void addArchetypeRefVal(PrismReferenceValue archetypeRefVal) {
-        archetypeRefVals.add(archetypeRefVal);
     }
 
     @NotNull
@@ -261,17 +253,9 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return membershipRefVals;
     }
 
-    void addMembershipRefVal(PrismReferenceValue org) {
-        membershipRefVals.add(org);
-    }
-
     @NotNull
     public Collection<PrismReferenceValue> getDelegationRefVals() {
         return delegationRefVals;
-    }
-
-    void addDelegationRefVal(PrismReferenceValue org) {
-        delegationRefVals.add(org);
     }
 
     public String getTenantOid() {
