@@ -299,7 +299,7 @@ public class ModelImplUtils {
         }
     }
 
-    static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
+    private static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
             boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType evaluationTimeType,
             PrismContext prismContext, String contextDesc, boolean throwExceptionOnFailure, OperationResult parentResult) {
         String refName = refVal.getParent() != null ?
@@ -461,8 +461,8 @@ public class ModelImplUtils {
         result.recordSuccessIfUnknown();
     }
 
-    private static boolean containExpression(ObjectFilter filter){
-        if (filter == null){
+    private static boolean containExpression(ObjectFilter filter) {
+        if (filter == null) {
             return false;
         }
         if (filter instanceof InOidFilter && ((InOidFilter) filter).getExpression() != null) {
@@ -477,27 +477,22 @@ public class ModelImplUtils {
         return false;
     }
 
-    public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task) throws SchemaException {
-
-        QName objectclass = null;
-        PrismProperty<QName> objectclassProperty = task.getExtensionPropertyOrClone(ModelConstants.OBJECTCLASS_PROPERTY_NAME);
-        if (objectclassProperty != null) {
-            objectclass = objectclassProperty.getValue().getValue();
-        }
-
-        ShadowKindType kind = null;
-        PrismProperty<ShadowKindType> kindProperty = task.getExtensionPropertyOrClone(ModelConstants.KIND_PROPERTY_NAME);
-        if (kindProperty != null) {
-            kind = kindProperty.getValue().getValue();
-        }
-
-        String intent = null;
-        PrismProperty<String> intentProperty = task.getExtensionPropertyOrClone(ModelConstants.INTENT_PROPERTY_NAME);
-        if (intentProperty != null) {
-            intent = intentProperty.getValue().getValue();
-        }
+    public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task)
+            throws SchemaException {
+        QName objectclass = getTaskExtensionPropertyValue(task, ModelConstants.OBJECTCLASS_PROPERTY_NAME);
+        ShadowKindType kind = getTaskExtensionPropertyValue(task, ModelConstants.KIND_PROPERTY_NAME);
+        String intent = getTaskExtensionPropertyValue(task, ModelConstants.INTENT_PROPERTY_NAME);
 
         return determineObjectClassInternal(refinedSchema, objectclass, kind, intent, task);
+    }
+
+    private static <T> T getTaskExtensionPropertyValue(Task task, ItemName propertyName) {
+        PrismProperty<T> property = task.getExtensionPropertyOrClone(propertyName);
+        if (property != null) {
+            return property.getValue().getValue();
+        } else {
+            return null;
+        }
     }
 
     public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, PrismObject<ShadowType> shadow) throws SchemaException {
@@ -523,16 +518,13 @@ public class ModelImplUtils {
         if (kind != null) {
             refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
             LOGGER.trace("Determined refined object class {} by using kind={}, intent={}",
-                    new Object[]{refinedObjectClassDefinition, kind, intent});
+                    refinedObjectClassDefinition, kind, intent);
         } else if (objectclass != null) {
             refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(objectclass);
-            LOGGER.trace("Determined refined object class {} by using objectClass={}",
-                    new Object[]{refinedObjectClassDefinition, objectclass});
+            LOGGER.trace("Determined refined object class {} by using objectClass={}", refinedObjectClassDefinition, objectclass);
         } else {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.debug("No kind or objectclass specified in {}, assuming null object class", source);
-            }
             refinedObjectClassDefinition = null;
+            LOGGER.debug("No kind or objectclass specified in {}, assuming null object class", source);
         }
 
         return refinedObjectClassDefinition;
@@ -579,28 +571,20 @@ public class ModelImplUtils {
         setRequestee(task, (PrismObject) null);
     }
 
-    public static ModelExecuteOptions getModelExecuteOptions(Task task) throws SchemaException {
-        Validate.notNull(task, "Task must not be null.");
-        if (!task.hasExtension()) {
-            return null;
-        }
-        //LOGGER.info("Task:\n{}",task.debugDump(1));
+    public static ModelExecuteOptions getModelExecuteOptions(@NotNull Task task) throws SchemaException {
         PrismProperty<ModelExecuteOptionsType> item = task.getExtensionPropertyOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
         if (item == null || item.isEmpty()) {
             return null;
-        }
-        //LOGGER.info("Item:\n{}",item.debugDump(1));
-        if (item.getValues().size() > 1) {
+        } else if (item.getValues().size() > 1) {
             throw new SchemaException("Unexpected number of values for option 'modelExecuteOptions'.");
+        } else {
+            ModelExecuteOptionsType modelExecuteOptionsType = item.getValues().iterator().next().getValue();
+            if (modelExecuteOptionsType != null) {
+                return ModelExecuteOptions.fromModelExecutionOptionsType(modelExecuteOptionsType);
+            } else {
+                return null;
+            }
         }
-        ModelExecuteOptionsType modelExecuteOptionsType = item.getValues().iterator().next().getValue();
-        if (modelExecuteOptionsType == null) {
-            return null;
-        }
-        //LOGGER.info("modelExecuteOptionsType: {}",modelExecuteOptionsType);
-        ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromModelExecutionOptionsType(modelExecuteOptionsType);
-        //LOGGER.info("modelExecuteOptions: {}",modelExecuteOptions);
-        return modelExecuteOptions;
     }
 
     public static ExpressionVariables getDefaultExpressionVariables(@NotNull LensContext<?> context, @Nullable LensProjectionContext projCtx) throws SchemaException {
