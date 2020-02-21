@@ -1,0 +1,21 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!-- TODO change OID to well-known one -->
+<archetype oid="77615e4c-b82e-4b3a-b265-5487a6ac016b"
+           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+    <name>Recomputation task</name>
+    <archetypePolicy>
+        <!-- TODO -->
+    </archetypePolicy>
+    <assignment>
+        <assignmentRelation>
+            <holderType>TaskType</holderType>
+        </assignmentRelation>
+    </assignment>
+</archetype>

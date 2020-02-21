@@ -75,6 +75,11 @@
             <xsd:element ref="tns:duplicateShadowsResolver" minOccurs="0"/>
             <xsd:element ref="tns:checkDuplicatesOnPrimaryIdentifiersOnly" minOccurs="0"/>
             <xsd:element ref="tns:cleanupPolicies" minOccurs="0"/>
+            <xsd:element ref="tns:profilingInterval" minOccurs="0"/>
+            <xsd:element ref="tns:tracingInterval" minOccurs="0"/>
+            <xsd:element ref="tns:tracingProfile" minOccurs="0"/>
+            <xsd:element ref="tns:tracingRoot" minOccurs="0"/>
+            <xsd:element ref="tns:tracing" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -520,6 +525,7 @@
                 <a:displayOrder>850</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -535,6 +541,7 @@
                 <a:displayOrder>851</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -550,6 +557,7 @@
                 <a:displayOrder>852</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -565,6 +573,7 @@
                 <a:displayOrder>853</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>unbounded</a:maxOccurs>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
