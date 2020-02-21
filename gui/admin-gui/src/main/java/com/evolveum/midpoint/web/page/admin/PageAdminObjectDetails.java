@@ -98,7 +98,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     protected static final String OPERATION_LOAD_ARCHETYPE_REF = DOT_CLASS + "loadArchetypeRef";
     protected static final String OPERATION_EXECUTE_CHANGES = DOT_CLASS + "executeChangesTask";
     protected static final String OPERATION_EXECUTE_ARCHETYPE_CHANGES = DOT_CLASS + "executeArchetypeChanges";
-    protected static final String OPERATION_LOAD_ASSIGNMENT_TARGET_SPECIFICATION = DOT_CLASS + "loadAssignmentTargetSpecification";
+    protected static final String OPERATION_LOAD_FILTERED_ARCHETYPES = DOT_CLASS + "loadFilteredArchetypes";
 
     protected static final String ID_SUMMARY_PANEL = "summaryPanel";
     protected static final String ID_MAIN_PANEL = "mainPanel";
@@ -475,21 +475,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                                 if (query == null) {
                                     query = getPrismContext().queryFactory().createQuery();
                                 }
-                                AssignmentCandidatesSpecification spec = loadAssignmentTargetSpecification();
-                                List<String> archetypeOidsList = new ArrayList<>();
-                                if (spec != null && spec.getAssignmentObjectRelations() != null){
-                                    spec.getAssignmentObjectRelations().forEach(aor -> {
-                                        if (aor.getArchetypeRefs() != null){
-                                            aor.getArchetypeRefs().forEach(archetypeRef -> archetypeOidsList.add(archetypeRef.getOid()));
-                                        }
-                                    });
-                                }
-                                if (!archetypeOidsList.isEmpty()) {
-                                    ObjectFilter filter = getPrismContext().queryFor(ArchetypeType.class)
-                                            .id(archetypeOidsList.toArray(new String[0]))
-                                            .buildFilter();
-                                    query.addFilter(filter);
-                                }
+                                List<String> archetypeOidsList = getFilteredArchetypeOidsList();
+                                ObjectFilter filter = getPrismContext().queryFor(ArchetypeType.class)
+                                        .id(archetypeOidsList.toArray(new String[0]))
+                                        .buildFilter();
+                                query.addFilter(filter);
                                 return query;
                             }
                         };
@@ -504,17 +494,20 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     }
 
-    private AssignmentCandidatesSpecification loadAssignmentTargetSpecification(){
-        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_SPECIFICATION);
+    private List<String> getFilteredArchetypeOidsList(){
+        OperationResult result = new OperationResult(OPERATION_LOAD_FILTERED_ARCHETYPES);
         PrismObject obj = getObjectWrapper().getObject();
-        AssignmentCandidatesSpecification specification = null;
+        List<String> oidsList = new ArrayList<>();
         try {
-            specification = getModelInteractionService().determineAssignmentTargetSpecification(obj, result);
-        } catch (SchemaException | ConfigurationException ex){
+            List<ArchetypeType> filteredArchetypes = getModelInteractionService().getFilteredArchetypesByHolderType(obj, result);
+            if (filteredArchetypes != null){
+                filteredArchetypes.forEach(archetype -> oidsList.add(archetype.getOid()));
+            }
+        } catch (SchemaException ex){
             result.recordPartialError(ex.getLocalizedMessage());
             LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
         }
-        return specification;
+        return oidsList;
     }
 
     protected abstract AbstractObjectMainPanel<O> createMainPanel(String id);
