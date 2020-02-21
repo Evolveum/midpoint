@@ -100,6 +100,9 @@ public class ModifyTest extends BaseSQLRepoTest {
     private static final QName QNAME_WEAPON = new QName("http://example.com/p", "weapon");
     private static final QName QNAME_FUNERAL_DATE = new QName("http://example.com/p", "funeralDate");
 
+    private static final File SYSTEM_CONFIGURATION_BEFORE_FILE = new File(TEST_DIR, "system-configuration-before.xml");
+    private static final File SYSTEM_CONFIGURATION_AFTER_FILE = new File(TEST_DIR, "system-configuration-after.xml");
+
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -1530,5 +1533,82 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println("Values: " + values);
         assertEquals("Wrong # of extension values found", expected, values.size());
         close(session);
+    }
+
+    @Test(enabled = false)  // MID-5958
+    public void test500ReferenceTargetNameAdding() throws Exception {
+        final String TEST_NAME = "test500ReferenceTargetNameAdding";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PolyStringType parentName = new PolyStringType("Parent");
+        parentName.setNorm("Parent");
+        PolyStringLangType lang = new PolyStringLangType();
+        Map<String, String> langMap = new HashMap<>();
+        langMap.put("sk", "Rodič");
+        langMap.put("en", "Parent");
+        lang.setLang(langMap);
+        parentName.setLang(lang);
+        ObjectReferenceType parentRef = ObjectTypeUtil.createObjectRef("oid-parent", parentName, ObjectTypes.CASE);
+        final String OID = "oid-500";
+        PrismObject<CaseType> aCase = prismContext.createObjectable(CaseType.class)
+                .name("test500")
+                .oid(OID)
+                .parentRef(parentRef)
+                .asPrismObject();
+
+        // note that we do not support storing target names for references with known OID
+
+        // WHEN
+        repositoryService.addObject(aCase, null, result);
+
+        // THEN
+        PrismObject<CaseType> aCaseAfter = repositoryService.getObject(CaseType.class, OID, null, result);
+        PolyStringType parentNameAfter = aCaseAfter.asObjectable().getParentRef().getTargetName();
+        assertNotNull("No target name", parentNameAfter);
+        System.out.println("parent name after:\n" + parentNameAfter.debugDump());
+        // todo check for lang
+    }
+
+    /**
+     * MID-6063
+     */
+    @Test
+    public void test510ModifySystemConfiguration() throws Exception {
+        final String TEST_NAME = "test510ModifySystemConfiguration";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<SystemConfigurationType> before = prismContext.parseObject(SYSTEM_CONFIGURATION_BEFORE_FILE);
+        repositoryService.addObject(before, null, result);
+
+        PrismObject<SystemConfigurationType> after = prismContext.parseObject(SYSTEM_CONFIGURATION_AFTER_FILE);
+        ObjectDelta<SystemConfigurationType> delta = before.diff(after, EquivalenceStrategy.LITERAL);
+
+        String oid = before.getOid();
+
+        // WHEN
+        repositoryService.modifyObject(SystemConfigurationType.class, oid, delta.getModifications(), result);
+
+        // THEN
+        PrismObject<SystemConfigurationType> read = repositoryService.getObject(SystemConfigurationType.class, oid, null, result);
+
+        normalize(after);
+        normalize(read);
+        PrismAsserts.assertEquals("System configuration was stored incorrectly", after, read);
+    }
+
+    private void normalize(PrismObject<?> object) {
+        object.setVersion(null);
+        //noinspection unchecked
+        object.accept(value -> {
+            if (value instanceof PrismContainerValue) {
+                ((PrismContainerValue<?>) value).setId(null);
+            }
+        });
     }
 }
