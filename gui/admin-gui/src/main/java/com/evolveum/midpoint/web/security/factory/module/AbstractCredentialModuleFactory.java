@@ -67,9 +67,11 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
 
 
             List<CredentialPolicyType> credentialPolicies = new ArrayList<CredentialPolicyType>();
-            credentialPolicies.add(credentialsPolicy.getPassword());
-            credentialPolicies.add(credentialsPolicy.getSecurityQuestions());
-            credentialPolicies.addAll(credentialsPolicy.getNonce());
+            if (credentialsPolicy != null) {
+                credentialPolicies.add(credentialsPolicy.getPassword());
+                credentialPolicies.add(credentialsPolicy.getSecurityQuestions());
+                credentialPolicies.addAll(credentialsPolicy.getNonce());
+            }
 
             for (CredentialPolicyType processedPolicy : credentialPolicies) {
                 if (processedPolicy != null) {
