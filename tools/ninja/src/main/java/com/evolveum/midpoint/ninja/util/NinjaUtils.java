@@ -135,10 +135,10 @@ public class NinjaUtils {
         return null;
     }
 
-    public static Writer createWriter(File output, Charset charset, boolean zip) throws IOException {
+    public static Writer createWriter(File output, Charset charset, boolean zip, boolean overwrite) throws IOException {
         OutputStream os;
         if (output != null) {
-            if (output.exists()) {
+            if (!overwrite && output.exists()) {
                 throw new NinjaException("Export file '" + output.getPath() + "' already exists");
             }
             output.createNewFile();
