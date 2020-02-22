@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.provisioning.ucf.api.connectors;
 
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 
@@ -176,23 +177,20 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
         Class<?> configurationClass = connectorConfigurationProp.getPropertyType();
         Object configurationObject;
         try {
-            configurationObject = configurationClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            configurationObject = configurationClass.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new ConfigurationException("Cannot instantiate configuration "+configurationClass);
         }
         BeanWrapper configurationClassBean = new BeanWrapperImpl(configurationObject);
         for (Item<?, ?> configurationItem: configurationContainer.getItems()) {
-            if (! (configurationItem instanceof PrismProperty<?>)) {
-                throw new ConfigurationException("Only properties are supported for now");
-            }
-            PrismProperty<?> configurationProperty = (PrismProperty<?>)configurationItem;
-            PrismPropertyDefinition<?> configurationPropertyDefinition = configurationProperty.getDefinition();
-            if (configurationPropertyDefinition != null && configurationPropertyDefinition.isMultiValue()) {
-                Object[] realValuesArray = configurationProperty.getRealValuesArray(Object.class);
-                configurationClassBean.setPropertyValue(configurationProperty.getElementName().getLocalPart(), realValuesArray);
+            ItemDefinition<?> configurationItemDefinition = configurationItem.getDefinition();
+            String itemLocalName = configurationItem.getElementName().getLocalPart();
+            if (configurationItemDefinition != null && configurationItemDefinition.isMultiValue()) {
+                Object[] realValuesArray = configurationItem.getRealValuesArray(Object.class);
+                configurationClassBean.setPropertyValue(itemLocalName, realValuesArray);
             } else {
-                Object realValue = configurationProperty.getRealValue();
-                configurationClassBean.setPropertyValue(configurationProperty.getElementName().getLocalPart(), realValue);
+                Object realValue = configurationItem.getRealValue();
+                configurationClassBean.setPropertyValue(itemLocalName, realValue);
             }
         }
         connectorBean.setPropertyValue(connectorConfigurationProp.getName(), configurationObject);

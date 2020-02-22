@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin;
 
-import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationProperty;
+import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationItem;
 
 /**
  * @author semancik
@@ -16,7 +16,7 @@ public class ManualConnectorConfiguration {
 
     private String defaultAssignee;
 
-    @ConfigurationProperty
+    @ConfigurationItem
     public String getDefaultAssignee() {
         return defaultAssignee;
     }

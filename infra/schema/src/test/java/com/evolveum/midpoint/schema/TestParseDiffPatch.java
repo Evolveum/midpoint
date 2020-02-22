@@ -67,6 +67,8 @@ public class TestParseDiffPatch {
     private static final File RESOURCE_AFTER_CONST_FILE = new File(TEST_DIR, "resource-after-const.xml");
     private static final File RESOURCE_AFTER_NS_CHANGE_FILE = new File(TEST_DIR, "resource-after-ns-change.xml");
     private static final String RESOURCE_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+    private static final File SYSTEM_CONFIGURATION_BEFORE_FILE = new File(TEST_DIR, "system-configuration-before.xml");
+    private static final File SYSTEM_CONFIGURATION_AFTER_FILE = new File(TEST_DIR, "system-configuration-after.xml");
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -844,4 +846,59 @@ public class TestParseDiffPatch {
         assertEquals("'after' is different from the object with differences applied", after, differencesApplied);
     }
 
+    /**
+     * MID-6063
+     */
+    @Test
+    public void testSystemConfigurationDiff() throws Exception {
+        System.out.println("===[ testSystemConfigurationDiff ]===");
+
+        PrismObject<SystemConfigurationType> before = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_BEFORE_FILE);
+        before.checkConsistence();
+        PrismObject<SystemConfigurationType> after = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_AFTER_FILE);
+        after.checkConsistence();
+
+        ObjectDelta<SystemConfigurationType> delta = before.diff(after, EquivalenceStrategy.LITERAL);
+        System.out.println("DELTA:");
+        System.out.println(delta.debugDump());
+
+        before.checkConsistence();
+        after.checkConsistence();
+        delta.checkConsistence();
+        delta.assertDefinitions();
+
+        PrismObject<SystemConfigurationType> workingCopy = before.clone();
+        delta.applyTo(workingCopy);
+        PrismAsserts.assertEquals("before + delta is different from after", after, workingCopy);
+    }
+
+    /**
+     * MID-6063
+     */
+    @Test
+    public void testSystemConfigurationDiffPlusNarrow() throws Exception {
+        System.out.println("===[ testSystemConfigurationDiffPlusNarrow ]===");
+
+        PrismObject<SystemConfigurationType> before = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_BEFORE_FILE);
+        before.checkConsistence();
+        PrismObject<SystemConfigurationType> after = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_AFTER_FILE);
+        after.checkConsistence();
+
+        ObjectDelta<SystemConfigurationType> delta = before.diff(after, EquivalenceStrategy.LITERAL);
+        System.out.println("DELTA:");
+        System.out.println(delta.debugDump());
+
+        ObjectDelta<SystemConfigurationType> deltaNarrowed = delta.narrow(before, true);
+        System.out.println("DELTA NARROWED:");
+        System.out.println(deltaNarrowed.debugDump());
+
+        before.checkConsistence();
+        after.checkConsistence();
+        deltaNarrowed.checkConsistence();
+        deltaNarrowed.assertDefinitions();
+
+        PrismObject<SystemConfigurationType> workingCopy = before.clone();
+        deltaNarrowed.applyTo(workingCopy);
+        PrismAsserts.assertEquals("before + delta (narrowed) is different from after", after, workingCopy);
+    }
 }

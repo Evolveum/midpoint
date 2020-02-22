@@ -7,37 +7,13 @@
 package com.evolveum.midpoint.prism.impl.item;
 
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
-import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.CloneStrategy;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Itemable;
-import com.evolveum.midpoint.prism.PartiallyResolvedItem;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.Visitor;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
@@ -53,6 +29,16 @@ public class DummyReferenceImpl extends DummyItem<PrismReferenceValue,PrismRefer
 
     public Referencable getRealValue() {
         return delegate().getRealValue();
+    }
+
+    @Override
+    public <X> X getRealValue(Class<X> type) {
+        return delegate().getRealValue(type);
+    }
+
+    @Override
+    public <X> X[] getRealValuesArray(Class<X> type) {
+        return delegate().getRealValuesArray(type);
     }
 
     @NotNull

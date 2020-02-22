@@ -236,6 +236,16 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     Object getRealValue();
 
     /**
+     * Type override, also for compatibility.
+     */
+    <X> X getRealValue(Class<X> type);
+
+    /**
+     * Type override, also for compatibility.
+     */
+    <X> X[] getRealValuesArray(Class<X> type);
+
+    /**
      * Returns (potentially empty) collection of "real values".
      * @see Item#getRealValue().
      */

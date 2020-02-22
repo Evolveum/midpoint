@@ -199,7 +199,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
         }
 
       protected String getItemCssClass() {
-            return " col-md-offset-2 prism-value ";
+            return " col-sm-offset-0 col-md-offset-4 col-lg-offset-2 prism-value ";
         }
 
      protected void addValue(AjaxRequestTarget target) {

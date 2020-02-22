@@ -21,6 +21,12 @@
     <extension>
     </extension>
 
+    <assignment>
+        <targetRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType" />
+    </assignment>
+    <archetypeRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType" />
+    <roleMembershipRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType" />
+
     <!-- No task identifier. It will be generated during import -->
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
