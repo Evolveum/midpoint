@@ -65,7 +65,7 @@ public class MidpointResponse extends Response {
     private String getPublicUrlPrefix() {
         try {
             PrismObject<SystemConfigurationType> systemConfig = systemObjectCache.getSystemConfiguration(new OperationResult("load system configuration"));
-            return SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfig.asObjectable());
+            return SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfig.asObjectable(), getRequest().getServerName());
         } catch (SchemaException e) {
             LOGGER.error("Couldn't load system configuration", e);
             return null;
