@@ -20,6 +20,7 @@
             <objectType>ObjectTemplateType</objectType>
             <objectType>ResourceType</objectType>
             <objectType>ConnectorType</objectType>
+            <objectType>SecurityPolicyType</objectType>
             <timeToVersionCheck>10</timeToVersionCheck>
         </objectTypeSettings>
     </globalRepoCache>

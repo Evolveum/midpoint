@@ -14,6 +14,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -97,7 +98,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                 Map<String, AssignmentType> selectedAssignmentsMap = new HashMap<>();
 
                 tabs.forEach(panelTab -> {
-                    WebMarkupContainer assignmentPanel = ((CountablePanelTab)panelTab).getPanel();
+                    WebMarkupContainer assignmentPanel = ((PanelTab)panelTab).getPanel();
                     if (assignmentPanel == null){
                         return;
                     }
@@ -399,7 +400,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         return 0;
     }
 
-    private void tabLabelPanelUpdate(AjaxRequestTarget target){
+    protected void tabLabelPanelUpdate(AjaxRequestTarget target){
         getTabbedPanel().reloadCountLabels(target);
         target.add(get(ID_FORM).get(ID_ASSIGN_BUTTON));
     }
@@ -436,7 +437,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         TabbedPanel<ITab> tabbedPanel = getTabbedPanel();
         List<ITab> tabs = tabbedPanel.getTabs().getObject();
         for (ITab tab : tabs){
-            WebMarkupContainer assignmentPanel = ((CountablePanelTab)tab).getPanel();
+            WebMarkupContainer assignmentPanel = ((PanelTab)tab).getPanel();
             if (assignmentPanel == null){
                 continue;
             }

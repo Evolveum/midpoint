@@ -1722,6 +1722,25 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return spec;
     }
 
+    @Override
+    public <O extends AssignmentHolderType> List<ArchetypeType> getFilteredArchetypesByHolderType(PrismObject<O> object, OperationResult result) throws SchemaException {
+        SearchResultList<PrismObject<ArchetypeType>> archetypes = systemObjectCache.getAllArchetypes(result);
+        List<ArchetypeType> filteredArchetypes = new ArrayList<>();
+        for (PrismObject<ArchetypeType> archetype : archetypes) {
+            for (AssignmentType assignment : archetype.asObjectable().getAssignment()) {
+                for (AssignmentRelationType assignmentRelation : assignment.getAssignmentRelation()) {
+                    if (isHolderType(assignmentRelation.getHolderType(), object)){
+                        filteredArchetypes.add(archetype.asObjectable());
+                    }
+                }
+                if (filteredArchetypes.contains(archetype.asObjectable())){
+                    break;
+                }
+            }
+        }
+        return filteredArchetypes;
+    }
+
 
     @Override
     public <O extends AbstractRoleType> AssignmentCandidatesSpecification determineAssignmentHolderSpecification(PrismObject<O> assignmentTarget, OperationResult result)

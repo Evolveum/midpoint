@@ -58,13 +58,15 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         SamlModuleWebSecurityConfiguration.protector = protector;
     }
 
-    public static SamlModuleWebSecurityConfiguration build(AuthenticationModuleSaml2Type modelType, String prefixOfSequence, ServletRequest request){
-        SamlModuleWebSecurityConfiguration configuration = buildInternal((AuthenticationModuleSaml2Type)modelType, prefixOfSequence, request);
+    public static SamlModuleWebSecurityConfiguration build(AuthenticationModuleSaml2Type modelType, String prefixOfSequence,
+            String publicHttpUrlPattern, ServletRequest request){
+        SamlModuleWebSecurityConfiguration configuration = buildInternal((AuthenticationModuleSaml2Type)modelType, prefixOfSequence, publicHttpUrlPattern, request);
         configuration.validate();
         return configuration;
     }
 
-    private static SamlModuleWebSecurityConfiguration buildInternal(AuthenticationModuleSaml2Type modelType, String prefixOfSequence, ServletRequest request){
+    private static SamlModuleWebSecurityConfiguration buildInternal(AuthenticationModuleSaml2Type modelType, String prefixOfSequence, String publicHttpUrlPattern,
+            ServletRequest request){
         SamlModuleWebSecurityConfiguration configuration = new SamlModuleWebSecurityConfiguration();
         build(configuration, modelType, prefixOfSequence);
         SamlServerConfiguration samlConfiguration = new SamlServerConfiguration();
@@ -85,8 +87,13 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
                 .setSignMetadata(Boolean.TRUE.equals(serviceProviderType.isSignRequests()))
                 .setSignRequests(Boolean.TRUE.equals(serviceProviderType.isSignRequests()))
                 .setWantAssertionsSigned(Boolean.TRUE.equals(serviceProviderType.isWantAssertionsSigned()))
-                .setSingleLogoutEnabled(Boolean.TRUE.equals(serviceProviderType.isSingleLogoutEnabled()))
-                .setBasePath(getBasePath(((HttpServletRequest) request)));
+                .setSingleLogoutEnabled(Boolean.TRUE.equals(serviceProviderType.isSingleLogoutEnabled()));
+        if (StringUtils.isNotBlank(publicHttpUrlPattern)) {
+            serviceProvider.setBasePath(publicHttpUrlPattern);
+        } else {
+            serviceProvider.setBasePath(getBasePath(((HttpServletRequest) request)));
+        }
+
         List<Object> objectList = new ArrayList<Object>();
         for (AuthenticationModuleSaml2NameIdType nameIdType : serviceProviderType.getNameId()) {
             objectList.add(nameIdType.value());

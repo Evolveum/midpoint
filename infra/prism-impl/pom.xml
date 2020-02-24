@@ -114,15 +114,6 @@
             <groupId>org.jvnet.jaxb2_commons</groupId>
             <artifactId>jaxb2-basics-runtime</artifactId>
         </dependency>
-        <!--        <dependency>-->
-        <!--            &lt;!&ndash; make this dependency explicit to detect conflicts with older versions &ndash;&gt;-->
-        <!--          <groupId>org.codehaus.woodstox</groupId>-->
-        <!--          <artifactId>stax2-api</artifactId>-->
-        <!--        </dependency>-->
-        <dependency>
-            <groupId>stax</groupId>
-            <artifactId>stax-api</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.codehaus.staxmate</groupId>
             <artifactId>staxmate</artifactId>

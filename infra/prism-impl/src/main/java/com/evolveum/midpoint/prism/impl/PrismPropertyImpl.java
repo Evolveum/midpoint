@@ -141,36 +141,6 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
     /**
      * Type override, also for compatibility.
      */
-    public <X> X getRealValue(Class<X> type) {
-        if (getValue() == null) {
-            return null;
-        }
-        X value = (X) getValue().getValue();
-        if (value == null) {
-            return null;
-        }
-        if (type.isAssignableFrom(value.getClass())) {
-            return (X)value;
-        } else {
-            throw new ClassCastException("Cannot cast value of property "+ getElementName()+" which is of type "+value.getClass()+" to "+type);
-        }
-    }
-
-    /**
-     * Type override, also for compatibility.
-     */
-    public <X> X[] getRealValuesArray(Class<X> type) {
-        X[] valuesArrary = (X[]) Array.newInstance(type, getValues().size());
-        for (int j = 0; j < getValues().size(); ++j) {
-            Object avalue = getValues().get(j).getValue();
-            Array.set(valuesArrary, j, avalue);
-        }
-        return valuesArrary;
-    }
-
-    /**
-     * Type override, also for compatibility.
-     */
     public <X> PrismPropertyValue<X> getValue(Class<X> type) {
         if (getDefinition() != null) {
             if (getDefinition().isMultiValue()) {

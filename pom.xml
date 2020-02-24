@@ -30,8 +30,8 @@
     "Quick" build with unit tests only and checkstyle:
     mvn clean install -P -dist -DskipITs -Dmaven.javadoc.skip
 
-    "Quick" build with smaller integration test set:
-    mvn clean install -P -dist -DintegrationTestSuite=fast -Dmaven.javadoc.skip
+    "Quick" build with smaller integration test set and output to stdout:
+    mvn clean install -P -dist -DintegrationTestSuite=fast -Dmaven.javadoc.skip -DredirectTestOutputToFile=false
 
     Long test run (with 16g on CI server, but this should work too - isn't Xmx even unnecessary?), runs just under 900 tests:
     mvn -P tomcat,extratest clean install -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
@@ -178,12 +178,13 @@
         <jakarta.jaxb.version>2.3.2</jakarta.jaxb.version>
         <asm.version>7.0</asm.version>
         <jaxws-api.version>2.3.1</jaxws-api.version>
-        <stax-api.version>1.0-2</stax-api.version>
         <geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
         <activation.version>1.2.0</activation.version>
         <jetty.version>9.4.20.v20190813</jetty.version>
         <maven.api.version>3.6.2</maven.api.version>
         <checkstyle.version>3.1.0</checkstyle.version>
+        <xalan.version>2.7.2</xalan.version>
+        <xerces.version>2.12.0</xerces.version>
     </properties>
 
     <dependencyManagement>
@@ -372,10 +373,6 @@
                 <artifactId>hibernate-core</artifactId>
                 <version>${hibernate.version}</version>
                 <exclusions>
-                    <exclusion> <!-- Version conflict with xalan -->
-                        <groupId>xml-apis</groupId>
-                        <artifactId>xml-apis</artifactId>
-                    </exclusion>
                     <exclusion>
                         <groupId>javax.annotation</groupId>
                         <artifactId>jsr250-api</artifactId>
@@ -423,35 +420,31 @@
                 <artifactId>je</artifactId>
                 <version>5.0.103</version>
             </dependency>
+            <!--
+            TODO: we should get rid of xalan/xerces if possible.
+            More (from 2015): http://www.odi.ch/weblog/posting.php?posting=689
+            ForgeRock got rid of it: https://bugster.forgerock.org/jira/browse/OPENAM-7320
+            -->
             <dependency>
                 <groupId>xerces</groupId>
                 <artifactId>xercesImpl</artifactId>
-                <version>2.12.0</version>
+                <version>${xerces.version}</version>
             </dependency>
             <dependency>
                 <groupId>xalan</groupId>
                 <artifactId>xalan</artifactId>
-                <version>2.7.2</version>
-            </dependency>
-            <dependency>
-                <groupId>xml-apis</groupId>
-                <artifactId>xml-apis</artifactId>
-                <version>1.4.01</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.xml.stream</groupId>
-                <artifactId>stax-api</artifactId>
-                <version>1.0-2</version>
+                <version>${xalan.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.staxmate</groupId>
                 <artifactId>staxmate</artifactId>
                 <version>2.0.1</version>
-            </dependency>
-            <dependency>
-                <groupId>stax</groupId>
-                <artifactId>stax-api</artifactId>
-                <version>1.0.1</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>stax</groupId>
+                        <artifactId>stax-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>javax.xml.bind</groupId>
@@ -891,6 +884,13 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
                 <version>3.0-M1</version>
+                <exclusions>
+                    <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-jdk14</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <!-- End connectors -->
             <dependency>
@@ -1067,6 +1067,7 @@
                 <artifactId>derbyclient</artifactId>
                 <version>${derby.version}</version>
             </dependency>
+
             <!-- Jasper reports -->
             <dependency>
                 <groupId>net.sf.jasperreports</groupId>
@@ -1114,14 +1115,38 @@
                         <groupId>org.bouncycastle</groupId>
                         <artifactId>bctsp-jdk14</artifactId>
                     </exclusion>
-                    <exclusion> <!-- Pulled in by castor-xml. Conflicts with itself (depends both on stax-api 1.0-2 and 1.0.1)
-                                     Note: the 1.0-2 and 1.0.1 have different group IDs (but same java packages),
-                                           so dependency convergence will not detect this. -->
+                    <!-- from: mvn dependency:tree -pl gui/admin-gui
+                    net.sf.jasperreports:jasperreports:jar:6.5.0:compile
+                    +- org.codehaus.castor:castor-xml:jar:1.3.3:compile
+                    |  +- org.codehaus.castor:castor-core:jar:1.3.3:compile
+                    |  +- stax:stax:jar:1.2.0:compile
+                    |  |  \- stax:stax-api:jar:1.0.1:compile
+                    |  \- javax.xml.stream:stax-api:jar:1.0-2:compile
+
+                    We want to exclude both stax-api transitive deps, as they contain the same packages (provided by JDK too).
+                    -->
+                    <exclusion>
                         <groupId>javax.xml.stream</groupId>
                         <artifactId>stax-api</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!--
+            fix for the other stax-api from castor-xml's depenency stax:stax (which is something else than stax-api 1.x)
+            TODO: can go away with Jasper
+            -->
+            <dependency>
+                <groupId>stax</groupId>
+                <artifactId>stax</artifactId>
+                <version>1.2.0</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>stax</groupId>
+                        <artifactId>stax-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
             <!-- report dependency (needed for microsoft office formats) -->
             <dependency>
                 <groupId>org.apache.poi</groupId>
@@ -1662,6 +1687,9 @@
                                         <!-- replaced by org.slf4j:jcl-over-slf4j -->
                                         <exclude>commons-logging:commons-logging</exclude>
                                         <exclude>org.springframework:spring-jcl</exclude>
+                                        <!-- package with multiple XML APIs, conflicts assured
+                                        (WE CAN'T YET see todo at the xalan/xerces dep declarations above) -->
+                                        <!--<exclude>xml-apis:xml-apis</exclude>-->
                                     </excludes>
                                 </bannedDependencies>
                             </rules>
@@ -1687,17 +1715,7 @@
                             <failOnWarning>true</failOnWarning>
                             <ignoreNonCompile>true</ignoreNonCompile>
                             <ignoredUnusedDeclaredDependencies>
-                                <!-- There is some kind of conflict between these. TODO: clean up -->
-                                <ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUnusedDeclaredDependency>
-
-                                <!-- We are making this dependency explicit to detect conflicts early -->
-                                <ignoredUnusedDeclaredDependency>org.codehaus.woodstox:stax2-api</ignoredUnusedDeclaredDependency>
-
-                                <!-- The xjc-plugin does not compile without dependency on this -->
-                                <ignoredUnusedDeclaredDependency>org.apache.cxf:cxf-tools-common</ignoredUnusedDeclaredDependency>
-
+                                <!-- We don't want anything here, ideally... -->
                             </ignoredUnusedDeclaredDependencies>
                             <ignoredUsedUndeclaredDependencies>
                                 <!-- Unreliable detection -->
@@ -1705,10 +1723,8 @@
                                 <ignoredUsedUndeclaredDependency>com.sun.activation:javax.activation</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>javax.activation:activation</ignoredUsedUndeclaredDependency>
 
-                                <!-- There is some kind of conflict between these. TODO: clean up -->
+                                <!-- TODO can go away with JDK 8 support, JDK 9+ covers it, ideally whole Xerces/Xalan should go -->
                                 <ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
-                                <ignoredUsedUndeclaredDependency>stax:stax-api</ignoredUsedUndeclaredDependency>
-                                <ignoredUsedUndeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUsedUndeclaredDependency>
 
                                 <!-- needs to much exclusions, used by apache-cxf (xjc plugin, prism-impl, schema, ..) -->
                                 <ignoredUsedUndeclaredDependency>jakarta.activation:jakarta.activation-api</ignoredUsedUndeclaredDependency>
@@ -2016,6 +2032,7 @@
                 <module>dist</module>
             </modules>
         </profile>
+
         <profile>
             <id>jdk-11</id>
             <properties>
@@ -2024,7 +2041,41 @@
             <activation>
                 <jdk>11</jdk>
             </activation>
+            <dependencyManagement>
+                <!--
+                In JDK 11 we want to get rid of xml-apis, that are covered by Java 9+.
+                Comes with xerces/xalan, overrides many classes from other APIs (StAX, SAX) or JDK.
+                But it contains DOM classes like org.w3c.dom.ElementTraversal that are available
+                from JDK 9+, so we still need it with JDK 8, among others in schemadist-prism.
+                BTW: 1.4 (from 2009) is NEWER version than 2.0.2 (2002)... what can you say...
+                -->
+                <dependencies>
+                    <dependency>
+                        <groupId>xerces</groupId>
+                        <artifactId>xercesImpl</artifactId>
+                        <version>${xerces.version}</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>xml-apis</groupId>
+                                <artifactId>xml-apis</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                    <dependency>
+                        <groupId>xalan</groupId>
+                        <artifactId>serializer</artifactId>
+                        <version>${xalan.version}</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>xml-apis</groupId>
+                                <artifactId>xml-apis</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
         </profile>
+
         <profile>
             <id>jdk-8</id>
             <properties>

@@ -870,7 +870,9 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
                     }
                 }
                 if (clone.getValuesToAdd() != null) {
-                    clone.getValuesToAdd().removeIf(valueToAdd -> currentItem.containsEquivalentValue(valueToAdd, comparator));
+                    clone.getValuesToAdd().removeIf(
+                            valueToAdd -> currentItem.containsEquivalentValue(valueToAdd, comparator)
+                                    && !containsEquivalentValue(clone.getValuesToDelete(), valueToAdd));
                     if (clone.getValuesToAdd().isEmpty()) {
                         clone.resetValuesToAdd();
                     }

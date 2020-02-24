@@ -7,9 +7,14 @@
 
 package com.evolveum.midpoint.web.security.filter;
 
+import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.RequestState;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -34,9 +39,11 @@ import static org.springframework.util.StringUtils.hasText;
 
 public class MidpointSamlAuthenticationResponseFilter extends SamlAuthenticationResponseFilter {
 
-    public MidpointSamlAuthenticationResponseFilter(SamlProviderProvisioning<ServiceProviderService> provisioning) {
+    private ModelAuditRecorder auditProvider;
+
+    public MidpointSamlAuthenticationResponseFilter(ModelAuditRecorder auditProvider, SamlProviderProvisioning<ServiceProviderService> provisioning) {
         super(provisioning);
-//        this.provisioning = provisioning;
+        this.auditProvider = auditProvider;
     }
 
     @Override
@@ -76,6 +83,14 @@ public class MidpointSamlAuthenticationResponseFilter extends SamlAuthentication
 //            logger.debug("Updated SecurityContextHolder to contain null Authentication");
 //            logger.debug("Delegating to authentication failure handler " + failureHandler);
 //        }
+
+        String channel = SchemaConstants.CHANNEL_GUI_USER_URI;
+        Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        if (actualAuthentication instanceof MidpointAuthentication && ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel() != null) {
+            channel = ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel().getChannelId();
+        }
+
+        auditProvider.auditLoginFailure("unknown user", null, ConnectionEnvironment.create(channel), "SAML authentication module: " + failed.getMessage());
 
         getRememberMeServices().loginFail(request, response);
 

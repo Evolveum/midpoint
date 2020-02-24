@@ -45,18 +45,6 @@ public class WrapperTestUtil {
             List<PrismValueWrapper> valueWrappers = itemWrapper.getValues();
             PrismValueWrapper lastValueWrapper = valueWrappers.get(valueWrappers.size() - 1);
             PrismPropertyValue<T> pval = (PrismPropertyValue<T>) lastValueWrapper.getNewValue();
-//            if (!isEmptyValue(pval)) {
-//                PrismPropertyValue<T> newPropertyValue = modelServiceLocator.getPrismContext().itemFactory().createPropertyValue();
-//                newPropertyValue.setValue(newValue);
-//                WrapperContext context = new WrapperContext(modelServiceLocator.getPageTask(), modelServiceLocator.getPageTask().getResult());
-//                context.setShowEmpty(true);
-//                context.setCreateIfEmpty(true);
-//                context.setObjectStatus(itemWrapper.findObjectStatus());
-//                PrismPropertyValueWrapper newValueWrapper = modelServiceLocator.createValueWrapper(itemWrapper, newPropertyValue, ValueStatus.ADDED, context);
-//                itemWrapper.getValues().add(newValueWrapper);
-//
-//                pval = (PrismPropertyValue<T>) newValueWrapper.getNewValue();
-//            }
             pval.setValue(newValue);
         }
     }
@@ -143,7 +131,6 @@ public class WrapperTestUtil {
         assertNotNull("null wrapper", containerWrapper);
         PrismAsserts.assertEquivalent("Wrong path in wrapper " + containerWrapper,
                 expectedPath == null ? ItemPath.EMPTY_PATH : expectedPath, containerWrapper.getPath());
-//        assertEquals("Wrong main flag in wrapper "+containerWrapper, isMain, containerWrapper.isMain());
         if (container != null) {
             assertEquals("Wrong item in wrapper "+containerWrapper, container, containerWrapper.getItem());
         }
@@ -158,11 +145,9 @@ public class WrapperTestUtil {
         if (ItemStatus.ADDED != objectWrapper.getStatus()) {
             assertEquals("Wrong old object in wrapper " + objectWrapper, objectOld, objectWrapper.getObjectOld());
         }
-        assertFalse("object and old object not clonned in "+objectWrapper, objectWrapper.getObject() == objectWrapper.getObjectOld());
+        assertFalse("object and old object not cloned in "+objectWrapper, objectWrapper.getObject() == objectWrapper.getObjectOld());
         assertEquals("Wrong displayName in wrapper "+objectWrapper, displayName, objectWrapper.getValue().getDisplayName());
-//        assertEquals("Wrong description in wrapper "+objectWrapper, description, objectWrapper.getDescription());
         assertEquals("Wrong status in wrapper "+objectWrapper, status, objectWrapper.getStatus());
-//        assertNull("Unexpected old delta in "+objectWrapper, objectWrapper.getOldDelta());
     }
 
 }

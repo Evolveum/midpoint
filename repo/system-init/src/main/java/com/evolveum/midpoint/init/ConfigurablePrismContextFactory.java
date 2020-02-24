@@ -7,16 +7,18 @@
 
 package com.evolveum.midpoint.init;
 
+import java.io.File;
+import java.nio.file.Paths;
+
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang.StringUtils;
-
-import java.io.File;
 
 /**
  * @author lazyman
@@ -66,12 +68,12 @@ public class ConfigurablePrismContextFactory extends MidPointPrismContextFactory
 
         if (StringUtils.isEmpty(extensionDir)) {
             if (StringUtils.isNotEmpty(configuration.getMidpointHome())) {
-                extensionDir = configuration.getMidpointHome() + "/schema";
+                extensionDir = Paths.get(configuration.getMidpointHome(), "schema").toString();
             }
         }
 
         if (StringUtils.isNotEmpty(extensionDir)) {
-            LOGGER.info("Loading extension schemas from folder '{}'.", new Object[]{extensionDir});
+            LOGGER.info("Loading extension schemas from folder '{}'.", new Object[] { extensionDir });
         } else {
             LOGGER.warn("Not loading extension schemas, extensionDir or even midpoint.home is not defined.");
             return;
@@ -81,7 +83,7 @@ public class ConfigurablePrismContextFactory extends MidPointPrismContextFactory
             File file = new File(extensionDir);
             if (!file.exists() || !file.isDirectory()) {
                 LOGGER.warn("Extension dir '{}' does not exist, or is not a directory, skipping extension loading.",
-                        new Object[]{extensionDir});
+                        new Object[] { extensionDir });
                 return;
             }
 

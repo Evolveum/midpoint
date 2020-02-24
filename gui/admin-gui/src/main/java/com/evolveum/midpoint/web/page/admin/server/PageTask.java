@@ -42,6 +42,7 @@ import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -54,10 +55,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @PageDescriptor(
         urls = {
@@ -76,8 +74,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private static final long serialVersionUID = 1L;
 
     private static final transient Trace LOGGER = TraceManager.getTrace(PageTask.class);
-
-    private static final String ID_BUTTONS = "buttons";
 
     private static final int REFRESH_INTERVAL_IF_RUNNING = 2000;
     private static final int REFRESH_INTERVAL_IF_RUNNABLE = 2000;
@@ -137,31 +133,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     protected void initLayout() {
         super.initLayout();
 
-        OperationalButtonsPanel opButtonPanel = new OperationalButtonsPanel(ID_BUTTONS) {
-
-            @Override
-            protected void addButtons(RepeatingView repeatingView) {
-                initTaskOperationalButtons(repeatingView);
-            }
-        };
-
-        AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(getRefreshInterval())) {
-            @Override
-            protected void onPostProcessTarget(AjaxRequestTarget target) {
-                refresh(target);
-            }
-
-            @Override
-            protected boolean shouldTrigger() {
-                return isRefreshEnabled();
-            }
-        };
-        opButtonPanel.add(behavior);
-
-
-        opButtonPanel.setOutputMarkupId(true);
-        opButtonPanel.add(new VisibleBehaviour(this::isEditingFocus));
-        add(opButtonPanel);
     }
 
     private void afterOperation(AjaxRequestTarget target, OperationResult result) {
@@ -173,8 +144,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
 
 
-    private void initTaskOperationalButtons(RepeatingView repeatingView) {
-
+    protected void initOperationalButtons(RepeatingView repeatingView) {
+        super.initOperationalButtons(repeatingView);
         AjaxButton suspend = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.suspend")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -504,6 +475,24 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     @Override
+    protected List<? extends Behavior> getAdditionalOperationalButtonPanelBehaviors(){
+        AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(getRefreshInterval())) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onPostProcessTarget(AjaxRequestTarget target) {
+                refresh(target);
+            }
+
+            @Override
+            protected boolean shouldTrigger() {
+                return isRefreshEnabled();
+            }
+        };
+        return Collections.singletonList(behavior);
+    }
+
+    @Override
     public int getRefreshInterval() {
         TaskType task = getObjectWrapper().getObject().asObjectable();
         TaskDtoExecutionStatus exec = TaskDtoExecutionStatus.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
@@ -530,7 +519,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
 //        getObjectModel().reset();
         target.add(getSummaryPanel());
-        target.add(get(ID_BUTTONS));
+        target.add(getOperationalButtonsPanel());
 
         for (Component component : getMainPanel().getTabbedPanel()) {
             if (component instanceof TaskTabPanel) {

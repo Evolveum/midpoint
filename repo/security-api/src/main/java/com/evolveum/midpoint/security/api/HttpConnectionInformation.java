@@ -19,6 +19,7 @@ public class HttpConnectionInformation implements Serializable {
     private String remoteHostAddress;
     private String localHostName;
     private String sessionId;
+    private String serverName;
 
     public String getRemoteHostAddress() {
         return remoteHostAddress;
@@ -44,4 +45,11 @@ public class HttpConnectionInformation implements Serializable {
         this.sessionId = sessionId;
     }
 
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
+    }
+
+    public String getServerName() {
+        return serverName;
+    }
 }
