@@ -1714,16 +1714,7 @@
                             <failOnWarning>true</failOnWarning>
                             <ignoreNonCompile>true</ignoreNonCompile>
                             <ignoredUnusedDeclaredDependencies>
-                                <!-- There is some kind of conflict between these. TODO: clean up -->
-                                <ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUnusedDeclaredDependency>
-
-                                <!--
-                                We are making this dependency explicit to detect conflicts early.
-                                TODO: what conflicts? stax2-api is used by org.codehaus.staxmate:staxmate
-                                -->
-                                <ignoredUnusedDeclaredDependency>org.codehaus.woodstox:stax2-api</ignoredUnusedDeclaredDependency>
+                                <!-- We don't want anything here, ideally... -->
                             </ignoredUnusedDeclaredDependencies>
                             <ignoredUsedUndeclaredDependencies>
                                 <!-- Unreliable detection -->
@@ -1733,7 +1724,6 @@
 
                                 <!-- There is some kind of conflict between these. TODO: clean up -->
                                 <ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
-                                <ignoredUsedUndeclaredDependency>stax:stax-api</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUsedUndeclaredDependency>
 
                                 <!-- needs to much exclusions, used by apache-cxf (xjc plugin, prism-impl, schema, ..) -->
