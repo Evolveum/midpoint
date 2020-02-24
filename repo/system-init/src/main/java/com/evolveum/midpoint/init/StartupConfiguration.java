@@ -6,21 +6,14 @@
  */
 package com.evolveum.midpoint.init;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
+
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.util.StatusPrinter;
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
-import com.evolveum.midpoint.common.configuration.api.SystemConfigurationSection;
-import com.evolveum.midpoint.init.interpol.HostnameLookup;
-import com.evolveum.midpoint.init.interpol.RandomLookup;
-import com.evolveum.midpoint.util.ClassPathUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.SystemUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.XMLConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
@@ -34,10 +27,18 @@ import org.apache.wss4j.dom.engine.WSSConfig;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.*;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
+import com.evolveum.midpoint.common.configuration.api.SystemConfigurationSection;
+import com.evolveum.midpoint.init.interpol.HostnameLookup;
+import com.evolveum.midpoint.init.interpol.RandomLookup;
+import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.SystemUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class StartupConfiguration implements MidpointConfiguration {
 
@@ -56,7 +57,18 @@ public class StartupConfiguration implements MidpointConfiguration {
     private boolean silent = false;
 
     private XMLConfiguration config;
+
+    /**
+     * Normalized name of midPoint home directory.
+     * After successful initialization (see {@link #init()} it always ends with /.
+     * TODO: this normalization is safe, but ugly when used in XML configs like
+     * ${midpoint.home}/keystore.jceks - which, on the ohter hand, would be ugly without /.
+     * Better yet is to normalize home directory NOT to end with / and use Paths.get(...)
+     * and similar constructs in Java code and never string concatenation.
+     * Also - maybe even this can be typed to Path in the end.
+     */
     private String midPointHomePath;
+
     private final String configFilename;
 
     /**
