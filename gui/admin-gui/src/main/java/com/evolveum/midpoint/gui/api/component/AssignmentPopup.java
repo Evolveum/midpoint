@@ -108,8 +108,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
 
                 });
-                List assignments = new ArrayList<>();
-                assignments.addAll(Arrays.asList(selectedAssignmentsMap.values().toArray()));
+                List<AssignmentType> assignments = new ArrayList<>(selectedAssignmentsMap.values());
                 addPerformed(target, assignments);
             }
         };
@@ -421,7 +420,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         return (TabbedPanel) get(ID_FORM).get(ID_TABS_PANEL);
     }
 
-    protected void addPerformed(AjaxRequestTarget target, List newAssignmentsList) {
+    protected void addPerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
         getPageBase().hideMainPopup(target);
     }
 

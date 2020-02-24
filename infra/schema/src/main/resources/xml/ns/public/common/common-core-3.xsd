@@ -5710,6 +5710,11 @@
                         The assignment is applied only if the condition is evaluated to true.
                         If condition is not present, it is assumed to be true.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <xsd:appinfo>
+                            <a:displayName>AssignmentType.condition</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
 

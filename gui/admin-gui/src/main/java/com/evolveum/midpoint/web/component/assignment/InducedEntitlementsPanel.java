@@ -11,26 +11,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
-import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorImpl;
-import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.midpoint.prism.*;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -43,32 +31,37 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrappe
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorImpl;
+import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Created by honchar.
  */
-public class InducedEntitlementsPanel extends InducementsPanel{
+public class InducedEntitlementsPanel extends InducementsPanel {
 
     private static final long serialVersionUID = 1L;
-
-    private static final String ID_ASSIGNMENT_DETAILS = "assignmentDetails";
 
     private static final Trace LOGGER = TraceManager.getTrace(InducedEntitlementsPanel.class);
 
     private static final String DOT_CLASS = InducedEntitlementsPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_SHADOW_DISPLAY_NAME = DOT_CLASS + "loadShadowDisplayName";
     private static final String OPERATION_LOAD_SHADOW_OBJECT = DOT_CLASS + "loadReferencedShadowObject";
     private static final String OPERATION_LOAD_RESOURCE_OBJECT = DOT_CLASS + "loadResourceObject";
 
@@ -87,16 +80,16 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
                 @Override
                 public Collection<SimpleValidationError> validateObject(PrismObject<? extends ObjectType> object, Collection<ObjectDelta<? extends ObjectType>> deltas) {
-                    List<SimpleValidationError> errors = new ArrayList<SimpleValidationError>();
-                    for (ObjectDelta delta : deltas) {
+                    List<SimpleValidationError> errors = new ArrayList<>();
+                    for (ObjectDelta<?> delta : deltas) {
                         if (AbstractRoleType.class.isAssignableFrom(delta.getObjectTypeClass())) {
                             switch (delta.getChangeType()) {
                                 case MODIFY:
-                                    Collection<ItemDelta> itemDeltas = delta.getModifications();
-                                    for (ItemDelta itemDelta : itemDeltas) {
+                                    Collection<? extends ItemDelta<?,?>> itemDeltas = delta.getModifications();
+                                    for (ItemDelta<?,?> itemDelta : itemDeltas) {
                                         if (itemDelta.getPath().equivalent(AbstractRoleType.F_INDUCEMENT) && itemDelta.getValuesToAdd() != null) {
-                                            for (PrismValue value : (Collection<PrismValue>) itemDelta.getValuesToAdd()) {
-                                                errors.addAll(validateInducement((AssignmentType) value.getRealValue()));
+                                            for (PrismValue value : itemDelta.getValuesToAdd()) {
+                                                errors.addAll(validateInducement(value.getRealValue()));
                                             }
                                         }
                                     }
@@ -115,11 +108,12 @@ public class InducedEntitlementsPanel extends InducementsPanel{
                 }
 
                 private Collection<SimpleValidationError> validateInducement(AssignmentType assignment) {
-                    List<SimpleValidationError> errors = new ArrayList<SimpleValidationError>();
-                    com.evolveum.midpoint.prism.Item association = assignment.asPrismContainerValue().findItem(ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION));
+                    List<SimpleValidationError> errors = new ArrayList<>();
+                    //TODO impelemnt findContainer(ItemPath)
+                    com.evolveum.midpoint.prism.Item<PrismContainerValue<ResourceObjectAssociationType>, PrismContainerDefinition<ResourceObjectAssociationType>> association = assignment.asPrismContainerValue().findItem(ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION));
                     if (association != null && !association.getValues().isEmpty()) {
-                        for (PrismContainerValue associationValue : (List<PrismContainerValue>) association.getValues()){
-                            com.evolveum.midpoint.prism.Item outbound = associationValue.findItem(ResourceObjectAssociationType.F_OUTBOUND);
+                        for (PrismContainerValue<ResourceObjectAssociationType> associationValue : association.getValues()){
+                            PrismContainer<MappingType> outbound = associationValue.findContainer(ResourceObjectAssociationType.F_OUTBOUND);
                             if (outbound == null || outbound.getValues().isEmpty()){
                                 SimpleValidationError error = new SimpleValidationError();
                                 error.setMessage(getPageBase().createStringResource("InducedEntitlementsPanel.validator.message").getString());
@@ -135,7 +129,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
                 @Override
                 public Collection<SimpleValidationError> validateAssignment(AssignmentType assignment) {
-                    return new ArrayList<SimpleValidationError>();
+                    return new ArrayList<>();
                 }
             };
     }
@@ -244,28 +238,32 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
 
     @Override
-    protected void addCustomSpecificContainers(Fragment specificContainers, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
-        specificContainers.add(getConstructionAssociationPanel(modelObject));
-
+    protected Panel getBasicContainerPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>> model) {
+        return getConstructionAssociationPanel(idPanel, model);
     }
 
+//    @Override
+//    protected void addCustomSpecificContainers(Fragment specificContainers, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
+//        specificContainers.add(getConstructionAssociationPanel(modelObject));
+//
+//    }
 
-    @Override
-    protected Panel getBasicContainerPanel(String idPanel,
-            IModel<PrismContainerValueWrapper<AssignmentType>> model) {
-        Panel panel = super.getBasicContainerPanel(idPanel, model);
-        panel.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return false;
-            }
-        });
-        return panel;
-    }
+//    @Override
+//    protected Panel getBasicContainerPanel(String idPanel,
+//            IModel<PrismContainerValueWrapper<AssignmentType>> model) {
+//        Panel panel = super.getBasicContainerValuePanel(idPanel, model);
+//        panel.add(new VisibleEnableBehaviour() {
+//            @Override
+//            public boolean isVisible() {
+//                return false;
+//            }
+//        });
+//        return panel;
+//    }
 
-    private ConstructionAssociationPanel getConstructionAssociationPanel(IModel<PrismContainerValueWrapper<AssignmentType>> model) {
+    private ConstructionAssociationPanel getConstructionAssociationPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>> model) {
         IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, AssignmentType.F_CONSTRUCTION);
-        ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(AssignmentPanel.ID_SPECIFIC_CONTAINER, constructionModel);
+        ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(idPanel, constructionModel);
         constructionDetailsPanel.setOutputMarkupId(true);
         return constructionDetailsPanel;
     }
