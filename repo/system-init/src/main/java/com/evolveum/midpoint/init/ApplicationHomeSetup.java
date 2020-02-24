@@ -7,27 +7,29 @@
 
 package com.evolveum.midpoint.init;
 
-import com.evolveum.midpoint.util.ClassPathUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.MIDPOINT_HOME_PROPERTY;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
-import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.MIDPOINT_HOME_PROPERTY;
+import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 class ApplicationHomeSetup {
 
     private static final Trace LOGGER = TraceManager.getTrace(ApplicationHomeSetup.class);
 
     private final boolean silent;
-    private final String midPointHomePath;
+    private final Path midPointHomePath;
 
     ApplicationHomeSetup(boolean silent, String midPointHomePath) {
         this.silent = silent;
-        this.midPointHomePath = midPointHomePath;
+        this.midPointHomePath = Paths.get(midPointHomePath);
     }
 
     void init() {
@@ -55,19 +57,19 @@ class ApplicationHomeSetup {
             createDir(midPointHomePath);
         }
 
-        String[] directories = {
-                midPointHomePath + "icf-connectors",
-                midPointHomePath + "idm-legacy",
-                midPointHomePath + "log",
-                midPointHomePath + "schema",
-                midPointHomePath + "import",
-                midPointHomePath + "export",
-                midPointHomePath + "tmp",
-                midPointHomePath + "lib",
-                midPointHomePath + "trace"
+        Path[] directories = {
+                midPointHomePath.resolve("icf-connectors"),
+                midPointHomePath.resolve("idm-legacy"),
+                midPointHomePath.resolve("log"),
+                midPointHomePath.resolve("schema"),
+                midPointHomePath.resolve("import"),
+                midPointHomePath.resolve("export"),
+                midPointHomePath.resolve("tmp"),
+                midPointHomePath.resolve("lib"),
+                midPointHomePath.resolve("trace")
         };
 
-        for (String directory : directories) {
+        for (Path directory : directories) {
             if (checkDirectoryExistence(directory)) {
                 continue;
             }
@@ -78,14 +80,15 @@ class ApplicationHomeSetup {
 
     private void setupMidpointHomeDirectory() {
         try {
-            ClassPathUtil.extractFilesFromClassPath("initial-midpoint-home", midPointHomePath, false);
+            // TODO: only usage is here, why is it in ClassPathUtils? Can we change 2nd arg to Path?
+            ClassPathUtil.extractFilesFromClassPath("initial-midpoint-home", midPointHomePath.toString(), false);
         } catch (URISyntaxException | IOException e) {
             LOGGER.error("Error copying the content of initial-midpoint-home to {}: {}", midPointHomePath, e.getMessage(), e);
         }
     }
 
-    private boolean checkDirectoryExistence(String dir) {
-        File d = new File(dir);
+    private boolean checkDirectoryExistence(Path dir) {
+        File d = dir.toFile();
         if (d.isFile()) {
             LOGGER.error(dir + " is file and NOT a directory.");
             throw new SystemException(dir + " is file and NOT a directory !!!");
@@ -97,11 +100,10 @@ class ApplicationHomeSetup {
         } else {
             return false;
         }
-
     }
 
-    private void createDir(String dir) {
-        File d = new File(dir);
+    private void createDir(Path dir) {
+        File d = dir.toFile();
         if (!d.exists() || !d.isDirectory()) {
             boolean created = d.mkdirs();
             if (!created) {
