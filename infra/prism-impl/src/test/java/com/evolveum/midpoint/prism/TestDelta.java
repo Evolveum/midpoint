@@ -1482,7 +1482,7 @@ public class TestDelta extends AbstractPrismTest {
         assertEquals("Wrong OID", USER_FOO_OID, userDeltaSum.getOid());
         PrismAsserts.assertIsAdd(userDeltaSum);
         PrismObject<UserType> userSum = userDeltaSum.getObjectToAdd();
-        assert user != userSum : "User was not clonned";
+        assert user != userSum : "User was not cloned";
         PrismAsserts.assertPropertyValue(userSum, UserType.F_ADDITIONAL_NAMES,
                 PrismTestUtil.createPolyString("foo"), PrismTestUtil.createPolyString("bar"));
         // TODO

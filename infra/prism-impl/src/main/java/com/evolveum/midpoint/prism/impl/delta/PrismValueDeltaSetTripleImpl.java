@@ -17,7 +17,7 @@ import java.util.Iterator;
 
 /**
  * DeltaSetTriple that is limited to hold prism values. By limiting to the PrismValue descendants we gain advantage to be
- * clonnable and ability to compare real values.
+ * cloneable and ability to compare real values.
  *
  * @author Radovan Semancik
  */

@@ -79,7 +79,7 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
         isSupportedChannel(authenticationChannel);
 
         SamlModuleWebSecurityConfiguration.setProtector(protector);
-        SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build((AuthenticationModuleSaml2Type)moduleType, prefixOfSequence, getPublicUrlPrefix(), request);
+        SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build((AuthenticationModuleSaml2Type)moduleType, prefixOfSequence, getPublicUrlPrefix(request), request);
         configuration.setPrefixOfSequence(prefixOfSequence);
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new Saml2Provider()));
 //        MidpointSamlProviderServerBeanConfiguration beanConfiguration =getObjectObjectPostProcessor().postProcess(new MidpointSamlProviderServerBeanConfiguration(configuration));
@@ -134,10 +134,10 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
         return builder.build().toUriString();
     }
 
-    private String getPublicUrlPrefix() {
+    private String getPublicUrlPrefix(ServletRequest request) {
         try {
             PrismObject<SystemConfigurationType> systemConfig = systemObjectCache.getSystemConfiguration(new OperationResult("load system configuration"));
-            return SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfig.asObjectable());
+            return SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfig.asObjectable(), request.getServerName());
         } catch (SchemaException e) {
             LOGGER.error("Couldn't load system configuration", e);
             return null;
