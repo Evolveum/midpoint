@@ -294,13 +294,22 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 return null;
             }
 
-            ObjectTemplateType objectTemplateType = null;
             try {
-                objectTemplateType = schemaTransformer.determineObjectTemplate(object, phase, result);
+                ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(object, result);
+                if (archetypePolicy != null) {
+
+                    schemaTransformer.applyItemsConstraints(objectDefinition, archetypePolicy, result);
+
+                    ObjectReferenceType objectTemplateRef = archetypePolicy.getObjectTemplateRef();
+                    if (objectTemplateRef != null) {
+                        PrismObject<ObjectTemplateType> objectTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), null, result);
+                        schemaTransformer.applyObjectTemplateToDefinition(objectDefinition, objectTemplate.asObjectable(), result);
+                    }
+
+                }
             } catch (ConfigurationException | ObjectNotFoundException e) {
                 result.recordFatalError(e);
             }
-            schemaTransformer.applyObjectTemplateToDefinition(objectDefinition, objectTemplateType, result);
 
             schemaTransformer.applySecurityConstraints(objectDefinition, securityConstraints, phase);
 

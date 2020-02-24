@@ -19508,6 +19508,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemConstraintType.visibility</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- TODO: uniqueness constraint -->
              <xsd:element name="oidBound" type="xsd:boolean" minOccurs="0" default="false">
                  <xsd:annotation>

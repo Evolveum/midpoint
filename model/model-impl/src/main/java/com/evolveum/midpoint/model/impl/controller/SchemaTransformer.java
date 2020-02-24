@@ -796,6 +796,65 @@ public class SchemaTransformer {
         }
     }
 
+    public <O extends ObjectType> void applyItemsConstraints(PrismObjectDefinition<O> objectDefinition, ArchetypePolicyType archetypePolicy, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        if (archetypePolicy == null) {
+            return;
+        }
+        Map<ItemPath, UserInterfaceElementVisibilityType> visibilityMap = new HashMap<>();
+        for (ItemConstraintType itemConstraint: archetypePolicy.getItemConstraint()) {
+            UserInterfaceElementVisibilityType visibility = itemConstraint.getVisibility();
+            if (visibility == null) {
+                continue;
+            }
+            ItemPathType itemPathType = itemConstraint.getPath();
+            if (itemPathType == null) {
+                throw new SchemaException("No 'path' in item definition in archetype policy for "+objectDefinition);
+            }
+            ItemPath itemPath = prismContext.toPath(itemPathType);
+            visibilityMap.put(itemPath, visibility);
+        }
+        if (visibilityMap.isEmpty()) {
+            return;
+        }
+        reduceItems(objectDefinition, ItemPath.EMPTY_PATH, visibilityMap);
+    }
+
+    private UserInterfaceElementVisibilityType reduceItems(PrismContainerDefinition containerDefinition, ItemPath containerPath, Map<ItemPath, UserInterfaceElementVisibilityType> visibilityMap) {
+        UserInterfaceElementVisibilityType containerVisibility = determineVisibility(visibilityMap, containerPath);
+        if (containerVisibility == UserInterfaceElementVisibilityType.HIDDEN) {
+            containerDefinition.getDefinitions().clear();
+            return containerVisibility;
+        }
+        Iterator<ItemDefinition> iterator = containerDefinition.getDefinitions().iterator();
+        while (iterator.hasNext()) {
+            ItemDefinition subDefinition = iterator.next();
+            ItemPath itemPath = containerPath.append(subDefinition.getItemName());
+            if (subDefinition instanceof PrismContainerDefinition) {
+                PrismContainerDefinition subContainerDef = (PrismContainerDefinition)subDefinition;
+                UserInterfaceElementVisibilityType itemVisibility = reduceItems(subContainerDef, itemPath, visibilityMap);
+                if (subContainerDef.isEmpty() && itemVisibility != UserInterfaceElementVisibilityType.VISIBLE) {
+                    iterator.remove();
+                }
+            } else {
+                UserInterfaceElementVisibilityType itemVisibility = determineVisibility(visibilityMap, itemPath);
+                if (itemVisibility == UserInterfaceElementVisibilityType.VACANT || itemVisibility == UserInterfaceElementVisibilityType.HIDDEN) {
+                    iterator.remove();
+                }
+            }
+        }
+        return containerVisibility;
+    }
+
+    private UserInterfaceElementVisibilityType determineVisibility(Map<ItemPath, UserInterfaceElementVisibilityType> visibilityMap, ItemPath itemPath) {
+        if (itemPath == null || itemPath.isEmpty()) {
+            return UserInterfaceElementVisibilityType.AUTOMATIC;
+        }
+        UserInterfaceElementVisibilityType visibility = visibilityMap.get(itemPath);
+        if (visibility != null) {
+            return visibility;
+        }
+        return determineVisibility(visibilityMap, itemPath.allExceptLast());
+    }
 
     private <T extends ObjectType> void validateObject(PrismObject<T> object, GetOperationOptions options, OperationResult result) {
         try {
