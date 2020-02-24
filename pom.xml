@@ -371,10 +371,6 @@
                 <artifactId>hibernate-core</artifactId>
                 <version>${hibernate.version}</version>
                 <exclusions>
-                    <exclusion> <!-- Version conflict with xalan -->
-                        <groupId>xml-apis</groupId>
-                        <artifactId>xml-apis</artifactId>
-                    </exclusion>
                     <exclusion>
                         <groupId>javax.annotation</groupId>
                         <artifactId>jsr250-api</artifactId>
