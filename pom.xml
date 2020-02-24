@@ -183,6 +183,8 @@
         <jetty.version>9.4.20.v20190813</jetty.version>
         <maven.api.version>3.6.2</maven.api.version>
         <checkstyle.version>3.1.0</checkstyle.version>
+        <xalan.version>2.7.2</xalan.version>
+        <xerces.version>2.12.0</xerces.version>
     </properties>
 
     <dependencyManagement>
@@ -418,20 +420,20 @@
                 <artifactId>je</artifactId>
                 <version>5.0.103</version>
             </dependency>
+            <!--
+            TODO: we should get rid of xalan/xerces if possible.
+            More (from 2015): http://www.odi.ch/weblog/posting.php?posting=689
+            ForgeRock got rid of it: https://bugster.forgerock.org/jira/browse/OPENAM-7320
+            -->
             <dependency>
                 <groupId>xerces</groupId>
                 <artifactId>xercesImpl</artifactId>
-                <version>2.12.0</version>
+                <version>${xerces.version}</version>
             </dependency>
             <dependency>
                 <groupId>xalan</groupId>
                 <artifactId>xalan</artifactId>
-                <version>2.7.2</version>
-            </dependency>
-            <dependency>
-                <groupId>xml-apis</groupId>
-                <artifactId>xml-apis</artifactId>
-                <version>1.4.01</version>
+                <version>${xalan.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.staxmate</groupId>
@@ -1685,6 +1687,9 @@
                                         <!-- replaced by org.slf4j:jcl-over-slf4j -->
                                         <exclude>commons-logging:commons-logging</exclude>
                                         <exclude>org.springframework:spring-jcl</exclude>
+                                        <!-- package with multiple XML APIs, conflicts assured
+                                        (WE CAN'T YET see todo at the xalan/xerces dep declarations above) -->
+                                        <!--<exclude>xml-apis:xml-apis</exclude>-->
                                     </excludes>
                                 </bannedDependencies>
                             </rules>
@@ -1718,7 +1723,7 @@
                                 <ignoredUsedUndeclaredDependency>com.sun.activation:javax.activation</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>javax.activation:activation</ignoredUsedUndeclaredDependency>
 
-                                <!-- There is some kind of conflict between these. TODO: clean up -->
+                                <!-- TODO can go away with JDK 8 support, JDK 9+ covers it, ideally whole Xerces/Xalan should go -->
                                 <ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUsedUndeclaredDependency>
 
@@ -2028,6 +2033,7 @@
                 <module>dist</module>
             </modules>
         </profile>
+
         <profile>
             <id>jdk-11</id>
             <properties>
@@ -2036,7 +2042,41 @@
             <activation>
                 <jdk>11</jdk>
             </activation>
+            <dependencyManagement>
+                <!--
+                In JDK 11 we want to get rid of xml-apis, that are covered by Java 9+.
+                Comes with xerces/xalan, overrides many classes from other APIs (StAX, SAX) or JDK.
+                But it contains DOM classes like org.w3c.dom.ElementTraversal that are available
+                from JDK 9+, so we still need it with JDK 8, among others in schemadist-prism.
+                BTW: 1.4 (from 2009) is NEWER version than 2.0.2 (2002)... what can you say...
+                -->
+                <dependencies>
+                    <dependency>
+                        <groupId>xerces</groupId>
+                        <artifactId>xercesImpl</artifactId>
+                        <version>${xerces.version}</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>xml-apis</groupId>
+                                <artifactId>xml-apis</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                    <dependency>
+                        <groupId>xalan</groupId>
+                        <artifactId>serializer</artifactId>
+                        <version>${xalan.version}</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>xml-apis</groupId>
+                                <artifactId>xml-apis</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
         </profile>
+
         <profile>
             <id>jdk-8</id>
             <properties>
