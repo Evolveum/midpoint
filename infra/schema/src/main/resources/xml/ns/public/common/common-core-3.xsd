@@ -6242,7 +6242,7 @@
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="operationalState" type="tns:OperationalStateType" minOccurs="0"/>
-                    <xsd:element name="operationalStateHistory" type="tns:OperationalStateHistoryType" minOccurs="0">
+                    <xsd:element name="operationalStateHistory" type="tns:OperationalStateType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Holds the information when the change of availabilityStatus was made.
@@ -6369,7 +6369,7 @@
             <xsd:element name="message" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Describes the reason for chanign availability status of the resource.
+                        Describes the reason for changing availability status of the resource.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.1</a:since>
@@ -6395,27 +6395,6 @@
                         <a:since>4.1</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="OperationalStateHistoryType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Structure containing metadata history about operational state of the resource.
-                E.g. if resource is up or down, when it was last checked, etc.
-                It should not contain configuration, just the operational state.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <xsd:appinfo>
-                    <a:since>4.1</a:since>
-                </xsd:appinfo>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="operationalStateHistory" type="tns:OperationalStateType" minOccurs="0" maxOccurs="unbounded">
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
