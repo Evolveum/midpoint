@@ -14,12 +14,12 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemConstraintType;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -45,7 +45,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -61,7 +60,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyDialog
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectTemplateConfigTypeReferenceDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 
@@ -160,13 +158,13 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
         conflictResolutionContainer.setVisible(config.getConflictResolution() != null);
         form.add(conflictResolutionContainer);
 
-        ListView<PropertyConstraintType> repeater = new ListView<PropertyConstraintType>(ID_REPEATER,
+        ListView<ItemConstraintType> repeater = new ListView<ItemConstraintType>(ID_REPEATER,
             new PropertyModel<>(model, ObjectPolicyDialogDto.F_PROPERTY_LIST)) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(final ListItem<PropertyConstraintType> item) {
+            protected void populateItem(final ListItem<ItemConstraintType> item) {
                 WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
                 textWrapper.setOutputMarkupId(true);
                 textWrapper.add(AttributeAppender.prepend("class", new IModel<String>() {
@@ -209,7 +207,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 
 
                 CheckBox oidBound = new CheckBox(ID_OID_BOUND,
-                    new PropertyModel<>(item.getModel(), PropertyConstraintType.F_OID_BOUND.getLocalPart()));
+                    new PropertyModel<>(item.getModel(), ItemConstraintType.F_OID_BOUND.getLocalPart()));
 
                 oidBound.add(AttributeModifier.replace("title",
                         createStringResource("ObjectPolicyDialog.label.oidBound.help")));
@@ -273,7 +271,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
         form.add(save);
     }
 
-    private void initButtons(WebMarkupContainer buttonGroup, final ListItem<PropertyConstraintType> item) {
+    private void initButtons(WebMarkupContainer buttonGroup, final ListItem<ItemConstraintType> item) {
         AjaxLink<Void> add = new AjaxLink<Void>(ID_BUTTON_ADD) {
 
             private static final long serialVersionUID = 1L;
@@ -315,16 +313,16 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
     }
 
     private void addPerformed(AjaxRequestTarget target) {
-        List<PropertyConstraintType> list = model.getObject().getPropertyConstraintsList();
-        list.add(new PropertyConstraintType());
+        List<ItemConstraintType> list = model.getObject().getPropertyConstraintsList();
+        list.add(new ItemConstraintType());
     }
 
-    private void removePerformed(AjaxRequestTarget target, ListItem<PropertyConstraintType> item) {
-        List<PropertyConstraintType> list = model.getObject().getPropertyConstraintsList();
-        Iterator<PropertyConstraintType> iterator = list.iterator();
+    private void removePerformed(AjaxRequestTarget target, ListItem<ItemConstraintType> item) {
+        List<ItemConstraintType> list = model.getObject().getPropertyConstraintsList();
+        Iterator<ItemConstraintType> iterator = list.iterator();
 
         while (iterator.hasNext()) {
-            PropertyConstraintType object = iterator.next();
+            ItemConstraintType object = iterator.next();
 
             if (object.equals(item.getModelObject())) {
                 iterator.remove();
@@ -333,11 +331,11 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
         }
 
         if (list.size() == 0) {
-            list.add(new PropertyConstraintType());
+            list.add(new ItemConstraintType());
         }
     }
 
-    protected boolean isAddButtonVisible(ListItem<PropertyConstraintType> item) {
+    protected boolean isAddButtonVisible(ListItem<ItemConstraintType> item) {
         int size = model.getObject().getPropertyConstraintsList().size();
         if (size <= 1) {
             return true;
@@ -408,21 +406,21 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 
         private static final long serialVersionUID = 1L;
 
-        private PropertyConstraintType propertyConstraintType;
+        private ItemConstraintType itemConstraintType;
 
-        private PropertyConstraintValidator(PropertyConstraintType propertyConstraint) {
-            this.propertyConstraintType = propertyConstraint;
+        private PropertyConstraintValidator(ItemConstraintType propertyConstraint) {
+            this.itemConstraintType = propertyConstraint;
 
         }
 
         @Override
         public void validate(IValidatable<Boolean> validatable) {
 
-            if (propertyConstraintType == null) {
+            if (itemConstraintType == null) {
                 return;
             }
 
-            if (BooleanUtils.isTrue(validatable.getValue()) && (propertyConstraintType == null || propertyConstraintType.getPath() == null)) {
+            if (BooleanUtils.isTrue(validatable.getValue()) && (itemConstraintType == null || itemConstraintType.getPath() == null)) {
                 ValidationError err = new ValidationError();
                 err.addKey("propertyConstraintValidator.error");
                 validatable.error(err);
