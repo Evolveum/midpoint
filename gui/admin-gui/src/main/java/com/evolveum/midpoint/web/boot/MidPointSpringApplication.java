@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.boot;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.impl.factory.TextAreaPanelFactory;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -193,6 +194,9 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
         @Autowired
         private ServerProperties serverProperties;
 
+        @Autowired
+        private TaskManager taskManager;
+
         @Override
         public void customize(ConfigurableServletWebServerFactory serverFactory) {
 
@@ -230,6 +234,9 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
             // See comments in TomcatRootValve
             Valve rootValve = new TomcatRootValve(servletPath);
             tomcatFactory.addEngineValves(rootValve);
+
+            Valve nodeIdHeaderValve = new NodeIdHeaderValve(taskManager);
+            tomcatFactory.addEngineValves(nodeIdHeaderValve);
 
             if (useForwardHeaders) {
                 RemoteIpValve remoteIpValve = new RemoteIpValve();

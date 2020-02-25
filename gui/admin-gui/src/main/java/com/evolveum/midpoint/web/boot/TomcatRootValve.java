@@ -35,7 +35,6 @@ public class TomcatRootValve extends ValveBase {
     private static final Trace LOGGER = TraceManager.getTrace(TomcatRootValve.class);
 
     private String servletPath;
-    private SystemObjectCache systemObjectCache;
 
     public TomcatRootValve(String serlvetPath) {
         super();
