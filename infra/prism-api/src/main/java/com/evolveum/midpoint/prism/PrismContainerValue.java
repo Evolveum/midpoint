@@ -74,9 +74,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     PrismContainer<C> getContainer();
 
-    @NotNull
-    ItemPath getPath();
-
     // For compatibility with other PrismValue types
     C getValue();
 
@@ -163,7 +160,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
         return false;
     }
 
-    Object find(ItemPath path);
 
     <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
@@ -244,8 +240,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     boolean hasCompleteDefinition();
 
-    boolean isRaw();
-
     boolean addRawElement(Object element) throws SchemaException;
 
     boolean deleteRawElement(Object element) throws SchemaException;
@@ -256,18 +250,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     void applyDefinition(@NotNull PrismContainerDefinition<C> containerDef, boolean force) throws SchemaException;
 
-    @Override
-    void revive(PrismContext prismContext) throws SchemaException;
-
-    boolean isEmpty();
-
     boolean isIdOnly();
-
-    @Override
-    void normalize();
-
-    @Override
-    void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope);
 
     void assertDefinitions(String sourceDescription) throws SchemaException;
 
@@ -283,20 +266,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
     PrismContainerValue<C> cloneComplex(CloneStrategy strategy);
 
     boolean equivalent(PrismContainerValue<?> other);
-
-    @Override
-    boolean equals(Object obj);
-
-    @Override
-    int hashCode();
-
-    @Override
-    String toString();
-
-    @Override
-    String debugDump(int indent);
-
-    String toHumanReadableString();
 
     // copies the definition from original to aClone (created outside of this method)
     // it has to (artifically) create a parent PrismContainer to hold the definition
@@ -323,8 +292,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
         }
     }
 
-    QName getTypeName();
-
     @Nullable
     ComplexTypeDefinition getComplexTypeDefinition();
 
@@ -335,13 +302,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
         }
         return rv;
     }
-
-    @Override
-    Class<?> getRealClass();
-
-    @NotNull
-    @Override
-    <T> T getRealValue();
 
     /**
      * Returns a single-valued container (with a single-valued definition) holding just this value.
@@ -380,10 +340,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     // TODO optimize a bit + test thoroughly
     void removePaths(List<? extends ItemPath> remove) throws SchemaException;
-
-    @NotNull
-    @Override
-    Collection<PrismValue> getAllValues(ItemPath path);
 
     void removeItems(List<? extends ItemPath> itemsToRemove);
 

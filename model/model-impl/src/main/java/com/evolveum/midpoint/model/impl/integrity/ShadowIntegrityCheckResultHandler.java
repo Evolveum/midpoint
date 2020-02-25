@@ -419,7 +419,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
 
         for (RefinedAttributeDefinition<?> identifier : identifiers) {
-            PrismProperty property = attributesContainer.getValue().findProperty(identifier.getItemName());
+            PrismProperty<String> property = attributesContainer.getValue().findProperty(identifier.getItemName());
             if (property == null || property.size() == 0) {
                 checkResult.recordWarning(ShadowStatistics.OTHER_FAILURE, "No value for identifier " + identifier.getItemName());
                 continue;

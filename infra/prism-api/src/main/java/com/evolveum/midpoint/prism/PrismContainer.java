@@ -113,16 +113,6 @@ public interface PrismContainer<C extends Containerable>
     void trim();
 
     /**
-     * Returns applicable property container definition.
-     * <p>
-     * May return null if no definition is applicable or the definition is not
-     * know.
-     *
-     * @return applicable property container definition
-     */
-    PrismContainerDefinition<C> getDefinition();
-
-    /**
      * Sets applicable property container definition.
      *
      * @param definition the definition to set
@@ -133,9 +123,6 @@ public interface PrismContainer<C extends Containerable>
     void applyDefinition(PrismContainerDefinition<C> definition) throws SchemaException;
 
     <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findItem(QName itemQName, Class<I> type);
-
-    @Override
-    Object find(ItemPath path);
 
     @Override
     <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
@@ -212,15 +199,6 @@ public interface PrismContainer<C extends Containerable>
     @Override
     ContainerDelta<C> createDelta(ItemPath path);
 
-    boolean isEmpty();
-
-    @Override
-    void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions,
-            boolean prohibitRaw, ConsistencyCheckScope scope);
-
-    @Override
-    void assertDefinitions(boolean tolarateRaw, String sourceDescription) throws SchemaException;
-
     ContainerDelta<C> diff(PrismContainer<C> other);
 
     ContainerDelta<C> diff(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy);
@@ -249,12 +227,6 @@ public interface PrismContainer<C extends Containerable>
      * These methods compare the "meaningful" parts of the objects.
      */
     boolean equivalent(Object obj);
-
-    @Override
-    String toString();
-
-    @Override
-    String debugDump(int indent);
 
     static <V extends Containerable> PrismContainer<V> newInstance(PrismContext prismContext, QName type) throws SchemaException {
         PrismContainerDefinition<V> definition = prismContext.getSchemaRegistry().findContainerDefinitionByType(type);

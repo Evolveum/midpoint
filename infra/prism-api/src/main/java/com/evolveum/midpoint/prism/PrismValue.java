@@ -56,8 +56,6 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 
     void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException;
 
-    void revive(PrismContext prismContext) throws SchemaException;
-
     /**
      * Recompute the value or otherwise "initialize" it before adding it to a prism tree.
      * This may as well do nothing if no recomputing or initialization is needed.
@@ -125,10 +123,6 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
      * E.g. the container with the same ID.
      */
     Collection<? extends ItemDelta> diff(PrismValue otherValue, ParameterizedEquivalenceStrategy strategy);
-
-    boolean isImmutable();
-
-    void freeze();
 
     @Nullable
     Class<?> getRealClass();
