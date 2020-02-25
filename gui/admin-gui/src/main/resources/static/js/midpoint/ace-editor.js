@@ -52,11 +52,11 @@ function initEditor(textAreaId, readonly, resize, height, minHeight, mode) {
     setReadonly(jqEditor, editor, readonly);
     editor.on('blur', function () {
         $(jqTextArea).val(editor.getSession().getValue());
-        $(jqTextArea).trigger('onBlur');
+        $(jqTextArea).trigger('blur');
     });
     editor.on('change', function () {
         $(jqTextArea).val(editor.getSession().getValue());
-        $(jqTextArea).trigger('onChange');
+        $(jqTextArea).trigger('change');
     });
 
     //add editor to global map, so we can find it later

@@ -72,8 +72,6 @@ public class PageNodes extends PageAdmin {
     private static final String OPERATION_START_SCHEDULERS = DOT_CLASS + "startSchedulers";
     private static final String OPERATION_STOP_SCHEDULERS_AND_TASKS = DOT_CLASS + "stopSchedulersAndTasks";
     private static final String OPERATION_STOP_SCHEDULERS = DOT_CLASS + "stopSchedulers";
-    private static final String OPERATION_DEACTIVATE_SERVICE_THREADS = DOT_CLASS + "deactivateServiceThreads";
-    private static final String OPERATION_REACTIVATE_SERVICE_THREADS = DOT_CLASS + "reactivateServiceThreads";
 
     public PageNodes() {
         initLayout();
@@ -108,95 +106,9 @@ public class PageNodes extends PageAdmin {
                 return createNodesInlineMenu();
             }
 
-            @Override
-            protected List<Component> createToolbarButtonsList(String buttonId){
-                List<Component> buttonsList = super.createToolbarButtonsList(buttonId);
-                List<AjaxButton> diagnosticButtons = initDiagnosticButtons(buttonId);
-                buttonsList.addAll(diagnosticButtons);
-                return buttonsList;
-            }
         };
         add(table);
     }
-
-    private List<AjaxButton> initDiagnosticButtons(String buttonId) {
-        List<AjaxButton> diagnosticButtons = new ArrayList<>(2);
-        AjaxButton deactivate = new AjaxButton(buttonId,
-                createStringResource("pageTasks.button.deactivateServiceThreads")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deactivateServiceThreadsPerformed(target);
-            }
-        };
-        deactivate.add(AttributeModifier.append("class", "btn btn-margin-left btn-danger"));
-        diagnosticButtons.add(deactivate);
-
-        AjaxButton reactivate = new AjaxButton(buttonId,
-                createStringResource("pageTasks.button.reactivateServiceThreads")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                reactivateServiceThreadsPerformed(target);
-            }
-        };
-        reactivate.add(AttributeModifier.append("class", "btn btn-margin-left btn-success"));
-        diagnosticButtons.add(reactivate);
-        return diagnosticButtons;
-    }
-
-    // region Diagnostics actions
-    private void deactivateServiceThreadsPerformed(AjaxRequestTarget target) {
-        Task opTask = createSimpleTask(OPERATION_DEACTIVATE_SERVICE_THREADS);
-        OperationResult result = opTask.getResult();
-
-        try {
-            boolean stopped = getTaskService().deactivateServiceThreads(WAIT_FOR_TASK_STOP, opTask, result);
-            result.computeStatus();
-            if (result.isSuccess()) {
-                if (stopped) {
-                    result.recordStatus(OperationResultStatus.SUCCESS,
-                            createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.success").getString());
-                } else {
-                    result.recordWarning(
-                            createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.warning").getString());
-                }
-            }
-        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException
-                | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(
-                    createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.fatalError").getString(), e);
-        }
-        showResult(result);
-
-        // refresh feedback and table
-        getTable().refreshTable(NodeType.class, target);
-        target.add(getTable());
-    }
-
-    private void reactivateServiceThreadsPerformed(AjaxRequestTarget target) {
-        Task opTask = createSimpleTask(OPERATION_REACTIVATE_SERVICE_THREADS);
-        OperationResult result = opTask.getResult();
-
-        try {
-            getTaskService().reactivateServiceThreads(opTask, result);
-            result.computeStatus();
-            if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS,
-                        createStringResource("pageTasks.message.reactivateServiceThreadsPerformed.success").getString());
-            }
-        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException
-                | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(
-                    createStringResource("pageTasks.message.reactivateServiceThreadsPerformed.fatalError").getString(), e);
-        }
-        showResult(result);
-
-        // refresh feedback and table
-        getTable().refreshTable(NodeType.class, target);
-        target.add(getTable());
-    }
-
 
     private List<IColumn<SelectableBean<NodeType>, String>> initNodeColumns() {
         List<IColumn<SelectableBean<NodeType>, String>> columns = new ArrayList<>();

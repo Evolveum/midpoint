@@ -5,6 +5,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.repeater.RepeatingView;
 
+import java.util.Iterator;
+
 public class OperationalButtonsPanel extends BasePanel<Void> {
 
     private static final String ID_BUTTONS = "buttons";
@@ -35,8 +37,9 @@ public class OperationalButtonsPanel extends BasePanel<Void> {
         RepeatingView repeatingView = (RepeatingView) get(ID_BUTTONS);
         boolean buttonsExist = repeatingView != null && repeatingView.iterator().hasNext();
         if (buttonsExist){
-            while (repeatingView.iterator().hasNext()){
-                Component comp = repeatingView.iterator().next();
+            Iterator<Component> buttonsIt = repeatingView.iterator();
+            while (buttonsIt.hasNext()){
+                Component comp = buttonsIt.next();
                 if (comp.isVisible()){
                     return true;
                 }
