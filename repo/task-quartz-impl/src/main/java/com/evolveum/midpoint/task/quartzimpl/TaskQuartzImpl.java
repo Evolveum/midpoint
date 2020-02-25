@@ -26,7 +26,6 @@ import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksByPollingTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -2247,36 +2246,6 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         sub.setChannel(this.getChannel());
         LOGGER.trace("New subtask {} has been created.", sub.getTaskIdentifier());
         return sub;
-    }
-
-    @Deprecated
-    public TaskRunResult waitForSubtasks(Integer interval, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        return waitForSubtasks(interval, null, parentResult);
-    }
-
-    @Deprecated
-    public TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?, ?>> extensionDeltas,
-            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-
-        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "waitForSubtasks");
-        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
-        result.addContext(OperationResult.CONTEXT_OID, getOid());
-
-        TaskRunResult trr = new TaskRunResult();
-        trr.setRunResultStatus(TaskRunResult.TaskRunResultStatus.RESTART_REQUESTED);
-        trr.setOperationResult(null);
-
-        ScheduleType schedule = new ScheduleType();
-        if (interval != null) {
-            schedule.setInterval(interval);
-        } else {
-            schedule.setInterval(30);
-        }
-        pushHandlerUri(WaitForSubtasksByPollingTaskHandler.HANDLER_URI, schedule, null, extensionDeltas);
-        setBinding(TaskBinding.LOOSE);
-        flushPendingModifications(result);
-        return trr;
     }
 
     @Override
