@@ -62,8 +62,14 @@ public class ClusterCacheListener implements CacheListener {
             client.path(ClusterRestService.EVENT_INVALIDATION +
                     ObjectTypes.getRestTypeFromClass(type) + (oid != null ? "/" + oid : ""));
             Response response = client.post(null);
-            LOGGER.info("Cluster-wide cache clearance finished with status {}, {}", response.getStatusInfo().getStatusCode(),
-                    response.getStatusInfo().getReasonPhrase());
+            Response.StatusType statusInfo = response.getStatusInfo();
+            if (statusInfo.getFamily() != Response.Status.Family.SUCCESSFUL) {
+                LOGGER.warn("Cluster-wide cache clearance finished with status {}, {}", statusInfo.getStatusCode(),
+                        statusInfo.getReasonPhrase());
+            } else {
+                LOGGER.debug("Cluster-wide cache clearance finished with status {}, {}", statusInfo.getStatusCode(),
+                        statusInfo.getReasonPhrase());
+            }
             response.close();
         }, null, "cache invalidation", result);
     }
