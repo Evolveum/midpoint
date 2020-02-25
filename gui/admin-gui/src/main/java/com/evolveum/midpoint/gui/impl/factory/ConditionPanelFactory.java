@@ -35,7 +35,7 @@ public class ConditionPanelFactory extends AbstractGuiComponentFactory<Expressio
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ExpressionType> panelCtx) {
-        AceEditorPanel conditionPanel  =  new AceEditorPanel(panelCtx.getComponentId(), null, new ConditionExpressionModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 20);
+        AceEditorPanel conditionPanel  =  new AceEditorPanel(panelCtx.getComponentId(), null, new ConditionExpressionModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 200);
 //        conditionPanel.getEditor().add(new OnChangeAjaxBehavior() {
 //            @Override
 //            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
