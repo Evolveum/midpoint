@@ -191,6 +191,8 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
     private boolean consideringOperationalData;             // O
     private boolean consideringContainerIds;                // I
     private boolean consideringDifferentContainerIds;       // i
+    // FIXME: Metadata, Unused (never set to true)
+    @Deprecated
     private boolean consideringValueOrigin;                 // o
     private boolean consideringReferenceFilters;            // F
     /**
@@ -255,10 +257,12 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         this.compareElementNames = compareElementNames;
     }
 
+    @Deprecated
     public boolean isConsideringValueOrigin() {
         return consideringValueOrigin;
     }
 
+    @Deprecated
     public void setConsideringValueOrigin(boolean consideringValueOrigin) {
         this.consideringValueOrigin = consideringValueOrigin;
     }
