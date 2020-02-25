@@ -22,21 +22,22 @@
     for other possibilities (mostly to make build faster by running only most important int-tests).
     - Test JARs of some modules are created, installed/deployed and used downstream (search for test-jar).
 
-    VARIOUS MVN COMMANDS
+    VARIOUS MVN COMMANDS (with rough times on average notebook)
 
-    Quick run without any tests:
+    Quick run without any tests (~6m):
     mvn clean install -P -dist -DskipTests -Dmaven.javadoc.skip -Dcheckstyle.skip
 
-    "Quick" build with unit tests only and checkstyle:
+    "Quick" build with unit tests only and checkstyle (~30m):
     mvn clean install -P -dist -DskipITs -Dmaven.javadoc.skip
 
-    "Quick" build with smaller integration test set and output to stdout:
+    "Quick" build with smaller integration test set and output to stdout (~?):
     mvn clean install -P -dist -DintegrationTestSuite=fast -Dmaven.javadoc.skip -DredirectTestOutputToFile=false
 
-    Long test run (with 16g on CI server, but this should work too - isn't Xmx even unnecessary?), runs just under 900 tests:
+    Long test run (with 16g on CI server, but this should work too - isn't Xmx even unnecessary?),
+    runs just under 900 tests (~?):
     mvn -P tomcat,extratest clean install -Dsurefire.args="-Xmx8g" -Dfailsafe.args="-Xmx8g -Duser.language=en"
 
-    Comprehensive quick build/dist with normally excluded modules including checkstyle, but no tests/javadoc:
+    Comprehensive quick build/dist with normally excluded modules including checkstyle, but no tests/javadoc (~13m):
     mvn clean install -P dist,extratest,conntest,schrodinger -DskipTests -Dmaven.javadoc.skip
     -->
 

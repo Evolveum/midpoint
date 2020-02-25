@@ -10,10 +10,13 @@
 
     <name>Cleanup</name>
     <description>A system task that repeatedly checks for outdated objects (e.g. closed tasks, old audit records) and removes them.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000506" type="ArchetypeType" />
+    </assignment>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
 
-    <category>System</category>
+    <category>Cleanup</category>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-3</handlerUri>
     <recurrence>recurring</recurrence>
     <binding>loose</binding>

@@ -4,7 +4,7 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<archetype oid="00000000-0000-0000-0000-000000000529"
+<archetype oid="00000000-0000-0000-0000-000000000528"
            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Utility task</name>
@@ -13,7 +13,7 @@
             <label>Utility task</label>
             <pluralLabel>Utility tasks</pluralLabel>
             <icon>
-                <cssClass>fa fa-people-carry</cssClass>
+                <cssClass>fa fa-wrench</cssClass>
                 <color>green</color>
             </icon>
         </display>
