@@ -655,7 +655,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         Collection<ItemDelta> modifications = new ArrayList<>();
         ItemPath path = ItemPath.create(UserType.F_EXTENSION, QNAME_LOOT);
-        PrismProperty loot = user.findProperty(path);
+        PrismProperty<Integer> loot = user.findProperty(path);
         PropertyDelta lootDelta = prismContext.deltaFactory().property().create(path, loot.getDefinition());
         lootDelta.setRealValuesToReplace(456);
         modifications.add(lootDelta);

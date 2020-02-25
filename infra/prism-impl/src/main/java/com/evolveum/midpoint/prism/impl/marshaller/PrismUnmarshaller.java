@@ -496,7 +496,7 @@ public class PrismUnmarshaller {
                     return null;
                 }
             }
-            PrismPropertyValue<T> ppv = new PrismPropertyValueImpl<>(realValue);
+            PrismPropertyValueImpl<T> ppv = new PrismPropertyValueImpl<>(realValue);
             ppv.setPrismContext(prismContext);
             return ppv;
         } else {

@@ -13,6 +13,9 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.google.common.annotations.VisibleForTesting;
+
+@VisibleForTesting
 public class DomAsserts {
 
     public static void assertElementQName(Element element, QName expectedQName) {

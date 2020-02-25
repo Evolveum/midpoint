@@ -365,7 +365,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         try {
             Object[] shadowIdentifiers = identifiers.toArray();
 
-            return ((ResourceAttribute)shadowIdentifiers[0]).getValue().getValue().toString();
+            return ((ResourceAttribute<?>)shadowIdentifiers[0]).getValue().getValue().toString();
         } catch (NullPointerException e){
             return "";
         }
