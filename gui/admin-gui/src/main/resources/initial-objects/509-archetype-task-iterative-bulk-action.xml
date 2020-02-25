@@ -4,64 +4,50 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<archetype oid="00000000-0000-0000-0000-000000000504"
+<archetype oid="00000000-0000-0000-0000-000000000509"
            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-           xmlns:livesync="http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-3">
-    <name>Live synchronization task</name>
+           xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
+    <name>Iterative bulk action task</name>
     <archetypePolicy>
         <display>
-            <label>Live synchronization task</label>
-            <pluralLabel>Live synchronization tasks</pluralLabel>
+            <label>Iterative bulk action task</label>
+            <pluralLabel>Iterative bulk action tasks</pluralLabel>
             <icon>
-                <cssClass>fa fa-cogs</cssClass>
+                <cssClass>fa fa-bullseye</cssClass>
                 <color>green</color>
             </icon>
         </display>
         <adminGuiConfiguration>
             <objectDetails>
-                <type>TaskType</type>
+                <type>c:TaskType</type>
                 <container>
                     <display>
-                        <label>LiveSynchronizationTask.objectsToSynchronize</label>
+                        <label>IterativeBulkActionTask.objectsToProcess</label>
                     </display>
                     <item>
-                        <c:path>objectRef</c:path>
+                        <c:path>extension/mext:objectType</c:path>
                     </item>
                     <item>
-                        <c:path>extension/mext:objectclass</c:path>
+                        <c:path>extension/mext:objectQuery</c:path>
                     </item>
                     <item>
-                        <c:path>extension/mext:kind</c:path>
+                        <c:path>extension/mext:searchOptions</c:path>
                     </item>
                     <item>
-                        <c:path>extension/mext:intent</c:path>
+                        <c:path>extension/mext:useRepositoryDirectly</c:path>
                     </item>
                 </container>
                 <container>
                     <display>
-                        <label>LiveSynchronizationTask.synchronizationOptions</label>
+                        <label>IterativeBulkActionTask.bulkAction</label>
                     </display>
+                    <item>
+                        <c:path>extension/scext:executeScript</c:path>
+                    </item>
                     <item>
                         <c:path>extension/mext:workerThreads</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:dryRun</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:retryLiveSyncErrors</c:path>
-                    </item>
-                    <item>
-                        <c:path>extension/mext:updateLiveSyncTokenInDryRun</c:path>
-                    </item>
-                </container>
-                <container>
-                    <display>
-                        <label>LiveSynchronizationTask.synchronizationState</label>
-                    </display>
-                    <item>
-                        <c:path>extension/livesync:token</c:path>
                     </item>
                 </container>
             </objectDetails>
@@ -77,7 +63,7 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</value>
+                    <value>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</value>
                 </expression>
                 <target>
                     <c:path>handlerUri</c:path>
@@ -90,7 +76,7 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
-                    <value>LiveSynchronization</value>
+                    <value>BulkActions</value>
                 </expression>
                 <target>
                     <c:path>category</c:path>

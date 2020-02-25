@@ -85,7 +85,6 @@
         </xsd:sequence>
     </xsd:complexType>
 
-
     <xsd:element name="freshnessInterval" type="xsd:long">
         <xsd:annotation>
             <xsd:documentation>
