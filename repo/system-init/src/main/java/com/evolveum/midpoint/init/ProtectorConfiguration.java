@@ -20,7 +20,6 @@ public class ProtectorConfiguration {
     private String xmlCipher;
 
     public ProtectorConfiguration(Configuration configuration) {
-        this.setKeyStorePath(configuration.getString("protectorClass"));
         this.setKeyStorePath(configuration.getString("keyStorePath"));
         this.setKeyStorePassword(configuration.getString("keyStorePassword"));
         this.setEncryptionKeyAlias(configuration.getString("encryptionKeyAlias"));

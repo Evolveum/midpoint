@@ -57,8 +57,10 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
@@ -81,7 +83,11 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -134,6 +140,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private TriggerCreatorGlobalState triggerCreatorGlobalState;
     @Autowired private TaskManager taskManager;
+    @Context HttpServletRequest httpServletRequest;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -1561,7 +1568,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             LOGGER.trace("No system configuration defined. Skipping link generation.");
             return null;
         }
-        String publicHttpUrlPattern = SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfiguration);
+        String host = null;
+        HttpConnectionInformation connectionInf = SecurityUtil.getCurrentConnectionInformation();
+        if (connectionInf != null) {
+            host = connectionInf.getServerName();
+        }
+        String publicHttpUrlPattern = SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfiguration, host);
         if (StringUtils.isBlank(publicHttpUrlPattern)) {
             LOGGER.error("No patern defined. It can break link generation.");
         }

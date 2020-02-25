@@ -205,16 +205,18 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
                     } else {
                         rv = createStringResource("TaskSummaryPanel.progressWithTotalUnknown", taskType.getProgress()).getString();
                     }
-                    switch (taskType.getExecutionStatus()) {
-                        case SUSPENDED:
-                            rv += " " + getString("TaskSummaryPanel.progressIfSuspended");
-                            break;
-                        case CLOSED:
-                            rv += " " + getString("TaskSummaryPanel.progressIfClosed");
-                            break;
-                        case WAITING:
-                            rv += " " + getString("TaskSummaryPanel.progressIfWaiting");
-                            break;
+                    if (taskType.getExecutionStatus() != null) {
+                        switch (taskType.getExecutionStatus()) {
+                            case SUSPENDED:
+                                rv += " " + getString("TaskSummaryPanel.progressIfSuspended");
+                                break;
+                            case CLOSED:
+                                rv += " " + getString("TaskSummaryPanel.progressIfClosed");
+                                break;
+                            case WAITING:
+                                rv += " " + getString("TaskSummaryPanel.progressIfWaiting");
+                                break;
+                        }
                     }
                     Long stalledSince = WebComponentUtil.xgc2long(taskType.getStalledSince());
                     if (stalledSince != null) {

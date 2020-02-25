@@ -162,7 +162,7 @@ public class InitialDataImport extends DataImport{
     }
 
     private void cleanup() throws IOException {
-        Path destDir = Paths.get(configuration.getMidpointHome() + "/tmp/initial-objects");
+        Path destDir = Paths.get(configuration.getMidpointHome(), "tmp/initial-objects");
         FileUtils.deleteDirectory(destDir.toFile());
     }
 
@@ -179,8 +179,7 @@ public class InitialDataImport extends DataImport{
         env.put("create", "false");
         try (FileSystem zipfs = FileSystems.newFileSystem(src, env)) {
             Path pathInZipfile = zipfs.getPath("/WEB-INF/classes/initial-objects");
-            //TODO: use some well defined directory, e.g. midPoint home
-            final Path destDir = Paths.get(configuration.getMidpointHome() + "/tmp");
+            final Path destDir = Paths.get(configuration.getMidpointHome(), "tmp");
 
             Files.walkFileTree(pathInZipfile, new SimpleFileVisitor<Path>() {
 
@@ -221,8 +220,7 @@ public class InitialDataImport extends DataImport{
         LOGGER.trace("InitialDataImport normalized code location: {}", normalizedSrc);
         try (FileSystem zipfs = FileSystems.newFileSystem(normalizedSrc, env)) {
             Path pathInZipfile = zipfs.getPath("/initial-objects");
-            //TODO: use some well defined directory, e.g. midPoint home
-            final Path destDir = Paths.get(configuration.getMidpointHome() + "/tmp");
+            final Path destDir = Paths.get(configuration.getMidpointHome(), "tmp");
             Files.walkFileTree(pathInZipfile, new SimpleFileVisitor<Path>() {
 
                 @Override
@@ -249,7 +247,7 @@ public class InitialDataImport extends DataImport{
     }
 
     private File setupInitialObjectsTmpFolder() {
-        File tmpDir = new File(configuration.getMidpointHome()+"/tmp");
+        File tmpDir = new File(configuration.getMidpointHome(), "tmp");
         if (!tmpDir.mkdir()) {
             LOGGER.warn("Failed to create temporary directory for initial objects {}. Maybe it already exists",
                     configuration.getMidpointHome()+"/tmp");

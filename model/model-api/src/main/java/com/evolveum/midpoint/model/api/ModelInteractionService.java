@@ -409,6 +409,13 @@ public interface ModelInteractionService {
     <O extends AssignmentHolderType> AssignmentCandidatesSpecification determineAssignmentTargetSpecification(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException;
 
     /**
+     * This method is used to differentiate which archetypes can be added to object with holderType type.
+     * e.g. when changing archetype within Change archetype functionality should provide only those archetypes which
+     * can be assigned according to holderType.
+     */
+    <O extends AssignmentHolderType> List<ArchetypeType> getFilteredArchetypesByHolderType(PrismObject<O> object, OperationResult result) throws SchemaException;
+
+    /**
      * Returns data structure that contains information about possible assignment holders for a particular target object.
      *
      * This method should be used when editing assignment target (role, org, service) and looking for object that

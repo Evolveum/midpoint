@@ -232,7 +232,7 @@ public class ExpressionUtil {
         }
     }
 
-    private static String serialize(JAXBElement<?> element, PrismContext prismContext) throws SchemaException {
+    public static String serialize(JAXBElement<?> element, PrismContext prismContext) throws SchemaException {
         String xml;
         if (element.getValue() instanceof RawType) {
             RawType raw = (RawType) element.getValue();

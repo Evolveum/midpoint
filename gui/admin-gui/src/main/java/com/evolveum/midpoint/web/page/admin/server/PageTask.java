@@ -145,7 +145,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
 
     protected void initOperationalButtons(RepeatingView repeatingView) {
-
+        super.initOperationalButtons(repeatingView);
         AjaxButton suspend = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.suspend")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
