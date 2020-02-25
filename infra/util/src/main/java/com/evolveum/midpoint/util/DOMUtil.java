@@ -198,13 +198,13 @@ public class DOMUtil {
             return;
         }
 
-        String propertyName = TransformerFactory.class.getName();
+        String propertyName = "javax.xml.transform.TransformerFactory";
         try {
             Class.forName(className);
             System.setProperty(propertyName, className);
         } catch (ClassNotFoundException e) {
             System.out.println("Class '" + className + "' not present, using default transformer factory");
-            System.clearProperty(className);
+            System.clearProperty(propertyName);
         }
     }
 
