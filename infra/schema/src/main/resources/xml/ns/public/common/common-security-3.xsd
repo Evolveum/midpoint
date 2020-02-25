@@ -158,6 +158,7 @@
             <xsd:element name="smsNonce" type="tns:AuthenticationModuleSmsNonceType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="securityQuestionsForm" type="tns:AuthenticationModuleSecurityQuestionsFormType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="httpSecQ" type="tns:AuthenticationModuleHttpSecQType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="ldap" type="tns:AuthenticationModuleLdapType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -189,6 +190,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="focusType" type="xsd:QName" minOccurs="0" default="UserType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of logged object that this authentication module applies to. E.g UserType, RoleType, OrgType, ...
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -330,6 +339,91 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="AuthenticationModuleLdapType">
+        <xsd:annotation>
+            <xsd:documentation>
+                LDAP authentication module supports authentication via LDAP server.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="host" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Host of the LDAP server.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="userDn" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The user distinguished name.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="userPassword" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The password (credentials) to use for getting authenticated contexts.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="dnPattern" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The pattern which will be used to supply a DN for the user.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="search" type="tns:AuthenticationModuleLdapSearchType" minOccurs="0" maxOccurs="1"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleLdapSearchType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Search configuration which uses an Ldap filter to locate the user
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="pattern" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The filter expression used in the user search. This is an LDAP search filter
+                        (as defined in 'RFC 2254') with optional arguments. Example (uid={0})
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="namingAttr" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifying explicit LDAP attribute that is retrieved from user's LDAP
+                        account and contains value that matches midPoint's username.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="subtree" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If true then searches the entire subtree as identified by context, if false (the
+                        default) then only searches the level identified by the context.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="AuthenticationModuleSaml2Type">
         <xsd:annotation>
             <xsd:documentation>
@@ -345,7 +439,6 @@
                 <xsd:sequence>
                     <xsd:element name="network" type="tns:AuthenticationModuleSaml2NetworkType" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="serviceProvider" type="tns:AuthenticationModuleSaml2ServiceProviderType" minOccurs="1" maxOccurs="1"/>
-                    <!-- TODO: other elements -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -392,6 +485,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="aliasForPath" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Alias used for AssertionConsumerServiceURL.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="defaultSigningAlgorithm" type="tns:AuthenticationModuleSaml2SigningAlgorithmType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -406,13 +506,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-<!--            <xsd:element name="signMetadata" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">-->
-<!--                <xsd:annotation>-->
-<!--                    <xsd:documentation>-->
-<!--                        When true generated metadata will be signed using XML Signature using certificate with alias of signing key.-->
-<!--                    </xsd:documentation>-->
-<!--                </xsd:annotation>-->
-<!--            </xsd:element>-->
             <xsd:element name="signRequests" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -996,6 +1089,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="channel" type="tns:AuthenticationSequenceChannelType" minOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1050,6 +1144,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="default" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1061,7 +1156,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="urlSuffix" type="xsd:string" minOccurs="1">
+            <xsd:element name="urlSuffix" type="xsd:string" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         URL suffix that can be used to select this authentication sequence specifically. URL suffix can't contains slash '/'.
@@ -1106,6 +1201,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="order" type="xsd:int" minOccurs="0" default="100">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1306,6 +1402,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="authenticationSequenceName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1665,6 +1762,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <!-- later: display (DisplayType) -->
             <!-- later: default: boolean -->
             <xsd:element name="storageMethod" type="c:CredentialsStorageMethodType" minOccurs="0" maxOccurs="1">

@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.web.page.admin.server.handlers;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.*;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -47,7 +47,7 @@ public class HandlerPanelFactory {
         return new HandlerPanelFactory();        // TODO
     }
 
-    public Panel createPanelForTask(String id, IModel<? extends HandlerDto> handlerDtoModel, PageTaskEdit parentPage) {
+    public Panel createPanelForTask(String id, IModel<? extends HandlerDto> handlerDtoModel, PageBase parentPage) {
         HandlerDto handlerDto = handlerDtoModel.getObject();
         for (Map.Entry<Class<? extends HandlerDto>, Class<? extends Panel>> entry : panelsForHandlers.entrySet()) {
             //System.out.println("Checking " + entry.getKey());
@@ -59,10 +59,10 @@ public class HandlerPanelFactory {
         throw new IllegalStateException("No panel for " + handlerDto.getClass());
     }
 
-    private Panel instantiate(Class<? extends Panel> clazz, String id, IModel<? extends HandlerDto> handlerDtoModel, PageTaskEdit parentPage) {
+    private Panel instantiate(Class<? extends Panel> clazz, String id, IModel<? extends HandlerDto> handlerDtoModel, PageBase parentPage) {
         try {
             try {
-                Constructor<?> constructor = clazz.getConstructor(String.class, IModel.class, PageTaskEdit.class);
+                Constructor<?> constructor = clazz.getConstructor(String.class, IModel.class, PageBase.class);
                 return (Panel) constructor.newInstance(id, handlerDtoModel, parentPage);
             } catch (NoSuchMethodException e) {
                 try {

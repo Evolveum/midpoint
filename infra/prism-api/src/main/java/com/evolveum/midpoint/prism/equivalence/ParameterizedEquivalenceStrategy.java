@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.equivalence;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -62,6 +63,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
      *
      * EXPERIMENTAL
      */
+    @Experimental
     public static final ParameterizedEquivalenceStrategy IGNORE_METADATA_CONSIDER_DIFFERENT_IDS;
 
     /**
@@ -189,6 +191,8 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
     private boolean consideringOperationalData;             // O
     private boolean consideringContainerIds;                // I
     private boolean consideringDifferentContainerIds;       // i
+    // FIXME: Metadata, Unused (never set to true)
+    @Deprecated
     private boolean consideringValueOrigin;                 // o
     private boolean consideringReferenceFilters;            // F
     /**
@@ -253,10 +257,12 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         this.compareElementNames = compareElementNames;
     }
 
+    @Deprecated
     public boolean isConsideringValueOrigin() {
         return consideringValueOrigin;
     }
 
+    @Deprecated
     public void setConsideringValueOrigin(boolean consideringValueOrigin) {
         this.consideringValueOrigin = consideringValueOrigin;
     }

@@ -48,7 +48,7 @@ public class WorkItemHelper {
     public static void fillInWorkItemEvent(WorkItemEventType event, MidPointPrincipal currentUser, WorkItemId workItemId,
             CaseWorkItemType workItem, PrismContext prismContext) {
         if (currentUser != null) {
-            event.setInitiatorRef(ObjectTypeUtil.createObjectRef(currentUser.getUser(), prismContext));
+            event.setInitiatorRef(ObjectTypeUtil.createObjectRef(currentUser.getFocus(), prismContext));
             event.setAttorneyRef(ObjectTypeUtil.createObjectRef(currentUser.getAttorney(), prismContext));
         }
         event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));

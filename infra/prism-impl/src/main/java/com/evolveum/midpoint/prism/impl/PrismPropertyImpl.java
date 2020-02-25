@@ -91,7 +91,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
      * @param definition the definition to set
      */
     public void setDefinition(PrismPropertyDefinition<T> definition) {
-        checkMutability();
+        checkMutable();
         this.definition = definition;
     }
 
@@ -136,36 +136,6 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
     public T getRealValue() {
         PrismPropertyValue<T> value = getValue();
         return value != null ? value.getRealValue() : null;
-    }
-
-    /**
-     * Type override, also for compatibility.
-     */
-    public <X> X getRealValue(Class<X> type) {
-        if (getValue() == null) {
-            return null;
-        }
-        X value = (X) getValue().getValue();
-        if (value == null) {
-            return null;
-        }
-        if (type.isAssignableFrom(value.getClass())) {
-            return (X)value;
-        } else {
-            throw new ClassCastException("Cannot cast value of property "+ getElementName()+" which is of type "+value.getClass()+" to "+type);
-        }
-    }
-
-    /**
-     * Type override, also for compatibility.
-     */
-    public <X> X[] getRealValuesArray(Class<X> type) {
-        X[] valuesArrary = (X[]) Array.newInstance(type, getValues().size());
-        for (int j = 0; j < getValues().size(); ++j) {
-            Object avalue = getValues().get(j).getValue();
-            Array.set(valuesArrary, j, avalue);
-        }
-        return valuesArrary;
     }
 
     /**
@@ -232,7 +202,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
     }
 
     public void addValue(PrismPropertyValue<T> pValueToAdd, boolean checkUniqueness) {
-        checkMutability();
+        checkMutable();
         ((PrismPropertyValueImpl<T>) pValueToAdd).checkValue();
         if (checkUniqueness) {
             Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
@@ -259,14 +229,8 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
         addValue(new PrismPropertyValueImpl<>(valueToAdd), false);
     }
 
-    public void addRealValues(T... valuesToAdd) {
-        for (T valueToAdd : valuesToAdd) {
-            addRealValue(valueToAdd);
-        }
-    }
-
     public boolean deleteValues(Collection<PrismPropertyValue<T>> pValuesToDelete) {
-        checkMutability();
+        checkMutable();
         boolean changed = false;
         for (PrismPropertyValue<T> pValue: pValuesToDelete) {
             if (!changed) {
@@ -279,7 +243,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
     }
 
     public boolean deleteValue(PrismPropertyValue<T> pValueToDelete) {
-        checkMutability();
+        checkMutable();
         Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
         boolean found = false;
         while (iterator.hasNext()) {

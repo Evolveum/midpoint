@@ -30,7 +30,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
@@ -960,6 +962,17 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @Override
     public String addTask(PrismObject<TaskType> taskPrism, RepoAddOptions options, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "addTask");
+        if (taskPrism.asObjectable().getOwnerRef() == null) {
+            try {
+                MidPointPrincipal principal = SecurityUtil.getPrincipal();
+                if (principal != null) {
+                    ObjectReferenceType newOwnerRef = ObjectTypeUtil.createObjectRef(principal.getFocus(), prismContext);
+                    taskPrism.asObjectable().setOwnerRef(newOwnerRef);
+                }
+            } catch (SecurityViolationException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine logged-in user. Task owner was not set.", e);
+            }
+        }
         TaskQuartzImpl task = createTaskInstance(taskPrism, result);            // perhaps redundant, but it's more convenient to work with Task than with Task prism
         if (task.getTaskIdentifier() == null) {
             task.setTaskIdentifier(generateTaskIdentifier().toString());
@@ -1348,7 +1361,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         if (operationStats != null) {
             operationStats.setLiveInformation(true);
         }
-        task.setOperationStatsTransient(operationStats);
+        task.setOperationStatsTransient(operationStats.clone());
         task.setProgressTransient(taskInMemory.getProgress());
 
         OperationResult result = taskInMemory.getResult();

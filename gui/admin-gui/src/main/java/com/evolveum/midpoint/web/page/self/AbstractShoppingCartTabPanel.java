@@ -339,7 +339,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         if (usersList == null || usersList.size() == 0){
             return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
         } else if (usersList.size() == 1){
-            if (usersList.get(0).getOid().equals(getPageBase().getPrincipalUser().getOid())){
+            if (usersList.get(0).getOid().equals(getPageBase().getPrincipalFocus().getOid())){
                 return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
             } else {
                 return usersList.get(0).getName().getOrig();
@@ -472,7 +472,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
     private UserType getTargetUser(){
         String targetUserOid = getRoleCatalogStorage().isSelfRequest() ?
-                getPageBase().getPrincipalUser().getOid()
+                getPageBase().getPrincipalFocus().getOid()
                 : getRoleCatalogStorage().getTargetUserOidsList().get(0);
         if (StringUtils.isEmpty(targetUserOid)){
             return null;

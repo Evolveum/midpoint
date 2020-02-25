@@ -10,13 +10,11 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 
 /**
@@ -33,11 +31,4 @@ public class PrismReferencePanelContext<R extends Referencable> extends ItemPane
         return unwrapWrapperModel().getFilter();
     }
 
-    public List<QName> getTargetTypes() {
-        return unwrapWrapperModel().getTargetTypes();
-    }
-
-    public QName getTargetTypeName() {
-        return unwrapWrapperModel().getTargetTypeName();
-    }
 }

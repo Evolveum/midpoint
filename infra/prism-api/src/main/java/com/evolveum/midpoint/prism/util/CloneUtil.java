@@ -51,92 +51,85 @@ public class CloneUtil {
         if (orig == null) {
             return null;
         }
-        Class<? extends Object> origClass = orig.getClass();
+        Class<?> origClass = orig.getClass();
         if (ClassUtils.isPrimitiveOrWrapper(origClass)) {
             return orig;
-        }
-        if (origClass.isArray()) {
+        } else if (origClass.isArray()) {
             return cloneArray(orig);
-        }
-        if (orig instanceof PolyString) {
-            // PolyString is immutable
+        } else if (orig instanceof PolyString) {
+            //noinspection unchecked
             return (T) clonePolyString((PolyString) orig);
-        }
-        if (orig instanceof String) {
-            // ...and so is String
+        } else if (orig instanceof String) {
+            // String is immutable
             return orig;
-        }
-        if (orig instanceof QName) {
+        } else if (orig instanceof QName) {
             // the same here
             return orig;
-        }
-        if (origClass.isEnum()) {
+        } else if (origClass.isEnum()) {
             return orig;
-        }
-        if (orig instanceof LocalizableMessage) {
+        } else if (orig instanceof LocalizableMessage) {
             return orig;        // all fields are final
-        }
-//        if (orig.getClass().equals(QName.class)) {
-//            QName origQN = (QName) orig;
-//            return (T) new QName(origQN.getNamespaceURI(), origQN.getLocalPart(), origQN.getPrefix());
-//        }
-        if (orig instanceof RawType){
+        } else if (orig instanceof RawType) {
+            //noinspection unchecked
             return (T) ((RawType) orig).clone();
-        }
-        if (orig instanceof Item<?,?>) {
+        } else if (orig instanceof Item<?,?>) {
+            //noinspection unchecked
             return (T) ((Item<?,?>)orig).clone();
-        }
-        if (orig instanceof PrismValue) {
+        } else if (orig instanceof PrismValue) {
+            //noinspection unchecked
             return (T) ((PrismValue)orig).clone();
-        }
-        if (orig instanceof ObjectDelta<?>) {
+        } else if (orig instanceof ObjectDelta<?>) {
+            //noinspection unchecked
             return (T) ((ObjectDelta<?>)orig).clone();
-        }
-        if (orig instanceof ObjectDeltaType) {
+        } else if (orig instanceof ObjectDeltaType) {
+            //noinspection unchecked
             return (T) ((ObjectDeltaType) orig).clone();
-        }
-        if (orig instanceof ItemDelta<?,?>) {
+        } else if (orig instanceof ItemDelta<?,?>) {
+            //noinspection unchecked
             return (T) ((ItemDelta<?,?>)orig).clone();
-        }
-        if (orig instanceof Definition) {
+        } else if (orig instanceof Definition) {
+            //noinspection unchecked
             return (T) ((Definition)orig).clone();
-        }
-        /*
-         * In some environments we cannot clone XMLGregorianCalendar because of this:
-         * Error when cloning class org.apache.xerces.jaxp.datatype.XMLGregorianCalendarImpl, will try serialization instead.
-         * java.lang.IllegalAccessException: Class com.evolveum.midpoint.prism.util.CloneUtil can not access a member of
-         * class org.apache.xerces.jaxp.datatype.XMLGregorianCalendarImpl with modifiers "public"
-         */
-        if (orig instanceof XMLGregorianCalendar) {
+        } else if (orig instanceof XMLGregorianCalendar) {
+            /*
+             * In some environments we cannot clone XMLGregorianCalendar because of this:
+             * Error when cloning class org.apache.xerces.jaxp.datatype.XMLGregorianCalendarImpl, will try serialization instead.
+             * java.lang.IllegalAccessException: Class com.evolveum.midpoint.prism.util.CloneUtil can not access a member of
+             * class org.apache.xerces.jaxp.datatype.XMLGregorianCalendarImpl with modifiers "public"
+             */
+            //noinspection unchecked
             return (T) XmlTypeConverter.createXMLGregorianCalendar((XMLGregorianCalendar) orig);
-        }
-        /*
-         * The following is because of: "Cloning a Serializable (class com.sun.org.apache.xerces.internal.jaxp.datatype.DurationImpl). It could harm performance."
-         */
-        if (orig instanceof Duration) {
+        } else if (orig instanceof Duration) {
+            /*
+             * The following is because of: "Cloning a Serializable (class com.sun.org.apache.xerces.internal.jaxp.datatype.DurationImpl). It could harm performance."
+             */
             //noinspection unchecked
             return (T) XmlTypeConverter.createDuration(((Duration) orig));
-        }
-        if (orig instanceof BigInteger || orig instanceof BigDecimal) {
+        } else if (orig instanceof BigInteger || orig instanceof BigDecimal) {
             // todo could we use "instanceof Number" here instead?
+            //noinspection RedundantCast
             return (T) orig;
         }
+
         if (orig instanceof Cloneable) {
             T clone = javaLangClone(orig);
             if (clone != null) {
                 return clone;
             }
         }
+
         if (orig instanceof PrismList) {
             // The result is different from shallow cloning. But we probably can live with this.
+            //noinspection unchecked
             return (T) CloneUtil.cloneCollectionMembers((Collection) orig);
-        }
-        if (orig instanceof Serializable) {
+        } else if (orig instanceof Serializable) {
             // Brute force
             PERFORMANCE_ADVISOR.info("Cloning a Serializable ({}). It could harm performance.", orig.getClass());
+            //noinspection unchecked
             return (T)SerializationUtils.clone((Serializable)orig);
+        } else {
+            throw new IllegalArgumentException("Cannot clone " + orig + " (" + origClass + ")");
         }
-        throw new IllegalArgumentException("Cannot clone "+orig+" ("+origClass+")");
     }
 
     /**
@@ -154,30 +147,33 @@ public class CloneUtil {
         return clonedCollection;
     }
 
-    private static PolyString clonePolyString(PolyString orig){
-        if (orig == null){
+    private static PolyString clonePolyString(PolyString value) {
+        if (value != null) {
+            return new PolyString(value.getOrig(), value.getNorm(),
+                    value.getTranslation() != null ? value.getTranslation().clone() : null,
+                    value.getLang() != null ? new HashMap<>(value.getLang()) : null);
+        } else {
             return null;
         }
-        return new PolyString(orig.getOrig(), orig.getNorm(), orig.getTranslation() != null ?
-                orig.getTranslation().clone() : null, orig.getLang() != null ? (HashMap)((HashMap)orig.getLang()).clone() : null);
     }
 
+    @SuppressWarnings("SuspiciousSystemArraycopy")
     private static <T> T cloneArray(T orig) {
         int length = Array.getLength(orig);
+        //noinspection unchecked
         T clone = (T) Array.newInstance(orig.getClass().getComponentType(), length);
         System.arraycopy(orig, 0, clone, 0, length);
         return clone;
     }
 
-    public static <T> T javaLangClone(T orig) {
+    private static <T> T javaLangClone(T orig) {
         try {
             Method cloneMethod = orig.getClass().getMethod("clone");
-            Object clone = cloneMethod.invoke(orig);
-            return (T) clone;
+            //noinspection unchecked
+            return (T) cloneMethod.invoke(orig);
         } catch (NoSuchMethodException|IllegalAccessException|InvocationTargetException|RuntimeException e) {
             PERFORMANCE_ADVISOR.info("Error when cloning {}, will try serialization instead.", orig.getClass(), e);
             return null;
         }
     }
-
 }

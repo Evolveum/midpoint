@@ -27,7 +27,7 @@ import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.*;
@@ -54,6 +54,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -93,8 +94,8 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
@@ -206,7 +207,7 @@ public final class WebComponentUtil {
         objectDetailsPageMap.put(RoleType.class, PageRole.class);
         objectDetailsPageMap.put(ServiceType.class, PageService.class);
         objectDetailsPageMap.put(ResourceType.class, PageResource.class);
-        objectDetailsPageMap.put(TaskType.class, PageTaskEdit.class);
+        objectDetailsPageMap.put(TaskType.class, PageTask.class);
         objectDetailsPageMap.put(ReportType.class, PageReport.class);
         objectDetailsPageMap.put(ValuePolicyType.class, PageValuePolicy.class);
         objectDetailsPageMap.put(CaseType.class, PageCase.class);
@@ -217,7 +218,6 @@ public final class WebComponentUtil {
     static{
         createNewObjectPageMap = new HashMap<>();
         createNewObjectPageMap.put(ResourceType.class, PageResourceWizard.class);
-        createNewObjectPageMap.put(TaskType.class, PageTaskAdd.class);
     }
 
     // only pages that support 'advanced search' are currently listed here (TODO: generalize)
@@ -229,6 +229,7 @@ public final class WebComponentUtil {
         objectListPageMap.put(RoleType.class, PageRoles.class);
         objectListPageMap.put(ServiceType.class, PageServices.class);
         objectListPageMap.put(ResourceType.class, PageResources.class);
+        objectListPageMap.put(TaskType.class, PageTasks.class);
     }
 
     private static Map<TableId, String> storageTableIdMap;
@@ -536,7 +537,7 @@ public final class WebComponentUtil {
      */
     @Deprecated
     public static CompiledObjectCollectionView getDefaultGuiObjectListType(PageBase pageBase) {
-        return pageBase.getCompiledUserProfile().getDefaultObjectCollectionView();
+        return pageBase.getCompiledGuiProfile().getDefaultObjectCollectionView();
     }
 
     public enum Channel {
@@ -611,7 +612,7 @@ public final class WebComponentUtil {
 
         ObjectReferenceType ownerRef = new ObjectReferenceType();
         ownerRef.setOid(owner.getOid());
-        ownerRef.setType(owner.getUser().COMPLEX_TYPE);
+        ownerRef.setType(owner.getFocus().COMPLEX_TYPE);
         task.setOwnerRef(ownerRef);
 
         task.setBinding(TaskBindingType.LOOSE);
@@ -653,11 +654,11 @@ public final class WebComponentUtil {
         pageBase.getScriptingService().evaluateIterativeExpressionInBackground(script, task, result);
     }
 
-    public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
+    public static Task createMemberOperationTask(Task operationalTask, QName type, ObjectQuery memberQuery,
             ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase) throws SchemaException {
 
         MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
-        operationalTask.setOwner(owner.getUser().asPrismObject());
+        operationalTask.setOwner(owner.getFocus().asPrismObject());
 
         operationalTask.setBinding(TaskBinding.LOOSE);
         operationalTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
@@ -689,26 +690,28 @@ public final class WebComponentUtil {
         }
 
         try {
-            iterativeExecuteBulkAction(pageBase, script, operationalTask, parentResult);
-            parentResult.recordInProgress();
-            parentResult.setBackgroundTaskOid(operationalTask.getOid());
-            pageBase.showResult(parentResult);
+            pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(),
+                    null, AuthorizationParameters.EMPTY, null, operationalTask, parentResult);
+            operationalTask.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, script);
+            operationalTask.setHandlerUri(ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI);
+            return operationalTask;
         } catch (ObjectNotFoundException | SchemaException
-            | ExpressionEvaluationException | CommunicationException | ConfigurationException
-            | SecurityViolationException e) {
-            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.submit").getString(), e);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
+                | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                | SecurityViolationException e) {
+            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.createTask").getString(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create bulk action task", e);
         }
+        return null;
+    }
 
-//        ModelExecuteOptions options = TaskCategory.EXECUTE_CHANGES.equals(category)
-//                ? ModelExecuteOptions.createReconcile()        // This was originally in ExecuteChangesTaskHandler, now it's transferred through task extension.
-//                : null;
-//        TaskType task = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation()+2, type,
-//                memberQuery, null, null, TaskCategory.BULK_ACTIONS, pageBase);
-//        PrismObject<TaskType> prismTask = task.asPrismObject();
-//        prismTask.findOrCreateProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SE_EXECUTE_SCRIPT)).setRealValue(script);
-//
-//        WebModelServiceUtils.runTask(task, operationalTask, parentResult, pageBase);
+    public static void executeMemberOperation(Task operationalTask, OperationResult parentResult, PageBase pageBase) {
+
+        OperationResult result = parentResult.createSubresult("evaluateExpressionInBackground");
+        pageBase.getTaskManager().switchToBackground(operationalTask, result);
+        result.computeStatus();
+        parentResult.recordInProgress();
+        parentResult.setBackgroundTaskOid(operationalTask.getOid());
+        pageBase.showResult(parentResult);
     }
 
     public static boolean isAuthorized(String... action) {
@@ -1693,7 +1696,7 @@ public final class WebComponentUtil {
     }
 
     public static String getShortDateTimeFormat(PageBase pageBase){
-        AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledUserProfile().getDisplayFormats();
+        AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledGuiProfile().getDisplayFormats();
         if (displayFormats == null || StringUtils.isEmpty(displayFormats.getShortDateTimeFormat())){
             return DateLabelComponent.SHORT_MEDIUM_STYLE;
         } else {
@@ -1702,7 +1705,7 @@ public final class WebComponentUtil {
     }
 
     public static String getLongDateTimeFormat(PageBase pageBase){
-        AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledUserProfile().getDisplayFormats();
+        AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledGuiProfile().getDisplayFormats();
         if (displayFormats == null || StringUtils.isEmpty(displayFormats.getLongDateTimeFormat())){
             return DateLabelComponent.LONG_MEDIUM_STYLE;
         } else {
@@ -2299,9 +2302,6 @@ public final class WebComponentUtil {
             if (ResourceType.class.equals(obj.getCompileTimeClass())) {
                 constructor = newObjectPageClass.getConstructor(PageParameters.class);
                 page = (PageBase) constructor.newInstance(new PageParameters());
-            } else if (TaskType.class.equals(obj.getCompileTimeClass())){
-                constructor = newObjectPageClass.getConstructor();
-                page = (PageBase) constructor.newInstance();
             } else {
                 constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
                 page = (PageBase) constructor.newInstance(obj, isNewObject);
@@ -2364,7 +2364,7 @@ public final class WebComponentUtil {
     }
 
     public static Class<? extends PageBase> getNewlyCreatedObjectPage(Class<? extends ObjectType> type) {
-        if (ResourceType.class.equals(type) || TaskType.class.equals(type)) {
+        if (ResourceType.class.equals(type)) {
             return createNewObjectPageMap.get(type);
         } else {
             return objectDetailsPageMap.get(type);
@@ -2884,7 +2884,7 @@ public final class WebComponentUtil {
                 if (row.getLabel() != null) {
                     polystring = setTranslateToPolystring(row);
                 }
-                values.add(localizationService.translate(polystring));
+                values.add(localizationService.translate(polystring, getCurrentLocale(), true));
             }
         } else {
             for (LookupTableRowType row : rows) {
@@ -2892,7 +2892,7 @@ public final class WebComponentUtil {
                     continue;
                 }
                 PolyString polystring = setTranslateToPolystring(row);
-                String rowLabel = localizationService.translate(polystring);
+                String rowLabel = localizationService.translate(polystring, getCurrentLocale(), true);
                 if (rowLabel != null && rowLabel.toLowerCase().contains(input.toLowerCase())) {
                     values.add(rowLabel);
                 }
@@ -2903,6 +2903,10 @@ public final class WebComponentUtil {
 
     private static PolyString setTranslateToPolystring(LookupTableRowType row){
         PolyString polystring = row.getLabel().toPolyString();
+        return setTranslateToPolystring(polystring);
+    }
+
+    private static PolyString setTranslateToPolystring(PolyString polystring){
         if (org.apache.commons.lang3.StringUtils.isNotBlank(polystring.getOrig())) {
             if (polystring.getTranslation() == null) {
                 PolyStringTranslationType translation = new PolyStringTranslationType();
@@ -3777,7 +3781,7 @@ public final class WebComponentUtil {
     public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase){
         Task task = pageBase.createSimpleTask(pageBase.getClass().getName() + "." + "saveSyncTask");
 
-        PrismProperty property = oldTask.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
+        PrismProperty<?> property = oldTask.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
 
         if(property == null){
             return;
@@ -3805,7 +3809,7 @@ public final class WebComponentUtil {
     // TODO: use LocalizationService.translate(polyString) instead
     @Deprecated
     public static String getLocalizedOrOriginPolyStringValue(PolyString polyString){
-        String value = getLocalizedPolyStringValue(polyString);
+        String value = getLocalizedPolyStringValue(setTranslateToPolystring(polyString));
         if(value == null) {
             return getOrigStringFromPoly(polyString);
         }
@@ -4184,7 +4188,7 @@ public final class WebComponentUtil {
     }
 
     public static boolean isRefreshEnabled(PageBase pageBase, QName type) {
-        CompiledUserProfile cup = pageBase.getCompiledUserProfile();
+        CompiledGuiProfile cup = pageBase.getCompiledGuiProfile();
         if (cup == null) {
             return false;
         }
@@ -4204,4 +4208,38 @@ public final class WebComponentUtil {
         }
         return false;
     }
+
+    public static Long xgc2long(XMLGregorianCalendar gc) {
+        return gc != null ? XmlTypeConverter.toMillis(gc) : null;
+    }
+
+    public static String getSimpleChannel(String chanelUri) {
+        if (chanelUri == null) {
+            return null;
+        }
+        int i = chanelUri.indexOf('#');
+        if (i < 0) {
+            return chanelUri;
+        }
+        return chanelUri.substring(i + 1);
+    }
+
+    public static List<String> getIntensForKind(PrismObject<ResourceType> resource, ShadowKindType kind, PageBase parentPage) {
+
+        RefinedResourceSchema refinedSchema = null;
+        try {
+            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
+                    parentPage.getPrismContext());
+
+        } catch (SchemaException e) {
+            return Collections.emptyList();
+        }
+
+        if (kind == null) {
+            return Collections.emptyList();
+        }
+
+        return RefinedResourceSchemaImpl.getIntentsForKind(refinedSchema, kind);
+    }
+
 }

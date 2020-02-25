@@ -9,7 +9,8 @@
 <suite name="unit" parallel="false">
      <test name="security" preserve-order="false" enabled="true">
         <classes>
-            <!--<class name="com.evolveum.midpoint.audit.impl.TestAuditServiceImpl"/>-->
+            <!-- Just a template, not used... -->
+            <!--<class name="com.evolveum.midpoint.security.impl.TestEmpty"/>-->
         </classes>
     </test>
 </suite>

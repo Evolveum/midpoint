@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.io.Serializable;
@@ -20,6 +21,7 @@ import java.util.Collection;
  *
  * @author mederly
  */
+@Experimental
 public class RepositoryQueryDiagRequest implements Serializable {
 
     private Class<? extends ObjectType> type;

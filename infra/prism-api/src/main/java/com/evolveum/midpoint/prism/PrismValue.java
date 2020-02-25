@@ -8,10 +8,13 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.metadata.MidpointOriginMetadata;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.google.common.annotations.VisibleForTesting;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,17 +27,10 @@ import java.util.Map;
  * @author semancik
  *
  */
-public interface PrismValue extends Visitable, PathVisitable, Serializable, DebugDumpable, Revivable, Freezable {      // todo ShortDumpable?
+public interface PrismValue extends Visitable, PathVisitable, Serializable, DebugDumpable, Revivable, Freezable, PrismContextSensitive, MidpointOriginMetadata {      // todo ShortDumpable?
 
+    @VisibleForTesting
     void setPrismContext(PrismContext prismContext);
-
-    void setOriginObject(Objectable source);
-
-    void setOriginType(OriginType type);
-
-    OriginType getOriginType();
-
-    Objectable getOriginObject();
 
     Map<String, Object> getUserData();
 
@@ -56,13 +52,9 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
      */
     void clearParent();
 
-    PrismContext getPrismContext();
-
     void applyDefinition(ItemDefinition definition) throws SchemaException;
 
     void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException;
-
-    void revive(PrismContext prismContext) throws SchemaException;
 
     /**
      * Recompute the value or otherwise "initialize" it before adding it to a prism tree.
@@ -116,6 +108,8 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 
     boolean equals(PrismValue otherValue, @NotNull ParameterizedEquivalenceStrategy strategy);
 
+    // TODO: No caller found
+    @Deprecated
     boolean equals(PrismValue thisValue, PrismValue otherValue);
 
     /**
@@ -129,10 +123,6 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
      * E.g. the container with the same ID.
      */
     Collection<? extends ItemDelta> diff(PrismValue otherValue, ParameterizedEquivalenceStrategy strategy);
-
-    boolean isImmutable();
-
-    void freeze();
 
     @Nullable
     Class<?> getRealClass();

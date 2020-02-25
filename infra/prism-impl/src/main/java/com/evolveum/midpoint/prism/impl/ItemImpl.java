@@ -7,29 +7,56 @@
 
 package com.evolveum.midpoint.prism.impl;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.AbstractFreezable;
+import com.evolveum.midpoint.prism.CloneStrategy;
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Itemable;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.Checks;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.lang.reflect.Constructor;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Item is a common abstraction of Property and PropertyContainer.
@@ -41,7 +68,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  *
  * @author Radovan Semancik
  */
-public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> implements Item<V, D> {
+public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> extends AbstractFreezable implements Item<V, D> {
 
     private static final long serialVersionUID = 510000191615288733L;
 
@@ -123,18 +150,13 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     @Override
-    public boolean hasCompleteDefinition() {
-        return getDefinition() != null;
-    }
-
-    @Override
     public ItemName getElementName() {
         return elementName;
     }
 
     @Override
     public void setElementName(QName elementName) {
-        checkMutability();
+        checkMutable();
         this.elementName = ItemName.fromQName(elementName);
     }
 
@@ -145,19 +167,9 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
      */
     @Override
     public void setDefinition(D definition) {
-        checkMutability();
+        checkMutable();
         checkDefinition(definition);
         this.definition = definition;
-    }
-
-    @Override
-    public String getDisplayName() {
-        return getDefinition() == null ? null : getDefinition().getDisplayName();
-    }
-
-    @Override
-    public String getHelp() {
-        return getDefinition() == null ? null : getDefinition().getHelp();
     }
 
     public boolean isIncomplete() {
@@ -215,6 +227,38 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     public Object getRealValue() {
         V value = getValue();
         return value != null ? value.getRealValue() : null;
+    }
+
+    /**
+     * Type override, also for compatibility.
+     */
+    public <X> X getRealValue(Class<X> type) {
+        if (getValue() == null) {
+            return null;
+        }
+        Object value = getValue().getRealValue();
+        if (value == null) {
+            return null;
+        }
+        if (type.isAssignableFrom(value.getClass())) {
+            //noinspection unchecked
+            return (X)value;
+        } else {
+            throw new ClassCastException("Cannot cast value of item "+ getElementName()+" which is of type "+value.getClass()+" to "+type);
+        }
+    }
+
+    /**
+     * Type override, also for compatibility.
+     */
+    public <X> X[] getRealValuesArray(Class<X> type) {
+        //noinspection unchecked
+        X[] valuesArray = (X[]) Array.newInstance(type, getValues().size());
+        for (int j = 0; j < getValues().size(); ++j) {
+            Object value = getValues().get(j).getRealValue();
+            Array.set(valuesArray, j, value);
+        }
+        return valuesArray;
     }
 
     @NotNull
@@ -286,18 +330,13 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     public void setUserData(String key, Object value) {
-        checkMutability();
+        checkMutable();
         getUserData().put(key, value);
     }
 
     @NotNull
     public List<V> getValues() {
         return values;
-    }
-
-    @Override
-    public V getAnyValue() {
-        return !values.isEmpty() ? values.get(0) : null;
     }
 
     @Override
@@ -393,7 +432,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     public boolean addAll(Collection<V> newValues) throws SchemaException {
-        checkMutability();
+        checkMutable();
         boolean changed = false;
         for (V val: newValues) {
             if (add(val)) {
@@ -408,7 +447,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     public boolean addAll(Collection<V> newValues, boolean checkUniqueness, EquivalenceStrategy strategy) throws SchemaException {
-        checkMutability();
+        checkMutable();
         boolean changed = false;
         for (V val: newValues) {
             if (add(val, checkUniqueness, strategy)) {
@@ -416,10 +455,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
             }
         }
         return changed;
-    }
-
-    public boolean add(@NotNull V newValue) throws SchemaException {
-        return add(newValue, true, getEqualsHashCodeStrategy());
     }
 
     @Override
@@ -433,7 +468,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
     // equivalenceStrategy must not be null if checkUniqueness is true
     public boolean add(@NotNull V newValue, boolean checkUniqueness, EquivalenceStrategy equivalenceStrategy) throws SchemaException {
-        checkMutability();
+        checkMutable();
         if (newValue.getPrismContext() == null) {
             newValue.setPrismContext(prismContext);
         }
@@ -454,7 +489,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     public boolean removeAll(Collection<V> newValues) {
-        checkMutability();
+        checkMutable();
         boolean changed = false;
         for (V val: newValues) {
             if (remove(val)) {
@@ -465,7 +500,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     public boolean remove(V newValue) {
-        checkMutability();
+        checkMutable();
         boolean changed = false;
         Iterator<V> iterator = values.iterator();
         while (iterator.hasNext()) {
@@ -482,7 +517,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
     @Override
     public boolean remove(V value, @NotNull EquivalenceStrategy strategy) {
-        checkMutability();
+        checkMutable();
         boolean changed = false;
         Iterator<V> iterator = values.iterator();
         while (iterator.hasNext()) {
@@ -497,7 +532,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     public V remove(int index) {
-        checkMutability();
+        checkMutable();
         V removed = values.remove(index);
         removed.setParent(null);
         return removed;
@@ -505,21 +540,21 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
     @Override
     public void replaceAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException {
-        checkMutability();
+        checkMutable();
         clear();
         addAll(newValues, strategy);
     }
 
     @Override
     public void replace(V newValue) throws SchemaException {
-        checkMutability();
+        checkMutable();
         clear();
         add(newValue);
     }
 
     @Override
     public void clear() {
-        checkMutability();
+        checkMutable();
         for (V value : values) {
             value.setParent(null);
         }
@@ -528,7 +563,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
     @Override
     public void normalize() {
-        checkMutability();
+        checkMutable();
         for (V value : values) {
             value.normalize();
         }
@@ -669,7 +704,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     public void applyDefinition(D definition, boolean force) throws SchemaException {
-        checkMutability();                    // TODO consider if there is real change
+        checkMutable();                    // TODO consider if there is real change
         if (definition != null) {
             checkDefinition(definition);
         }
@@ -775,9 +810,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
         if (tolarateRawValues && isRaw()) {
             return;
         }
-        if (definition == null) {
-            throw new SchemaException("No definition in "+this+" in "+sourceDescription);
-        }
+        Checks.checkSchemaNotNull(definition, "No definition in {} in {}", this, sourceDescription);
     }
 
     /**
@@ -802,14 +835,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
             }
         }
         return false;
-    }
-
-    public boolean isEmpty() {
-        return hasNoValues();
-    }
-
-    public boolean hasNoValues() {
-        return getValues().isEmpty();
     }
 
     @Override
@@ -872,10 +897,12 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
             return false;
         }
         ItemImpl<?,?> second = (ItemImpl<?,?>) obj;
+        @SuppressWarnings("unchecked")
+        Collection<V> secondValues = (Collection<V>) second.values;
         return (!parameterizedEquivalenceStrategy.isConsideringDefinitions() || Objects.equals(definition, second.definition)) &&
                 (!parameterizedEquivalenceStrategy.isConsideringElementNames() || Objects.equals(elementName, second.elementName)) &&
                 incomplete == second.incomplete &&
-                MiscUtil.unorderedCollectionEquals(values, second.values, parameterizedEquivalenceStrategy::equals);
+                MiscUtil.unorderedCollectionEquals(values, secondValues, parameterizedEquivalenceStrategy::equals);
         // Do not compare parents at all. They are not relevant.
     }
 
@@ -889,19 +916,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     @Override
     public boolean equals(Object obj) {
         return equals(obj, getEqualsHashCodeStrategy());
-    }
-
-    /**
-     * Returns true if this item is operational one that should be ignored
-     * for operational data-insensitive comparisons and hashCode functions.
-     */
-    public boolean isOperational() {
-        D def = getDefinition();
-        if (def != null) {
-            return def.isOperational();
-        } else {
-            return false;
-        }
     }
 
     @Override
@@ -932,26 +946,9 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
         }
     }
 
-    public boolean isImmutable() {
-        return immutable;
-    }
-
-    public void freeze() {
+    public void performFreeze() {
         for (V value : getValues()) {
             value.freeze();
-        }
-        this.immutable = true;
-    }
-
-    protected void checkMutability() {
-        if (immutable) {
-            throw new IllegalStateException("An attempt to modify an immutable item: " + toString());
-        }
-    }
-
-    public void checkImmutability() {
-        if (!immutable) {
-            throw new IllegalStateException("Item is not immutable even if it should be: " + this);
         }
     }
 

@@ -640,7 +640,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         if (user == null) {
             throw new RestartResponseException(PageLogin.class);
         }
-        return WebModelServiceUtils.createSimpleTask(operation, user.getUser().asPrismObject(), getTaskManager());
+        return WebModelServiceUtils.createSimpleTask(operation, user.getFocus().asPrismObject(), getTaskManager());
     }
 
     public AsyncWebProcessManager getAsyncWebProcessManager() {

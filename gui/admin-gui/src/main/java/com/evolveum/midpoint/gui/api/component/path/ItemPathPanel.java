@@ -13,9 +13,12 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -43,6 +46,9 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
     private static final String ID_ITEM_PATH = "itemPath";
     private static final String ID_NAMESPACE = "namespace";
     private static final String ID_DEFINITION = "definition";
+    private static final String ID_SWITCH_TO_TEXT_FIELD_BUTTON = "switchToTextFieldButton";
+    private static final String ID_ITEM_PATH_TEXT_FIELD = "itemPathTextField";
+    private static final String ID_NAMESPACE_MODE_CONTAINER = "namespaceModeConteiner";
 
     private static final String ID_ITEM_PATH_CONTAINER = "itemPathContainer";
     private static final String ID_ITEM_PATH_LABEL = "itemPathLabel";
@@ -51,8 +57,22 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
     private static final String ID_PLUS = "plus";
     private static final String ID_MINUS = "minus";
 
+    private boolean switchToTextFieldEnabled = false;
+
+    public enum ItemPathPanelMode{
+        NAMESPACE_MODE,
+        TEXT_MODE;
+    }
+    private ItemPathPanelMode panelMode = ItemPathPanelMode.NAMESPACE_MODE;
+
     public ItemPathPanel(String id, IModel<ItemPathDto> model) {
+        this(id, model, false, ItemPathPanelMode.NAMESPACE_MODE);
+    }
+
+    public ItemPathPanel(String id, IModel<ItemPathDto> model, boolean switchToTextFieldEnabled, ItemPathPanelMode defaultMode) {
         super(id, model);
+        this.switchToTextFieldEnabled = switchToTextFieldEnabled;
+        this.panelMode = defaultMode;
     }
 
     @Override
@@ -104,6 +124,11 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
         });
 
+        WebMarkupContainer namespaceModeContainer = new WebMarkupContainer(ID_NAMESPACE_MODE_CONTAINER);
+        namespaceModeContainer.setOutputMarkupId(true);
+        namespaceModeContainer.add(new VisibleBehaviour(() -> ItemPathPanelMode.NAMESPACE_MODE.equals(panelMode)));
+        itemPathPanel.add(namespaceModeContainer);
+
         ItemPathSegmentPanel itemDefPanel = new ItemPathSegmentPanel(ID_DEFINITION, getModel()) {
 
             private static final long serialVersionUID = 1L;
@@ -120,7 +145,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
         };
         itemDefPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         itemDefPanel.setOutputMarkupId(true);
-        itemPathPanel.add(itemDefPanel);
+        namespaceModeContainer.add(itemDefPanel);
 
         AjaxButton plusButton = new AjaxButton(ID_PLUS) {
             private static final long serialVersionUID = 1L;
@@ -143,7 +168,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
             }
         });
         plusButton.setOutputMarkupId(true);
-        itemPathPanel.add(plusButton);
+        namespaceModeContainer.add(plusButton);
 
         AjaxButton minusButton = new AjaxButton(ID_MINUS) {
             private static final long serialVersionUID = 1L;
@@ -164,7 +189,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
             }
         });
         minusButton.setOutputMarkupId(true);
-        itemPathPanel.add(minusButton);
+        namespaceModeContainer.add(minusButton);
 
         DropDownChoicePanel<QName> namespacePanel = new DropDownChoicePanel<>(ID_NAMESPACE,
             new PropertyModel<>(getModel(), "objectType"),
@@ -190,7 +215,34 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
             }
         });
         namespacePanel.setOutputMarkupId(true);
-        itemPathPanel.add(namespacePanel);
+        namespaceModeContainer.add(namespacePanel);
+
+        TextPanel<String> itemPathTextField = new TextPanel<String>(ID_ITEM_PATH_TEXT_FIELD, new PropertyModel<>(getModel(), "pathStringValue"));
+        itemPathTextField.add(new VisibleBehaviour(() -> switchToTextFieldEnabled && ItemPathPanelMode.TEXT_MODE.equals(panelMode)));
+        itemPathTextField.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        itemPathPanel.add(itemPathTextField);
+
+        AjaxButton switchButton = new AjaxButton(ID_SWITCH_TO_TEXT_FIELD_BUTTON) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                switchButtonClickPerformed(target);
+            }
+
+        };
+        switchButton.setOutputMarkupId(true);
+        switchButton.add(AttributeAppender.append("title", new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return ItemPathPanelMode.NAMESPACE_MODE.equals(panelMode) ?
+                        getPageBase().createStringResource("ItemPathPanel.switchToTextModeTitle").getString()
+                        : getPageBase().createStringResource("ItemPathPanel.switchToNamespaceModeTitle").getString();
+            }
+        }));
+        switchButton.add(new VisibleBehaviour(() -> switchToTextFieldEnabled));
+        itemPathPanel.add(switchButton);
+
     }
 
     private void initItemPathLabel() {
@@ -231,7 +283,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
     }
 
     private void refreshItemPathPanel(ItemPathDto itemPathDto, boolean isAdd, AjaxRequestTarget target) {
-        ItemPathSegmentPanel pathSegmentPanel = (ItemPathSegmentPanel) get(createComponentPath(ID_ITEM_PATH, ID_DEFINITION));
+        ItemPathSegmentPanel pathSegmentPanel = getItemPathSegmentPanel();
         if (isAdd && !pathSegmentPanel.validate()) {
             return;
         }
@@ -240,7 +292,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
             ItemPathDto newItem = itemPathDto;
             ItemPathDto currentItem = itemPathDto.getParentPath();
             ItemPathDto parentPath = currentItem.getParentPath();
-            ItemPathDto resultingItem = null;
+            ItemPathDto resultingItem;
             if (parentPath == null) {
                 parentPath = new ItemPathDto();
                 parentPath.setObjectType(currentItem.getObjectType());
@@ -251,13 +303,11 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
             newItem.setParentPath(resultingItem);
             itemPathDto = resultingItem;
         }
-        // pathSegmentPanel.refreshModel(itemPathDto);
 
         this.getModel().setObject(itemPathDto);
 
         target.add(this);
         onUpdate(itemPathDto);
-        // target.add(pathSegmentPanel);
 
     }
 
@@ -297,7 +347,23 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
     }
 
     protected ItemPathSegmentPanel getItemPathSegmentPanel(){
-        return (ItemPathSegmentPanel) get(ID_ITEM_PATH).get(ID_DEFINITION);
+        return (ItemPathSegmentPanel) get(ID_ITEM_PATH).get(ID_NAMESPACE_MODE_CONTAINER).get(ID_DEFINITION);
     }
 
+    protected void switchButtonClickPerformed(AjaxRequestTarget target){
+        if (ItemPathPanelMode.TEXT_MODE.equals(panelMode)){
+            panelMode = ItemPathPanelMode.NAMESPACE_MODE;
+        } else {
+            panelMode = ItemPathPanelMode.TEXT_MODE;
+        }
+        target.add(ItemPathPanel.this);
+    }
+
+    public boolean isTextMode(){
+        return ItemPathPanelMode.TEXT_MODE.equals(panelMode);
+    }
+
+    protected ItemPathPanelMode getPanelMode(){
+        return panelMode;
+    }
 }

@@ -31,7 +31,7 @@ public class EnumPropertyColumn<T> extends PropertyColumn<T, String> {
 
             @Override
             protected String load() {
-                Enum en = (Enum) EnumPropertyColumn.super.getDataModel(rowModel).getObject();
+                Enum<?> en = (Enum<?>) EnumPropertyColumn.super.getDataModel(rowModel).getObject();
                 if (en == null) {
                     return null;
                 }
@@ -41,7 +41,7 @@ public class EnumPropertyColumn<T> extends PropertyColumn<T, String> {
         };
     }
 
-    protected String translate(Enum en) {
+    protected String translate(Enum<?> en) {
         return en.name();
     }
 }

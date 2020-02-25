@@ -15,8 +15,11 @@ import java.util.Set;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ChooseArchetypeMemberPopup;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
@@ -44,13 +47,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel.QueryScope;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
@@ -126,27 +122,31 @@ public class MemberOperationsHelper {
         script.setScriptingExpression(new JAXBElement<ActionExpressionType>(SchemaConstants.S_ACTION,
                 ActionExpressionType.class, expression));
 
-//        try {
-//            script.setQuery(pageBase.getQueryConverter().createQueryType(query));
-//        } catch (SchemaException e) {
-//            LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
-//            operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
-//        }
-
         executeMemberOperation(pageBase, operationalTask, type, query, script, null, target);
     }
 
     public static <R extends AbstractRoleType> void deleteMembersPerformed(PageBase pageBase, QueryScope scope,
             ObjectQuery query, QName type, AjaxRequestTarget target) {
-        recomputeOrDeleteMembersPerformed(pageBase, scope, query, target, "delete", DELETE_OPERATION);
+        Task task = createRecomputeOrDeleteMembersTask(pageBase, scope, query, target, "delete", DELETE_OPERATION);
+        if (task != null) {
+            executeMemberOperation(pageBase, task, target);
+        }
     }
 
     public static <R extends AbstractRoleType> void recomputeMembersPerformed(PageBase pageBase, QueryScope scope,
             ObjectQuery query, AjaxRequestTarget target) {
-        recomputeOrDeleteMembersPerformed(pageBase, scope, query, target, "recompute", RECOMPUTE_OPERATION);
+        Task task = createRecomputeMembersTask(pageBase, scope, query, target);
+        if (task != null) {
+            executeMemberOperation(pageBase, task, target);
+        }
     }
 
-    private static <R extends AbstractRoleType> void recomputeOrDeleteMembersPerformed(PageBase pageBase, QueryScope scope,
+    public static <R extends AbstractRoleType> Task createRecomputeMembersTask(PageBase pageBase, QueryScope scope,
+            ObjectQuery query, AjaxRequestTarget target) {
+        return createRecomputeOrDeleteMembersTask(pageBase, scope, query, target, "recompute", RECOMPUTE_OPERATION);
+    }
+
+    private static <R extends AbstractRoleType> Task createRecomputeOrDeleteMembersTask(PageBase pageBase, QueryScope scope,
             ObjectQuery query, AjaxRequestTarget target, String operation, String displayNameOfOperation) {
         QName defaultType = AssignmentHolderType.COMPLEX_TYPE;
         Task operationalTask = pageBase.createSimpleTask(getTaskName(displayNameOfOperation, scope));
@@ -158,14 +158,7 @@ public class MemberOperationsHelper {
         script.setScriptingExpression(new JAXBElement<ActionExpressionType>(SchemaConstants.S_ACTION,
                 ActionExpressionType.class, expression));
 
-//        try {
-//            script.setQuery(pageBase.getQueryConverter().createQueryType(query));
-//        } catch (SchemaException e) {
-//            LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
-//            operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
-//        }
-
-        executeMemberOperation(pageBase, operationalTask, defaultType, query, script, SelectorOptions.createCollection(GetOperationOptions.createDistinct()), target);
+        return createMemberOperationTask(pageBase, operationalTask, defaultType, query, script, SelectorOptions.createCollection(GetOperationOptions.createDistinct()), target);
 
     }
 
@@ -218,6 +211,32 @@ public class MemberOperationsHelper {
 
             @Override
             protected OrgType getAssignmentTargetRefObject(){
+                return targetRefObject;
+            }
+
+            @Override
+            protected List<QName> getAvailableObjectTypes(){
+                return objectTypes;
+            }
+
+            @Override
+            protected List<ObjectReferenceType> getArchetypeRefList(){
+                return archetypeRefList;
+            }
+        };
+
+        browser.setOutputMarkupId(true);
+        pageBase.showMainPopup(browser, target);
+    }
+
+    public static <O extends AssignmentHolderType> void assignArchetypeMembers(PageBase pageBase, ArchetypeType targetRefObject, AjaxRequestTarget target,
+            AvailableRelationDto availableRelationList, List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList) {
+        ChooseArchetypeMemberPopup<O> browser = new ChooseArchetypeMemberPopup<O>(pageBase.getMainPopupBodyId(), availableRelationList) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected ArchetypeType getAssignmentTargetRefObject(){
                 return targetRefObject;
             }
 
@@ -350,12 +369,31 @@ public class MemberOperationsHelper {
         return ref;
     }
 
+    protected static Task createMemberOperationTask(PageBase modelServiceLocator, Task operationalTask, QName type, ObjectQuery memberQuery,
+            ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, AjaxRequestTarget target) {
+
+        OperationResult parentResult = operationalTask.getResult();
+        try {
+            Task executableTask = WebComponentUtil.createMemberOperationTask(operationalTask, type, memberQuery, script, option, parentResult, modelServiceLocator);
+            return executableTask;
+        } catch (SchemaException e) {
+            parentResult.recordFatalError(parentResult.getOperation(), e);
+            LoggingUtils.logUnexpectedException(LOGGER,
+                    "Failed to execute operation " + parentResult.getOperation(), e);
+            target.add(modelServiceLocator.getFeedbackPanel());
+        }
+        return null;
+    }
+
     protected static void executeMemberOperation(PageBase modelServiceLocator, Task operationalTask, QName type, ObjectQuery memberQuery,
             ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, AjaxRequestTarget target) {
 
         OperationResult parentResult = operationalTask.getResult();
         try {
-            WebComponentUtil.executeMemberOperation(operationalTask, type, memberQuery, script, option, parentResult, modelServiceLocator);
+            Task executableTask = WebComponentUtil.createMemberOperationTask(operationalTask, type, memberQuery, script, option, parentResult, modelServiceLocator);
+            if (executableTask != null) {
+                WebComponentUtil.executeMemberOperation(executableTask, parentResult, modelServiceLocator);
+            }
         } catch (SchemaException e) {
             parentResult.recordFatalError(parentResult.getOperation(), e);
             LoggingUtils.logUnexpectedException(LOGGER,
@@ -363,6 +401,12 @@ public class MemberOperationsHelper {
             target.add(modelServiceLocator.getFeedbackPanel());
         }
 
+        target.add(modelServiceLocator.getFeedbackPanel());
+    }
+
+    protected static void executeMemberOperation(PageBase modelServiceLocator, Task operationalTask, AjaxRequestTarget target) {
+        OperationResult parentResult = operationalTask.getResult();
+        WebComponentUtil.executeMemberOperation(operationalTask, parentResult, modelServiceLocator);
         target.add(modelServiceLocator.getFeedbackPanel());
     }
 

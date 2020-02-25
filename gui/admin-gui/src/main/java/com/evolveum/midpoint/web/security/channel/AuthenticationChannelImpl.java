@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.channel;
 
+import com.evolveum.midpoint.gui.api.GuiConstants;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
@@ -45,7 +46,7 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
     }
 
     public String getPathAfterSuccessfulAuthentication() {
-        return AuthenticationChannel.DEFAULT_POST_AUTHENTICATION_URL;
+        return GuiConstants.DEFAULT_PATH_AFTER_LOGIN;
     }
 
     public String getPathAfterUnsuccessfulAuthentication() {
@@ -79,5 +80,10 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
     @Override
     public boolean isSupportActivationByChannel() {
         return true;
+    }
+
+    @Override
+    public String getUrlSuffix() {
+        return this.channel.getUrlSuffix();
     }
 }

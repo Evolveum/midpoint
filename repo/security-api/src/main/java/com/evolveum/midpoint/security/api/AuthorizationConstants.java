@@ -482,6 +482,9 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_RESOURCES_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "resourcesView");
     public static final String AUTZ_UI_RESOURCES_VIEW_URL = NS_AUTHORIZATION_UI + "#resourcesView";
 
+    public static final QName AUTZ_UI_TASKS_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "tasksView");
+    public static final String AUTZ_UI_TASKS_VIEW_URL = NS_AUTHORIZATION_UI + "#tasksView";
+
     //ui authorization for CSV export button (will be applied everywhere over mp)
     public static final QName AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCSVexport");
     public static final String AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME);

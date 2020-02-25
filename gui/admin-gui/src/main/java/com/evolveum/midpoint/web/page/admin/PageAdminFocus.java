@@ -160,14 +160,14 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
             return;
         }
         if (result.isSuccess() && getDelta() != null  && SecurityUtils.getPrincipalUser().getOid().equals(getDelta().getOid())) {
-            UserType user = null;
+            FocusType focus = null;
             if (getObjectWrapper().getObject().asObjectable() instanceof UserType){
-                user = (UserType) getObjectWrapper().getObject().asObjectable();
+                focus = getObjectWrapper().getObject().asObjectable();
             }
-            Session.get().setLocale(WebModelServiceUtils.getLocale(user));
+            Session.get().setLocale(WebModelServiceUtils.getLocale(focus));
             LOGGER.debug("Using {} as locale", getLocale());
             WebSession.get().getClientInfo().getProperties().
-                    setTimeZone(WebModelServiceUtils.getTimezone(user));
+                    setTimeZone(WebModelServiceUtils.getTimezone(focus));
             LOGGER.debug("Using {} as time zone", WebSession.get().getClientInfo().getProperties().getTimeZone());
         }
         boolean focusAddAttempted = getDelta() != null && getDelta().isAdd();
@@ -1018,6 +1018,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
     }
 
     protected boolean isFocusHistoryPage(){
+        return false;
+    }
+
+    protected boolean isSelfProfile(){
         return false;
     }
 }

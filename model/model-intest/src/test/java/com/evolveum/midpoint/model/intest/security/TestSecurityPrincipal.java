@@ -44,7 +44,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         resetAuthentication();
 
         // WHEN
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_ADMINISTRATOR_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_ADMINISTRATOR_USERNAME, UserType.class);
 
         // THEN
         display("Administrator principal", principal);
@@ -62,7 +62,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         resetAuthentication();
 
         // WHEN
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
         assertNoAuthentication();
@@ -82,7 +82,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         resetAuthentication();
 
         // WHEN
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_BARBOSSA_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_BARBOSSA_USERNAME, UserType.class);
 
         // THEN
         display("Principal barbossa", principal);
@@ -90,9 +90,9 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         assertEquals("wrong username", USER_BARBOSSA_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_BARBOSSA_OID, principal.getOid());
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
-        display("User in principal barbossa", principal.getUser().asPrismObject());
+        display("User in principal barbossa", principal.getFocus().asPrismObject());
 
-        principal.getUser().asPrismObject().checkConsistence(true, true);
+        principal.getFocus().asPrismObject().checkConsistence(true, true);
 
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
@@ -105,16 +105,16 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         resetAuthentication();
 
         // WHEN
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_GUYBRUSH_USERNAME, UserType.class);
 
         // THEN
         display("Principal guybrush", principal);
         assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
-        display("User in principal guybrush", principal.getUser().asPrismObject());
+        display("User in principal guybrush", principal.getFocus().asPrismObject());
 
-        principal.getUser().asPrismObject().checkConsistence(true, true);
+        principal.getFocus().asPrismObject().checkConsistence(true, true);
 
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
@@ -131,16 +131,16 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         resetAuthentication();
 
         // WHEN
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_GUYBRUSH_USERNAME, UserType.class);
 
         // THEN
         display("Principal guybrush", principal);
         assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
-        display("User in principal guybrush", principal.getUser().asPrismObject());
+        display("User in principal guybrush", principal.getFocus().asPrismObject());
 
-        principal.getUser().asPrismObject().checkConsistence(true, true);
+        principal.getFocus().asPrismObject().checkConsistence(true, true);
 
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
@@ -162,16 +162,16 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_GUYBRUSH_USERNAME, UserType.class);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
         display("Principal guybrush", principal);
         assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
-        display("User in principal guybrush", principal.getUser().asPrismObject());
+        display("User in principal guybrush", principal.getFocus().asPrismObject());
 
-        principal.getUser().asPrismObject().checkConsistence(true, true);
+        principal.getFocus().asPrismObject().checkConsistence(true, true);
 
         assertAuthorized(principal, AUTZ_SUPERSPECIAL_URL);
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
@@ -191,16 +191,16 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         resetAuthentication();
 
         // WHEN
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_GUYBRUSH_USERNAME, UserType.class);
 
         // THEN
         display("Principal guybrush", principal);
         assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
-        display("User in principal guybrush", principal.getUser().asPrismObject());
+        display("User in principal guybrush", principal.getFocus().asPrismObject());
 
-        principal.getUser().asPrismObject().checkConsistence(true, true);
+        principal.getFocus().asPrismObject().checkConsistence(true, true);
 
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
@@ -219,7 +219,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         resetAuthentication();
 
         // WHEN
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
         assertJack(principal);
@@ -232,7 +232,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         assertNotAuthorized(principal, AUTZ_LOOT_URL, null);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 
-        assertCompiledUserProfile(principal)
+        assertCompiledGuiProfile(principal)
             .assertAdditionalMenuLinks(1)
             .assertUserDashboardLinks(2)
             .assertObjectCollectionViews(3)
@@ -253,7 +253,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         resetAuthentication();
 
         // WHEN
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
         assertJack(principal);
@@ -263,7 +263,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 
-        assertCompiledUserProfile(principal)
+        assertCompiledGuiProfile(principal)
             .assertAdditionalMenuLinks(0)
             .assertUserDashboardLinks(1)
             .assertObjectCollectionViews(3)
@@ -285,7 +285,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_GUYBRUSH_USERNAME, UserType.class);
 
         // THEN
         displayThen(TEST_NAME);
@@ -310,7 +310,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_GUYBRUSH_USERNAME, UserType.class);
 
         // THEN
         displayThen(TEST_NAME);
@@ -336,7 +336,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
         displayThen(TEST_NAME);
@@ -366,7 +366,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
         displayThen(TEST_NAME);
@@ -399,7 +399,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
         displayThen(TEST_NAME);

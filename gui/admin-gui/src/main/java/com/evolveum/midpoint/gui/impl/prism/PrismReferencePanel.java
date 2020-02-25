@@ -11,7 +11,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
@@ -31,7 +31,6 @@ import com.evolveum.midpoint.gui.impl.factory.PrismReferencePanelContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
@@ -61,7 +60,8 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
     }
 
     @Override
-    protected Component createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler) {
+    protected Component createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item, GuiComponentFactory componentFactory,
+            ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
         FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
         feedback.setOutputMarkupId(true);
         item.add(feedback);
@@ -155,9 +155,14 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
         target.add(PrismReferencePanel.this);
     }
 
+//    @Override
+//    protected EnableBehaviour getEnableBehaviourOfValuePanel(PrismReferenceWrapper<R> iw) {
+//        return new EnableBehaviour(() -> !iw.isReadOnly() || isLink(iw));
+//    }
+
     @Override
-    protected EnableBehaviour getEnableBehaviourOfValuePanel(PrismReferenceWrapper<R> iw) {
-        return new EnableBehaviour(() -> !iw.isReadOnly() || isLink(iw));
+    public boolean isEnabled() {
+        return !getModelObject().isReadOnly() || isLink(getModelObject());
     }
 
     private boolean isLink(PrismReferenceWrapper<R> iw){
@@ -168,4 +173,8 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
         return isLink;
     }
 
+    @Override
+    protected <PV extends PrismValue> PV createNewValue(PrismReferenceWrapper<R> itemWrapper) {
+        return (PV) getPrismContext().itemFactory().createReferenceValue();
+    }
 }

@@ -19,22 +19,6 @@
 
     <name>midPoint Testing - Resource Connection Tests</name>
 
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <runOrder>alphabetical</runOrder>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <configuration>
-                    <runOrder>alphabetical</runOrder>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -180,11 +164,6 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.polygon</groupId>
-            <artifactId>connector-powershell</artifactId>
-            <version>1.0-M1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.polygon</groupId>
             <artifactId>connector-databasetable</artifactId>
             <scope>test</scope>
         </dependency>
@@ -229,21 +208,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <!-- surefire/failsafe only for profile conntest - see lower -->
+
     <profiles>
         <profile>
             <id>conntest</id>
@@ -253,12 +225,14 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <skip>false</skip>
+                            <runOrder>alphabetical</runOrder>
                         </configuration>
                     </plugin>
                     <plugin>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
                             <skip>false</skip>
+                            <runOrder>alphabetical</runOrder>
                         </configuration>
                     </plugin>
                 </plugins>

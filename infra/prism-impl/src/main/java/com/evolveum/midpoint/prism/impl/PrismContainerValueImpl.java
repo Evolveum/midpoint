@@ -10,9 +10,12 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -166,7 +169,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     public void setId(Long id) {
-        checkMutability();
+        checkMutable();
         this.id = id;
     }
 
@@ -322,7 +325,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
      * @throws IllegalArgumentException an attempt to add value that already exists
      */
     public <IV extends PrismValue,ID extends ItemDefinition> void add(Item<IV,ID> item, boolean checkUniqueness) throws SchemaException {
-        checkMutability();
+        checkMutable();
         ItemName itemName = item.getElementName();
         if (itemName == null) {
             throw new IllegalArgumentException("Cannot add item without a name to value of container "+getParent());
@@ -357,7 +360,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
      * Returns true if new item or value was added.
      */
     public <IV extends PrismValue,ID extends ItemDefinition> boolean merge(Item<IV,ID> item) throws SchemaException {
-        checkMutability();
+        checkMutable();
         Item<IV, ID> existingItem = findItem(item.getElementName(), Item.class);
         if (existingItem == null) {
             add(item);
@@ -382,7 +385,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
      * Returns true if this item was changed.
      */
     public <IV extends PrismValue,ID extends ItemDefinition> boolean subtract(Item<IV,ID> item) throws SchemaException {
-        checkMutability();
+        checkMutable();
         Item<IV,ID> existingItem = findItem(item.getElementName(), Item.class);
         if (existingItem == null) {
             return false;
@@ -403,7 +406,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
      * @param item item to add.
      */
     public <IV extends PrismValue,ID extends ItemDefinition> void addReplaceExisting(Item<IV,ID> item) throws SchemaException {
-        checkMutability();
+        checkMutable();
         if (item == null) {
             return;
         }
@@ -412,7 +415,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     public <IV extends PrismValue,ID extends ItemDefinition> void remove(@NotNull Item<IV,ID> item) {
-        checkMutability();
+        checkMutable();
 
         Item<IV,ID> existingItem = findItem(item.getElementName(), Item.class);
         if (existingItem != null) {
@@ -424,7 +427,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     public void removeAll() {
-        checkMutability();
+        checkMutable();
         Iterator<Item<?,?>> iterator = items.values().iterator();
         while (iterator.hasNext()) {
             Item<?,?> item = iterator.next();
@@ -452,7 +455,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
      * @param itemsToAdd items to add
      */
     public void addAllReplaceExisting(Collection<? extends Item<?,?>> itemsToAdd) throws SchemaException {
-        checkMutability();
+        checkMutable();
         for (Item<?,?> item : itemsToAdd) {
             addReplaceExisting(item);
         }
@@ -464,7 +467,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     public void clear() {
-        checkMutability();
+        checkMutable();
         items.clear();
         unqualifiedItemNames.clear();
     }
@@ -720,7 +723,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     private <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I createSubItem(QName name, Class<I> type, ID itemDefinition) throws SchemaException {
-        checkMutability();
+        checkMutable();
         I newItem = createDetachedNewItemInternal(name, type, itemDefinition);
         add(newItem);
         return newItem;
@@ -802,7 +805,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     public <X> PrismProperty<X> createProperty(QName propertyName) throws SchemaException {
-        checkMutability();
+        checkMutable();
         PrismPropertyDefinition propertyDefinition = determineItemDefinition(propertyName, getComplexTypeDefinition());
         if (propertyDefinition == null) {
             // container has definition, but there is no property definition. This is either runtime schema
@@ -841,7 +844,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
     // Expects that "self" path is NOT present in propPath
     <I extends Item<?,?>> void removeItem(ItemPath itemPath, Class<I> itemType) {
-        checkMutability();
+        checkMutable();
         if (!itemPath.startsWithName()) {
             throw new IllegalArgumentException("Attempt to remove item using a non-name path "+itemPath+" in "+this);
         }
@@ -884,7 +887,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     public <T> void setPropertyRealValue(QName propertyName, T realValue, PrismContext prismContext) throws SchemaException {
-        checkMutability();
+        checkMutable();
         PrismProperty<T> property = findOrCreateProperty(ItemName.fromQName(propertyName));
         property.setRealValue(realValue);
         if (property.getPrismContext() == null) {
@@ -1004,7 +1007,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     public boolean addRawElement(Object element) throws SchemaException {
-        checkMutability();
+        checkMutable();
         PrismContainerDefinition<C> definition = getDefinition();
         if (definition == null) {
             throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
@@ -1016,7 +1019,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     public boolean deleteRawElement(Object element) throws SchemaException {
-        checkMutability();
+        checkMutable();
         PrismContainerDefinition<C> definition = getDefinition();
         if (definition == null) {
             throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
@@ -1029,7 +1032,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
 
     public boolean removeRawElement(Object element) {
-        checkMutability();
+        checkMutable();
         throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
     }
 
@@ -1122,7 +1125,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
     @Override
     public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
-        checkMutability();
+        checkMutable();
         if (!(definition instanceof PrismContainerDefinition)) {
             throw new IllegalArgumentException("Cannot apply "+definition+" to container " + this);
         }
@@ -1130,7 +1133,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     public void applyDefinition(@NotNull PrismContainerDefinition<C> containerDef, boolean force) throws SchemaException {
-        checkMutability();
+        checkMutable();
         ComplexTypeDefinition definitionToUse = containerDef.getComplexTypeDefinition();
         if (complexTypeDefinition != null) {
             if (!force) {
@@ -1155,20 +1158,54 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
             }
         }
         replaceComplexTypeDefinition(definitionToUse);
+
         // we need to continue even if CTD is null or 'any' - e.g. to resolve definitions within object extension
-        for (Item item : items.values()) {
-            if (item.getDefinition() != null && !force) {
-                // Item has a definition already, no need to apply it
-                continue;
-            }
-            ItemDefinition itemDefinition = determineItemDefinition(item.getElementName(), complexTypeDefinition);
-            if (itemDefinition == null && item.getDefinition() != null && item.getDefinition().isDynamic()) {
-                // We will not apply the null definition here. The item has a dynamic definition that we don't
-                // want to destroy as it cannot be reconstructed later.
+        applyDefinitionToItems(force);
+    }
+
+    private void applyDefinitionToItems(boolean force) throws SchemaException {
+        // We change items during this operation, so we need to create a copy of them.
+        ArrayList<Item<?, ?>> existingItems = new ArrayList<>(items.values());
+
+        for (Item item : existingItems) {
+            if (item.getDefinition() == null || force) {
+                ItemDefinition<?> itemDefinition = determineItemDefinition(item.getElementName(), complexTypeDefinition);
+                if (itemDefinition == null && item.getDefinition() != null && item.getDefinition().isDynamic()) {
+                    // We will not apply the null definition here. The item has a dynamic definition that we don't
+                    // want to destroy as it cannot be reconstructed later.
+                } else if (item instanceof PrismProperty && itemDefinition instanceof PrismContainerDefinition) {
+                    // Special case: we parsed something as (raw) property but later we found out it's in fact a container!
+                    // (It could be also a reference but this will be implemented later.)
+                    parseRawPropertyAsContainer((PrismProperty<?>) item, (PrismContainerDefinition<?>) itemDefinition);
+                } else {
+                    //noinspection unchecked
+                    item.applyDefinition(itemDefinition, force);
+                }
             } else {
-                item.applyDefinition(itemDefinition, force);
+                // Item has a definition already, no need to apply it
             }
         }
+    }
+
+    private <C1 extends Containerable> void parseRawPropertyAsContainer(PrismProperty<?> property,
+            PrismContainerDefinition<C1> containerDefinition) throws SchemaException {
+        PrismContainer<C1> container = containerDefinition.instantiate();
+        for (PrismPropertyValue<?> value : property.getValues()) {
+            XNode rawElement = value.getRawElement();
+            if (rawElement == null) {
+                throw new IllegalStateException("Couldn't apply container definition (" + containerDefinition
+                        + ") to a non-raw property value: " + value);
+            } else {
+                RootXNodeImpl rootXnode = new RootXNodeImpl(containerDefinition.getItemName(), rawElement);
+                PrismValue parsedValue = prismContext.parserFor(rootXnode).definition(containerDefinition).parseItemValue();
+                if (parsedValue instanceof PrismContainerValue) {
+                    //noinspection unchecked
+                    container.add((PrismContainerValue<C1>) parsedValue);
+                }
+            }
+        }
+        remove(property);
+        add(container);
     }
 
     /**
@@ -1222,7 +1259,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
     @Override
     public void normalize() {
-        checkMutability();
+        checkMutable();
         for (Item<?, ?> item : items.values()) {
             item.normalize();
         }
@@ -1313,7 +1350,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
         ID oldItemDefFromContainer = oldContainerDef.findLocalItemDefinition(itemName);
         ID oldItemDef = item.getDefinition();
         ID clonedItemDef;
-        if (oldItemDefFromContainer == oldItemDef) {
+        if (oldItemDef == null || oldItemDefFromContainer == oldItemDef) {
             clonedItemDef = clonedContainerDef.findItemDefinition(itemName);
         } else {
             //noinspection unchecked
@@ -1536,7 +1573,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     @Override
-    public void freeze() {
+    public void performFreeze() {
         // Before freezing this PCV we should initialize it (if needed).
         // We assume that this object is NOT shared at this moment.
         if (getComplexTypeDefinition() != null && getComplexTypeDefinition().getCompileTimeClass() != null) {
@@ -1549,7 +1586,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
         for (Item item : items.values()) {
             item.freeze();
         }
-        super.freeze();
+        super.performFreeze();
     }
 
     @Override
@@ -1586,6 +1623,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
     // EXPERIMENTAL. TODO write some tests
     // BEWARE, it expects that definitions for items are present. Otherwise definition-less single valued items will get overwritten.
+    @Experimental
     @SuppressWarnings("unchecked")
     public void mergeContent(@NotNull PrismContainerValue<?> other, @NotNull List<QName> overwrite) throws SchemaException {
         List<ItemName> remainingToOverwrite = overwrite.stream().map(ItemName::fromQName).collect(Collectors.toList());

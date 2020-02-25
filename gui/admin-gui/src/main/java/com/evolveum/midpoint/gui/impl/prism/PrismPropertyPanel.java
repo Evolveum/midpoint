@@ -14,13 +14,14 @@ import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.factory.PrismPropertyPanelContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.AttributeModifier;
@@ -73,7 +74,8 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 
 
     @Override
-    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
+    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory,
+            ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
 
         return createInputPanel(item, factory);
 
@@ -194,6 +196,8 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
                     }
 
                 });
+                formComponent.add(new EnableBehaviour(() -> itemPanelSettings == null || itemPanelSettings.getEditabilityHandler() == null ||
+                        itemPanelSettings.getEditabilityHandler().isEditable(getModelObject())));
             }
 
 
@@ -221,7 +225,10 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
             LOGGER.error("Cannot apply deltas to object for validation: {}", e.getMessage(), e);
             return null;
         }
+    }
 
-
+    @Override
+    protected <PV extends PrismValue> PV createNewValue(PrismPropertyWrapper<T> itemWrapper) {
+        return (PV) getPrismContext().itemFactory().createPropertyValue();
     }
 }

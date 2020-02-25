@@ -20,6 +20,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.LocalizationMessageSource;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
@@ -41,8 +42,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.model.api.authentication.UserProfileService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -87,7 +87,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     protected static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
 
     @Autowired private LocalizationMessageSource messageSource;
-    @Autowired private UserProfileService userProfileService;
+    @Autowired private GuiProfiledPrincipalManager focusProfileService;
     @Autowired private Clock clock;
 
     private MessageSourceAccessor messages;
@@ -116,42 +116,42 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         messages = new MessageSourceAccessor(messageSource);
 
-        ((AuthenticationEvaluatorImpl)getAuthenticationEvaluator()).userProfileService = new UserProfileService() {
+        ((AuthenticationEvaluatorImpl)getAuthenticationEvaluator()).focusProfileService = new GuiProfiledPrincipalManager() {
 
             @Override
             public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                return userProfileService.resolveOwner(object);
+                return focusProfileService.resolveOwner(object);
             }
 
             @Override
-            public void updateUser(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas) {
-                userProfileService.updateUser(principal, itemDeltas);
+            public void updateFocus(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas) {
+                focusProfileService.updateFocus(principal, itemDeltas);
             }
 
             @Override
-            public MidPointUserProfilePrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
                 return getPrincipal(user, null, null);
             }
 
             @Override
-            public MidPointUserProfilePrincipal getPrincipal(PrismObject<UserType> user,
+            public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> user,
                     AuthorizationTransformer authorizationLimiter, OperationResult result)
                     throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                MidPointUserProfilePrincipal principal = userProfileService.getPrincipal(user);
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(user);
                 addFakeAuthorization(principal);
                 return principal;
             }
 
             @Override
-            public MidPointUserProfilePrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                MidPointUserProfilePrincipal principal = userProfileService.getPrincipal(username);
+            public GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(username, clazz);
                 addFakeAuthorization(principal);
                 return principal;
             }
 
             @Override
-            public MidPointUserProfilePrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                MidPointUserProfilePrincipal principal = userProfileService.getPrincipalByOid(oid);
+            public GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipalByOid(oid, clazz);
                 addFakeAuthorization(principal);
                 return principal;
             }
@@ -175,7 +175,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         TestUtil.displayTestTitle(TEST_NAME);
 
         assertNotNull(getAuthenticationEvaluator());
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
         assertPrincipalJack(principal);
     }
 
@@ -1142,7 +1142,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         display("principal", principal);
         assertEquals("Bad principal name", USER_JACK_USERNAME, principal.getName().getOrig());
         assertEquals("Bad principal name", USER_JACK_USERNAME, principal.getUsername());
-        UserType user = principal.getUser();
+        FocusType user = principal.getFocus();
         assertNotNull("No user in principal",user);
         assertEquals("Bad name in user in principal", USER_JACK_USERNAME, user.getName().getOrig());
     }

@@ -8,20 +8,18 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>Dummy Connector</name>
-    <groupId>com.evolveum.icf</groupId>
-    <artifactId>dummy-connector</artifactId>
-    <packaging>jar</packaging>
+
     <parent>
         <artifactId>icf-connectors</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
+        <groupId>com.evolveum.icf</groupId>
         <version>4.1-SNAPSHOT</version>
     </parent>
-    <scm>
-        <connection>https://github.com/Evolveum/midpoint.git</connection>
-        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/midPoint</url>
-    </scm>
+
+    <artifactId>dummy-connector</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Dummy Connector</name>
+
     <dependencies>
         <dependency>
             <groupId>net.tirasa.connid</groupId>
@@ -36,19 +34,8 @@
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -60,10 +47,10 @@
                             <Version-Number>${project.version}</Version-Number>
                             <SCM-Revision>${git.describe}</SCM-Revision>
                             <Organization>Evolveum</Organization>
-                            <Organization-URL>http://www.evolveum.com</Organization-URL>
-                            <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
+                            <Organization-URL>https://www.evolveum.com</Organization-URL>
+                            <Bugtracking-System>https://jira.evolveum.com</Bugtracking-System>
                             <License>Apache License v2.0</License>
-                            <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
+                            <License-URL>https://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
                             <Bundle-Name>Dummy Connector</Bundle-Name>
                             <ConnectorBundle-FrameworkVersion>1.1</ConnectorBundle-FrameworkVersion>
                             <ConnectorBundle-Name>com.evolveum.icf.dummy</ConnectorBundle-Name>

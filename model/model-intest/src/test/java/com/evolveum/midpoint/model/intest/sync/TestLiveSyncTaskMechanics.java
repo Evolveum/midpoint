@@ -6,31 +6,29 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+
+import java.io.File;
+import java.util.function.Consumer;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.util.function.Consumer;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  *  MID-5353, MID-5513
@@ -41,16 +39,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 
     private static final File TEST_DIR = new File("src/test/resources/sync");
 
-    private static final File RESOURCE_DUMMY_INTERRUPTED_SYNC_FILE = new File(TEST_DIR, "resource-dummy-interrupted-sync.xml");
-    private static final String RESOURCE_DUMMY_INTERRUPTED_SYNC_OID = "7a58233a-1cfb-46d1-a404-08cdf4626ebb";
-    private static final String RESOURCE_DUMMY_INTERRUPTED_SYNC_NAME = "interruptedSync";
-
-    private static final File RESOURCE_DUMMY_INTERRUPTED_SYNC_IMPRECISE_FILE = new File(TEST_DIR, "resource-dummy-interrupted-sync-imprecise.xml");
-    private static final String RESOURCE_DUMMY_INTERRUPTED_SYNC_IMPRECISE_OID = "e396b76e-e010-46ed-bbf5-a3da78d358ea";
-    private static final String RESOURCE_DUMMY_INTERRUPTED_SYNC_IMPRECISE_NAME = "interruptedSyncImprecise";
-
-    private DummyResourceContoller interruptedSyncController;
-    private DummyResourceContoller interruptedSyncImpreciseController;
+    private DummyInterruptedSyncResource interruptedSyncResource;
+    private DummyInterruptedSyncImpreciseResource interruptedSyncImpreciseResource;
 
     private static final File TASK_SLOW_RESOURCE_FILE = new File(TEST_DIR, "task-intsync-slow-resource.xml");
     private static final String TASK_SLOW_RESOURCE_OID = "ca51f209-1ef5-42b3-84e7-5f639ee8e300";
@@ -85,76 +75,55 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     private static final int ERROR_ON = 4;
     private static final int USERS = 100;
 
-    public static long delay = 1;                 // referenced from resource-dummy-interrupted-sync.xml
-    public static String errorOn = null;           // referenced from resource-dummy-interrupted-sync.xml
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        interruptedSyncController = initDummyResource(RESOURCE_DUMMY_INTERRUPTED_SYNC_NAME,
-                RESOURCE_DUMMY_INTERRUPTED_SYNC_FILE, RESOURCE_DUMMY_INTERRUPTED_SYNC_OID, initTask, initResult);
-        interruptedSyncController.setSyncStyle(DummySyncStyle.DUMB);
+        interruptedSyncResource = new DummyInterruptedSyncResource();
+        interruptedSyncResource.init(dummyResourceCollection, initTask, initResult);
 
-        interruptedSyncImpreciseController = initDummyResource(RESOURCE_DUMMY_INTERRUPTED_SYNC_IMPRECISE_NAME,
-                RESOURCE_DUMMY_INTERRUPTED_SYNC_IMPRECISE_FILE, RESOURCE_DUMMY_INTERRUPTED_SYNC_IMPRECISE_OID, initTask, initResult);
-        interruptedSyncImpreciseController.setSyncStyle(DummySyncStyle.DUMB);
+        interruptedSyncImpreciseResource = new DummyInterruptedSyncImpreciseResource();
+        interruptedSyncImpreciseResource.init(dummyResourceCollection, initTask, initResult);
 
         // Initial run of these tasks must come before accounts are created.
 
-        addObject(TASK_SLOW_RESOURCE_FILE, initTask, initResult, workerThreadsCustomizer());
+        Consumer<PrismObject<TaskType>> workerThreadsCustomizer = workerThreadsCustomizer(getWorkerThreads());
+
+        addObject(TASK_SLOW_RESOURCE_FILE, initTask, initResult, workerThreadsCustomizer);
         waitForTaskFinish(TASK_SLOW_RESOURCE_OID, false);
 
-        addObject(TASK_SLOW_RESOURCE_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer());
+        addObject(TASK_SLOW_RESOURCE_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer);
         waitForTaskFinish(TASK_SLOW_RESOURCE_IMPRECISE_OID, false);
 
-        addObject(TASK_SLOW_MODEL_FILE, initTask, initResult, workerThreadsCustomizer());
+        addObject(TASK_SLOW_MODEL_FILE, initTask, initResult, workerThreadsCustomizer);
         waitForTaskFinish(TASK_SLOW_MODEL_OID, false);
 
-        addObject(TASK_SLOW_MODEL_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer());
+        addObject(TASK_SLOW_MODEL_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer);
         waitForTaskFinish(TASK_SLOW_MODEL_IMPRECISE_OID, false);
 
-        addObject(TASK_BATCHED_FILE, initTask, initResult, workerThreadsCustomizer());
+        addObject(TASK_BATCHED_FILE, initTask, initResult, workerThreadsCustomizer);
         waitForTaskFinish(TASK_BATCHED_OID, false);
 
-        addObject(TASK_BATCHED_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer());
+        addObject(TASK_BATCHED_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer);
         // Starting this task results in (expected) exception
 
-        addObject(TASK_ERROR_FILE, initTask, initResult, workerThreadsCustomizer());
+        addObject(TASK_ERROR_FILE, initTask, initResult, workerThreadsCustomizer);
         waitForTaskFinish(TASK_ERROR_OID, false);
 
-        addObject(TASK_ERROR_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer());
+        addObject(TASK_ERROR_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer);
         waitForTaskFinish(TASK_ERROR_IMPRECISE_OID, false);
 
-        addObject(TASK_DRY_RUN.file, initTask, initResult, workerThreadsCustomizer());
+        addObject(TASK_DRY_RUN.file, initTask, initResult, workerThreadsCustomizer);
         waitForTaskFinish(TASK_DRY_RUN.oid, false);
 
-        addObject(TASK_DRY_RUN_WITH_UPDATE.file, initTask, initResult, workerThreadsCustomizer());
+        addObject(TASK_DRY_RUN_WITH_UPDATE.file, initTask, initResult, workerThreadsCustomizer);
         waitForTaskFinish(TASK_DRY_RUN_WITH_UPDATE.oid, false);
 
         assertUsers(getNumberOfUsers());
         for (int i = 0; i < USERS; i++) {
-            interruptedSyncController.addAccount(getUserName(i, true));
-            interruptedSyncImpreciseController.addAccount(getUserName(i, false));
+            interruptedSyncResource.getController().addAccount(getUserName(i, true));
+            interruptedSyncImpreciseResource.getController().addAccount(getUserName(i, false));
         }
-    }
-
-    private Consumer<PrismObject<TaskType>> workerThreadsCustomizer() {
-        return taskObject -> {
-            int threads = getWorkerThreads();
-            if (threads != 0) {
-                //noinspection unchecked
-                PrismProperty<Integer> workerThreadsProperty = prismContext.getSchemaRegistry()
-                        .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS)
-                        .instantiate();
-                workerThreadsProperty.setRealValue(threads);
-                try {
-                    taskObject.addExtensionItem(workerThreadsProperty);
-                } catch (SchemaException e) {
-                    throw new AssertionError(e);
-                }
-            }
-        };
     }
 
     int getWorkerThreads() {
@@ -186,7 +155,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         OperationResult result = task.getResult();
 
         // Resource gives out changes slowly now.
-        interruptedSyncController.getDummyResource().setOperationDelayOffset(2000);
+        interruptedSyncResource.getDummyResource().setOperationDelayOffset(2000);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -217,7 +186,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         OperationResult result = task.getResult();
 
         // Resource gives out changes slowly now.
-        interruptedSyncImpreciseController.getDummyResource().setOperationDelayOffset(500);
+        interruptedSyncImpreciseResource.getDummyResource().setOperationDelayOffset(500);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -255,8 +224,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         deleteUsers(query, result);
 
         // Resource gives out changes quickly. But they are processed slowly.
-        interruptedSyncController.getDummyResource().setOperationDelayOffset(0);
-        delay = 100;
+        interruptedSyncResource.getDummyResource().setOperationDelayOffset(0);
+        DummyInterruptedSyncResource.delay = 100;
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -311,8 +280,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         deleteUsers(query, result);
 
         // Resource gives out changes quickly. But they are processed slowly.
-        interruptedSyncImpreciseController.getDummyResource().setOperationDelayOffset(0);
-        delay = 100;
+        interruptedSyncImpreciseResource.getDummyResource().setOperationDelayOffset(0);
+        DummyInterruptedSyncImpreciseResource.delay = 100;
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -355,9 +324,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         deleteUsers(query, result);
 
         // Changes are provided and processed normally. But we will take only first 10 of them.
-        interruptedSyncController.getDummyResource().setOperationDelayOffset(0);
-        delay = 0;
-        errorOn = getUserName(24, true);
+        interruptedSyncResource.getDummyResource().setOperationDelayOffset(0);
+        DummyInterruptedSyncResource.delay = 0;
+        DummyInterruptedSyncResource.errorOn = getUserName(24, true);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -423,8 +392,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         deleteUsers(query, result);
 
         // Changes are provided and processed normally. But we will take only first 10 of them.
-        interruptedSyncImpreciseController.getDummyResource().setOperationDelayOffset(0);
-        delay = 0;
+        interruptedSyncImpreciseResource.getDummyResource().setOperationDelayOffset(0);
+        DummyInterruptedSyncImpreciseResource.delay = 0;
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -470,9 +439,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         deleteUsers(query, result);
 
         // Changes are provided and processed normally.
-        interruptedSyncController.getDummyResource().setOperationDelayOffset(0);
-        delay = 0;
-        errorOn = getUserName(ERROR_ON, true);
+        interruptedSyncResource.getDummyResource().setOperationDelayOffset(0);
+        DummyInterruptedSyncResource.delay = 0;
+        DummyInterruptedSyncResource.errorOn = getUserName(ERROR_ON, true);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -531,9 +500,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         deleteUsers(query, result);
 
         // Changes are provided and processed normally.
-        interruptedSyncImpreciseController.getDummyResource().setOperationDelayOffset(0);
-        delay = 0;
-        errorOn = getUserName(ERROR_ON, false);
+        interruptedSyncImpreciseResource.getDummyResource().setOperationDelayOffset(0);
+        DummyInterruptedSyncImpreciseResource.delay = 0;
+        DummyInterruptedSyncImpreciseResource.errorOn = getUserName(ERROR_ON, false);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -598,9 +567,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         deleteUsers(query, result);
 
         // Changes are provided and processed normally.
-        interruptedSyncController.getDummyResource().setOperationDelayOffset(0);
-        delay = 0;
-        errorOn = null;
+        interruptedSyncResource.getDummyResource().setOperationDelayOffset(0);
+        DummyInterruptedSyncResource.delay = 0;
+        DummyInterruptedSyncResource.errorOn = null;
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -637,9 +606,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         deleteUsers(query, result);
 
         // Changes are provided and processed normally.
-        interruptedSyncController.getDummyResource().setOperationDelayOffset(0);
-        delay = 0;
-        errorOn = null;
+        interruptedSyncResource.getDummyResource().setOperationDelayOffset(0);
+        DummyInterruptedSyncResource.delay = 0;
+        DummyInterruptedSyncResource.errorOn = null;
 
         // WHEN
         displayWhen(TEST_NAME);

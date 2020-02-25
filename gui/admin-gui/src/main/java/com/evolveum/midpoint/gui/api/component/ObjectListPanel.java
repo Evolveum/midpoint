@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -51,7 +52,7 @@ import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.ListDataProvider2;
+import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -142,8 +143,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         BaseSortableDataProvider<? extends SelectableBean<O>> dataProvider = getDataProvider();
         if (dataProvider instanceof SelectableBeanObjectDataProvider) {
             return ((SelectableBeanObjectDataProvider<O>) dataProvider).getSelectedData();
-        } else if (dataProvider instanceof ListDataProvider2) {
-            return ((ListDataProvider2) dataProvider).getSelectedObjects();
+        } else if (dataProvider instanceof SelectableListDataProvider) {
+            return ((SelectableListDataProvider) dataProvider).getSelectedObjects();
         }
         return new ArrayList<>();
     }
@@ -254,7 +255,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
-                return ObjectListPanel.this.createHeader(headerId);
+                WebMarkupContainer header = ObjectListPanel.this.createHeader(headerId);
+                header.add(new VisibleBehaviour(() -> isHeaderVisible()));
+                return header;
             }
 
             @Override
@@ -299,6 +302,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     protected WebMarkupContainer createHeader(String headerId) {
         return initSearch(headerId);
+    }
+
+    protected boolean isHeaderVisible() {
+        return true;
     }
 
     protected List<IColumn<SelectableBean<O>, String>> initCustomColumns() {
@@ -664,12 +671,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
     }
 
     protected List<CompiledObjectCollectionView> getAllApplicableArchetypeViews() {
-        return getPageBase().getCompiledUserProfile().findAllApplicableArchetypeViews(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
+        return getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
     }
 
     protected CompiledObjectCollectionView getObjectCollectionView() {
         String collectionName = getCollectionNameParameterValue().toString();
-        return getPageBase().getCompiledUserProfile().findObjectCollectionView(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()), collectionName);
+        return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()), collectionName);
     }
 
     private StringValue getCollectionNameParameterValue(){

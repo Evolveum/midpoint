@@ -18,8 +18,11 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -91,7 +94,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel.Operation;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -322,38 +324,69 @@ public abstract class ResourceContentPanel extends Panel {
 
         OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
 
-        List<PrismObject<TaskType>> tasks = WebModelServiceUtils
+        List<PrismObject<TaskType>> importTasks = WebModelServiceUtils
                 .searchObjects(TaskType.class,
                         getPageBase().getPrismContext().queryFor(TaskType.class)
+                                .block()
                                 .item(TaskType.F_OBJECT_REF).ref(getResourceModel().getObject().getOid())
+                                .and()
+                                .item(TaskType.F_CATEGORY).eq(TaskCategory.IMPORTING_ACCOUNTS)
+                                .endBlock()
+//                                .or() //todo uncomment when archetype oid is fixed
+//                                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value()) //TODO fix archetype ref
                                 .build(),
                         result, getPageBase());
 
-        List<TaskType> tasksForKind = getTasksForKind(tasks);
+        List<PrismObject<TaskType>> reconTasks = WebModelServiceUtils
+                .searchObjects(TaskType.class,
+                        getPageBase().getPrismContext().queryFor(TaskType.class)
+                                .block()
+                                .item(TaskType.F_OBJECT_REF).ref(getResourceModel().getObject().getOid())
+                                .and()
+                                .item(TaskType.F_CATEGORY).eq(TaskCategory.RECONCILIATION)
+                                .endBlock()
+                                .or()
+                                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value())
+                                .build(),
+                        result, getPageBase());
 
-        List<TaskType> importTasks = new ArrayList<>();
-        List<TaskType> syncTasks = new ArrayList<>();
-        List<TaskType> reconTasks = new ArrayList<>();
-        for (TaskType task : tasksForKind) {
-            if (TaskCategory.RECONCILIATION.equals(task.getCategory())) {
-                reconTasks.add(task);
-            } else if (TaskCategory.LIVE_SYNCHRONIZATION.equals(task.getCategory())) {
-                syncTasks.add(task);
-            } else if (TaskCategory.IMPORTING_ACCOUNTS.equals(task.getCategory())) {
-                importTasks.add(task);
-            }
-        }
+        List<PrismObject<TaskType>> syncTasks = WebModelServiceUtils
+                .searchObjects(TaskType.class,
+                        getPageBase().getPrismContext().queryFor(TaskType.class)
+                                .block()
+                                .item(TaskType.F_OBJECT_REF).ref(getResourceModel().getObject().getOid())
+                                .and()
+                                .item(TaskType.F_CATEGORY).eq(TaskCategory.LIVE_SYNCHRONIZATION)
+                                .endBlock()
+//                                .or() //todo uncomment when archetype oid is fixed
+//                                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value()) //TODO fix archetype ref
+                                .build(),
+                        result, getPageBase());
 
-        initButton(ID_IMPORT, "Import", " fa-download", TaskCategory.IMPORTING_ACCOUNTS, importTasks);
-        initButton(ID_RECONCILIATION, "Reconciliation", " fa-link", TaskCategory.RECONCILIATION, reconTasks);
-        initButton(ID_LIVE_SYNC, "Live Sync", " fa-refresh", TaskCategory.LIVE_SYNCHRONIZATION, syncTasks);
+//        List<TaskType> tasksForKind = getTasksForKind(importTasks);
+
+//        List<TaskType> importTasks = new ArrayList<>();
+//        List<TaskType> syncTasks = new ArrayList<>();
+//        List<TaskType> reconTasks = new ArrayList<>();
+//        for (TaskType task : tasksForKind) {
+//            if (TaskCategory.RECONCILIATION.equals(task.getCategory())) {
+//                reconTasks.add(task);
+//            } else if (TaskCategory.LIVE_SYNCHRONIZATION.equals(task.getCategory())) {
+//                syncTasks.add(task);
+//            } else if (TaskCategory.IMPORTING_ACCOUNTS.equals(task.getCategory())) {
+//                importTasks.add(task);
+//            }
+//        }
+        initButton(ID_IMPORT, "Import", " fa-download", TaskCategory.IMPORTING_ACCOUNTS, "", getTasksForKind(importTasks));
+        initButton(ID_RECONCILIATION, "Reconciliation", " fa-link", TaskCategory.RECONCILIATION, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(), getTasksForKind(reconTasks));
+        initButton(ID_LIVE_SYNC, "Live Sync", " fa-refresh", TaskCategory.LIVE_SYNCHRONIZATION, "", getTasksForKind(syncTasks));
 
         initCustomLayout();
     }
 
     protected abstract void initShadowStatistics(WebMarkupContainer totals);
 
-    private void initButton(String id, String label, String icon, final String category,
+    private void initButton(String id, String label, String icon, final String category, final String archetypeOid,
             final List<TaskType> tasks) {
 
         List<InlineMenuItem> items = new ArrayList<>();
@@ -386,7 +419,7 @@ public abstract class ResourceContentPanel extends Panel {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(category, target);
+                        newTaskPerformed(category, archetypeOid, target);
                     }
                 };
             }
@@ -404,7 +437,7 @@ public abstract class ResourceContentPanel extends Panel {
 
     }
 
-    private void newTaskPerformed(String category, AjaxRequestTarget target) {
+    private void newTaskPerformed(String category, String archetypeOid, AjaxRequestTarget target) {
         TaskType taskType = new TaskType(getPageBase().getPrismContext());
         PrismProperty<ShadowKindType> pKind;
         try {
@@ -427,8 +460,16 @@ public abstract class ResourceContentPanel extends Panel {
         PrismObject<ResourceType> resource = getResourceModel().getObject();
         taskType.setObjectRef(ObjectTypeUtil.createObjectRef(resource, getPageBase().getPrismContext()));
 
-        taskType.setCategory(category);
-        setResponsePage(new PageTaskAdd(taskType));
+        taskType.setCategory(category); //todo no need in category here after tasks migration to archetype groups
+
+        if (StringUtils.isNotEmpty(archetypeOid)) {
+            AssignmentType archetypeAssignment = new AssignmentType();
+            archetypeAssignment.setTargetRef(ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE));
+            taskType.getAssignment().add(archetypeAssignment);
+        }
+
+        taskType.setOwnerRef(ObjectTypeUtil.createObjectRef(SecurityUtils.getPrincipalUser().getOid(), ObjectTypes.USER));
+        setResponsePage(new PageTask(taskType.asPrismObject(), true));
     }
 
     private void runTask(List<TaskType> tasks, AjaxRequestTarget target) {

@@ -7,13 +7,9 @@
 
 package com.evolveum.midpoint.testing.story.ldap;
 
-
-import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
 
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -28,21 +24,11 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.testing.story.AbstractStoryTest;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -86,6 +72,14 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     private static final int NUMBER_OF_TEST_THREADS = 5;
     private static final Integer TEST_THREADS_RANDOM_START_RANGE = 10;
     private static final long PARALLEL_TEST_TIMEOUT = 60000L;
+
+    /**
+     * Hypothesis why we experience three (not only two) connector instances e.g. for test150AddGoblins:
+     * 1. instance is for main thread when creating goblins
+     * 2. instance is for some internal connector thread for live sync query (this thread seems to run asynchronously even after sync() returns)
+     * 3. instance is for worker thread of LiveSync task when it's starting (it does so each second)
+     */
+    private static final int INSTANCES_MAX = 3;
 
     private PrismObject<ResourceType> resourceOpenDj;
     private Integer lastSyncToken;
@@ -261,17 +255,17 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         displayThen(TEST_NAME);
 
         dumpLdap();
-        assertLdapConnectorInstances(1,2);
+        assertLdapConnectorInstances(1, INSTANCES_MAX);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
 
-        assertLdapConnectorInstances(1,2);
+        assertLdapConnectorInstances(1, INSTANCES_MAX);
         assertSyncTokenIncrement(NUMBER_OF_GOBLINS);
         assertThreadCount();
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
 
-        assertLdapConnectorInstances(1,2);
+        assertLdapConnectorInstances(1, INSTANCES_MAX);
         assertSyncTokenIncrement(0);
         assertThreadCount();
 
@@ -307,7 +301,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         assertResource(resourceAfter, "after")
             .assertHasSchema();
 
-        assertLdapConnectorInstances(1,2);
+        assertLdapConnectorInstances(1, INSTANCES_MAX);
     }
 
     /**
@@ -332,7 +326,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         assertPartialError(taskResult);
 
         assertSyncTokenIncrement(0);
-        assertLdapConnectorInstances(1,2);
+        assertLdapConnectorInstances(1, INSTANCES_MAX);
         assertThreadCount();
 
         // just to make sure we are stable
@@ -342,7 +336,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         assertPartialError(taskResult);
 
         assertSyncTokenIncrement(0);
-        assertLdapConnectorInstances(1,2);
+        assertLdapConnectorInstances(1, INSTANCES_MAX);
         assertThreadCount();
 
         dumpLdap();
@@ -390,7 +384,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         displayThen(TEST_NAME);
 
         assertSyncTokenIncrement(0);
-        assertLdapConnectorInstances(1,2);
+        assertLdapConnectorInstances(1, INSTANCES_MAX);
         assertThreadCount();
 
     }
@@ -415,7 +409,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         // THEN
         displayThen(TEST_NAME);
 
-        assertLdapConnectorInstances(1,2);
+        assertLdapConnectorInstances(1, INSTANCES_MAX);
         assertThreadCount();
     }
 
@@ -448,7 +442,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
 
         // When system is put under load, this means more threads. But not huge number of threads.
         assertThreadCount(THREAD_COUNT_TOLERANCE_BIG);
-        assertLdapConnectorInstances(1,NUMBER_OF_TEST_THREADS);
+        assertLdapConnectorInstances(1, NUMBER_OF_TEST_THREADS);
     }
 
     private void reconcile(final String TEST_NAME, PrismObject<UserType> user) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -540,11 +541,13 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
         getItemDefinition().adoptElementDefinitionFrom(otherDef);
     }
 
+    @NotNull
     @Override
     public I instantiate() throws SchemaException {
         return getItemDefinition().instantiate();
     }
 
+    @NotNull
     @Override
     public I instantiate(QName name) throws SchemaException {
         return getItemDefinition().instantiate();

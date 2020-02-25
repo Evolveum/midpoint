@@ -20,7 +20,6 @@ import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeModelTaskHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
@@ -44,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- * The task hander for user recompute.
+ * The task handler for object recompute.
  *
  *  This handler takes care of executing recompute "runs". The task will iterate over all objects of a given type
  *  and recompute their assignments and expressions. This is needed after the expressions are changed,
@@ -59,7 +58,6 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
     public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/recompute/handler-3";
 
     @Autowired private TaskManager taskManager;
-    @Autowired private PrismContext prismContext;
     @Autowired private ContextFactory contextFactory;
     @Autowired private Clockwork clockwork;
 
@@ -81,15 +79,18 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
     }
 
     @Override
-    protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
-            OperationResult opResult) {
+    protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask,
+            OperationResult opResult) throws SchemaException {
+
+        ModelExecuteOptions options = getOptions(coordinatorTask);
+        LOGGER.trace("ModelExecuteOptions: {}", options);
 
         AbstractSearchIterativeResultHandler<FocusType> handler = new AbstractSearchIterativeResultHandler<FocusType>(
                 coordinatorTask, RecomputeTaskHandler.class.getName(), "recompute", "recompute task", partition, taskManager) {
 
             @Override
             protected boolean handleObject(PrismObject<FocusType> object, RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
-                recompute(object, getOptions(coordinatorTask), workerTask, partition, result);
+                recompute(object, options, workerTask, partition, result);
                 return true;
             }
 
@@ -99,14 +100,13 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
     }
 
     private ModelExecuteOptions getOptions(Task coordinatorTask) throws SchemaException {
-        ModelExecuteOptions modelExecuteOptions = ModelImplUtils.getModelExecuteOptions(coordinatorTask);
-        if (modelExecuteOptions == null) {
-            // Make reconcile the default (for compatibility). If there are no options
-            // then assume reconcile.
-            modelExecuteOptions =  ModelExecuteOptions.createReconcile();
+        ModelExecuteOptions optionsFromTask = ModelImplUtils.getModelExecuteOptions(coordinatorTask);
+        if (optionsFromTask != null) {
+            return optionsFromTask;
+        } else {
+            // Make reconcile the default (for compatibility).
+            return ModelExecuteOptions.createReconcile();
         }
-        LOGGER.trace("ModelExecuteOptions: {}", modelExecuteOptions);
-        return modelExecuteOptions;
     }
 
     private void recompute(PrismObject<FocusType> focalObject, ModelExecuteOptions options, Task task, TaskPartitionDefinitionType partition, OperationResult result) throws SchemaException,
@@ -115,11 +115,9 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
         LOGGER.trace("Recomputing object {}", focalObject);
 
         LensContext<FocusType> syncContext = contextFactory.createRecomputeContext(focalObject, options, task, result);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Recomputing object {}: context:\n{}", focalObject, syncContext.debugDump());
-        }
+        LOGGER.trace("Recomputing object {}: context:\n{}", focalObject, syncContext.debugDumpLazily());
 
-        if (partition != null && ExecutionModeType.SIMULATE == partition.getStage()) {
+        if (partition != null && partition.getStage() == ExecutionModeType.SIMULATE) {
             clockwork.previewChanges(syncContext, null, task, result);
         } else {
             clockwork.run(syncContext, task, result);

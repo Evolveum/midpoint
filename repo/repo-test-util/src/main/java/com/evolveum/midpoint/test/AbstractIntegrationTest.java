@@ -116,6 +116,7 @@ import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.testng.AssertJUnit.assertNotNull;
@@ -1826,10 +1827,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assertMetadata("Password metadata in "+shadow, metadata, passwordCreated, false, startCal, endCal, actorOid, channel);
     }
 
-    protected <O extends ObjectType> void assertLastProvisioningTimestamp(PrismObject<O> object,
-            XMLGregorianCalendar start, XMLGregorianCalendar end) {
+    protected <O extends ObjectType> void assertLastProvisioningTimestamp(
+            PrismObject<O> object, XMLGregorianCalendar start, XMLGregorianCalendar end) {
         MetadataType metadata = object.asObjectable().getMetadata();
-        assertNotNull("No metadata in " + object);
+        assertNotNull("No metadata in " + object, metadata);
         assertBetween("Wrong last provisioning timestamp in " + object, start, end, metadata.getLastProvisioningTimestamp());
     }
 
@@ -2969,5 +2970,22 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     protected void removeGlobalTracingOverride() {
         taskManager.removeGlobalTracingOverride();
+    }
+
+    protected Consumer<PrismObject<TaskType>> workerThreadsCustomizer(int threads) {
+        return taskObject -> {
+            if (threads != 0) {
+                //noinspection unchecked
+                PrismProperty<Integer> workerThreadsProperty = prismContext.getSchemaRegistry()
+                        .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS)
+                        .instantiate();
+                workerThreadsProperty.setRealValue(threads);
+                try {
+                    taskObject.addExtensionItem(workerThreadsProperty);
+                } catch (SchemaException e) {
+                    throw new AssertionError(e);
+                }
+            }
+        };
     }
 }

@@ -23,9 +23,6 @@ public interface PrismContainerDefinition<C extends Containerable> extends ItemD
 
     ComplexTypeDefinition getComplexTypeDefinition();
 
-    @Override
-    void revive(PrismContext prismContext);
-
     String getDefaultNamespace();
 
     List<String> getIgnoredNamespaces();

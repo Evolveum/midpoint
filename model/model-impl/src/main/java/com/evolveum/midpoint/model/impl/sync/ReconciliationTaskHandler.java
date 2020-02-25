@@ -31,9 +31,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelConstants;
-import com.evolveum.midpoint.model.impl.lens.AssignmentCollector;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -70,7 +68,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
@@ -99,9 +96,9 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
     private static final String SECOND_STAGE_HANDLER_URI = ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_2;
     private static final String THIRD_STAGE_HANDLER_URI = ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_3;
 
-    public static final String DRY_RUN_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#dryRun";
-    public static final String SIMULATE_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#simulate";
-    public static final String EXECUTE_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#execute";
+//    public static final String DRY_RUN_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#dryRun";
+//    public static final String SIMULATE_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#simulate";
+//    public static final String EXECUTE_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#execute";
 
     /**
      * Just for testability. Used in tests. Injected by explicit call to a
@@ -119,8 +116,6 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    @Autowired private AssignmentCollector assignmentCollector;
-    @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
 
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
@@ -162,23 +157,30 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
     public TaskWorkBucketProcessingResult run(RunningTask localCoordinatorTask, WorkBucketType workBucket,
             TaskPartitionDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult) {
 
-        String handlerUri = localCoordinatorTask.getHandlerUri();
+        String handlerUri;
         if (partitionDefinition != null && partitionDefinition.getHandlerUri() != null) {
             handlerUri = partitionDefinition.getHandlerUri();
+        } else {
+            handlerUri = localCoordinatorTask.getHandlerUri();
         }
-        Stage stage = getStage(handlerUri);
-        LOGGER.trace("ReconciliationTaskHandler.run starting (stage: {})", stage);
+        Stage stageFromHandler = getStage(handlerUri);
+        LOGGER.trace("ReconciliationTaskHandler.run starting (stage from handler: {})", stageFromHandler);
         ReconciliationTaskResult reconResult = new ReconciliationTaskResult();
 
         LOGGER.trace("Recon task: {}", localCoordinatorTask.debugDumpLazily());
 
+        Stage stage;
         if (BooleanUtils.isTrue(localCoordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_FINISH_OPERATIONS_ONLY))) {
-            if (stage == Stage.ALL) {
+            if (stageFromHandler == Stage.ALL) {
                 stage = Stage.FIRST;
+                LOGGER.trace("'Finish operations only' mode selected, changing stage to {}", stage);
             } else {
-                throw new IllegalStateException("Finish operations only selected for wrong stage: " + stage);
+                throw new IllegalStateException("Finish operations only selected for wrong stage: " + stageFromHandler);
             }
+        } else {
+            stage = stageFromHandler;
         }
+
         OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION);
         opResult.setStatus(OperationResultStatus.IN_PROGRESS);
         TaskWorkBucketProcessingResult runResult = new TaskWorkBucketProcessingResult();
@@ -208,11 +210,10 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
             RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
             objectclassDef = ModelImplUtils.determineObjectClass(refinedSchema, localCoordinatorTask);
-
         } catch (ObjectNotFoundException ex) {
             // This is bad. The resource does not exist. Permanent problem.
-            processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR,
-                    opResult);
+            processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex,
+                    TaskRunResultStatus.PERMANENT_ERROR, opResult);
             return runResult;
         } catch (CommunicationException ex) {
             // Error, but not critical. Just try later.
@@ -243,8 +244,8 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         }
 
         if (objectclassDef == null) {
-            processErrorPartial(runResult, "Reconciliation without an object class specification is not supported", null, TaskRunResultStatus.PERMANENT_ERROR,
-                    opResult);
+            processErrorPartial(runResult, "Reconciliation without an object class specification is not supported",
+                    null, TaskRunResultStatus.PERMANENT_ERROR, opResult);
             return runResult;
         }
 
@@ -284,13 +285,15 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         long afterResourceReconTimestamp;
         long afterShadowReconTimestamp;
 
-        boolean intentIsNull = false;
+        boolean intentIsNull;
         PrismProperty<String> intentProperty = localCoordinatorTask.getExtensionPropertyOrClone(ModelConstants.INTENT_PROPERTY_NAME);
-        String intent = null;
+        String intent;
         if (intentProperty != null) {
             intent = intentProperty.getValue().getValue();
+        } else {
+            intent = null;
         }
-        intentIsNull = (intent == null);
+        intentIsNull = intent == null;
 
         try {
             if (isStage(stage, Stage.SECOND) && !performResourceReconciliation(resource, objectclassDef, reconResult,
@@ -348,9 +351,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
         runResult.setShouldContinue(true);
         runResult.setBucketComplete(true);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.getStatus());
-        }
+        LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.getStatus());
 
         long reconEndTimestamp = clock.currentTimeMillis();
 
@@ -447,21 +448,6 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         LOGGER.trace("Reconciliation for resource {} switched to background, control thread returning with task {}", ObjectTypeUtil.toShortString(resource), task);
     }
 
-    private void recordProgress(Task task, long progress, OperationResult opResult) {
-        try {
-            task.setProgressImmediate(progress, opResult);
-        } catch (ObjectNotFoundException e) {             // these exceptions are of so little probability and harmless, so we just log them and do not report higher
-            LoggingUtils.logException(LOGGER, "Couldn't record progress to task {}, probably because the task does not exist anymore", e, task);
-        } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't record progress to task {}, due to unexpected schema exception", e, task);
-        }
-    }
-
-    // TODO do this only each N seconds (as in AbstractSearchIterativeResultHandler)
-    private void incrementAndRecordProgress(Task task, OperationResult opResult) {
-        recordProgress(task, task.getProgress() + 1, opResult);
-    }
-
     private void processInterruption(TaskRunResult runResult, PrismObject<ResourceType> resource, RunningTask task, OperationResult opResult) {
         opResult.recordWarning("Interrupted");
         if (LOGGER.isWarnEnabled()) {
@@ -524,18 +510,17 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         localCoordinatorTask.setExpectedTotal(null);
 
         try {
-
-            ObjectQuery query = objectclassDef.createShadowSearchQuery(resource.getOid());
-            query = addQueryFromTaskIfExists(query, localCoordinatorTask);
-            query = narrowQueryForBucket(query, localCoordinatorTask, workBucket, objectclassDef, opResult);
+            ObjectQuery shadowSearchQuery = objectclassDef.createShadowSearchQuery(resource.getOid());
+            ObjectQuery taskEnhancedQuery = addQueryFromTaskIfExists(shadowSearchQuery, localCoordinatorTask);
+            ObjectQuery bucketNarrowedQuery = narrowQueryForBucket(taskEnhancedQuery, localCoordinatorTask, workBucket, objectclassDef, opResult);
 
             OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative");
 
-            handler.createWorkerThreads(localCoordinatorTask, searchResult);
+            handler.createWorkerThreads(localCoordinatorTask);
             // note that progress is incremented within the handler, as it extends AbstractSearchIterativeResultHandler
             try {
-                provisioningService
-                        .searchObjectsIterative(ShadowType.class, query, null, handler, localCoordinatorTask, searchResult);
+                provisioningService.searchObjectsIterative(ShadowType.class, bucketNarrowedQuery, null, handler,
+                        localCoordinatorTask, searchResult);
             } finally {
                 handler.completeProcessing(localCoordinatorTask, searchResult);
             }
@@ -552,9 +537,11 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
                 message += ". Average time for one object: " + handler.getAverageTime() + " ms (wall clock time average: " + handler.getWallAverageTime() + " ms).";
             }
 
-            OperationResultStatus resultStatus = OperationResultStatus.SUCCESS;
+            OperationResultStatus resultStatus;
             if (handler.getErrors() > 0) {
                 resultStatus = OperationResultStatus.PARTIAL_ERROR;
+            } else {
+                resultStatus = OperationResultStatus.SUCCESS;
             }
             opResult.recordStatus(resultStatus, message);
             LOGGER.info("Finished resource part of {} reconciliation: {}", resource, message);
@@ -569,8 +556,6 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         return !interrupted;
     }
 
-
-
     // returns false in case of execution interruption
     private boolean performShadowReconciliation(final PrismObject<ResourceType> resource,
             final ObjectClassComplexTypeDefinition objectclassDef,
@@ -583,7 +568,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         LOGGER.trace("Shadow reconciliation starting for {}, {} -> {}", resource, startTimestamp, endTimestamp);
         OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation");
 
-        ObjectQuery query = prismContext.queryFor(ShadowType.class)
+        ObjectQuery initialQuery = prismContext.queryFor(ShadowType.class)
                 .block()
                     .item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(startTimestamp))
                     .or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
@@ -592,10 +577,10 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(objectclassDef.getTypeName())
                 .build();
 
-        query = addQueryFromTaskIfExists(query, localCoordinatorTask);
-        query = narrowQueryForBucket(query, localCoordinatorTask, workBucket, objectclassDef, opResult);
+        ObjectQuery taskEnhancedQuery = addQueryFromTaskIfExists(initialQuery, localCoordinatorTask);
+        ObjectQuery bucketNarrowedQuery = narrowQueryForBucket(taskEnhancedQuery, localCoordinatorTask, workBucket, objectclassDef, opResult);
 
-        LOGGER.trace("Shadow recon query:\n{}", query.debugDumpLazily());
+        LOGGER.trace("Shadow recon query:\n{}", bucketNarrowedQuery.debugDumpLazily());
 
         long started = System.currentTimeMillis();
 
@@ -613,9 +598,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
                 return true;
             }
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Shadow reconciliation of {}, fullSynchronizationTimestamp={}", shadow, shadow.asObjectable().getFullSynchronizationTimestamp());
-            }
+            LOGGER.trace("Shadow reconciliation of {}, fullSynchronizationTimestamp={}", shadow, shadow.asObjectable().getFullSynchronizationTimestamp());
             long started1 = System.currentTimeMillis();
             PrismObject<ShadowType> resourceShadow;
             try {
@@ -637,7 +620,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
             return localCoordinatorTask.canRun();
         };
 
-        repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, true, opResult);
+        repositoryService.searchObjectsIterative(ShadowType.class, bucketNarrowedQuery, handler, null, true, opResult);
         interrupted = !localCoordinatorTask.canRun();
 
         // for each try the operation again
@@ -698,9 +681,9 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
     private PrismObject<ShadowType> reconcileShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task) {
         OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION+".shadowReconciliation.object");
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = null;
+            Collection<SelectorOptions<GetOperationOptions>> options;
             if (TaskUtil.isDryRun(task)) {
-                 options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
+                options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
             } else {
                 options = SelectorOptions.createCollection(GetOperationOptions.createForceRefresh());
             }
@@ -777,11 +760,9 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
             RepositoryCache.enter(cacheConfigurationManager);
             OperationResult provisioningResult = new OperationResult(OperationConstants.RECONCILIATION+".finishOperation");
             try {
-//                ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
                 ProvisioningOperationOptions options = ProvisioningOperationOptions.createForceRetry(Boolean.TRUE);
                 ModelImplUtils.clearRequestee(task);
                 provisioningService.refreshShadow(shadow, options, task, provisioningResult);
-//                retryFailedOperation(shadow.asObjectable(), opResult);
 
                 task.recordIterativeOperationEnd(shadow.asObjectable(), started, null);
                 processedSuccess++;
@@ -815,8 +796,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
     @Override
     public Long heartbeat(Task task) {
-        // TODO Auto-generated method stub
-        return 0L;
+        return null;
     }
 
     @Override

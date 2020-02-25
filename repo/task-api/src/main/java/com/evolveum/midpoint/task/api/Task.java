@@ -86,7 +86,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      *
      * @return task owner
      */
-    PrismObject<UserType> getOwner();
+    PrismObject<? extends FocusType> getOwner();
 
     /**
      * Sets the task owner.
@@ -94,7 +94,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * BEWARE: sets the owner only for in-memory information. So do not call this method for persistent tasks!
      * (until fixed)
      */
-    void setOwner(PrismObject<UserType> owner);
+    void setOwner(PrismObject<? extends FocusType> owner);
 
     /**
      * Returns human-readable name of the task.
@@ -305,6 +305,10 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * Returns the schedule.
      */
     ScheduleType getSchedule();
+
+    Integer getScheduleInterval();
+
+    boolean hasScheduleInterval();
 
     /**
      * Returns the time when the task last run was started (or null if the task was never started).
@@ -807,19 +811,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     void startWaitingForTasksImmediate(OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-    /**
-     * There is a special "marker" task handler (@see WaitForTasksTaskHandler) that, when executed, causes
-     * current task to wait for its prerequisities. It is used on occasions where you want the task to execute
-     * something (handler1), then wait for subtasks, then e.g. execute something other (handler2). Therefore the
-     * stack will look like this:
-     *
-     * - handler1
-     * - WaitForTasksTaskHandler
-     * - handler2
-     */
-    @SuppressWarnings("unused")
-    void pushWaitForTasksHandlerUri();
-
     // ====================================================================================== Supplementary information
 
     /**
@@ -857,9 +848,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     TaskExecutionEnvironmentType getExecutionEnvironment();
 
     void setExecutionEnvironment(TaskExecutionEnvironmentType value);
-
-    @SuppressWarnings("unused")
-    void setExecutionEnvironmentImmediate(TaskExecutionEnvironmentType value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     @SuppressWarnings("unused")
     void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value);

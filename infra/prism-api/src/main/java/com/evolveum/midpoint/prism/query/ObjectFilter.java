@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.query;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismContextSensitive;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -16,7 +17,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.io.Serializable;
 
-public interface ObjectFilter extends DebugDumpable, Serializable, Revivable {
+public interface ObjectFilter extends DebugDumpable, Serializable, Revivable, PrismContextSensitive {
 
     /**
      * Does a SHALLOW clone.
@@ -34,7 +35,7 @@ public interface ObjectFilter extends DebugDumpable, Serializable, Revivable {
 
     boolean equals(Object o, boolean exact);
 
-    PrismContext getPrismContext();
-
+    // FIXME: Unused
+    @Deprecated
     void setPrismContext(PrismContext prismContext);
 }

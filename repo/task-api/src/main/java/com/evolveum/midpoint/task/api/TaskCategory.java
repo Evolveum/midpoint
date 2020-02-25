@@ -27,5 +27,6 @@ public class TaskCategory {
     public static final String REPORT = "Report";
     public static final String CUSTOM = "Custom";
     public static final String ACCESS_CERTIFICATION = "AccessCertification";
+    public static final String CLEANUP = "Cleanup";
     public static final String UTIL = "Utility";
 }

@@ -6,6 +6,21 @@
  */
 package com.evolveum.midpoint.gui.api.util;
 
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ItemPanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
@@ -14,15 +29,16 @@ import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+
+import javax.xml.namespace.QName;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author katka
@@ -36,6 +52,9 @@ public class WebPrismUtil {
     private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
 
     public static <ID extends ItemDefinition<I>, I extends Item<V, ID>, V extends PrismValue> String getHelpText(ID def) {
+        if (def == null) {
+            return null;
+        }
         String doc = def.getHelp();
         if (StringUtils.isEmpty(doc)) {
             doc = def.getDocumentation();
@@ -80,4 +99,49 @@ public class WebPrismUtil {
         return newValueWrapper;
     }
 
+    public static <IW extends ItemWrapper> IW findItemWrapper(ItemWrapper<?,?,?,?> child, ItemPath absoluthPathToFind, Class<IW> wrapperClass) {
+        PrismObjectWrapper<?> taskWrapper = child.findObjectWrapper();
+        try {
+            return taskWrapper.findItem(ItemPath.create(absoluthPathToFind), wrapperClass);
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot get obejct reference value, {}", e, e.getMessage());
+            return null;
+        }
+    }
+
+    public static <R extends Referencable> PrismReferenceWrapper<R> findReferenceWrapper(ItemWrapper<?,?,?,?> child, ItemPath pathToFind) {
+        return findItemWrapper(child, pathToFind, PrismReferenceWrapper.class);
+    }
+
+    public static <T> PrismPropertyWrapper<T> findPropertyWrapper(ItemWrapper<?,?,?,?> child, ItemPath pathToFind) {
+        return findItemWrapper(child, pathToFind, PrismPropertyWrapper.class);
+    }
+
+    public static <R extends Referencable> PrismReferenceValue findSingleReferenceValue(ItemWrapper<?,?,?,?> child, ItemPath pathToFind) {
+        PrismReferenceWrapper<R> objectRefWrapper = findReferenceWrapper(child, pathToFind);
+        if (objectRefWrapper == null) {
+            return null;
+        }
+
+        try {
+            return objectRefWrapper.getValue().getNewValue();
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot get object reference value, {}", e, e.getMessage());
+            return null;
+        }
+    }
+
+    public static <T> PrismPropertyValue<T> findSinglePropertyValue(ItemWrapper<?,?,?,?> child, ItemPath pathToFind) {
+        PrismPropertyWrapper<T> propertyWrapper = findPropertyWrapper(child, pathToFind);
+        if (propertyWrapper == null) {
+            return null;
+        }
+
+        try {
+            return propertyWrapper.getValue().getNewValue();
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot get object reference value, {}", e, e.getMessage());
+            return null;
+        }
+    }
 }

@@ -45,7 +45,6 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
         </icfc:configurationProperties>
     </connectorConfiguration>
 
-
     <schemaHandling>
         <objectType>
             <displayName>Default Account</displayName>

@@ -64,8 +64,11 @@ public class ArchetypeManager {
         }
 
         List<ObjectReferenceType> archetypeRefs = assignmentHolder.asObjectable().getArchetypeRef();
-        if (archetypeRefs == null || archetypeRefs.isEmpty()) {
-            return null;
+        if (CollectionUtils.isEmpty(archetypeRefs)) {
+            if (CollectionUtils.isEmpty(archetypeAssignmentsRef)) {
+                return null;
+            }
+            return archetypeAssignmentsRef.get(0);
         }
         if (archetypeRefs.size() > 1) {
             throw new SchemaException("Only a single archetype for an object is supported: "+assignmentHolder);

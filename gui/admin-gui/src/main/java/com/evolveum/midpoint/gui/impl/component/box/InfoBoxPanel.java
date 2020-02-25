@@ -10,6 +10,7 @@ import java.util.HashMap;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
@@ -104,7 +104,7 @@ public abstract class InfoBoxPanel extends Panel{
             private static final long serialVersionUID = 1L;
 
             {
-                put(TaskType.COMPLEX_TYPE, PageTaskEdit.class);
+                put(TaskType.COMPLEX_TYPE, PageTask.class);
                 put(UserType.COMPLEX_TYPE, PageUser.class);
                 put(RoleType.COMPLEX_TYPE, PageRole.class);
                 put(OrgType.COMPLEX_TYPE, PageOrgUnit.class);

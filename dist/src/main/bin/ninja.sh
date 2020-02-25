@@ -70,6 +70,6 @@ if [ ! -z "$JDBC_DRIVER" ] ; then
    JDBC_DRIVER="-Dloader.path=$JDBC_DRIVER"
 fi
 
-exec "$_RUNJAVA" $JDBC_DRIVER -jar $SCRIPT_PATH../lib/ninja.jar -m $MIDPOINT_HOME $@
+exec "$_RUNJAVA" $JDBC_DRIVER -jar $SCRIPT_PATH../lib/ninja.jar -m $MIDPOINT_HOME "$@"
 
 

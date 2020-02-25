@@ -61,7 +61,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     protected static final File ROLE_BIG_JUDGE_FILE = new File(TEST_DIR, "role-big-judge.xml");
     protected static final String ROLE_BIG_JUDGE_OID = "12345111-1111-2222-1111-121212111224";
 
-    private static final XMLGregorianCalendar LONG_LONG_TIME_AGO = XmlTypeConverter.createXMLGregorianCalendar(1111, 1, 1, 12, 00, 00);
+    private static final XMLGregorianCalendar LONG_LONG_TIME_AGO = XmlTypeConverter.createXMLGregorianCalendar(1111, 1, 1, 12, 0, 0);
 
     private XMLGregorianCalendar drakeValidFrom;
     private XMLGregorianCalendar drakeValidTo;
@@ -225,7 +225,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertLinks(user, 2);
         assert11xUserOk(user);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
 
         // CLEANUP
@@ -257,7 +257,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertNoLinkedAccount(user);
         assert11xUserOk(user);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 
         // CLEANUP
@@ -575,7 +575,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 1);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -617,7 +617,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 1);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -658,7 +658,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 1);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -694,7 +694,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 0);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -732,7 +732,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 1);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -770,7 +770,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 1);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -816,7 +816,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 0);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -874,7 +874,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 1);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -921,7 +921,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 0);
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 
         objectDelta =
@@ -953,7 +953,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         assertNoAssignments(user);
 
-        principal = userProfileService.getPrincipal(user);
+        principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -1007,7 +1007,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 1);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -1049,7 +1049,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 1);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -1090,7 +1090,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 1);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -1130,7 +1130,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 1);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -1168,7 +1168,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 1);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -1206,7 +1206,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 1);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -1262,7 +1262,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 1);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -1320,7 +1320,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 1);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
     }
 
@@ -1364,7 +1364,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 
         objectDelta =
@@ -1402,7 +1402,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         assertNoAssignments(user);
 
-        principal = userProfileService.getPrincipal(user);
+        principal = focusProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
     }
 

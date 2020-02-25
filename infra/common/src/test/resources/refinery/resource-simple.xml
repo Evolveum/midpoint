@@ -11,6 +11,7 @@
 <object xsi:type="ResourceType" oid="10000000-0000-0000-0000-000000000003"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
@@ -18,16 +19,17 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
     <name>Localhost OpenDJ Simple</name>
     <connectorRef oid="14e63399-8869-4787-9369-93f9d1311671" type="ConnectorType">
-        <and xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
-            <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType" />
-            <c:equal>
-                <c:value>
-                    <c:connectorType>org.identityconnectors.ldap.LdapConnector</c:connectorType>
-                </c:value>
-            </c:equal>
-        </and>
+      <filter>
+        <q:and>
+            <q:type>
+                <q:type>c:ConnectorType</q:type>
+            </q:type>
+            <q:equal>
+                <q:path>connectorType</q:path>
+                <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
+            </q:equal>
+        </q:and>
+        </filter>
     </connectorRef>
     <connectorConfiguration>
         <icfcldap:configurationProperties xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"

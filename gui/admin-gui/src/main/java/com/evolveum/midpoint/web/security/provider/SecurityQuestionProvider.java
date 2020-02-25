@@ -8,14 +8,14 @@ package com.evolveum.midpoint.web.security.provider;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.SecurityQuestionsAuthenticationContext;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.module.authentication.SecurityQuestionsAuthenticationToken;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +46,9 @@ public class SecurityQuestionProvider extends AbstractCredentialProvider<Securit
     }
 
     @Override
-    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment, AuthenticationChannel channel) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof MidPointUserProfilePrincipal) {
+    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment,
+            AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
+        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
             return authentication;
         }
         String enteredUsername = (String) authentication.getPrincipal();
@@ -59,7 +60,8 @@ public class SecurityQuestionProvider extends AbstractCredentialProvider<Securit
             Authentication token;
             if (authentication instanceof SecurityQuestionsAuthenticationToken) {
                 Map<String, String> answers = (Map<String, String>) authentication.getCredentials();
-                SecurityQuestionsAuthenticationContext authContext = new SecurityQuestionsAuthenticationContext(enteredUsername, answers, requireAssignment);
+                SecurityQuestionsAuthenticationContext authContext = new SecurityQuestionsAuthenticationContext(enteredUsername,
+                        focusType, answers, requireAssignment);
                 if (channel != null) {
                     authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
                 }

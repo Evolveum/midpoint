@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.util.KeyStoreKey;
+import com.evolveum.midpoint.web.security.util.MidpointSamlLocalServiceProviderConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang3.StringUtils;
@@ -57,13 +58,15 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         SamlModuleWebSecurityConfiguration.protector = protector;
     }
 
-    public static SamlModuleWebSecurityConfiguration build(AuthenticationModuleSaml2Type modelType, String prefixOfSequence, ServletRequest request){
-        SamlModuleWebSecurityConfiguration configuration = buildInternal((AuthenticationModuleSaml2Type)modelType, prefixOfSequence, request);
+    public static SamlModuleWebSecurityConfiguration build(AuthenticationModuleSaml2Type modelType, String prefixOfSequence,
+            String publicHttpUrlPattern, ServletRequest request){
+        SamlModuleWebSecurityConfiguration configuration = buildInternal((AuthenticationModuleSaml2Type)modelType, prefixOfSequence, publicHttpUrlPattern, request);
         configuration.validate();
         return configuration;
     }
 
-    private static SamlModuleWebSecurityConfiguration buildInternal(AuthenticationModuleSaml2Type modelType, String prefixOfSequence, ServletRequest request){
+    private static SamlModuleWebSecurityConfiguration buildInternal(AuthenticationModuleSaml2Type modelType, String prefixOfSequence, String publicHttpUrlPattern,
+            ServletRequest request){
         SamlModuleWebSecurityConfiguration configuration = new SamlModuleWebSecurityConfiguration();
         build(configuration, modelType, prefixOfSequence);
         SamlServerConfiguration samlConfiguration = new SamlServerConfiguration();
@@ -79,13 +82,18 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             samlConfiguration.setNetwork(network);
         }
         AuthenticationModuleSaml2ServiceProviderType serviceProviderType = modelType.getServiceProvider();
-        LocalServiceProviderConfiguration serviceProvider = new LocalServiceProviderConfiguration();
+        MidpointSamlLocalServiceProviderConfiguration serviceProvider = new MidpointSamlLocalServiceProviderConfiguration();
         serviceProvider.setEntityId(serviceProviderType.getEntityId())
                 .setSignMetadata(Boolean.TRUE.equals(serviceProviderType.isSignRequests()))
                 .setSignRequests(Boolean.TRUE.equals(serviceProviderType.isSignRequests()))
                 .setWantAssertionsSigned(Boolean.TRUE.equals(serviceProviderType.isWantAssertionsSigned()))
-                .setSingleLogoutEnabled(Boolean.TRUE.equals(serviceProviderType.isSingleLogoutEnabled()))
-                .setBasePath(getBasePath(((HttpServletRequest) request)));
+                .setSingleLogoutEnabled(Boolean.TRUE.equals(serviceProviderType.isSingleLogoutEnabled()));
+        if (StringUtils.isNotBlank(publicHttpUrlPattern)) {
+            serviceProvider.setBasePath(publicHttpUrlPattern);
+        } else {
+            serviceProvider.setBasePath(getBasePath(((HttpServletRequest) request)));
+        }
+
         List<Object> objectList = new ArrayList<Object>();
         for (AuthenticationModuleSaml2NameIdType nameIdType : serviceProviderType.getNameId()) {
             objectList.add(nameIdType.value());
@@ -137,6 +145,8 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             }
         }
         serviceProvider.setKeys(key);
+        serviceProvider.setAlias(serviceProviderType.getAlias());
+        serviceProvider.setAliasForPath(serviceProviderType.getAliasForPath());
 
         List<ExternalIdentityProviderConfiguration> providers = new ArrayList<ExternalIdentityProviderConfiguration>();
         List<AuthenticationModuleSaml2ProviderType> providersType = serviceProviderType.getProvider();

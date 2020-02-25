@@ -328,7 +328,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
         } else if (ExpressionConstants.VAR_USER.equals(varName)) {
             return model.resolveRepositoryItem(UserType.class, itemPath);
         } else if (ExpressionConstants.VAR_ACTOR.equals(varName)) {
-            return model.resolveRepositoryItem(UserType.class, itemPath);            // TODO
+            return model.resolveRepositoryItem(FocusType.class, itemPath);            // TODO
         } else if (ExpressionConstants.VAR_FOCUS.equals(varName)) {
             Class<? extends ObjectType> guessedClass = guessFocusClass(currentItem.getResourceOid(), currentItem.getKind(), currentItem.getIntent());
             DataItem item = model.resolveRepositoryItem(guessedClass, itemPath);
@@ -361,7 +361,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
     @NotNull
     private DataItem resolveTargetItem(@NotNull DataModel model, @NotNull ResourceDataItem currentItem,
             @NotNull MappingType mapping, @NotNull ItemPath path, @Nullable String defaultVariable) {
-        if (!path.startsWithName()) {
+        if (!path.startsWithName() && !path.startsWithVariable()) {
             LOGGER.warn("Probably incorrect path ({}) - does not start with a name - skipping", path);
             return createAdHocDataItem(model, path);
         }
@@ -385,7 +385,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
         } else if (ExpressionConstants.VAR_USER.equals(varName)) {
             return model.resolveRepositoryItem(UserType.class, itemPath);
         } else if (ExpressionConstants.VAR_ACTOR.equals(varName)) {
-            return model.resolveRepositoryItem(UserType.class, itemPath);            // TODO
+            return model.resolveRepositoryItem(FocusType.class, itemPath);            // TODO
         } else if (ExpressionConstants.VAR_FOCUS.equals(varName)) {
             Class<? extends ObjectType> guessedClass = guessFocusClass(currentItem.getResourceOid(), currentItem.getKind(), currentItem.getIntent());
             DataItem item = model.resolveRepositoryItem(guessedClass, itemPath);

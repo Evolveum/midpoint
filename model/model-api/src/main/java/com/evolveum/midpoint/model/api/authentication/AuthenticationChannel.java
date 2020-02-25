@@ -17,8 +17,6 @@ import java.util.Collection;
 
 public interface AuthenticationChannel {
 
-    public final static String DEFAULT_POST_AUTHENTICATION_URL = "/self/dashboard";
-
     public String getChannelId();
 
     public String getPathAfterSuccessfulAuthentication();
@@ -36,4 +34,6 @@ public interface AuthenticationChannel {
     public String getSpecificLoginUrl();
 
     public boolean isSupportActivationByChannel();
+
+    public String getUrlSuffix();
 }

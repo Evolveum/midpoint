@@ -27,7 +27,7 @@ import java.util.function.Function;
  * @author Radovan Semancik
  *
  */
-public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extends Itemable, DebugDumpable, Visitable, PathVisitable, Foreachable<V>, Serializable, Freezable {
+public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extends Itemable, DebugDumpable, Visitable, PathVisitable, Foreachable<V>, Serializable, Freezable, PrismContextSensitive {
 
     ItemName getElementName();
 
@@ -59,8 +59,6 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
     void applyDefinition(D definition) throws SchemaException;
 
     boolean hasCompleteDefinition();
-
-    PrismContext getPrismContext();
 
     Class<? extends Item> getItemClass();
 

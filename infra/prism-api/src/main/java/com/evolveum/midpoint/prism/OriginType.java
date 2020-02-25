@@ -11,6 +11,9 @@ package com.evolveum.midpoint.prism;
  * This enum defines source from where a change in property value occurred.
  *
  * @author lazyman
+ *
+ * FIXME: Abstraction leak
+ * TODO: Metadata candidate
  */
 public enum OriginType {
 

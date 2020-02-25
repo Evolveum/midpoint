@@ -31,7 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
@@ -214,7 +216,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected ProvisioningService provisioningService;
     @Autowired protected HookRegistry hookRegistry;
     @Autowired protected Clock clock;
-    @Autowired protected PrismContext prismContext;
     @Autowired protected SchemaHelper schemaHelper;
     @Autowired protected DummyTransport dummyTransport;
     @Autowired protected SecurityEnforcer securityEnforcer;
@@ -230,7 +231,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected NotificationManager notificationManager;
 
     @Autowired(required = false)
-    protected UserProfileService userProfileService;
+    protected GuiProfiledPrincipalManager focusProfileService;
 
     protected DummyResourceCollection dummyResourceCollection;
 
@@ -3075,6 +3076,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
+    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
+        return waitForTaskFinish(taskOid, checkSubresult, 0, DEFAULT_TASK_WAIT_TIMEOUT, false, 0, customizer);
+    }
+
     protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws CommonException {
         return waitForTaskFinish(taskOid, checkSubresult, timeout, false);
     }
@@ -3084,13 +3089,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final int timeout, final boolean errorOk) throws CommonException {
-        return waitForTaskFinish(taskOid, checkSubresult, startTime, timeout, errorOk, 0);
+        return waitForTaskFinish(taskOid, checkSubresult, startTime, timeout, errorOk, 0, null);
     }
 
-    protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final int timeout, final boolean errorOk, int showProgressEach) throws CommonException {
+    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult, long startTime, int timeout, boolean errorOk,
+            int showProgressEach, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
         long realStartTime = startTime != 0 ? startTime : System.currentTimeMillis();
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
-        TaskFinishChecker checker = new TaskFinishChecker(taskOid, waitResult, checkSubresult, errorOk, timeout, showProgressEach);
+        TaskFinishChecker.Builder builder = new TaskFinishChecker.Builder()
+                .taskManager(taskManager)
+                .taskOid(taskOid)
+                .waitResult(waitResult)
+                .checkSubresult(checkSubresult)
+                .errorOk(errorOk)
+                .timeout(timeout)
+                .showProgressEach(showProgressEach)
+                .verbose(verbose);
+        if (customizer != null) {
+            builder = customizer.apply(builder);
+        }
+        TaskFinishChecker checker = builder.build();
         IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, realStartTime, timeout, DEFAULT_TASK_SLEEP_TIME);
         return checker.getLastTask();
     }
@@ -3191,68 +3209,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 fail("Photo is different than expected.\nExpected = " + Arrays.toString(expectedValue)
                         + "\nActual value = " + Arrays.toString(actualValue));
             }
-        }
-    }
-
-    private class TaskFinishChecker implements Checker {
-        private final String taskOid;
-        private final OperationResult waitResult;
-        private final boolean checkSubresult;
-        private final boolean errorOk;
-        private final int timeout;
-        private final int showProgressEach;
-        private Task freshTask;
-        private long progressLastShown;
-
-        public TaskFinishChecker(String taskOid, OperationResult waitResult, boolean checkSubresult,
-                boolean errorOk, int timeout, int showProgressEach) {
-            super();
-            this.taskOid = taskOid;
-            this.waitResult = waitResult;
-            this.checkSubresult = checkSubresult;
-            this.errorOk = errorOk;
-            this.timeout = timeout;
-            this.showProgressEach = showProgressEach;
-        }
-
-        @Override
-        public boolean check() throws CommonException {
-            freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
-            long currentProgress = freshTask.getProgress();
-            if (showProgressEach != 0 && currentProgress - progressLastShown >= showProgressEach) {
-                System.out.println("Task progress: " + currentProgress);
-                progressLastShown = currentProgress;
-            }
-            OperationResult result = freshTask.getResult();
-            if (verbose) display("Check result", result);
-            if (isError(result, checkSubresult)) {
-                if (errorOk) {
-                    return true;
-                } else {
-                    AssertJUnit.fail("Error in "+freshTask+": "+TestUtil.getErrorMessage(result));
-                }
-            }
-            if (isUnknown(result, checkSubresult)) {
-                return false;
-            }
-//            assert !isUnknown(result, checkSubresult) : "Unknown result in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
-            return !isInProgress(result, checkSubresult);
-        }
-
-        @Override
-        public void timeout() {
-            try {
-                Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
-                OperationResult result = freshTask.getResult();
-                LOGGER.debug("Result of timed-out task:\n{}", result != null ? result.debugDump() : null);
-                assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" to finish. Last result "+result;
-            } catch (ObjectNotFoundException | SchemaException e) {
-                LOGGER.error("Exception during task refresh: {}", e,e);
-            }
-        }
-
-        public Task getLastTask() {
-            return freshTask;
         }
     }
 
@@ -3449,9 +3405,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
             long waiting = (System.currentTimeMillis() - start) / 1000;
             String description =
-                    freshRootTask.getName().getOrig() + " (" + freshRootTask.getExecutionStatus() + "/" + freshRootTask
-                            .getNode() + "/" + freshRootTask.getProgress() + ") ["
-                            + waiting + "]";
+                    freshRootTask.getName().getOrig() + " [es:" + freshRootTask.getExecutionStatus() + ", rs:" +
+                            freshRootTask.getResultStatus() + ", p:" + freshRootTask.getProgress() + ", n:" +
+                            freshRootTask.getNode() + "] (waiting for: " + waiting + ")";
             // was the whole task tree refreshed at least once after we were called?
             if (!triggered.getValue() && (freshRootTask.getLastRunStartTimestamp() == null
                     || freshRootTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
@@ -3554,22 +3510,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return longTime.toString();
     }
 
-    private boolean isError(OperationResult result, boolean checkSubresult) {
+    public static boolean isError(OperationResult result, boolean checkSubresult) {
         OperationResult subresult = getSubresult(result, checkSubresult);
-        return subresult != null ? subresult.isError() : false;
+        return subresult != null && subresult.isError();
     }
 
-    private boolean isUnknown(OperationResult result, boolean checkSubresult) {
+    public static boolean isUnknown(OperationResult result, boolean checkSubresult) {
         OperationResult subresult = getSubresult(result, checkSubresult);
-        return subresult != null ? subresult.isUnknown() : false;            // TODO or return true?
+        return subresult != null && subresult.isUnknown();            // TODO or return true if null?
     }
 
-    private boolean isInProgress(OperationResult result, boolean checkSubresult) {
+    public static boolean isInProgress(OperationResult result, boolean checkSubresult) {
         OperationResult subresult = getSubresult(result, checkSubresult);
-        return subresult != null ? subresult.isInProgress() : true;        // "true" if there are no subresults
+        return subresult == null || subresult.isInProgress();        // "true" if there are no subresults
     }
 
-    private OperationResult getSubresult(OperationResult result, boolean checkSubresult) {
+    private static OperationResult getSubresult(OperationResult result, boolean checkSubresult) {
         if (checkSubresult) {
             return result != null ? result.getLastSubresult() : null;
         }
@@ -4524,12 +4480,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void login(String principalName) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(principalName, UserType.class);
         login(principal);
     }
 
     protected void login(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         login(principal);
     }
 
@@ -4553,12 +4509,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void loginSuperUser(String principalName) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(principalName, UserType.class);
         loginSuperUser(principal);
     }
 
     protected void loginSuperUser(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         loginSuperUser(principal);
     }
 
@@ -4582,7 +4538,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void assertLoggedInUsername(String username) {
         MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
-        UserType user = midPointPrincipal.getUser();
+        FocusType user = midPointPrincipal.getFocus();
         if (user == null) {
             if (username == null) {
                 return;
@@ -4599,7 +4555,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertPrincipalUserOid(MidPointPrincipal principal, String userOid) {
-        UserType user = principal.getUser();
+        FocusType user = principal.getFocus();
         if (user == null) {
             if (userOid == null) {
                 return;
@@ -4628,7 +4584,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected PrismObject<UserType> getSecurityContextPrincipalUser() {
+    protected PrismObject<? extends FocusType> getSecurityContextPrincipalFocus() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = securityContext.getAuthentication();
         if (authentication == null) {
@@ -4639,11 +4595,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             return null;
         }
         if (principal instanceof MidPointPrincipal) {
-            UserType userType = ((MidPointPrincipal)principal).getUser();
-            if (userType == null) {
+            FocusType focusType = ((MidPointPrincipal)principal).getFocus();
+            if (focusType == null) {
                 return null;
             }
-            return userType.asPrismObject();
+            return focusType.asPrismObject();
         } else {
             return null;
         }
@@ -4671,7 +4627,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertPrincipalAttorneyOid(MidPointPrincipal principal, String attotrneyOid) {
-        UserType attorney = principal.getAttorney();
+        FocusType attorney = principal.getAttorney();
         if (attorney == null) {
             if (attotrneyOid == null) {
                 return;
@@ -4799,7 +4755,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected Task createTask(String operationName, MidPointPrincipal principal) {
         Task task = super.createTask(operationName);
-        task.setOwner(principal.getUser().asPrismObject());
+        task.setOwner(principal.getFocus().asPrismObject());
         task.setChannel(DEFAULT_CHANNEL);
         return task;
     }
@@ -5086,7 +5042,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertAuthorizations(PrismObject<UserType> user, String... expectedAuthorizations) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotNull("No principal for "+user, principal);
         assertAuthorizations(principal, expectedAuthorizations);
     }
@@ -5101,7 +5057,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 
     protected void assertNoAuthorizations(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotNull("No principal for "+user, principal);
         assertNoAuthorizations(principal);
     }
@@ -5112,19 +5068,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected CompiledUserProfileAsserter<Void> assertCompiledUserProfile(MidPointPrincipal principal) {
-        if (!(principal instanceof MidPointUserProfilePrincipal)) {
-            fail("Expected MidPointUserProfilePrincipal, but got "+principal.getClass());
+    protected CompiledGuiProfileAsserter<Void> assertCompiledGuiProfile(MidPointPrincipal principal) {
+        if (!(principal instanceof GuiProfiledPrincipal)) {
+            fail("Expected GuiProfiledPrincipal, but got "+principal.getClass());
         }
-        CompiledUserProfile compiledUserProfile = ((MidPointUserProfilePrincipal)principal).getCompiledUserProfile();
-        CompiledUserProfileAsserter<Void> asserter = new CompiledUserProfileAsserter<>(compiledUserProfile, null, "in principal "+principal);
+        CompiledGuiProfile compiledGuiProfile = ((GuiProfiledPrincipal)principal).getCompiledGuiProfile();
+        CompiledGuiProfileAsserter<Void> asserter = new CompiledGuiProfileAsserter<>(compiledGuiProfile, null, "in principal "+principal);
         initializeAsserter(asserter);
         asserter.display();
         return asserter;
     }
 
-    protected CompiledUserProfileAsserter<Void> assertCompiledUserProfile(CompiledUserProfile compiledUserProfile) {
-        CompiledUserProfileAsserter<Void> asserter = new CompiledUserProfileAsserter<>(compiledUserProfile, null, null);
+    protected CompiledGuiProfileAsserter<Void> assertCompiledGuiProfile(CompiledGuiProfile compiledGuiProfile) {
+        CompiledGuiProfileAsserter<Void> asserter = new CompiledGuiProfileAsserter<>(compiledGuiProfile, null, null);
         initializeAsserter(asserter);
         asserter.display();
         return asserter;
@@ -5730,6 +5686,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         } else {
             return rv.get(0);
         }
+    }
+
+    @SuppressWarnings("unused")     // maybe in the future :)
+    protected Consumer<Task> createShowTaskTreeConsumer(long period) {
+        AtomicLong lastTimeShown = new AtomicLong(0);
+        return task -> {
+            try {
+                if (lastTimeShown.get() + period < System.currentTimeMillis()) {
+                    dumpTaskTree(task.getOid(), getResult());
+                    lastTimeShown.set(System.currentTimeMillis());
+                }
+            } catch (CommonException e) {
+                throw new AssertionError(e);
+            }
+        };
     }
 
     // highly experimental
@@ -6483,7 +6454,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     private Task createAllowDenyTask(String opname) {
         Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertAllow."+opname);
-        task.setOwner(getSecurityContextPrincipalUser());
+        task.setOwner(getSecurityContextPrincipalFocus());
         task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
         return task;
     }
@@ -6534,7 +6505,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         OperationResult result = task.getResult();
         MidPointPrincipal origPrincipal = getSecurityContextPrincipal();
         login(USER_ADMINISTRATOR_USERNAME);
-        task.setOwner(getSecurityContextPrincipalUser());
+        task.setOwner(getSecurityContextPrincipalFocus());
         task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
         try {
             attempt.run(task, result);

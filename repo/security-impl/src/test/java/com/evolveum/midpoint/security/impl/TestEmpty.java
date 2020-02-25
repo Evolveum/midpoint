@@ -11,6 +11,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -32,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Empty test class. Not used. Can be used as a template for security tests.
- * 
+ *
  * @author semancik
  */
 @ContextConfiguration(locations = "classpath:ctx-security-test-main.xml")
@@ -81,11 +82,11 @@ public class TestEmpty extends AbstractIntegrationTest {
     }
 
     @Test
-    public void test020UserProfileServiceMockUsername() throws Exception {
-        final String TEST_NAME = "test020UserProfileServiceMockUsername";
+    public void test020GuiProfiledPrincipalManagerMockUsername() throws Exception {
+        final String TEST_NAME = "test020GuiProfiledPrincipalManagerMockUsername";
         displayTestTitle(TEST_NAME);
 
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
         assertPrincipalJack(principal);
     }
 
@@ -93,7 +94,7 @@ public class TestEmpty extends AbstractIntegrationTest {
         display("principal", principal);
         assertEquals("Bad principal name", USER_JACK_USERNAME, principal.getName().getOrig());
         assertEquals("Bad principal name", USER_JACK_USERNAME, principal.getUsername());
-        UserType user = principal.getUser();
+        FocusType user = principal.getFocus();
         assertNotNull("No user in principal",user);
         assertEquals("Bad name in user in principal", USER_JACK_USERNAME, user.getName().getOrig());
     }

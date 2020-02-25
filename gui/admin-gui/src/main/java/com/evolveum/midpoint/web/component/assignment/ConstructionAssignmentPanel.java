@@ -11,6 +11,12 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -25,12 +31,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * Created by honchar.
@@ -65,42 +65,7 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
         columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), ColumnType.STRING, getPageBase()));
-//        columns.add(new PrismPropertyColumn<AssignmentType>(
-//                new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION, getPageBase()),
-//                ConstructionType.F_KIND, getPageBase()) {
-//                    private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
-//                        AssignmentType assignment = assignmentModel.getObject().getContainerValue().asContainerable();
-//                        String kindValue = "";
-//                        if (assignment.getConstruction() != null){
-//                            ConstructionType construction = assignment.getConstruction();
-//                            kindValue = construction.getKind() != null && !StringUtils.isEmpty(construction.getKind().value()) ?
-//                                    construction.getKind().value() : createStringResource("AssignmentEditorPanel.undefined").getString();
-//                        }
-//                        item.add(new Label(componentId, kindValue));
-//                    }
-//        });
         columns.add(new PrismPropertyWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), ColumnType.STRING, getPageBase()));
-//        columns.add(new PrismPropertyColumn<AssignmentType>(
-//                new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION, getPageBase()),
-//                ConstructionType.F_INTENT, getPageBase()) {
-//                    private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
-//                        AssignmentType assignment = assignmentModel.getObject().getContainerValue().asContainerable();
-//                        String intentValue = "";
-//                        if (assignment.getConstruction() != null){
-//                            ConstructionType construction = assignment.getConstruction();
-//                            intentValue = !StringUtils.isEmpty(construction.getIntent()) ? construction.getIntent()
-//                                    : createStringResource("AssignmentEditorPanel.undefined").getString();
-//                        }
-//                        item.add(new Label(componentId, intentValue));
-//                    }
-//        });
-
         return columns;
     }
 
@@ -110,26 +75,57 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
                 .exists(AssignmentType.F_CONSTRUCTION)
                 .build();
     }
+//
+//    @Override
+//    protected IModel<PrismContainerWrapper> getSpecificContainerModel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
+//        AssignmentType assignment = modelObject.getObject().getRealValue();
+//        if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
+//            return (IModel) PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_CONSTRUCTION);
+//        }
+//
+//        if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
+//            return (IModel) PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_CONSTRUCTION);
+//            //TODO is it correct? findContainerWrapper by path F_PERSONA_CONSTRUCTION will return PersonaConstructionType
+//            //but not PolicyRuleType
+//        }
+//        return Model.of();
+//    }
 
     @Override
-    protected IModel<PrismContainerWrapper> getSpecificContainerModel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
-        AssignmentType assignment = modelObject.getObject().getRealValue();
-        if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
-            return (IModel) PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_CONSTRUCTION);
-//            PrismContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainer(ItemPath.create(AssignmentType.F_CONSTRUCTION));
-//
-//            return Model.of(constructionWrapper);
+    protected ItemVisibility getTypedContainerVisibility(ItemWrapper<?, ?, ?, ?> wrapper) {
+        if (QNameUtil.match(AssignmentType.F_TARGET_REF, wrapper.getItemName())) {
+            return ItemVisibility.HIDDEN;
         }
 
-        if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
-            return (IModel) PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_CONSTRUCTION);
-            //TODO is it correct? findContainerWrapper by path F_PERSONA_CONSTRUCTION will return PersonaConstructionType
-            //but not PolicyRuleType
-//            PrismContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainer(ItemPath.create(AssignmentType.F_PERSONA_CONSTRUCTION));
-//
-//            return Model.of(personasWrapper);
+        if (QNameUtil.match(AssignmentType.F_TENANT_REF, wrapper.getItemName())) {
+            return ItemVisibility.HIDDEN;
         }
-        return Model.of();
+
+        if (QNameUtil.match(AssignmentType.F_ORG_REF, wrapper.getItemName())) {
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, wrapper.getTypeName())){
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (QNameUtil.match(PersonaConstructionType.COMPLEX_TYPE, wrapper.getTypeName())){
+            return ItemVisibility.HIDDEN;
+        }
+
+        return ItemVisibility.AUTO;
     }
 
+    @Override
+    protected boolean getContainerReadability(ItemWrapper<?, ?, ?, ?> wrapper) {
+        if (QNameUtil.match(ConstructionType.F_KIND, wrapper.getItemName())) {
+            return false;
+        }
+
+        if (QNameUtil.match(ConstructionType.F_INTENT, wrapper.getItemName())) {
+            return false;
+        }
+
+        return true;
+    }
 }

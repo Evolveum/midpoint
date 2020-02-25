@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import java.util.List;
@@ -16,12 +17,12 @@ import java.util.List;
 
 public class PreAuthenticationContext extends AbstractAuthenticationContext {
 
-    public PreAuthenticationContext(String username){
-        super(username);
+    public PreAuthenticationContext(String username, Class<? extends FocusType> principalType){
+        super(username, principalType);
     }
 
-    public PreAuthenticationContext(String username, List<ObjectReferenceType> requireAssignment) {
-        super(username, requireAssignment);
+    public PreAuthenticationContext(String username, Class<? extends FocusType> principalType, List<ObjectReferenceType> requireAssignment) {
+        super(username, principalType, requireAssignment);
     }
 
     @Override

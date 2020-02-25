@@ -57,8 +57,10 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
@@ -81,7 +83,11 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -134,6 +140,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private TriggerCreatorGlobalState triggerCreatorGlobalState;
     @Autowired private TaskManager taskManager;
+    @Context HttpServletRequest httpServletRequest;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -1490,11 +1497,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     private String createBaseConfirmationLink(String prefix, UserType userType) {
-        return getDefaultHostname() + prefix + "?" + SchemaConstants.USER_ID + "=" + userType.getName().getOrig();
+        return getPublicHttpUrlPattern() + prefix + "?" + SchemaConstants.USER_ID + "=" + userType.getName().getOrig();
     }
 
     private String createBaseConfirmationLink(String prefix, String oid) {
-        return getDefaultHostname() + prefix + "?" + SchemaConstants.USER_ID + "=" + oid;
+        return getPublicHttpUrlPattern() + prefix + "?" + SchemaConstants.USER_ID + "=" + oid;
     }
 
     private String createTokenConfirmationLink(String prefix, UserType userType) {
@@ -1549,7 +1556,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return securityPolicy;
     }
 
-    private String getDefaultHostname() {
+    private String getPublicHttpUrlPattern() {
         SystemConfigurationType systemConfiguration;
         try {
             systemConfiguration = modelInteractionService.getSystemConfiguration(getCurrentResult());
@@ -1561,12 +1568,17 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             LOGGER.trace("No system configuration defined. Skipping link generation.");
             return null;
         }
-        String defautlHostname = SystemConfigurationTypeUtil.getDefaultHostname(systemConfiguration);
-        if (StringUtils.isBlank(defautlHostname)) {
-            LOGGER.error("No hostname defined. It can break link generation.");
+        String host = null;
+        HttpConnectionInformation connectionInf = SecurityUtil.getCurrentConnectionInformation();
+        if (connectionInf != null) {
+            host = connectionInf.getServerName();
+        }
+        String publicHttpUrlPattern = SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfiguration, host);
+        if (StringUtils.isBlank(publicHttpUrlPattern)) {
+            LOGGER.error("No patern defined. It can break link generation.");
         }
 
-        return defautlHostname;
+        return publicHttpUrlPattern;
 
     }
 
@@ -1659,7 +1671,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random()*10000)));
         newTask.setOid(null);
         newTask.setTaskIdentifier(null);
-        newTask.setOwnerRef(createObjectRef(principal.getUser(), prismContext));
+        newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
         newTask.setExecutionStatus(RUNNABLE);
         newTask.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
         if (deltas.isEmpty()) {

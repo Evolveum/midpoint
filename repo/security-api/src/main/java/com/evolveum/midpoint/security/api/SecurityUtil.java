@@ -305,6 +305,7 @@ public class SecurityUtil {
                     request.getLocalName(), request.getLocalAddr());
         }
         rv.setRemoteHostAddress(getRemoteHostAddress(request));
+        rv.setServerName(request.getServerName());
         return rv;
     }
 

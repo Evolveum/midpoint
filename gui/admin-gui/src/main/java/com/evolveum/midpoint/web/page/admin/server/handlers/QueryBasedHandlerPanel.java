@@ -36,8 +36,9 @@ public class QueryBasedHandlerPanel<D extends QueryBasedHandlerDto> extends Base
         Label objectType = new Label(ID_OBJECT_TYPE, new IModel<String>() {
             @Override
             public String getObject() {
-                final String key = getModelObject().getObjectTypeKey();
-                return key != null ? getString(key) : null;
+//                final String key = getModelObject().getObjectTypeKey();
+//                return key != null ? getString(key) : null;
+                return null;
             }
         });
         objectTypeContainer.add(objectType);

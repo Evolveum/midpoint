@@ -79,9 +79,6 @@ public interface ValueFilter<V extends PrismValue, D extends ItemDefinition> ext
     void setRightHandSideDefinition(@Nullable ItemDefinition rightHandSideDefinition);
 
     @Override
-    PrismContext getPrismContext();
-
-    @Override
     ItemPath getPath();
 
     boolean isRaw();

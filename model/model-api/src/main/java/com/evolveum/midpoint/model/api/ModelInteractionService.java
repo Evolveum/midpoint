@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.api;
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
@@ -220,28 +220,28 @@ public interface ModelInteractionService {
     /**
      * Returns a policy for registration, e.g. type of the supported registrations (self, social,...)
      *
-     * @param user user for who the policy should apply
+     * @param focus focus for who the policy should apply
      * @param task
      * @param parentResult
      * @return applicable credentials policy or null
      * @throws ObjectNotFoundException No system configuration or other major system inconsistency
      * @throws SchemaException Wrong schema or content of security policy
      */
-    RegistrationsPolicyType getFlowPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    RegistrationsPolicyType getFlowPolicy(PrismObject<? extends FocusType> focus, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
-        /**
+    /**
      * Returns a credential policy that applies to the specified user. This method is designed to be used
      * during credential reset so the GUI has enough information to set up the credential (e.g. password policies,
      * security questions, etc).
      *
-     * @param user user for who the policy should apply
+     * @param focus focus for who the policy should apply
      * @param task
      * @param parentResult
      * @return applicable credentials policy or null
      * @throws ObjectNotFoundException No system configuration or other major system inconsistency
      * @throws SchemaException Wrong schema or content of security policy
      */
-    CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    CredentialsPolicyType getCredentialsPolicy(PrismObject<? extends FocusType> focus, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
      * Returns currently applicable user profile, compiled for efficient use in the user interface.
@@ -251,7 +251,7 @@ public interface ModelInteractionService {
      * values applicable for current user, therefore the authorization might be considered to be implicit in this case.
      */
     @NotNull
-    CompiledUserProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
      * @return list of logged in users with at least 1 active session (clusterwide)
@@ -305,11 +305,11 @@ public interface ModelInteractionService {
 
     <O extends ObjectType> MergeDeltas<O> mergeObjectsPreviewDeltas(Class<O> type,
             String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
-                    throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
 
     <O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type,
             String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
-                    throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
 
     /**
      * TEMPORARY. Need to find out better way how to deal with generated values
@@ -370,7 +370,7 @@ public interface ModelInteractionService {
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
-    void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    void refreshPrincipal(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     List<RelationDefinitionType> getRelationDefinitions();
 
@@ -409,6 +409,13 @@ public interface ModelInteractionService {
     <O extends AssignmentHolderType> AssignmentCandidatesSpecification determineAssignmentTargetSpecification(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException;
 
     /**
+     * This method is used to differentiate which archetypes can be added to object with holderType type.
+     * e.g. when changing archetype within Change archetype functionality should provide only those archetypes which
+     * can be assigned according to holderType.
+     */
+    <O extends AssignmentHolderType> List<ArchetypeType> getFilteredArchetypesByHolderType(PrismObject<O> object, OperationResult result) throws SchemaException;
+
+    /**
      * Returns data structure that contains information about possible assignment holders for a particular target object.
      *
      * This method should be used when editing assignment target (role, org, service) and looking for object that
@@ -441,4 +448,14 @@ public interface ModelInteractionService {
     <O extends ObjectType> CollectionStats determineCollectionStats(@NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
+    /**
+     *
+     * @param object
+     * @param task
+     * @param parentResult
+     * @param <O>
+     * @return virtual containers sepcification if present. Merge virtual container specification from archetype policy
+     *  for concrete object with global settings in systemConfiguration/adminGuiConfig
+     */
+    <O extends ObjectType> Collection<VirtualContainersSpecificationType> determineVirtualContainers(PrismObject<O> object, @NotNull Task task, @NotNull  OperationResult parentResult);
 }

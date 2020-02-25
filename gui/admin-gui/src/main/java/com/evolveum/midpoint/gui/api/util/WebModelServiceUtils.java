@@ -8,13 +8,10 @@ package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.LocaleUtils;
@@ -30,8 +27,8 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -67,6 +64,8 @@ import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Utility class that contains methods that interact with ModelService and other
@@ -232,6 +231,20 @@ public class WebModelServiceUtils {
 //            return null;
 //        }
 
+    }
+
+    public static <O extends ObjectType> PrismObject<O> loadObject(PrismReferenceValue objectRef, QName expectedTargetType, PageBase pageBase, Task task, OperationResult result) {
+        if (objectRef == null) {
+            return null;
+        }
+
+        if (QNameUtil.match(expectedTargetType, objectRef.getTargetType())) {
+            Class<O> type = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(objectRef.getTargetType());
+            PrismObject<O> resourceType = WebModelServiceUtils.loadObject(type, objectRef.getOid(), GetOperationOptions.createNoFetchCollection(), pageBase, task, result);
+            return resourceType;
+        }
+
+        return null;
     }
 
     @Nullable
@@ -553,7 +566,16 @@ public class WebModelServiceUtils {
         return objectDelta;
     }
 
-    public static String getLoggedInUserOid() {
+    public static FocusType getLoggedInFocus() {
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        Validate.notNull(principal, "No principal");
+        if (principal.getFocus() == null) {
+            throw new IllegalArgumentException("No focus in principal: " + principal);
+        }
+        return principal.getFocus();
+    }
+
+    public static String getLoggedInFocusOid() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         Validate.notNull(principal, "No principal");
         if (principal.getOid() == null) {
@@ -566,18 +588,18 @@ public class WebModelServiceUtils {
         return getLocale(null);
     }
 
-    public static Locale getLocale(UserType user) {
+    public static Locale getLocale(FocusType focus) {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         Locale locale = null;
         if (principal != null) {
-            if (user == null) {
-                PrismObject<UserType> userPrismObject = principal.getUser().asPrismObject();
-                user = userPrismObject == null ? null : userPrismObject.asObjectable();
+            if (focus == null) {
+                PrismObject<? extends FocusType> focusPrismObject = principal.getFocus().asPrismObject();
+                focus = focusPrismObject == null ? null : focusPrismObject.asObjectable();
             }
-            if (user != null && user.getPreferredLanguage() != null &&
-                    !user.getPreferredLanguage().trim().equals("")) {
+            if (focus != null && focus.getPreferredLanguage() != null &&
+                    !focus.getPreferredLanguage().trim().equals("")) {
                 try {
-                    locale = LocaleUtils.toLocale(user.getPreferredLanguage());
+                    locale = LocaleUtils.toLocale(focus.getPreferredLanguage());
                 } catch (Exception ex) {
                     LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
                 }
@@ -585,7 +607,7 @@ public class WebModelServiceUtils {
             if (locale != null && MidPointApplication.containsLocale(locale)) {
                 return locale;
             } else {
-                String userLocale = user != null ? user.getLocale() : null;
+                String userLocale = focus != null ? focus.getLocale() : null;
                 try {
                     locale = userLocale == null ? null : LocaleUtils.toLocale(userLocale);
                 } catch (Exception ex) {
@@ -615,18 +637,18 @@ public class WebModelServiceUtils {
         return getTimezone(null);
     }
 
-    public static TimeZone getTimezone(UserType user) {
-        MidPointUserProfilePrincipal principal = SecurityUtils.getPrincipalUser();
-        if (principal != null && user == null) {
-            user = principal.getUser();
+    public static TimeZone getTimezone(FocusType focus) {
+        GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
+        if (principal != null && focus == null) {
+            focus = principal.getFocus();
         }
         String timeZone;
 
-        if (user != null && StringUtils.isNotEmpty(user.getTimezone())) {
-            timeZone = user.getTimezone();
+        if (focus != null && StringUtils.isNotEmpty(focus.getTimezone())) {
+            timeZone = focus.getTimezone();
         } else {
-            timeZone = principal != null && principal.getCompiledUserProfile() != null ?
-                    principal.getCompiledUserProfile().getDefaultTimezone() : "";
+            timeZone = principal != null && principal.getCompiledGuiProfile() != null ?
+                    principal.getCompiledGuiProfile().getDefaultTimezone() : "";
         }
         try {
             if (timeZone != null) {
@@ -638,11 +660,11 @@ public class WebModelServiceUtils {
         return null;
     }
 
-    public static Task createSimpleTask(String operation, PrismObject<UserType> owner, TaskManager manager) {
+    public static Task createSimpleTask(String operation, PrismObject<? extends FocusType> owner, TaskManager manager) {
         return createSimpleTask(operation, null, owner, manager);
     }
 
-    public static Task createSimpleTask(String operation, String channel, PrismObject<UserType> owner, TaskManager manager) {
+    public static Task createSimpleTask(String operation, String channel, PrismObject<? extends FocusType> owner, TaskManager manager) {
         Task task = manager.createTaskInstance(operation);
 
         if (owner == null) {
@@ -650,7 +672,7 @@ public class WebModelServiceUtils {
             if (user == null) {
                 throw new RestartResponseException(PageLogin.class);
             } else {
-                owner = user.getUser().asPrismObject();
+                owner = user.getFocus().asPrismObject();
             }
         }
 
@@ -722,9 +744,9 @@ public class WebModelServiceUtils {
 
         ModelInteractionService mInteractionService = pageBase.getModelInteractionService();
 
-        CompiledUserProfile adminGuiConfig = null;
+        CompiledGuiProfile adminGuiConfig = null;
         try {
-            adminGuiConfig = mInteractionService.getCompiledUserProfile(task, result);
+            adminGuiConfig = mInteractionService.getCompiledGuiProfile(task, result);
             result.recomputeStatus();
             result.recordSuccessIfUnknown();
         } catch (Exception e) {
@@ -742,9 +764,9 @@ public class WebModelServiceUtils {
     }
 
     public static boolean isEnableExperimentalFeature(ModelInteractionService modelInteractionService, Task task, OperationResult result) {
-        CompiledUserProfile adminGuiConfig = null;
+        CompiledGuiProfile adminGuiConfig = null;
         try {
-            adminGuiConfig = modelInteractionService.getCompiledUserProfile(task, result);
+            adminGuiConfig = modelInteractionService.getCompiledGuiProfile(task, result);
             result.recomputeStatus();
             result.recordSuccessIfUnknown();
         } catch (Exception e) {
@@ -787,12 +809,12 @@ public class WebModelServiceUtils {
     public static boolean isPostAuthenticationEnabled(TaskManager taskManager, ModelInteractionService modelInteractionService) {
         MidPointPrincipal midpointPrincipal = SecurityUtils.getPrincipalUser();
         if (midpointPrincipal != null) {
-            UserType user = midpointPrincipal.getUser();
+            FocusType focus = midpointPrincipal.getFocus();
             Task task = taskManager.createTaskInstance(OPERATION_LOAD_FLOW_POLICY);
             OperationResult parentResult = new OperationResult(OPERATION_LOAD_FLOW_POLICY);
             RegistrationsPolicyType registrationPolicyType;
             try {
-                registrationPolicyType = modelInteractionService.getFlowPolicy(user.asPrismObject(), task, parentResult);
+                registrationPolicyType = modelInteractionService.getFlowPolicy(focus.asPrismObject(), task, parentResult);
                 if (registrationPolicyType == null) {
                     return false;
                 }
@@ -801,7 +823,7 @@ public class WebModelServiceUtils {
                     return false;
                 }
                 String requiredLifecycleState = postAuthenticationPolicy.getRequiredLifecycleState();
-                if (StringUtils.isNotBlank(requiredLifecycleState) && requiredLifecycleState.equals(user.getLifecycleState())) {
+                if (StringUtils.isNotBlank(requiredLifecycleState) && requiredLifecycleState.equals(focus.getLifecycleState())) {
                     return true;
                 }
             } catch (CommonException e) {
