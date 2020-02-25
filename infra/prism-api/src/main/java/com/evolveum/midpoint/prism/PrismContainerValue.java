@@ -70,10 +70,8 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     void setId(Long id);
 
-    @SuppressWarnings("unchecked")
     PrismContainerable<C> getParent();
 
-    @SuppressWarnings("unchecked")
     PrismContainer<C> getContainer();
 
     @NotNull
