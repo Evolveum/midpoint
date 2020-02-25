@@ -182,7 +182,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -199,7 +198,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test010Shadows() throws Exception {
         final String TEST_NAME = "test010Shadows";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -223,7 +221,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test050AssignAccountOpenDjSimple() throws Exception {
         final String TEST_NAME = "test050AssignAccountOpenDjSimple";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -257,7 +254,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test055Shadows() throws Exception {
         final String TEST_NAME = "test055Shadows";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -279,7 +275,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test059UnassignAccountOpenDjSimple() throws Exception {
         final String TEST_NAME = "test059UnassignAccountOpenDjSimple";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -310,7 +305,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test100ModifyJackFullNameLang() throws Exception {
         final String TEST_NAME = "test100ModifyJackFullNameLang";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -344,7 +338,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test110AssignAccountOpenDjLang() throws Exception {
         final String TEST_NAME = "test110AssignAccountOpenDjLang";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -380,7 +373,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test112ModifyJackFullNameLangEnSkRuHr() throws Exception {
         final String TEST_NAME = "test112ModifyJackFullNameLangEnSkRuHr";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -418,7 +410,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test114ModifyJackFullNameLangCzHr() throws Exception {
         final String TEST_NAME = "test114ModifyJackFullNameLangCzHr";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -456,7 +447,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test116ModifyJackFullNameLangCaptain() throws Exception {
         final String TEST_NAME = "test116ModifyJackFullNameLangCaptain";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -493,7 +483,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test118ModifyJackFullNameCaptain() throws Exception {
         final String TEST_NAME = "test118ModifyJackFullNameCaptain";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -526,7 +515,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test119UnassignAccountOpenDjLang() throws Exception {
         final String TEST_NAME = "test119UnassignAccountOpenDjLang";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -557,7 +545,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test120ModifyJackTitleMap() throws Exception {
         final String TEST_NAME = "test120ModifyJackTitleMap";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -595,7 +582,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test130AssignAccountOpenDjTitleMap() throws Exception {
         final String TEST_NAME = "test130AssignAccountOpenDjTitleMap";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -636,7 +622,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test132AssignAccountOpenDjTitleMapAdd() throws Exception {
         final String TEST_NAME = "test132AssignAccountOpenDjTitleMapAdd";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -684,7 +669,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test134AssignAccountOpenDjTitleMapDelete() throws Exception {
         final String TEST_NAME = "test134AssignAccountOpenDjTitleMapDelete";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -732,7 +716,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test138AssignAccountOpenDjTitleMapReplace() throws Exception {
         final String TEST_NAME = "test138AssignAccountOpenDjTitleMapReplace";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -776,7 +759,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test139UnassignAccountOpenDjTitleMap() throws Exception {
         final String TEST_NAME = "test139UnassignAccountOpenDjTitleMap";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -806,7 +788,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test150AssignAccountOpenDj() throws Exception {
         final String TEST_NAME = "test150AssignAccountOpenDj";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -851,7 +832,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test152JackMultivalueDescriptionGet() throws Exception {
         final String TEST_NAME = "test152JackMultivalueDescriptionGet";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -906,7 +886,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test300Shadows() throws Exception {
         final String TEST_NAME = "test300Shadows";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -931,7 +910,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test310SearchLdapAccounts() throws Exception {
         final String TEST_NAME = "test310SearchLdapAccounts";
-        displayTestTitle(TEST_NAME);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
 
@@ -948,7 +926,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test312Shadows() throws Exception {
         final String TEST_NAME = "test312Shadows";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -986,7 +963,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test320SearchLdapAccountsBelow() throws Exception {
         final String TEST_NAME = "test320SearchLdapAccountsBelow";
-        displayTestTitle(TEST_NAME);
 
         openDJController.addEntry("dn: ou=below,ou=People,dc=example,dc=com\n" +
                 "ou: below\n" +
@@ -1018,7 +994,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test400SearchLdapProjectGroups() throws Exception {
         final String TEST_NAME = "test400SearchLdapProjectGroups";
-        displayTestTitle(TEST_NAME);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP, prismContext);
 
@@ -1036,7 +1011,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test401SearchLdapOrgGroups() throws Exception {
         final String TEST_NAME = "test401SearchLdapOrgGroups";
-        displayTestTitle(TEST_NAME);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_ORG_GROUP, prismContext);
 
@@ -1052,7 +1026,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test410CreateProjectKeelhaul() throws Exception {
         final String TEST_NAME = "test410CreateProjectKeelhaul";
-        displayTestTitle(TEST_NAME);
 
         PrismObject<OrgType> projectKeelhaul = createObject(OrgType.class, PROJECT_KEELHAUL_NAME);
         projectKeelhaul.asObjectable()
@@ -1082,7 +1055,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test412CreateProjectWalkThePlank() throws Exception {
         final String TEST_NAME = "test412CreateProjectWalkThePlank";
-        displayTestTitle(TEST_NAME);
 
         PrismObject<OrgType> projectKeelhaul = createObject(OrgType.class, PROJECT_WALK_THE_PLANK_NAME);
         projectKeelhaul.asObjectable()
@@ -1115,7 +1087,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test415CreateOrgRumDepartment() throws Exception {
         final String TEST_NAME = "test415CreateOrgRumDepartment";
-        displayTestTitle(TEST_NAME);
 
         PrismObject<OrgType> orgBefore = createObject(OrgType.class, ORG_RUM_DEPARTMENT_NAME);
         orgBefore.asObjectable()
@@ -1150,7 +1121,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test420AssignJackToKeelhaul() throws Exception {
         final String TEST_NAME = "test412AssignJackToKeelhaul";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1191,7 +1161,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test422AssignJackToWalkThePlank() throws Exception {
         final String TEST_NAME = "test414AssignJackToWalkThePlank";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1232,7 +1201,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test424AssignJackToRumDepartment() throws Exception {
         final String TEST_NAME = "test424AssignJackToRumDepartment";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

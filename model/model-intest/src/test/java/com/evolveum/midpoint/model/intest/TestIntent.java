@@ -55,7 +55,6 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test131ModifyUserJackAssignAccountDefault() throws Exception {
         final String TEST_NAME="test131ModifyUserJackAssignAccountDefault";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -115,7 +114,6 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test132ModifyUserJackAssignAccountTest() throws Exception {
         final String TEST_NAME="test132ModifyUserJackAssignAccountTest";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -188,7 +186,6 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test135ModifyUserJackFullName() throws Exception {
         final String TEST_NAME="test135ModifyUserJackFullName";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -250,7 +247,6 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test147ModifyUserJackUnAssignAccountDefault() throws Exception {
         final String TEST_NAME="test147ModifyUserJackUnAssignAccountDefault";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -310,7 +306,6 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test149ModifyUserJackUnassignAccountTest() throws Exception {
         final String TEST_NAME = "test149ModifyUserJackUnassignAccountTest";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

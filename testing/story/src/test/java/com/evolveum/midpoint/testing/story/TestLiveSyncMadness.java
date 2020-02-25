@@ -7,15 +7,13 @@
 package com.evolveum.midpoint.testing.story;
 
 import com.evolveum.icf.dummy.resource.*;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -99,7 +97,6 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
@@ -116,7 +113,6 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
     @Test
     public void test100AddHrAccountHerman() throws Exception {
         final String TEST_NAME = "test100AddHrAccountHerman";
-        displayTestTitle(TEST_NAME);
 
         dummyAuditService.clear();
 
@@ -156,7 +152,6 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
     @Test
     public void test110RenameHrAccountHerman() throws Exception {
         final String TEST_NAME = "test110RenameHrAccountHerman";
-        displayTestTitle(TEST_NAME);
 
         dummyAuditService.clear();
 
@@ -199,7 +194,6 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
     @Test
     public void test112HrAccountHermanEmptyDelta() throws Exception {
         final String TEST_NAME = "test112HrAccountHermanEmptyDelta";
-        displayTestTitle(TEST_NAME);
         dummyAuditService.clear();
 
         dummyResourceHr.recordEmptyDeltaForAccountByUsername(ACCOUNT_HERMAN_USERNAME, DummyDeltaType.MODIFY);

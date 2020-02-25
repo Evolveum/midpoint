@@ -433,7 +433,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test001SelfTests() throws Exception {
         final String TEST_NAME = "test001SelfTests";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSanity.class.getName()+"."+TEST_NAME);
@@ -463,7 +462,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test001TestConnectionOpenDJ() throws Exception {
         final String TEST_NAME = "test001TestConnectionOpenDJ";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         try{
@@ -639,7 +637,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test002AddDerbyResource() throws Exception {
         final String TEST_NAME = "test002AddDerbyResource";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(TestSanity.class.getName() + "." + TEST_NAME);
@@ -934,7 +931,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test010AddUser() throws Exception {
         final String TEST_NAME = "test010AddUser";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         checkRepoOpenDjResource();
@@ -986,7 +982,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test013AddOpenDjAccountToUser() throws Exception {
         final String TEST_NAME = "test013AddOpenDjAccountToUser";
-        displayTestTitle(TEST_NAME);
         try{
         // GIVEN
         checkRepoOpenDjResource();
@@ -1322,7 +1317,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test020ModifyUser() throws Exception {
         final String TEST_NAME = "test020ModifyUser";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         assertNoRepoCache();
@@ -1420,7 +1414,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test022ChangeUserPassword() throws Exception {
         final String TEST_NAME = "test022ChangeUserPassword";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         ObjectDeltaType objectChange = unmarshallValueFromFile(
@@ -1442,7 +1435,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test023ChangeUserPasswordJAXB() throws Exception {
         final String TEST_NAME = "test023ChangeUserPasswordJAXB";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         final String NEW_PASSWORD = "abandonSHIP";
@@ -1535,7 +1527,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     public void testModifyAccountDjRoomNumber(final String TEST_NAME, File reqFile, String expectedVal) throws Exception {
-        displayTestTitle(TEST_NAME);
         // GIVEN
         assertNoRepoCache();
 
@@ -1572,7 +1563,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test029ModifyAccountDjBadPath() throws Exception {
         final String TEST_NAME = "test029ModifyAccountDjBadPath";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         assertNoRepoCache();
 
@@ -1621,7 +1611,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test030DisableUser() throws Exception {
         final String TEST_NAME = "test030DisableUser";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         ObjectDeltaType objectChange = unmarshallValueFromFile(
@@ -1734,7 +1723,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test031EnableUser() throws Exception {
         final String TEST_NAME = "test031EnableUser";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         ObjectDeltaType objectChange = unmarshallValueFromFile(
@@ -1938,7 +1926,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test047RenameUser() throws Exception {
         final String TEST_NAME = "test047RenameUser";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         assertNoRepoCache();
@@ -2003,7 +1990,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test048ModifyUserRemoveGivenName() throws Exception {
         final String TEST_NAME = "test048ModifyUserRemoveGivenName";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         assertNoRepoCache();
@@ -2109,7 +2095,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test100AssignRolePirate() throws Exception {
         final String TEST_NAME = "test100AssignRolePirate";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2205,7 +2190,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test101AccountOwnerAfterRole() throws Exception {
         final String TEST_NAME = "test101AccountOwnerAfterRole";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2232,7 +2216,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test102AssignRoleCaptain() throws Exception {
         final String TEST_NAME = "test102AssignRoleCaptain";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2314,7 +2297,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test103AssignRoleCaptainAgain() throws Exception {
         final String TEST_NAME = "test103AssignRoleCaptainAgain";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2393,7 +2375,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test105ModifyAccount() throws Exception {
         final String TEST_NAME = "test105ModifyAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2478,7 +2459,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test104AssignRoleJudge() throws Exception {
         final String TEST_NAME = "test104AssignRoleJudge";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2523,7 +2503,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test107UnassignRolePirate() throws Exception {
         final String TEST_NAME = "test107UnassignRolePirate";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2606,7 +2585,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test108UnassignRoleCaptain() throws Exception {
         final String TEST_NAME = "test108UnassignRoleCaptain";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2694,7 +2672,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test109UnassignRoleCaptainAgain() throws Exception {
         final String TEST_NAME = "test109UnassignRoleCaptainAgain";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2761,7 +2738,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test300LiveSyncInit() throws Exception {
         final String TEST_NAME = "test300LiveSyncInit";
-        displayTestTitle(TEST_NAME);
         // Now it is the right time to add task definition to the repository
         // We don't want it there any sooner, as it may interfere with the
         // previous tests
@@ -2872,7 +2848,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test301LiveSyncCreate() throws Exception {
         final String TEST_NAME = "test301LiveSyncCreate";
-        displayTestTitle(TEST_NAME);
         // Sync task should be running (tested in previous test), so just create
         // new LDAP object.
 
@@ -2912,7 +2887,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test302LiveSyncModify() throws Exception {
         final String TEST_NAME = "test302LiveSyncModify";
-        displayTestTitle(TEST_NAME);
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
                 + "." + TEST_NAME);
@@ -2945,7 +2919,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test303LiveSyncLink() throws Exception {
         final String TEST_NAME = "test303LiveSyncLink";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         assertNoRepoCache();
@@ -3011,7 +2984,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test304LiveSyncCreateNoLocation() throws Exception {
         final String TEST_NAME = "test304LiveSyncCreateNoLocation";
-        displayTestTitle(TEST_NAME);
         // Sync task should be running (tested in previous test), so just create
         // new LDAP object.
 
@@ -3085,7 +3057,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test399LiveSyncCleanup() throws Exception {
         final String TEST_NAME = "test399LiveSyncCleanup";
-        displayTestTitle(TEST_NAME);
         final OperationResult result = new OperationResult(TestSanity.class.getName()
                 + "." + TEST_NAME);
 
@@ -3097,7 +3068,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test400ImportFromResource() throws Exception {
         final String TEST_NAME = "test400ImportFromResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         checkAllShadows();
         assertNoRepoCache();
@@ -3313,7 +3283,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test420RecomputeUsers() throws Exception {
         final String TEST_NAME = "test420RecomputeUsers";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
@@ -3456,7 +3425,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test440ReconcileResourceOpenDj() throws Exception {
         final String TEST_NAME = "test440ReconcileResourceOpenDj";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
@@ -3677,7 +3645,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test480ListResources() throws Exception {
         final String TEST_NAME = "test480ListResources";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResultType result = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<>(result);
@@ -3738,7 +3705,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test500NotifyChangeCreateAccount() throws Exception{
         final String TEST_NAME = "test500NotifyChangeCreateAccount";
-        displayTestTitle(TEST_NAME);
 
         Entry ldifEntry = openDJController.addEntryFromLdifFile(LDIF_ANGELIKA_FILENAME);
         display("Entry from LDIF", ldifEntry);
@@ -3805,7 +3771,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test501NotifyChangeModifyAccount() throws Exception{
         final String TEST_NAME = "test501NotifyChangeModifyAccount";
-        displayTestTitle(TEST_NAME);
 
         OperationResult parentResult = new OperationResult(TEST_NAME);
         PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
@@ -3862,7 +3827,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test502NotifyChangeModifyAccountPassword() throws Exception{
         final String TEST_NAME = "test502NotifyChangeModifyAccountPassword";
-        displayTestTitle(TEST_NAME);
 
         PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
         assertNotNull("User with the name angelika must exist.", userAngelika);
@@ -3919,7 +3883,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test503NotifyChangeDeleteAccount() throws Exception{
         final String TEST_NAME = "test503NotifyChangeDeleteAccount";
-        displayTestTitle(TEST_NAME);
 
         PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
         assertNotNull("User with the name angelika must exist.", userAngelika);

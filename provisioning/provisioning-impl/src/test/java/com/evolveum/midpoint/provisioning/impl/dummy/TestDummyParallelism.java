@@ -142,7 +142,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     @Test
     public void test120ModifyWillReplaceFullname() throws Exception {
         final String TEST_NAME = "test120ModifyWillReplaceFullname";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -182,7 +181,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     @Test
     public void test190DeleteWill() throws Exception {
         final String TEST_NAME = "test190DeleteWill";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -222,7 +220,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     @Test
     public void test200ParallelCreate() throws Exception {
         final String TEST_NAME = "test200ParallelCreate";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -316,7 +313,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     }
 
     private PrismObject<ShadowType> parallelModifyTest(final String TEST_NAME, FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -378,7 +374,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     @Test
     public void test209ParallelDelete() throws Exception {
         final String TEST_NAME = "test209ParallelDelete";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         final Counter successCounter = new Counter();
@@ -437,7 +432,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     @Test
     public void test210ParallelCreateSlow() throws Exception {
         final String TEST_NAME = "test210ParallelCreateSlow";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -526,7 +520,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     }
 
     private PrismObject<ShadowType> parallelModifyTestSlow(final String TEST_NAME, FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -589,7 +582,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     @Test
     public void test229ParallelDeleteSlow() throws Exception {
         final String TEST_NAME = "test229ParallelDeleteSlow";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         final Counter successCounter = new Counter();
@@ -659,7 +651,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     @Test
     public void test230ParallelGroupSearch() throws Exception {
         final String TEST_NAME = "test230ParallelGroupSearch";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -751,7 +742,6 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     @Test
     public void test800ParallelReadAndModifyResource() throws Exception {
         final String TEST_NAME = "test800ParallelReadAndModifyResource";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

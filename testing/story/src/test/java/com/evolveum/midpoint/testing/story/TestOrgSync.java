@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -290,7 +291,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
@@ -312,7 +312,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test100AddHrAccountHerman() throws Exception {
         final String TEST_NAME = "test100AddHrAccountHerman";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
@@ -352,7 +351,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test105AddHrAccountLemonhead() throws Exception {
         final String TEST_NAME = "test105AddHrAccountLemonhead";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_LEMONHEAD_USERNAME);
@@ -397,7 +395,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test106AddHrAccountSharptooth() throws Exception {
         final String TEST_NAME = "test106AddHrAccountSharptooth";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_SHARPTOOTH_USERNAME);
@@ -441,7 +438,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test107AddHrAccountRedskull() throws Exception {
         final String TEST_NAME = "test107AddHrAccountRedskull";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_REDSKULL_USERNAME);
@@ -484,7 +480,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test108RedskullGoesVegetarian() throws Exception {
         final String TEST_NAME = "test108RedskullGoesVegetarian";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceHr.getAccountByUsername(ACCOUNT_REDSKULL_USERNAME);
@@ -525,7 +520,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test109HrDeleteRedskull() throws Exception {
         final String TEST_NAME = "test109HrDeleteRedskull";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         // WHEN
@@ -555,7 +549,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test110AddHrAccountGuybrush() throws Exception {
         final String TEST_NAME = "test110AddHrAccountGuybrush";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_GUYBRUSH_USERNAME);
@@ -601,7 +594,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test115AddHrAccountMancomb() throws Exception {
         final String TEST_NAME = "test115AddHrAccountMancomb";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_MANCOMB_USERNAME);
@@ -648,7 +640,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test117AddHrAccountCobb() throws Exception {
         final String TEST_NAME = "test117AddHrAccountCobb";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_COBB_USERNAME);
@@ -695,7 +686,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test130AddHrAccountLargo() throws Exception {
         final String TEST_NAME = "test130AddHrAccountLargo";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_LARGO_USERNAME);
@@ -748,7 +738,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test140AddHrAccountWally() throws Exception {
         final String TEST_NAME = "test140AddHrAccountWally";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_WALLY_USERNAME);
@@ -792,7 +781,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test142AddHrAccountAugustus() throws Exception {
         final String TEST_NAME = "test142AddHrAccountAugustus";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_AUGUSTUS_USERNAME);
@@ -836,7 +824,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test185AddHrAccountStan() throws Exception {
         final String TEST_NAME = "test185AddHrAccountStan";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_STAN_USERNAME);
@@ -882,7 +869,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test186AddHrAccountCapsize() throws Exception {
         final String TEST_NAME = "test186AddHrAccountCapsize";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_CAPSIZE_USERNAME);
@@ -928,7 +914,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test187AddHrAccountRogersSr() throws Exception {
         final String TEST_NAME = "test187AddHrAccountRogersSr";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_ROGERSSR_USERNAME);
@@ -975,7 +960,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test190AddHrAccountTeleke() throws Exception {
         final String TEST_NAME = "test190AddHrAccountTeleke";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_TELEKE_USERNAME);
@@ -1018,7 +1002,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test500ReconcileOpenDJDefault() throws Exception {
         final String TEST_NAME = "test500ReconcileOpenDJDefault";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1063,7 +1046,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test502ReconcileOpenDJDefaultAgain() throws Exception {
         final String TEST_NAME = "test502ReconcileOpenDJDefaultAgain";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1100,7 +1082,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test510ReconcileOpenDJLdapGroup() throws Exception {
         final String TEST_NAME = "test510ReconcileOpenDJLdapGroup";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1144,7 +1125,6 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test550ReconcileOpenDJAfterMembershipChange() throws Exception {
         final String TEST_NAME = "test550ReconcileOpenDJAfterMembershipChange";
-        displayTestTitle(TEST_NAME);
 
         // We manually remove Lemonhead from R_canibalism group
         // And check whether reconciliation re-adds him again

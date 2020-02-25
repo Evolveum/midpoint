@@ -58,7 +58,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
     @Test
     public void test100AssignRolePersonaAdminToJack() throws Exception {
         final String TEST_NAME = "test100AssignRolePersonaAdminToJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -95,7 +94,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
     @Test
     public void test102RecomputeUserJack() throws Exception {
         final String TEST_NAME = "test102RecomputeUserJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -115,7 +113,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
     @Test
     public void test103ReconcileUserJack() throws Exception {
         final String TEST_NAME = "test103ReconcileUserJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -135,7 +132,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
     @Test
     public void test104RecomputeJackAdminPersona() throws Exception {
         final String TEST_NAME = "test104RecomputeJackAdminPersona";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -155,7 +151,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
     @Test
     public void test105ReconcileJackAdminPersona() throws Exception {
         final String TEST_NAME = "test105ReconcileJackAdminPersona";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -192,7 +187,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
     @Test
     public void test120ModifyJackGivenName() throws Exception {
         final String TEST_NAME = "test120ModifyJackGivenName";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -230,7 +224,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
     @Test
     public void test140ModifyUserJackPassword() throws Exception {
         final String TEST_NAME = "test140ModifyUserJackPassword";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -265,7 +258,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
     @Test
     public void test142ModifyPersonaPassword() throws Exception {
         final String TEST_NAME = "test142ModifyPersonaPassword";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -306,7 +298,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
     @Test
     public void test145ModifyPersonaPasswordBack() throws Exception {
         final String TEST_NAME = "test145ModifyPersonaPasswordBack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -347,7 +338,6 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
     @Test
     public void test199UnassignRolePersonaAdminFromJack() throws Exception {
         final String TEST_NAME = "test199UnassignRolePersonaAdminFromJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

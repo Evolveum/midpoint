@@ -12,6 +12,7 @@ import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -75,7 +76,6 @@ public class TestAssociationInbound extends AbstractGenericSyncTest {
     @Test
     public void test100AssociationInboundMateForOrangeResource() throws Exception {
         final String TEST_NAME = "test100AssociationInboundMateForOrangeResource";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

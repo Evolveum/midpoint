@@ -24,7 +24,6 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -58,7 +57,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -78,7 +76,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test101ModifyUserSubtypePirate() throws Exception {
         final String TEST_NAME = "test101ModifyUserSubtypePirate";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -122,7 +119,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test102ModifyUserSubtypeBuccaneer() throws Exception {
         final String TEST_NAME = "test102ModifyUserSubtypeBuccaneer";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -157,7 +153,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test103DeleteUserEmployeeTypeBartender() throws Exception {
         final String TEST_NAME = "test103ModifyUserEmployeeTypeBartender";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -198,7 +193,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200AssignAccountOrange() throws Exception {
         final String TEST_NAME = "test200AssignAccountOrange";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -241,7 +235,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test202ModifyAccountOrangeGossip() throws Exception {
         final String TEST_NAME = "test202ModifyAccountOrangeGossip";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -286,7 +279,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test204AssignAccountOrangeAgain() throws Exception {
         final String TEST_NAME = "test204AssignAccountOrangeAgain";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -330,7 +322,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test209ModifyAccountOrangeGossipRemove() throws Exception {
         final String TEST_NAME = "test209ModifyAccountOrangeGossipRemove";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -376,7 +367,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test210ModifyAccountOrangeQuoteMonkey() throws Exception {
         final String TEST_NAME = "test210ModifyAccountOrangeQuoteMonkey";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -427,7 +417,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test211ModifyAccountOrangeQuotePirate() throws Exception {
         final String TEST_NAME = "test211ModifyAccountOrangeQuotePirate";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -478,7 +467,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test214ModifyAccountOrangeQuoteWoodchuck() throws Exception {
         final String TEST_NAME = "test214ModifyAccountOrangeQuoteWoodchuck";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -525,7 +513,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test250UnlinkAccountDefaultDummy() throws Exception {
         final String TEST_NAME = "test250UnlinkAccountDefaultDummy";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -570,7 +557,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test252ModifyAccountOrangeGossipRecon() throws Exception {
         final String TEST_NAME = "test252ModifyAccountOrangeGossipRecon";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -616,7 +602,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test259ModifyAccountOrangeGossipRemoveRecon() throws Exception {
         final String TEST_NAME = "test259ModifyAccountOrangeGossipRemoveRecon";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -663,7 +648,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test260ModifyAccountOrangeQuoteMonkeyRecon() throws Exception {
         final String TEST_NAME = "test260ModifyAccountOrangeQuoteMonkeyRecon";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -718,7 +702,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test261ModifyAccountOrangeQuotePirateRecon() throws Exception {
         final String TEST_NAME = "test261ModifyAccountOrangeQuotePirateRecon";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -768,7 +751,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test264ModifyAccountOrangeQuoteWoodchuckRecon() throws Exception {
         final String TEST_NAME = "test264ModifyAccountOrangeQuoteWoodchuckRecon";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -816,7 +798,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test297ModifyAccountOrangeGossipRecon() throws Exception {
         final String TEST_NAME = "test297ModifyAccountOrangeGossipRecon";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -858,7 +839,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test299UnassignAccountOrange() throws Exception {
         final String TEST_NAME = "test299UnassignAccountOrange";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

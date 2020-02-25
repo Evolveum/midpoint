@@ -163,7 +163,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     @Test
     public void test220ModifyUserWillDisable() throws Exception {
         final String TEST_NAME = "test220ModifyUserWillDisable";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -244,7 +243,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     @Test
     public void test230ModifyAccountWillChangePasswordAndEnable() throws Exception {
         final String TEST_NAME = "test230ModifyAccountWillChangePasswordAndEnable";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -338,7 +336,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     @Test
     public void test232RunPropagationBeforeInterval() throws Exception {
         final String TEST_NAME = "test235RunPropagationAfterInterval";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -360,7 +357,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     @Test
     public void test235RunPropagationAfterInterval() throws Exception {
         final String TEST_NAME = "test235RunPropagationAfterInterval";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -468,7 +464,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     @Test
     public void test240CloseCaseAndReadAccountWill() throws Exception {
         final String TEST_NAME = "test240CloseCaseAndReadAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -498,7 +493,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     @Test
     public void test250RecomputeWillAfter5min() throws Exception {
         final String TEST_NAME = "test250RecomputeWillAfter5min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -526,7 +520,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     @Test
     public void test272UpdateBackingStoreAndGetAccountWill() throws Exception {
         final String TEST_NAME = "test272UpdateBackingStoreAndGetAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -584,7 +577,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     @Test
     public void test273GetAccountWill() throws Exception {
         final String TEST_NAME = "test273GetAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -640,7 +632,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     @Test
     public void test290RecomputeWillAfter15min() throws Exception {
         final String TEST_NAME = "test290RecomputeWillAfter15min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -700,7 +691,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     @Test
     public void test300UnassignAccountWill() throws Exception {
         final String TEST_NAME = "test300UnassignAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -776,7 +766,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     @Test
     public void test302RunPropagationAfterInterval() throws Exception {
         final String TEST_NAME = "test302RunPropagationAfterInterval";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -852,7 +841,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     @Test
     public void test310CloseCaseAndRecomputeWill() throws Exception {
         final String TEST_NAME = "test310CloseCaseAndRecomputeWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -904,7 +892,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     @Test
     public void test330UpdateBackingStoreAndRecomputeWill() throws Exception {
         final String TEST_NAME = "test330UpdateBackingStoreAndRecomputeWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -953,7 +940,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     @Test
     public void test349CleanUp() throws Exception {
         final String TEST_NAME = "test349CleanUp";
-        displayTestTitle(TEST_NAME);
 
         cleanupUser(TEST_NAME, userWillOid, USER_WILL_NAME, accountWillOid);
     }

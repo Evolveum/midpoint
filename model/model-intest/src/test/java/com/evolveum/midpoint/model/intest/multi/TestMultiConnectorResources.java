@@ -6,31 +6,21 @@
  */
 package com.evolveum.midpoint.model.intest.multi;
 
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.FailableRunnable;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.util.List;
 
 import static org.testng.AssertJUnit.*;
 
@@ -78,7 +68,6 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -98,7 +87,6 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
     @Test
     public void test100JackAssignDummyOpaline() throws Exception {
         final String TEST_NAME = "test100JackAssignDummyOpaline";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

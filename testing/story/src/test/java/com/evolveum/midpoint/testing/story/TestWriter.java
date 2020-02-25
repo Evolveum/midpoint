@@ -61,7 +61,6 @@ public class TestWriter extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
 
         OperationResult testResultWriter = modelService.testResource(RESOURCE_WRITER_OID, task);
@@ -71,7 +70,6 @@ public class TestWriter extends AbstractStoryTest {
     @Test
     public void test100AssignJackDummyAccount() throws Exception {
         final String TEST_NAME = "test100AssignJackDummyAccount";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -97,7 +95,6 @@ public class TestWriter extends AbstractStoryTest {
     @Test
     public void test110ModifyCaptainJack() throws Exception {
         final String TEST_NAME = "test110ModifyCaptainJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

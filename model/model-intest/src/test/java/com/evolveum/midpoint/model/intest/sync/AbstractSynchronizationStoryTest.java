@@ -19,6 +19,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -105,7 +106,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test100ImportLiveSyncTaskDummyGreen() throws Exception {
         final String TEST_NAME = "test100ImportLiveSyncTaskDummyGreen";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -124,7 +124,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test110AddDummyGreenAccountMancomb() throws Exception {
         final String TEST_NAME = "test110AddDummyGreenAccountMancomb";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -191,7 +190,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test200ImportLiveSyncTaskDummyBlue() throws Exception {
         final String TEST_NAME = "test200ImportLiveSyncTaskDummyBlue";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -213,7 +211,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test210AddDummyGreenAccountWally() throws Exception {
         final String TEST_NAME = "test210AddDummyGreenAccountWally";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -265,7 +262,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test220AddDummyBlueAccountWally() throws Exception {
         final String TEST_NAME = "test220AddDummyBlueAccountWally";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -329,7 +325,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test315AddDummyBlueAccountMancomb() throws Exception {
         final String TEST_NAME = "test315AddDummyBlueAccountMancomb";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -386,7 +381,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test350ImportLiveSyncTaskDummyDefault() throws Exception {
         final String TEST_NAME = "test350ImportLiveSyncTaskDummyDefault";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -414,7 +408,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test360ModifyUserAddDummyDefaultAccount() throws Exception {
         final String TEST_NAME = "test360ModifyUserAddDummyDefaultAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -530,7 +523,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test370ModifyDummyGreenAccountWally() throws Exception {
         final String TEST_NAME = "test370ModifyDummyGreenAccountWally";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -616,7 +608,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test380ModifyUserWallyFullName() throws Exception {
         final String TEST_NAME = "test380ModifyUserWallyFullName";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -686,7 +677,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test382ModifyUserWallyLocality() throws Exception {
         final String TEST_NAME = "test382ModifyUserWallyLocality";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -767,7 +757,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test400DeleteDummyDefaultAccount() throws Exception {
         final String TEST_NAME = "test400DeleteDummyDefaultAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -836,7 +825,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test410DeleteDummyGreenAccount() throws Exception {
         final String TEST_NAME = "test410DeleteDummyGreenAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -931,7 +919,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test510AddDummyGreenAccountWallyUserTemplate() throws Exception {
         final String TEST_NAME = "test510AddDummyGreenAccountWallyUserTemplate";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -975,7 +962,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test600AddDummyGreenAccountCalypso() throws Exception {
         final String TEST_NAME = "test600AddDummyGreenAccountCalypso";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -1021,7 +1007,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     @Test
     public void test700AddDummyGreenAccountXjojo() throws Exception {
         final String TEST_NAME = "test700AddDummyGreenAccountXjojo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);

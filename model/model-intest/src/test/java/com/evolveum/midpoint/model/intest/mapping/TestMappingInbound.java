@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.model.intest.mapping;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -23,10 +21,8 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -96,7 +92,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test010SanitySchema() throws Exception {
         final String TEST_NAME = "test010SanitySchema";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -124,7 +119,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test100ImportLiveSyncTaskDummyTeaGreen() throws Exception {
         final String TEST_NAME = "test100ImportLiveSyncTaskDummyTeaGreen";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -143,7 +137,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test110AddDummyTeaGreenAccountMancomb() throws Exception {
         final String TEST_NAME = "test110AddDummyTeaGreenAccountMancomb";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -205,7 +198,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test120ModifyMancombPhotoSource() throws Exception {
         final String TEST_NAME = "test120ModifyMancombPhotoSource";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -241,7 +233,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test130ModifyMancombPhotoSourceAndReconcile() throws Exception {
         final String TEST_NAME = "test130ModifyMancombPhotoSourceAndReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -281,7 +272,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test140ModifyMancombPhotoInRepo() throws Exception {
         final String TEST_NAME = "test140ModifyMancombPhotoInRepo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -318,7 +308,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test150UserReconcile() throws Exception {
         final String TEST_NAME = "test150UserReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -377,7 +366,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test300DeleteDummyTeaGreenAccountMancomb() throws Exception {
         final String TEST_NAME = "test300DeleteDummyTeaGreenAccountMancomb";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -416,7 +404,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test399DeleteDummyTeaGreenAccountMancomb() throws Exception {
         final String TEST_NAME = "test399DeleteDummyTeaGreenAccountMancomb";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -435,7 +422,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test400AddUserLeeloo() throws Exception {
         final String TEST_NAME = "test400AddUserLeeloo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -489,7 +475,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test402UserLeelooRecompute() throws Exception {
         final String TEST_NAME = "test402UserLeelooRecompute";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -523,7 +508,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test404UserLeelooReconcile() throws Exception {
         final String TEST_NAME = "test404UserLeelooReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -561,7 +545,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test410UserLeeloominaiReconcile() throws Exception {
         final String TEST_NAME = "test410UserLeeloominaiReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -604,7 +587,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test412UserLeeloominaiRecompute() throws Exception {
         final String TEST_NAME = "test412UserLeeloominaiRecompute";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -638,7 +620,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test414UserLeeloominaiReconcile() throws Exception {
         final String TEST_NAME = "test414UserLeeloominaiReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -676,7 +657,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test420UserLeelooStrangeReconcile() throws Exception {
         final String TEST_NAME = "test420UserLeelooStrangeReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -720,7 +700,6 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test424UserLeelooStrangeReconcile() throws Exception {
         final String TEST_NAME = "test424UserLeelooStrangeReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

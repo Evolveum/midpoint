@@ -19,12 +19,10 @@ import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -62,7 +60,6 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
     @Override
     public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
         final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);

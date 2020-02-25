@@ -101,7 +101,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test050AddMetaMeta() throws Exception {
         final String TEST_NAME = "test050AddMetaMeta";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -137,7 +136,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test100AddGreeks() throws Exception {
         final String TEST_NAME = "test100AddGreeks";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -156,7 +154,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test110AddRomans() throws Exception {
         final String TEST_NAME = "test110AddRomans";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -175,7 +172,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test200CreateAlpha() throws Exception {
         final String TEST_NAME = "test200CreateAlpha";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -195,7 +191,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test202CreateBeta() throws Exception {
         final String TEST_NAME = "test202CreateBeta";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -214,7 +209,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test210CreateA() throws Exception {
         final String TEST_NAME = "test210CreateA";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -236,7 +230,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test300AssignAlphaToJack() throws Exception {
         final String TEST_NAME = "test300AssignAlphaToJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -256,7 +249,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test309UnassignAlphaFromJack() throws Exception {
         final String TEST_NAME = "test309UnassignAlphaFromJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -285,7 +277,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test310AssignAToJack() throws Exception {
         final String TEST_NAME = "test310AssignAToJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -308,7 +299,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test312AssignBetaToJack() throws Exception {
         final String TEST_NAME = "test312AssignBetaToJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -328,7 +318,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test319UnassignBetaAFromJack() throws Exception {
         final String TEST_NAME = "test319UnassignBetaAFromJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -359,7 +348,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test900LegacyAddMetaMeta() throws Exception {
         final String TEST_NAME = "test900LegacyAddMetaMeta";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -395,7 +383,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test910LegacyAddMetaLegacyOne() throws Exception {
         final String TEST_NAME = "test910LegacyAddMetaLegacyOne";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -432,7 +419,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test920LegacyCreateGroupOne() throws Exception {
         final String TEST_NAME = "test920LegacyCreateGroupOne";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -473,7 +459,6 @@ public class TestMetaMeta extends AbstractRbacTest {
     @Test
     public void test930LegacyAssignGroupOneToJack() throws Exception {
         final String TEST_NAME = "test930LegacyAssignGroupOneToJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

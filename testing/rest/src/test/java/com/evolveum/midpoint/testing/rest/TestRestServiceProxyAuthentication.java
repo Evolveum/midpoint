@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.testing.rest;
 
 import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
-import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -20,10 +19,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ActiveProfiles;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -77,7 +72,6 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
     @Test
     public void test001getUserSelfBySomebody() {
         final String TEST_NAME = "test001getUserSelfBySomebody";
-        displayTestTitle(TEST_NAME);
 
         WebClient client = prepareClient(USER_SOMEBODY_OID);
         client.path("/self/");
@@ -101,7 +95,6 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
     @Test
     public void test002getUserSelfByEgoist() {
         final String TEST_NAME = "test002getUserSelfByEgoist";
-        displayTestTitle(TEST_NAME);
 
         WebClient client = prepareClient(USER_EGOIST_OID);
         client.path("/self/");
@@ -129,7 +122,6 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
     @Test
     public void test003getUserAdministratorByEgoist() {
         final String TEST_NAME = "test003getUserAdministratorByEgoist";
-        displayTestTitle(TEST_NAME);
 
         WebClient client = prepareClient(USER_EGOIST_OID);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -153,7 +145,6 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
     @Test
     public void test004getUserSelfByHead() {
         final String TEST_NAME = "test004getUserSelfByHead";
-        displayTestTitle(TEST_NAME);
 
         WebClient client = prepareClient(null);
         client.path("/self");
@@ -181,7 +172,6 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
     @Test
     public void test005getUserSelfByProxyHead() {
         final String TEST_NAME = "test005getUserSelfByProxyHead";
-        displayTestTitle(TEST_NAME);
 
         WebClient client = prepareClient(USER_HEAD_OID);
         client.path("/self");

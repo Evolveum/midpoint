@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -98,7 +99,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(TestDummyItsmIntegration.class.getName()
                 + "." + TEST_NAME);
@@ -121,7 +121,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test012TestConnection() throws Exception {
         final String TEST_NAME = "test012TestConnection";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -150,7 +149,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test100AssignAccountToJack() throws Exception {
         final String TEST_NAME = "test100AssignAccountToJack";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -180,7 +178,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test102CloseTicketAndRecomputeJack() throws Exception {
         final String TEST_NAME = "test102CloseTicketAndRecomputeJack";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -207,7 +204,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test104UnassignAccountFromJack() throws Exception {
         final String TEST_NAME = "test104UnassignAccountFromJack";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -238,7 +234,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test108CloseTicketAndRecomputeJack() throws Exception {
         final String TEST_NAME = "test108CloseTicketAndRecomputeJack";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -275,7 +270,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test109LetItExpire() throws Exception {
         final String TEST_NAME = "test109LetItExpire";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -300,7 +294,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test110AssignItsmAccountToJackCommunicationError() throws Exception {
         final String TEST_NAME = "test110AssignItsmAccountToJackCommunicationError";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -336,7 +329,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test111ReconcileJackFixed() throws Exception {
         final String TEST_NAME = "test111ReconcileJackFixed";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -381,7 +373,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test112CloseTicketAndRecomputeJackCommunicationError() throws Exception {
         final String TEST_NAME = "test112CloseTicketAndRecomputeJackCommunicationError";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -419,7 +410,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test113RecomputeJackFixed() throws Exception {
         final String TEST_NAME = "test113RecomputeJackFixed";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -454,7 +444,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test114UnassignAccountFromJackCommunicationError() throws Exception {
         final String TEST_NAME = "test114UnassignAccountFromJackCommunicationError";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -507,7 +496,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test115ReconcileJackFixed() throws Exception {
         final String TEST_NAME = "test115ReconcileJackFixed";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -552,7 +540,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test117CloseTicketAndRecomputeJackCommunicationError() throws Exception {
         final String TEST_NAME = "test117CloseTicketAndRecomputeJackCommunicationError";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -590,7 +577,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test118RecomputeJackFixed() throws Exception {
         final String TEST_NAME = "test118RecomputeJackFixed";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -632,7 +618,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     @Test
     public void test119LetItExpire() throws Exception {
         final String TEST_NAME = "test119LetItExpire";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

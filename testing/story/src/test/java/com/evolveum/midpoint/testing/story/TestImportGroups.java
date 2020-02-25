@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -74,7 +75,6 @@ public class TestImportGroups extends AbstractStoryTest {
     @Test
     public void test001importGroups() throws Exception {
         String TEST_NAME = "test001importGroups";
-        displayTestTitle(TEST_NAME);
 
         addObject(TASK_IMPORT_GROUPS);
 

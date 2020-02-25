@@ -78,7 +78,6 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         PolyStringNormalizer prismNormalizer = prismContext.getDefaultPolyStringNormalizer();
         assertTrue("Wrong normalizer class, expected Ascii7PolyStringNormalizer, but was "+prismNormalizer.getClass(),
@@ -88,7 +87,6 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
     @Test
     public void test100AddUserJack() throws Exception {
         final String TEST_NAME = "test100AddUserJack";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -109,7 +107,6 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
     @Test
     public void test110AddUserTeleke() throws Exception {
         final String TEST_NAME = "test110AddUserTeleke";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 

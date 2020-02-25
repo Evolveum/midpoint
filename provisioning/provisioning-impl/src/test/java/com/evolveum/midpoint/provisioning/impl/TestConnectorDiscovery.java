@@ -58,7 +58,6 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
     @Test
     public void test001Connectors() throws Exception {
         final String TEST_NAME = "test001Connectors";
-        displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
 
@@ -105,7 +104,6 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
     @Test
     public void testSearchConnectorSimple() throws SchemaException{
         final String TEST_NAME = "testSearchConnectorSimple";
-        displayTestTitle(TEST_NAME);
         OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
                 + "." + TEST_NAME);
 

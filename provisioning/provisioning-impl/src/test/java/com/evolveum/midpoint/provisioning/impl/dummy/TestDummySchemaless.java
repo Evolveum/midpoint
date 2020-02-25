@@ -266,7 +266,6 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     }
 
     public void resourceStaticSchemaTest(final String TEST_NAME, int expectedConnectorInitCount) throws Exception {
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -356,7 +355,6 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     }
 
     public void resourceStatciSchemaResourceAndConnectorCaching(final String TEST_NAME) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
@@ -455,7 +453,6 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     @Test
     public void test040ReAddResourceStaticSchema() throws Exception {
         final String TEST_NAME = "test040ReAddResourceStaticSchema";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -698,7 +695,6 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     @Test
     public void test107Capabilities() throws Exception {
         final String TEST_NAME = "test107Capabilities";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);

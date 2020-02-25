@@ -1787,10 +1787,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         return prismContext.parseObject(file);
     }
 
-    protected void displayTestTitle(String testName) {
-        TestUtil.displayTestTitle(this, testName);
-    }
-
     protected void displayWhen() {
         displayWhen(getTestNameShort());
     }

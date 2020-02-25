@@ -42,7 +42,6 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -166,7 +165,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test100UserJackAssignBlankAccount() throws Exception {
         final String TEST_NAME = "test100UserJackAssignBlankAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -209,7 +207,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test101AddUserCharlesAssignBlankAccount() throws Exception {
         final String TEST_NAME = "test101AddUserCharlesAssignBlankAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -252,7 +249,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test200UserLemonheadAssignAccountBrokenNetwork() throws Exception {
         final String TEST_NAME = "test200UserLemonheadAssignAccountBrokenNetwork";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -331,7 +327,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test210UserSharptoothAssignAccountBrokenGeneric() throws Exception {
         final String TEST_NAME = "test210UserSharptoothAssignAccountBrokenGeneric";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -401,7 +396,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test212UserSharptoothAssignAccountRecovery() throws Exception {
         final String TEST_NAME = "test212UserSharptoothAssignAccountRecovery";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -475,7 +469,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 //    }
 
     public void testUserSharptoothChangePasswordError(final String TEST_NAME, BreakMode breakMode, String oldPassword, String newPassword, OperationResultStatus expectedResultStatus) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -513,7 +506,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test220UserAssignAccountDeletedShadowRecomputeSync() throws Exception {
         final String TEST_NAME = "test220UserAssignAccountDeletedShadowRecomputeSync";
-        displayTestTitle(TEST_NAME);
 
         //GIVEN
         PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_OID, null,
@@ -625,7 +617,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     @Test
     public void test224UserAssignAccountDeletedShadowRecomputeReducedSync() throws Exception {
         final String TEST_NAME = "test224UserAssignAccountDeletedShadowRecomputeReducedSync";
-        displayTestTitle(TEST_NAME);
 
         //GIVEN
         PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME,

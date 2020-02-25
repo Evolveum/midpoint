@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -85,7 +86,6 @@ public class TestAutoassign extends AbstractRbacTest {
     @Test
     public void test100ModifyUnitWorker() throws Exception {
         final String TEST_NAME = "test100ModifyUnitWorker";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -119,7 +119,6 @@ public class TestAutoassign extends AbstractRbacTest {
     @Test
     public void test109ModifyUniNull() throws Exception {
         final String TEST_NAME = "test109ModifyUniNull";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -148,7 +147,6 @@ public class TestAutoassign extends AbstractRbacTest {
     @Test
     public void test110ModifyUnitSleepwalker() throws Exception {
         final String TEST_NAME = "test110ModifyUnitSleepwalker";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -189,7 +187,6 @@ public class TestAutoassign extends AbstractRbacTest {
     @Test
     public void test112ModifyUnitSleeperToWorker() throws Exception {
         final String TEST_NAME = "test112ModifyUnitSleeperToWorker";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -226,7 +223,6 @@ public class TestAutoassign extends AbstractRbacTest {
     @Test
     public void test114ModifyUnitAddSleeper() throws Exception {
         final String TEST_NAME = "test114ModifyUnitAddSleeper";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

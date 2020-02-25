@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -176,7 +177,6 @@ public class TestSemiManualDisable extends TestSemiManual {
     @Override
     public void test416PhoenixAccountUnassignCloseCase() throws Exception {
         final String TEST_NAME = "test416PhoenixAccountUnassignCloseCase";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -222,7 +222,6 @@ public class TestSemiManualDisable extends TestSemiManual {
     @Override
     public void test418AssignPhoenixAccountAgain() throws Exception {
         final String TEST_NAME = "test418AssignPhoenixAccountAgain";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

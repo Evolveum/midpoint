@@ -139,7 +139,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestLdapDependency.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -152,7 +151,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test100AddOrgIT() throws Exception {
         final String TEST_NAME = "test100AddOrgIT";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -180,7 +178,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test150AssignFunctionalRoleToITOrg() throws Exception {
         final String TEST_NAME = "test150AssignFunctionalRoleToITOrg";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -210,7 +207,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test170UnassignFunctionalRoleFromITOrg() throws Exception {
         final String TEST_NAME = "test170UnassignFunctionalRoleFromITOrg";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -241,7 +237,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test200AddOrgHR() throws Exception {
         final String TEST_NAME = "test200AddOrgHR";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -269,7 +264,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test250AssignFunctionalAndVipRoleToHROrg() throws Exception {
         final String TEST_NAME = "test250AssignFunctionalAndVipRoleToHROrg";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -302,7 +296,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test270UnassignVipRoleFromHROrg() throws Exception {
         final String TEST_NAME = "test270UnassignVipRoleFromHROrg";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -335,7 +328,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test280AssignVipAndSuperVipRoleToHROrg() throws Exception {
         final String TEST_NAME = "test280AssignVipAndSuperVipRoleToHROrg";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -369,7 +361,6 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test290UnassignVipRoleFromHROrg() throws Exception {
         final String TEST_NAME = "test290UnassignVipRoleFromHROrg";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 

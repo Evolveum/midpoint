@@ -90,7 +90,6 @@ public class TestClockwork extends AbstractLensTest {
     @Test
     public void test010SerializeAddUserBarbossa() throws Exception {
         final String TEST_NAME = "test010SerializeAddUserBarbossa";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -130,7 +129,6 @@ public class TestClockwork extends AbstractLensTest {
     @Test
     public void test020AssignAccountToJackSync() throws Exception {
         final String TEST_NAME = "test020AssignAccountToJackSync";
-        displayTestTitle(TEST_NAME);
 
         try {
 
@@ -209,7 +207,6 @@ public class TestClockwork extends AbstractLensTest {
     @Test
     public void test053ModifyUserBarbossaDisable() throws Exception {
         final String TEST_NAME = "test053ModifyUserBarbossaDisable";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -266,7 +263,6 @@ public class TestClockwork extends AbstractLensTest {
     }
 
     private void assignAccountToJackAsync(String testName, boolean serialize) throws Exception {
-        displayTestTitle(testName);
 
         // GIVEN
         Task task = createTask(testName);

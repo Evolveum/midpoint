@@ -73,7 +73,6 @@ public class TestInducement extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         //no resource, no extension definition
         //anything to check?
 
@@ -86,7 +85,6 @@ public class TestInducement extends AbstractStoryTest {
     @Test
     public void test010InducementConditionsTrue() throws Exception {
         final String TEST_NAME = "test010InducementConditionsTrue";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -117,7 +115,6 @@ public class TestInducement extends AbstractStoryTest {
     @Test
     public void test020InducementRole2ConditionFalse() throws Exception {
         final String TEST_NAME = "test020InducementRole2ConditionFalse";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -149,7 +146,6 @@ public class TestInducement extends AbstractStoryTest {
     @Test
     public void test030InducementRole3ConditionFalse() throws Exception {
         final String TEST_NAME = "test030InducementRole3ConditionFalse";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -180,7 +176,6 @@ public class TestInducement extends AbstractStoryTest {
     @Test
     public void test040Recomputed() throws Exception {
         final String TEST_NAME = "test040Recomputed";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -210,7 +205,6 @@ public class TestInducement extends AbstractStoryTest {
     @Test
     public void test050InducementRole3ConditionTrue() throws Exception {
         final String TEST_NAME = "test050InducementRole3ConditionTrue";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -240,7 +234,6 @@ public class TestInducement extends AbstractStoryTest {
     @Test
     public void test060Recomputed() throws Exception {
         final String TEST_NAME = "test060Recomputed";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -267,7 +260,6 @@ public class TestInducement extends AbstractStoryTest {
     @Test
     public void test070DeleteUser() throws Exception {
         final String TEST_NAME = "test070DeleteUser";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

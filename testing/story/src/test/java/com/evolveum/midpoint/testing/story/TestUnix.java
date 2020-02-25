@@ -55,6 +55,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -295,7 +296,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
 
         OperationResult testResultOpenDj = modelService.testResource(getResourceOid(), task);
@@ -308,7 +308,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test010Schema() throws Exception {
         final String TEST_NAME = "test010Schema";
-        displayTestTitle(TEST_NAME);
 
         resourceOpenDj = getObject(ResourceType.class, getResourceOid());
         resourceOpenDjType = resourceOpenDj.asObjectable();
@@ -342,7 +341,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test100AddUserHermanBasic() throws Exception {
         final String TEST_NAME = "test100AddUserHermanBasic";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -370,7 +368,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test110AddUserMancombUnix() throws Exception {
         final String TEST_NAME = "test110AddUserMancombUnix";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -398,7 +395,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test111AccountMancombEditObjectClassDefinition() throws Exception {
         final String TEST_NAME = "test111AccountMancombEditObjectClassDefinition";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -428,7 +424,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test119DeleteUserMancombUnix() throws Exception {
         final String TEST_NAME = "test119DeleteUserMancombUnix";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -454,7 +449,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test120AddUserLargo() throws Exception {
         final String TEST_NAME = "test120AddUserLargo";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -478,7 +472,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test122AssignUserLargoBasic() throws Exception {
         final String TEST_NAME = "test122AssignUserLargoBasic";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -507,7 +500,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test124AssignUserLargoUnix() throws Exception {
         final String TEST_NAME = "test124AssignUserLargoUnix";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -542,7 +534,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test125RecomputeUserLargo() throws Exception {
         final String TEST_NAME = "test125RecomputeUserLargo";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -571,7 +562,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test126UnAssignUserLargoUnix() throws Exception {
         final String TEST_NAME = "test126UnAssignUserLargoUnix";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -600,7 +590,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test127RecomputeUserLargo() throws Exception {
         final String TEST_NAME = "test127RecomputeUserLargo";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -629,7 +618,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test128UnAssignUserLargoBasic() throws Exception {
         final String TEST_NAME = "test128UnAssignUserLargoBasic";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -657,7 +645,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test129RecomputeUserLargo() throws Exception {
         final String TEST_NAME = "test129RecomputeUserLargo";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -685,7 +672,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test130AssignUserLargoUnix() throws Exception {
         final String TEST_NAME = "test130AssignUserLargoUnix";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -714,7 +700,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test131ReconcileUserLargo() throws Exception {
         final String TEST_NAME = "test131ReconcileUserLargo";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -754,7 +739,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test132MeddleWithAccountAndReconcileUserLargo() throws Exception {
         final String TEST_NAME = "test132MeddleWithAccountAndReconcileUserLargo";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -822,7 +806,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test133ReconcileUserLargoAgain() throws Exception {
         final String TEST_NAME = "test133ReconcileUserLargoAgain";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -861,7 +844,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test134AssignUserLargoBasic() throws Exception {
         final String TEST_NAME = "test134AssignUserLargoBasic";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -898,7 +880,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test135UnAssignUserLargoUnix() throws Exception {
         final String TEST_NAME = "test135UnAssignUserLargoUnix";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -944,7 +925,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test // MID-2883
     public void test136MeddleWithAccountAndReconcileUserLargo() throws Exception {
         final String TEST_NAME = "test136MeddleWithAccountAndReconcileUserLargo";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1004,7 +984,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test137ReconcileUserLargoAgain() throws Exception {
         final String TEST_NAME = "test137ReconcileUserLargoAgain";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1051,7 +1030,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test138UnAssignUserLargoBasic() throws Exception {
         final String TEST_NAME = "test138UnAssignUserLargoUnix";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1081,7 +1059,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test200AddLdapGroupMonkeyIsland() throws Exception {
         final String TEST_NAME = "test200AddLdapGroupMonkeyIsland";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1110,7 +1087,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test202AssignUserHermanMonkeyIsland() throws Exception {
         final String TEST_NAME = "test202AssignUserHermanMonkeyIsland";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1139,7 +1115,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test210AddUnixGroupVillains() throws Exception {
         final String TEST_NAME = "test210AddUnixGroupVillains";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1168,7 +1143,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test211AssignUserLargoUnix() throws Exception {
         final String TEST_NAME = "test211AssignUserLargoUnix";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1197,7 +1171,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test212AssignUserLargoVillains() throws Exception {
         final String TEST_NAME = "test212AssignUserLargoVillains";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1228,7 +1201,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test250AddUserRangerBasic() throws Exception {
         final String TEST_NAME = "test250AddUserRangerBasic";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1256,7 +1228,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test251AssignUserRangerBasic() throws Exception {
         final String TEST_NAME = "test251AssignUserRangerBasic";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1285,7 +1256,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test252AddUnixGroupRangers() throws Exception {
         final String TEST_NAME = "test252AddUnixGroupRangers";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1314,7 +1284,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test253AddUnixGroupSeals() throws Exception {
         final String TEST_NAME = "test253AddUnixGroupSeals";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1345,7 +1314,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test254AssignUserRangerRangers() throws Exception {
         final String TEST_NAME = "test254AssignUserRangerRangers";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1387,7 +1355,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test255AssignUserRangerSeals() throws Exception {
         final String TEST_NAME = "test255AssignUserRangerSeals";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1421,7 +1388,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test256UnAssignUserRangerSealsKeepRangers() throws Exception {
         final String TEST_NAME = "test256UnAssignUserRangerSealsKeepRangers";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1460,7 +1426,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test257RenameUserAndAccountsCheckGroupmembership() throws Exception {
         final String TEST_NAME = "test257RenameUserAndAccountsCheckGroupmembership";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1500,7 +1465,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test260DeleteUserUsrangerUnix() throws Exception {
         final String TEST_NAME = "test260DeleteUserUsrangerUnix";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1529,7 +1493,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test270RenameUnixGroupSeals() throws Exception {
         final String TEST_NAME = "test270RenameUnixGroupSeals";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1558,7 +1521,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test300AddUserCapsizeUnixFail() throws Exception {
         final String TEST_NAME = "test300AddUserCapsizeUnixFail";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1603,7 +1565,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test310AddUserWallyUnix() throws Exception {
         final String TEST_NAME = "test310AddUserWallyUnix";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1644,7 +1605,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test312AccountWallyRemovePosixObjectclassNative() throws Exception {
         final String TEST_NAME = "test312AccountWallyRemovePosixObjectclassNative";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1695,7 +1655,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test314AccountWallyAddPosixObjectclassNative() throws Exception {
         final String TEST_NAME = "test314AccountWallyAddPosixObjectclassNative";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1742,7 +1701,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test400ListAllAccountsObjectClass() throws Exception {
         final String TEST_NAME = "test400ListAllAccountsObjectClass";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1765,7 +1723,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test401ListAllAccountsKindIntent() throws Exception {
         final String TEST_NAME = "test401ListAllAccountsKindIntent";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1789,7 +1746,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test402ListLdapGroupsKindIntent() throws Exception {
         final String TEST_NAME = "test402ListLdapGroupsKindIntent";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1813,7 +1769,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test403ListUnixGroupsKindIntent() throws Exception {
         final String TEST_NAME = "test403ListUnixGroupsKindIntent";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1836,7 +1791,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test500AddUserStan() throws Exception {
         final String TEST_NAME = "test500AddUserStan";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -1870,7 +1824,6 @@ public class TestUnix extends AbstractStoryTest {
     @Test
     public void test510StanDisablePosixAssocAndReconcile() throws Exception {
         final String TEST_NAME = "test510StanDisablePosixAssocAndReconcile";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 

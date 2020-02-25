@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
@@ -146,7 +147,6 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
     @Override
     public void test345AssignMonkeyAccountBlue() throws Exception {
         final String TEST_NAME = "test345AssignMonkeyAccountBlue";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -195,7 +195,6 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
     @Override
     public void test347AssignMonkeyAccountYellow() throws Exception {
         final String TEST_NAME = "test347AssignMonkeyYellow";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -246,7 +245,6 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
     @Override
     public void test966AssignMonkeyAccountYellow() throws Exception {
         final String TEST_NAME = "test966AssignMonkeyAccountYellow";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

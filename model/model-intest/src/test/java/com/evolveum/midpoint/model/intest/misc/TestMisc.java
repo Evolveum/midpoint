@@ -92,7 +92,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100GetRepositoryDiag() throws Exception {
         final String TEST_NAME = "test100GetRepositoryDiag";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -115,7 +114,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110RepositorySelfTest() throws Exception {
         final String TEST_NAME = "test110RepositorySelfTest";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -135,7 +133,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200ExportUsers() throws Exception {
         final String TEST_NAME = "test200ExportUsers";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -178,7 +175,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test210SearchUsersMatchingRulesPolystringNorm() throws Exception {
         final String TEST_NAME = "test210SearchUsersMatchingRulesPolystringNorm";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -212,7 +208,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test212SearchUsersMatchingRulesPolystringIgnoreCase() throws Exception {
         final String TEST_NAME = "test212SearchUsersMatchingRulesPolystringIgnoreCase";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -242,7 +237,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test214SearchUsersMatchingRulesStringIgnoreCase() throws Exception {
         final String TEST_NAME = "test214SearchUsersMatchingRulesStringIgnoreCase";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -276,7 +270,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test216SearchUsersMatchingRulesStringNorm() throws Exception {
         final String TEST_NAME = "test216SearchUsersMatchingRulesStringNorm";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -306,7 +299,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test300RecomputeJack() throws Exception {
         final String TEST_NAME = "test300RecomputeJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -331,7 +323,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test302UpdateKeyJack() throws Exception {
         final String TEST_NAME = "test302UpdateKeyJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -353,7 +344,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test310AddUserClean() throws Exception {
         final String TEST_NAME = "test310AddUserClean";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -382,7 +372,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test312UpdateBinaryIdClean() throws Exception {
         final String TEST_NAME = "test312UpdateBinaryIdClean";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -407,7 +396,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test320DefaultRelations() throws Exception {
         final String TEST_NAME="test320DefaultRelations";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -430,7 +418,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test400ImportRoleWithFilters() throws Exception {
         final String TEST_NAME = "test400ImportRoleWithFilters";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -455,7 +442,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test500AddHocProvisioningScriptAssignJackResourceScripty() throws Exception {
         final String TEST_NAME = "test500AddHocProvisioningScriptAssignJackResourceScripty";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -489,7 +475,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test502GetAccountJackResourceScripty() throws Exception {
         final String TEST_NAME = "test502GetAccountJackResourceScripty";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -522,7 +507,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test504GetAccountJackResourceScriptyAgain() throws Exception {
         final String TEST_NAME = "test504GetAccountJackResourceScriptyAgain";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -560,7 +544,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test506ModifyResourceGetAccountJackResourceScripty() throws Exception {
         final String TEST_NAME = "test506ModifyResourceGetAccountJackResourceScripty";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -605,7 +588,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test600jackAssignRoleShip() throws Exception {
         final String TEST_NAME = "test600jackAssignRoleShip";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -635,7 +617,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test601jackUnassignResourceAccount() throws Exception {
         final String TEST_NAME = "test601jackUnassignResourceAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -666,7 +647,6 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test602jackUnssigndRoleShip() throws Exception {
         final String TEST_NAME = "test602jackUnssigndRoleShip";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

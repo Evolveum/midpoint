@@ -84,7 +84,6 @@ public class TestServiceAccounts extends AbstractStoryTest {
     @Test
     public void test100StartSyncTask() throws Exception {
         final String TEST_NAME = "test100StartSyncTask";
-        displayTestTitle(TEST_NAME);
 
         assertUsers(getNumberOfUsers());
         assertServices(0);
@@ -106,7 +105,6 @@ public class TestServiceAccounts extends AbstractStoryTest {
     @Test
     public void test101AddServiceAccountSync() throws Exception {
         final String TEST_NAME = "test101AddServiceAccountSync";
-        displayTestTitle(TEST_NAME);
 
         // Preconditions
         assertServices(0);
@@ -150,7 +148,6 @@ public class TestServiceAccounts extends AbstractStoryTest {
     @Test
     public void test102ModifyServiceAccount() throws Exception {
         final String TEST_NAME = "test102ModifyServiceAccount";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -199,7 +196,6 @@ public class TestServiceAccounts extends AbstractStoryTest {
     @Test
     public void test104DeleteServiceAccount() throws Exception {
         final String TEST_NAME = "test104DeleteServiceAccount";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -247,7 +243,6 @@ public class TestServiceAccounts extends AbstractStoryTest {
     @Test
     public void test108DeleteServiceAccountSync() throws Exception {
         final String TEST_NAME = "test108DeleteServiceAccountSync";
-        displayTestTitle(TEST_NAME);
 
         // Preconditions
         assertServices(1);
@@ -269,7 +264,6 @@ public class TestServiceAccounts extends AbstractStoryTest {
     @Test
     public void test109StopLivesyncTask() throws Exception {
         final String TEST_NAME = "test109StopLivesyncTask";
-        displayTestTitle(TEST_NAME);
 
         // Preconditions
         assertServices(0);
@@ -287,7 +281,6 @@ public class TestServiceAccounts extends AbstractStoryTest {
     @Test
     public void test120StartReconTask() throws Exception {
         final String TEST_NAME = "test120StartReconTask";
-        displayTestTitle(TEST_NAME);
 
         assertUsers(getNumberOfUsers());
         assertServices(0);
@@ -309,7 +302,6 @@ public class TestServiceAccounts extends AbstractStoryTest {
     @Test
     public void test121AddServiceAccountRecon() throws Exception {
         final String TEST_NAME = "test121AddServiceAccountRecon";
-        displayTestTitle(TEST_NAME);
 
         // Preconditions
         assertServices(0);
@@ -341,7 +333,6 @@ public class TestServiceAccounts extends AbstractStoryTest {
     @Test
     public void test128DeleteServiceAccountRecon() throws Exception {
         final String TEST_NAME = "test128DeleteServiceAccountRecon";
-        displayTestTitle(TEST_NAME);
 
         // Preconditions
         assertServices(1);
@@ -362,7 +353,6 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
     public void test129StopReconTask() throws Exception {
         final String TEST_NAME = "test129StopReconTask";
-        displayTestTitle(TEST_NAME);
 
         // Preconditions
         assertServices(1);
@@ -385,7 +375,6 @@ public class TestServiceAccounts extends AbstractStoryTest {
     @Test
     public void test140CreateServiceAccount() throws Exception {
         final String TEST_NAME = "test140CreateServiceAccount";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

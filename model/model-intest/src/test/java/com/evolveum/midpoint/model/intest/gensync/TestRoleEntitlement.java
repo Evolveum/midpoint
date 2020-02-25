@@ -61,7 +61,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test050GetRolePirate() throws Exception {
         final String TEST_NAME = "test050GetRolePirate";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -88,7 +87,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test100ModifyRoleAddEntitlement() throws Exception {
         final String TEST_NAME = "test100ModifyRoleAddEntitlement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -155,7 +153,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test101GetGroup() throws Exception {
         final String TEST_NAME = "test101GetGroup";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -185,7 +182,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test102GetGroupNoFetch() throws Exception {
         final String TEST_NAME = "test102GetGroupNoFetch";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -211,7 +207,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test103GetGroupRaw() throws Exception {
         final String TEST_NAME = "test103GetGroupRaw";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -236,7 +231,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test108ModifyRoleAddEntitlementAgain() throws Exception {
         final String TEST_NAME = "test108ModifyRoleAddEntitlementAgain";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -283,7 +277,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test110GetRoleResolveEntitlement() throws Exception {
         final String TEST_NAME = "test110GetRoleResolveEntitlement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -312,7 +305,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test111GetRoleResolveEntitlement() throws Exception {
         final String TEST_NAME = "test111GetRoleResolveEntitlement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -345,7 +337,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test112GetRoleResolveEntitlementNoFetch() throws Exception {
         final String TEST_NAME = "test112GetRoleResolveEntitlementNoFetch";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -377,7 +368,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test119ModifyRoleDeleteEntitlement() throws Exception {
         final String TEST_NAME = "test119ModifyRoleDeleteEntitlement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -435,7 +425,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test120AddEntitlement() throws Exception {
         final String TEST_NAME = "test120AddEntitlement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -490,7 +479,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test121ModifyRoleLinkEntitlement() throws Exception {
         final String TEST_NAME = "test121ModifyRoleLinkEntitlement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -543,7 +531,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test128ModifyRoleUnlinkEntitlement() throws Exception {
         final String TEST_NAME = "test128ModifyRoleUnlinkEntitlement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -596,7 +583,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test129DeleteEntitlement() throws Exception {
         final String TEST_NAME = "test129DeleteEntitlement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -638,7 +624,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test131ModifyRoleAssignEntitlement() throws Exception {
         final String TEST_NAME = "test131ModifyRoleAssignEntitlement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -700,7 +685,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test132ModifyEntitlement() throws Exception {
         final String TEST_NAME = "test132ModifyEntitlement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -765,7 +749,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test139ModifyRoleUnassignEntitlement() throws Exception {
         final String TEST_NAME = "test139ModifyRoleUnassignEntitlement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -815,7 +798,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test151ModifyRoleAssignEntitlementRelativeEnforcement() throws Exception {
         final String TEST_NAME = "test151ModifyRoleAssignEntitlementRelativeEnforcement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -876,7 +858,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test158ModifyRoleUnassignEntitlementRelativeEnforcement() throws Exception {
         final String TEST_NAME = "test158ModifyRoleUnassignEntitlementRelativeEnforcement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName()
@@ -927,7 +908,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test160ModifyRolePropertyAndAssignEntitlement() throws Exception {
         final String TEST_NAME = "test160ModifyRolePropertyAndAssignEntitlement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -989,7 +969,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test161ModifyRole() throws Exception {
         final String TEST_NAME = "test161ModifyRole";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1046,7 +1025,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test180RenameRole() throws Exception {
         final String TEST_NAME = "test180RenameRole";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1109,7 +1087,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test199DeleteRole() throws Exception {
         final String TEST_NAME = "test199DeleteRole";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1164,7 +1141,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test200AddRoleSwashbuckler() throws Exception {
         final String TEST_NAME = "test200AddRoleSwashbuckler";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1230,7 +1206,6 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     @Test
     public void test210ModifyRoleSwashbucklerRiskLevel() throws Exception {
         final String TEST_NAME = "test210ModifyRoleSwashbucklerRiskLevel";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

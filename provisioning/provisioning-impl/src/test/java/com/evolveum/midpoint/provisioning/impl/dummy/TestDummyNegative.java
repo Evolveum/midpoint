@@ -106,7 +106,6 @@ public class TestDummyNegative extends AbstractDummyTest {
     @Test
     public void test190GetResource() throws Exception {
         final String TEST_NAME = "test190GetResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -128,7 +127,6 @@ public class TestDummyNegative extends AbstractDummyTest {
     @Test
     public void test200AddAccountNullAttributes() throws Exception {
         final String TEST_NAME = "test200AddAccountNullAttributes";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -222,7 +220,6 @@ public class TestDummyNegative extends AbstractDummyTest {
     @Test
     public void test220AddAccountNoResourceRef() throws Exception {
         final String TEST_NAME = "test220AddAccountNoResourceRef";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
                 + "." + TEST_NAME);
@@ -254,7 +251,6 @@ public class TestDummyNegative extends AbstractDummyTest {
     @Test
     public void test221DeleteAccountResourceNotFound() throws Exception {
         final String TEST_NAME = "test221DeleteAccountResourceNotFound";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
                 + "." + TEST_NAME);
@@ -291,7 +287,6 @@ public class TestDummyNegative extends AbstractDummyTest {
     @Test
     public void test230GetAccountDeletedShadow() throws Exception {
         final String TEST_NAME = "test230GetAccountDeletedShadow";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
                 + "." + TEST_NAME);

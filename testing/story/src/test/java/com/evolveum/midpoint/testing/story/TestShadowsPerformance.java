@@ -24,6 +24,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -98,7 +99,6 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     @Test
     public void test010Sanity() throws Exception {
         final String TEST_NAME = "test010Sanity";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
 
@@ -115,7 +115,6 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     @Test
     public void test100ImportAccounts() throws Exception {
         final String TEST_NAME = "test100ImportAccounts";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -147,7 +146,6 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     @Test(enabled = false)
     public void test200DeleteAccountsAndReconcile() throws Exception {
         final String TEST_NAME = "test200DeleteAccountsAndReconcile";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -178,7 +176,6 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     @Test
     public void test210DeleteShadows() throws Exception {
         final String TEST_NAME = "test210DeleteShadows";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -209,7 +206,6 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     @Test
     public void test900Summarize() {
         final String TEST_NAME = "test900Summarize";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

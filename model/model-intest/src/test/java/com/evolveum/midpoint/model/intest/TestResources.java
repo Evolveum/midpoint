@@ -146,7 +146,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test050GetResourceRaw() throws Exception {
         final String TEST_NAME = "test050GetResourceRaw";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -196,7 +195,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test052GetResourceNoFetch() throws Exception {
         final String TEST_NAME = "test052GetResourceNoFetch";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -248,7 +246,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test053GetResourceNoFetchAgain() throws Exception {
         final String TEST_NAME = "test053GetResourceNoFetchAgain";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -302,7 +299,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test055GetResourceNoFetchReadOnly() throws Exception {
         final String TEST_NAME = "test055GetResourceNoFetchReadOnly";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -357,7 +353,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test100SearchResourcesNoFetch() throws Exception {
         final String TEST_NAME = "test100SearchResourcesNoFetch";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -406,7 +401,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test102SearchResourcesNoFetchReadOnly() throws Exception {
         final String TEST_NAME = "test102SearchResourcesNoFetchReadOnly";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -457,7 +451,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test105SearchResourcesIterativeNoFetch() throws Exception {
         final String TEST_NAME = "test105SearchResourcesIterativeNoFetch";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -509,7 +502,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test107SearchResourcesIterativeNoFetchReadOnly() throws Exception {
         final String TEST_NAME = "test107SearchResourcesIterativeNoFetchReadOnly";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -560,7 +552,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test110GetResourceDummy() throws Exception {
         final String TEST_NAME = "test110GetResourceDummy";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -603,7 +594,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test112GetResourceDummyReadOnly() throws Exception {
         final String TEST_NAME = "test112GetResourceDummyReadOnly";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -645,7 +635,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test120SearchResources() throws Exception {
         final String TEST_NAME = "test120SearchResources";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
@@ -687,7 +676,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test125SearchResourcesIterative() throws Exception {
         final String TEST_NAME = "test125SearchResourcesIterative";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
@@ -806,7 +794,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test200GetResourceRawAfterSchema() throws Exception {
         final String TEST_NAME = "test200GetResourceRawAfterSchema";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
@@ -836,7 +823,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test210GetResourceDummyRed() throws Exception {
         final String TEST_NAME = "test210GetResourceDummyRed";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -872,7 +858,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test750GetResourceRaw() throws Exception {
         final String TEST_NAME = "test750GetResourceRaw";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -915,7 +900,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test752GetResourceDummy() throws Exception {
         final String TEST_NAME = "test752GetResourceDummy";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -949,7 +933,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test760ModifyConfigurationString() throws Exception {
         final String TEST_NAME = "test760ModifyConfigurationString";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -976,7 +959,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test761ModifyConfigurationStringRaw() throws Exception {
         final String TEST_NAME = "test761ModifyConfigurationStringRaw";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1045,7 +1027,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
     private void modifyConfigurationDiffExpressionRaw(final String TEST_NAME,
             FailableFunction<String, PrismObject<ResourceType>> parser) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1118,7 +1099,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test800GetResourceDummy() throws Exception {
         final String TEST_NAME = "test800GetResourceDummy";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1152,7 +1132,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test820SingleDescriptionModify() throws Exception {
         final String TEST_NAME = "test820SingleDescriptionModify";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1174,7 +1153,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test840RandomModifySequence() throws Exception {
         final String TEST_NAME = "test840RandomModifySequence";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

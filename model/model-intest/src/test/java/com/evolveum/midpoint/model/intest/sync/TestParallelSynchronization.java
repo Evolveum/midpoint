@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -165,7 +166,6 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
     @Test
     public void test001SanityAzure() throws Exception {
         final String TEST_NAME = "test001SanityAzure";
-        displayTestTitle(TEST_NAME);
 
         display("Dummy resource azure", dummyResourceSteelBlue);
 
@@ -181,7 +181,6 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
     @Test
     public void test002SanityAzureRefined() throws Exception {
         final String TEST_NAME = "test002SanityAzureRefined";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummySteelBlueType, prismContext);
@@ -195,7 +194,6 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
     @Test
     public void test100Synchronize() throws Exception {
         final String TEST_NAME = "test100Synchronize";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

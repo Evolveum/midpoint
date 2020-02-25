@@ -158,7 +158,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -171,7 +170,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test100AddOrgRoyulaCarpathia() throws Exception {
         final String TEST_NAME = "test100AddOrgRoyulaCarpathia";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -200,7 +198,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test110AddUserTeleke() throws Exception {
         final String TEST_NAME = "test110AddUserTeleke";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -231,7 +228,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test200AddOrgCortuvHrad() throws Exception {
         final String TEST_NAME = "test200AddOrgCortuvHrad";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -261,7 +257,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test210AddUserGorc() throws Exception {
         final String TEST_NAME = "test210AddUserGorc";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -288,7 +283,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test220AddOrgVysneVlkodlaky() throws Exception {
         final String TEST_NAME = "test220AddOrgVysneVlkodlaky";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -318,7 +312,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test230AddUserViljaDezi() throws Exception {
         final String TEST_NAME = "test230AddUserViljaDezi";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -344,7 +337,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test300RenameOrgCortuvHrad() throws Exception {
         final String TEST_NAME = "test300RenameOrgCortuvHrad";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -377,7 +369,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test310RenameUserGorc() throws Exception {
         final String TEST_NAME = "test310RenameUserGorc";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -401,7 +392,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test320AddOrgRoyulaDiabolica() throws Exception {
         final String TEST_NAME = "test320AddOrgRoyulaDiabolica";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -431,7 +421,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test322MoveOrgZblo() throws Exception {
         final String TEST_NAME = "test322MoveOrgZblo";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -120,7 +121,6 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -134,7 +134,6 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     @Test
     public void test080ImportSyncTask() throws Exception {
         final String TEST_NAME = "test080ImportSyncTask";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -165,7 +164,6 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     @Test
     public void test110SyncAddWill() throws Exception {
         final String TEST_NAME = "test110SyncAddWill";
-        displayTestTitle(TEST_NAME);
 
         Entry entry = openDJController.addEntryFromLdifFile(ACCOUNT_WILL_LDIF_FILE);
         display("Entry from LDIF", entry);
@@ -207,7 +205,6 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     @Test
     public void test112SyncAddGoods() throws Exception {
         final String TEST_NAME = "test112SyncAddGoods";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -236,7 +233,6 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     @Test
     public void test150AddGoblins() throws Exception {
         final String TEST_NAME = "test150AddGoblins";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -284,7 +280,6 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     @Test
     public void test200SyncAddKraken() throws Exception {
         final String TEST_NAME = "test200SyncAddKraken";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -311,7 +306,6 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     @Test
     public void test210SyncAddKraken() throws Exception {
         final String TEST_NAME = "test210SyncAddKraken";
-        displayTestTitle(TEST_NAME);
 
         Entry entry = openDJController.addEntryFromLdifFile(ACCOUNT_KRAKEN_LDIF_FILE);
         display("Entry from LDIF", entry);
@@ -350,7 +344,6 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     @Test
     public void test212SyncAddBads() throws Exception {
         final String TEST_NAME = "test212SyncAddBads";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -373,7 +366,6 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     @Test
     public void test219StopSyncTask() throws Exception {
         final String TEST_NAME = "test219StopSyncTask";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -392,7 +384,6 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     @Test
     public void test230UserRecomputeSequential() throws Exception {
         final String TEST_NAME = "test230UserRecomputeSequential";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -416,7 +407,6 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     @Test
     public void test232UserRecomputeParallel() throws Exception {
         final String TEST_NAME = "test232UserRecomputeParallel";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

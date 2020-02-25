@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -102,7 +103,6 @@ public class TestUuidClient extends AbstractUuidTest {
     @Test
     public void test100AddUserRapp() throws Exception {
         final String TEST_NAME = "test100AddUserRapp";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -123,7 +123,6 @@ public class TestUuidClient extends AbstractUuidTest {
     @Test
     public void test101RappAssignRoleClient() throws Exception {
         final String TEST_NAME = "test101RappAssignRoleClient";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -144,7 +143,6 @@ public class TestUuidClient extends AbstractUuidTest {
     @Test
     public void test107RappUnAssignRoleClient() throws Exception {
         final String TEST_NAME = "test107RappUnAssignRoleClient";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
 
         // WHEN
@@ -159,7 +157,6 @@ public class TestUuidClient extends AbstractUuidTest {
     @Test
     public void test110AddMancombWithRoleClient() throws Exception {
         final String TEST_NAME = "test110AddMancombWithRoleClient";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -184,7 +181,6 @@ public class TestUuidClient extends AbstractUuidTest {
     @Test
     public void test112RenameMancomb() throws Exception {
         final String TEST_NAME = "test112RenameMancomb";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -207,7 +203,6 @@ public class TestUuidClient extends AbstractUuidTest {
     @Test
     public void test119MancombDelete() throws Exception {
         final String TEST_NAME = "test119MancombDelete";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -227,7 +222,6 @@ public class TestUuidClient extends AbstractUuidTest {
     @Test
     public void test120AddKateWithRoleClient() throws Exception {
         final String TEST_NAME = "test120AddKateWithRoleClient";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -250,7 +244,6 @@ public class TestUuidClient extends AbstractUuidTest {
     @Test
     public void test122AddWallyWithRoleClient() throws Exception {
         final String TEST_NAME = "test122AddWallyWithRoleClient";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -273,7 +266,6 @@ public class TestUuidClient extends AbstractUuidTest {
     @Test
     public void test124AddRogersWithRoleClient() throws Exception {
         final String TEST_NAME = "test124AddMartyWithRoleClient";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -296,7 +288,6 @@ public class TestUuidClient extends AbstractUuidTest {
     @Test
     public void test126AddMartyWithRoleClient() throws Exception {
         final String TEST_NAME = "test124AddMartyWithRoleClient";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 

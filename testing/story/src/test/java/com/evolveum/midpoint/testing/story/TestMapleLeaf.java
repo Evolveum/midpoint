@@ -135,7 +135,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestMapleLeaf.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -157,8 +156,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test001addUser() throws Exception {
         final String TEST_NAME = "test001addUser";
-        displayTestTitle(TEST_NAME);
-
 
         //when
         displayWhen(TEST_NAME);
@@ -190,8 +187,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test002assignRoleSquirrel() throws Exception {
         final String TEST_NAME = "test002assignRoleSquirrel";
-        displayTestTitle(TEST_NAME);
-
 
         //when
         displayWhen(TEST_NAME);
@@ -223,7 +218,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test003unassignRoleSquirrel() throws Exception {
         final String TEST_NAME = "test003unassignRoleSquirrel";
-        displayTestTitle(TEST_NAME);
 
         //when
         displayWhen(TEST_NAME);
@@ -256,7 +250,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test004assignRoleMapleLeafFaculty() throws Exception {
         final String TEST_NAME = "test004assignRoleMapleLeafFaculty";
-        displayTestTitle(TEST_NAME);
 
         //when
         displayWhen(TEST_NAME);
@@ -297,7 +290,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test005assignRoleMapleLeafGraduate() throws Exception {
         final String TEST_NAME = "test005assignRoleMapleLeafGraduate";
-        displayTestTitle(TEST_NAME);
 
         //when
         displayWhen(TEST_NAME);
@@ -330,7 +322,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test006unassignRoleMapleLeafFaculty() throws Exception {
         final String TEST_NAME = "test006unassignRoleMapleLeafFaculty";
-        displayTestTitle(TEST_NAME);
 
         //when
         displayWhen(TEST_NAME);
@@ -363,7 +354,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test100changePasswordForceChange() throws Exception {
         final String TEST_NAME = "test100changePasswordForceChange";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
@@ -419,7 +409,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test101resetPassword() throws Exception {
         final String TEST_NAME = "test101resetPassword";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
@@ -454,7 +443,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test200setArchivedAdministrativeStatus() throws Exception {
         final String TEST_NAME = "test200setArchivedAdministrativeStatus";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
@@ -474,7 +462,6 @@ public class TestMapleLeaf extends AbstractStoryTest {
     @Test
     public void test201SetUndefinedAdministrativeStatus() throws Exception {
         final String TEST_NAME = "test201SetUndefinedAdministrativeStatus";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();

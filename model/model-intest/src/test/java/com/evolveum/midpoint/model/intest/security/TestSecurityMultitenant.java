@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -212,7 +213,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
@@ -241,7 +241,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test010ImportOrgstruct() throws Exception {
         final String TEST_NAME = "test010ImportOrgstruct";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = createTask(TEST_NAME);
@@ -378,7 +377,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test100AutzLetoRead() throws Exception {
         final String TEST_NAME = "test100AutzLetoRead";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -420,7 +418,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test102AutzLetoAdd() throws Exception {
         final String TEST_NAME = "test102AutzLetoAdd";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -465,7 +462,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test104AutzLetoModify() throws Exception {
         final String TEST_NAME = "test104AutzLetoModify";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -497,7 +493,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test106AutzLetoAddResourceTask() throws Exception {
         final String TEST_NAME = "test106AutzLetoAddResourceTask";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -543,7 +538,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test109AutzLetoDelete() throws Exception {
         final String TEST_NAME = "test109AutzLetoDelete";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -573,7 +567,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test110AutzLetoAddOrgs() throws Exception {
         final String TEST_NAME = "test110AutzLetoAddOrgs";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -628,7 +621,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test112AutzLetoProtectTenant() throws Exception {
         final String TEST_NAME = "test112AutzLetoProtectTenant";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -698,7 +690,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test114AutzLetoKeepWithinTenant() throws Exception {
         final String TEST_NAME = "test114AutzLetoKeepWithinTenant";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -761,7 +752,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test116AutzLetoProtectTenantAdminRole() throws Exception {
         final String TEST_NAME = "test114AutzLetoKeepWithinTenant";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -819,7 +809,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test118AutzLetoBusinessRoles() throws Exception {
         final String TEST_NAME = "test118AutzLetoBusinessRoles";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -859,7 +848,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test120AutzPaulEndUser() throws Exception {
         final String TEST_NAME = "test120AutzPaulEndUser";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -895,7 +883,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test122AutzDuncanRoleManager() throws Exception {
         final String TEST_NAME = "test122AutzDuncanRoleManager";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -945,7 +932,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
     @Test
     public void test130AutzEdricRead() throws Exception {
         final String TEST_NAME = "test120AutzEdricRead";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 

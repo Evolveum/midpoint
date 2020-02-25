@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,7 +93,6 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
     @Test
     public void test100DecideNoRole() throws Exception {
         final String TEST_NAME = "test100DecideNoRole";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -119,7 +119,6 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
     @Test
     public void test110DecideRoleUiAllowAll() throws Exception {
         final String TEST_NAME = "test110DecideRoleUiAllowAll";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_UI_ALLOW_ALL_OID);
@@ -147,7 +146,6 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
     @Test
     public void test120DecideRoleUiDenyAll() throws Exception {
         final String TEST_NAME = "test120DecideRoleUiDenyAll";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_UI_DENY_ALL_OID);
@@ -179,7 +177,6 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
     @Test
     public void test200DecideRoleUiDenyAllow() throws Exception {
         final String TEST_NAME = "test200DecideRoleUiDenyAllow";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_UI_DENY_ALLOW_OID);

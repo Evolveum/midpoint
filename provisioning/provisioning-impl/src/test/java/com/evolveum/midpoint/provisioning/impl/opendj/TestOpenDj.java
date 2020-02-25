@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
@@ -205,7 +206,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test003Connection() throws Exception {
         final String TEST_NAME = "test003Connection";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -262,7 +262,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test004ResourceAndConnectorCaching() throws Exception {
         final String TEST_NAME = "test004ResourceAndConnectorCaching";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -306,7 +305,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test005Capabilities() throws Exception {
         final String TEST_NAME = "test005Capabilities";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -382,7 +380,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test006Schema() throws Exception {
         final String TEST_NAME = "test006RefinedSchema";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         // WHEN
@@ -569,7 +566,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test007RefinedSchema() throws Exception {
         final String TEST_NAME = "test007RefinedSchema";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         // WHEN
@@ -686,7 +682,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test020ListResourceObjects() throws Exception {
         final String TEST_NAME = "test020ListResourceObjects";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -707,7 +702,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test110GetObject() throws Exception {
         final String TEST_NAME = "test110GetObject";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -799,7 +793,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test111GetObjectNotFoundRepo() throws Exception {
         final String TEST_NAME = "test111GetObjectNotFoundRepo";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -834,7 +827,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test112GetObjectNotFoundResource() throws Exception {
         final String TEST_NAME = "test112GetObjectNotFoundResource";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -853,7 +845,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test119Cleanup() throws Exception {
         final String TEST_NAME = "test119Cleanup";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -867,7 +858,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test120AddAccountWill() throws Exception {
         final String TEST_NAME = "test120AddAccountWill";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -900,7 +890,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test121RenameAccountWillOnResource() throws Exception{
         String TEST_NAME = "test121RenameAccountWillOnResource";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -929,7 +918,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test125AddObjectNull() throws Exception {
         final String TEST_NAME = "test125AddObjectNull";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -952,7 +940,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test130AddDeleteAccountSparrow() throws Exception {
         final String TEST_NAME = "test130AddDeleteAccountSparrow";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -997,7 +984,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test140AddAndModifyAccountJack() throws Exception {
         final String TEST_NAME = "test140AddAndModifyAccountJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1069,7 +1055,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test145ModifyAccountJackJpegPhoto() throws Exception {
         final String TEST_NAME = "test145ModifyAccountJackJpegPhoto";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1126,7 +1111,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test147ModifyAccountJackGivenNameDuplicit() throws Exception {
         final String TEST_NAME = "test147ModifyAccountJackGivenNameDuplicit";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1178,7 +1162,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test150ChangePassword() throws Exception {
         final String TEST_NAME = "test150ChangePassword";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1233,7 +1216,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test151AddObjectWithPassword() throws Exception {
         final String TEST_NAME = "test151AddObjectWithPassword";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1281,7 +1263,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test160SearchAccountsIterative() throws Exception {
         final String TEST_NAME = "test160SearchAccountsIterative";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1346,7 +1327,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test161SearchAccountsIterativeOffset2Page3() throws Exception {
         final String TEST_NAME = "test161SearchAccountsIterativeOffset2Page3";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1394,7 +1374,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test162SearchAccountsIterativeOffsetNullPage5() throws Exception {
         final String TEST_NAME = "test162SearchAccountsIterativeOffsetNullPage5";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1455,7 +1434,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test170DisableAccount() throws Exception{
         final String TEST_NAME = "test170DisableAccount";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1514,7 +1492,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test175AddDisabledAccount() throws Exception {
         final String TEST_NAME = "test175AddDisabledAccount";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1565,7 +1542,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test176AddEnabledAccount() throws Exception {
         final String TEST_NAME = "test176AddEnabledAccount";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1602,7 +1578,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test180GetUnlockedAccount() throws Exception {
         final String TEST_NAME = "test180GetUnlockedAccount";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1622,7 +1597,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test182GetLockedAccount() throws Exception {
         final String TEST_NAME = "test182GetLockedAccount";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1649,7 +1623,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test184UnlockAccount() throws Exception{
         final String TEST_NAME = "test184UnlockAccount";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1689,7 +1662,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test200SearchObjectsIterative() throws Exception {
         final String TEST_NAME = "test200SearchObjectsIterative";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1732,7 +1704,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test201SearchObjects() throws Exception {
         final String TEST_NAME = "test201SearchObjects";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1769,7 +1740,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test202SearchObjectsCompexFilter() throws Exception {
         final String TEST_NAME = "test202SearchObjectsCompexFilter";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1805,7 +1775,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test203SearchObjectsByDnExists() throws Exception {
         final String TEST_NAME = "test203SearchObjectsByDnExists";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1846,7 +1815,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test205SearchObjectsByDnNotExists() throws Exception {
         final String TEST_NAME = "test205SearchObjectsByDnNotExists";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1883,7 +1851,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test206SearchObjectsCompexFilterStartsWith() throws Exception {
         final String TEST_NAME = "test206SearchObjectsCompexFilterStartsWith";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1919,7 +1886,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test230SearchObjectsPagedNoOffset() throws Exception {
         final String TEST_NAME = "test230SearchObjectsPagedNoOffset";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1955,7 +1921,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test231SearchObjectsPagedOffsetZero() throws Exception {
         final String TEST_NAME = "test231SearchObjectsPagedOffsetZero";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1991,7 +1956,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test232SearchObjectsPagedOffset() throws Exception {
         final String TEST_NAME = "test232SearchObjectsPagedOffset";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2028,7 +1992,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test233SearchObjectsPagedNoOffsetSortSn() throws Exception {
         final String TEST_NAME = "test233SearchObjectsPagedNoOffsetSortSn";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2067,7 +2030,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test234SearchObjectsPagedOffsetSortSn() throws Exception {
         final String TEST_NAME = "test234SearchObjectsPagedOffsetSortSn";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2120,7 +2082,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test250CountAccounts() throws Exception {
         final String TEST_NAME = "test250CountAccounts";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2147,7 +2108,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test252CountLdapGroups() throws Exception {
         final String TEST_NAME = "test252CountLdapGroups";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2178,7 +2138,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test300AddObjectObjectAlreadyExistResource() throws Exception {
         final String TEST_NAME = "test300AddObjectObjectAlreadyExistResource";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2207,7 +2166,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test310AddObjectNoSn() throws Exception {
         final String TEST_NAME = "test310AddObjectNoSn";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2239,7 +2197,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test320AddAccountPosix() throws Exception {
         final String TEST_NAME = "test320AddAccountPosix";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2290,7 +2247,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test322ModifyAccountPosix() throws Exception {
         final String TEST_NAME = "test322ModifyAccountPosix";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2336,7 +2292,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test329DeleteAccountPosix() throws Exception {
         final String TEST_NAME = "test329DeleteAccountPosix";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2374,7 +2329,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test330SearchForPosixAccount() throws Exception {
         final String TEST_NAME = "test330SearchForPosixAccount";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2422,7 +2376,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test400AddGroupSwashbucklers() throws Exception {
         final String TEST_NAME = "test400AddGroupSwashbucklers";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2464,7 +2417,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test402AddAccountMorganWithAssociation() throws Exception {
         final String TEST_NAME = "test402AddAccountMorganWithAssociation";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2519,7 +2471,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test403modifyMorganReplaceAssociation() throws Exception {
         final String TEST_NAME = "test403modifyMorganReplaceAssociation";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2573,7 +2524,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test405GetGroupSwashbucklers() throws Exception {
         final String TEST_NAME = "test405GetGroupSwashbucklers";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2606,7 +2556,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test410CreateLdapGroupAndSearchGroups() throws Exception {
         final String TEST_NAME = "test410CreateLdapGroupAndSearchGroups";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2640,7 +2589,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test412CreateLdapGroupWithMemberAndGet() throws Exception {
         final String TEST_NAME = "test412CreateLdapGroupWithMemberAndGet";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2678,7 +2626,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test414AddGroupCorsairsAssociateUser() throws Exception {
         final String TEST_NAME = "test414AddGroupCorsairsAssociateUser";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2705,7 +2652,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test416AssociateUserToCorsairs() throws Exception {
         final String TEST_NAME = "test416AssociateUserToCorsairs";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2734,7 +2680,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test418GetMorgan() throws Exception {
         final String TEST_NAME = "test418GetMorgan";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2762,7 +2707,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test429DeleteAccountMorgan() throws Exception {
         final String TEST_NAME = "test429DeleteAccountMorgan";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2802,7 +2746,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test450ListGroupsObjectclass() throws Exception {
         final String TEST_NAME = "test450ListGroupsObjectclass";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2829,7 +2772,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test452ListLdapGroupsKindIntent() throws Exception {
         final String TEST_NAME = "test452ListLdapGroupsKindIntent";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2856,7 +2798,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test454ListSpecialGroupsKindIntent() throws Exception {
         final String TEST_NAME = "test454ListSpecialGroupsKindIntent";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2885,7 +2826,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test456AddGroupSpecialists() throws Exception {
         final String TEST_NAME = "test456AddGroupSpecialists";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2927,7 +2867,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test457ListLdapGroupsKindIntent() throws Exception {
         final String TEST_NAME = "test457ListLdapGroupsKindIntent";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2954,7 +2893,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test458ListSpecialGroupsKindIntent() throws Exception {
         final String TEST_NAME = "test458ListSpecialGroupsKindIntent";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2989,7 +2927,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test460ListOrganizationalUnitPeopleKindIntent() throws Exception {
         final String TEST_NAME = "test460ListOrganizationalUnitPeopleKindIntent";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3021,7 +2958,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test470AddAccountPolyDescription() throws Exception {
         final String TEST_NAME = "test470AddAccountPolyDescription";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3068,7 +3004,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test472ModifyAccountJackDescriptionOrig() throws Exception {
         final String TEST_NAME = "test472ModifyAccountJackDescriptionOrig";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3119,7 +3054,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test474ModifyAccountJackDescriptionLangEnSk() throws Exception {
         final String TEST_NAME = "test474ModifyAccountJackDescriptionLangEnSk";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3172,7 +3106,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test476ModifyAccountJackDescriptionLangEnSkRuHr() throws Exception {
         final String TEST_NAME = "test476ModifyAccountJackDescriptionLangEnSkRuHr";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3225,7 +3158,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test478ModifyAccountJackDescriptionLangEnSkRuHr() throws Exception {
         final String TEST_NAME = "test478ModifyAccountJackDescriptionLangEnSkRuHr";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3277,7 +3209,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test478bModifyAccountJackDeleteDescription() throws Exception {
         final String TEST_NAME = "test478bModifyAccountJackDeleteDescription";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3331,7 +3262,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test479ModifyAccountJackDescriptionJack() throws Exception {
         final String TEST_NAME = "test479ModifyAccountJackDescriptionJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3378,7 +3308,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test480AddOuSuper() throws Exception {
         final String TEST_NAME = "test480AddOuSuper";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3426,7 +3355,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test489DeleteOuSuperWithSub() throws Exception {
         final String TEST_NAME = "test489DeleteOuSuperWithSub";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3533,7 +3461,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test710AddResourceOpenDjBadCredentials() throws Exception {
         final String TEST_NAME = "test710AddResourceOpenDjBadCredentials";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3555,7 +3482,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test713ConnectionBadCredentials() throws Exception {
         final String TEST_NAME = "test713ConnectionBadCredentials";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3577,7 +3503,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test720AddResourceOpenDjBadBindDn() throws Exception {
         final String TEST_NAME = "test720AddResourceOpenDjBadBindDn";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3599,7 +3524,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @Test
     public void test723ConnectionBadBindDn() throws Exception {
         final String TEST_NAME = "test723ConnectionBadBindDn";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

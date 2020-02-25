@@ -45,6 +45,7 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -150,7 +151,6 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         assertUsers(NUM_INITIAL_USERS);
     }
@@ -162,7 +162,6 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test200AssignRolePiratesToBarbossa() throws Exception {
         final String TEST_NAME = "test200AssignRolePiratesToBarbossa";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -190,7 +189,6 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test202AssignLdapAccountToGuybrush() throws Exception {
         final String TEST_NAME = "test202AssignLdapAccountToGuybrush";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -249,7 +247,6 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test204AssignRolePiratesToGuybrush() throws Exception {
         final String TEST_NAME = "test204AssignRolePiratesToGuybrush";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -280,7 +277,6 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test400RenameLeChuckConflicting() throws Exception {
         final String TEST_NAME = "test400RenameLeChuckConflicting";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -318,7 +314,6 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test800BigLdapSearch() throws Exception {
         final String TEST_NAME = "test800BigLdapSearch";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -363,7 +358,6 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test810BigImport() throws Exception {
         final String TEST_NAME = "test810BigImport";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -399,7 +393,6 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test820BigReconciliation() throws Exception {
         final String TEST_NAME = "test820BigReconciliation";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -437,7 +430,6 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test900DeleteShadows() throws Exception {
         final String TEST_NAME = "test900DeleteShadows";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -487,7 +479,6 @@ public class TestLdap extends AbstractLongTest {
     @Test
     public void test910DeleteAccounts() throws Exception {
         final String TEST_NAME = "test910DeleteAccounts";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

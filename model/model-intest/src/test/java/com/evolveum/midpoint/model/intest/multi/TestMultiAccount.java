@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -91,7 +92,6 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test010ImportAccountsFromDummyMultiGreen() throws Exception {
         final String TEST_NAME = "test010ImportAccountsFromDummyMultiGreen";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -117,7 +117,6 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test020ImportPaulAtreides() throws Exception {
         final String TEST_NAME = "test020ImportPaulAtreides";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -162,7 +161,6 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100ImportMuadDib() throws Exception {
         final String TEST_NAME = "test100ImportMuadDib";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -217,7 +215,6 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test102ReconcileUserPaul() throws Exception {
         final String TEST_NAME = "test102ReconcileUserPaul";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -270,7 +267,6 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200ImportDuke() throws Exception {
         final String TEST_NAME = "test200ImportDuke";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -338,7 +334,6 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test210ImportMahdi() throws Exception {
         final String TEST_NAME = "test210ImportMahdi";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);

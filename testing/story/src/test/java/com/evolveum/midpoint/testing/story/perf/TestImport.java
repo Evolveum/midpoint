@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -110,7 +111,6 @@ public class TestImport extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestImport.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_SOURCE_OID, task);
@@ -124,7 +124,6 @@ public class TestImport extends AbstractStoryTest {
     @Test
     public void test100RunImport() throws Exception {
         final String TEST_NAME = "test100RunImport";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestImport.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 

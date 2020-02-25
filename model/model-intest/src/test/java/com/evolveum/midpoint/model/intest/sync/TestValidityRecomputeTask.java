@@ -83,7 +83,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test100ImportValidityScannerTask() throws Exception {
         final String TEST_NAME = "test100ImportValidityScannerTask";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -120,7 +119,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test110JackAssignJudgeDisabled() throws Exception {
         final String TEST_NAME = "test110JackAssignJudgeDisabled";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -135,7 +133,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test111JackAssignJudgeNotYetValid() throws Exception {
         final String TEST_NAME = "test111JackAssignJudgeNotYetValid";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -152,7 +149,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test112JackAssignJudgeAfterValidity() throws Exception {
         final String TEST_NAME = "test112JackAssignJudgeAfterValidity";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -169,7 +165,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test115JackAssignJudgeEnabled() throws Exception {
         final String TEST_NAME = "test115JackAssignJudgeEnabled";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -184,7 +179,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test115JackAssignJudgeValid() throws Exception {
         final String TEST_NAME = "test115JackAssignJudgeValid";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -274,7 +268,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test120JackDisableAssignmentJudge() throws Exception {
         final String TEST_NAME = "test120JackDisableAssignmentJudge";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -306,7 +299,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test122JackReplaceNullAdministrativeStatusAssignmentJudge() throws Exception {
         final String TEST_NAME = "test122JackReplaceNullAdministrativeStatusAssignmentJudge";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -331,7 +323,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test123JackDisableAssignmentJudge() throws Exception {
         final String TEST_NAME = "test123JackDisableAssignmentJudge";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -356,7 +347,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test124JackEnableAssignmentJudge() throws Exception {
         final String TEST_NAME = "test124JackEnableAssignmentJudge";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -381,7 +371,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test125JackDeleteAdministrativeStatusAssignmentJudge() throws Exception {
         final String TEST_NAME = "test125JackDeleteAdministrativeStatusAssignmentJudge";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -408,7 +397,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test126JackAddAdministrativeStatusAssignmentJudge() throws Exception {
         final String TEST_NAME = "test126JackAddAdministrativeStatusAssignmentJudge";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -435,7 +423,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test127JackDeleteActivationAssignmentJudge() throws Exception {
         final String TEST_NAME = "test127JackDeleteActivationAssignmentJudge";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -463,7 +450,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test128JackAssignmentJudgeValidToSetInvalid() throws Exception {
         final String TEST_NAME = "test128JackAssignmentJudgeValidToSetInvalid";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -493,7 +479,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test129JackAssignmentJudgeValidToSetValid() throws Exception {
         final String TEST_NAME = "test129JackAssignmentJudgeValidToSetValid";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -536,7 +521,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test130BarbossaAssignJudgeEnabled() throws Exception {
         final String TEST_NAME = "test130BarbossaAssignJudgeEnabled";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -582,7 +566,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test131BarbossaAssignSailorEnabled() throws Exception {
         final String TEST_NAME = "test131BarbossaAssignSailorEnabled";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -624,7 +607,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test132BarbossaDisableAssignmentJudge() throws Exception {
         final String TEST_NAME = "test132BarbossaDisableAssignmentJudge";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -665,7 +647,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test133BarbossaDisableAssignmentSailor() throws Exception {
         final String TEST_NAME = "test133BarbossaDisableAssignmentSailor";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -701,7 +682,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test134BarbossaEnableAssignmentJudge() throws Exception {
         final String TEST_NAME = "test134BarbossaEnableAssignmentJudge";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -739,7 +719,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test135BarbossaEnableAssignmentSailor() throws Exception {
         final String TEST_NAME = "test135BarbossaEnableAssignmentSailor";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -777,7 +756,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test136BarbossaDisableBothAssignments() throws Exception {
         final String TEST_NAME = "test136BarbossaDisableBothAssignments";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -823,7 +801,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test137BarbossaEnableBothAssignments() throws Exception {
         final String TEST_NAME = "test137BarbossaEnableBothAssignments";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -884,7 +861,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test139BarbossaDisableBothAssignmentsUnassign() throws Exception {
         final String TEST_NAME = "test139BarbossaDisableBothAssignmentsUnassign";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -964,7 +940,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test140BarbossaAssignRedJudgeEnabled() throws Exception {
         final String TEST_NAME = "test140BarbossaAssignRedJudgeEnabled";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1014,7 +989,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test141BarbossaAssignRedSailorEnabled() throws Exception {
         final String TEST_NAME = "test141BarbossaAssignRedSailorEnabled";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1056,7 +1030,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test142BarbossaDisableAssignmentRedJudge() throws Exception {
         final String TEST_NAME = "test142BarbossaDisableAssignmentRedJudge";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1097,7 +1070,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test143BarbossaDisableAssignmentRedSailor() throws Exception {
         final String TEST_NAME = "test143BarbossaDisableAssignmentRedSailor";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1137,7 +1109,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test144BarbossaEnableAssignmentRedJudge() throws Exception {
         final String TEST_NAME = "test144BarbossaEnableAssignmentRedJudge";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1175,7 +1146,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test145BarbossaEnableAssignmentRedSailor() throws Exception {
         final String TEST_NAME = "test145BarbossaEnableAssignmentRedSailor";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1213,7 +1183,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test146BarbossaDisableBothRedAssignments() throws Exception {
         final String TEST_NAME = "test146BarbossaDisableBothRedAssignments";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1269,7 +1238,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test147BarbossaEnableBothRedAssignments() throws Exception {
         final String TEST_NAME = "test147BarbossaEnableBothRedAssignments";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1330,7 +1298,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test149BarbossaDisableBothRedAssignmentsUnassign() throws Exception {
         final String TEST_NAME = "test149BarbossaDisableBothRedAssignmentsUnassign";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1410,7 +1377,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test190HermanGoesInvalid() throws Exception {
         final String TEST_NAME = "test190HermanGoesInvalid";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1447,7 +1413,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test200ImportTriggerScannerTask() throws Exception {
         final String TEST_NAME = "test200ImportTriggerScannerTask";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
@@ -1477,7 +1442,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test205AccountRedElaineDisable() throws Exception {
         final String TEST_NAME = "test205AccountRedElaineDisable";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
@@ -1503,7 +1467,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test210JackAssignAndUnassignAccountRed() throws Exception {
         final String TEST_NAME = "test210JackAssignAndUnassignAccountRed";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -1561,7 +1524,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test215JackDummyAccountDeleteAfterMonth() throws Exception {
         final String TEST_NAME = "test215JackDummyAccountDeleteAfterMonth";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
@@ -1586,7 +1548,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test220AddDrake() throws Exception {
         final String TEST_NAME = "test220AddDrake";
-        displayTestTitle(TEST_NAME);
 
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
         display("Start", start);
@@ -1652,7 +1613,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test222Drake4DaysBeforeValidFrom() throws Exception {
         final String TEST_NAME = "test222Drake4DaysBeforeValidFrom";
-        displayTestTitle(TEST_NAME);
 
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidFrom.clone();
         start.add(XmlTypeConverter.createDuration(false, 0, 0, 4, 0, 0, 0));
@@ -1680,7 +1640,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test224Drake1DaysAfterValidFrom() throws Exception {
         final String TEST_NAME = "test224Drake1DaysAfterValidFrom";
-        displayTestTitle(TEST_NAME);
 
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidFrom.clone();
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 1, 0, 0, 0));
@@ -1707,7 +1666,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test226Drake1DayBeforeValidTo() throws Exception {
         final String TEST_NAME = "test226Drake1DayBeforeValidTo";
-        displayTestTitle(TEST_NAME);
 
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidTo.clone();
         start.add(XmlTypeConverter.createDuration(false, 0, 0, 1, 0, 0, 0));
@@ -1734,7 +1692,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test228Drake1DayAfterValidTo() throws Exception {
         final String TEST_NAME = "test228Drake1DayAfterValidTo";
-        displayTestTitle(TEST_NAME);
 
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidTo.clone();
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 1, 0, 0, 0));
@@ -1762,7 +1719,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test230Drake20DaysAfterValidTo() throws Exception {
         final String TEST_NAME = "test230Drake20DaysAfterValidTo";
-        displayTestTitle(TEST_NAME);
 
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidTo.clone();
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 20, 0, 0, 0));
@@ -1790,7 +1746,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test232Drake40DaysAfterValidTo() throws Exception {
         final String TEST_NAME = "test232Drake40DaysAfterValidTo";
-        displayTestTitle(TEST_NAME);
 
         XMLGregorianCalendar start = (XMLGregorianCalendar) drakeValidTo.clone();
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 40, 0, 0, 0));
@@ -1819,7 +1774,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test250CheckAccountRedElaine() throws Exception {
         final String TEST_NAME = "test250CheckAccountRedElaine";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -1838,7 +1792,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test300HermanAssignJudgeNotYetValid() throws Exception {
         final String TEST_NAME = "test300HermanAssignJudgeNotYetValid";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1866,7 +1819,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test310HermanAssignJudgeBecomesValid() throws Exception {
         final String TEST_NAME = "test310HermanAssignJudgeBecomesValid";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1889,7 +1841,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     @Test
     public void test315HermanAssignJudgeBecomesInValid() throws Exception {
         final String TEST_NAME = "test315HermanAssignJudgeBecomesInValid";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

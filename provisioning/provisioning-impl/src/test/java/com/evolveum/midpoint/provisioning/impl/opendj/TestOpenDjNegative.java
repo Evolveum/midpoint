@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -106,7 +107,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test003Connection() throws Exception {
         final String TEST_NAME = "test003Connection";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -189,7 +189,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test110GetObjectNoShadow() throws Exception {
         final String TEST_NAME = "test110GetObjectNoShadow";
-        displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -216,7 +215,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test111GetObjectShadow() throws Exception {
         final String TEST_NAME = "test111GetObjectShadow";
-        displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -239,7 +237,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test120ListResourceObjects() throws Exception {
         final String TEST_NAME = "test120ListResourceObjects";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -263,7 +260,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     public void test121SearchAccounts() throws SchemaException, ObjectNotFoundException,
           CommunicationException, ConfigurationException, SecurityViolationException, Exception {
         final String TEST_NAME = "test121SearchAccounts";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -293,7 +289,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     public void test122SearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
           CommunicationException, ConfigurationException, SecurityViolationException, Exception {
         final String TEST_NAME = "test122SearchAccountsIterative";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -329,7 +324,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test130AddAccountWill() throws Exception {
         final String TEST_NAME = "test130AddAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -356,7 +350,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test140AddDeleteAccountSparrow() throws Exception {
         final String TEST_NAME = "test140AddDeleteAccountSparrow";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -379,7 +372,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test150ModifyObject() throws Exception {
         final String TEST_NAME = "test150ModifyObject";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -406,7 +398,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test190Synchronize() throws Exception {
         final String TEST_NAME = "test190Synhronize";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -439,7 +430,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test500ReplaceResource() throws Exception {
         final String TEST_NAME = "test500ReplaceResource";
-        displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -464,7 +454,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test510GetObjectNoShadow() throws Exception {
         final String TEST_NAME = "test510GetObjectNoShadow";
-        displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -492,7 +481,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test511GetObjectShadow() throws Exception {
         final String TEST_NAME = "test511GetObjectShadow";
-        displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -520,7 +508,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test520ListResourceObjects() throws Exception {
         final String TEST_NAME = "test520ListResourceObjects";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -543,7 +530,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     public void test521SearchAccounts() throws SchemaException, ObjectNotFoundException,
           CommunicationException, ConfigurationException, SecurityViolationException, Exception {
         final String TEST_NAME = "test521SearchAccounts";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -572,7 +558,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     public void test522SearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
           CommunicationException, ConfigurationException, SecurityViolationException, Exception {
         final String TEST_NAME = "test522SearchAccountsIterative";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);
@@ -607,7 +592,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test530AddAccountWill() throws Exception {
         final String TEST_NAME = "test530AddAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = createTask(TEST_NAME);
@@ -657,7 +641,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test540DeleteObject() throws Exception {
         final String TEST_NAME = "test540DeleteObject";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
@@ -695,7 +678,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test550ModifyObject() throws Exception {
         final String TEST_NAME = "test150ModifyObject";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
@@ -738,7 +720,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     @Test
     public void test590Synchronize() throws Exception {
         final String TEST_NAME = "test590Synhronize";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestOpenDjNegative.class.getName()
                 + "." + TEST_NAME);

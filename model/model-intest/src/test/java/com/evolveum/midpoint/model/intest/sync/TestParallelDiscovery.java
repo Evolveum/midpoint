@@ -195,7 +195,6 @@ public class TestParallelDiscovery extends AbstractInitializedModelIntegrationTe
     @Test
     public void test001Sanity() throws Exception {
         final String TEST_NAME = "test001Sanity";
-        displayTestTitle(TEST_NAME);
 
         display("Dummy resource azure", dummyResourceSteelBlue);
 
@@ -214,7 +213,6 @@ public class TestParallelDiscovery extends AbstractInitializedModelIntegrationTe
     @Test
     public void test002SanityRefined() throws Exception {
         final String TEST_NAME = "test002SanityRefined";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         RefinedResourceSchema refinedSchemaSteelBlue = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummySteelBlueType, prismContext);
@@ -231,7 +229,6 @@ public class TestParallelDiscovery extends AbstractInitializedModelIntegrationTe
     @Test
     public void test100Synchronize() throws Exception {
         final String TEST_NAME = "test100Synchronize";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

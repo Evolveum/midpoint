@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 
@@ -160,7 +161,6 @@ public class TestRunAs extends AbstractLongTest {
     @Test
     public void test100AssignAccountDummyToBarbossa() throws Exception {
         final String TEST_NAME = "test100AssignAccountDummyToBarbossa";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -192,7 +192,6 @@ public class TestRunAs extends AbstractLongTest {
     @Test
     public void test109UnassignAccountDummyFromBarbossa() throws Exception {
         final String TEST_NAME = "test109UnassignAccountDummyFromBarbossa";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -216,7 +215,6 @@ public class TestRunAs extends AbstractLongTest {
     @Test
     public void test200CleanupPlain() throws Exception {
         final String TEST_NAME = "test200CleanupPlain";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -256,7 +254,6 @@ public class TestRunAs extends AbstractLongTest {
     @Test
     public void test210BarbossaSetOrganizationPlain() throws Exception {
         final String TEST_NAME = "test210BarbossaSetOrganizationPlain";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -289,7 +286,6 @@ public class TestRunAs extends AbstractLongTest {
     @Test
     public void test300CleanupRunAs() throws Exception {
         final String TEST_NAME = "test300CleanupRunAs";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -329,7 +325,6 @@ public class TestRunAs extends AbstractLongTest {
     @Test
     public void test310BarbossaSetOrganizationRunAs() throws Exception {
         final String TEST_NAME = "test310BarbossaSetOrganizationRunAs";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -371,7 +366,6 @@ public class TestRunAs extends AbstractLongTest {
     }
 
     private void warmUp(final String TEST_NAME) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

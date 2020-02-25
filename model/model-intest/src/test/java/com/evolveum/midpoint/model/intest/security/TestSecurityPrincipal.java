@@ -40,7 +40,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     @Test
     public void test010GetUserAdministrator() throws Exception {
         final String TEST_NAME = "test010GetUserAdministrator";
-        displayTestTitle(TEST_NAME);
         resetAuthentication();
 
         // WHEN
@@ -58,7 +57,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     @Test
     public void test050GetUserJack() throws Exception {
         final String TEST_NAME = "test050GetUserJack";
-        displayTestTitle(TEST_NAME);
         resetAuthentication();
 
         // WHEN
@@ -78,7 +76,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     @Test
     public void test051GetUserBarbossa() throws Exception {
         final String TEST_NAME = "test051GetUserBarbossa";
-        displayTestTitle(TEST_NAME);
         resetAuthentication();
 
         // WHEN
@@ -101,7 +98,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     @Test
     public void test052GetUserGuybrush() throws Exception {
         final String TEST_NAME = "test052GetUserGuybrush";
-        displayTestTitle(TEST_NAME);
         resetAuthentication();
 
         // WHEN
@@ -123,7 +119,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     @Test
     public void test060GuybrushConditionalRoleFalse() throws Exception {
         final String TEST_NAME = "test060GuybrushConditionalRoleFalse";
-        displayTestTitle(TEST_NAME);
         login(USER_ADMINISTRATOR_USERNAME);
 
         assignRole(USER_GUYBRUSH_OID, ROLE_CONDITIONAL_OID);
@@ -151,7 +146,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     @Test
     public void test061GuybrushConditionalRoleTrue() throws Exception {
         final String TEST_NAME = "test061GuybrushConditionalRoleTrue";
-        displayTestTitle(TEST_NAME);
         login(USER_ADMINISTRATOR_USERNAME);
 
         Task task = createTask(TEST_NAME);
@@ -183,7 +177,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     @Test
     public void test062GuybrushConditionalRoleUnassign() throws Exception {
         final String TEST_NAME = "test062GuybrushConditionalRoleUnassign";
-        displayTestTitle(TEST_NAME);
         login(USER_ADMINISTRATOR_USERNAME);
 
         unassignRole(USER_GUYBRUSH_OID, ROLE_CONDITIONAL_OID);
@@ -209,7 +202,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     @Test
     public void test100JackRolePirate() throws Exception {
         final String TEST_NAME = "test100JackRolePirate";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
         Task task = createTask(TEST_NAME);
@@ -243,7 +235,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     @Test
     public void test109JackUnassignRolePirate() throws Exception {
         final String TEST_NAME = "test109JackUnassignRolePirate";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
         Task task = createTask(TEST_NAME);
@@ -274,7 +265,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     @Test
     public void test110GuybrushRoleNicePirate() throws Exception {
         final String TEST_NAME = "test110GuybrushRoleNicePirate";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
         Task task = createTask(TEST_NAME);
@@ -299,7 +289,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     @Test
     public void test111GuybrushRoleCaptain() throws Exception {
         final String TEST_NAME = "test111GuybrushRoleCaptain";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
         Task task = createTask(TEST_NAME);
@@ -324,7 +313,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     @Test
     public void test119GuybrushUnassignRoles() throws Exception {
         final String TEST_NAME = "test119GuybrushUnassignRoles";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
         Task task = createTask(TEST_NAME);
@@ -352,7 +340,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     @Test
     public void test120JackRoleIndirectPirate() throws Exception {
         final String TEST_NAME = "test120JackRoleIndirectPirate";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
 
@@ -385,7 +372,6 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
     @Test
     public void test122JackOrgIndirectPirate() throws Exception {
         final String TEST_NAME = "test122JackOrgIndirectPirate";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
 

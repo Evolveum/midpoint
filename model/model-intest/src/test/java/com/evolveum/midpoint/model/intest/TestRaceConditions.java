@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -51,7 +52,6 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test100AssignRoles() throws Exception {
         final String TEST_NAME="test100AssignRoles";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -93,7 +93,6 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test110UnassignRoles() throws Exception {
         final String TEST_NAME = "test110UnassignRoles";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRaceConditions.class.getName() + "." + TEST_NAME);

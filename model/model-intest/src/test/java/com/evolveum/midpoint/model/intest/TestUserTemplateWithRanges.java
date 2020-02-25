@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -202,7 +203,6 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
     @Test
     public void test200SimpleOrgUnitAddition() throws Exception {
         final String TEST_NAME = "test200SimpleOrgUnitAddition";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -245,7 +245,6 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
     @Test
     public void test210RemoveUnit1() throws Exception {
         final String TEST_NAME = "test210RemoveUnit1";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -325,7 +324,6 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
     @Test
     public void test230RestoreNumber() throws Exception {
         final String TEST_NAME = "test230RestoreNumber";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -361,7 +359,6 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
     @Test
     public void test300GuybrushBloodyNose() throws Exception {
         final String TEST_NAME = "test300GuybrushBloodyNose";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -393,7 +390,6 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
     @Test
     public void test309GuybrushNotBloody() throws Exception {
         final String TEST_NAME = "test309GuybrushNotBloody";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -421,7 +417,6 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
     @Test
     public void test310GuybrushBloodyNoseFuneral() throws Exception {
         final String TEST_NAME = "test310GuybrushBloodyNoseFuneral";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -456,7 +451,6 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
     @Test
     public void test319GuybrushNoBloodyNoseFuneral() throws Exception {
         final String TEST_NAME = "test319GuybrushNoBloodyNoseFuneral";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -484,7 +478,6 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
     @Test
     public void test320GuybrushBloodyNose() throws Exception {
         final String TEST_NAME = "test320GuybrushBloodyNose";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -519,7 +512,6 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
     @Test
     public void test322GuybrushSetFuneral() throws Exception {
         final String TEST_NAME = "test322GuybrushSetFuneral";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -548,7 +540,6 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
     @Test
     public void test324GuybrushSetFuneral22222() throws Exception {
         final String TEST_NAME = "test324GuybrushSetFuneral22222";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -579,7 +570,6 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
     @Test
     public void test326GuybrushNoFuneral() throws Exception {
         final String TEST_NAME = "test326GuybrushNoFuneral";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -607,7 +597,6 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
     @Test
     public void test329GuybrushNoBloodyNose() throws Exception {
         final String TEST_NAME = "test329GuybrushNoBloodyNose";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

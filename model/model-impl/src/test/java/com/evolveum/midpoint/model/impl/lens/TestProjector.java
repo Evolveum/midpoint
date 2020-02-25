@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -92,7 +93,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         assertNoJackShadow();
     }
@@ -100,7 +100,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test010BasicContextOperations() throws Exception {
         final String TEST_NAME = "test010BasicContextOperations";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -186,7 +185,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test100AddAccountToJackDirect() throws Exception {
         final String TEST_NAME = "test100AddAccountToJackDirect";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -254,7 +252,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test110AssignAccountToJack() throws Exception {
         final String TEST_NAME = "test110AssignAccountToJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -283,7 +280,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test111AssignAccountToJackBroken() throws Exception {
         final String TEST_NAME = "test111AssignAccountToJackBroken";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -347,7 +343,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test250ModifyUserBarbossaLocality() throws Exception {
         final String TEST_NAME = "test250ModifyUserBarbossaLocality";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -398,7 +393,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test251ModifyUserBarbossaFullname() throws Exception {
         final String TEST_NAME = "test251ModifyUserBarbossaFullname";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -450,7 +444,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test254ModifyUserBarbossaDisable() throws Exception {
         final String TEST_NAME = "test254ModifyUserBarbossaDisable";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -513,7 +506,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test255ModifyUserBarbossaAssignment() throws Exception {
         final String TEST_NAME = "test255ModifyUserBarbossaAssignment";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -567,7 +559,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test260ModifyAccountBarbossaDrinkReplace() throws Exception {
         final String TEST_NAME = "test260ModifyAccountBarbossaDrinkReplace";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -604,7 +595,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test261ModifyAccountBarbossaQuoteReplace() throws Exception {
         final String TEST_NAME = "test261ModifyAccountBarbossaQuoteReplace";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -666,7 +656,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test269DeleteBarbossaDummyAccount() throws Exception {
         final String TEST_NAME = "test269DeleteBarbossaDummyAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -703,7 +692,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test270AddUserBarbossaAssignmentBrethren() throws Exception {
         final String TEST_NAME = "test270AddUserBarbossaAssignmentBrethren";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -750,7 +738,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test275DeleteUserBarbossaAssignmentBrethren() throws Exception {
         final String TEST_NAME = "test275DeleteUserBarbossaAssignmentBrethren";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -799,7 +786,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test280AddUserBarbossaAssignmentMutinier() throws Exception {
         final String TEST_NAME = "test280AddUserBarbossaAssignmentMutinier";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -847,7 +833,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test301AssignConflictingAccountToJack() throws Exception {
         final String TEST_NAME = "test301AssignConflictingAccountToJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -896,7 +881,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test400ImportHermanDummy() throws Exception {
         final String TEST_NAME = "test400ImportHermanDummy";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -954,7 +938,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test401ImportHermanDummy() throws Exception {
         final String TEST_NAME = "test401ImportHermanDummy";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1001,7 +984,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test450GuybrushInboundFromDelta() throws Exception {
         final String TEST_NAME = "test450GuybrushInboundFromDelta";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1036,7 +1018,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test451GuybrushInboundFromAbsolute() throws Exception {
         final String TEST_NAME = "test451GuybrushInboundFromAbsolute";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1078,7 +1059,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test500ReconcileGuybrushDummy() throws Exception {
         final String TEST_NAME = "test500ReconcileGuybrushDummy";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1143,7 +1123,6 @@ public class TestProjector extends AbstractLensTest {
     @Test
     public void test600AddLargo() throws Exception {
         final String TEST_NAME = "test600AddLargo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

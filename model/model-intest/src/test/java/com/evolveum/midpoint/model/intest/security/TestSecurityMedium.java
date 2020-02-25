@@ -54,7 +54,6 @@ public class TestSecurityMedium extends AbstractSecurityTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
@@ -79,7 +78,6 @@ public class TestSecurityMedium extends AbstractSecurityTest {
     @Test
     public void test100AutzEmployeeManager() throws Exception {
         final String TEST_NAME = "test100AutzEmployeeManager";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_EMPLOYEE_MANAGER_OID);
@@ -110,7 +108,6 @@ public class TestSecurityMedium extends AbstractSecurityTest {
     @Test
     public void test102AutzEmployeeManagerAddEmployee() throws Exception {
         final String TEST_NAME = "test102AutzEmployeeManagerAddEmployee";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_EMPLOYEE_MANAGER_OID);

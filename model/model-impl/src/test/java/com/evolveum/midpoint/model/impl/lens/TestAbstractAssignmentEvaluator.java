@@ -110,7 +110,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test100Direct() throws Exception {
         final String TEST_NAME = "test100Direct";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -149,7 +148,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test110DirectExpression() throws Exception {
         final String TEST_NAME = "test110DirectExpression";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -188,7 +186,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test120DirectExpressionReplaceDescription() throws Exception {
         final String TEST_NAME = "test120DirectExpressionReplaceDescription";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -250,7 +247,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test130DirectExpressionReplaceDescriptionFromNull() throws Exception {
         final String TEST_NAME = "test130DirectExpressionReplaceDescriptionFromNull";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -334,7 +330,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test140RoleVisitor() throws Exception {
         final String TEST_NAME = "test140RoleVisitor";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -379,7 +374,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test142RoleVisitorDisabledAssignment() throws Exception {
         final String TEST_NAME = "test142RoleVisitorDisabledAssignment";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -426,7 +420,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test150RoleEngineer() throws Exception {
         final String TEST_NAME = "test150RoleEngineer";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -472,7 +465,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test160AddRoleEngineer() throws Exception {
         final String TEST_NAME = "test160AddRoleEngineer";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -543,7 +535,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test170RoleManagerChangeCostCenter() throws Exception {
         final String TEST_NAME = "test170RoleManagerChangeCostCenter";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -606,7 +597,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test180RoleManagerRemoveCostCenter() throws Exception {
         final String TEST_NAME = "test180RoleManagerRemoveCostCenter";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -666,7 +656,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test(enabled = false)
     public void test200DisableEngineerEmployeeInducement() throws Exception {
         final String TEST_NAME = "test200DisableEngineerEmployeeInducement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -707,7 +696,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test(enabled = false)
     public void test299ReenableEngineerEmployeeInducement() throws Exception {
         final String TEST_NAME = "test299ReenableEngineerEmployeeInducement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -728,7 +716,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test300DisableRoleEmployee() throws Exception {
         final String TEST_NAME = "test300DisableRoleEmployee";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -783,7 +770,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test310DisableRoleEngineer() throws Exception {
         final String TEST_NAME = "test310DisableRoleEngineer";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -843,7 +829,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test400UserFred() throws Exception {
         final String TEST_NAME = "test400UserFred";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -146,7 +147,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100AddGroupShadowSwashbucklers() throws Exception {
         final String TEST_NAME = "test100AddGroupShadowSwashbucklers";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -175,7 +175,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test101GetGroupShadowSwashbucklers() throws Exception {
         final String TEST_NAME = "test101GetGroupShadowSwashbucklers";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -198,7 +197,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110AssociateGuybrushToSwashbucklers() throws Exception {
         final String TEST_NAME = "test110AssociateGuybrushToSwashbucklers";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -223,7 +221,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200AssignRoleSwashbucklerToJack() throws Exception {
         final String TEST_NAME = "test200AssignRoleSwashbucklerToJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -254,7 +251,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test209UnAssignRoleSwashbucklerFromJack() throws Exception {
         final String TEST_NAME = "test209UnAssignRoleSwashbucklerFromJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -288,7 +284,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test220AssignRoleLandluberToWally() throws Exception {
         final String TEST_NAME = "test220AssignRoleLandluberToWally";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -318,7 +313,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test222AssignRoleMapmakerToWally() throws Exception {
         final String TEST_NAME = "test222AssignRoleMapmakerToWally";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -361,7 +355,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test224UnassignRoleMapmakerFromWally() throws Exception {
         final String TEST_NAME = "test224UnassignRoleMapmakerFromWally";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -386,7 +379,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test300AddRoleWimp() throws Exception {
         final String TEST_NAME = "test300AddRoleWimp";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -419,7 +411,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test302AddRoleBrute() throws Exception {
         final String TEST_NAME = "test302AddRoleBrute";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -447,7 +438,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test304AddRoleThug() throws Exception {
         final String TEST_NAME = "test304AddRoleThug";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -475,7 +465,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test310AssignRoleWimpToLargo() throws Exception {
         final String TEST_NAME = "test310AssignRoleWimpToLargo";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -502,7 +491,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test312AssignRoleBruteToLargo() throws Exception {
         final String TEST_NAME = "test312AssignRoleBruteToLargo";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -527,7 +515,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test313UnAssignRoleBruteFromLargo() throws Exception {
         final String TEST_NAME = "test313UnAssignRoleBruteFromLargo";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -562,7 +549,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test314AssignRoleThugToLargo() throws Exception {
         final String TEST_NAME = "test314AssignRoleThugToLargo";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -587,7 +573,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test315UnAssignRoleThugFromLargo() throws Exception {
         final String TEST_NAME = "test315UnAssignRoleThugFromLargo";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -625,7 +610,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test317RenameLargo() throws Exception {
         final String TEST_NAME = "test317RenameLargo";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -657,7 +641,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test319UnassignRoleWimpFromLargo() throws Exception {
         final String TEST_NAME = "test319UnassignRoleWimpFromLargo";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -694,7 +677,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test320AssignRoleBruteToRapp() throws Exception {
         final String TEST_NAME = "test320AssignRoleBruteToRapp";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -721,7 +703,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test322AssignRoleWimpToRapp() throws Exception {
         final String TEST_NAME = "test322AssignRoleWimpToRapp";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -753,7 +734,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test324AssignRoleThugToRapp() throws Exception {
         final String TEST_NAME = "test324AssignRoleThugToRapp";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -792,7 +772,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test327UnassignRoleWimpFromRapp() throws Exception {
         final String TEST_NAME = "test327UnassignRoleWimpFromRapp";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -834,7 +813,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test328UnassignRoleThugFromRapp() throws Exception {
         final String TEST_NAME = "test328UnassignRoleThugFromRapp";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -879,7 +857,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test329UnAssignRoleBruteFromRapp() throws Exception {
         final String TEST_NAME = "test329UnAssignRoleBruteFromRapp";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -918,7 +895,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test350AssignOrangeAccountToGuybrushAndRapp() throws Exception {
         final String TEST_NAME = "test350AssignOrangeAccountToGuybrushAndRapp";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -944,7 +920,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test351AssignRoleCrewOfGuybrushToRapp() throws Exception {
         final String TEST_NAME = "test351AssignRoleCrewOfGuybrushToRapp";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -989,7 +964,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test358UnassignRoleCrewOfGuybrushToRapp() throws Exception {
         final String TEST_NAME = "test358UnassignRoleCrewOfGuybrushToRapp";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1029,7 +1003,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test359UnassignOrangeAccountFromGuybrushAndRapp() throws Exception {
         final String TEST_NAME = "test359UnassignOrangeAccountFromGuybrushAndRapp";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1052,7 +1025,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test600AssignRolePirateToJack() throws Exception {
         final String TEST_NAME = "test600AssignRolePirateToJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1087,7 +1059,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test610AssignRoleSwashbucklerToJack() throws Exception {
         final String TEST_NAME = "test610AssignRoleSwashbucklerToJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1121,7 +1092,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test620UnAssignSwashbucklerFromJack() throws Exception {
         final String TEST_NAME = "test620UnAssignSwashbucklerFromJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1159,7 +1129,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test630AssignRoleSwashbucklerToJackValidity() throws Exception {
         final String TEST_NAME = "test630AssignRoleSwashbucklerToJackValidity";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1203,7 +1172,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test640JackRoleSwashbucklerBecomesValid() throws Exception {
         final String TEST_NAME = "test640JackRoleSwashbucklerBecomesValid";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1239,7 +1207,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test645JackRoleSwashbucklerIsValid() throws Exception {
         final String TEST_NAME = "test645JackRoleSwashbucklerIsValid";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1271,7 +1238,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test650JackRoleSwashbucklerBecomesInvalid() throws Exception {
         final String TEST_NAME = "test650JackRoleSwashbucklerBecomesInvalid";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1307,7 +1273,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test659UnassignRoleSwashbucklerFromJack() throws Exception {
         final String TEST_NAME = "test659UnassignRoleSwashbucklerFromJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1347,7 +1312,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test699UnassignRolePirateFromJack() throws Exception {
         final String TEST_NAME = "test699UnassignRolePirateFromJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1373,7 +1337,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test700ReconcileGuybrush() throws Exception {
         final String TEST_NAME = "test700ReconcileGuybrush";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1407,7 +1370,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test710AssociateGuybrushToLandlubers() throws Exception {
         final String TEST_NAME = "test710AssociateGuybrushToLandlubers";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1433,7 +1395,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test715AssociateGuybrushToThugs() throws Exception {
         final String TEST_NAME = "test715AssociateGuybrushToThugs";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1477,7 +1438,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test720ReconcileGuybrush() throws Exception {
         final String TEST_NAME = "test720ReconcileGuybrush";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1503,7 +1463,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test729CleanupGuybrush() throws Exception {
         final String TEST_NAME = "test729CleanupGuybrush";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1535,7 +1494,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test750PrepareGuybrushFuturePerfect() throws Exception {
         final String TEST_NAME = "test750PrepareGuybrushFuturePerfect";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1578,7 +1536,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test752GuybrushFuturePerfect() throws Exception {
         final String TEST_NAME = "test752GuybrushFuturePerfect";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1604,7 +1561,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test759CleanupGuybrush() throws Exception {
         final String TEST_NAME = "test759CleanupGuybrush";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1631,7 +1587,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test760GuybrushOrgGroupsRepo() throws Exception {
         final String TEST_NAME = "test760GuybrushOrgGroupsRepo";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1659,7 +1614,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test765ReconcileGuybrush() throws Exception {
         final String TEST_NAME = "test765ReconcileGuybrush";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1691,7 +1645,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test769CleanupGuybrush() throws Exception {
         final String TEST_NAME = "test769CleanupGuybrush";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1718,7 +1671,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test780AssignGuybrushSwashbuckler() throws Exception {
         final String TEST_NAME = "test780AssignGuybrushSwashbuckler";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1743,7 +1695,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test781GuybrushTheLostSwashbuckler() throws Exception {
         final String TEST_NAME = "test781GuybrushTheLostSwashbuckler";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1767,7 +1718,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test784UnassignGuybrushSwashbuckler() throws Exception {
         final String TEST_NAME = "test784UnassignGuybrushSwashbuckler";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1787,7 +1737,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test785AssignGuybrushBlueSwashbuckler() throws Exception {
         final String TEST_NAME = "test785AssignGuybrushBlueSwashbuckler";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1815,7 +1764,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test786GuybrushTheLostBlueSwashbuckler() throws Exception {
         final String TEST_NAME = "test786GuybrushTheLostBlueSwashbuckler";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1839,7 +1787,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test789UnassignGuybrushBlueSwashbuckler() throws Exception {
         final String TEST_NAME = "test789UnassignGuybrushBlueSwashbuckler";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1862,7 +1809,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test800AssignRoleSwashbucklerToJackNone() throws Exception {
         final String TEST_NAME = "test800AssignRoleSwashbucklerToJackNone";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1896,7 +1842,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test805ReconcileJackNone() throws Exception {
         final String TEST_NAME = "test805ReconcileJackNone";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1925,7 +1870,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test809UnAssignRoleSwashbucklerFromJackNone() throws Exception {
         final String TEST_NAME = "test809UnAssignRoleSwashbucklerFromJackNone";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1953,7 +1897,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test810AssignRoleSwashbucklerToJackPositive() throws Exception {
         final String TEST_NAME = "test810AssignRoleSwashbucklerToJackPositive";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1985,7 +1928,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test815ReconcileJackPositive() throws Exception {
         final String TEST_NAME = "test815ReconcileJackPositive";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2014,7 +1956,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test817UnAssignRoleSwashbucklerFromJackPositive() throws Exception {
         final String TEST_NAME = "test817UnAssignRoleSwashbucklerFromJackPositive";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2042,7 +1983,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test819ReconcileJackPositive() throws Exception {
         final String TEST_NAME = "test819ReconcileJackPositive";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2075,7 +2015,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test820RecomputeJackFull() throws Exception {
         final String TEST_NAME = "test820RecomputeJackFull";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2106,7 +2045,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test822AssignRoleSwashbucklerToJackFull() throws Exception {
         final String TEST_NAME = "test822AssignRoleSwashbucklerToJackFull";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2138,7 +2076,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test825ReconcileJackFull() throws Exception {
         final String TEST_NAME = "test825ReconcileJackFull";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2167,7 +2104,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test827UnAssignRoleSwashbucklerFromJackFull() throws Exception {
         final String TEST_NAME = "test827UnAssignRoleSwashbucklerFromJackFull";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2195,7 +2131,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test829ReconcileJackFull() throws Exception {
         final String TEST_NAME = "test829ReconcileJackFull";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2224,7 +2159,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test830AssignJackAccountDummy() throws Exception {
         final String TEST_NAME = "test830AssignJackAccountDummy";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2255,7 +2189,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test840AssignRoleSwashbucklerToJackNone() throws Exception {
         final String TEST_NAME = "test840AssignRoleSwashbucklerToJackNone";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2287,7 +2220,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test849UnassignRoleSwashbucklerFromJackNone() throws Exception {
         final String TEST_NAME = "test849UnassignRoleSwashbucklerFromJackNone";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2315,7 +2247,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test850AssignRoleSwashbucklerToJackPositive() throws Exception {
         final String TEST_NAME = "test850AssignRoleSwashbucklerToJackPositive";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2347,7 +2278,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test859UnassignRoleSwashbucklerToJackPositive() throws Exception {
         final String TEST_NAME = "test859UnassignRoleSwashbucklerToJackPositive";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2377,7 +2307,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test860RecomputeJackFull() throws Exception {
         final String TEST_NAME = "test860RecomputeJackFull";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2405,7 +2334,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test862AssignRoleSwashbucklerToJackFull() throws Exception {
         final String TEST_NAME = "test862AssignRoleSwashbucklerToJackFull";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2437,7 +2365,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test869UnassignRoleSwashbucklerToJackFull() throws Exception {
         final String TEST_NAME = "test869UnassignRoleSwashbucklerToJackFull";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2465,7 +2392,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test899UnAssignAccountJackDummy() throws Exception {
         final String TEST_NAME = "test899UnAssignAccountJackDummy";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

@@ -59,7 +59,6 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test050SanityLost1() throws Exception {
         final String TEST_NAME = "test050SanityLost1";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -79,7 +78,6 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100RefreshTaskDefault() throws Exception {
         final String TEST_NAME = "test100RefreshTaskDefault";
-        displayTestTitle(TEST_NAME);
 
         addObject(TASK_SHADOW_REFRESH_FILE);
 
@@ -104,7 +102,6 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110RefreshTaskExplicitDummy() throws Exception {
         final String TEST_NAME = "test110RefreshTaskExplicitDummy";
-        displayTestTitle(TEST_NAME);
 
         addObject(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_FILE);
 

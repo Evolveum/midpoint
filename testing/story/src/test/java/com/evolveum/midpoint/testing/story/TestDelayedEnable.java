@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -110,7 +111,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test100AddUserMancomb() throws Exception {
         final String TEST_NAME = "test100AddUserMancomb";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -141,7 +141,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test102UserMancombTriggerScannerAgain() throws Exception {
         final String TEST_NAME = "test102UserMancombTriggerScannerAgain";
-        displayTestTitle(TEST_NAME);
         displayCurrentTime();
 
         // WHEN
@@ -164,7 +163,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test104UserMancombRecompute() throws Exception {
         final String TEST_NAME = "test104UserMancombRecompute";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -209,7 +207,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test110UserMancombRunTriggerScannerDay1() throws Exception {
         final String TEST_NAME = "test110UserMancombRunTriggerScannerDay1";
-        displayTestTitle(TEST_NAME);
 
         clockForward("P1D");
 
@@ -233,7 +230,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test112UserMancombRecomputeDay1() throws Exception {
         final String TEST_NAME = "test112UserMancombRecomputeDay1";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -273,7 +269,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test114UserMancombRunTriggerScannerDay1Again() throws Exception {
         final String TEST_NAME = "test114UserMancombRunTriggerScannerDay1Again";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -294,7 +289,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test116UserMancombRecomputeDay1Again() throws Exception {
         final String TEST_NAME = "test116UserMancombRecomputeDay1Again";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -320,7 +314,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test120UserMancombHrDisable() throws Exception {
         final String TEST_NAME = "test120UserMancombHrDisable";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -362,7 +355,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test122UserMancombRecompute() throws Exception {
         final String TEST_NAME = "test122UserMancombRecompute";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -384,7 +376,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test124UserMancombDay1TriggerScanner() throws Exception {
         final String TEST_NAME = "test124UserMancombDay1TriggerScanner";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -410,7 +401,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test130UserMancombTriggerScannerDay2() throws Exception {
         final String TEST_NAME = "test130UserMancombTriggerScannerDay2";
-        displayTestTitle(TEST_NAME);
 
         clockForward("P1D");
 
@@ -451,7 +441,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test132UserMancombRecomputeDay2() throws Exception {
         final String TEST_NAME = "test132UserMancombRecomputeDay2";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -473,7 +462,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test132UserMancombRecomputeDay2Again() throws Exception {
         final String TEST_NAME = "test132UserMancombRecomputeDay2Again";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -499,7 +487,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test140UserMancombRecomputeDay3() throws Exception {
         final String TEST_NAME = "test140UserMancombRecomputeDay3";
-        displayTestTitle(TEST_NAME);
 
         clockForward("P1D");
 
@@ -546,7 +533,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test210HrAddUserGuybrush() throws Exception {
         final String TEST_NAME = "test210HrAddUserGuybrush";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -580,7 +566,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test212HrUserGuybrushSyncAgain() throws Exception {
         final String TEST_NAME = "test212HrUserGuybrushSyncAgain";
-        displayTestTitle(TEST_NAME);
 
         clockForward("PT1H");
 
@@ -604,7 +589,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test214HrUserGuybrushRunTriggers() throws Exception {
         final String TEST_NAME = "test214HrUserGuybrushRunTriggers";
-        displayTestTitle(TEST_NAME);
 
         clockForward("PT1H");
 
@@ -628,7 +612,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test216HrUserGuybrushRecompute() throws Exception {
         final String TEST_NAME = "test216HrUserGuybrushRecompute";
-        displayTestTitle(TEST_NAME);
 
         clockForward("PT1H");
 
@@ -652,7 +635,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test218HrUserGuybrushReconcile() throws Exception {
         final String TEST_NAME = "test218HrUserGuybrushReconcile";
-        displayTestTitle(TEST_NAME);
 
         clockForward("PT1H");
 
@@ -695,7 +677,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test220HrUserGuybrushDay1() throws Exception {
         final String TEST_NAME = "test220HrUserGuybrushDay1";
-        displayTestTitle(TEST_NAME);
 
         clockForward("P1D");
 
@@ -715,7 +696,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test222HrUserGuybrushDay1SyncAgain() throws Exception {
         final String TEST_NAME = "test222HrUserGuybrushDay1SyncAgain";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -737,7 +717,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test224HrUserGuybrushDay1TriggerScanAgain() throws Exception {
         final String TEST_NAME = "test224HrUserGuybrushDay1TriggerScanAgain";
-        displayTestTitle(TEST_NAME);
 
         clockForward("PT1H");
 
@@ -761,7 +740,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test226HrUserGuybrushDay1Recompute() throws Exception {
         final String TEST_NAME = "test226HrUserGuybrushDay1Recompute";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -783,7 +761,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test228HrUserGuybrushDay1Reconcile() throws Exception {
         final String TEST_NAME = "test228HrUserGuybrushDay1Reconcile";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -820,7 +797,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test230HrDisableGuybrush() throws Exception {
         final String TEST_NAME = "test230HrDisableGuybrush";
-        displayTestTitle(TEST_NAME);
 
         getDummyResourceHr()
             .getAccountByUsername(ACCOUNT_GUYBRUSH_USERNAME)
@@ -846,7 +822,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test232GuybrushHrSyncAgain() throws Exception {
         final String TEST_NAME = "test232GuybrushHrSyncAgain";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -864,7 +839,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test234GuybrushRecompute() throws Exception {
         final String TEST_NAME = "test232GuybrushHrSyncAgain";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -886,7 +860,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test236GuybrushReconcile() throws Exception {
         final String TEST_NAME = "test236GuybrushReconcile";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -908,7 +881,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test238GuybrushrunTriggersAgain() throws Exception {
         final String TEST_NAME = "test238GuybrushrunTriggersAgain";
-        displayTestTitle(TEST_NAME);
 
         clockForward("PT1H");
 
@@ -945,7 +917,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test240HrUserGuybrushDay2() throws Exception {
         final String TEST_NAME = "test240HrUserGuybrushDay2";
-        displayTestTitle(TEST_NAME);
 
         clockForward("P1D");
 
@@ -965,7 +936,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test242GuybrushRecompute() throws Exception {
         final String TEST_NAME = "test242GuybrushRecompute";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -987,7 +957,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test244GuybrushHrSyncAgain() throws Exception {
         final String TEST_NAME = "test244GuybrushHrSyncAgain";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -1005,7 +974,6 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test246GuybrushReconcile() throws Exception {
         final String TEST_NAME = "test246GuybrushReconcile";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

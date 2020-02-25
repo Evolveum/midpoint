@@ -71,7 +71,6 @@ public class TestIterativeTasks extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test100RunBucketsMultithreaded() throws Exception {
         final String TEST_NAME = "test100RunBucketsMultithreaded";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 

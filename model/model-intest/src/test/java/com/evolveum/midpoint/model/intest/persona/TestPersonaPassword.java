@@ -20,6 +20,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -70,7 +71,6 @@ public class TestPersonaPassword extends AbstractPersonaTest {
     @Override
     public void test145ModifyPersonaPasswordBack() throws Exception {
         final String TEST_NAME = "test145ModifyPersonaPasswordBack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

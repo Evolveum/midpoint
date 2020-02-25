@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -148,7 +149,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test100SuspendWhileIcfSync() throws Exception {
         final String TEST_NAME = "test100SuspendWhileIcfSync";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -179,7 +179,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test105SuspendWhileIcfSyncImprecise() throws Exception {
         final String TEST_NAME = "test105SuspendWhileIcfSyncImprecise";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -214,7 +213,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test110SuspendWhileProcessing() throws Exception {
         final String TEST_NAME = "test110SuspendWhileProcessing";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -270,7 +268,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test115SuspendWhileProcessingImprecise() throws Exception {
         final String TEST_NAME = "test115SuspendWhileProcessingImprecise";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -314,7 +311,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test120Batched() throws Exception {
         final String TEST_NAME = "test120Batched";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -382,7 +378,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test125BatchedImprecise() throws Exception {
         final String TEST_NAME = "test125BatchedImprecise";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -429,7 +424,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test130Error() throws Exception {
         final String TEST_NAME = "test130Error";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -490,7 +484,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test135ErrorImprecise() throws Exception {
         final String TEST_NAME = "test135ErrorImprecise";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -557,7 +550,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test140DryRun() throws Exception {
         final String TEST_NAME = "test140DryRun";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
@@ -596,7 +588,6 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     @Test
     public void test150DryRunWithUpdate() throws Exception {
         final String TEST_NAME = "test150DryRunWithUpdate";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);

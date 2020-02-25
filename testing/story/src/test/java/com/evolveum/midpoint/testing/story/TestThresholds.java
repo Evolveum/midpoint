@@ -102,7 +102,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
     @Test
     public void test001testImportBaseUsers() throws Exception {
         final String TEST_NAME = "test001testImportBaseUsers";
-        displayTestTitle(TEST_NAME);
         OperationResult result = new OperationResult(TEST_NAME);
 
         importObjectFromFile(TASK_IMPORT_BASE_USERS_FILE);
@@ -143,7 +142,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
     @Test
     public void test100assignPolicyRuleCreateToTask() throws Exception {
         final String TEST_NAME = "test100assignPolicyRuleCreateToTask";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         Task task = taskManager.createTaskInstance(TEST_NAME);
@@ -162,7 +160,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
     @Test
     public void test110importAccounts() throws Exception {
         final String TEST_NAME = "test110importAccountsSimulate";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
@@ -188,7 +185,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
     @Test
     public void test111importAccountsAgain() throws Exception {
         final String TEST_NAME = "test111importAccountsAgain";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
@@ -215,7 +211,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
     @Test
     public void test500chageTaskPolicyRule() throws Exception {
         final String TEST_NAME = "test500chageTaskPolicyRule";
-        displayTestTitle(TEST_NAME);
 
         //WHEN
         Task task = taskManager.createTaskInstance(TEST_NAME);
@@ -235,7 +230,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
     @Test
     public void test520changeActivationThreeAccounts() throws Exception {
         final String TEST_NAME = "test520changeActivationThreeAccounts";
-        displayTestTitle(TEST_NAME);
         OperationResult result = new OperationResult(TEST_NAME);
 
         //GIVEN

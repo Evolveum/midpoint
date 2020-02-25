@@ -575,7 +575,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
     @Test
     public void test220AssignRoleLandluberToWally() throws Exception {
         final String TEST_NAME = "test220AssignRoleLandluberToWally";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -888,7 +887,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
     @Test
     public void test800EditSchemaJackPropReadAllModifySomeUser() throws Exception {
         final String TEST_NAME = "test800EditSchemaJackPropReadAllModifySomeUser";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_ALL_MODIFY_SOME_USER_OID);
@@ -961,7 +959,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
     @Test
     public void test802EditSchemaJackPropReadSomeModifySomeUser() throws Exception {
         final String TEST_NAME = "test800EditSchemaJackPropReadAllModifySomeUser";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID);

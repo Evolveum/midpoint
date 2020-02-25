@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -182,9 +183,8 @@ public class TestReconNullValue extends AbstractStoryTest {
     @Test
     public void test130AddHonorificPrefix() throws Exception {
         final String TEST_NAME = "test140AddHonorificPrefix";
-        displayTestTitle(TEST_NAME);
 
-         // GIVEN
+        // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
@@ -239,9 +239,8 @@ public class TestReconNullValue extends AbstractStoryTest {
     @Test
     public void test140dDeleteHonorificPrefixGivenName() throws Exception {
         final String TEST_NAME = "test140dDeleteHonorificPrefixGivenName";
-        displayTestTitle(TEST_NAME);
 
-         // GIVEN
+        // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
@@ -299,9 +298,8 @@ public class TestReconNullValue extends AbstractStoryTest {
     @Test
     public void test150RemoveTitleRA() throws Exception {
         final String TEST_NAME = "test150RemoveTitleRA";
-        displayTestTitle(TEST_NAME);
 
-         // GIVEN
+        // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
@@ -359,9 +357,8 @@ public class TestReconNullValue extends AbstractStoryTest {
     @Test //MID-4567
     public void test160SetGivenNameAttributeAndReconcile() throws Exception {
         final String TEST_NAME = "test160SetGivenNameAttributeAndReconcile";
-        displayTestTitle(TEST_NAME);
 
-         // GIVEN
+        // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
@@ -415,9 +412,8 @@ public class TestReconNullValue extends AbstractStoryTest {
     @Test //MID-4567
     public void test170ReplaceGivenNameEmpty() throws Exception {
         final String TEST_NAME = "test170ReplaceGivenNameEmpty";
-        displayTestTitle(TEST_NAME);
 
-         // GIVEN
+        // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();

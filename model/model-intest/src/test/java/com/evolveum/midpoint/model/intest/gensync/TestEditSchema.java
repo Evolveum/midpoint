@@ -97,7 +97,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test100LookupLanguagesGet() throws Exception {
         final String TEST_NAME="test100LookupLanguagesGet";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -124,7 +123,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test102LookupLanguagesGetExclude() throws Exception {
         final String TEST_NAME="test102LookupLanguagesGetExclude";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -155,7 +153,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test110LookupLanguagesGetAll() throws Exception {
         final String TEST_NAME="test110LookupLanguagesGetAll";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -178,7 +175,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test120LookupLanguagesGetByKeyExact() throws Exception {
         final String TEST_NAME="test120LookupLanguagesGetByKeyExact";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -205,7 +201,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test121LookupLanguagesGetByKeyStartingWith() throws Exception {
         final String TEST_NAME="test121LookupLanguagesGetByKeyStartingWith";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -233,7 +228,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test122LookupLanguagesGetByKeyContaining() throws Exception {
         final String TEST_NAME="test122LookupLanguagesGetByKeyContaining";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -260,7 +254,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test123LookupLanguagesGetByKeyContainingWithPaging() throws Exception {
         final String TEST_NAME="test123LookupLanguagesGetByKeyContainingWithPaging";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -290,7 +283,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test124LookupLanguagesGetByKeyContainingReturningNothing() throws Exception {
         final String TEST_NAME="test124LookupLanguagesGetByKeyContainingReturningNothing";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -324,7 +316,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test130LookupLanguagesGetByValueExact() throws Exception {
         final String TEST_NAME="test130LookupLanguagesGetByValueExact";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -355,7 +346,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test131LookupLanguagesGetByLabelStartingWith() throws Exception {
         final String TEST_NAME="test131LookupLanguagesGetByLabelStartingWith";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -384,7 +374,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test133LookupLanguagesGetByValueContainingWithPaging() throws Exception {
         final String TEST_NAME="test123LookupLanguagesGetByKeyContainingWithPaging";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -417,7 +406,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test(enabled = false)
     public void test140LookupLanguagesGetByIdExisting() throws Exception {
         final String TEST_NAME="test140LookupLanguagesGetByIdExisting";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -458,7 +446,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test150LookupLanguagesAddRowFull() throws Exception {
         final String TEST_NAME="test150LookupLanguagesAddRow";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -506,7 +493,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test152LookupLanguagesAddRowKeyLabel() throws Exception {
         final String TEST_NAME="test152LookupLanguagesAddRowKeyLabel";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -554,7 +540,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test154LookupLanguagesAddRowKeyValue() throws Exception {
         final String TEST_NAME="test154LookupLanguagesAddRowKeyValue";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -603,7 +588,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test156LookupLanguagesAddRowExistingKey() throws Exception {
         final String TEST_NAME="test156LookupLanguagesAddRowExistingKey";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -664,7 +648,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test162LookupLanguagesDeleteRowFullNoId() throws Exception {
         final String TEST_NAME="test162LookupLanguagesDeleteRowFullNoId";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -712,7 +695,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test164LookupLanguagesDeleteRowFullId() throws Exception {
         final String TEST_NAME="test164LookupLanguagesDeleteRowFullId";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -758,7 +740,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test166LookupLanguagesDeleteRowIdOnly() throws Exception {
         final String TEST_NAME="test166LookupLanguagesDeleteRowIdOnly";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -800,7 +781,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test168LookupLanguagesDeleteRowByKey() throws Exception {
         final String TEST_NAME="test168LookupLanguagesDeleteRowByKey";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -841,7 +821,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test170LookupLanguagesReplaceRows() throws Exception {
         final String TEST_NAME="test170LookupLanguagesReplaceRows";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -897,7 +876,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test180LookupLanguagesReplaceObject() throws Exception {
         final String TEST_NAME="test180LookupLanguagesReplaceObject";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -937,7 +915,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test182LookupLanguagesReimport() throws Exception {
         final String TEST_NAME="test182LookupLanguagesReimport";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1000,7 +977,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test200EditSchemaUser() throws Exception {
         final String TEST_NAME="test200EditSchemaUser";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1078,7 +1054,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test210UserDefinition() throws Exception {
         final String TEST_NAME="test210UserDefinition";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1136,7 +1111,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test211SchemaRegistryUntouched() throws Exception {
         final String TEST_NAME="test211SchemaRegistryUntouched";
-        displayTestTitle(TEST_NAME);
 
         assertUntouchedUserDefinition();
         assertSteadyResources();
@@ -1148,7 +1122,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test213ModifiedUserJack() throws Exception {
         final String TEST_NAME="test213ModifiedUserJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1207,7 +1180,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test250EditSchemaRole() throws Exception {
         final String TEST_NAME="test250EditSchemaRole";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1234,7 +1206,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test260EditShadowSchemaKindIntent() throws Exception {
         final String TEST_NAME="test260EditShadowSchemaKindIntent";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1276,7 +1247,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test261EditShadowSchemaObjectclass() throws Exception {
         final String TEST_NAME="test261EditShadowSchemaObjectclass";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1309,7 +1279,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test263EditShadowSchemaEmpty() throws Exception {
         final String TEST_NAME="test263EditShadowSchemaEmpty";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1340,7 +1309,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test265EditShadowSchemaNull() throws Exception {
         final String TEST_NAME="test265EditShadowSchemaNull";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1371,7 +1339,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test310CustomRelations() throws Exception {
         final String TEST_NAME="test310CustomRelations";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1396,7 +1363,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test800OtisEditSchemaUser() throws Exception {
         final String TEST_NAME="test800OtisEditSchemaUser";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         login(USER_OTIS_USERNAME);
@@ -1466,7 +1432,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test810OtisGetJack() throws Exception {
         final String TEST_NAME="test810OtisGetJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         login(USER_OTIS_USERNAME);
@@ -1550,7 +1515,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     @Test
     public void test820OtisSearchUsers() throws Exception {
         final String TEST_NAME="test820OtisSearchUsers";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         login(USER_OTIS_USERNAME);

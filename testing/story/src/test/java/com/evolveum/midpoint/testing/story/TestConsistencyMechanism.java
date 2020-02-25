@@ -19,7 +19,6 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.*;
 
 import javax.xml.bind.JAXBElement;
@@ -30,10 +29,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -77,12 +74,10 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -317,7 +312,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test000Integrity() throws Exception {
         final String TEST_NAME = "test000Integrity";
-        displayTestTitle(TEST_NAME);
         assertNotNull(modelWeb);
         assertNotNull(modelService);
         assertNotNull(repositoryService);
@@ -358,7 +352,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test001TestConnectionOpenDJ() throws Exception {
         final String TEST_NAME = "test001TestConnectionOpenDJ";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance();
         // GIVEN
@@ -445,7 +438,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test110PrepareOpenDjWithJackieAccounts() throws Exception {
         final String TEST_NAME = "test110PrepareOpenDjWithJackieAccounts";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult parentResult = task.getResult();
@@ -501,7 +493,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test111prepareOpenDjWithDenielsAccounts() throws Exception {
         final String TEST_NAME = "test111prepareOpenDjWithDenielsAccounts";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult parentResult = task.getResult();
@@ -547,7 +538,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test120AddAccountAlreadyExistLinked() throws Exception {
         final String TEST_NAME = "test120AddAccountAlreadyExistLinked";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance();
 
         OperationResult parentResult = new OperationResult("Add account already exist linked");
@@ -605,7 +595,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test122AddAccountAlreadyExistUnlinked() throws Exception {
         final String TEST_NAME = "test122AddAccountAlreadyExistUnlinked";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         OperationResult parentResult = new OperationResult("Add account already exist unlinked.");
@@ -654,7 +643,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test(enabled = false)
     public void test124AddAccountDirectAlreadyExists() throws Exception {
         final String TEST_NAME = "test124AddAccountDirectAlreadyExists";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult parentResult = task.getResult();
 
@@ -745,7 +733,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test130DeleteObjectNotFound() throws Exception {
         final String TEST_NAME = "test130DeleteObjectNotFound";
-        displayTestTitle(TEST_NAME);
         OperationResult parentResult = new OperationResult(TEST_NAME);
 
         repoAddShadowFromFile(ACCOUNT_GUYBRUSH_FILE, parentResult);
@@ -798,7 +785,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test140ModifyObjectNotFoundLinkedAccount() throws Exception {
         final String TEST_NAME = "test140ModifyObjectNotFoundLinkedAccount";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -865,7 +851,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test142ModifyObjectNotFoundAssignedAccount() throws Exception {
         final String TEST_NAME = "test142ModifyObjectNotFoundAssignedAccountq";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         OperationResult parentResult = new OperationResult(TEST_NAME);
@@ -928,7 +913,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test144GetObjectNotFoundAssignedAccount() throws Exception {
         final String TEST_NAME = "test144GetObjectNotFoundAssignedAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         OperationResult parentResult = new OperationResult(TEST_NAME);
@@ -969,7 +953,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test150RecomputeUserAccountNotFound() throws Exception {
         final String TEST_NAME = "test150RecomputeUserAccountNotFound";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TEST_NAME);
@@ -1025,7 +1008,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test152RecomputeUserAccountAndShadowNotFound() throws Exception {
         final String TEST_NAME = "test152RecomputeUserAccountAndShadowNotFound";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TEST_NAME);
@@ -1074,7 +1056,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test159DeleteUSerGuybrush() throws Exception {
         final String TEST_NAME = "test159DeleteUSerGuybrush";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TEST_NAME);
@@ -1105,7 +1086,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test200StopOpenDj() throws Exception {
         final String TEST_NAME = "test200StopOpenDj";
-        displayTestTitle(TEST_NAME);
         openDJController.stop();
 
         assertEquals("Resource is running", false, EmbeddedUtils.isRunning());
@@ -1114,7 +1094,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test210AddObjectCommunicationProblem() throws Exception {
         final String TEST_NAME = "test210AddObjectCommunicationProblem";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeStopped();
@@ -1171,7 +1150,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test212AddModifyObjectCommunicationProblem() throws Exception {
         final String TEST_NAME = "test212AddModifyObjectCommunicationProblem";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeStopped();
@@ -1245,7 +1223,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test214ModifyObjectCommunicationProblem() throws Exception {
         final String TEST_NAME = "test214ModifyObjectCommunicationProblem";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeStopped();
@@ -1309,7 +1286,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test220DeleteObjectCommunicationProblem() throws Exception {
         final String TEST_NAME = "test220DeleteObjectCommunicationProblem";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeStopped();
@@ -1361,7 +1337,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test230GetAccountCommunicationProblem() throws Exception {
         final String TEST_NAME = "test230GetAccountCommunicationProblem";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeStopped();
@@ -1397,7 +1372,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test240AddObjectCommunicationProblemAlreadyExists() throws Exception{
         final String TEST_NAME = "test240AddObjectCommunicationProblemAlreadyExists";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeRunning();
@@ -1471,7 +1445,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test250ModifyFocusCommunicationProblem() throws Exception {
         final String TEST_NAME = "test250ModifyFocusCommunicationProblem";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeStopped();
@@ -1555,7 +1528,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test251ModifyFocusCommunicationProblemSecondTime() throws Exception {
         final String TEST_NAME = "test251ModifyFocusCommunicationProblemSecondTime";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeStopped();
@@ -1671,7 +1643,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test260GetDiscoveryAddCommunicationProblem() throws Exception {
         final String TEST_NAME = "test260GetDiscoveryAddCommunicationProblem";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeStopped();
@@ -1738,7 +1709,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test262GetDiscoveryModifyCommunicationProblem() throws Exception {
         final String TEST_NAME = "test262GetDiscoveryModifyCommunicationProblem";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeRunning();
@@ -1831,7 +1801,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test264GetDiscoveryModifyUserPasswordCommunicationProblem() throws Exception {
         final String TEST_NAME = "test264GetDiscoveryModifyUserPasswordCommunicationProblem";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeStopped();
@@ -1922,7 +1891,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test265ModifyUserPasswordCommunicationProblemRecon() throws Exception {
         final String TEST_NAME = "test265ModifyUserPasswordCommunicationProblemRecon";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeStopped();
@@ -1998,7 +1966,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test270ModifyDiscoveryAddCommunicationProblem() throws Exception {
         final String TEST_NAME = "test270ModifyDiscoveryAddCommunicationProblem";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeStopped();
@@ -2054,7 +2021,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test280ModifyObjectCommunicationProblemWeakMapping() throws Exception{
         final String TEST_NAME = "test280ModifyObjectCommunicationProblemWeakMapping";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeRunning();
@@ -2104,7 +2070,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test282ModifyObjectCommunicationProblemWeakAndStrongMapping() throws Exception {
         final String TEST_NAME = "test282ModifyObjectCommunicationProblemWeakAndStrongMapping";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeRunning();
@@ -2172,7 +2137,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test283GetObjectNoFetchShadowAndRecompute() throws Exception {
         final String TEST_NAME = "test283GetObjectNoFetchShadowAndRecompute";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeRunning();
@@ -2212,7 +2176,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test284ModifyObjectAssignToGroupCommunicationProblem() throws Exception {
         final String TEST_NAME = "test284ModifyObjectAssignToGroupCommunicationProblem";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance();
         OperationResult parentResult = new OperationResult(TEST_NAME);
         // GIVEN
@@ -2286,7 +2249,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test(enabled = false)
     public void test400GetDiscoveryAddCommunicationProblemAlreadyExists() throws Exception{
         final String TEST_NAME = "test400GetDiscoveryAddCommunicationProblemAlreadyExists";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeStopped();
@@ -2332,7 +2294,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test500AddUserMorganWithAssignment() throws Exception {
         final String TEST_NAME = "test500AddUserMorganWithAssignment";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeRunning();
@@ -2379,7 +2340,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test501AddUserChuckWithAssignment() throws Exception {
         final String TEST_NAME = "test501AddUserChuckWithAssignment";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeRunning();
@@ -2437,7 +2397,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test502AssignAccountToHerman() throws Exception {
         final String TEST_NAME = "test502AssignAccountToHerman";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeRunning();
@@ -2498,7 +2457,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test510UnlinkAndUnassignAccountMorgan() throws Exception {
         final String TEST_NAME = "test510UnlinkAndUnassignAccountMorgan";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeRunning();
@@ -2569,7 +2527,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test511AssignAccountMorgan() throws Exception {
         final String TEST_NAME = "test511AssignAccountMorgan";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeRunning();
@@ -2644,7 +2601,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test600DeleteUserAlice() throws Exception {
         String TEST_NAME = "test600DeleteUserAlice";
-        displayTestTitle(TEST_NAME);
 
         openDJController.assumeRunning();
         Task task = taskManager.createTaskInstance(TEST_NAME);
@@ -2668,7 +2624,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test601GetDiscoveryModifyCommunicationProblemDirectAccount() throws Exception {
         String TEST_NAME = "test601GetDiscoveryModifyCommunicationProblemDirectAccount";
-        displayTestTitle(TEST_NAME);
 
         openDJController.assumeRunning();
         OperationResult parentResult = new OperationResult(TEST_NAME);
@@ -2724,7 +2679,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test//(enabled = false)
     public void test800Reconciliation() throws Exception {
         final String TEST_NAME = "test800Reconciliation";
-        displayTestTitle(TEST_NAME);
 
         openDJController.assumeRunning();
 
@@ -2822,7 +2776,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test//(enabled = false)
     public void test801TestReconciliationRename() throws Exception {
         final String TEST_NAME = "test801TestReconciliationRename";
-        displayTestTitle(TEST_NAME);
 
         openDJController.assumeRunning();
         Task task = createTask(TEST_NAME);

@@ -23,6 +23,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -53,7 +54,6 @@ public class TestMisbehavingResources extends AbstractStoryTest {
     @Test
     public void test010SanityAssignJackDummyAccount() throws Exception {
         final String TEST_NAME = "test010SanityAssignJackDummyAccount";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -74,7 +74,6 @@ public class TestMisbehavingResources extends AbstractStoryTest {
     @Test
     public void test019SanityUnassignJackDummyAccount() throws Exception {
         final String TEST_NAME = "test010SanityAssignJackDummyAccount";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -97,7 +96,6 @@ public class TestMisbehavingResources extends AbstractStoryTest {
     @Test
     public void test100AssignJackDummyAccountTimeout() throws Exception {
         final String TEST_NAME = "test100AssignJackDummyAccountTimeout";
-        displayTestTitle(TEST_NAME);
 
         getDummyResource().setOperationDelayOffset(3000);
 
@@ -119,7 +117,6 @@ public class TestMisbehavingResources extends AbstractStoryTest {
     @Test
     public void test102AssignJackDummyAccounRetry() throws Exception {
         final String TEST_NAME = "test102AssignJackDummyAccounRetry";
-        displayTestTitle(TEST_NAME);
 
         getDummyResource().setOperationDelayOffset(0);
         clockForward("P1D");
@@ -146,7 +143,6 @@ public class TestMisbehavingResources extends AbstractStoryTest {
     @Test
     public void test110ModifyJackDummyAccountTimeout() throws Exception {
         final String TEST_NAME = "test110ModifyJackDummyAccountTimeout";
-        displayTestTitle(TEST_NAME);
 
         getDummyResource().setOperationDelayOffset(3000);
 
@@ -170,7 +166,6 @@ public class TestMisbehavingResources extends AbstractStoryTest {
     @Test
     public void test112ModifyJackDummyAccounRetry() throws Exception {
         final String TEST_NAME = "test112ModifyJackDummyAccounRetry";
-        displayTestTitle(TEST_NAME);
 
         getDummyResource().setOperationDelayOffset(0);
         clockForward("P1D");

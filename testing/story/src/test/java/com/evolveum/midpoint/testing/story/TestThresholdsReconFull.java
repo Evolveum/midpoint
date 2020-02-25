@@ -69,7 +69,6 @@ public class TestThresholdsReconFull extends TestThresholds {
     @Test
     public void test600chageTaskPolicyRule() throws Exception {
         final String TEST_NAME = "test600chageTaskPolicyRule";
-        displayTestTitle(TEST_NAME);
 
         //WHEN
         Task task = taskManager.createTaskInstance(TEST_NAME);
@@ -88,7 +87,6 @@ public class TestThresholdsReconFull extends TestThresholds {
     @Test
     public void test610testFullRecon() throws Exception {
         final String TEST_NAME = "test610testFullRecon";
-        displayTestTitle(TEST_NAME);
         OperationResult result = new OperationResult(TEST_NAME);
 
         //WHEN
@@ -109,7 +107,6 @@ public class TestThresholdsReconFull extends TestThresholds {
     @Test
     public void test611testFullRecon() throws Exception {
         final String TEST_NAME = "test611testFullRecon";
-        displayTestTitle(TEST_NAME);
         OperationResult result = new OperationResult(TEST_NAME);
 
         openDJController.delete("uid=user10,ou=People,dc=example,dc=com");

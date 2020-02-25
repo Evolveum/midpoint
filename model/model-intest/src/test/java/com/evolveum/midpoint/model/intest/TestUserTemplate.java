@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ItemFactory;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -2502,7 +2503,6 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test804PreKaboom() throws Exception {
         final String TEST_NAME = "test804PreKaboom";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         clockForward("P2D");
@@ -2525,7 +2525,6 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test808Kaboom() throws Exception {
         final String TEST_NAME = "test808Kaboom";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         clockForward("P1M");
@@ -2555,7 +2554,6 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test810PreTalesBomb() throws Exception {
         final String TEST_NAME = "test810PreTalesBomb";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         clockForward("P1D");
@@ -2583,7 +2581,6 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test812TalesBoom() throws Exception {
         final String TEST_NAME = "test812TalesBoom";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         clockForward("P3M");
@@ -2608,7 +2605,6 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test813TalesBoomRecompute() throws Exception {
         final String TEST_NAME = "test813TalesBoomRecompute";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2753,7 +2749,6 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test832LootBoomConditionFalse() throws Exception {
         final String TEST_NAME = "test832LootBoomConditionFalse";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         clockForward("P9M");

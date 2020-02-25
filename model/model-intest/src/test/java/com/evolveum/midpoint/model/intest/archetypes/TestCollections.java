@@ -11,9 +11,7 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
-import java.io.File;
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -21,34 +19,19 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.CollectionStats;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.FailableRunnable;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -81,7 +64,6 @@ public class TestCollections extends AbstractArchetypesTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -101,7 +83,6 @@ public class TestCollections extends AbstractArchetypesTest {
     @Test
     public void test100CompileCollectionView() throws Exception {
         final String TEST_NAME = "test100CompileCollectionView";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -129,7 +110,6 @@ public class TestCollections extends AbstractArchetypesTest {
     @Test
     public void test102SearchCollectionUsers() throws Exception {
         final String TEST_NAME = "test102SearchCollectionUsers";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -149,7 +129,6 @@ public class TestCollections extends AbstractArchetypesTest {
     @Test
     public void test110CollectionStatsAllEnabled() throws Exception {
         final String TEST_NAME = "test110CollectionStatsAllEnabled";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -173,7 +152,6 @@ public class TestCollections extends AbstractArchetypesTest {
     @Test
     public void test112EvaluateRulesAllEnabled() throws Exception {
         final String TEST_NAME = "test112EvaluateRulesAllEnabled";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -195,7 +173,6 @@ public class TestCollections extends AbstractArchetypesTest {
     @Test
     public void test120CollectionStatsOneDisabled() throws Exception {
         final String TEST_NAME = "test120CollectionStatsOneDisabled";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -222,7 +199,6 @@ public class TestCollections extends AbstractArchetypesTest {
     @Test
     public void test122EvaluateRulesOneDisabled() throws Exception {
         final String TEST_NAME = "test122EvaluateRulesOneDisabled";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

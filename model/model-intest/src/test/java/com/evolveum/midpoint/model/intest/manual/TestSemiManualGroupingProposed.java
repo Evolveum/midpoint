@@ -15,6 +15,7 @@ import static org.testng.AssertJUnit.assertNull;
 import java.io.File;
 
 import com.evolveum.midpoint.prism.query.FilterUtil;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -76,7 +77,6 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
     @Test
     public void test020ResourcesSanity() throws Exception {
         final String TEST_NAME = "test020ResourcesSanity";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -120,7 +120,6 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
     @Test
     public void test500AssignBigmouthRoleOne() throws Exception {
         final String TEST_NAME = "test500AssignBigmouthRoleOne";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -177,7 +176,6 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
     @Test
     public void test502RunPropagation() throws Exception {
         final String TEST_NAME = "test502RunPropagation";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

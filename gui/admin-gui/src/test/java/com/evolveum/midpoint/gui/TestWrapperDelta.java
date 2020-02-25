@@ -265,7 +265,6 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test200createUser() throws Exception {
         String TEST_NAME = "test200createUser";
-        displayTestTitle(TEST_NAME);
 
         Task task = createSimpleTask(TEST_NAME);
         OperationResult result = task.getResult();

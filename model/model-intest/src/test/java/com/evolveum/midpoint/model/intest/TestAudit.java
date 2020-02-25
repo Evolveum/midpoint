@@ -98,7 +98,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         assertTrue(modelAuditService.supportsRetrieval());
 
@@ -118,7 +117,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test010SanityJack() throws Exception {
         final String TEST_NAME = "test010SanityJack";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         List<AuditEventRecord> auditRecords = getObjectAuditRecords(USER_JACK_OID);
@@ -132,7 +130,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100ModifyUserJackKid() throws Exception {
         final String TEST_NAME = "test100ModifyUserJackKid";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -161,7 +158,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test105CreateUserHerman() throws Exception {
         final String TEST_NAME = "test105CreateUserHerman";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -193,7 +189,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110ModifyUserJackSailor() throws Exception {
         final String TEST_NAME = "test110ModifyUserJackSailor";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -226,7 +221,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test115ModifyUserHermanMarooned() throws Exception {
         final String TEST_NAME = "test115ModifyUserHermanMarooned";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -257,7 +251,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test120ModifyUserJackCaptain() throws Exception {
         final String TEST_NAME = "test120ModifyUserJackCaptain";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -288,7 +281,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test125ModifyUserHermanHermit() throws Exception {
         final String TEST_NAME = "test125ModifyUserHermanHermit";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -325,7 +317,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test135ModifyUserHermanCivilisedHermit() throws Exception {
         final String TEST_NAME = "test135ModifyUserHermanCivilisedHermit";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -357,7 +348,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200ReconstructJackSailor() throws Exception {
         final String TEST_NAME = "test200ReconstructJackSailor";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -388,7 +378,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test210ReconstructJackKid() throws Exception {
         final String TEST_NAME = "test210ReconstructJackKid";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -421,7 +410,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test250ReconstructHermanCreated() throws Exception {
         final String TEST_NAME = "test250ReconstructHermanCreated";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -461,7 +449,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test252ReconstructHermanMarooned() throws Exception {
         final String TEST_NAME = "test252ReconstructHermanMarooned";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -494,7 +481,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test254ReconstructHermanHermit() throws Exception {
         final String TEST_NAME = "test254ReconstructHermanHermit";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -525,7 +511,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test300QueryUnknown() throws Exception {
         final String TEST_NAME = "test300QueryUnknown";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

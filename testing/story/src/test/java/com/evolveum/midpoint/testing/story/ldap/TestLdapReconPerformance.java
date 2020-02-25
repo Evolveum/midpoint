@@ -105,7 +105,6 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     @Test
     public void test010GenerateUsers() throws Exception {
         final String TEST_NAME = "test010GenerateUsers";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -148,7 +147,6 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     @Test
     public void test100Reconcile1ThreadLdap0() throws Exception {
         final String TEST_NAME = "test100Reconcile1ThreadLdap0";
-        displayTestTitle(TEST_NAME);
 
         rememberConnectorResourceCounters();
 
@@ -192,7 +190,6 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     @Test
     public void test200ReconcileLdap0() throws Exception {
         final String TEST_NAME = "test200ReconcileLdap0";
-        displayTestTitle(TEST_NAME);
 
         rememberConnectorResourceCounters();
 
@@ -236,7 +233,6 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     @Test
     public void test310ReconcileLdapX1() throws Exception {
         final String TEST_NAME = "test310ReconcileLdapX1";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestLdapReconPerformance.class.getName() + "." + TEST_NAME);
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -257,7 +253,6 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     }
 
     private long testReconcileLdapRestart1Thread(final String TEST_NAME) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         long duration = testReconcileLdapRestartWhen(TEST_NAME, TASK_RECON_1_OPENDJ_OID);
 
@@ -267,7 +262,6 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     }
 
     private long testReconcileLdapRestart(final String TEST_NAME) throws Exception {
-        displayTestTitle(TEST_NAME);
 
         long duration =  testReconcileLdapRestartWhen(TEST_NAME, TASK_RECON_4_OPENDJ_OID);
 
@@ -307,7 +301,6 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     @Test
     public void test900Summarize() throws Exception {
         final String TEST_NAME = "test900Summarize";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

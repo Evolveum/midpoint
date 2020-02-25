@@ -112,7 +112,6 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test140AssignUserLargoBasic() throws Exception {
         final String TEST_NAME = "test140AssignUserLargoBasic";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -146,7 +145,6 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test142MeddleWithAccountAndReconcileUserLargo() throws Exception {
         final String TEST_NAME = "test142MeddleWithAccountAndReconcileUserLargo";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -194,7 +192,6 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test144AssignUserLargoUnix() throws Exception {
         final String TEST_NAME = "test144AssignUserLargoUnix";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -225,7 +222,6 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test146UnassignUserLargoUnix() throws Exception {
         final String TEST_NAME = "test146UnassignUserLargoUnix";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -256,7 +252,6 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test149UnAssignUserLargoBasic() throws Exception {
         final String TEST_NAME = "test149UnAssignUserLargoBasic";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 

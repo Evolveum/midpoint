@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -124,7 +125,6 @@ public class TestNullAttribute extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestNullAttribute.class.getName() + "." + TEST_NAME);
 
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
@@ -146,7 +146,6 @@ public class TestNullAttribute extends AbstractStoryTest {
     @Test
     public void test010UserSmackAssignAccountOnlyRole() throws Exception {
         final String TEST_NAME = "test010UserSmackAssignAccountOnlyRole";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -190,9 +189,8 @@ public class TestNullAttribute extends AbstractStoryTest {
     @Test
     public void test020UserSmackSetAttribute() throws Exception {
         final String TEST_NAME = "test020UserSmackSetAttribute";
-        displayTestTitle(TEST_NAME);
 
-         // GIVEN
+        // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
@@ -244,9 +242,8 @@ public class TestNullAttribute extends AbstractStoryTest {
     @Test // MID-3325
     public void test030UserSmackRemoveAttribute() throws Exception {
         final String TEST_NAME = "test030UserSmackRemoveAttribute";
-        displayTestTitle(TEST_NAME);
 
-         // GIVEN
+        // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();

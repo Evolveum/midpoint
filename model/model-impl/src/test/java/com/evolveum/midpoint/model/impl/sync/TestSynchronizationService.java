@@ -89,7 +89,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test010AddedAccountJack() throws Exception {
         final String TEST_NAME = "test010AddedAccountJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -147,7 +146,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test020ModifyLootAbsolute() throws Exception {
         final String TEST_NAME = "test020ModifyLootAbsolute";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -205,7 +203,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test021ModifyLootAbsoluteEmpty() throws Exception {
         final String TEST_NAME = "test021ModifyLootAbsoluteEmpty";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -267,7 +264,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test030Reconcile() throws Exception {
         final String TEST_NAME = "test030Reconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -314,7 +310,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test039DeletedAccountJack() throws Exception {
         final String TEST_NAME = "test039DeletedAccountJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -417,7 +412,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test050AddedAccountCalypso() throws Exception {
         final String TEST_NAME = "test050AddedAccountCalypso";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -468,7 +462,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test051CalypsoRecon() throws Exception {
         final String TEST_NAME = "test051CalypsoRecon";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -514,7 +507,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test100AddedAccountJack() throws Exception {
         final String TEST_NAME = "test100AddedAccountJack";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -586,7 +578,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test199DeletedAccountJackTotal() throws Exception {
         final String TEST_NAME = "test199DeletedAccountJackTotal";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -644,7 +635,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test200AddedAccountJackSchemaViolation() throws Exception {
         final String TEST_NAME = "test200AddedAccountJackSchemaViolation";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -718,7 +708,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test202UpdatedAccountJackSchemaViolation() throws Exception {
         final String TEST_NAME = "test202UpdatedAccountJackSchemaViolation";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -781,7 +770,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test210AssignJackDummy() throws Exception {
         final String TEST_NAME = "test210AssignJackDummy";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -830,7 +818,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test212AssignJackDummyLimited() throws Exception {
         final String TEST_NAME = "test212AssignJackDummyLimited";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -889,7 +876,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test214UpdatedAccountJackLimited() throws Exception {
         final String TEST_NAME = "test214UpdatedAccountJackLimited";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -975,7 +961,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
     @Test
     public void test300AddedGroupPirates() throws Exception {
         final String TEST_NAME = "test300AddedGroupPirates";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

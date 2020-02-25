@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -133,7 +134,6 @@ public class TestLdapComplex extends AbstractLongTest {
     @Test
     public void test100BigImport() throws Exception {
         final String TEST_NAME = "test100BigImport";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -175,7 +175,6 @@ public class TestLdapComplex extends AbstractLongTest {
     @Test(enabled = false)
     public void test120BigReconciliation() throws Exception {
         final String TEST_NAME = "test120BigReconciliation";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -214,7 +213,6 @@ public class TestLdapComplex extends AbstractLongTest {
     @Test
     public void test500GuybrushAssignSecurity() throws Exception {
         final String TEST_NAME = "test500GuybrushAssignSecurity";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -245,7 +243,6 @@ public class TestLdapComplex extends AbstractLongTest {
     @Test
     public void test502RuinGuybrushAccountAndReconcile() throws Exception {
         final String TEST_NAME = "test502RuinGuybrushAccountAndReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

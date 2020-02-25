@@ -25,6 +25,7 @@ import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -73,7 +74,6 @@ public class TestPrivacy extends AbstractStoryTest {
     @Test
     public void test100AutzJackReadSearch() throws Exception {
         final String TEST_NAME = "test100AutzJackReadSearch";
-        displayTestTitle(TEST_NAME);
 
         assignRole(USER_JACK_OID, ROLE_PRIVACY_END_USER_OID);
 

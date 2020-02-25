@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -53,7 +54,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User Jack", userJack);
@@ -75,7 +75,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100AssignDeputyNoBigDeal() throws Exception {
         final String TEST_NAME = "test100AssignDeputyNoBigDeal";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -112,7 +111,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test109UnassignDeputyNoBigDeal() throws Exception {
         final String TEST_NAME = "test109UnassignDeputyNoBigDeal";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -148,7 +146,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110AssignJackPirate() throws Exception {
         final String TEST_NAME = "test110AssignJackPirate";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -186,7 +183,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test112AssignDeputyPirate() throws Exception {
         final String TEST_NAME = "test112AssignDeputyPirate";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -229,7 +225,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test119UnassignDeputyPirate() throws Exception {
         final String TEST_NAME = "test119UnassignDeputyPirate";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -267,7 +262,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test120AssignbarbossaDeputyOfGuybrush() throws Exception {
         final String TEST_NAME = "test120AssignbarbossaDeputyOfGuybrush";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -310,7 +304,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test122AssignGuybrushPirate() throws Exception {
         final String TEST_NAME = "test122AssignGuybrushPirate";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -349,7 +342,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test124RecomputeBarbossa() throws Exception {
         final String TEST_NAME = "test124RecomputeBarbossa";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -390,7 +382,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test126UnassignGuybrushPirate() throws Exception {
         final String TEST_NAME = "test126UnassignGuybrushPirate";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -428,7 +419,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test128RecomputeBarbossa() throws Exception {
         final String TEST_NAME = "test128RecomputeBarbossa";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -462,7 +452,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test129UnassignBarbossaDeputyOfGuybrush() throws Exception {
         final String TEST_NAME = "test129UnassignBarbossaDeputyOfGuybrush";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -498,7 +487,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test150AssignJackMoreRoles() throws Exception {
         final String TEST_NAME = "test150AssignJackMoreRoles";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -552,7 +540,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test152AssignbarbossaDeputyLimitedDeputy() throws Exception {
         final String TEST_NAME = "test152AssignbarbossaDeputyLimitedDeputy";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -589,7 +576,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test154UnassignbarbossaDeputyLimitedDeputy() throws Exception {
         final String TEST_NAME = "test154UnassignbarbossaDeputyLimitedDeputy";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -623,7 +609,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test156AssignbarbossaDeputyLimitedDeputyRed() throws Exception {
         final String TEST_NAME = "test156AssignbarbossaDeputyLimitedDeputyRed";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -661,7 +646,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test159UnassignbarbossaDeputyLimitedDeputyRed() throws Exception {
         final String TEST_NAME = "test159UnassignbarbossaDeputyLimitedDeputyRed";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -703,7 +687,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test160AssignbarbossaDeputyLimitedDeputyEmpty() throws Exception {
         final String TEST_NAME = "test160AssignbarbossaDeputyLimitedDeputyEmpty";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -740,7 +723,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test162UnassignbarbossaDeputyLimitedDeputyEmpty() throws Exception {
         final String TEST_NAME = "test162UnassignbarbossaDeputyLimitedDeputyEmpty";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -780,7 +762,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test170AddRoleDrinker() throws Exception {
         final String TEST_NAME = "test170AssignJackRoleDrinker";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -805,7 +786,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test172AssignJackRoleDrinker() throws Exception {
         final String TEST_NAME = "test170AssignJackRoleDrinker";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -835,7 +815,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test174AssignBarbossaDeputyLimitedDeputyDrinker() throws Exception {
         final String TEST_NAME = "test174AssignBarbossaDeputyLimitedDeputyDrinker";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -874,7 +853,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test176AssignbarGuybrushLimitedDeputyOfBarbossa() throws Exception {
         final String TEST_NAME = "test176AssignbarGuybrushLimitedDeputyOfBarbossa";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -912,7 +890,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test178UnassignBarbossaDeputyLimitedDeputyDrinker() throws Exception {
         final String TEST_NAME = "test178UnassignBsarbossaDeputyLimitedDeputyDrinker";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -959,7 +936,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test179UnassignbarGuybrushLimitedDeputyOfBarbossa() throws Exception {
         final String TEST_NAME = "test179UnassignbarGuybrushLimitedDeputyOfBarbossa";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -988,7 +964,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test180AssignBarbossaDeputyOfJack() throws Exception {
         final String TEST_NAME = "test180AssignBarbossaDeputyOfJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1017,7 +992,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test182AssignGuybrushLimitedDeputyOfBarbossa() throws Exception {
         final String TEST_NAME = "test182AssignGuybrushLimitedDeputyOfBarbossa";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1053,7 +1027,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test184UnassignGuybrushLimitedDeputyOfBarbossa() throws Exception {
         final String TEST_NAME = "test182AssignGuybrushLimitedDeputyOfBarbossa";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1082,7 +1055,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test186AssignGuybrushDeputyOfBarbossa() throws Exception {
         final String TEST_NAME = "test182AssignGuybrushLimitedDeputyOfBarbossa";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1116,7 +1088,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test188UnassignGuybrushDeputyOfBarbossa() throws Exception {
         final String TEST_NAME = "test188UnassignGuybrushDeputyOfBarbossa";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1140,7 +1111,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test189UnassignBarbossaDeputyOfJack() throws Exception {
         final String TEST_NAME = "test189UnassignBarbossaDeputyOfJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1164,7 +1134,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test190AssignBarbossaDeputyLimitedDeputyEmptyDrinker() throws Exception {
         final String TEST_NAME = "test190AssignBarbossaDeputyLimitedDeputyEmptyDrinker";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1202,7 +1171,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test192UnassignbarbossaDeputyLimitedDeputyEmptyDrinker() throws Exception {
         final String TEST_NAME = "test192UnassignbarbossaDeputyLimitedDeputyEmptyDrinker";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1244,7 +1212,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test800ImportValidityScannerTask() throws Exception {
         final String TEST_NAME = "test800ImportValidityScannerTask";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
@@ -1272,7 +1239,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test802AssignBarbossaDeputyOfJack() throws Exception {
         final String TEST_NAME = "test802AssignBarbossaDeputyOfJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1326,7 +1292,6 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test804BarbosaThreeHoursLater() throws Exception {
         final String TEST_NAME = "test804BarbosaThreeHoursLater";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

@@ -17,6 +17,7 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -72,7 +73,6 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
     @Test
     public void test000PreparationAndSanity() throws Exception {
         final String TEST_NAME = "test000PreparationAndSanity";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

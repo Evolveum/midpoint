@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -101,7 +102,6 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME="test000Sanity";
-        displayTestTitle(TEST_NAME);
 
         assertShadows(5);
     }
@@ -109,7 +109,6 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test131ModifyUserJackAssignAccount() throws Exception {
         final String TEST_NAME="test131ModifyUserJackAssignAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCaseIgnore.class.getName() + "." + TEST_NAME);
@@ -163,7 +162,6 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test133SeachAccountShadows() throws Exception {
         final String TEST_NAME="test133SeachAccountShadows";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCaseIgnore.class.getName() + "." + TEST_NAME);
@@ -217,7 +215,6 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test139ModifyUserJackUnassignAccount() throws Exception {
         final String TEST_NAME = "test139ModifyUserJackUnassignAccount";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCaseIgnore.class.getName() + "." + TEST_NAME);
@@ -257,7 +254,6 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test150JackAssignRoleX() throws Exception {
         final String TEST_NAME = "test150JackAssignRoleX";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -304,7 +300,6 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test152GetJack() throws Exception {
         final String TEST_NAME = "test152GetJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -346,7 +341,6 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test159JackUnAssignRoleX() throws Exception {
         final String TEST_NAME = "test159JackUnAssignRoleX";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -378,7 +372,6 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test160JackAssignRoleBasic() throws Exception {
         final String TEST_NAME = "test160JackAssignRoleBasic";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -427,7 +420,6 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test161JackAssignRoleJoker() throws Exception {
         final String TEST_NAME = "test161JackAssignRoleJoker";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -480,7 +472,6 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test165JackUnAssignRoleJoker() throws Exception {
         final String TEST_NAME = "test165JackUnAssignRoleJoker";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -529,7 +520,6 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test169JackUnAssignRoleBasic() throws Exception {
         final String TEST_NAME = "test169JackUnAssignRoleBasic";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -564,7 +554,6 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test170JackAssignRoleJoker() throws Exception {
         final String TEST_NAME = "test170JackAssignRoleJoker";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -612,7 +601,6 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test179JackUnAssignRoleJoker() throws Exception {
         final String TEST_NAME = "test179JackUnAssignRoleJoker";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -655,7 +643,6 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200GuybrushAssignRoleFools() throws Exception {
         final String TEST_NAME = "test200GuybrushAssignRoleFools";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();

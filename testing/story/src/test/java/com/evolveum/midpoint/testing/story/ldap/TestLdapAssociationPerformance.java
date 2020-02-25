@@ -147,7 +147,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     @Test
     public void test000ClonePerformance() throws SchemaException {
         final String TEST_NAME = "test000ClonePerformance";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -166,7 +165,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     @Test
     public void test010Sanity() throws Exception {
         final String TEST_NAME = "test010Sanity";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -191,7 +189,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     @Test
     public void test020GenerateRoles() throws Exception {
         final String TEST_NAME = "test020GenerateRoles";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -240,7 +237,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     @Test
     public void test100AddUsers() throws Exception {
         final String TEST_NAME = "test100AddUsers";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -310,7 +306,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     @Test
     public void test110RecomputeUsers() throws Exception {
         final String TEST_NAME = "test110RecomputeUsers";
-        displayTestTitle(TEST_NAME);
 
         rememberConnectorResourceCounters();
 
@@ -355,7 +350,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     @Test
     public void test120RecomputeUsersNoRoleAndShadowCache() throws Exception {
         final String TEST_NAME = "test120RecomputeUsersNoRoleAndShadowCache";
-        displayTestTitle(TEST_NAME);
 
         rememberConnectorResourceCounters();
 
@@ -400,7 +394,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     @Test
     public void test130RecomputeUsersMultinode() throws Exception {
         final String TEST_NAME = "test130RecomputeUsersMultinode";
-        displayTestTitle(TEST_NAME);
 
         rememberConnectorResourceCounters();
 
@@ -449,7 +442,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     @Test
     public void test140RecomputeUsersMultinodeMultithreaded() throws Exception {
         final String TEST_NAME = "test140RecomputeUsersMultinodeMultithreaded";
-        displayTestTitle(TEST_NAME);
 
         rememberConnectorResourceCounters();
 
@@ -499,7 +491,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     @Test
     public void test200RecomputeUsersNoDefaultRoleCache() throws Exception {
         final String TEST_NAME = "test200RecomputeUsersNoDefaultRoleCache";
-        displayTestTitle(TEST_NAME);
 
         rememberConnectorResourceCounters();
 
@@ -547,7 +538,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     @Test
     public void test900Summarize() throws Exception {
         final String TEST_NAME = "test900Summarize";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

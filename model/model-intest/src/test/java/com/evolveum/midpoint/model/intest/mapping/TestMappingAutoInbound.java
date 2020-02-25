@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -64,7 +65,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test100ImportFromResource() throws Exception {
         final String TEST_NAME = "test100ImportFromResource";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -113,7 +113,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test110ModifyAccountTitleCraticAndReconcile() throws Exception {
         final String TEST_NAME = "test110ModifyAccountTitleCraticAndReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -142,7 +141,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test112ModifyAccountTitleDidacticGraphicAndReconcile() throws Exception {
         final String TEST_NAME = "test112ModifyAccountTitleDidacticGraphicAndReconcile";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -173,7 +171,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test200ImportFromResourceAssociations() throws Exception {
         final String TEST_NAME = "test200ImportFromResourceAssociations";
-        displayTestTitle(TEST_NAME);
 
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.RELATIVE, false);
 
@@ -224,7 +221,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test300ModifyAccountDirectAssign() throws Exception {
         final String TEST_NAME = "test300ModifyAccountDirectAssign";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -252,7 +248,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test301removeUserFromAutoGroup() throws Exception {
         final String TEST_NAME = "test301removeUserFromAutoGroup";
-        displayTestTitle(TEST_NAME);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -299,7 +294,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test402assignAutoGroupDirectly() throws Exception {
         final String TEST_NAME = "test402assignAutoGroupDirectly";
-        displayTestTitle(TEST_NAME);
 
         DummyGroup craticGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_CRATIC_NAME);
         craticGroup.removeMember(USER_HERMAN_USERNAME);
@@ -336,7 +330,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test403removeAllAssignments() throws Exception {
         final String TEST_NAME = "test403removeAllAssignments";
-        displayTestTitle(TEST_NAME);
 
         DummyGroup testersGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_TESTERS_NAME);
         testersGroup.removeMember(USER_HERMAN_USERNAME);
@@ -365,7 +358,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test404importAssociationAutotesters() throws Exception {
         final String TEST_NAME = "test404importAssociationAutotesters";
-        displayTestTitle(TEST_NAME);
 
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.FULL, true);
 
@@ -403,7 +395,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test405assignRoleAutocraticDirectly() throws Exception {
         final String TEST_NAME = "test405assignRoleAutocraticDirectly";
-        displayTestTitle(TEST_NAME);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         // GIVEN
@@ -431,7 +422,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test406unassignRoleAutocraticDirectly() throws Exception {
         final String TEST_NAME = "test406unassignRoleAutocraticAutotestersDirectly";
-        displayTestTitle(TEST_NAME);
 
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.FULL, true);
 
@@ -460,7 +450,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     @Test
     public void test407addHermanToTestersReconcile() throws Exception {
         final String TEST_NAME = "test407addHermanToTestersReconcile";
-        displayTestTitle(TEST_NAME);
 
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.FULL, true);
 

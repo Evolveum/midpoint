@@ -121,7 +121,6 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200ReconcileDummyUuid() throws Exception {
         final String TEST_NAME = "test200ReconcileDummyUuid";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestUuid.class.getName() + "." + TEST_NAME);
@@ -171,7 +170,6 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test210ReconcileDummyUuidAddAugustus() throws Exception {
         final String TEST_NAME = "test210ReconcileDummyUuidAddAugustus";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestUuid.class.getName() + "." + TEST_NAME);
@@ -239,7 +237,6 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test220ReconcileDummyUuidDeleteAddAugustus() throws Exception {
         final String TEST_NAME = "test220ReconcileDummyUuidDeleteAddAugustus";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestUuid.class.getName() + "." + TEST_NAME);
@@ -329,7 +326,6 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test230ReconcileDummyUuidDeleteAugustusAddAugustina() throws Exception {
         final String TEST_NAME = "test230ReconcileDummyUuidDeleteAugustusAddAugustina";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestUuid.class.getName() + "." + TEST_NAME);

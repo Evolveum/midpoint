@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
@@ -79,7 +80,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test001assigneJackEmployeeRole() throws Exception {
         final String TEST_NAME = "test001assigneJackEmployeeRole";
-        displayTestTitle(TEST_NAME);
 
         //WHEN
         displayWhen(TEST_NAME);
@@ -95,7 +95,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test100createServiceJira() throws Exception {
         final String TEST_NAME = "test100createServiceJira";
-        displayTestTitle(TEST_NAME);
 
         //WHEN
         addObject(SERVICE_JIRA_FILE);
@@ -112,7 +111,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test101jiraAssignResourceNoneEnforcement() throws Exception {
         final String TEST_NAME = "test101jiraAssignResourceNoneEnforcement";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -135,7 +133,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test150StartReconTask() throws Exception {
         final String TEST_NAME = "test150StartReconTask";
-        displayTestTitle(TEST_NAME);
 
         assertUsers(getNumberOfUsers());
         assertServices(1);
@@ -157,7 +154,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test151LinkServiceAccountRecon() throws Exception {
         final String TEST_NAME = "test151LinkServiceAccountRecon";
-        displayTestTitle(TEST_NAME);
 
         // Preconditions
         assertServices(1);
@@ -187,7 +183,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test152InactivateUnmatchedAccountRecon() throws Exception {
         final String TEST_NAME = "test152InactivateUnmatchedAccountRecon";
-        displayTestTitle(TEST_NAME);
 
         // Preconditions
         assertServices(1);
@@ -214,7 +209,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test200createServiceGithub() throws Exception {
         final String TEST_NAME = "test200createServiceGithub";
-        displayTestTitle(TEST_NAME);
 
         //WHEN
         addObject(SERVICE_GITHUB_FILE);
@@ -231,7 +225,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test210createAccountGithub() throws Exception {
         final String TEST_NAME = "test210createAccountGithub";
-        displayTestTitle(TEST_NAME);
 
         //WHEN
         displayWhen(TEST_NAME);
@@ -251,7 +244,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test215githubAssignResourceNoneEnforcement() throws Exception {
         final String TEST_NAME = "test101jiraAssignResourceNoneEnforcement";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -274,7 +266,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test220linkAccountGithubAndFixIntent() throws Exception {
         final String TEST_NAME = "test220linkAccountGithubAndFixIntent";
-        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 

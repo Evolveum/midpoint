@@ -21,6 +21,7 @@ import com.evolveum.midpoint.report.impl.ReportWebService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -62,15 +63,13 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     @Test
       public void test000Sanity() throws Exception {
           final String TEST_NAME = "test000Sanity";
-          displayTestTitle(TEST_NAME);
 
-          assertNotNull("No web service", reportWebService);
+        assertNotNull("No web service", reportWebService);
     }
 
     @Test
     public void test100ProcessReportUserList() throws Exception {
         final String TEST_NAME = "test100ProcessReportUserList";
-        displayTestTitle(TEST_NAME);
 
         String query = createAllQueryString(UserType.class);
         RemoteReportParametersType parameters = createReportParameters();
@@ -89,7 +88,6 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     @Test
     public void test110ProcessReportUserListNoReportOid() throws Exception {
         final String TEST_NAME = "test110ProcessReportUserListNoReportOid";
-        displayTestTitle(TEST_NAME);
 
         String query = createAllQueryString(UserType.class);
         RemoteReportParametersType parameters = createReportParameters();
@@ -112,7 +110,6 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     @Test
     public void test112ProcessReportUserListInvalidReportOid() throws Exception {
         final String TEST_NAME = "test112ProcessReportUserListInvalidReportOid";
-        displayTestTitle(TEST_NAME);
 
         String query = createAllQueryString(UserType.class);
         RemoteReportParametersType parameters = createReportParameters();
@@ -138,7 +135,6 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     @Test
     public void test115ProcessReportUserListUnauthorizedReader() throws Exception {
         final String TEST_NAME = "test115ProcessReportUserListUnauthorizedReader";
-        displayTestTitle(TEST_NAME);
 
         login(USER_READER_USERNAME);
 
@@ -168,7 +164,6 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     @Test
     public void test116ProcessReportUserListUnauthorizedRunner() throws Exception {
         final String TEST_NAME = "test116ProcessReportUserListUnauthorizedRunner";
-        displayTestTitle(TEST_NAME);
 
         login(USER_RUNNER_USERNAME);
 
@@ -198,7 +193,6 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     @Test
     public void test119ProcessReportUserListReaderRunner() throws Exception {
         final String TEST_NAME = "test119ProcessReportUserListReaderRunner";
-        displayTestTitle(TEST_NAME);
 
         login(USER_READER_RUNNER_USERNAME);
 

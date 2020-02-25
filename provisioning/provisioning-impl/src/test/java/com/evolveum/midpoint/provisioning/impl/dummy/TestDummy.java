@@ -73,10 +73,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ObjectChecker;
-import com.evolveum.midpoint.test.ProvisioningScriptSpec;
+import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -169,7 +166,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test101AddAccountWithoutName() throws Exception {
         final String TEST_NAME = "test101AddAccountWithoutName";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
         OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
@@ -254,7 +250,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test107AGetModifiedAccountFromCacheMax() throws Exception {
         final String TEST_NAME = "test107AGetModifiedAccountFromCacheMax";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -309,7 +304,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test107BGetModifiedAccountFromCacheHighStaleness() throws Exception {
         final String TEST_NAME = "test107BGetModifiedAccountFromCacheHighStaleness";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -360,7 +354,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test108GetAccountLowStaleness() throws Exception {
         final String TEST_NAME = "test106GetModifiedAccount";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -417,7 +410,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test109ModifiedAccountCleanup() throws Exception {
         final String TEST_NAME = "test109ModifiedAccountCleanup";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
@@ -458,7 +450,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test110SeachIterative() throws Exception {
         final String TEST_NAME = "test110SeachIterative";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -577,7 +568,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test111SeachIterativeNoFetch() throws Exception {
         final String TEST_NAME = "test111SeachIterativeNoFetch";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -632,7 +622,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test112SeachIterativeKindIntent() throws Exception {
         final String TEST_NAME = "test112SeachIterativeKindIntent";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -685,7 +674,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test113SearchAllShadowsInRepository() throws Exception {
-        displayTestTitle("test113SearchAllShadowsInRepository");
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + ".test113SearchAllShadowsInRepository");
@@ -711,7 +699,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test114SearchAllAccounts() throws Exception {
         final String TEST_NAME = "test114SearchAllAccounts";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -742,7 +729,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test115CountAllAccounts() throws Exception {
         final String TEST_NAME = "test115CountAllAccounts";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
@@ -771,7 +757,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test116SearchNullQueryResource() throws Exception {
         final String TEST_NAME = "test116SearchNullQueryResource";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -795,7 +780,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test117CountNullQueryResource() throws Exception {
-        displayTestTitle("test117CountNullQueryResource");
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + ".test117CountNullQueryResource");
@@ -824,7 +808,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test118SearchAllAccountsLongStaleness() throws Exception {
         final String TEST_NAME = "test118SearchAllAccountsLongStaleness";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -872,7 +855,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test119SearchAllAccountsMaxStaleness() throws Exception {
         final String TEST_NAME = "test119SearchAllAccountsMaxStaleness";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -916,7 +898,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test120ModifyWillReplaceFullname() throws Exception {
         final String TEST_NAME = "test120ModifyWillReplaceFullname";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -948,7 +929,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test121ModifyObjectAddPirate() throws Exception {
         final String TEST_NAME = "test121ModifyObjectAddPirate";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -983,7 +963,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test122ModifyObjectAddCaptain() throws Exception {
         final String TEST_NAME = "test122ModifyObjectAddCaptain";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1018,7 +997,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test123ModifyObjectDeletePirate() throws Exception {
         final String TEST_NAME = "test123ModifyObjectDeletePirate";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1056,7 +1034,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test124ModifyAccountWillAddCaptainAgain() throws Exception {
         final String TEST_NAME = "test124ModifyAccountWillAddCaptainAgain";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1093,7 +1070,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test125CompareAccountWillPassword() throws Exception {
         final String TEST_NAME = "test125CompareAccountWillPassword";
-        displayTestTitle(TEST_NAME);
 
         testComparePassword(TEST_NAME, "match", ACCOUNT_WILL_OID, accountWillCurrentPassword, getExpectedPasswordComparisonResultMatch());
         testComparePassword(TEST_NAME, "mismatch", ACCOUNT_WILL_OID, "I woulD NeVeR ever USE this PASSword", getExpectedPasswordComparisonResultMismatch());
@@ -1107,7 +1083,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test126ModifyAccountWillPassword() throws Exception {
         final String TEST_NAME = "test126ModifyAccountWillPassword";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1150,7 +1125,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test127CompareAccountWillPassword() throws Exception {
         final String TEST_NAME = "test125CompareAccountWillPassword";
-        displayTestTitle(TEST_NAME);
 
         testComparePassword(TEST_NAME, "match", ACCOUNT_WILL_OID, accountWillCurrentPassword, getExpectedPasswordComparisonResultMatch());
         testComparePassword(TEST_NAME, "mismatch old password", ACCOUNT_WILL_OID, ACCOUNT_WILL_PASSWORD, getExpectedPasswordComparisonResultMismatch());
@@ -1185,7 +1159,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test129NullAttributeValue() throws Exception {
         final String TEST_NAME = "test129NullAttributeValue";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1214,7 +1187,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test131AddScript() throws Exception {
         final String TEST_NAME = "test131AddScript";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -1269,7 +1241,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test132ModifyScript() throws Exception {
         final String TEST_NAME = "test132ModifyScript";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1315,7 +1286,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test133ModifyScriptNoExec() throws Exception {
         final String TEST_NAME = "test133ModifyScriptNoExec";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -1357,7 +1327,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test134DeleteScript() throws Exception {
         final String TEST_NAME = "test134DeleteScript";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -1394,7 +1363,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test135ExecuteScript() throws Exception {
         final String TEST_NAME = "test135ExecuteScript";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -1425,7 +1393,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test150DisableAccount() throws Exception {
         final String TEST_NAME = "test150DisableAccount";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1470,7 +1437,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test151SearchDisabledAccounts() throws Exception {
         final String TEST_NAME = "test151SearchDisabledAccounts";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1503,7 +1469,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test152ActivationStatusUndefinedAccount() throws Exception {
         final String TEST_NAME = "test152ActivationStatusUndefinedAccount";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1550,7 +1515,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test154EnableAccount() throws Exception {
         final String TEST_NAME = "test154EnableAccount";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1594,7 +1558,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test155SearchDisabledAccounts() throws Exception {
         final String TEST_NAME = "test155SearchDisabledAccounts";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1625,7 +1588,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test156SetValidFrom() throws Exception {
         final String TEST_NAME = "test156SetValidFrom";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1672,7 +1634,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test157SetValidTo() throws Exception {
         final String TEST_NAME = "test157SetValidTo";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1722,7 +1683,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test158DeleteValidToValidFrom() throws Exception {
         final String TEST_NAME = "test158DeleteValidToValidFrom";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1778,7 +1738,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test159GetLockedoutAccount() throws Exception {
         final String TEST_NAME = "test159GetLockedoutAccount";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -1821,7 +1780,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test160SearchLockedAccounts() throws Exception {
         final String TEST_NAME = "test160SearchLockedAccounts";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1854,7 +1812,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test162UnlockAccount() throws Exception {
         final String TEST_NAME = "test162UnlockAccount";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1900,7 +1857,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test163GetAccount() throws Exception {
         final String TEST_NAME = "test163GetAccount";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -1941,7 +1897,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test163SearchLockedAccounts() throws Exception {
         final String TEST_NAME = "test163SearchLockedAccounts";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1971,7 +1926,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test170SearchNull() throws Exception {
         final String TEST_NAME = "test170SearchNull";
-        displayTestTitle(TEST_NAME);
         testSeachIterative(TEST_NAME, null, null, true, true, false,
                 "meathook", "daemon", transformNameFromResource("morgan"), transformNameFromResource("Will"));
     }
@@ -1979,7 +1933,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test171SearchShipSeaMonkey() throws Exception {
         final String TEST_NAME = "test171SearchShipSeaMonkey";
-        displayTestTitle(TEST_NAME);
         testSeachIterativeSingleAttrFilter(TEST_NAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey", null, true,
                 "meathook");
@@ -1989,7 +1942,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test(enabled=false)
     public void test172SearchShipNull() throws Exception {
         final String TEST_NAME = "test172SearchShipNull";
-        displayTestTitle(TEST_NAME);
         testSeachIterativeSingleAttrFilter(TEST_NAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, null, null, true,
                 "daemon", "Will");
@@ -1998,7 +1950,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test173SearchWeaponCutlass() throws Exception {
         final String TEST_NAME = "test173SearchWeaponCutlass";
-        displayTestTitle(TEST_NAME);
 
         // Make sure there is an account on resource that the provisioning has
         // never seen before, so there is no shadow
@@ -2020,7 +1971,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test175SearchUidExact() throws Exception {
         final String TEST_NAME = "test175SearchUidExact";
-        displayTestTitle(TEST_NAME);
         dummyResource.setDisableNameHintChecks(true);
         testSeachIterativeSingleAttrFilter(TEST_NAME,
                 SchemaConstants.ICFS_UID, willIcfUid, null, true,
@@ -2031,7 +1981,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test176SearchUidExactNoFetch() throws Exception {
         final String TEST_NAME = "test176SearchUidExactNoFetch";
-        displayTestTitle(TEST_NAME);
         testSeachIterativeSingleAttrFilter(TEST_NAME, SchemaConstants.ICFS_UID, willIcfUid,
                 GetOperationOptions.createNoFetch(), false,
                 transformNameFromResource("Will"));
@@ -2040,7 +1989,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test177SearchIcfNameRepoized() throws Exception {
         final String TEST_NAME = "test177SearchIcfNameRepoized";
-        displayTestTitle(TEST_NAME);
         testSeachIterativeSingleAttrFilter(TEST_NAME,
                 SchemaConstants.ICFS_NAME, getWillRepoIcfName(), null, true,
                 transformNameFromResource(ACCOUNT_WILL_USERNAME));
@@ -2049,7 +1997,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test180SearchNullPagingOffset0Size3() throws Exception {
         final String TEST_NAME = "test180SearchNullPagingSize5";
-        displayTestTitle(TEST_NAME);
         ObjectPaging paging = prismContext.queryFactory().createPaging(0,3);
         paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME));
         SearchResultMetadata searchMetadata = testSeachIterativePaging(TEST_NAME, null, paging, null,
@@ -2064,7 +2011,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test181SearchNullPagingOffset0Size3Desc() throws Exception {
         final String TEST_NAME = "test181SearchNullPagingOffset0Size3Desc";
-        displayTestTitle(TEST_NAME);
         ObjectPaging paging = prismContext.queryFactory().createPaging(0,3);
         paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME, OrderDirection.DESCENDING));
         SearchResultMetadata searchMetadata = testSeachIterativePaging(TEST_NAME, null, paging, null,
@@ -2075,7 +2021,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test182SearchNullPagingOffset1Size2() throws Exception {
         final String TEST_NAME = "test182SearchNullPagingOffset1Size2";
-        displayTestTitle(TEST_NAME);
         ObjectPaging paging = prismContext.queryFactory().createPaging(1,2);
         paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME));
         SearchResultMetadata searchMetadata = testSeachIterativePaging(TEST_NAME, null, paging, null,
@@ -2086,7 +2031,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test183SearchNullPagingOffset2Size3Desc() throws Exception {
         final String TEST_NAME = "test183SearchNullPagingOffset1Size3Desc";
-        displayTestTitle(TEST_NAME);
         ObjectPaging paging = prismContext.queryFactory().createPaging(2,3);
         paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME, OrderDirection.DESCENDING));
         SearchResultMetadata searchMetadata = testSeachIterativePaging(TEST_NAME, null, paging, null,
@@ -2123,7 +2067,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test194SearchIcfNameRepoizedNoFetch() throws Exception {
         final String TEST_NAME = "test194SearchIcfNameRepoizedNoFetch";
-        displayTestTitle(TEST_NAME);
         testSeachIterativeSingleAttrFilter(TEST_NAME, SchemaConstants.ICFS_NAME, getWillRepoIcfName(),
                 GetOperationOptions.createNoFetch(), false,
                 transformNameFromResource(ACCOUNT_WILL_USERNAME));
@@ -2132,7 +2075,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test195SearchIcfNameExact() throws Exception {
         final String TEST_NAME = "test195SearchIcfNameExact";
-        displayTestTitle(TEST_NAME);
         testSeachIterativeSingleAttrFilter(TEST_NAME,
                 SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME), null, true,
                 transformNameFromResource(ACCOUNT_WILL_USERNAME));
@@ -2141,7 +2083,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test196SearchIcfNameExactNoFetch() throws Exception {
         final String TEST_NAME = "test196SearchIcfNameExactNoFetch";
-        displayTestTitle(TEST_NAME);
         testSeachIterativeSingleAttrFilter(TEST_NAME, SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME),
                 GetOperationOptions.createNoFetch(), false,
                 transformNameFromResource(ACCOUNT_WILL_USERNAME));
@@ -2151,7 +2092,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test197SearchIcfNameAndUidExactNoFetch() throws Exception {
         final String TEST_NAME = "test197SearchIcfNameAndUidExactNoFetch";
-        displayTestTitle(TEST_NAME);
         testSeachIterativeAlternativeAttrFilter(TEST_NAME, SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME),
                 SchemaConstants.ICFS_UID, willIcfUid,
                 GetOperationOptions.createNoFetch(), false,
@@ -2162,7 +2102,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test198SearchNone() throws Exception {
         final String TEST_NAME = "test198SearchNone";
-        displayTestTitle(TEST_NAME);
         ObjectFilter attrFilter = FilterCreationUtil.createNone(prismContext);
         testSeachIterative(TEST_NAME, attrFilter, null, true, true, false);
     }
@@ -2175,7 +2114,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test199SearchOnAndOffResource() throws Exception {
         final String TEST_NAME = "test199SearchOnAndOffResource";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -2217,7 +2155,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test196SearchOnAndOffResourceNoFetch() throws Exception {
         final String TEST_NAME = "test196SearchOnAndOffResourceNoFetch";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -2451,7 +2388,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test200AddGroup() throws Exception {
         final String TEST_NAME = "test200AddGroup";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -2514,7 +2450,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test202GetGroup() throws Exception {
         final String TEST_NAME = "test202GetGroup";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -2557,7 +2492,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test203GetGroupNoFetch() throws Exception {
         final String TEST_NAME="test203GetGroupNoFetch";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "."+TEST_NAME);
@@ -2592,7 +2526,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test205ModifyGroupReplace() throws Exception {
         final String TEST_NAME = "test205ModifyGroupReplace";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -2632,7 +2565,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test210AddPrivilege() throws Exception {
         final String TEST_NAME = "test210AddPrivilege";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -2686,7 +2618,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test212GetPriv() throws Exception {
         final String TEST_NAME = "test212GetPriv";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -2725,7 +2656,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test214AddPrivilegeBargain() throws Exception {
         final String TEST_NAME = "test214AddPrivilegeBargain";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -2797,7 +2727,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test220EntitleAccountWillPirates() throws Exception {
         final String TEST_NAME = "test220EntitleAccountWillPirates";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -2843,7 +2772,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test221GetPirateWill() throws Exception {
         final String TEST_NAME = "test221GetPirateWill";
-        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -2876,7 +2804,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test222EntitleAccountWillPillage() throws Exception {
         final String TEST_NAME = "test222EntitleAccountWillPillage";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2932,7 +2859,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test223EntitleAccountWillBargain() throws Exception {
         final String TEST_NAME = "test223EntitleAccountWillBargain";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -2981,7 +2907,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test224GetPillagingPirateWill() throws Exception {
         final String TEST_NAME = "test224GetPillagingPirateWill";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3034,7 +2959,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test225GetFoolishPirateWill() throws Exception {
         final String TEST_NAME = "test225GetFoolishPirateWill";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -3105,7 +3029,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test226WillNonsensePrivilege() throws Exception {
         final String TEST_NAME = "test226WillNonsensePrivilege";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3165,7 +3088,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test230DetitleAccountWillPirates() throws Exception {
         final String TEST_NAME = "test230DetitleAccountWillPirates";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3198,7 +3120,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test232EntitleAccountWillPiratesIdentifiersName() throws Exception {
         final String TEST_NAME = "test232EntitleAccountWillPiratesIdentifiersName";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3231,7 +3152,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test233DetitleAccountWillPiratesIdentifiersName() throws Exception {
         final String TEST_NAME = "test233DetitleAccountWillPiratesIdentifiersName";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3264,7 +3184,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test234EntitleAccountWillPiratesIdentifiersUid() throws Exception {
         final String TEST_NAME = "test234EntitleAccountWillPiratesIdentifiersUid";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3297,7 +3216,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test235DetitleAccountWillPiratesIdentifiersUid() throws Exception {
         final String TEST_NAME = "test235DetitleAccountWillPiratesIdentifiersUid";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3403,7 +3321,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test238DetitleAccountWillPillage() throws Exception {
         final String TEST_NAME = "test238DetitleAccountWillPillage";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3452,7 +3369,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test239DetitleAccountWillBargain() throws Exception {
         final String TEST_NAME = "test239DetitleAccountWillBargain";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3499,7 +3415,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test260AddAccountLeChuck() throws Exception {
         final String TEST_NAME = "test260AddAccountLeChuck";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3584,7 +3499,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test265DeleteAccountLeChuck() throws Exception {
         final String TEST_NAME = "test265DeleteAccountLeChuck";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3635,7 +3549,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test298DeletePrivPillage() throws Exception {
         final String TEST_NAME = "test298DeletePrivPillage";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3675,7 +3588,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test299DeleteGroupPirates() throws Exception {
         final String TEST_NAME = "test299DeleteGroupPirates";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3715,7 +3627,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test300AccountRename() throws Exception {
         final String TEST_NAME = "test300AccountRename";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3769,7 +3680,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test310ModifyMorganEnlistTimestamp() throws Exception {
         final String TEST_NAME = "test310ModifyMorganEnlistTimestamp";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3810,7 +3720,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test330ModifyAccountWillPasswordSelfService() throws Exception {
         final String TEST_NAME = "test330ModifyAccountWillPasswordSelfService";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3861,7 +3770,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test340ModifyWillReplaceGossipBloodAvast() throws Exception {
         final String TEST_NAME = "test340ModifyWillReplaceGossipBloodAvast";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3894,7 +3802,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test342ModifyWillAddGossipEunuch() throws Exception {
         final String TEST_NAME = "test342ModifyWillAddGossipEunuch";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -3927,7 +3834,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test344ModifyWillDeleteGossipAvast() throws Exception {
         final String TEST_NAME = "test344ModifyWillDeleteGossipAvast";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -4002,14 +3908,12 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test500AddProtectedAccount() throws Exception {
         final String TEST_NAME = "test500AddProtectedAccount";
-        displayTestTitle(TEST_NAME);
         testAddProtectedAccount(TEST_NAME, ACCOUNT_DAVIEJONES_USERNAME);
     }
 
     @Test
     public void test501GetProtectedAccountShadow() throws Exception {
         final String TEST_NAME = "test501GetProtectedAccountShadow";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -4033,7 +3937,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test502ModifyProtectedAccountShadowAttributes() throws Exception {
         final String TEST_NAME = "test502ModifyProtectedAccountShadowAttributes";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -4075,7 +3978,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test503ModifyProtectedAccountShadowProperty() throws Exception {
         final String TEST_NAME = "test503ModifyProtectedAccountShadowProperty";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -4105,7 +4007,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test509DeleteProtectedAccountShadow() throws Exception {
         final String TEST_NAME = "test509DeleteProtectedAccountShadow";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -4137,7 +4038,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test510AddProtectedAccounts() throws Exception {
         final String TEST_NAME = "test510AddProtectedAccounts";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         testAddProtectedAccount(TEST_NAME, "Xavier");
         testAddProtectedAccount(TEST_NAME, "Xenophobia");
@@ -4150,7 +4050,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test511AddProtectedAccountCaseIgnore() throws Exception {
         final String TEST_NAME = "test511AddProtectedAccountCaseIgnore";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         testAddAccount(TEST_NAME, "xaxa");
         testAddAccount(TEST_NAME, "somebody-ADM");
@@ -4230,7 +4129,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test520MigrationPrimaryIdentifierValueRefresh() throws Exception {
         final String TEST_NAME = "test520MigrationPrimaryIdentifierValueRefresh";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -4263,7 +4161,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test600AddAccountAlreadyExist() throws Exception {
         final String TEST_NAME = "test600AddAccountAlreadyExist";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
         OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
@@ -4309,7 +4206,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test800LiveSyncInit() throws Exception {
         final String TEST_NAME = "test800LiveSyncInit";
-        displayTestTitle(TEST_NAME);
         syncTokenTask = taskManager.createTaskInstance(TestDummy.class.getName() + ".syncTask");
 
         dummyResource.setSyncStyle(DummySyncStyle.DUMB);
@@ -4345,7 +4241,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test801LiveSyncAddBlackbeard() throws Exception {
         final String TEST_NAME = "test801LiveSyncAddBlackbeard";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -4414,7 +4309,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test802LiveSyncModifyBlackbeard() throws Exception {
         final String TEST_NAME = "test802LiveSyncModifyBlackbeard";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -4574,7 +4468,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     public void testLiveSyncAddDrake(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass) throws Exception {
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -4651,7 +4544,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     public void testLiveSyncModifyDrake(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass) throws Exception {
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -4709,7 +4601,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     public void testLiveSyncAddCorsairs(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass, boolean expectReaction) throws Exception {
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -4785,7 +4676,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     public void testLiveSyncDeleteCorsairs(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass, boolean expectReaction) throws Exception {
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -4853,7 +4743,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     public void testLiveSyncDeleteDrake(final String TEST_NAME, DummySyncStyle syncStyle, QName objectClass) throws Exception {
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);
@@ -4914,7 +4803,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test890LiveSyncModifyProtectedAccount() throws Exception {
         final String TEST_NAME = "test890LiveSyncModifyProtectedAccount";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
         OperationResult result = syncTask.getResult();
@@ -4949,7 +4837,6 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test901FailResourceNotFound() throws Exception {
         final String TEST_NAME = "test901FailResourceNotFound";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
                 + "." + TEST_NAME);

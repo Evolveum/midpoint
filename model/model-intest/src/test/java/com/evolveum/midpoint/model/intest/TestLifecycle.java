@@ -88,7 +88,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test050SetupJack() throws Exception {
         final String TEST_NAME = "test050SetupJack";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -120,7 +119,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test052PrincipalJackDraft() throws Exception {
         final String TEST_NAME = "test052AutzJackDraft";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         // WHEN
@@ -143,7 +141,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test060TransitionJackToProposed() throws Exception {
         final String TEST_NAME = "test060TransitionJackToProposed";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -171,7 +168,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test062PrincipalJackProposed() throws Exception {
         final String TEST_NAME = "test062PrincipalJackProposed";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         // WHEN
@@ -199,7 +195,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test090TransitionJackToDefaultActive() throws Exception {
         final String TEST_NAME = "test090TransitionJackToDefaultActive";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -225,7 +220,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test092PrincipalJackDefaultActive() throws Exception {
         final String TEST_NAME = "test092PrincipalJackDefaultActive";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         // WHEN
@@ -253,7 +247,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100AssignJackCaretaker() throws Exception {
         final String TEST_NAME = "test100AssignJackCaretaker";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -278,7 +271,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test102UnassignJackHeadmaster() throws Exception {
         final String TEST_NAME = "test102UnassignJackHeadmaster";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -307,7 +299,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110UnassignJackCaretaker() throws Exception {
         final String TEST_NAME = "test110UnassignJackCaretaker";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -335,7 +326,6 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test112UnassignJackCaretaker() throws Exception {
         final String TEST_NAME = "test110UnassignJackCaretaker";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

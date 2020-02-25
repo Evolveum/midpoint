@@ -131,7 +131,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test100JackAttemptAssignRoleStudent() throws Exception {
         final String TEST_NAME = "test100JackAttemptAssignRoleStudent";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -174,7 +173,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test110JoeAttemptAssignRoleStudent() throws Exception {
         final String TEST_NAME = "test110JoeAttemptAssignRoleStudent";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -221,7 +219,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test120JackAttemptToMoveTo1900AndAssignRoleStudent() throws Exception {
         final String TEST_NAME = "test120JackAttemptToMoveTo1900AndAssignRoleStudent";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -274,7 +271,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test130JackMoveTo1900AndAssignRoleStudent() throws Exception {
         final String TEST_NAME = "test130JackMoveTo1900AndAssignRoleStudent";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -330,7 +326,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test135JackChangeValidTo() throws Exception {
         final String TEST_NAME = "test135JackChangeValidTo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -378,7 +373,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test140JackNoChange() throws Exception {
         final String TEST_NAME = "test140JackNoChange";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -419,7 +413,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test142JackNoChangeButTaskExists() throws Exception {
         final String TEST_NAME = "test142JackNoChangeButTaskExists";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -480,7 +473,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test150FrankAttemptToAssignRoleStudentButDisabled() throws Exception {
         final String TEST_NAME = "test150FrankAttemptToAssignRoleStudentButDisabled";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -528,7 +520,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test160AttemptToAddPeter() throws Exception {
         final String TEST_NAME = "test160AttemptToAddPeter";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -568,7 +559,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test170AddPeter() throws Exception {
         final String TEST_NAME = "test170AddPeter";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -626,7 +616,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test180StudentRecompute() throws Exception {
         final String TEST_NAME = "test180StudentRecompute";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -662,7 +651,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test200AddUnresolvable() throws Exception {
         final String TEST_NAME = "test200AddUnresolvable";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -693,7 +681,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test210AddCyclic() throws Exception {
         final String TEST_NAME = "test210AddCyclic";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -724,7 +711,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test220AddChained() throws Exception {
         final String TEST_NAME = "test220AddChained";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -784,7 +770,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test230AddAmbiguous() throws Exception {
         final String TEST_NAME = "test230AddAmbiguous";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -816,7 +801,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test300ModifyInducement() throws Exception {
         final String TEST_NAME = "test300ModifyInducement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -851,7 +835,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test310ModifyInducementPass() throws Exception {
         final String TEST_NAME = "test310ModifyInducementPass";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -878,7 +861,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test320ModifyInducementPass2() throws Exception {
         final String TEST_NAME = "test320ModifyInducementPass2";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -905,7 +887,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test330AddInducement() throws Exception {
         final String TEST_NAME = "test330AddInducement";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -940,7 +921,6 @@ public class TestPolicyRules2 extends AbstractLensTest {
     @Test
     public void test340AddInducementViaExpression() throws Exception {
         final String TEST_NAME = "test340AddInducementViaExpression";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);

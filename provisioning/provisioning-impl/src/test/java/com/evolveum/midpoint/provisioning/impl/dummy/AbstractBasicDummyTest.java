@@ -159,7 +159,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test000Integrity() throws Exception {
         final String TEST_NAME = "test000Integrity";
-        displayTestTitle(TEST_NAME);
 
         display("Dummy resource instance", dummyResource.toString());
 
@@ -191,7 +190,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test010ListConnectors() throws Exception {
         final String TEST_NAME = "test010ListConnectors";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName() + "."  + TEST_NAME);
 
@@ -240,7 +238,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test012ConnectorRediscovery() {
         final String TEST_NAME = "test012ConnectorRediscovery";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName() + "." + TEST_NAME);
 
@@ -259,7 +256,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test015ListResourcesNoFetch() throws Exception {
         final String TEST_NAME = "test015ListResourcesNoFetch";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractBasicDummyTest.class.getName() + "."  + TEST_NAME);
         OperationResult result = task.getResult();
@@ -303,7 +299,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test020Connection() throws Exception {
         final String TEST_NAME = "test020Connection";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -397,7 +392,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test021Configuration() throws Exception {
         final String TEST_NAME = "test021Configuration";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName() + "." + TEST_NAME);
 
@@ -450,7 +444,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test022ParsedSchema() throws Exception {
         final String TEST_NAME = "test022ParsedSchema";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         // THEN
@@ -480,7 +473,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test023RefinedSchema() throws Exception {
         final String TEST_NAME = "test023RefinedSchema";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         // WHEN
@@ -568,7 +560,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test024ParsedSchemaAgain() throws Exception {
         final String TEST_NAME = "test024ParsedSchemaAgain";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         // THEN
@@ -588,7 +579,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test028Capabilities() throws Exception {
         final String TEST_NAME = "test028Capabilities";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName()
@@ -722,7 +712,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test029CapabilitiesRepo() throws Exception {
         final String TEST_NAME = "test029CapabilitiesRepo";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName()
@@ -791,7 +780,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test030ResourceAndConnectorCachingTestConnection() throws Exception {
         final String TEST_NAME = "test030ResourceAndConnectorCachingTestConnection";
-        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
 
@@ -828,7 +816,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test032ResourceAndConnectorCaching() throws Exception {
         final String TEST_NAME = "test032ResourceAndConnectorCaching";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
@@ -906,7 +893,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
     @Test
     public void test034ResourceAndConnectorCachingForceFresh() throws Exception {
-        displayTestTitle("test034ResourceAndConnectorCachingForceFresh");
 
         // GIVEN
         OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName()
@@ -964,7 +950,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test040ApplyDefinitionShadow() throws Exception {
         final String TEST_NAME = "test040ApplyDefinitionShadow";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -990,7 +975,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test041ApplyDefinitionAddShadowDelta() throws Exception {
         final String TEST_NAME = "test041ApplyDefinitionAddShadowDelta";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1017,7 +1001,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test042ApplyDefinitionResource() throws Exception {
         final String TEST_NAME = "test042ApplyDefinitionResource";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1047,7 +1030,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test043ApplyDefinitionAddResourceDelta() throws Exception {
         final String TEST_NAME = "test043ApplyDefinitionAddResourceDelta";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1104,7 +1086,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test080TestAttributesToReturn() throws Exception {
         final String TEST_NAME = "test080TestAttributesToReturn";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance();
@@ -1132,7 +1113,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test090ConnectorStatsAfterSomeUse() throws Exception {
         final String TEST_NAME = "test090ConnectorStatsAfterSomeUse";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1165,7 +1145,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test100AddAccountWill() throws Exception {
         final String TEST_NAME = "test100AddAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1317,7 +1296,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test102GetAccount() throws Exception {
         final String TEST_NAME = "test102GetAccount";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName()
                 + "." + TEST_NAME);
@@ -1358,7 +1336,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test103GetAccountNoFetch() throws Exception {
         final String TEST_NAME="test103GetAccountNoFetch";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName()
                 + "."+TEST_NAME);
@@ -1396,7 +1373,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test105ApplyDefinitionModifyDelta() throws Exception {
         final String TEST_NAME = "test105ApplyDefinitionModifyDelta";
-        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1426,7 +1402,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test106GetModifiedAccount() throws Exception {
         final String TEST_NAME = "test106GetModifiedAccount";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName() + "." + TEST_NAME);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -1480,7 +1455,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test999Shutdown() throws Exception {
         final String TEST_NAME = "test999Shutdown";
-        displayTestTitle(TEST_NAME);
 
         // WHEN
         provisioningService.shutdown();

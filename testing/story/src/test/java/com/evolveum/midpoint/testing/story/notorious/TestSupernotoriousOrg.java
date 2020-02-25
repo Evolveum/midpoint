@@ -75,7 +75,6 @@ public class TestSupernotoriousOrg extends TestNotoriousOrg {
     @Test
     public void test010LevelBRolesSanity() throws Exception {
         final String TEST_NAME = "test010LevelBRolesSanity";
-        displayTestTitle(TEST_NAME);
 
         ObjectQuery query = queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq(ROLE_LEVEL_B_ROLETYPE).build();
         searchObjectsIterative(RoleType.class, query,
