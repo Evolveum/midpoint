@@ -13,6 +13,10 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
 
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000529" type="ArchetypeType" />
+    </assignment>
+
     <category>System</category>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/trigger/scanner/handler-3</handlerUri>
     <recurrence>recurring</recurrence>

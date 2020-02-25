@@ -13,7 +13,7 @@
             <label>System task</label>
             <pluralLabel>System tasks</pluralLabel>
             <icon>
-                <cssClass>fa fa-people-carry</cssClass>
+                <cssClass>fa fa-save</cssClass>
                 <color>green</color>
             </icon>
         </display>

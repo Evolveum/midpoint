@@ -83,7 +83,6 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
     protected MockWorkBucketsTaskHandler workBucketsTaskHandler;
     protected MockWorkBucketsTaskHandler partitionedWorkBucketsTaskHandler;
     protected MockSingleTaskHandler l1Handler, l2Handler, l3Handler;
-    protected MockSingleTaskHandler waitForSubtasksTaskHandler;
     protected MockCycleTaskHandler cycleFinishingHandler;
     protected MockParallelTaskHandler parallelTaskHandler;
     protected MockLongTaskHandler longTaskHandler;
@@ -124,8 +123,6 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
         taskManager.registerHandler(L2_TASK_HANDLER_URI, l2Handler);
         taskManager.registerHandler(L3_TASK_HANDLER_URI, l3Handler);
 
-        waitForSubtasksTaskHandler = new MockSingleTaskHandler("WFS", taskManager);
-        taskManager.registerHandler(WAIT_FOR_SUBTASKS_TASK_HANDLER_URI, waitForSubtasksTaskHandler);
         parallelTaskHandler = new MockParallelTaskHandler("1", taskManager);
         taskManager.registerHandler(PARALLEL_TASK_HANDLER_URI, parallelTaskHandler);
         longTaskHandler = new MockLongTaskHandler("1", taskManager);

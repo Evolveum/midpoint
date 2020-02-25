@@ -13,7 +13,7 @@
             <label>Utility task</label>
             <pluralLabel>Utility tasks</pluralLabel>
             <icon>
-                <cssClass>fa fa-people-carry</cssClass>
+                <cssClass>fa fa-wrench</cssClass>
                 <color>green</color>
             </icon>
         </display>

@@ -13,7 +13,7 @@
             <label>Approval-related task</label>
             <pluralLabel>Approval-related tasks</pluralLabel>
             <icon>
-                <cssClass>fa fe-case-object</cssClass>
+                <cssClass>fe fe-case-object</cssClass>
                 <color>green</color>
             </icon>
         </display>
