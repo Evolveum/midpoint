@@ -234,7 +234,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         PrismObject<TaskType> task = getObjectWrapper().getObject();
         TaskType taskType = task.asObjectable();
         return isAuthorized(ModelAuthorizationAction.SUSPEND_TASK, task)
-                && isRunnable(taskType) || isRunning(taskType)
+                && isRunnable(taskType) || isRunning()
                 && !isWorkflow(task.asObjectable());
     }
 
@@ -259,8 +259,10 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         return  TaskExecutionStatusType.RUNNABLE == task.getExecutionStatus();
     }
 
-    private boolean isRunning(TaskType task) {
-        return task.getNodeAsObserved() != null;
+    private boolean isRunning() {
+        PrismObject<TaskType> task = getObjectWrapper().getObject();
+        TaskType taskType = task.asObjectable();
+        return taskType.getNodeAsObserved() != null;
     }
 
     private boolean isSuspended(TaskType task) {
@@ -453,9 +455,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     private ItemEditabilityHandler getTaskEditabilityHandler(){
-        PrismObject<TaskType> task = getObjectWrapper().getObject();
-        TaskType taskType = task.asObjectable();
-        ItemEditabilityHandler editableHandler = wrapper -> !isRunning(taskType);
+        ItemEditabilityHandler editableHandler = wrapper -> !isRunning();
         return editableHandler;
     }
 
@@ -486,6 +486,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
             @Override
             protected boolean shouldTrigger() {
+                PageTask.this.getObjectModel().reset();
                 return isRefreshEnabled();
             }
         };
@@ -534,7 +535,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     public boolean isRefreshEnabled() {
         if (refreshEnabled == null) {
-            return isRunning(getObjectWrapper().getObject().asObjectable());
+            return isRunning();
         }
 
         return refreshEnabled;
