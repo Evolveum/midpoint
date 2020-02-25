@@ -8,8 +8,10 @@
 package com.evolveum.midpoint.prism;
 
 /**
+ * TODO: Unused
  * @author mederly
  */
+@Deprecated
 public enum NameQualificationStrategy {
     ALWAYS,
     IF_AMBIGUOUS,

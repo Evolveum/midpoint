@@ -6,15 +6,8 @@
  */
 package com.evolveum.midpoint.util;
 
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-/**
- * @author semancik
- *
- */
 @FunctionalInterface
-public interface SchemaFailableProcessor<T> extends CheckedProcessor<T, SchemaException> {
+public interface CheckedProcessor<T,E extends Exception> {
 
-    void process(T object) throws SchemaException;
-
+    void process(T value) throws E;
 }

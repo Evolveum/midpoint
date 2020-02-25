@@ -10,6 +10,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -41,30 +42,9 @@ import java.util.List;
 public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDefinition<T>> {
 
     /**
-     * Returns applicable property definition.
-     * <p>
-     * May return null if no definition is applicable or the definition is not
-     * know.
-     *
-     * @return applicable property definition
-     */
-    PrismPropertyDefinition<T> getDefinition();
-
-    /**
-     * Sets applicable property definition.
-     *
-     * TODO remove (method in Item is sufficient)
-     * @param definition the definition to set
-     */
-    void setDefinition(PrismPropertyDefinition<T> definition);
-
-    /**
      * Type override, also for compatibility.
      */
     <X> List<PrismPropertyValue<X>> getValues(Class<X> type);
-
-    @Override
-    PrismPropertyValue<T> getValue();
 
     @NotNull
     @Override
@@ -105,7 +85,11 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
     // TODO Or should we add boolean parameter here?
     void addRealValueSkipUniquenessCheck(T valueToAdd);
 
-    void addRealValues(T... valuesToAdd);
+    default void addRealValues(T... valuesToAdd) {
+        for (T valueToAdd : valuesToAdd) {
+            addRealValue(valueToAdd);
+        }
+    }
 
     boolean deleteValues(Collection<PrismPropertyValue<T>> pValuesToDelete);
 
@@ -124,9 +108,6 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
     PropertyDelta<T> createDelta(ItemPath path);
 
     @Override
-    Object find(ItemPath path);
-
-    @Override
     <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
     PropertyDelta<T> diff(PrismProperty<T> other);
@@ -141,12 +122,6 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
 
     @Override
     PrismProperty<T> cloneComplex(CloneStrategy strategy);
-
-    @Override
-    String toString();
-
-    @Override
-    String debugDump(int indent);
 
     String toHumanReadableString();
 

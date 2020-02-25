@@ -31,32 +31,12 @@ public interface PrismPropertyValue<T> extends DebugDumpable, Serializable, Pris
 
     void setRawElement(XNode rawElement);
 
-    boolean isRaw();
-
     @Nullable
     ExpressionWrapper getExpression();
 
     void setExpression(@Nullable ExpressionWrapper expression);
 
-    @Override
-    void applyDefinition(ItemDefinition definition) throws SchemaException;
-
-    @Override
-    void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException;
-
-    @Override
-    void revive(PrismContext prismContext) throws SchemaException;
-
-    void recompute(PrismContext prismContext);
-
-    Object find(ItemPath path);
-
     <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
-
-    @Override
-    void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope);
-
-    boolean isEmpty();
 
     PrismPropertyValue<T> clone();
 
@@ -71,18 +51,7 @@ public interface PrismPropertyValue<T> extends DebugDumpable, Serializable, Pris
     @Override
     int hashCode();
 
-    @Override
-    String debugDump();
-
-    @Override
-    String debugDump(int indent);
-
     String debugDump(int indent, boolean detailedDump);
-
-    @Override
-    String toString();
-
-    String toHumanReadableString();
 
     /**
      * Returns JAXBElement corresponding to the this value.
