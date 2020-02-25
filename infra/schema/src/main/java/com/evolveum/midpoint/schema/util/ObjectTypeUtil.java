@@ -344,6 +344,8 @@ public class ObjectTypeUtil {
         }
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid(refVal.getOid());
+        ref.setRelation(refVal.getRelation());
+        //noinspection unchecked
         PrismObject<T> object = refVal.getObject();
         if (object != null) {
             if (nameAsDescription) {
@@ -352,13 +354,16 @@ public class ObjectTypeUtil {
             PrismObjectDefinition<T> definition = object.getDefinition();
             if (definition != null) {
                 ref.setType(definition.getTypeName());
+            } else {
+                ref.setType(refVal.getTargetType());
             }
             ref.setTargetName(PolyString.toPolyStringType(object.getName()));
         } else {
             ref.setType(refVal.getTargetType());
-            ref.setTargetName(PolyString.toPolyStringType(refVal.getTargetName()));
-            if (nameAsDescription && refVal.getTargetName() != null) {
-                ref.setDescription(refVal.getTargetName().getOrig());
+            PolyString targetName = refVal.getTargetName();
+            ref.setTargetName(PolyString.toPolyStringType(targetName));
+            if (nameAsDescription && targetName != null) {
+                ref.setDescription(targetName.getOrig());
             }
         }
         return ref;
