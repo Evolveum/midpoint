@@ -39,7 +39,6 @@ import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -85,11 +84,6 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-    }
-
-    @Override
-    protected boolean isAutoTaskManagementEnabled() {
-        return true;
     }
 
     protected File getSystemConfigurationFile() {

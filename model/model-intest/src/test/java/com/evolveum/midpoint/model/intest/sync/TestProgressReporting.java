@@ -62,8 +62,6 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        setAutoTaskManagementEnabled(true);
-
         interruptedSyncResource = new DummyInterruptedSyncResource();
         interruptedSyncResource.init(dummyResourceCollection, initTask, initResult);
 

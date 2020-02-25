@@ -46,7 +46,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 /**
  * An attempt to test performance of various operations on large groups.
  * E.g. MID-5836 but others as well (in the future).
- *
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -78,19 +77,14 @@ public class TestLargeGroups extends AbstractStoryTest {
     }
 
     @Override
-    protected boolean isAutoTaskManagementEnabled() {
-        return true;
-    }
-
-    @Override
     protected TracingProfileType getTestMethodTracingProfile() {
         return createModelLoggingTracingProfile()
                 .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
     }
 
     @Test
-    public void test000Sanity(ITestContext ctx) throws Exception {
-        Task task = getTask(ctx);
+    public void test000Sanity() throws Exception {
+        Task task = getTask();
 
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
         TestUtil.assertSuccess(testResult);
@@ -101,8 +95,8 @@ public class TestLargeGroups extends AbstractStoryTest {
      */
     @Test
     public void test100GetLargeGroup(ITestContext ctx) throws Exception {
-        Task task = getTask(ctx);
-        OperationResult result = getResult(ctx);
+        Task task = getTask();
+        OperationResult result = getResult();
 
         final int MEMBERS = 20000;
 
@@ -124,9 +118,12 @@ public class TestLargeGroups extends AbstractStoryTest {
         assert100LargeGroupSearch(ctx, badOptions, MEMBERS);
     }
 
-    private void assert100LargeGroupSearch(ITestContext ctx, Collection<SelectorOptions<GetOperationOptions>> options, final int MEMBERS) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = getTask(ctx);
-        OperationResult result = getResult(ctx);
+    private void assert100LargeGroupSearch(
+            ITestContext ctx, Collection<SelectorOptions<GetOperationOptions>> options, final int MEMBERS)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+
+        Task task = getTask();
+        OperationResult result = getResult();
         ResourceAttributeDefinition<Object> nameDefinition = libraryMidpointFunctions
                 .getAttributeDefinition(resourceDummy, dummyResourceCtl.getGroupObjectClass(), SchemaConstants.ICFS_NAME);
         ObjectQuery query = prismContext.queryFor(ShadowType.class)

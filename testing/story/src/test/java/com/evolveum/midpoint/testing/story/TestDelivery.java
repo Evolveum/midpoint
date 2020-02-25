@@ -160,12 +160,7 @@ public class TestDelivery extends AbstractStoryTest {
 //        setGlobalTracingOverride(createModelAndWorkflowLoggingTracingProfile());
     }
 
-    @Override
-    protected boolean isAutoTaskManagementEnabled() {
-        return true;
-    }
-
-//    @Override
+    //    @Override
 //    protected TracingProfileType getTestMethodTracingProfile() {
 //        return createModelAndWorkflowLoggingTracingProfile()
 //                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);

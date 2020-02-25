@@ -6,15 +6,50 @@
  */
 package com.evolveum.midpoint.test;
 
+import static org.testng.AssertJUnit.*;
+
 import static com.evolveum.midpoint.test.PredefinedTestMethodTracing.OFF;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.lang.reflect.Method;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import org.apache.commons.lang.SystemUtils;
+import org.jetbrains.annotations.NotNull;
+import org.opends.server.types.Entry;
+import org.opends.server.types.SearchResultEntry;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.crypto.password.LdapShaPasswordEncoder;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.*;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
+import org.w3c.dom.Element;
+
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
@@ -31,7 +66,8 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -51,8 +87,8 @@ import com.evolveum.midpoint.schema.internals.CachingStatistics;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -66,11 +102,7 @@ import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.asserter.refinedschema.RefinedResourceSchemaAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
-import com.evolveum.midpoint.test.util.DerbyController;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.MultithreadRunner;
-import com.evolveum.midpoint.test.util.ParallelTestThread;
-import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.test.util.*;
 import com.evolveum.midpoint.tools.testng.CurrentTestResultHolder;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
@@ -81,49 +113,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
-import org.apache.commons.lang.SystemUtils;
-import org.jetbrains.annotations.NotNull;
-import org.opends.server.types.Entry;
-import org.opends.server.types.SearchResultEntry;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.crypto.password.LdapShaPasswordEncoder;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.*;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Listeners;
-import org.w3c.dom.Element;
-
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.lang.reflect.Method;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import static org.testng.AssertJUnit.assertNotNull;
-
 /**
  * @author Radovan Semancik
- *
  */
 @Listeners({ CurrentTestResultHolder.class })
 public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContextTests {
@@ -131,8 +122,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
     public static final String COMMON_DIR_NAME = "common";
-    @Deprecated
-    public static final String COMMON_DIR_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/" + COMMON_DIR_NAME;
     public static final File COMMON_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, COMMON_DIR_NAME);
 
     protected static final String DEFAULT_INTENT = "default";
@@ -146,11 +135,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     private static final float FLOAT_EPSILON = 0.001f;
 
-    protected static final String ATTR_TASK = "task";
-    protected static final String ATTR_RESULT = "result";
-
-    private static final String UNKNOWN_METHOD = "unknownMethod";
-
     // Values used to check if something is unchanged or changed properly
 
     protected LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
@@ -162,7 +146,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     @Autowired
     @Qualifier("cacheRepositoryService")
     protected RepositoryService repositoryService;
-    protected static Set<Class> initializedClasses = new HashSet<>();
+    protected static Set<Class<?>> initializedClasses = new HashSet<>();
     private long lastDummyResourceGroupMembersReadCount;
     private long lastDummyResourceWriteOperationCount;
 
@@ -191,17 +175,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
      */
     protected PredefinedTestMethodTracing predefinedTestMethodTracing;
 
-    /**
-     * Enables automatic task and operation result management in test methods.
-     */
-    protected boolean autoTaskManagementEnabled;
-
     // We need this complicated init as we want to initialize repo only once.
     // JUnit will
     // create new class instance for every test, so @Before and @PostInit will
     // not work
     // directly. We also need to init the repo after spring autowire is done, so
     // @BeforeClass won't work either.
+    // TODO with TestNG we can use @BeforeClass again I guess (Virgo)
     @BeforeMethod
     public void initSystemConditional() throws Exception {
         // Check whether we are already initialized
@@ -248,15 +228,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     /**
      * Creates appropriate task and result and set it into MidpointTestMethodContext.
-     *
-     * EXPERIMENTAL.
      */
     @BeforeMethod
-    public void setTaskAndResult(ITestContext ctx, Method testMethod) throws SchemaException {
-        if (!isAutoTaskManagementEnabled()) {
-            return;
-        }
-
+    public void startTestContext(ITestContext ctx, Method testMethod) throws SchemaException {
         String testShortName = testMethod.getDeclaringClass().getSimpleName() + "." + testMethod.getName();
         String testFullName = testMethod.getDeclaringClass().getName() + "." + testMethod.getName();
         TestUtil.displayTestTitle(testShortName);
@@ -274,10 +248,32 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         // (I.e. not via the test context.)
         task.setResult(result);
 
-        ctx.setAttribute(ATTR_TASK, task);
-        ctx.setAttribute(ATTR_RESULT, result);
+        MidpointTestMethodContext.create(testMethod.getName(), task, result);
+    }
 
-        MidpointTestMethodContext.setup(testMethod.getName(), task, result);
+    /**
+     * Finish and destroy the test context, output duration and store the operation trace.
+     */
+    @AfterMethod
+    public void finishTestContext(ITestResult testResult, Method testMethod) {
+        MidpointTestMethodContext context = MidpointTestMethodContext.get();
+        MidpointTestMethodContext.destroy(); // let's destroy it before anything else in this method
+
+        long testMsDuration = testResult.getEndMillis() - testResult.getStartMillis();
+        TestUtil.displayFooter(testMethod.getName() + " FINISHED in " + testMsDuration + " ms");
+
+        Task task = context.getTask();
+        if (task != null) {
+            OperationResult result = context.getResult();
+            if (result != null) {
+                result.computeStatusIfUnknown();
+                if (result.isTraced()) {
+                    System.out.println("Storing the trace.");
+                    tracer.storeTrace(task, result, null);
+                }
+                task.getResult().computeStatusIfUnknown();
+            }
+        }
     }
 
     protected TracingProfileType getTestMethodTracingProfile() {
@@ -296,21 +292,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         }
     }
 
-    /**
-     * @return Whether automatic task and operation result management is enabled.
-     *
-     * Please either override this method or set autoTaskManagementEnabled to true.
-     *
-     * This method is a temporary solution until all test methods will use this automatic task/result management.
-     */
-    protected boolean isAutoTaskManagementEnabled() {
-        return autoTaskManagementEnabled;
-    }
-
-    public void setAutoTaskManagementEnabled(boolean autoTaskManagementEnabled) {
-        this.autoTaskManagementEnabled = autoTaskManagementEnabled;
-    }
-
     public PredefinedTestMethodTracing getPredefinedTestMethodTracing() {
         return predefinedTestMethodTracing;
     }
@@ -319,41 +300,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         this.predefinedTestMethodTracing = predefinedTestMethodTracing;
     }
 
-    /**
-     * Stores a trace of the operation result, if requested.
-     */
-    @AfterMethod
-    public void storeTraceIfRequested(ITestContext ctx, Method testMethod) {
-        if (!isAutoTaskManagementEnabled()) {
-            return;
-        }
-
-        System.out.println("After method: " + testMethod.getName());
-        Task task = getTask(ctx);
-        if (task != null) {
-            OperationResult result = getResult(ctx);
-            if (result != null) {
-                result.computeStatusIfUnknown();
-                if (result.isTraced()) {
-                    System.out.println("Storing the trace.");
-                    tracer.storeTrace(task, result, null);
-                }
-                task.getResult().computeStatusIfUnknown();
-            }
-        }
-
-        // Beware of any other after methods. They might need this context.
-        MidpointTestMethodContext.destroy();
-    }
-
-    @Deprecated
-    protected OperationResult getResult(IAttributes attrs) {
-        return (OperationResult) attrs.getAttribute(ATTR_RESULT);
-    }
-
-    @Deprecated
-    protected Task getTask(IAttributes attrs) {
-        return (Task) attrs.getAttribute(ATTR_TASK);
+    protected Task getTask() {
+        return MidpointTestMethodContext.get().getTask();
     }
 
     protected String getTestNameShort() {
@@ -361,18 +309,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         if (ctx != null) {
             return ctx.getMethodName();
         } else {
-            return createAdHocTestContext(UNKNOWN_METHOD).getMethodName();
+            // TODO simplify if passes
+            throw new IllegalStateException("getTestNameShort called while MidpointTestMethodContext is null");
+//            return createAdHocTestContext(UNKNOWN_METHOD).getMethodName();
         }
-    }
-
-    /**
-     * Retrieves the task from thread-local test method context; creating the ad-hoc context if it does not exist.
-     *
-     * We expect this method to be called on startup of auto-task-managed test methods, therefore "getTask" is more suitable
-     * name that "getOrCreateTestTask".
-     */
-    protected Task getTask() {
-        return getOrCreateTestTask(UNKNOWN_METHOD);
     }
 
     /**
@@ -382,11 +322,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
      * We expect this method to be called from places where we really don't know if the context exists or not. Hence its name.
      */
     protected Task getOrCreateTestTask(String methodName) {
+        // TODO if OK, replace with getTask()
         MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
         if (ctx != null) {
             return ctx.getTask();
         } else {
-            return createAdHocTestContext(methodName).getTask();
+            throw new IllegalStateException("getOrCreateTestTask called while MidpointTestMethodContext is null");
+//            return createAdHocTestContext(methodName).getTask();
         }
     }
 
@@ -398,11 +340,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
      * by createTask method.
      */
     protected Task getOrCreateSimpleTask(String operationName) {
+        // TODO if OK, replace with getTask()
         MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
         if (ctx != null) {
             return ctx.getTask();
         } else {
-            return taskManager.createTaskInstance(this.getClass().getName() + "." + operationName);
+            throw new IllegalStateException("getOrCreateSimpleTask called while MidpointTestMethodContext is null");
+//            return taskManager.createTaskInstance(this.getClass().getName() + "." + operationName);
         }
     }
 
@@ -423,7 +367,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         if (ctx != null) {
             return ctx.getResult();
         } else {
-            return createAdHocTestContext(UNKNOWN_METHOD).getResult();
+            // TODO simplify if OK
+            throw new IllegalStateException("getResult called while MidpointTestMethodContext is null");
+//            return createAdHocTestContext(UNKNOWN_METHOD).getResult();
         }
     }
 
@@ -432,7 +378,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         LOGGER.warn("No test context for current thread: creating new");
         System.out.println("No test context for current thread: creating new");
         Task task = createTask(methodName);
-        return MidpointTestMethodContext.setup(methodName, task, task.getResult());
+        return MidpointTestMethodContext.create(methodName, task, task.getResult());
     }
 
     abstract public void initSystem(Task initTask, OperationResult initResult) throws Exception;
@@ -464,18 +410,23 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         return repoAddObjectFromFile(resource.file, parentResult);
     }
 
-    protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file, Class<T> type,
-            OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+    protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(
+            File file, Class<T> type, OperationResult parentResult)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+
         return repoAddObjectFromFile(file, false, parentResult);
     }
 
-    protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file, Class<T> type,
-            boolean metadata, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+    protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(
+            File file, Class<T> type, boolean metadata, OperationResult parentResult)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+
         return repoAddObjectFromFile(file, metadata, parentResult);
     }
 
-    protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file,
-            boolean metadata, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+    protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(
+            File file, boolean metadata, OperationResult parentResult)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 
         OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
                 + ".repoAddObjectFromFile");
@@ -536,16 +487,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         repoAddObject(object, null, result);
     }
 
-    protected <T extends ObjectType> void repoAddObject(PrismObject<T> object, String contextDesc,
-            OperationResult result) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
+    protected <T extends ObjectType> void repoAddObject(
+            PrismObject<T> object, String contextDesc, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
         if (object.canRepresent(TaskType.class)) {
             Assert.assertNotNull(taskManager, "Task manager is not initialized");
             try {
                 taskManager.addTask((PrismObject<TaskType>) object, result);
-            } catch (ObjectAlreadyExistsException ex) {
-                result.recordFatalError(ex.getMessage(), ex);
-                throw ex;
-            } catch (SchemaException ex) {
+            } catch (ObjectAlreadyExistsException | SchemaException ex) {
                 result.recordFatalError(ex.getMessage(), ex);
                 throw ex;
             }
@@ -555,40 +504,38 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
                 CryptoUtil.encryptValues(protector, object);
                 String oid = repositoryService.addObject(object, null, result);
                 object.setOid(oid);
-            } catch(ObjectAlreadyExistsException ex){
-                result.recordFatalError(ex.getMessage()+" while adding "+object+(contextDesc==null?"":" "+contextDesc), ex);
-                throw ex;
-            } catch(SchemaException ex){
-                result.recordFatalError(ex.getMessage()+" while adding "+object+(contextDesc==null?"":" "+contextDesc), ex);
-                throw ex;
-            } catch (EncryptionException ex) {
+            } catch(ObjectAlreadyExistsException | SchemaException | EncryptionException ex){
                 result.recordFatalError(ex.getMessage()+" while adding "+object+(contextDesc==null?"":" "+contextDesc), ex);
                 throw ex;
             }
         }
     }
 
-    protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(String filePath, Class<T> type,
-            OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, IOException {
+    protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(
+            String filePath, Class<T> type, OperationResult parentResult)
+            throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
+
         return repoAddObjectsFromFile(new File(filePath), type, parentResult);
     }
 
-    protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(File file, Class<T> type,
-            OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, IOException {
+    protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(
+            File file, Class<T> type, OperationResult parentResult)
+            throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
+
         OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
                 + ".addObjectsFromFile");
         result.addParam("file", file.getPath());
         LOGGER.trace("addObjectsFromFile: {}", file);
         List<PrismObject<T>> objects = (List) prismContext.parserFor(file).parseObjects();
-        for (PrismObject<T> object: objects) {
+        for (PrismObject<T> object : objects) {
             try {
                 repoAddObject(object, result);
             } catch (ObjectAlreadyExistsException e) {
-                throw new ObjectAlreadyExistsException(e.getMessage()+" while adding "+object+" from file "+file, e);
+                throw new ObjectAlreadyExistsException(e.getMessage() + " while adding " + object + " from file " + file, e);
             } catch (SchemaException e) {
-                new SchemaException(e.getMessage()+" while adding "+object+" from file "+file, e);
+                throw new SchemaException(e.getMessage() + " while adding " + object + " from file " + file, e);
             } catch (EncryptionException e) {
-                new EncryptionException(e.getMessage()+" while adding "+object+" from file "+file, e);
+                throw new EncryptionException(e.getMessage() + " while adding " + object + " from file " + file, e);
             }
         }
         result.recordSuccess();
@@ -596,21 +543,21 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 
     // these objects can be of various types
-    protected List<PrismObject> repoAddObjectsFromFile(File file, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, IOException {
+    protected List<PrismObject> repoAddObjectsFromFile(File file, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
         OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
                 + ".addObjectsFromFile");
         result.addParam("file", file.getPath());
         LOGGER.trace("addObjectsFromFile: {}", file);
         List<PrismObject> objects = (List) prismContext.parserFor(file).parseObjects();
-        for (PrismObject object: objects) {
+        for (PrismObject object : objects) {
             try {
                 repoAddObject(object, result);
             } catch (ObjectAlreadyExistsException e) {
-                throw new ObjectAlreadyExistsException(e.getMessage()+" while adding "+object+" from file "+file, e);
+                throw new ObjectAlreadyExistsException(e.getMessage() + " while adding " + object + " from file " + file, e);
             } catch (SchemaException e) {
-                new SchemaException(e.getMessage()+" while adding "+object+" from file "+file, e);
+                throw new SchemaException(e.getMessage() + " while adding " + object + " from file " + file, e);
             } catch (EncryptionException e) {
-                new EncryptionException(e.getMessage()+" while adding "+object+" from file "+file, e);
+                throw new EncryptionException(e.getMessage() + " while adding " + object + " from file " + file, e);
             }
         }
         result.recordSuccess();
@@ -1611,7 +1558,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         return password;
     }
 
-    protected void assertUserNoPassword(PrismObject<UserType> user) throws EncryptionException, SchemaException {
+    protected void assertUserNoPassword(PrismObject<UserType> user) {
         UserType userType = user.asObjectable();
         CredentialsType creds = userType.getCredentials();
         if (creds != null) {
@@ -1880,6 +1827,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
      * Used to display string HEREHERE both in test output and in logfiles. This can be used
      * to conveniently correlate a place in the test, output and logfiles.
      */
+    @SuppressWarnings("unused")
     protected void displayHEREHERE() {
         IntegrationTestTools.display("HEREHERE");
     }
@@ -1904,7 +1852,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         IntegrationTestTools.display(message, o);
     }
 
-    public static void display(String message, Collection collection) {
+    public static void display(String message, Collection<?> collection) {
         IntegrationTestTools.display(message, collection);
     }
 
@@ -1990,7 +1938,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
                 fail(message + ", expected: " + expectedPercentage + ", but was "+actualPercentage);
             }
         }
-        if (actualPercentage > expectedPercentage + FLOAT_EPSILON || actualPercentage < expectedPercentage - FLOAT_EPSILON) {
+        //noinspection ConstantConditions
+        if (actualPercentage > expectedPercentage + FLOAT_EPSILON || (actualPercentage < (expectedPercentage - FLOAT_EPSILON))) {
             fail(message + ", expected: " + expectedPercentage + ", but was "+actualPercentage);
         }
     }
@@ -1999,9 +1948,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         if (!operationName.contains(".")) {
             operationName = this.getClass().getName() + "." + operationName;
         }
-        Task task = taskManager.createTaskInstance(operationName);
-//        setModelAndProvisioningLoggingTracing(task);
-        return task;
+        return taskManager.createTaskInstance(operationName);
     }
 
     protected void setDefaultTracing(Task task) {

@@ -79,16 +79,11 @@ public class TestPolicyRules extends AbstractLensTest {
 //        setPredefinedTestMethodTracing(MODEL_LOGGING);
     }
 
-    @Override
-    protected boolean isAutoTaskManagementEnabled() {
-        return true;
-    }
-
     @Test
     public void test005JackAttemptAssignRoleJudge() throws Exception {
         Task task = getTask();
         OperationResult result = getResult();
-        
+
         // GIVEN
 
         LensContext<UserType> context = createUserLensContext();

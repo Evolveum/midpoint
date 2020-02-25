@@ -114,16 +114,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         repoAddObjectFromFile(USER_TEMPLATE_MAROONED_FILE, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_USELESS_FILE, initResult);
         repoAdd(USER_TEMPLATE_MID_5892, initResult);
-        
+
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, initResult);
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MAROONED, USER_TEMPLATE_MAROONED_OID, initResult);
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_USELESS, USER_TEMPLATE_USELESS_OID, initResult);
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MID_5892, USER_TEMPLATE_MID_5892.oid, initResult);
-    }
-
-    @Override
-    protected boolean isAutoTaskManagementEnabled() {
-        return true;
     }
 
     protected int getNumberOfRoles() {

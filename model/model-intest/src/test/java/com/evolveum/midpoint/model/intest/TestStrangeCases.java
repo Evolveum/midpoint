@@ -139,8 +139,6 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
             throws Exception {
         super.initSystem(initTask, initResult);
 
-        setAutoTaskManagementEnabled(true);
-
         initDummyResource(RESOURCE_DUMMY_CIRCUS_NAME, RESOURCE_DUMMY_CIRCUS_FILE, RESOURCE_DUMMY_CIRCUS_OID, initTask, initResult);
 
         getDummyResourceController(RESOURCE_DUMMY_RED_NAME).addAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Monkey Island");

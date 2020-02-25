@@ -154,8 +154,6 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         initDummyResourcePirate(RESOURCE_DUMMY_EMPTY_INSTANCE_NAME, RESOURCE_DUMMY_EMPTY_FILE,
                 RESOURCE_DUMMY_EMPTY_OID, initTask, initResult);
 
-        setAutoTaskManagementEnabled(true);
-
         if (FIRST_PART) {
             createObjectsInFirstPart(false, initTask, initResult, null);
         }

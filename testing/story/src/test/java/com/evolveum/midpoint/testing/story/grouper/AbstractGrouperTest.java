@@ -137,11 +137,6 @@ public abstract class AbstractGrouperTest extends AbstractStoryTest {
     }
 
     @Override
-    protected boolean isAutoTaskManagementEnabled() {
-        return true;
-    }
-
-    @Override
     protected File getSystemConfigurationFile() {
         return SYSTEM_CONFIGURATION_FILE;
     }

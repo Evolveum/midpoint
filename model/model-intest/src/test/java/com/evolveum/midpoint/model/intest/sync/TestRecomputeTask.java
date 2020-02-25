@@ -87,10 +87,6 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         addObject(ARCHETYPE_TASK_RECOMPUTATION, initTask, initResult);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-
-        setAutoTaskManagementEnabled(true);
-
-//        DebugUtil.setDetailedDebugDump(true);
     }
 
     @Test

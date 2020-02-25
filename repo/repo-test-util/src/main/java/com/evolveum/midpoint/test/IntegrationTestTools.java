@@ -443,7 +443,7 @@ public class IntegrationTestTools {
                 + ObjectTypeUtil.dump(o));
     }
 
-    public static void display(String message, Collection collection) {
+    public static void display(String message, Collection<?> collection) {
         String dump;
         if (collection == null) {
             dump = ": null";

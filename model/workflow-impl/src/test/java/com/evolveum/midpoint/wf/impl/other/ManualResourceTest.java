@@ -112,11 +112,6 @@ public class ManualResourceTest extends AbstractWfTest {
         return SYSTEM_CONFIGURATION_FILE;
     }
 
-    @Override
-    protected boolean isAutoTaskManagementEnabled() {
-        return true;
-    }
-
     private PrismObject<UserType> createUserWill() throws SchemaException {
         PrismObject<UserType> user = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class).instantiate();
         user.asObjectable()

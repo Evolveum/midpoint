@@ -70,11 +70,6 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
     }
 
     @Override
-    protected boolean isAutoTaskManagementEnabled() {
-        return true;
-    }
-
-    @Override
     protected File getSystemConfigurationFile() {
         return SYSTEM_CONFIGURATION_FILE;
     }

@@ -11,7 +11,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
 /**
- *  Thread-local context for midPoint test method.
+ * Value object carrying test context information like task, result and method name.
+ * <p>
+ * Static methods are used for creating the context and working with it via {@link ThreadLocal}.
+ * <b>It is important to to call {@link #destroy()} at the end (in some after-method).</b>
  */
 public final class MidpointTestMethodContext {
 
@@ -50,14 +53,14 @@ public final class MidpointTestMethodContext {
         return result;
     }
 
-    public static MidpointTestMethodContext get() {
-        return TEST_CONTEXT_THREAD_LOCAL.get();
-    }
-
-    public static MidpointTestMethodContext setup(String methodName, Task task, OperationResult result) {
+    public static MidpointTestMethodContext create(String methodName, Task task, OperationResult result) {
         MidpointTestMethodContext ctx = new MidpointTestMethodContext(methodName, task, result);
         TEST_CONTEXT_THREAD_LOCAL.set(ctx);
         return ctx;
+    }
+
+    public static MidpointTestMethodContext get() {
+        return TEST_CONTEXT_THREAD_LOCAL.get();
     }
 
     public static void destroy() {

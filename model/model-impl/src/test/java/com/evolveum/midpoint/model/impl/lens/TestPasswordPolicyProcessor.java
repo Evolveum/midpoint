@@ -50,8 +50,6 @@ public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends A
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-
-        setAutoTaskManagementEnabled(true);
     }
 
     abstract Class<F> getType();

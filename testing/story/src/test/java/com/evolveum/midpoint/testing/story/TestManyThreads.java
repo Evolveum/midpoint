@@ -61,8 +61,6 @@ public class TestManyThreads extends AbstractStoryTest {
         resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY.file, RESOURCE_DUMMY.oid, initTask, initResult);
         dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);
         dummyResource = dummyResourceCtl.getDummyResource();
-
-        setAutoTaskManagementEnabled(true);
     }
 
     @Test
