@@ -388,7 +388,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                             }
                         });
 
-                tabs.add(new AbstractTab(createStringResource("pageTask.internalPerformane.title")) {
+                tabs.add(new AbstractTab(createStringResource("pageTask.internalPerformance.title")) {
                     @Override
                     public WebMarkupContainer getPanel(String panelId) {
                         return new TaskInternalPerformanceTabPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_OPERATION_STATS));

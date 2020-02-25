@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -257,17 +258,26 @@ public class ProvisioningUtil {
 
     public static <T> PropertyDelta<T> narrowPropertyDelta(PropertyDelta<T> propertyDelta,
             PrismObject<ShadowType> currentShadow, QName overridingMatchingRuleQName, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-        QName matchingRuleQName = overridingMatchingRuleQName;
         ItemDefinition propertyDef = propertyDelta.getDefinition();
-        if (matchingRuleQName == null && propertyDef instanceof RefinedAttributeDefinition) {
-            matchingRuleQName = ((RefinedAttributeDefinition)propertyDef).getMatchingRuleQName();
+
+        QName matchingRuleQName;
+        if (overridingMatchingRuleQName != null) {
+            matchingRuleQName = overridingMatchingRuleQName;
+        } else if (propertyDef instanceof RefinedAttributeDefinition) {
+            matchingRuleQName = ((RefinedAttributeDefinition<?>)propertyDef).getMatchingRuleQName();
+        } else {
+            matchingRuleQName = null;
         }
-        MatchingRule<T> matchingRule = null;
+
+        MatchingRule<T> matchingRule;
         if (matchingRuleQName != null && propertyDef != null) {
             matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, propertyDef.getTypeName());
+        } else {
+            matchingRule = null;
         }
         LOGGER.trace("Narrowing attr def={}, matchingRule={} ({})", propertyDef, matchingRule, matchingRuleQName);
-        PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, matchingRule, true);   // MID-5280
+
+        PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, EquivalenceStrategy.IGNORE_METADATA, matchingRule, true);   // MID-5280
         if (LOGGER.isTraceEnabled() && (filteredDelta == null || !filteredDelta.equals(propertyDelta))) {
             LOGGER.trace("Narrowed delta: {}", filteredDelta==null?null:filteredDelta.debugDump());
         }

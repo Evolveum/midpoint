@@ -235,11 +235,13 @@ public class DeleteNotUpdatedShadowTaskHandler extends AbstractSearchIterativeMo
         opResult.recordFatalError(message, ex);
     }
 
-
     private ModelExecuteOptions getOptions(Task coordinatorTask) throws SchemaException {
-        ModelExecuteOptions modelExecuteOptions = ModelImplUtils.getModelExecuteOptions(coordinatorTask);
-        if (modelExecuteOptions == null) {
-            modelExecuteOptions =  ModelExecuteOptions.createReconcile();
+        ModelExecuteOptions modelExecuteOptions;
+        ModelExecuteOptions modelExecuteOptionsFromTask = ModelImplUtils.getModelExecuteOptions(coordinatorTask);
+        if (modelExecuteOptionsFromTask != null) {
+            modelExecuteOptions = modelExecuteOptionsFromTask;
+        } else {
+            modelExecuteOptions = ModelExecuteOptions.createReconcile();
         }
         LOGGER.trace("ModelExecuteOptions: {}", modelExecuteOptions);
         return modelExecuteOptions;
