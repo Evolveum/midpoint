@@ -10,6 +10,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -31,12 +37,6 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 /**
  * Created by honchar.
@@ -120,4 +120,27 @@ public class PolicyRulesPanel extends AssignmentPanel {
         return defs;
     }
 
+    @Override
+    protected ItemVisibility getTypedContainerVisibility(ItemWrapper<?, ?, ?, ?> wrapper) {
+        if (QNameUtil.match(ConstructionType.COMPLEX_TYPE, wrapper.getTypeName())){
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (QNameUtil.match(PersonaConstructionType.COMPLEX_TYPE, wrapper.getTypeName())){
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (QNameUtil.match(AssignmentType.F_ORG_REF, wrapper.getItemName())){
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (QNameUtil.match(AssignmentType.F_TARGET_REF, wrapper.getItemName())){
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (QNameUtil.match(AssignmentType.F_TENANT_REF, wrapper.getItemName())){
+            return ItemVisibility.HIDDEN;
+        }
+        return ItemVisibility.AUTO;
+    }
 }

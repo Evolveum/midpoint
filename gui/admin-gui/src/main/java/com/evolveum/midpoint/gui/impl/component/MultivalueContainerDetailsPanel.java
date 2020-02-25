@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -62,20 +65,22 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
         add(getBasicContainerValuePanel(idPanel));
     }
 
-    private Panel getBasicContainerValuePanel(String idPanel){
-        Form form = new Form<>("form");
-        ItemPath itemPath = getModelObject().getPath();
-        IModel<PrismContainerValueWrapper<C>> model = getModel();
-//        model.getObject().getContainer().setShowOnTopLevel(true);
-        Panel containerValue = getPageBase().initContainerValuePanel(idPanel, getModel(), wrapper -> getBasicTabVisibity(wrapper, itemPath), null);
-//        PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> containerValue = new PrismContainerValuePanel<>(idPanel, getModel());
+    protected Panel getBasicContainerValuePanel(String idPanel){
+        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+                .visibilityHandler(wrapper -> getBasicTabVisibity(wrapper))
+                .showOnTopLevel(true)
+                .editabilityHandler(wrapper -> getBasicTabEditability(wrapper))
+                .build();
+        Panel containerValue = getPageBase().initContainerValuePanel(idPanel, getModel(), settings);
         return containerValue;
-//        return new ContainerValuePanel<C>(idPanel, getModel(), true, form,
-//                itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase());
     }
 
-    protected ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?, ?, ?> itemWrapper, ItemPath parentPath) {
+    protected ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?, ?, ?> itemWrapper) { //, ItemPath parentPath) {
         return ItemVisibility.AUTO;
+    }
+
+    protected boolean getBasicTabEditability(ItemWrapper<?,?,?,?> itemWrapper) {
+        return true;
     }
 
 }

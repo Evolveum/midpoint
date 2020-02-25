@@ -85,7 +85,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     }
 
     /**
-     * Private constructor just for clonning.
+     * Private constructor just for cloning.
      */
     private PrismPropertyValueImpl(OriginType type, Objectable source) {
         super(type,source);

@@ -309,7 +309,7 @@ public abstract class PageAuthenticationBase extends PageBase {
         List<EqualFilter> filters = new ArrayList<>();
         QueryFactory queryFactory = getPrismContext().queryFactory();
         for (ItemPath path : filledItems) {
-            PrismProperty property = user.findProperty(path);
+            PrismProperty<?> property = user.findProperty(path);
             EqualFilter filter = queryFactory.createEqual(path, property.getDefinition(), null);
             filter.setValue(property.getAnyValue().clone());
             filters.add(filter);

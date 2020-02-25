@@ -766,9 +766,9 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     private void assertConfigurationPropertyDefinition(PrismContainer container,
             String propertyLocalName, QName expectedType, int expectedMinOccurs, int expectedMaxOccurs, String expectedDisplayName, String expectedHelp) {
         QName propName = new QName(container.getDefinition().getTypeName().getNamespaceURI(),propertyLocalName);
-        PrismProperty prop = container.findProperty(ItemName.fromQName(propName));
+        PrismProperty<?> prop = container.findProperty(ItemName.fromQName(propName));
         assertNotNull("No property "+propName, prop);
-        PrismPropertyDefinition propDef = prop.getDefinition();
+        PrismPropertyDefinition<?> propDef = prop.getDefinition();
         assertNotNull("No definition for property "+prop, propDef);
         assertConfigurationPropertyDefinition(propDef, expectedType, expectedMinOccurs, expectedMaxOccurs, expectedDisplayName, expectedHelp);
     }

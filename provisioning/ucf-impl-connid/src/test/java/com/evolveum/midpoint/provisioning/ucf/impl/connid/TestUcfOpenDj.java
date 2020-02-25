@@ -405,7 +405,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
     }
 
     private PropertyModificationOperation createReplaceAttributeChange(String propertyName, String propertyValue) {
-        PrismProperty property = createProperty(propertyName, propertyValue);
+        PrismProperty<?> property = createProperty(propertyName, propertyValue);
         ItemPath propertyPath = ItemPath.create(ShadowType.F_ATTRIBUTES,
                 new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
         PropertyDelta delta = prismContext.deltaFactory().property().create(propertyPath, property.getDefinition());
@@ -415,7 +415,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
     }
 
     private PropertyModificationOperation createAddAttributeChange(String propertyName, String propertyValue) {
-        PrismProperty property = createProperty(propertyName, propertyValue);
+        PrismProperty<?> property = createProperty(propertyName, propertyValue);
         ItemPath propertyPath = ItemPath.create(ShadowType.F_ATTRIBUTES,
                 new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
         PropertyDelta delta = prismContext.deltaFactory().property().create(propertyPath, property.getDefinition());
@@ -425,7 +425,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
     }
 
     private PropertyModificationOperation createDeleteAttributeChange(String propertyName, String propertyValue) {
-        PrismProperty property = createProperty(propertyName, propertyValue);
+        PrismProperty<?> property = createProperty(propertyName, propertyValue);
         ItemPath propertyPath = ItemPath.create(ShadowType.F_ATTRIBUTES,
                 new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
         PropertyDelta delta = prismContext.deltaFactory().property().create(propertyPath, property.getDefinition());

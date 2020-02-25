@@ -13,7 +13,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 @FunctionalInterface
-public interface SchemaFailableProcessor<T> {
+public interface SchemaFailableProcessor<T> extends CheckedProcessor<T, SchemaException> {
 
     void process(T object) throws SchemaException;
 

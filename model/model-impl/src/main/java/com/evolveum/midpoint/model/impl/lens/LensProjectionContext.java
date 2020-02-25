@@ -1057,7 +1057,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     protected void copyValues(LensProjectionContext clone, LensContext<? extends ObjectType> lensContext) {
         super.copyValues(clone, lensContext);
         // do NOT clone transient values such as accountConstructionDeltaSetTriple
-        // these are not meant to be cloned and they are also not directly clonnable
+        // these are not meant to be cloned and they are also not directly cloneable
         clone.dependencies = this.dependencies;
         clone.doReconciliation = this.doReconciliation;
         clone.fullShadow = this.fullShadow;
@@ -1080,16 +1080,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (squeezedAttributes == null) {
             return null;
         }
-        Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> clonedMap
-        = new HashMap<>();
-        Cloner<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> cloner = new Cloner<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>() {
-            @Override
-            public ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>> clone(ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>> original) {
-                return original.clone();
-            }
-        };
+        Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> clonedMap = new HashMap<>();
         for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> entry: squeezedAttributes.entrySet()) {
-            clonedMap.put(entry.getKey(), entry.getValue().clone(cloner));
+            clonedMap.put(entry.getKey(), entry.getValue().clone(ItemValueWithOrigin::clone));
         }
         return clonedMap;
     }

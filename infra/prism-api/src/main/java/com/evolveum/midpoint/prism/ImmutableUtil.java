@@ -10,6 +10,7 @@ package com.evolveum.midpoint.prism;
 /**
  *  Experimental.
  */
+@Deprecated
 public class ImmutableUtil {
 
     public static void throwImmutable(Object object) {

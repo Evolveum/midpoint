@@ -29,7 +29,6 @@ public interface WorkBucketAwareTaskHandler extends TaskHandler {
         throw new UnsupportedOperationException("run with no work bucket is not supported here");
     }
 
-
     TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket, TaskPartitionDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult);
 
     default TaskWorkBucketProcessingResult onNoMoreBuckets(Task task, TaskWorkBucketProcessingResult previousRunResult) {

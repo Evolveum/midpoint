@@ -169,14 +169,12 @@ public class AuditReindexTaskHandler implements TaskHandler {
     }
 
     // TODO: copied from abstract search iterative handler
-    private TaskRunResult logErrorAndSetResult(TaskRunResult runResult, AuditResultHandler resultHandler,
+    private void logErrorAndSetResult(TaskRunResult runResult, AuditResultHandler resultHandler,
             String message, Throwable e, OperationResultStatus opStatus, TaskRunResultStatus status) {
         LOGGER.error("{}: {}: {}", TASK_NAME, message, e.getMessage(), e);
         runResult.getOperationResult().recordStatus(opStatus, message + ": " + e.getMessage(), e);
         runResult.setRunResultStatus(status);
         runResult.setProgress((long) resultHandler.getProgress());
-        return runResult;
-
     }
 
 }

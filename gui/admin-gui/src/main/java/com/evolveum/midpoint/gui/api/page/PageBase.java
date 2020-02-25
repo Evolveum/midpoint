@@ -2776,9 +2776,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public <CVW extends PrismContainerValueWrapper<C>, C extends Containerable> Panel initContainerValuePanel(String id, IModel<CVW> model,
-            ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
+            ItemPanelSettings settings) {
+            //ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
         //TODO find from registry first
-        return new PrismContainerValuePanel<>(id, model, visibilityHandler, editabilityHandler);
+        return new PrismContainerValuePanel<>(id, model, settings);
+    }
+
+    public <C extends Containerable> Panel getBasicContainerValuePanel(String idPanel, IModel<PrismContainerValueWrapper<C>> model, ItemPanelSettings settings){
+        Panel containerValue = initContainerValuePanel(idPanel, model, settings);
+        return containerValue;
     }
 
     public Clock getClock() {

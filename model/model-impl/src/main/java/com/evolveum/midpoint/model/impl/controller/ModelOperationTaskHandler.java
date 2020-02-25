@@ -43,9 +43,8 @@ import static com.evolveum.midpoint.model.impl.lens.LensContext.*;
  * This was to be used for workflow execution. Currently this responsibility is moved to CaseOperationExecutionTaskHandler
  * and this class is unused.
  *
- * @author mederly
+ * CURRENTLY UNUSED.
  */
-
 @Component
 public class ModelOperationTaskHandler implements TaskHandler {
 
@@ -53,7 +52,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 
     private static final String DOT_CLASS = ModelOperationTaskHandler.class.getName() + ".";
 
-    public static final String MODEL_OPERATION_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-3";
+    private static final String MODEL_OPERATION_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-3";
 
     @Autowired private TaskManager taskManager;
     @Autowired private PrismContext prismContext;
@@ -73,7 +72,8 @@ public class ModelOperationTaskHandler implements TaskHandler {
             }
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
         } else {
-            LensContext context;
+            LensContext<?> context;
+            //noinspection TryWithIdenticalCatches
             try {
                 context = fromLensContextType(contextType, prismContext, provisioningService, task, result);
             } catch (SchemaException e) {
@@ -140,7 +140,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 
     @Override
     public String getCategoryName(Task task) {
-        return TaskCategory.WORKFLOW;
+        return TaskCategory.UTIL;
     }
 
     @PostConstruct

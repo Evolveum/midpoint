@@ -5710,6 +5710,11 @@
                         The assignment is applied only if the condition is evaluated to true.
                         If condition is not present, it is assumed to be true.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <xsd:appinfo>
+                            <a:displayName>AssignmentType.condition</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
 
@@ -21394,6 +21399,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_TRACE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000501">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_RECONCILIATION_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

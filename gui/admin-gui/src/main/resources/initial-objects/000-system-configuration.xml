@@ -278,12 +278,76 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
-            <objectCollectionView id="78">
-                <identifier>recon-tasks-view</identifier>
+            <objectCollectionView>
+                <identifier>reconciliation-tasks-view</identifier>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000501" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>recomputation-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000502" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>import-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000503" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>live-sync-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000504" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>async-update-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000505" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>cleanup-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000506" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>report-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000507" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>single-bulk-action-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000508" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>iterative-bulk-action-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000509" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
         </objectCollectionViews>
@@ -291,35 +355,52 @@
             <objectDetailsPage>
                 <type>c:TaskType</type>
                 <container>
+                    <displayOrder>150</displayOrder>
                     <display>
                         <label>Advanced options</label>
                     </display>
                     <item>
+                        <c:path>cleanupAfterCompletion</c:path>
+                    </item>
+                    <item>
                         <c:path>threadStopAction</c:path>
-                    </item>
-                    <item>
-                        <c:path>executionStatus</c:path>
-                    </item>
-                    <item>
-                        <c:path>unpauseAction</c:path>
-                    </item>
-                    <item>
-                        <c:path>recurrence</c:path>
                     </item>
                     <item>
                         <c:path>binding</c:path>
                     </item>
                     <item>
-                        <c:path>extension/mext:workerThreads</c:path>
-                    </item>
-                    <item>
-                        <c:path>cleanupAfterCompletion</c:path>
+                        <c:path>dependent</c:path>
                     </item>
                 </container>
                 <container>
+                    <displayOrder>900</displayOrder>
                     <display>
-                        <label>Operational attributes</label>
+                        <label>Operational attributes (state)</label>
                     </display>
+                    <item>
+                        <c:path>executionStatus</c:path>
+                    </item>
+                    <item>
+                        <c:path>node</c:path>
+                    </item>
+                    <item>
+                        <c:path>nodeAsObserved</c:path>
+                    </item>
+                    <item>
+                        <c:path>resultStatus</c:path>
+                    </item>
+                    <item>
+                        <c:path>result</c:path>
+                    </item>
+                    <item>
+                        <c:path>nextRunStartTimestamp</c:path>
+                    </item>
+                    <item>
+                        <c:path>nextRetryTimestamp</c:path>
+                    </item>
+                    <item>
+                        <c:path>unpauseAction</c:path>
+                    </item>
                     <item>
                         <c:path>taskIdentifier</c:path>
                     </item>
@@ -339,6 +420,18 @@
                         <c:path>handlerUri</c:path>
                     </item>
                     <item>
+                        <c:path>otherHandlersUriStack</c:path>
+                    </item>
+                    <item>
+                        <c:path>channel</c:path>
+                    </item>
+                    <item>
+                        <c:path>subtaskRef</c:path>
+                    </item>
+                    <item>
+                        <c:path>dependentTaskRef</c:path>
+                    </item>
+                    <item>
                         <c:path>lastRunStartTimestamp</c:path>
                     </item>
                     <item>
@@ -347,13 +440,105 @@
                     <item>
                         <c:path>completionTimestamp</c:path>
                     </item>
+                </container>
+                <container>
+                    <displayOrder>910</displayOrder>
+                    <display>
+                        <label>Operational attributes (progress)</label>
+                    </display>
                     <item>
                         <c:path>progress</c:path>
                     </item>
                     <item>
+                        <c:path>expectedTotal</c:path>
+                    </item>
+                    <item>
                         <c:path>stalledSince</c:path>
                     </item>
-
+                </container>
+                <container>
+                    <displayOrder>990</displayOrder>
+                    <display>
+                        <label>Other items (not relevant for archetyped tasks)</label>
+                    </display>
+                    <item>
+                        <c:path>objectRef</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:objectType</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:diagnose</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:fix</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:duplicateShadowsResolver</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:checkDuplicatesOnPrimaryIdentifiersOnly</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:dryRun</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:retryLiveSyncErrors</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:freshnessInterval</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:finishOperationsOnly</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:lastScanTimestamp</c:path>       <!-- operational -->
+                    </item>
+                    <item>
+                        <c:path>extension/mext:searchOptions</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:useRepositoryDirectly</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:iterationMethod</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:objectDelta</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:objectDeltas</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:executeOptions</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:filename</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:endpoint</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:optionRaw</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:objectclass</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:kind</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:intent</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:objectQuery</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:updateLiveSyncTokenInDryRun</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:modelExecuteOptions</c:path>
+                    </item>
                 </container>
             </objectDetailsPage>
         </objectDetails>
