@@ -79,7 +79,7 @@ public class ItemFactoryImpl implements ItemFactory {
 
     @Override
     public PrismReferenceValue createReferenceValue(PrismObject<?> target) {
-        PrismReferenceValue rv = new PrismReferenceValueImpl(target.getOid());
+        PrismReferenceValueImpl rv = new PrismReferenceValueImpl(target.getOid());
         rv.setPrismContext(prismContext);
         rv.setObject(target);
         if (target.getDefinition() != null) {
@@ -90,21 +90,21 @@ public class ItemFactoryImpl implements ItemFactory {
 
     @Override
     public PrismReferenceValue createReferenceValue(String targetOid) {
-        PrismReferenceValue rv = new PrismReferenceValueImpl(targetOid);
+        PrismReferenceValueImpl rv = new PrismReferenceValueImpl(targetOid);
         rv.setPrismContext(prismContext);
         return rv;
     }
 
     @Override
     public PrismReferenceValue createReferenceValue(String oid, OriginType originType, Objectable originObject) {
-        PrismReferenceValue rv = new PrismReferenceValueImpl(oid, originType, originObject);
+        PrismReferenceValueImpl rv = new PrismReferenceValueImpl(oid, originType, originObject);
         rv.setPrismContext(prismContext);
         return rv;
     }
 
     @Override
     public PrismReferenceValue createReferenceValue(String oid, QName targetType) {
-        PrismReferenceValue rv = new PrismReferenceValueImpl(oid, targetType);
+        PrismReferenceValueImpl rv = new PrismReferenceValueImpl(oid, targetType);
         rv.setPrismContext(prismContext);
         return rv;
     }

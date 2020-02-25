@@ -191,7 +191,7 @@ public class PrismAsserts {
         assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
     }
 
-    public static void assertPropertyDefinition(PrismProperty property, QName type, int minOccurs, int maxOccurs, Boolean indexed) {
+    public static void assertPropertyDefinition(PrismProperty<?> property, QName type, int minOccurs, int maxOccurs, Boolean indexed) {
         assertDefinition(property, type, minOccurs, maxOccurs);
 
         PrismPropertyDefinition definition = property.getDefinition();

@@ -22,8 +22,6 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
@@ -36,20 +34,11 @@ import javax.annotation.PostConstruct;
  * It simply executes empty modification delta on each repository object.
  *
  * TODO implement also for sub-objects, namely certification cases.
- *
- * @author Pavol Mederly
  */
 @Component
 public class ReindexTaskHandler extends AbstractSearchIterativeModelTaskHandler<ObjectType, ReindexResultHandler> {
 
     public static final String HANDLER_URI = ModelPublicConstants.REINDEX_TASK_HANDLER_URI;
-
-    // WARNING! This task handler is efficiently singleton!
-     // It is a spring bean and it is supposed to handle all search task instances
-     // Therefore it must not have task-specific fields. It can only contain fields specific to
-     // all tasks of a specified type
-
-    private static final Trace LOGGER = TraceManager.getTrace(ReindexTaskHandler.class);
 
     public ReindexTaskHandler() {
         super("Reindex", OperationConstants.REINDEX);
@@ -63,8 +52,9 @@ public class ReindexTaskHandler extends AbstractSearchIterativeModelTaskHandler<
     }
 
     @Override
-    protected ReindexResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    protected ReindexResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult,
+            RunningTask coordinatorTask, OperationResult opResult) throws SchemaException, SecurityViolationException,
+            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, coordinatorTask, opResult);
         return new ReindexResultHandler(coordinatorTask, ReindexTaskHandler.class.getName(),
                 "reindex", "reindex", taskManager, repositoryService);

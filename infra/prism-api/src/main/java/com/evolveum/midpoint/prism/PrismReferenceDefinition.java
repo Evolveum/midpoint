@@ -32,9 +32,6 @@ public interface PrismReferenceDefinition extends ItemDefinition<PrismReference>
     @Override
     PrismReference instantiate(QName name);
 
-    @Override
-    ItemDelta createEmptyDelta(ItemPath path);
-
     @NotNull
     @Override
     PrismReferenceDefinition clone();

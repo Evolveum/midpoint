@@ -35,20 +35,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class AuditReindexTaskHandler implements TaskHandler {
 
-    static final Trace LOGGER = TraceManager.getTrace(AuditReindexTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AuditReindexTaskHandler.class);
 
     public static final String HANDLER_URI = ModelPublicConstants.AUDIT_REINDEX_TASK_HANDLER_URI;
 
     private static final String TASK_NAME = "AuditReindex";
 
-    private int maxResults = 20;
-    private int firstResult = 0;
+    private static final int BATCH_SIZE = 20;
 
-    @Autowired
-    protected AuditService auditService;
-
-    @Autowired
-    protected TaskManager taskManager;
+    @Autowired protected AuditService auditService;
+    @Autowired protected TaskManager taskManager;
 
     @PostConstruct
     private void initialize() {
@@ -95,6 +91,8 @@ public class AuditReindexTaskHandler implements TaskHandler {
                         e);
             }
             Map<String, Object> params = new HashMap<>();
+            int firstResult = 0;
+            int maxResults = BATCH_SIZE;
             while (true) {
                 params.put("setFirstResult", firstResult);
                 params.put("setMaxResults", maxResults);
@@ -151,7 +149,6 @@ public class AuditReindexTaskHandler implements TaskHandler {
         LOGGER.trace("{} run finished (task {}, run result {})", TASK_NAME, coordinatorTask, runResult);
 
         return runResult;
-
     }
 
     @Override
@@ -169,14 +166,12 @@ public class AuditReindexTaskHandler implements TaskHandler {
     }
 
     // TODO: copied from abstract search iterative handler
-    private TaskRunResult logErrorAndSetResult(TaskRunResult runResult, AuditResultHandler resultHandler,
+    private void logErrorAndSetResult(TaskRunResult runResult, AuditResultHandler resultHandler,
             String message, Throwable e, OperationResultStatus opStatus, TaskRunResultStatus status) {
         LOGGER.error("{}: {}: {}", TASK_NAME, message, e.getMessage(), e);
         runResult.getOperationResult().recordStatus(opStatus, message + ": " + e.getMessage(), e);
         runResult.setRunResultStatus(status);
         runResult.setProgress((long) resultHandler.getProgress());
-        return runResult;
-
     }
 
 }

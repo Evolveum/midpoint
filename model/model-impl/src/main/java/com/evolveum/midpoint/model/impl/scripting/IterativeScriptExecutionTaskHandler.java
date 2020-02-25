@@ -60,12 +60,8 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
     protected AbstractSearchIterativeResultHandler<ObjectType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
             OperationResult opResult) {
 
-        PrismProperty<ExecuteScriptType> executeScriptProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.SE_EXECUTE_SCRIPT);
-        if (executeScriptProperty == null || executeScriptProperty.getValue().getValue() == null ||
-                executeScriptProperty.getValue().getValue().getScriptingExpression() == null) {
-            throw new IllegalStateException("There's no script to be run in task " + coordinatorTask + " (property " + SchemaConstants.SE_EXECUTE_SCRIPT + ")");
-        }
-        ExecuteScriptType executeScriptRequestTemplate = executeScriptProperty.getRealValue();
+        ExecuteScriptType executeScriptRequestTemplate = getExecuteScriptRequest(coordinatorTask);
+
         if (executeScriptRequestTemplate.getInput() != null && !executeScriptRequestTemplate.getInput().getValue().isEmpty()) {
             LOGGER.warn("Ignoring input values in executeScript data in task {}", coordinatorTask);
         }
@@ -82,7 +78,8 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
                     LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
                     LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
                     result.computeStatus();
-                } catch (ScriptExecutionException | SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
+                } catch (ScriptExecutionException | SecurityViolationException | SchemaException | ObjectNotFoundException |
+                        ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
                     result.recordFatalError("Couldn't execute script: " + e.getMessage(), e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script", e);
                 }
@@ -91,6 +88,16 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
         };
         handler.setStopOnError(false);
         return handler;
+    }
+
+    static ExecuteScriptType getExecuteScriptRequest(RunningTask coordinatorTask) {
+        PrismProperty<ExecuteScriptType> executeScriptProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.SE_EXECUTE_SCRIPT);
+        if (executeScriptProperty != null && executeScriptProperty.getValue().getValue() != null &&
+                executeScriptProperty.getValue().getValue().getScriptingExpression() != null) {
+            return executeScriptProperty.getValue().getValue();
+        } else {
+            throw new IllegalStateException("There's no script to be run in task " + coordinatorTask + " (property " + SchemaConstants.SE_EXECUTE_SCRIPT + ")");
+        }
     }
 
     @Override

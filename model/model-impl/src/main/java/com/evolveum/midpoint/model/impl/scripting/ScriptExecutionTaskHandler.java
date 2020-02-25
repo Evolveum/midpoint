@@ -11,8 +11,6 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -36,7 +34,6 @@ import javax.annotation.PostConstruct;
 /**
  * @author mederly
  */
-
 @Component
 public class ScriptExecutionTaskHandler implements TaskHandler {
 
@@ -61,15 +58,10 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
         TaskRunResult runResult = new TaskRunResult();
 
-        PrismProperty<ExecuteScriptType> executeScriptProperty = task.getExtensionPropertyOrClone(SchemaConstants.SE_EXECUTE_SCRIPT);
-        if (executeScriptProperty == null || executeScriptProperty.getValue().getValue() == null ||
-                executeScriptProperty.getValue().getValue().getScriptingExpression() == null) {
-            throw new IllegalStateException("There's no script to be run in task " + task + " (property " + SchemaConstants.SE_EXECUTE_SCRIPT + ")");
-        }
-
+        ExecuteScriptType executeScriptRequest = IterativeScriptExecutionTaskHandler.getExecuteScriptRequest(task);
         try {
-            ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getRealValue(), VariablesMap.emptyMap(),
-                    true, task, result);
+            ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest,
+                    VariablesMap.emptyMap(), true, task, result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
             LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
             result.computeStatus();

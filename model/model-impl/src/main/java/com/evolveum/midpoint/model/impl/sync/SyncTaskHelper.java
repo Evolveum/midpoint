@@ -37,13 +37,14 @@ public class SyncTaskHelper {
     @Autowired private ProvisioningService provisioningService;
     @Autowired private PrismContext prismContext;
 
-    public class TargetInfo {
-        final public ResourceShadowDiscriminator coords;
-        final public ResourceType resource;
-        final public RefinedResourceSchema refinedResourceSchema;
-        final public ObjectClassComplexTypeDefinition objectClassDefinition;
+    @SuppressWarnings("FieldCanBeLocal")
+    public static class TargetInfo {
+        final ResourceShadowDiscriminator coords;
+        public final ResourceType resource;
+        private final RefinedResourceSchema refinedResourceSchema;
+        private final ObjectClassComplexTypeDefinition objectClassDefinition;
 
-        public TargetInfo(ResourceShadowDiscriminator coords, ResourceType resource,
+        private TargetInfo(ResourceShadowDiscriminator coords, ResourceType resource,
                 RefinedResourceSchema refinedResourceSchema, ObjectClassComplexTypeDefinition objectClassDefinition) {
             this.coords = coords;
             this.resource = resource;
@@ -80,7 +81,7 @@ public class SyncTaskHelper {
         }
 
         return new TargetInfo(
-                new ResourceShadowDiscriminator(resourceOid, objectClass==null?null:objectClass.getTypeName()),
+                new ResourceShadowDiscriminator(resourceOid, objectClass == null ? null : objectClass.getTypeName()),
                 resource, refinedSchema, objectClass);
     }
 
@@ -218,6 +219,7 @@ public class SyncTaskHelper {
 
         switch (criticality) {
             case PARTIAL:
+                //noinspection DuplicateBranchesInSwitch
                 runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR);
                 break;
             case FATAL:

@@ -405,9 +405,9 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             WorkBucketType workBucket, Task localCoordinatorTask, TaskWorkBucketProcessingResult runResult,
             OperationResult opResult) throws ExitWorkBucketHandlerException {
 
-        ObjectQuery query;
+        ObjectQuery queryFromHandler;
         try {
-            query = createQuery(resultHandler, runResult, localCoordinatorTask, opResult);
+            queryFromHandler = createQuery(resultHandler, runResult, localCoordinatorTask, opResult);
         } catch (SchemaException ex) {
             throw new ExitWorkBucketHandlerException(
                     logErrorAndSetResult(runResult, resultHandler, "Schema error while creating a search filter", ex,
@@ -415,15 +415,16 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         }
 
         LOGGER.trace("{}: using a query (before applying work bucket and evaluating expressions):\n{}", taskName,
-                DebugUtil.debugDumpLazily(query));
+                DebugUtil.debugDumpLazily(queryFromHandler));
 
-        if (query == null) {
+        if (queryFromHandler == null) {
             // the error should already be in the runResult
             throw new ExitWorkBucketHandlerException(runResult);
         }
 
+        ObjectQuery bucketNarrowedQuery;
         try {
-            query = taskManager.narrowQueryForWorkBucket(query, type,
+            bucketNarrowedQuery = taskManager.narrowQueryForWorkBucket(queryFromHandler, type,
                     getIdentifierDefinitionProvider(localCoordinatorTask, opResult), localCoordinatorTask,
                     workBucket, opResult);
         } catch (SchemaException | ObjectNotFoundException e) {
@@ -433,17 +434,18 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         }
 
         LOGGER.trace("{}: using a query (after applying work bucket, before evaluating expressions):\n{}", taskName,
-                DebugUtil.debugDumpLazily(query));
+                DebugUtil.debugDumpLazily(bucketNarrowedQuery));
 
+        ObjectQuery preprocessedQuery;
         try {
-            query = preProcessQuery(query, localCoordinatorTask, opResult);
+            preprocessedQuery = preProcessQuery(bucketNarrowedQuery, localCoordinatorTask, opResult);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             throw new ExitWorkBucketHandlerException(
                     logErrorAndSetResult(runResult, resultHandler, "Error while pre-processing search filter", e,
                             OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR));
         }
 
-        return query;
+        return preprocessedQuery;
     }
 
     private H setupHandler(TaskPartitionDefinitionType partition, TaskWorkBucketProcessingResult runResult, RunningTask localCoordinatorTask, OperationResult opResult)
@@ -587,24 +589,23 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         QueryType queryFromTask = getObjectQueryTypeFromTask(task);
         if (queryFromTask != null) {
             ObjectQuery query = prismContext.getQueryConverter().createObjectQuery(objectType, queryFromTask);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Using object query from the task:\n{}", query.debugDump(1));
-            }
+            LOGGER.trace("Using object query from the task:\n{}", query.debugDumpLazily(1));
             return query;
         } else {
             return null;
         }
     }
 
-    protected QueryType getObjectQueryTypeFromTask(Task task) {
+    private QueryType getObjectQueryTypeFromTask(Task task) {
         QueryType queryType = getObjectQueryTypeFromTaskObjectRef(task);
         if (queryType != null) {
             return queryType;
+        } else {
+            return getObjectQueryTypeFromTaskExtension(task);
         }
-        return getObjectQueryTypeFromTaskExtension(task);
     }
 
-    protected QueryType getObjectQueryTypeFromTaskObjectRef(Task task) {
+    private QueryType getObjectQueryTypeFromTaskObjectRef(Task task) {
         ObjectReferenceType objectRef = task.getObjectRefOrClone();
         if (objectRef == null) {
             return null;

@@ -139,7 +139,6 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
             objectclassProp.setRealValue(objectclass);
             task.setExtensionProperty(objectclassProp);
             task.flushPendingModifications(result);        // just to be sure (if the task was already persistent)
-//          task.modify(modifications, result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
             result.recordFatalError("Task object not found", e);
@@ -167,19 +166,16 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     @Override
     protected SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask,
             OperationResult opResult) {
-
         ResourceType resource = resolveObjectRef(ResourceType.class, runResult, coordinatorTask, opResult);
         if (resource == null) {
             return null;
         }
-
         return createHandler(partition, resource, null, runResult, coordinatorTask, opResult);
     }
 
     // shadowToImport - it is used to derive objectClass/intent/kind when importing a single shadow
     private SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, ResourceType resource, PrismObject<ShadowType> shadowToImport,
             TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult) {
-
         ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, shadowToImport, runResult, coordinatorTask, opResult);
         if (objectClass == null) {
             return null;
@@ -242,9 +238,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         try {
             refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Refined schema:\n{}", refinedSchema.debugDump());
-            }
+            LOGGER.trace("Refined schema:\n{}", refinedSchema.debugDumpLazily());
 
             if (shadowToImport != null) {
                 objectClass = ModelImplUtils.determineObjectClass(refinedSchema, shadowToImport);
@@ -332,13 +326,11 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         // This is required for proper error reporting
         resultHandler.setStopOnError(true);
 
-        boolean cont = initializeRun(resultHandler, runResult, task, parentResult);
-        if (!cont) {
+        if (!initializeRun(resultHandler, runResult, task, parentResult)) {
             return false;
         }
 
-        cont = resultHandler.handle(shadow, parentResult);
-        if (!cont) {
+        if (!resultHandler.handle(shadow, parentResult)) {
             return false;
         }
 

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -77,7 +78,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
         }
 
         TaskPartitionsDefinitionType partitionsDefinition = task.getWorkManagement().getPartitions();
-        List<TaskPartitionDefinitionType> partitions = partitionsDefinition.getPartition();
+        List<TaskPartitionDefinitionType> partitions = new ArrayList<>(partitionsDefinition.getPartition());
         Comparator<TaskPartitionDefinitionType> comparator =
                 (partition1, partition2) -> {
 
@@ -104,7 +105,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
         partitions.sort(comparator);
 
         Iterator<TaskPartitionDefinitionType> partitionsIterator = partitions.iterator();
-        while(partitionsIterator.hasNext()) {
+        while (partitionsIterator.hasNext()) {
             TaskPartitionDefinitionType partition = partitionsIterator.next();
             TaskHandler handler = taskManager.getHandler(partition.getHandlerUri());
             LOGGER.trace("Starting to execute handler {} defined in partition {}", handler, partition);
@@ -135,32 +136,6 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
             }
 
         }
-
-//        for (TaskPartitionDefinitionType partition : partitions) {
-//            TaskHandler handler = taskManager.getHandler(partition.getHandlerUri());
-//            LOGGER.trace("Starting to execute handler {} defined in partition {}", handler, partition);
-//            TaskRunResult subHandlerResult = handlerExecutor.executeHandler((RunningTaskQuartzImpl) task, partition, handler, opResult);
-//            OperationResult subHandlerOpResult = subHandlerResult.getOperationResult();
-//            opResult.addSubresult(subHandlerOpResult);
-//            runResult = subHandlerResult;
-//            runResult.setProgress(task.getProgress());
-//
-//            if (!canContinue(task, subHandlerResult)) {
-//                break;
-//            }
-//
-//            if (subHandlerOpResult.isError()) {
-//                break;
-//            }
-//
-//            try {
-//                LOGGER.trace("Cleaning up work state in task {}, workState: {}", task, task.getWorkState());
-//                cleanupWorkState(task, runResult.getOperationResult());
-//            } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
-//                LOGGER.error("Unexpected error during cleaning work state: " + e.getMessage(), e);
-//                throw new IllegalStateException(e);
-//            }
-//        }
 
         runResult.setProgress(runResult.getProgress() + 1);
         opResult.computeStatusIfUnknown();
