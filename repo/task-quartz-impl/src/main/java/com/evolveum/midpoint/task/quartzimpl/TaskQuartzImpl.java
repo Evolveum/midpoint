@@ -26,7 +26,6 @@ import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -2327,12 +2326,6 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
         return taskManager.resolveTasksFromTaskTypes(listPrerequisiteTasksRaw(result), result);
     }
-
-    @Override
-    public void pushWaitForTasksHandlerUri() {
-        pushHandlerUri(WaitForTasksTaskHandler.HANDLER_URI, new ScheduleType(), null);
-    }
-
 
     @Override
     public void close(OperationResult taskResult, boolean saveState, OperationResult parentResult)

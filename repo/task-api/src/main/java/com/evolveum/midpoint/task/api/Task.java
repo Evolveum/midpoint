@@ -811,19 +811,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     void startWaitingForTasksImmediate(OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-    /**
-     * There is a special "marker" task handler (@see WaitForTasksTaskHandler) that, when executed, causes
-     * current task to wait for its prerequisities. It is used on occasions where you want the task to execute
-     * something (handler1), then wait for subtasks, then e.g. execute something other (handler2). Therefore the
-     * stack will look like this:
-     *
-     * - handler1
-     * - WaitForTasksTaskHandler
-     * - handler2
-     */
-    @SuppressWarnings("unused")
-    void pushWaitForTasksHandlerUri();
-
     // ====================================================================================== Supplementary information
 
     /**
