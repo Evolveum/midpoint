@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -77,7 +78,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
         }
 
         TaskPartitionsDefinitionType partitionsDefinition = task.getWorkManagement().getPartitions();
-        List<TaskPartitionDefinitionType> partitions = partitionsDefinition.getPartition();
+        List<TaskPartitionDefinitionType> partitions = new ArrayList<>(partitionsDefinition.getPartition());
         Comparator<TaskPartitionDefinitionType> comparator =
                 (partition1, partition2) -> {
 
