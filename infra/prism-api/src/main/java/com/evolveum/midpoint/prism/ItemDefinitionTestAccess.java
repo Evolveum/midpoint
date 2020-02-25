@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * TEMPORARY HACK to avoid issues with schema immutability for some tests.
@@ -18,6 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
  *
  * TODO Remove this interface eventually.
  */
+@VisibleForTesting
 public interface ItemDefinitionTestAccess {
 
     void replaceName(ItemName newName);
