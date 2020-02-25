@@ -37,8 +37,6 @@ import java.util.Collection;
  * The purpose of this task is to detect and optionally fix anomalies in repository objects.
  *
  * However, currently its only function is to display information about objects size.
- *
- * @author Pavol Mederly
  */
 @Component
 public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeModelTaskHandler<ObjectType, ObjectIntegrityCheckResultHandler> {

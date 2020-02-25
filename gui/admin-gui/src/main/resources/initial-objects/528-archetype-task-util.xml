@@ -4,16 +4,16 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<archetype oid="00000000-0000-0000-0000-000000000521"
+<archetype oid="00000000-0000-0000-0000-000000000528"
            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>Approval-related task</name>
+    <name>Utility task</name>
     <archetypePolicy>
         <display>
-            <label>Approval-related task</label>
-            <pluralLabel>Approval-related tasks</pluralLabel>
+            <label>Utility task</label>
+            <pluralLabel>Utility tasks</pluralLabel>
             <icon>
-                <cssClass>fa fe-case-object</cssClass>
+                <cssClass>fa fa-people-carry</cssClass>
                 <color>green</color>
             </icon>
         </display>
@@ -29,20 +29,7 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/workflow/operation-execution/handler-3</value>
-                </expression>
-                <target>
-                    <c:path>handlerUri</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>Workflow</value>
+                    <value>Utility</value>
                 </expression>
                 <target>
                     <c:path>category</c:path>

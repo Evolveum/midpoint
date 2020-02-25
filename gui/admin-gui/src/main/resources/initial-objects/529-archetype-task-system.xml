@@ -7,11 +7,11 @@
 <archetype oid="00000000-0000-0000-0000-000000000529"
            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>Utility task</name>
+    <name>System task</name>
     <archetypePolicy>
         <display>
-            <label>Utility task</label>
-            <pluralLabel>Utility tasks</pluralLabel>
+            <label>System task</label>
+            <pluralLabel>System tasks</pluralLabel>
             <icon>
                 <cssClass>fa fa-people-carry</cssClass>
                 <color>green</color>
@@ -29,7 +29,7 @@
             <mapping>
                 <strength>weak</strength>
                 <expression>
-                    <value>Utility</value>
+                    <value>System</value>
                 </expression>
                 <target>
                     <c:path>category</c:path>
