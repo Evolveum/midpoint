@@ -167,11 +167,6 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
         return "Ent";
     }
 
-    @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
     public boolean isAssignableFrom(JpaEntityDefinition specificEntityDefinition) {
         return getJpaClass().isAssignableFrom(specificEntityDefinition.getJpaClass());
     }
