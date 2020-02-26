@@ -72,11 +72,6 @@ public class TestPolicyRules extends AbstractLensTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         InternalMonitor.reset();
-//        InternalMonitor.setTraceShadowFetchOperation(true);
-
-//        DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
-
-//        setPredefinedTestMethodTracing(MODEL_LOGGING);
     }
 
     @Test
@@ -105,7 +100,6 @@ public class TestPolicyRules extends AbstractLensTest {
         TestUtil.assertSuccess(result);
 
         dumpPolicyRules(context);
-        //dumpPolicySituations(context);
 
         assertEvaluatedTargetPolicyRules(context, 7);
         assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 2);
@@ -141,7 +135,6 @@ public class TestPolicyRules extends AbstractLensTest {
         TestUtil.assertSuccess(result);
 
         dumpPolicyRules(context);
-        //dumpPolicySituations(context);
 
         assertEvaluatedTargetPolicyRules(context, 4);
         assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 0);
@@ -239,10 +232,6 @@ public class TestPolicyRules extends AbstractLensTest {
 
         assertAssignAccountToJack(context);
 
-//        DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple =
-//                (DeltaSetTriple)context.getEvaluatedAssignmentTriple();
-//        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
-
         dumpPolicyRules(context);
         dumpPolicySituations(context);
         assertEvaluatedTargetPolicyRules(context, 7);
@@ -275,10 +264,6 @@ public class TestPolicyRules extends AbstractLensTest {
         TestUtil.assertSuccess(result);
 
         assertAssignAccountToJack(context);
-
-//        DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple =
-//                (DeltaSetTriple)context.getEvaluatedAssignmentTriple();
-//        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
         dumpPolicyRules(context);
         dumpPolicySituations(context);
@@ -323,10 +308,6 @@ public class TestPolicyRules extends AbstractLensTest {
 
         assertAssignAccountToJack(context);
 
-//        DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple =
-//                (DeltaSetTriple)context.getEvaluatedAssignmentTriple();
-//        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
-
         dumpPolicyRules(context);
         dumpPolicySituations(context);
         List<EvaluatedPolicyRule> evaluatedRules = assertEvaluatedTargetPolicyRules(context, 7);
@@ -366,17 +347,9 @@ public class TestPolicyRules extends AbstractLensTest {
 
         display("Output context", context);
 
-//        DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple =
-//                (DeltaSetTriple)context.getEvaluatedAssignmentTriple();
-//        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
-
         dumpPolicyRules(context);
         dumpPolicySituations(context);
         assertEvaluatedTargetPolicyRules(context, 8);
-        // conflicting assignment was pruned, so the exclusion is no longer present here
-//        EvaluatedExclusionTrigger trigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, null, PolicyConstraintKindType.EXCLUSION, 1, true);
-//        assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
-//        assertEquals("Wrong conflicting assignment in trigger", ROLE_JUDGE_OID, trigger.getConflictingAssignment().getTarget().getOid());
 
         ObjectDelta<UserType> focusSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         PrismAsserts.assertIsModify(focusSecondaryDelta);
@@ -497,9 +470,6 @@ public class TestPolicyRules extends AbstractLensTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-//        DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-        //display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
-
         dumpPolicyRules(context);
         dumpPolicySituations(context);
 
@@ -540,9 +510,6 @@ public class TestPolicyRules extends AbstractLensTest {
         displayThen();
         result.computeStatus();
         TestUtil.assertSuccess(result);
-
-//        DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-        //display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
         dumpPolicyRules(context);
         dumpPolicySituations(context);
@@ -646,7 +613,6 @@ public class TestPolicyRules extends AbstractLensTest {
         TestUtil.assertSuccess(result);
 
         dumpPolicyRules(context);
-        //dumpPolicySituations(context);
 
         Locale SLOVAK = Locale.forLanguageTag("sk-SK");
         assertNotNull("No Slovak locale", SLOVAK);
