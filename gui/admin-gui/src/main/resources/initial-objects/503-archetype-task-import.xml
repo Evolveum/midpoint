@@ -14,7 +14,7 @@
             <label>Import task</label>
             <pluralLabel>Import tasks</pluralLabel>
             <icon>
-                <cssClass>fa fa-cogs</cssClass>
+                <cssClass>fa fa-upload</cssClass>
                 <color>green</color>
             </icon>
         </display>

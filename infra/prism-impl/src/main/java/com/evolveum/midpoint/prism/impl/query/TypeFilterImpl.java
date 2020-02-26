@@ -80,7 +80,7 @@ public class TypeFilterImpl extends ObjectFilterImpl implements TypeFilter {
                 LOGGER.trace("Parent of {} is not a PrismContainer, returning false; it is {}", value, value.getParent());
                 return false;
             }
-            PrismContainer container = (PrismContainer) value.getParent();
+            PrismContainer<?> container = (PrismContainer<?>) value.getParent();
             PrismContainerDefinition pcd = container.getDefinition();
             if (pcd == null) {
                 LOGGER.trace("Parent of {} has no definition, returning false", value);

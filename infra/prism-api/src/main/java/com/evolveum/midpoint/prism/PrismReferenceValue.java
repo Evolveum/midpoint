@@ -111,10 +111,6 @@ public interface PrismReferenceValue extends PrismValue, ShortDumpable {
 
     PrismReferenceDefinition getDefinition();
 
-    boolean isRaw();
-
-    Object find(ItemPath path);
-
     <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
     @Override
@@ -122,35 +118,13 @@ public interface PrismReferenceValue extends PrismValue, ShortDumpable {
 
     void applyDefinition(PrismReferenceDefinition definition, boolean force) throws SchemaException;
 
-    void recompute(PrismContext prismContext);
-
-    @Override
-    void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope);
-
-    boolean isEmpty();
-
     /**
      * Returns a version of this value that is canonical, that means it has the minimal form.
      * E.g. it will have only OID and no object.
      */
     PrismReferenceValue toCanonical();
 
-    @Override
-    boolean equals(Object obj);
-
-    @Override
-    int hashCode();
-
-    @Override
-    String toString();
-
     Referencable asReferencable();
-
-    @Override
-    String debugDump();
-
-    @Override
-    String debugDump(int indent);
 
     String debugDump(int indent, boolean expandObject);
 
@@ -163,8 +137,6 @@ public interface PrismReferenceValue extends PrismValue, ShortDumpable {
     @Override
     PrismReferenceValue cloneComplex(CloneStrategy strategy);
 
-    String toHumanReadableString();
-
     @Override
     Class<?> getRealClass();
 
@@ -172,10 +144,4 @@ public interface PrismReferenceValue extends PrismValue, ShortDumpable {
     @Nullable
     @Override
     Referencable getRealValue();
-
-    @Override
-    void revive(PrismContext prismContext) throws SchemaException;
-
-    @Override
-    void shortDump(StringBuilder sb);
 }

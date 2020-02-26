@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.prism;
 
-import org.jvnet.jaxb2_commons.lang.ToString;
 
 /**
  *  Something that can be made immutable.

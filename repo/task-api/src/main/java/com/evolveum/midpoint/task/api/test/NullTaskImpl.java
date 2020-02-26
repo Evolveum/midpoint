@@ -621,11 +621,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void pushWaitForTasksHandlerUri() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Long getCompletionTimestamp() {
         throw new UnsupportedOperationException();
     }

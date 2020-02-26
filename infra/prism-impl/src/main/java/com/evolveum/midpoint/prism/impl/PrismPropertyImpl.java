@@ -229,12 +229,6 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
         addValue(new PrismPropertyValueImpl<>(valueToAdd), false);
     }
 
-    public void addRealValues(T... valuesToAdd) {
-        for (T valueToAdd : valuesToAdd) {
-            addRealValue(valueToAdd);
-        }
-    }
-
     public boolean deleteValues(Collection<PrismPropertyValue<T>> pValuesToDelete) {
         checkMutable();
         boolean changed = false;
