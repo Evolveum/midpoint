@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.prism;
 
-import org.testng.AssertJUnit;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author semancik
- *
  */
 public class PerfRecorder {
 
@@ -18,16 +17,16 @@ public class PerfRecorder {
     private int count = 0;
     private Double min = null;
     private Double max = null;
-    private Double sum = 0D;
+    private double sum = 0d;
 
     public PerfRecorder(String name) {
         super();
         this.name = name;
     }
 
-    public void record(int index, Double value) {
+    public void record(int index, double value) {
         sum += value;
-        count ++;
+        count++;
         if (min == null || value < min) {
             min = value;
         }
@@ -53,20 +52,25 @@ public class PerfRecorder {
     }
 
     public double getAverage() {
-        return sum/count;
+        return sum / count;
     }
 
     public void assertAverageBelow(double expected) {
-        AssertJUnit.assertTrue(name+ ": Expected average below "+expected+" but was "+getAverage(), getAverage() < expected);
+        assertThat(getAverage())
+                .as("average for %s", name)
+                .isLessThan(expected);
+        // remove in 2022 if everybody's happy: original without AssertJ
+//        AssertJUnit.assertTrue(name + ": Expected average below " + expected + " but was " + getAverage(), getAverage() < expected);
     }
 
     public void assertMaxBelow(double expected) {
-        AssertJUnit.assertTrue(name+ ": Expected maximum below "+expected+" but was "+max, max < expected);
+        assertThat(max)
+                .as("maximum for %s", name)
+                .isLessThan(expected);
     }
-
 
     public String dump() {
-        return name + ": min / avg / max = "+min+" / "+getAverage()+" / "+max + " (sum="+sum+", count="+count+")";
+        return name + ": min / avg / max = " + min + " / " + getAverage() + " / " + max
+                + " (sum=" + sum + ", count=" + count + ")";
     }
-
 }
