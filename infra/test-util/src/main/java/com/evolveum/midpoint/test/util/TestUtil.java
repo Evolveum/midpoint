@@ -66,6 +66,8 @@ public class TestUtil {
     public static final String TEST_LOG_SUFFIX = " ]======================================";
     public static final String TEST_OUT_PREFIX = "\n\n=====[ ";
     public static final String TEST_OUT_SUFFIX = " ]======================================\n";
+    public static final String TEST_OUT_FOOTER_PREFIX = "====== ";
+    public static final String TEST_OUT_FOOTER_SUFFIX = "\n";
     public static final String TEST_OUT_SECTION_PREFIX = "\n\n----- ";
     public static final String TEST_OUT_SECTION_SUFFIX = " --------------------------------------\n";
     public static final String TEST_LOG_SECTION_PREFIX = "----- ";
@@ -173,8 +175,8 @@ public class TestUtil {
     }
 
     public static void displayFooter(String footerText) {
-        System.out.println(TEST_OUT_PREFIX + footerText);
-        LOGGER.info(TEST_LOG_PREFIX + footerText);
+        System.out.println(TEST_OUT_FOOTER_PREFIX + footerText + TEST_OUT_FOOTER_SUFFIX);
+        LOGGER.info(TEST_LOG_PREFIX + footerText + TEST_LOG_SUFFIX);
     }
 
     public static void displayWhen(String testName) {
