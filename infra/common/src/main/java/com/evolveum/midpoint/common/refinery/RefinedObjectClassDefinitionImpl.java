@@ -1183,10 +1183,6 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     //endregion
 
     //region Diagnostic output, hashCode/equals =========================================================
-    @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
 
     @Override
     public String debugDump(int indent) {

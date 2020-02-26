@@ -285,11 +285,6 @@ public final class ObjectPagingImpl implements ObjectPaging {
     }
 
     @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
-    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         sb.append("Paging:");
