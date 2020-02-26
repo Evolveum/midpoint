@@ -328,7 +328,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
         } else if (ExpressionConstants.VAR_USER.equals(varName)) {
             return model.resolveRepositoryItem(UserType.class, itemPath);
         } else if (ExpressionConstants.VAR_ACTOR.equals(varName)) {
-            return model.resolveRepositoryItem(UserType.class, itemPath);            // TODO
+            return model.resolveRepositoryItem(FocusType.class, itemPath);            // TODO
         } else if (ExpressionConstants.VAR_FOCUS.equals(varName)) {
             Class<? extends ObjectType> guessedClass = guessFocusClass(currentItem.getResourceOid(), currentItem.getKind(), currentItem.getIntent());
             DataItem item = model.resolveRepositoryItem(guessedClass, itemPath);
@@ -385,7 +385,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
         } else if (ExpressionConstants.VAR_USER.equals(varName)) {
             return model.resolveRepositoryItem(UserType.class, itemPath);
         } else if (ExpressionConstants.VAR_ACTOR.equals(varName)) {
-            return model.resolveRepositoryItem(UserType.class, itemPath);            // TODO
+            return model.resolveRepositoryItem(FocusType.class, itemPath);            // TODO
         } else if (ExpressionConstants.VAR_FOCUS.equals(varName)) {
             Class<? extends ObjectType> guessedClass = guessFocusClass(currentItem.getResourceOid(), currentItem.getKind(), currentItem.getIntent());
             DataItem item = model.resolveRepositoryItem(guessedClass, itemPath);

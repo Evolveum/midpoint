@@ -20,15 +20,13 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.access.AccessDeniedHandlerImpl;
-import org.springframework.security.web.csrf.CsrfException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -62,7 +60,7 @@ public class AuditedAccessDeniedHandler<SecurityHelper> extends MidpointAccessDe
 
     private void auditEvent(HttpServletRequest request, Authentication authentication, AccessDeniedException accessDeniedException) {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser(authentication);
-        PrismObject<UserType> user = principal != null ? principal.getUser().asPrismObject() : null;
+        PrismObject<? extends FocusType> user = principal != null ? principal.getFocus().asPrismObject() : null;
 
         String channel = SchemaConstants.CHANNEL_GUI_USER_URI;
         if (authentication instanceof MidpointAuthentication

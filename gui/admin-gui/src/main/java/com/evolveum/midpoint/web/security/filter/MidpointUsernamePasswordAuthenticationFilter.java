@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,5 +49,30 @@ public class MidpointUsernamePasswordAuthenticationFilter extends UsernamePasswo
 
     public boolean isPostOnly() {
         return postOnly;
+    }
+
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+        if (isPostOnly() && !request.getMethod().equals("POST")) {
+            throw new AuthenticationServiceException("Authentication method not supported: " + request.getMethod());
+        } else {
+            String username = this.obtainUsername(request);
+            String password = this.obtainPassword(request);
+            if (username == null) {
+                username = "";
+            }
+
+            if (password == null) {
+                password = "";
+            }
+
+            username = username.trim();
+            UsernamePasswordAuthenticationToken authRequest = createAuthenticationToken(username, password);
+            this.setDetails(request, authRequest);
+            return this.getAuthenticationManager().authenticate(authRequest);
+        }
+    }
+
+    protected UsernamePasswordAuthenticationToken createAuthenticationToken(String username, String password) {
+        return new UsernamePasswordAuthenticationToken(username, password);
     }
 }

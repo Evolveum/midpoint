@@ -17,9 +17,9 @@ public abstract class AbstractScannerResultHandler<O extends ObjectType> extends
         AbstractSearchIterativeResultHandler<O> {
 
     protected XMLGregorianCalendar lastScanTimestamp;
-    protected XMLGregorianCalendar thisScanTimestamp;
+    private XMLGregorianCalendar thisScanTimestamp;
 
-    public AbstractScannerResultHandler(RunningTask coordinatorTask, String taskOperationPrefix,
+    protected AbstractScannerResultHandler(RunningTask coordinatorTask, String taskOperationPrefix,
             String processShortName, String contextDesc, TaskManager taskManager) {
         super(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, taskManager);
     }
@@ -36,10 +36,7 @@ public abstract class AbstractScannerResultHandler<O extends ObjectType> extends
         return thisScanTimestamp;
     }
 
-    public void setThisScanTimestamp(XMLGregorianCalendar thisScanTimestamp) {
+    void setThisScanTimestamp(XMLGregorianCalendar thisScanTimestamp) {
         this.thisScanTimestamp = thisScanTimestamp;
     }
-
-
-
 }

@@ -23,6 +23,18 @@
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 
+    <xsd:complexType name="TaskExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:TaskType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:reportParam" minOccurs="0"/>
+            <xsd:element ref="tns:reportOutputOid" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:element name="reportParam" type="c:ReportParameterType">
         <xsd:annotation>
             <xsd:appinfo>

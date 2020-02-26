@@ -46,7 +46,6 @@
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-xjc</artifactId>
-            <!--             <version>${jaxb-xjc.version}</version> -->
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
@@ -114,15 +113,6 @@
             <groupId>org.jvnet.jaxb2_commons</groupId>
             <artifactId>jaxb2-basics-runtime</artifactId>
         </dependency>
-        <!--        <dependency>-->
-        <!--            &lt;!&ndash; make this dependency explicit to detect conflicts with older versions &ndash;&gt;-->
-        <!--          <groupId>org.codehaus.woodstox</groupId>-->
-        <!--          <artifactId>stax2-api</artifactId>-->
-        <!--        </dependency>-->
-        <dependency>
-            <groupId>stax</groupId>
-            <artifactId>stax-api</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.codehaus.staxmate</groupId>
             <artifactId>staxmate</artifactId>
@@ -155,6 +145,11 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -53,7 +53,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
     private static final String ID_REMOVE_BUTTON = "removeButton";
     private static final String ID_BUTTON_CONTAINER = "buttonContainer";
 
-    private ItemPanelSettings itemPanelSettings;
+    protected ItemPanelSettings itemPanelSettings;
 
 
     public ItemPanel(String id, IModel<IW> model, ItemPanelSettings itemPanelSettings) {
@@ -103,7 +103,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
                 GuiComponentFactory componentFactory = getPageBase().getRegistry()
                         .findValuePanelFactory(ItemPanel.this.getModelObject());
 
-                Component panel = createValuePanel(item, componentFactory, getVisibilityHandler());
+                Component panel = createValuePanel(item, componentFactory, getVisibilityHandler(), getEditabilityHandler());
 //                panel.add(getEnableBehaviourOfValuePanel(ItemPanel.this.getModelObject()));
                 createButtons(item);
             }
@@ -122,7 +122,8 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 
     // VALUE REGION
 
-     protected abstract Component createValuePanel(ListItem<VW> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler);
+     protected abstract Component createValuePanel(ListItem<VW> item, GuiComponentFactory componentFactory,
+             ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler);
 
      protected void createButtons(ListItem<VW> item) {
          WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);
@@ -198,7 +199,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
         }
 
       protected String getItemCssClass() {
-            return " col-md-offset-2 prism-value ";
+            return " col-sm-offset-0 col-md-offset-4 col-lg-offset-2 prism-value ";
         }
 
      protected void addValue(AjaxRequestTarget target) {
@@ -280,11 +281,18 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
             return !ValueStatus.DELETED.equals(value.getStatus());
         }
 
-     public ItemVisibilityHandler getVisibilityHandler() {
-         if (itemPanelSettings == null) {
-             return null;
+    public ItemVisibilityHandler getVisibilityHandler() {
+        if (itemPanelSettings == null) {
+            return null;
         }
-         return itemPanelSettings.getVisibilityHandler();
+        return itemPanelSettings.getVisibilityHandler();
+    }
+
+    public ItemEditabilityHandler getEditabilityHandler() {
+        if (itemPanelSettings == null) {
+            return null;
+        }
+        return itemPanelSettings.getEditabilityHandler();
     }
 
     protected boolean isShowOnTopLevel() {

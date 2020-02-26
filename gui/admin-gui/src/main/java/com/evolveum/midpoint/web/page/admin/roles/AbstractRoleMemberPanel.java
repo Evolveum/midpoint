@@ -26,10 +26,13 @@ import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.dialog.ConfigureTaskConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -87,6 +90,10 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePa
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+
+import org.apache.wicket.model.StringResourceModel;
+
+import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extends BasePanel<R> {
 
@@ -521,12 +528,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                         };
                     }
 
-                    @Override
-                    public IModel<String> getConfirmationMessageModel() {
-                        return getMemberTable().getSelectedObjectsCount() > 0 ?
-                                createStringResource("abstractRoleMemberPanel.recomputeSelectedMembersConfirmationLabel")
-                                : createStringResource("abstractRoleMemberPanel.recomputeAllMembersConfirmationLabel");
-                    }
+//                    @Override
+//                    public IModel<String> getConfirmationMessageModel() {
+//                        return getMemberTable().getSelectedObjectsCount() > 0 ?
+//                                createStringResource("abstractRoleMemberPanel.recomputeSelectedMembersConfirmationLabel")
+//                                : createStringResource("abstractRoleMemberPanel.recomputeAllMembersConfirmationLabel");
+//                    }
 
                     @Override
                     public String getButtonIconCssClass() {
@@ -973,7 +980,35 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     protected void recomputeMembersPerformed(AjaxRequestTarget target) {
-        MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(true), getActionQuery(getQueryScope(true), getSupportedRelations().getAvailableRelationList()), target);
+
+        StringResourceModel confirmModel = getMemberTable().getSelectedObjectsCount() > 0 ?
+                createStringResource("abstractRoleMemberPanel.recomputeSelectedMembersConfirmationLabel")
+                : createStringResource("abstractRoleMemberPanel.recomputeAllMembersConfirmationLabel");
+
+        ConfigureTaskConfirmationPanel dialog = new ConfigureTaskConfirmationPanel(((PageBase)getPage()).getMainPopupBodyId(),
+                confirmModel) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected PrismObject<TaskType> getTask(AjaxRequestTarget target) {
+                Task task = MemberOperationsHelper.createRecomputeMembersTask(getPageBase(), getQueryScope(true),
+                        getActionQuery(getQueryScope(true), getSupportedRelations().getAvailableRelationList()), target);
+                return task.getClonedTaskObject();
+            }
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("pageUsers.message.confirmActionPopupTitle");
+            }
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(true),
+                        getActionQuery(getQueryScope(true), getSupportedRelations().getAvailableRelationList()), target);
+            }
+        };
+        ((PageBase)getPage()).showMainPopup(dialog, target);
     }
 
     protected ObjectQuery createContentQuery() {

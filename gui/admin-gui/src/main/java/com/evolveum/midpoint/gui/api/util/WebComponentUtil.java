@@ -27,7 +27,7 @@ import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.*;
@@ -54,6 +54,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -536,7 +537,7 @@ public final class WebComponentUtil {
      */
     @Deprecated
     public static CompiledObjectCollectionView getDefaultGuiObjectListType(PageBase pageBase) {
-        return pageBase.getCompiledUserProfile().getDefaultObjectCollectionView();
+        return pageBase.getCompiledGuiProfile().getDefaultObjectCollectionView();
     }
 
     public enum Channel {
@@ -611,7 +612,7 @@ public final class WebComponentUtil {
 
         ObjectReferenceType ownerRef = new ObjectReferenceType();
         ownerRef.setOid(owner.getOid());
-        ownerRef.setType(owner.getUser().COMPLEX_TYPE);
+        ownerRef.setType(owner.getFocus().COMPLEX_TYPE);
         task.setOwnerRef(ownerRef);
 
         task.setBinding(TaskBindingType.LOOSE);
@@ -653,11 +654,11 @@ public final class WebComponentUtil {
         pageBase.getScriptingService().evaluateIterativeExpressionInBackground(script, task, result);
     }
 
-    public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
+    public static Task createMemberOperationTask(Task operationalTask, QName type, ObjectQuery memberQuery,
             ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase) throws SchemaException {
 
         MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
-        operationalTask.setOwner(owner.getUser().asPrismObject());
+        operationalTask.setOwner(owner.getFocus().asPrismObject());
 
         operationalTask.setBinding(TaskBinding.LOOSE);
         operationalTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
@@ -689,26 +690,28 @@ public final class WebComponentUtil {
         }
 
         try {
-            iterativeExecuteBulkAction(pageBase, script, operationalTask, parentResult);
-            parentResult.recordInProgress();
-            parentResult.setBackgroundTaskOid(operationalTask.getOid());
-            pageBase.showResult(parentResult);
+            pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(),
+                    null, AuthorizationParameters.EMPTY, null, operationalTask, parentResult);
+            operationalTask.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, script);
+            operationalTask.setHandlerUri(ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI);
+            return operationalTask;
         } catch (ObjectNotFoundException | SchemaException
-            | ExpressionEvaluationException | CommunicationException | ConfigurationException
-            | SecurityViolationException e) {
-            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.submit").getString(), e);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
+                | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                | SecurityViolationException e) {
+            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.createTask").getString(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create bulk action task", e);
         }
+        return null;
+    }
 
-//        ModelExecuteOptions options = TaskCategory.EXECUTE_CHANGES.equals(category)
-//                ? ModelExecuteOptions.createReconcile()        // This was originally in ExecuteChangesTaskHandler, now it's transferred through task extension.
-//                : null;
-//        TaskType task = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation()+2, type,
-//                memberQuery, null, null, TaskCategory.BULK_ACTIONS, pageBase);
-//        PrismObject<TaskType> prismTask = task.asPrismObject();
-//        prismTask.findOrCreateProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SE_EXECUTE_SCRIPT)).setRealValue(script);
-//
-//        WebModelServiceUtils.runTask(task, operationalTask, parentResult, pageBase);
+    public static void executeMemberOperation(Task operationalTask, OperationResult parentResult, PageBase pageBase) {
+
+        OperationResult result = parentResult.createSubresult("evaluateExpressionInBackground");
+        pageBase.getTaskManager().switchToBackground(operationalTask, result);
+        result.computeStatus();
+        parentResult.recordInProgress();
+        parentResult.setBackgroundTaskOid(operationalTask.getOid());
+        pageBase.showResult(parentResult);
     }
 
     public static boolean isAuthorized(String... action) {
@@ -1693,7 +1696,7 @@ public final class WebComponentUtil {
     }
 
     public static String getShortDateTimeFormat(PageBase pageBase){
-        AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledUserProfile().getDisplayFormats();
+        AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledGuiProfile().getDisplayFormats();
         if (displayFormats == null || StringUtils.isEmpty(displayFormats.getShortDateTimeFormat())){
             return DateLabelComponent.SHORT_MEDIUM_STYLE;
         } else {
@@ -1702,7 +1705,7 @@ public final class WebComponentUtil {
     }
 
     public static String getLongDateTimeFormat(PageBase pageBase){
-        AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledUserProfile().getDisplayFormats();
+        AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledGuiProfile().getDisplayFormats();
         if (displayFormats == null || StringUtils.isEmpty(displayFormats.getLongDateTimeFormat())){
             return DateLabelComponent.LONG_MEDIUM_STYLE;
         } else {
@@ -3778,7 +3781,7 @@ public final class WebComponentUtil {
     public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase){
         Task task = pageBase.createSimpleTask(pageBase.getClass().getName() + "." + "saveSyncTask");
 
-        PrismProperty property = oldTask.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
+        PrismProperty<?> property = oldTask.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
 
         if(property == null){
             return;
@@ -4185,7 +4188,7 @@ public final class WebComponentUtil {
     }
 
     public static boolean isRefreshEnabled(PageBase pageBase, QName type) {
-        CompiledUserProfile cup = pageBase.getCompiledUserProfile();
+        CompiledGuiProfile cup = pageBase.getCompiledGuiProfile();
         if (cup == null) {
             return false;
         }

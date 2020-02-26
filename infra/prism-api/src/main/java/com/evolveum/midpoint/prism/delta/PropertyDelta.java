@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -74,10 +75,10 @@ public interface PropertyDelta<T> extends ItemDelta<PrismPropertyValue<T>, Prism
     @Override
     PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, boolean assumeMissingItems);
 
-    PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, MatchingRule<T> matchingRule,
+    PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy, MatchingRule<T> matchingRule,
             boolean assumeMissingItems);
 
-    boolean isRedundant(PrismObject<? extends Objectable> object, MatchingRule<T> matchingRule, boolean assumeMissingItems);
+    boolean isRedundant(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy, MatchingRule<T> matchingRule, boolean assumeMissingItems);
 
     // convenience method
     void setRealValuesToReplace(T... newValues);

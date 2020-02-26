@@ -57,8 +57,10 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
@@ -82,6 +84,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -134,6 +138,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private TriggerCreatorGlobalState triggerCreatorGlobalState;
     @Autowired private TaskManager taskManager;
+    @Context HttpServletRequest httpServletRequest;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -229,6 +234,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
         if (itemDelta.getPath().equivalent(PATH_CREDENTIALS_PASSWORD_VALUE)) {
             LOGGER.trace("Found password value add/modify delta");
+            //noinspection unchecked
             Collection<PrismPropertyValue<ProtectedStringType>> values = itemDelta.isAdd() ?
                     itemDelta.getValuesToAdd() :
                     itemDelta.getValuesToReplace();
@@ -237,6 +243,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             }
         } else if (itemDelta.getPath().equivalent(PATH_CREDENTIALS_PASSWORD)) {
             LOGGER.trace("Found password add/modify delta");
+            //noinspection unchecked
             Collection<PrismContainerValue<PasswordType>> values = itemDelta.isAdd() ?
                     itemDelta.getValuesToAdd() :
                     itemDelta.getValuesToReplace();
@@ -247,6 +254,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             }
         } else if (itemDelta.getPath().equivalent(ShadowType.F_CREDENTIALS)) {
             LOGGER.trace("Found credentials add/modify delta");
+            //noinspection unchecked
             Collection<PrismContainerValue<CredentialsType>> values = itemDelta.isAdd() ?
                     itemDelta.getValuesToAdd() :
                     itemDelta.getValuesToReplace();
@@ -286,6 +294,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
     }
 
+    @Override
     public <F extends ObjectType> boolean hasLinkedAccount(String resourceOid) {
         LensContext<F> ctx = ModelExpressionThreadLocalHolder.getLensContext();
         if (ctx == null) {
@@ -408,6 +417,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     // EXPERIMENTAL!!
+    @SuppressWarnings("unused")
     @Experimental
     public boolean hasActiveAssignmentTargetSubtype(String roleSubtype) {
         LensContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
@@ -419,14 +429,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with evaluatedAssignmentTriple");
         }
         Collection<EvaluatedAssignmentImpl<?>> nonNegativeEvaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues();
-        if (nonNegativeEvaluatedAssignments == null) {
-            return false;
-        }
         for (EvaluatedAssignmentImpl<?> nonNegativeEvaluatedAssignment : nonNegativeEvaluatedAssignments) {
             PrismObject<?> target = nonNegativeEvaluatedAssignment.getTarget();
             if (target == null) {
                 continue;
             }
+            //noinspection unchecked
             Collection<String> targetSubtypes = FocusTypeUtil.determineSubTypes((PrismObject) target);
             if (targetSubtypes.contains(roleSubtype)) {
                 return true;
@@ -557,6 +565,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return projectionContext.isExists();
     }
 
+    @Override
     public <T> Integer countAccounts(String resourceOid, QName attributeName, T attributeValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
@@ -565,6 +574,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return countAccounts(resourceType, attributeName, attributeValue, getCurrentTask(), result);
     }
 
+    @Override
     public <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
@@ -572,6 +582,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return countAccounts(resourceType, attributeName, attributeValue, getCurrentTask(), result);
     }
 
+    @Override
     public <T> Integer countAccounts(ResourceType resourceType, String attributeName, T attributeValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
@@ -584,17 +595,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
-        RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
-        ObjectQuery query = prismContext.queryFor(ShadowType.class)
-                .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attributeValue)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassDefinition().getTypeName())
-                .and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
-                .build();
+        ObjectQuery query = createAttributeQuery(resourceType, attributeName, attributeValue);
         return modelObjectResolver.countObjects(ShadowType.class, query, null, task, result);
     }
 
+    @Override
     public <T> boolean isUniquePropertyValue(ObjectType objectType, String propertyPathString, T propertyValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
@@ -613,6 +618,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return conflictingObjects.isEmpty();
     }
 
+    @Override
     public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString,
             T propertyValue, boolean getAllConflicting)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
@@ -657,31 +663,30 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
 
         final List<O> conflictingObjects = new ArrayList<>();
-        ResultHandler<O> handler = new ResultHandler<O>() {
-            @Override
-            public boolean handle(PrismObject<O> object, OperationResult parentResult) {
-                if (objectType.getOid() == null) {
-                    // We have found a conflicting object
+        ResultHandler<O> handler = (object, parentResult) -> {
+            if (objectType.getOid() == null) {
+                // We have found a conflicting object
+                conflictingObjects.add(object.asObjectable());
+                return getAllConflicting;
+            } else {
+                if (objectType.getOid().equals(object.getOid())) {
+                    // We have found ourselves. No conflict (yet). Just go on.
+                    return true;
+                } else {
+                    // We have found someone else. Conflict.
                     conflictingObjects.add(object.asObjectable());
                     return getAllConflicting;
-                } else {
-                    if (objectType.getOid().equals(object.getOid())) {
-                        // We have found ourselves. No conflict (yet). Just go on.
-                        return true;
-                    } else {
-                        // We have found someone else. Conflict.
-                        conflictingObjects.add(object.asObjectable());
-                        return getAllConflicting;
-                    }
                 }
             }
         };
 
+        //noinspection unchecked
         modelObjectResolver.searchIterative((Class) objectType.getClass(), query, null, handler, task, result);
 
         return conflictingObjects;
     }
 
+    @Override
     public <T> boolean isUniqueAccountValue(ResourceType resourceType, ShadowType shadowType, String attributeName,
             T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
@@ -699,35 +704,24 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         Validate.notNull(shadowType, "Null shadow");
         Validate.notNull(attributeName, "Null attribute name");
         Validate.notNull(attributeValue, "Null attribute value");
-        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
-        RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
-        ObjectQuery query = prismContext.queryFor(ShadowType.class)
-                .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attributeValue)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassDefinition().getTypeName())
-                .and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
-                .build();
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Determining uniqueness of attribute {} using query:\n{}", attributeName, query.debugDump());
-        }
+
+        ObjectQuery query = createAttributeQuery(resourceType, attributeName, attributeValue);
+        LOGGER.trace("Determining uniqueness of attribute {} using query:\n{}", attributeName, query.debugDumpLazily());
 
         final Holder<Boolean> isUniqueHolder = new Holder<>(true);
-        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
-            @Override
-            public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
-                if (shadowType == null || shadowType.getOid() == null) {
-                    // We have found a conflicting object
+        ResultHandler<ShadowType> handler = (object, parentResult) -> {
+            if (shadowType.getOid() == null) {
+                // We have found a conflicting object
+                isUniqueHolder.setValue(false);
+                return false;
+            } else {
+                if (shadowType.getOid().equals(object.getOid())) {
+                    // We have found ourselves. No conflict (yet). Just go on.
+                    return true;
+                } else {
+                    // We have found someone else. Conflict.
                     isUniqueHolder.setValue(false);
                     return false;
-                } else {
-                    if (shadowType.getOid().equals(object.getOid())) {
-                        // We have found ourselves. No conflict (yet). Just go on.
-                        return true;
-                    } else {
-                        // We have found someone else. Conflict.
-                        isUniqueHolder.setValue(false);
-                        return false;
-                    }
                 }
             }
         };
@@ -735,6 +729,20 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         modelObjectResolver.searchIterative(ShadowType.class, query, null, handler, task, result);
 
         return isUniqueHolder.getValue();
+    }
+
+    private <T> ObjectQuery createAttributeQuery(ResourceType resourceType, QName attributeName, T attributeValue) throws SchemaException {
+        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
+        RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
+        if (attrDef == null) {
+            throw new SchemaException("No attribute '" + attributeName + "' in " + rAccountDef);
+        }
+        return prismContext.queryFor(ShadowType.class)
+                .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attributeValue)
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassDefinition().getTypeName())
+                .and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
+                .build();
     }
 
     @Override
@@ -748,6 +756,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (lensContext == null) {
             return null;
         }
+        //noinspection unchecked
         return (ModelElementContext<F>) lensContext.getFocusContext();
     }
 
@@ -807,8 +816,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 getCurrentResult(MidpointFunctions.class.getName() + "getObject"));
     }
 
-    public LensContextType wrapModelContext(LensContext<?> lensContext) throws SchemaException {
-        return lensContext.toLensContextType();
+    @Override
+    public LensContextType wrapModelContext(ModelContext<?> lensContext) throws SchemaException {
+        return ((LensContext<?>) lensContext).toLensContextType();
     }
 
     // Convenience functions
@@ -914,8 +924,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         modelService.executeChanges(deltas, null, getCurrentTask(), getCurrentResult());
     }
 
+    @SafeVarargs
     @Override
-    public void executeChanges(ObjectDelta<? extends ObjectType>... deltas)
+    public final void executeChanges(ObjectDelta<? extends ObjectType>... deltas)
             throws ObjectAlreadyExistsException, ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException,
@@ -1030,6 +1041,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public <F extends FocusType> PrismObject<F> searchShadowOwner(String accountOid)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException,
             ExpressionEvaluationException, CommunicationException {
+        //noinspection unchecked
         return (PrismObject<F>) modelService.searchShadowOwner(accountOid, null, getCurrentTask(), getCurrentResult());
     }
 
@@ -1164,6 +1176,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return DeltaConvertor.toObjectDeltaType(sum);
     }
 
+    @Override
     public long getSequenceCounter(String sequenceOid) throws ObjectNotFoundException, SchemaException {
         return SequentialValueExpressionEvaluator.getSequenceCounter(sequenceOid, repositoryService, getCurrentResult());
     }
@@ -1172,7 +1185,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public Collection<String> getManagersOids(UserType user)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+            throws SchemaException, SecurityViolationException {
         return orgStructFunctions.getManagersOids(user, false);
     }
 
@@ -1184,6 +1197,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     public OrgType getParentOrgByOrgType(ObjectType object, String orgType) throws SchemaException, SecurityViolationException {
         return orgStructFunctions.getParentOrgByOrgType(object, orgType, false);
+    }
+
+    @Override
+    public OrgType getParentOrgByArchetype(ObjectType object, String archetypeOid) throws SchemaException, SecurityViolationException {
+        return orgStructFunctions.getParentOrgByArchetype(object, archetypeOid, false);
     }
 
     @Override
@@ -1212,14 +1230,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public Collection<UserType> getManagers(UserType user)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+    public Collection<UserType> getManagers(UserType user) throws SchemaException, SecurityViolationException {
         return orgStructFunctions.getManagers(user, false);
     }
 
     @Override
     public Collection<UserType> getManagersByOrgType(UserType user, String orgType)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+            throws SchemaException, SecurityViolationException {
         return orgStructFunctions.getManagersByOrgType(user, orgType, false);
     }
 
@@ -1236,7 +1253,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public Collection<UserType> getManagers(UserType user, String orgType, boolean allowSelf)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+            throws SchemaException, SecurityViolationException {
         return orgStructFunctions.getManagers(user, orgType, allowSelf, false);
     }
 
@@ -1248,7 +1265,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public Collection<String> getManagersOidsExceptUser(UserType user)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+            throws SchemaException, SecurityViolationException {
         return orgStructFunctions.getManagersOidsExceptUser(user, false);
     }
 
@@ -1309,7 +1326,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 while (eventReader.hasNext()) {
 
                     XMLEvent event = eventReader.nextEvent();
-                    Integer code = event.getEventType();
+                    int code = event.getEventType();
                     if (code == XMLStreamConstants.START_ELEMENT) {
 
                         StartElement startElement = event.asStartElement();
@@ -1325,9 +1342,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
                             StringBuilder valueBuilder;
                             if (value != null) {
-                                valueBuilder = new StringBuilder(value).append(" ").append(characters.getData().toString());
+                                valueBuilder = new StringBuilder(value).append(" ").append(characters.getData());
                             } else {
-                                valueBuilder = new StringBuilder(characters.getData().toString());
+                                valueBuilder = new StringBuilder(characters.getData());
                             }
                             value = valueBuilder.toString();
                         }
@@ -1432,10 +1449,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public List<ShadowType> getShadowsToActivate(Collection<? extends ModelElementContext> projectionContexts) {
         List<ShadowType> shadows = new ArrayList<>();
 
+        //noinspection unchecked
         for (ModelElementContext<ShadowType> projectionCtx : projectionContexts) {
 
-            List<? extends ObjectDeltaOperation> executedShadowDelas = projectionCtx.getExecutedDeltas();
-            for (ObjectDeltaOperation<ShadowType> shadowDelta : executedShadowDelas) {
+            List<? extends ObjectDeltaOperation> executedShadowDeltas = projectionCtx.getExecutedDeltas();
+            //noinspection unchecked
+            for (ObjectDeltaOperation<ShadowType> shadowDelta : executedShadowDeltas) {
                 if (shadowDelta.getExecutionResult().getStatus() == OperationResultStatus.SUCCESS
                         && shadowDelta.getObjectDelta().getChangeType() == ChangeType.ADD) {
                     PrismObject<ShadowType> shadow = shadowDelta.getObjectDelta().getObjectToAdd();
@@ -1523,7 +1542,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     private SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user) {
-        SecurityPolicyType securityPolicy = securityContextManager.runPrivileged(new Producer<SecurityPolicyType>() {
+        return securityContextManager.runPrivileged(new Producer<SecurityPolicyType>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -1546,7 +1565,6 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             }
 
         });
-        return securityPolicy;
     }
 
     private String getPublicHttpUrlPattern() {
@@ -1561,7 +1579,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             LOGGER.trace("No system configuration defined. Skipping link generation.");
             return null;
         }
-        String publicHttpUrlPattern = SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfiguration);
+        String host = null;
+        HttpConnectionInformation connectionInf = SecurityUtil.getCurrentConnectionInformation();
+        if (connectionInf != null) {
+            host = connectionInf.getServerName();
+        }
+        String publicHttpUrlPattern = SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfiguration, host);
         if (StringUtils.isBlank(publicHttpUrlPattern)) {
             LOGGER.error("No patern defined. It can break link generation.");
         }
@@ -1659,7 +1682,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random()*10000)));
         newTask.setOid(null);
         newTask.setTaskIdentifier(null);
-        newTask.setOwnerRef(createObjectRef(principal.getUser(), prismContext));
+        newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
         newTask.setExecutionStatus(RUNNABLE);
         newTask.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
         if (deltas.isEmpty()) {
@@ -1931,11 +1954,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     // temporary
+    @SuppressWarnings("unused")
     public Map<String, Object> getMessageBodyAsMap(AsyncUpdateMessageType message) throws IOException {
         return wrap(message).getBodyAsMap();
     }
 
     // temporary
+    @SuppressWarnings("unused")
     public Item<?, ?> getMessageBodyAsPrismItem(AsyncUpdateMessageType message) throws SchemaException {
         return wrap(message).getBodyAsPrismItem(PrismContext.LANG_XML);
     }

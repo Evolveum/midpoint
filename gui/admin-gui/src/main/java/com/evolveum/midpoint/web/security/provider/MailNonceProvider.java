@@ -10,14 +10,11 @@ import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
-import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -37,7 +34,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import java.util.Collection;
 import java.util.List;
@@ -74,8 +70,9 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
     }
 
     @Override
-    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment, AuthenticationChannel channel) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof MidPointUserProfilePrincipal) {
+    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment,
+            AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
+        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
             return authentication;
         }
         String enteredUsername = (String) authentication.getPrincipal();
@@ -86,7 +83,8 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
             Authentication token;
             if (authentication instanceof MailNonceAuthenticationToken) {
                 String nonce = (String) authentication.getCredentials();
-                NonceAuthenticationContext authContext = new NonceAuthenticationContext(enteredUsername, nonce, getNoncePolicy(enteredUsername), requireAssignment);
+                NonceAuthenticationContext authContext = new NonceAuthenticationContext(enteredUsername,
+                        focusType, nonce, getNoncePolicy(enteredUsername), requireAssignment);
                 if (channel != null) {
                     authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
                 }

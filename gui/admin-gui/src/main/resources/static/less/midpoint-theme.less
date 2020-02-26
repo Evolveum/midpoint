@@ -865,6 +865,15 @@ body .treeview-menu > li > span:hover {
   	border-top: 1px solid #ddd;	// line over area of container
 }
 
+.prism-containers > .top-level-prism-container > .container-wrapper > div > div > .prism-properties > .prism-containers {
+  padding-left: 40px;
+}
+.prism-containers > .top-level-prism-container > .container-wrapper > div > div > .prism-properties > .prism-containers > .prism-property {
+  border-top: 0px solid #ddd;
+}
+
+
+
 .top-level-prism-container .row {
 	margin-right: 0px;
     margin-left: 0px;
@@ -890,17 +899,20 @@ body .treeview-menu > li > span:hover {
   background-color: #f2dede; // green background for new value of multivalue container
 }
 
-.prism-properties {
-
-	& > div {
-		padding-left: 40px;
-	}
-
-	.stripe {
-		background-color: @table-stripe-bg-color;
-	}
+.top-level-prism-container > .prism-properties > div {
+  padding-left: 0px;
 }
 
+.prism-properties {
+
+  & > div {
+    padding-left: 40px;
+  }
+
+  .stripe {
+    background-color: @table-stripe-bg-color;
+  }
+}
 .prism-header {
 	margin-bottom: 15px;
 	display: block;

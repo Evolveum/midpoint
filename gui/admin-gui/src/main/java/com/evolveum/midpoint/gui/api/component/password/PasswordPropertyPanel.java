@@ -28,7 +28,8 @@ public class PasswordPropertyPanel  extends PrismPropertyPanel<ProtectedStringTy
     }
 
     @Override
-    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ProtectedStringType>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
+    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ProtectedStringType>> item, GuiComponentFactory factory,
+            ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
 
         PasswordPanel passwordPanel;
 //        if (!(getPageBase() instanceof PageUser)) {

@@ -28,7 +28,6 @@ import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
-import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
@@ -83,7 +82,7 @@ import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
-import com.evolveum.midpoint.model.impl.security.UserProfileCompiler;
+import com.evolveum.midpoint.model.impl.security.GuiProfileCompiler;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -200,8 +199,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private ActivationComputer activationComputer;
     @Autowired private Clock clock;
     @Autowired private HookRegistry hookRegistry;
-    @Autowired private UserProfileService userProfileService;
-    @Autowired private UserProfileCompiler userProfileCompiler;
+    @Autowired private GuiProfiledPrincipalManager guiProfiledPrincipalManager;
+    @Autowired private GuiProfileCompiler guiProfileCompiler;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private OperationalDataManager metadataManager;
     @Autowired private Clockwork clockwork;
@@ -247,13 +246,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         LensContext<F> context = null;
 
         try {
-        RepositoryCache.enter(cacheConfigurationManager);
-        // used cloned deltas instead of origin deltas, because some of the
-        // values should be lost later..
-        context = contextFactory.createContext(clonedDeltas, options, task, result);
-        context = clockwork.previewChanges(context, listeners, task, result);
+            RepositoryCache.enter(cacheConfigurationManager);
+            // used cloned deltas instead of origin deltas, because some of the
+            // values should be lost later..
+            context = contextFactory.createContext(clonedDeltas, options, task, result);
+            context = clockwork.previewChanges(context, listeners, task, result);
 
-        schemaTransformer.applySchemasAndSecurity(context, null, task, result);
+            schemaTransformer.applySchemasAndSecurity(context, null, task, result);
         } finally {
             LensUtil.reclaimSequences(context, cacheRepositoryService, task, result);
 
@@ -322,7 +321,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                                 refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
 
                         objectDefinition.findContainerDefinition(ItemPath.create(ShadowType.F_ASSOCIATION)).toMutable()
-                        .replaceDefinition(ShadowAssociationType.F_IDENTIFIERS, refinedObjectClassDefinition.toResourceAttributeContainerDefinition(ShadowAssociationType.F_IDENTIFIERS));
+                                .replaceDefinition(ShadowAssociationType.F_IDENTIFIERS, refinedObjectClassDefinition.toResourceAttributeContainerDefinition(ShadowAssociationType.F_IDENTIFIERS));
                     }
                 }
             }
@@ -621,26 +620,26 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public RegistrationsPolicyType getFlowPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult)
+    public RegistrationsPolicyType getFlowPolicy(PrismObject<? extends FocusType> focus, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         // TODO: check for user membership in an organization (later versions)
         OperationResult result = parentResult.createMinorSubresult(GET_REGISTRATIONS_POLICY);
-        return resolvePolicyTypeFromSecurityPolicy(RegistrationsPolicyType.class, SecurityPolicyType.F_FLOW, user, task,
+        return resolvePolicyTypeFromSecurityPolicy(RegistrationsPolicyType.class, SecurityPolicyType.F_FLOW, focus, task,
                 result);
     }
 
 
     @Override
-    public CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public CredentialsPolicyType getCredentialsPolicy(PrismObject<? extends FocusType> focus, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         // TODO: check for user membership in an organization (later versions)
 
         OperationResult result = parentResult.createMinorSubresult(GET_CREDENTIALS_POLICY);
-        return resolvePolicyTypeFromSecurityPolicy(CredentialsPolicyType.class, SecurityPolicyType.F_CREDENTIALS, user, task, result);
+        return resolvePolicyTypeFromSecurityPolicy(CredentialsPolicyType.class, SecurityPolicyType.F_CREDENTIALS, focus, task, result);
     }
 
-    private <C extends Containerable> C  resolvePolicyTypeFromSecurityPolicy(Class<C> type, QName path, PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private <C extends Containerable> C  resolvePolicyTypeFromSecurityPolicy(Class<C> type, QName path, PrismObject<? extends FocusType> focus, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        SecurityPolicyType securityPolicyType = getSecurityPolicy(user, task, parentResult);
+        SecurityPolicyType securityPolicyType = getSecurityPolicy(focus, task, parentResult);
         if (securityPolicyType == null) {
             return null;
         }
@@ -680,8 +679,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @NotNull
-    @Override
-    public CompiledUserProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         MidPointPrincipal principal = null;
         try {
             principal = securityContextManager.getPrincipal();
@@ -689,11 +687,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.warn("Security violation while getting principlal to get GUI config: {}", e.getMessage(), e);
         }
 
-        if (principal == null || !(principal instanceof MidPointUserProfilePrincipal)) {
+        if (principal == null || !(principal instanceof GuiProfiledPrincipal)) {
             // May be used for unathenticated user, error pages and so on
-            return userProfileCompiler.getGlobalCompiledUserProfile(task, parentResult);
+            return guiProfileCompiler.getGlobalCompiledGuiProfile(task, parentResult);
         } else {
-            return ((MidPointUserProfilePrincipal)principal).getCompiledUserProfile();
+            return ((GuiProfiledPrincipal)principal).getCompiledGuiProfile();
         }
     }
 
@@ -711,11 +709,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     public SystemConfigurationType getSystemConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-            PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
-            if (systemConfiguration == null) {
-                return null;
-            }
-            return systemConfiguration.asObjectable();
+        PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
+        if (systemConfiguration == null) {
+            return null;
+        }
+        return systemConfiguration.asObjectable();
     }
 
     @Override
@@ -724,7 +722,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         if (systemConfiguration == null) {
             return null;
         }
-            return systemConfiguration.asObjectable().getDeploymentInformation();
+        return systemConfiguration.asObjectable().getDeploymentInformation();
     }
 
     @Override
@@ -760,7 +758,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         OperationResult result = parentResult.createMinorSubresult(CHECK_PASSWORD);
         UserType userType;
         try {
-             userType = objectResolver.getObjectSimple(UserType.class, userOid, null, task, result);
+            userType = objectResolver.getObjectSimple(UserType.class, userOid, null, task, result);
         } catch (ObjectNotFoundException e) {
             result.recordFatalError(e);
             throw e;
@@ -822,7 +820,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public <O extends ObjectType> MergeDeltas<O> mergeObjectsPreviewDeltas(Class<O> type, String leftOid,
             String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult)
-                    throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
         OperationResult result = parentResult.createMinorSubresult(MERGE_OBJECTS_PREVIEW_DELTA);
 
         try {
@@ -842,7 +840,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public <O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type, String leftOid,
             String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult)
-                    throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
         OperationResult result = parentResult.createMinorSubresult(MERGE_OBJECTS_PREVIEW_OBJECT);
 
         try {
@@ -887,68 +885,68 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         OperationResult result = parentResult.createSubresult(OPERATION_GENERATE_VALUE);
 
 
-            ValuePolicyType valuePolicy = null;
+        ValuePolicyType valuePolicy = null;
+        try {
+            valuePolicy = getValuePolicy(object, task, result);
+        } catch (ObjectNotFoundException | SchemaException | CommunicationException
+                | ConfigurationException | SecurityViolationException
+                | ExpressionEvaluationException e) {
+            LOGGER.error("Failed to get value policy for generating value. ", e);
+            result.recordFatalError("Error while getting value policy. Reason: " + e.getMessage(), e);
+            throw e;
+        }
+
+        Collection<PropertyDelta<?>> deltasToExecute = new ArrayList<>();
+        for (PolicyItemDefinitionType policyItemDefinition : policyItemsDefinition.getPolicyItemDefinition()) {
+            OperationResult generateValueResult = parentResult.createSubresult(OPERATION_GENERATE_VALUE);
+
+            LOGGER.trace("Default value policy: {}" , valuePolicy);
             try {
-                valuePolicy = getValuePolicy(object, task, result);
-            } catch (ObjectNotFoundException | SchemaException | CommunicationException
-                    | ConfigurationException | SecurityViolationException
-                    | ExpressionEvaluationException e) {
-                LOGGER.error("Failed to get value policy for generating value. ", e);
-                result.recordFatalError("Error while getting value policy. Reason: " + e.getMessage(), e);
-                throw e;
+                generateValue(object, valuePolicy, policyItemDefinition, task, generateValueResult);
+            } catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException
+                    | CommunicationException | ConfigurationException | SecurityViolationException e) {
+                LOGGER.error("Failed to generate value for {} ", policyItemDefinition, e);
+                generateValueResult.recordFatalError("Failed to generate value for " + policyItemDefinition + ". Reason: " + e.getMessage(), e);
+                policyItemDefinition.setResult(generateValueResult.createOperationResultType());
+                continue;
             }
 
-            Collection<PropertyDelta<?>> deltasToExecute = new ArrayList<>();
-            for (PolicyItemDefinitionType policyItemDefinition : policyItemsDefinition.getPolicyItemDefinition()) {
-                OperationResult generateValueResult = parentResult.createSubresult(OPERATION_GENERATE_VALUE);
-
-                LOGGER.trace("Default value policy: {}" , valuePolicy);
-                try {
-                    generateValue(object, valuePolicy, policyItemDefinition, task, generateValueResult);
-                } catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException
-                        | CommunicationException | ConfigurationException | SecurityViolationException e) {
-                    LOGGER.error("Failed to generate value for {} ", policyItemDefinition, e);
-                    generateValueResult.recordFatalError("Failed to generate value for " + policyItemDefinition + ". Reason: " + e.getMessage(), e);
-                    policyItemDefinition.setResult(generateValueResult.createOperationResultType());
+            //TODO: not sure about the bulk actions here
+            ItemPath path = getPath(policyItemDefinition);
+            if (path == null) {
+                if (isExecute(policyItemDefinition)) {
+                    LOGGER.error("No item path defined in the target for policy item definition. Cannot generate value");
+                    generateValueResult.recordFatalError(
+                            "No item path defined in the target for policy item definition. Cannot generate value");
                     continue;
                 }
+            }
 
-                //TODO: not sure about the bulk actions here
-                ItemPath path = getPath(policyItemDefinition);
-                if (path == null) {
+            PrismPropertyDefinition<?> propertyDef = null;
+            if (path != null) {
+                result.addArbitraryObjectAsParam("policyItemPath", path);
+
+                propertyDef = getItemDefinition(object, path);
+                if (propertyDef == null) {
                     if (isExecute(policyItemDefinition)) {
-                        LOGGER.error("No item path defined in the target for policy item definition. Cannot generate value");
-                        generateValueResult.recordFatalError(
-                                "No item path defined in the target for policy item definition. Cannot generate value");
+                        LOGGER.error("No definition for property {} in object. Is the path referencing prism property?" + path,
+                                object);
+                        generateValueResult.recordFatalError("No definition for property " + path + " in object " + object
+                                + ". Is the path referencing prism property?");
                         continue;
                     }
+
                 }
-
-                PrismPropertyDefinition<?> propertyDef = null;
-                if (path != null) {
-                    result.addArbitraryObjectAsParam("policyItemPath", path);
-
-                    propertyDef = getItemDefinition(object, path);
-                    if (propertyDef == null) {
-                        if (isExecute(policyItemDefinition)) {
-                            LOGGER.error("No definition for property {} in object. Is the path referencing prism property?" + path,
-                                    object);
-                            generateValueResult.recordFatalError("No definition for property " + path + " in object " + object
-                                    + ". Is the path referencing prism property?");
-                            continue;
-                        }
-
-                    }
-                }
+            }
             // end of not sure
 
-                collectDeltasForGeneratedValuesIfNeeded(object, policyItemDefinition, deltasToExecute, path, propertyDef, generateValueResult);
-                generateValueResult.computeStatusIfUnknown();
-            }
-            result.computeStatus();
-            if (!result.isAcceptable()) {
-                return;
-            }
+            collectDeltasForGeneratedValuesIfNeeded(object, policyItemDefinition, deltasToExecute, path, propertyDef, generateValueResult);
+            generateValueResult.computeStatusIfUnknown();
+        }
+        result.computeStatus();
+        if (!result.isAcceptable()) {
+            return;
+        }
         try {
             if (!deltasToExecute.isEmpty()) {
                 if (object == null) {
@@ -956,9 +954,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     result.recordFatalError("Cannot execute changes for generated values, no object specified in request.");
                     throw new SchemaException("Cannot execute changes for generated values, no object specified in request.");
                 }
-                    String oid = object.getOid();
-                    Class<O> clazz = (Class<O>) object.asObjectable().getClass();
-                    modelCrudService.modifyObject(clazz, oid, deltasToExecute, null, task, result);
+                String oid = object.getOid();
+                Class<O> clazz = (Class<O>) object.asObjectable().getClass();
+                modelCrudService.modifyObject(clazz, oid, deltasToExecute, null, task, result);
 
             }
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException
@@ -1609,10 +1607,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 
         try {
-        Collection<ObjectDeltaOperation<? extends ObjectType>> result = modelService.executeChanges(
-                MiscUtil.createCollection(userDelta), ModelExecuteOptions.createRaw(), task, parentResult);
+            Collection<ObjectDeltaOperation<? extends ObjectType>> result = modelService.executeChanges(
+                    MiscUtil.createCollection(userDelta), ModelExecuteOptions.createRaw(), task, parentResult);
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException
-            | SecurityViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PolicyViolationException e) {
+                | SecurityViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PolicyViolationException e) {
             response.message(LocalizationUtil.createForFallbackMessage("Failed to reset credential: " + e.getMessage()));
             throw e;
         }
@@ -1626,9 +1624,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 
     @Override
-    public void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public void refreshPrincipal(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         try {
-            MidPointPrincipal principal = userProfileService.getPrincipalByOid(oid);
+            MidPointPrincipal principal = guiProfiledPrincipalManager.getPrincipalByOid(oid, clazz);
             securityContextManager.setupPreAuthenticatedSecurityContext(principal);
         } catch (Throwable e) {
             LOGGER.error("Cannot refresh authentication for user identified with" + oid);
@@ -1657,7 +1655,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
             newTask.setOid(null);
             newTask.setTaskIdentifier(null);
-            newTask.setOwnerRef(createObjectRef(principal.getUser(), prismContext));
+            newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
             newTask.setExecutionStatus(RUNNABLE);
             for (Item<?, ?> extensionItem : extensionItems) {
                 newTask.asPrismObject().getExtension().add(extensionItem.clone());
@@ -1724,6 +1722,25 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return spec;
     }
 
+    @Override
+    public <O extends AssignmentHolderType> List<ArchetypeType> getFilteredArchetypesByHolderType(PrismObject<O> object, OperationResult result) throws SchemaException {
+        SearchResultList<PrismObject<ArchetypeType>> archetypes = systemObjectCache.getAllArchetypes(result);
+        List<ArchetypeType> filteredArchetypes = new ArrayList<>();
+        for (PrismObject<ArchetypeType> archetype : archetypes) {
+            for (AssignmentType assignment : archetype.asObjectable().getAssignment()) {
+                for (AssignmentRelationType assignmentRelation : assignment.getAssignmentRelation()) {
+                    if (isHolderType(assignmentRelation.getHolderType(), object)){
+                        filteredArchetypes.add(archetype.asObjectable());
+                    }
+                }
+                if (filteredArchetypes.contains(archetype.asObjectable())){
+                    break;
+                }
+            }
+        }
+        return filteredArchetypes;
+    }
+
 
     @Override
     public <O extends AbstractRoleType> AssignmentCandidatesSpecification determineAssignmentHolderSpecification(PrismObject<O> assignmentTarget, OperationResult result)
@@ -1753,21 +1770,21 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     private AssignmentCandidatesSpecification determineArchetypeAssignmentCandidateSpecification(List<AssignmentType> archetypeAssigmentsOrInducements, ArchetypePolicyType archetypePolicy) {
-            AssignmentCandidatesSpecification spec = new AssignmentCandidatesSpecification();
-            List<AssignmentObjectRelation> assignmentHolderRelations = new ArrayList<>();
-            for (AssignmentType inducement : archetypeAssigmentsOrInducements) {
-                for (AssignmentRelationType assignmentRelation : inducement.getAssignmentRelation()) {
-                    AssignmentObjectRelation holderRelation = new AssignmentObjectRelation();
-                    holderRelation.addObjectTypes(ObjectTypes.canonizeObjectTypes(assignmentRelation.getHolderType()));
-                    holderRelation.addArchetypeRefs(assignmentRelation.getHolderArchetypeRef());
-                    holderRelation.addRelations(assignmentRelation.getRelation());
-                    holderRelation.setDescription(assignmentRelation.getDescription());
-                    assignmentHolderRelations.add(holderRelation);
-                }
+        AssignmentCandidatesSpecification spec = new AssignmentCandidatesSpecification();
+        List<AssignmentObjectRelation> assignmentHolderRelations = new ArrayList<>();
+        for (AssignmentType inducement : archetypeAssigmentsOrInducements) {
+            for (AssignmentRelationType assignmentRelation : inducement.getAssignmentRelation()) {
+                AssignmentObjectRelation holderRelation = new AssignmentObjectRelation();
+                holderRelation.addObjectTypes(ObjectTypes.canonizeObjectTypes(assignmentRelation.getHolderType()));
+                holderRelation.addArchetypeRefs(assignmentRelation.getHolderArchetypeRef());
+                holderRelation.addRelations(assignmentRelation.getRelation());
+                holderRelation.setDescription(assignmentRelation.getDescription());
+                assignmentHolderRelations.add(holderRelation);
             }
-            spec.setAssignmentObjectRelations(assignmentHolderRelations);
-            spec.setSupportGenericAssignment(archetypePolicy == null
-                    || AssignmentRelationApproachType.CLOSED != archetypePolicy.getAssignmentRelationApproach());
+        }
+        spec.setAssignmentObjectRelations(assignmentHolderRelations);
+        spec.setSupportGenericAssignment(archetypePolicy == null
+                || AssignmentRelationApproachType.CLOSED != archetypePolicy.getAssignmentRelationApproach());
         return spec;
     }
 
@@ -1865,7 +1882,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         QName objectType = object.getDefinition().getTypeName();
         try {
-            CompiledUserProfile userProfile = getCompiledUserProfile(task, result);
+            CompiledGuiProfile userProfile = getCompiledGuiProfile(task, result);
             GuiObjectDetailsSetType objectDetailsSetType = userProfile.getObjectDetails();
             if (objectDetailsSetType == null) {
                 result.recordSuccess();

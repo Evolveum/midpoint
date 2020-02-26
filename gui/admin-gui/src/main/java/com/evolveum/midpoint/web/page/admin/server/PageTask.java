@@ -1,8 +1,10 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ItemEditabilityHandler;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
@@ -40,6 +42,7 @@ import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -52,10 +55,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @PageDescriptor(
         urls = {
@@ -74,8 +74,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private static final long serialVersionUID = 1L;
 
     private static final transient Trace LOGGER = TraceManager.getTrace(PageTask.class);
-
-    private static final String ID_BUTTONS = "buttons";
 
     private static final int REFRESH_INTERVAL_IF_RUNNING = 2000;
     private static final int REFRESH_INTERVAL_IF_RUNNABLE = 2000;
@@ -135,44 +133,19 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     protected void initLayout() {
         super.initLayout();
 
-        OperationalButtonsPanel opButtonPanel = new OperationalButtonsPanel(ID_BUTTONS) {
-
-            @Override
-            protected void addButtons(RepeatingView repeatingView) {
-                initTaskOperationalButtons(repeatingView);
-            }
-        };
-
-        AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(getRefreshInterval())) {
-            @Override
-            protected void onPostProcessTarget(AjaxRequestTarget target) {
-                refresh(target);
-            }
-
-            @Override
-            protected boolean shouldTrigger() {
-                return isRefreshEnabled();
-            }
-        };
-        opButtonPanel.add(behavior);
-
-
-        opButtonPanel.setOutputMarkupId(true);
-        opButtonPanel.add(new VisibleBehaviour(this::isEditingFocus));
-        add(opButtonPanel);
     }
 
     private void afterOperation(AjaxRequestTarget target, OperationResult result) {
         showResult(result);
         getObjectModel().reset();
         refresh(target);
-        target.add(getFeedbackPanel());
+        target.add(PageTask.this);
     }
 
 
 
-    private void initTaskOperationalButtons(RepeatingView repeatingView) {
-
+    protected void initOperationalButtons(RepeatingView repeatingView) {
+        super.initOperationalButtons(repeatingView);
         AjaxButton suspend = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.suspend")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -261,7 +234,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         PrismObject<TaskType> task = getObjectWrapper().getObject();
         TaskType taskType = task.asObjectable();
         return isAuthorized(ModelAuthorizationAction.SUSPEND_TASK, task)
-                && isRunnable(taskType) || isRunning(taskType)
+                && isRunnable(taskType) || isRunning()
                 && !isWorkflow(task.asObjectable());
     }
 
@@ -286,8 +259,10 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         return  TaskExecutionStatusType.RUNNABLE == task.getExecutionStatus();
     }
 
-    private boolean isRunning(TaskType task) {
-        return task.getNodeAsObserved() != null;
+    private boolean isRunning() {
+        PrismObject<TaskType> task = getObjectWrapper().getObject();
+        TaskType taskType = task.asObjectable();
+        return taskType.getNodeAsObserved() != null;
     }
 
     private boolean isSuspended(TaskType task) {
@@ -415,7 +390,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                             }
                         });
 
-                tabs.add(new AbstractTab(createStringResource("pageTask.internalPerformane.title")) {
+                tabs.add(new AbstractTab(createStringResource("pageTask.internalPerformance.title")) {
                     @Override
                     public WebMarkupContainer getPanel(String panelId) {
                         return new TaskInternalPerformanceTabPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_OPERATION_STATS));
@@ -460,6 +435,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             try {
                 ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                         .visibilityHandler(visibilityHandler)
+                        .editabilityHandler(getTaskEditabilityHandler())
                         .showOnTopLevel(true);
                 Panel panel = initItemPanel(id, typeName, model, builder.build());
                 return panel;
@@ -478,6 +454,11 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         return ItemVisibility.AUTO;
     }
 
+    private ItemEditabilityHandler getTaskEditabilityHandler(){
+        ItemEditabilityHandler editableHandler = wrapper -> !isRunning();
+        return editableHandler;
+    }
+
     @Override
     protected Class<? extends Page> getRestartResponsePage() {
         return PageTasks.class;
@@ -491,6 +472,25 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     @Override
     public void continueEditing(AjaxRequestTarget target) {
 
+    }
+
+    @Override
+    protected List<? extends Behavior> getAdditionalOperationalButtonPanelBehaviors(){
+        AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(getRefreshInterval())) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onPostProcessTarget(AjaxRequestTarget target) {
+                refresh(target);
+            }
+
+            @Override
+            protected boolean shouldTrigger() {
+                PageTask.this.getObjectModel().reset();
+                return isRefreshEnabled();
+            }
+        };
+        return Collections.singletonList(behavior);
     }
 
     @Override
@@ -520,7 +520,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
 //        getObjectModel().reset();
         target.add(getSummaryPanel());
-        target.add(get(ID_BUTTONS));
+        target.add(getOperationalButtonsPanel());
 
         for (Component component : getMainPanel().getTabbedPanel()) {
             if (component instanceof TaskTabPanel) {
@@ -535,7 +535,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     public boolean isRefreshEnabled() {
         if (refreshEnabled == null) {
-            return isRunning(getObjectWrapper().getObject().asObjectable());
+            return isRunning();
         }
 
         return refreshEnabled;

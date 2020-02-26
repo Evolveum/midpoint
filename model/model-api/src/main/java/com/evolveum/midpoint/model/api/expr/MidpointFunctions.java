@@ -54,7 +54,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
- * @author mederly
+ *
  */
 @SuppressWarnings("unused")
 public interface MidpointFunctions {
@@ -888,6 +888,8 @@ public interface MidpointFunctions {
 
     List<String> toList(String... s);
 
+    long getSequenceCounter(String sequenceOid) throws ObjectNotFoundException, SchemaException;
+
     Collection<String> getManagersOids(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
     Collection<String> getManagersOidsExceptUser(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException;
@@ -937,14 +939,24 @@ public interface MidpointFunctions {
     Collection<OrgType> getParentOrgs(ObjectType object, QName relation, String orgType) throws SchemaException, SecurityViolationException;
 
     /**
-     * Returns parent orgs of the specified object that have a specific orgType.
+     * Returns parent org of the specified object that have a specific orgType.
      * @param object base object
      * @param orgType orgType to select
-     * @return parent orgs of the specified object that have a specific orgType
+     * @return parent org of the specified object that have a specific orgType
      * @throws SchemaException Internal schema error
      * @throws SecurityViolationException Security violation
      */
     OrgType getParentOrgByOrgType(ObjectType object, String orgType) throws SchemaException, SecurityViolationException;
+
+    /**
+     * Returns parent org of the specified object that have a specific archetype.
+     * @param object base object
+     * @param archetypeOid archetype OID to select (null means "any archetype")
+     * @return parent org of the specified object that have a specific archetype
+     * @throws SchemaException Internal schema error
+     * @throws SecurityViolationException Security violation
+     */
+    OrgType getParentOrgByArchetype(ObjectType object, String archetypeOid) throws SchemaException, SecurityViolationException;
 
     /**
      * Returns parent orgs of the specified object that have a specific relation.
@@ -1008,6 +1020,10 @@ public interface MidpointFunctions {
     OperationResult getCurrentResult(String operationName);
 
     ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    LensContextType wrapModelContext(ModelContext<?> lensContext) throws SchemaException;
+
+    <F extends ObjectType> boolean hasLinkedAccount(String resourceOid);
 
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid);
 
@@ -1117,6 +1133,31 @@ public interface MidpointFunctions {
     String translate(LocalizableMessage message);
 
     String translate(LocalizableMessageType message);
+
+    <T> Integer countAccounts(String resourceOid, QName attributeName, T attributeValue)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException;
+
+    <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException;
+
+    <T> Integer countAccounts(ResourceType resourceType, String attributeName, T attributeValue)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException;
+
+    <T> boolean isUniquePropertyValue(ObjectType objectType, String propertyPathString, T propertyValue)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException;
+
+    <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString,
+            T propertyValue, boolean getAllConflicting)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException;
+
+    <T> boolean isUniqueAccountValue(ResourceType resourceType, ShadowType shadowType, String attributeName,
+            T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException;
 
     <F extends ObjectType> ModelContext<F> getModelContext();
 

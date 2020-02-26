@@ -309,17 +309,17 @@ public class TestPrismObjectConstruction {
         assertEquals("Wrong number of assignment values", 3, assValues.size());
         // assignment values: blue
         PrismContainerValue assBlueValue = assValues.get(0);
-        PrismProperty assBlueDescriptionProperty = assBlueValue.findProperty(USER_DESCRIPTION_QNAME);
+        PrismProperty<?> assBlueDescriptionProperty = assBlueValue.findProperty(USER_DESCRIPTION_QNAME);
         if (assertDefinitions) PrismAsserts.assertDefinition(assBlueDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
         assertEquals("Wrong blue assignment description", "Assignment created out of the blue", assBlueDescriptionProperty.getValue().getValue());
         // assignment values: cyan
         PrismContainerValue assCyanValue = assValues.get(1);
-        PrismProperty assCyanDescriptionProperty = assCyanValue.findProperty(USER_DESCRIPTION_QNAME);
+        PrismProperty<?> assCyanDescriptionProperty = assCyanValue.findProperty(USER_DESCRIPTION_QNAME);
         if (assertDefinitions) PrismAsserts.assertDefinition(assCyanDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
         assertEquals("Wrong cyan assignment description", "Assignment created out of the cyan", assCyanDescriptionProperty.getValue().getValue());
         // assignment values: red
         PrismContainerValue assRedValue = assValues.get(2);
-        PrismProperty assRedDescriptionProperty = assRedValue.findProperty(USER_DESCRIPTION_QNAME);
+        PrismProperty<?> assRedDescriptionProperty = assRedValue.findProperty(USER_DESCRIPTION_QNAME);
         if (assertDefinitions) PrismAsserts.assertDefinition(assRedDescriptionProperty, DOMUtil.XSD_STRING, 0, 1);
         assertEquals("Wrong red assignment description", "Assignment created out of the red", assRedDescriptionProperty.getValue().getValue());
         // accountRef

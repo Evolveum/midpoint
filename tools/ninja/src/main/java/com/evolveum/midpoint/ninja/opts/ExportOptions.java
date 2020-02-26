@@ -20,17 +20,27 @@ public class ExportOptions extends BaseImportExportOptions {
     public static final String P_OUTPUT = "-O";
     public static final String P_OUTPUT_LONG = "--output";
 
+    public static final String P_OVERWRITE = "-ow";
+    public static final String P_OVERWRITE_LONG = "--overwrite";
+
     public static final String P_SPLIT = "-n";
     public static final String P_SPLIT_LONG = "-split";
 
     @Parameter(names = {P_OUTPUT, P_OUTPUT_LONG}, descriptionKey = "export.output")
     private File output;
 
+    @Parameter(names = {P_OVERWRITE, P_OVERWRITE_LONG}, descriptionKey = "export.overwrite")
+    private boolean overwrite;
+
 //    @Parameter(names = {P_SPLIT, P_SPLIT_LONG}, descriptionKey = "export.split")
 //    private boolean split;
 
     public File getOutput() {
         return output;
+    }
+
+    public boolean isOverwrite() {
+        return overwrite;
     }
 
 //    public boolean isSplit() {

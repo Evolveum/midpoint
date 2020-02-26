@@ -20,6 +20,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
+import java.io.Serializable;
+
 /**
  * Created by Honchar.
  *
@@ -89,7 +91,12 @@ public class ConfirmationPanel extends Panel implements Popupable {
             }
         };
         panel.add(noButton);
+        customInitLayout(panel);
         add(panel);
+    }
+
+    protected void customInitLayout(WebMarkupContainer panel){
+
     }
 
     public void yesPerformed(AjaxRequestTarget target) {

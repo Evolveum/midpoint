@@ -122,27 +122,31 @@ public class MemberOperationsHelper {
         script.setScriptingExpression(new JAXBElement<ActionExpressionType>(SchemaConstants.S_ACTION,
                 ActionExpressionType.class, expression));
 
-//        try {
-//            script.setQuery(pageBase.getQueryConverter().createQueryType(query));
-//        } catch (SchemaException e) {
-//            LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
-//            operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
-//        }
-
         executeMemberOperation(pageBase, operationalTask, type, query, script, null, target);
     }
 
     public static <R extends AbstractRoleType> void deleteMembersPerformed(PageBase pageBase, QueryScope scope,
             ObjectQuery query, QName type, AjaxRequestTarget target) {
-        recomputeOrDeleteMembersPerformed(pageBase, scope, query, target, "delete", DELETE_OPERATION);
+        Task task = createRecomputeOrDeleteMembersTask(pageBase, scope, query, target, "delete", DELETE_OPERATION);
+        if (task != null) {
+            executeMemberOperation(pageBase, task, target);
+        }
     }
 
     public static <R extends AbstractRoleType> void recomputeMembersPerformed(PageBase pageBase, QueryScope scope,
             ObjectQuery query, AjaxRequestTarget target) {
-        recomputeOrDeleteMembersPerformed(pageBase, scope, query, target, "recompute", RECOMPUTE_OPERATION);
+        Task task = createRecomputeMembersTask(pageBase, scope, query, target);
+        if (task != null) {
+            executeMemberOperation(pageBase, task, target);
+        }
     }
 
-    private static <R extends AbstractRoleType> void recomputeOrDeleteMembersPerformed(PageBase pageBase, QueryScope scope,
+    public static <R extends AbstractRoleType> Task createRecomputeMembersTask(PageBase pageBase, QueryScope scope,
+            ObjectQuery query, AjaxRequestTarget target) {
+        return createRecomputeOrDeleteMembersTask(pageBase, scope, query, target, "recompute", RECOMPUTE_OPERATION);
+    }
+
+    private static <R extends AbstractRoleType> Task createRecomputeOrDeleteMembersTask(PageBase pageBase, QueryScope scope,
             ObjectQuery query, AjaxRequestTarget target, String operation, String displayNameOfOperation) {
         QName defaultType = AssignmentHolderType.COMPLEX_TYPE;
         Task operationalTask = pageBase.createSimpleTask(getTaskName(displayNameOfOperation, scope));
@@ -154,14 +158,7 @@ public class MemberOperationsHelper {
         script.setScriptingExpression(new JAXBElement<ActionExpressionType>(SchemaConstants.S_ACTION,
                 ActionExpressionType.class, expression));
 
-//        try {
-//            script.setQuery(pageBase.getQueryConverter().createQueryType(query));
-//        } catch (SchemaException e) {
-//            LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
-//            operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
-//        }
-
-        executeMemberOperation(pageBase, operationalTask, defaultType, query, script, SelectorOptions.createCollection(GetOperationOptions.createDistinct()), target);
+        return createMemberOperationTask(pageBase, operationalTask, defaultType, query, script, SelectorOptions.createCollection(GetOperationOptions.createDistinct()), target);
 
     }
 
@@ -372,12 +369,31 @@ public class MemberOperationsHelper {
         return ref;
     }
 
+    protected static Task createMemberOperationTask(PageBase modelServiceLocator, Task operationalTask, QName type, ObjectQuery memberQuery,
+            ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, AjaxRequestTarget target) {
+
+        OperationResult parentResult = operationalTask.getResult();
+        try {
+            Task executableTask = WebComponentUtil.createMemberOperationTask(operationalTask, type, memberQuery, script, option, parentResult, modelServiceLocator);
+            return executableTask;
+        } catch (SchemaException e) {
+            parentResult.recordFatalError(parentResult.getOperation(), e);
+            LoggingUtils.logUnexpectedException(LOGGER,
+                    "Failed to execute operation " + parentResult.getOperation(), e);
+            target.add(modelServiceLocator.getFeedbackPanel());
+        }
+        return null;
+    }
+
     protected static void executeMemberOperation(PageBase modelServiceLocator, Task operationalTask, QName type, ObjectQuery memberQuery,
             ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, AjaxRequestTarget target) {
 
         OperationResult parentResult = operationalTask.getResult();
         try {
-            WebComponentUtil.executeMemberOperation(operationalTask, type, memberQuery, script, option, parentResult, modelServiceLocator);
+            Task executableTask = WebComponentUtil.createMemberOperationTask(operationalTask, type, memberQuery, script, option, parentResult, modelServiceLocator);
+            if (executableTask != null) {
+                WebComponentUtil.executeMemberOperation(executableTask, parentResult, modelServiceLocator);
+            }
         } catch (SchemaException e) {
             parentResult.recordFatalError(parentResult.getOperation(), e);
             LoggingUtils.logUnexpectedException(LOGGER,
@@ -385,6 +401,12 @@ public class MemberOperationsHelper {
             target.add(modelServiceLocator.getFeedbackPanel());
         }
 
+        target.add(modelServiceLocator.getFeedbackPanel());
+    }
+
+    protected static void executeMemberOperation(PageBase modelServiceLocator, Task operationalTask, AjaxRequestTarget target) {
+        OperationResult parentResult = operationalTask.getResult();
+        WebComponentUtil.executeMemberOperation(operationalTask, parentResult, modelServiceLocator);
         target.add(modelServiceLocator.getFeedbackPanel());
     }
 

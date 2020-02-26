@@ -9,6 +9,8 @@ package com.evolveum.midpoint.prism;
 /**
  * @author mederly
  */
+// FIXME: Unused
+@Deprecated
 @FunctionalInterface
 public interface Checkable {
 

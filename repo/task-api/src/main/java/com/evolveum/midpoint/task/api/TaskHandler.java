@@ -21,7 +21,6 @@ import java.util.List;
  */
 public interface TaskHandler {
 
-
     default TaskRunResult run(RunningTask task) {
         return run(task, null);
     }

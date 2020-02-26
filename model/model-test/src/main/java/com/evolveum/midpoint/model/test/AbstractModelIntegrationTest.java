@@ -231,7 +231,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected NotificationManager notificationManager;
 
     @Autowired(required = false)
-    protected UserProfileService userProfileService;
+    protected GuiProfiledPrincipalManager focusProfileService;
 
     protected DummyResourceCollection dummyResourceCollection;
 
@@ -4480,12 +4480,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void login(String principalName) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(principalName, UserType.class);
         login(principal);
     }
 
     protected void login(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         login(principal);
     }
 
@@ -4509,12 +4509,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void loginSuperUser(String principalName) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(principalName, UserType.class);
         loginSuperUser(principal);
     }
 
     protected void loginSuperUser(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         loginSuperUser(principal);
     }
 
@@ -4538,7 +4538,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void assertLoggedInUsername(String username) {
         MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
-        UserType user = midPointPrincipal.getUser();
+        FocusType user = midPointPrincipal.getFocus();
         if (user == null) {
             if (username == null) {
                 return;
@@ -4555,7 +4555,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertPrincipalUserOid(MidPointPrincipal principal, String userOid) {
-        UserType user = principal.getUser();
+        FocusType user = principal.getFocus();
         if (user == null) {
             if (userOid == null) {
                 return;
@@ -4584,7 +4584,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected PrismObject<UserType> getSecurityContextPrincipalUser() {
+    protected PrismObject<? extends FocusType> getSecurityContextPrincipalFocus() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = securityContext.getAuthentication();
         if (authentication == null) {
@@ -4595,11 +4595,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             return null;
         }
         if (principal instanceof MidPointPrincipal) {
-            UserType userType = ((MidPointPrincipal)principal).getUser();
-            if (userType == null) {
+            FocusType focusType = ((MidPointPrincipal)principal).getFocus();
+            if (focusType == null) {
                 return null;
             }
-            return userType.asPrismObject();
+            return focusType.asPrismObject();
         } else {
             return null;
         }
@@ -4627,7 +4627,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertPrincipalAttorneyOid(MidPointPrincipal principal, String attotrneyOid) {
-        UserType attorney = principal.getAttorney();
+        FocusType attorney = principal.getAttorney();
         if (attorney == null) {
             if (attotrneyOid == null) {
                 return;
@@ -4755,7 +4755,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected Task createTask(String operationName, MidPointPrincipal principal) {
         Task task = super.createTask(operationName);
-        task.setOwner(principal.getUser().asPrismObject());
+        task.setOwner(principal.getFocus().asPrismObject());
         task.setChannel(DEFAULT_CHANNEL);
         return task;
     }
@@ -5042,7 +5042,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertAuthorizations(PrismObject<UserType> user, String... expectedAuthorizations) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotNull("No principal for "+user, principal);
         assertAuthorizations(principal, expectedAuthorizations);
     }
@@ -5057,7 +5057,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 
     protected void assertNoAuthorizations(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(user);
         assertNotNull("No principal for "+user, principal);
         assertNoAuthorizations(principal);
     }
@@ -5068,19 +5068,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected CompiledUserProfileAsserter<Void> assertCompiledUserProfile(MidPointPrincipal principal) {
-        if (!(principal instanceof MidPointUserProfilePrincipal)) {
-            fail("Expected MidPointUserProfilePrincipal, but got "+principal.getClass());
+    protected CompiledGuiProfileAsserter<Void> assertCompiledGuiProfile(MidPointPrincipal principal) {
+        if (!(principal instanceof GuiProfiledPrincipal)) {
+            fail("Expected GuiProfiledPrincipal, but got "+principal.getClass());
         }
-        CompiledUserProfile compiledUserProfile = ((MidPointUserProfilePrincipal)principal).getCompiledUserProfile();
-        CompiledUserProfileAsserter<Void> asserter = new CompiledUserProfileAsserter<>(compiledUserProfile, null, "in principal "+principal);
+        CompiledGuiProfile compiledGuiProfile = ((GuiProfiledPrincipal)principal).getCompiledGuiProfile();
+        CompiledGuiProfileAsserter<Void> asserter = new CompiledGuiProfileAsserter<>(compiledGuiProfile, null, "in principal "+principal);
         initializeAsserter(asserter);
         asserter.display();
         return asserter;
     }
 
-    protected CompiledUserProfileAsserter<Void> assertCompiledUserProfile(CompiledUserProfile compiledUserProfile) {
-        CompiledUserProfileAsserter<Void> asserter = new CompiledUserProfileAsserter<>(compiledUserProfile, null, null);
+    protected CompiledGuiProfileAsserter<Void> assertCompiledGuiProfile(CompiledGuiProfile compiledGuiProfile) {
+        CompiledGuiProfileAsserter<Void> asserter = new CompiledGuiProfileAsserter<>(compiledGuiProfile, null, null);
         initializeAsserter(asserter);
         asserter.display();
         return asserter;
@@ -6454,7 +6454,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     private Task createAllowDenyTask(String opname) {
         Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertAllow."+opname);
-        task.setOwner(getSecurityContextPrincipalUser());
+        task.setOwner(getSecurityContextPrincipalFocus());
         task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
         return task;
     }
@@ -6505,7 +6505,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         OperationResult result = task.getResult();
         MidPointPrincipal origPrincipal = getSecurityContextPrincipal();
         login(USER_ADMINISTRATOR_USERNAME);
-        task.setOwner(getSecurityContextPrincipalUser());
+        task.setOwner(getSecurityContextPrincipalFocus());
         task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
         try {
             attempt.run(task, result);

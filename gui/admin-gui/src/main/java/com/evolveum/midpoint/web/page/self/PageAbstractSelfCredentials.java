@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 
@@ -78,7 +79,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
 
     private LoadableModel<MyPasswordsDto> model;
-    private PrismObject<UserType> user;
+    private PrismObject<? extends FocusType> focus;
 
     public PageAbstractSelfCredentials() {
         model = new LoadableModel<MyPasswordsDto>(false) {
@@ -119,13 +120,13 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         MyPasswordsDto dto = new MyPasswordsDto();
         OperationResult result = new OperationResult(OPERATION_LOAD_USER_WITH_ACCOUNTS);
         try {
-            String userOid = SecurityUtils.getPrincipalUser().getOid();
+            String focusOid = SecurityUtils.getPrincipalUser().getOid();
             Task task = createSimpleTask(OPERATION_LOAD_USER);
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);
-            user = getModelService().getObject(UserType.class, userOid, null, task, subResult);
+            focus = getModelService().getObject(FocusType.class, focusOid, null, task, subResult);
             subResult.recordSuccessIfUnknown();
 
-            dto.getAccounts().add(createDefaultPasswordAccountDto(user));
+            dto.getAccounts().add(createDefaultPasswordAccountDto(focus));
 
             CredentialsPolicyType credentialsPolicyType = getPasswordCredentialsPolicy();
             if (credentialsPolicyType != null) {
@@ -145,9 +146,9 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             }
 
             if (dto.getPropagation() == null || dto.getPropagation().equals(CredentialsPropagationUserControlType.USER_CHOICE)) {
-                PrismReference reference = user.findReference(UserType.F_LINK_REF);
+                PrismReference reference = focus.findReference(FocusType.F_LINK_REF);
                 if (reference == null || reference.getValues() == null) {
-                    LOGGER.debug("No accounts found for user {}.", new Object[]{userOid});
+                    LOGGER.debug("No accounts found for user {}.", new Object[]{focusOid});
                     return dto;
                 }
 
@@ -249,11 +250,11 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         mainForm.add(cancel);
     }
 
-    private PasswordAccountDto createDefaultPasswordAccountDto(PrismObject<UserType> user) {
+    private PasswordAccountDto createDefaultPasswordAccountDto(PrismObject<? extends FocusType> focus) {
         String customSystemName = WebComponentUtil.getMidpointCustomSystemName(PageAbstractSelfCredentials.this, "midpoint.default.system.name");
-        return new PasswordAccountDto(user.getOid(), user.getName().getOrig(),
+        return new PasswordAccountDto(focus.getOid(), focus.getName().getOrig(),
                 getString("PageSelfCredentials.resourceMidpoint", customSystemName),
-                WebComponentUtil.isActivationEnabled(user), true);
+                WebComponentUtil.isActivationEnabled(focus), true);
     }
 
     private PasswordAccountDto createPasswordAccountDto(PrismObject<ShadowType> account, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -290,7 +291,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 try {
                     oldPassword = new ProtectedStringType();
                     oldPassword.setClearValue(model.getObject().getOldPassword());
-                    boolean isCorrectPassword = getModelInteractionService().checkPassword(user.getOid(), oldPassword,
+                    boolean isCorrectPassword = getModelInteractionService().checkPassword(focus.getOid(), oldPassword,
                             checkPasswordTask, checkPasswordResult);
                     if (!isCorrectPassword) {
                         error(getString("PageSelfCredentials.incorrectOldPassword"));
@@ -419,8 +420,8 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
     }
 
-    public PrismObject<UserType> getUser() {
-        return user;
+    public PrismObject<? extends FocusType> getFocus() {
+        return focus;
     }
 
     private CredentialsPolicyType getPasswordCredentialsPolicy (){
@@ -429,7 +430,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         OperationResult result = new OperationResult(OPERATION_GET_CREDENTIALS_POLICY);
         CredentialsPolicyType credentialsPolicyType = null;
         try {
-            credentialsPolicyType = getModelInteractionService().getCredentialsPolicy(user, task, result);
+            credentialsPolicyType = getModelInteractionService().getCredentialsPolicy(focus, task, result);
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load credentials policy", ex);

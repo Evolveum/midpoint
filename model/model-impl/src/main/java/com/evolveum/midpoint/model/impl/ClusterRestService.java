@@ -9,8 +9,7 @@ package com.evolveum.midpoint.model.impl;
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.UserProfileService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.impl.security.NodeAuthenticationToken;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
@@ -43,6 +42,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -74,16 +74,14 @@ public class ClusterRestService {
 
     public static final String EVENT_INVALIDATION = "/event/invalidation/";
     public static final String EVENT_TERMINATE_SESSION = "/event/terminateSession/";
-    public static final String EVENT_LIST_USER_SESSION = "event/listUserSession";
+    public static final String EVENT_LIST_USER_SESSION = "/event/listUserSession";
 
     @Autowired private SecurityHelper securityHelper;
     @Autowired private TaskManager taskManager;
     @Autowired private MidpointConfiguration midpointConfiguration;
-    @Autowired private UserProfileService userProfileService;
+    @Autowired private GuiProfiledPrincipalManager focusProfileService;
 
     @Autowired private CacheDispatcher cacheDispatcher;
-
-    @Autowired private ModelInteractionService modelInteractionService;
 
     private static final Trace LOGGER = TraceManager.getTrace(ClusterRestService.class);
 
@@ -137,7 +135,7 @@ public class ClusterRestService {
         try {
             checkNodeAuthentication();
 
-            userProfileService.terminateLocalSessions(TerminateSessionEvent.fromEventType(event));
+            focusProfileService.terminateLocalSessions(TerminateSessionEvent.fromEventType(event));
 
             result.recordSuccess();
             response = RestServiceUtil.createResponse(Status.OK, result);
@@ -159,7 +157,7 @@ public class ClusterRestService {
         Response response;
         try {
             checkNodeAuthentication();
-            List<UserSessionManagementType> principals = userProfileService.getLocalLoggedInPrincipals();
+            List<UserSessionManagementType> principals = focusProfileService.getLocalLoggedInPrincipals();
 
             UserSessionManagementListType list = new UserSessionManagementListType();
             list.getSession().addAll(principals);
@@ -236,7 +234,6 @@ public class ClusterRestService {
         return response;
     }
 
-    @SuppressWarnings("RSReferenceInspection")
     @POST
     @Path(TaskConstants.STOP_LOCAL_TASK_REST_PATH_PREFIX + "{oid}" + TaskConstants.STOP_LOCAL_TASK_REST_PATH_SUFFIX)
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
@@ -323,7 +320,7 @@ public class ClusterRestService {
 
     private FileResolution resolveFile(String fileName) {
         FileResolution rv = new FileResolution();
-        rv.file = new File(midpointConfiguration.getMidpointHome() + EXPORT_DIR + fileName);
+        rv.file = Paths.get(midpointConfiguration.getMidpointHome(), EXPORT_DIR, fileName).toFile();
 
         if (forbiddenFileName(fileName)) {
             LOGGER.warn("File name '{}' is forbidden", fileName);

@@ -135,7 +135,7 @@ public class DataModelUtil {
             }
             return resolvePathForType(clazz, itemPath, context);
         } else if (ExpressionConstants.VAR_ACTOR.equals(varName)) {
-            return resolvePathForType(UserType.class, itemPath, context);
+            return resolvePathForType(FocusType.class, itemPath, context);
         } else if (ExpressionConstants.VAR_INPUT.equals(varName)) {
             return null;
         } else {

@@ -35,11 +35,8 @@ import com.evolveum.midpoint.model.impl.lens.IvwoConsolidator;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.StrengthSelector;
-import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -82,7 +79,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -165,32 +161,7 @@ public class ObjectTemplateProcessor {
         focusContext.applyProjectionWaveSecondaryDeltas(itemDeltas);
 
         if (nextRecompute != null) {
-
-            boolean alreadyHasTrigger = false;
-            PrismObject<AH> objectCurrent = focusContext.getObjectCurrent();
-            if (objectCurrent != null) {
-                for (TriggerType trigger: objectCurrent.asObjectable().getTrigger()) {
-                    if (RecomputeTriggerHandler.HANDLER_URI.equals(trigger.getHandlerUri()) &&
-                            nextRecompute.nextRecomputeTime.equals(trigger.getTimestamp())) {
-                                alreadyHasTrigger = true;
-                                break;
-                    }
-                }
-            }
-
-            if (!alreadyHasTrigger) {
-                PrismObjectDefinition<AH> objectDefinition = focusContext.getObjectDefinition();
-                PrismContainerDefinition<TriggerType> triggerContDef = objectDefinition.findContainerDefinition(ObjectType.F_TRIGGER);
-                ContainerDelta<TriggerType> triggerDelta = triggerContDef.createEmptyDelta(ObjectType.F_TRIGGER);
-                PrismContainerValue<TriggerType> triggerCVal = triggerContDef.createValue();
-                triggerDelta.addValueToAdd(triggerCVal);
-                TriggerType triggerType = triggerCVal.asContainerable();
-                triggerType.setTimestamp(nextRecompute.nextRecomputeTime);
-                triggerType.setHandlerUri(RecomputeTriggerHandler.HANDLER_URI);
-                triggerType.setOriginDescription(nextRecompute.triggerOriginDescription);
-
-                focusContext.swallowToProjectionWaveSecondaryDelta(triggerDelta);
-            }
+            nextRecompute.createTrigger(focusContext);
         }
     }
 
@@ -368,11 +339,10 @@ public class ObjectTemplateProcessor {
                 }
             }
 
-
             if (isNonTolerant) {
                 if (itemDelta.isDelete()) {
                     LOGGER.trace("Non-tolerant item with values to DELETE => removing them");
-                    itemDelta.resetValuesToDelete();        // these are useless now - we move everything to REPLACE
+                    itemDelta.resetValuesToDelete();
                 }
                 if (itemDelta.isReplace()) {
                     LOGGER.trace("Non-tolerant item with resulting REPLACE delta => doing nothing");
@@ -384,23 +354,11 @@ public class ObjectTemplateProcessor {
                     itemDelta.addToReplaceDelta();
                     LOGGER.trace("Non-tolerant item with resulting ADD delta => converted ADD to REPLACE values: {}", itemDelta.getValuesToReplace());
                 }
-
                 // To avoid phantom changes, compare with existing values (MID-2499).
-                // TODO this should be maybe moved into LensUtil.consolidateTripleToDelta (along with the above code), e.g.
-                // under a special option "createReplaceDelta", but for the time being, let's keep it here
-                if (itemDelta instanceof PropertyDelta) {
-                    PropertyDelta propertyDelta = ((PropertyDelta) itemDelta);
-                    QName matchingRuleName = templateItemDefinition != null ? templateItemDefinition.getMatchingRule() : null;
-                    MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
-                    if (propertyDelta.isRedundant(targetObject, matchingRule, false)) {
-                        LOGGER.trace("Computed property delta is redundant => skipping it. Delta = \n{}", propertyDelta.debugDump());
-                        continue;
-                    }
-                } else {
-                    if (itemDelta.isRedundant(targetObject, false)) {
-                        LOGGER.trace("Computed item delta is redundant => skipping it. Delta = \n{}", itemDelta.debugDump());
-                        continue;
-                    }
+                // TODO why we do this check only for non-tolerant items?
+                if (isDeltaRedundant(targetObject, templateItemDefinition, itemDelta)) {
+                    LOGGER.trace("Computed item delta is redundant => skipping it. Delta = \n{}", itemDelta.debugDumpLazily());
+                    continue;
                 }
                 PrismUtil.setDeltaOldValue(targetObject, itemDelta);
             }
@@ -408,11 +366,29 @@ public class ObjectTemplateProcessor {
             itemDelta.simplify();
             itemDelta.validate(contextDesc);
             itemDeltas.add(itemDelta);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Computed delta:\n{}", itemDelta.debugDump());
-            }
+            LOGGER.trace("Computed delta:\n{}", itemDelta.debugDumpLazily());
         }
         return itemDeltas;
+    }
+
+    // TODO this should be maybe moved into LensUtil.consolidateTripleToDelta e.g.
+    //  under a special option "createReplaceDelta", but for the time being, let's keep it here
+    private <T extends AssignmentHolderType> boolean isDeltaRedundant(PrismObject<T> targetObject,
+            ObjectTemplateItemDefinitionType templateItemDefinition, @NotNull ItemDelta<?, ?> itemDelta)
+            throws SchemaException {
+        if (itemDelta instanceof PropertyDelta) {
+            QName matchingRuleName = templateItemDefinition != null ? templateItemDefinition.getMatchingRule() : null;
+            return isPropertyDeltaRedundant(targetObject, matchingRuleName, (PropertyDelta<?>) itemDelta);
+        } else {
+            return itemDelta.isRedundant(targetObject, false);
+        }
+    }
+
+    private <AH extends AssignmentHolderType, T> boolean isPropertyDeltaRedundant(PrismObject<AH> targetObject,
+            QName matchingRuleName, @NotNull PropertyDelta<T> propertyDelta)
+            throws SchemaException {
+        MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
+        return propertyDelta.isRedundant(targetObject, EquivalenceStrategy.IGNORE_METADATA, matchingRule, false);
     }
 
     private void collectMappingsFromTemplate(List<FocalMappingEvaluationRequest<?, ?>> mappings,

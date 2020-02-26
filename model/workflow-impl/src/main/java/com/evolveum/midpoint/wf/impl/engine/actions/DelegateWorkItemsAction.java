@@ -100,7 +100,7 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
         WorkItemEventCauseInformationType causeInformation = request.getCauseInformation();
         ObjectReferenceType initiator =
                 causeInformation == null || causeInformation.getType() == WorkItemEventCauseTypeType.USER_ACTION ?
-                        ObjectTypeUtil.createObjectRef(ctx.getPrincipal().getUser(), engine.prismContext) : null;
+                        ObjectTypeUtil.createObjectRef(ctx.getPrincipal().getFocus(), engine.prismContext) : null;
 
         WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(initiator, causeInformation, null);
         ctx.prepareNotification(new DelayedNotification.AllocationChangeCurrent(ctx.getCurrentCase(), workItem, operationInfoBefore, sourceInfo, null));

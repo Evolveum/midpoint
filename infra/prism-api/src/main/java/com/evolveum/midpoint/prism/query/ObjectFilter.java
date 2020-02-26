@@ -35,5 +35,7 @@ public interface ObjectFilter extends DebugDumpable, Serializable, Revivable, Pr
 
     boolean equals(Object o, boolean exact);
 
+    // FIXME: Unused
+    @Deprecated
     void setPrismContext(PrismContext prismContext);
 }

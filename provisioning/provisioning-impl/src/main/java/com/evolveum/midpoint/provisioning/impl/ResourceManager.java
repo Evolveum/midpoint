@@ -549,6 +549,7 @@ public class ResourceManager {
                             throw new TunnelException(e);
                         }
                     }
+                    // TODO treat configuration items that are containers themselves
                 });
             } catch (TunnelException te) {
                 Throwable e = te.getCause();

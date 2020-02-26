@@ -17,6 +17,7 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -95,6 +96,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File UNASSIGN_FROM_WILL_2_FILE = new File(TEST_DIR, "unassign-from-will-2.xml");
     private static final File UNASSIGN_FROM_WILL_3_FILE = new File(TEST_DIR, "unassign-from-will-3.xml");
     private static final File ASSIGN_TO_WILL_FILE = new File(TEST_DIR, "assign-to-will.xml");
+    private static final File ASSIGN_TO_WILL_2_FILE = new File(TEST_DIR, "assign-to-will-2.xml");
     private static final File PURGE_DUMMY_BLACK_SCHEMA_FILE = new File(TEST_DIR, "purge-dummy-black-schema.xml");
     private static final File TEST_DUMMY_RESOURCE_FILE = new File(TEST_DIR, "test-dummy-resource.xml");
     private static final File NOTIFICATION_ABOUT_JACK_FILE = new File(TEST_DIR, "notification-about-jack.xml");
@@ -714,6 +716,43 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MEMBER.getRelation());
         MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MANAGER.getRelation());
         MidPointAsserts.assertNotAssignedResource(will, "10000000-0000-0000-0000-000000000004");
+    }
+
+    @Test
+    public void test394AssignToWill2() throws Exception {
+        final String TEST_NAME = "test394AssignToWill2";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+        QName customRelation = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "piracy:captain");
+
+        Task task = createTask(DOT_CLASS + TEST_NAME);
+        OperationResult result = task.getResult();
+        PrismProperty<ScriptingExpressionType> expression = parseAnyData(ASSIGN_TO_WILL_2_FILE);
+
+        PrismObject<SystemConfigurationType> systemConfig = repositoryService.getObject(SystemConfigurationType.class,
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
+        RoleManagementConfigurationType roleManagement = systemConfig.asObjectable().getRoleManagement();
+        PrismContainerValue<RoleManagementConfigurationType> oldValue = systemConfig.asObjectable().getRoleManagement().asPrismContainerValue();
+        roleManagement.beginRelations().beginRelation().setRef(customRelation);
+        Collection<? extends ItemDelta> modifications = new ArrayList<>();
+        ContainerDelta<RoleManagementConfigurationType> deleteDelta = prismContext.deltaFactory().container().createModificationReplace(SystemConfigurationType.F_ROLE_MANAGEMENT,
+                SystemConfigurationType.class, oldValue.clone());
+        ((Collection)modifications).add(deleteDelta);
+        modifySystemObjectInRepo(SystemConfigurationType.class,
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, result);
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+
+        // THEN
+        dumpOutput(output, result);
+        assertOutputData(output, 1, OperationResultStatus.SUCCESS);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> will = getUser(USER_WILL_OID);
+        display("will after assignments creation", will);
+        MidPointAsserts.assertAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, customRelation);
     }
 
     @Test

@@ -49,65 +49,6 @@ public class PrismUtil {
         recomputeRealValue(pValue.getValue(), prismContext);
     }
 
-//    /**
-//     * Super-mega-giga-ultra hack. This is used to "fortify" XML namespace declaration in a non-standard way.
-//     * It is useful in case that someone will try some stupid kind of schema-less XML normalization that removes
-//     * "unused" XML namespace declaration. The declarations are usually used, but they are used inside QName values
-//     * that the dumb normalization cannot see. Therefore this fortification places XML namespace declaration in
-//     * a explicit XML elements. That can be reconstructed later by using unfortification method below.
-//     */
-//    public static void fortifyNamespaceDeclarations(Element definitionElement) {
-//        for(Element childElement: DOMUtil.listChildElements(definitionElement)) {
-//            fortifyNamespaceDeclarations(definitionElement, childElement);
-//        }
-//    }
-//
-//    private static void fortifyNamespaceDeclarations(Element definitionElement, Element childElement) {
-//        Document doc = definitionElement.getOwnerDocument();
-//        NamedNodeMap attributes = childElement.getAttributes();
-//        for(int i=0; i<attributes.getLength(); i++) {
-//            Attr attr = (Attr)attributes.item(i);
-//            if (DOMUtil.isNamespaceDefinition(attr)) {
-//                String prefix = DOMUtil.getNamespaceDeclarationPrefix(attr);
-//                String namespace = DOMUtil.getNamespaceDeclarationNamespace(attr);
-//                Element namespaceElement = doc.createElementNS(PrismConstants.A_NAMESPACE.getNamespaceURI(), PrismConstants.A_NAMESPACE.getLocalPart());
-//                namespaceElement.setAttribute(PrismConstants.A_NAMESPACE_PREFIX, prefix);
-//                namespaceElement.setAttribute(PrismConstants.A_NAMESPACE_URL, namespace);
-//                definitionElement.insertBefore(namespaceElement, childElement);
-//            }
-//        }
-//    }
-//
-//    public static void unfortifyNamespaceDeclarations(Element definitionElement) {
-//        Map<String,String> namespaces = new HashMap<>();
-//        for(Element childElement: DOMUtil.listChildElements(definitionElement)) {
-//            if (PrismConstants.A_NAMESPACE.equals(DOMUtil.getQName(childElement))) {
-//                String prefix = childElement.getAttribute(PrismConstants.A_NAMESPACE_PREFIX);
-//                String namespace = childElement.getAttribute(PrismConstants.A_NAMESPACE_URL);
-//                namespaces.put(prefix, namespace);
-//                definitionElement.removeChild(childElement);
-//            } else {
-//                unfortifyNamespaceDeclarations(definitionElement, childElement, namespaces);
-//                namespaces = new HashMap<>();
-//            }
-//        }
-//    }
-//
-//    private static void unfortifyNamespaceDeclarations(Element definitionElement, Element childElement,
-//            Map<String, String> namespaces) {
-//        for (Entry<String, String> entry: namespaces.entrySet()) {
-//            String prefix = entry.getKey();
-//            String namespace = entry.getValue();
-//            String declaredNamespace = DOMUtil.getNamespaceDeclarationForPrefix(childElement, prefix);
-//            if (declaredNamespace == null) {
-//                DOMUtil.setNamespaceDeclaration(childElement, prefix, namespace);
-//            } else if (!namespace.equals(declaredNamespace)) {
-//                throw new IllegalStateException("Namespace declaration with prefix '"+prefix+"' that was used to declare "+
-//                        "namespace '"+namespace+"' is now used for namespace '"+declaredNamespace+"', cannot unfortify.");
-//            }
-//        }
-//    }
-
     public static boolean isEmpty(PolyStringType value) {
         return value == null || StringUtils.isEmpty(value.getOrig()) && StringUtils.isEmpty(value.getNorm());
     }

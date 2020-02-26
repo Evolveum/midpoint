@@ -232,7 +232,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
         List<PcpStartInstruction> instructions = new ArrayList<>();
         String assigneeName = ctx.getFocusObjectName();
-        PrismObject<UserType> requester = ctx.getRequestor(result);
+        PrismObject<? extends FocusType> requester = ctx.getRequestor(result);
 
         for (Request approvalRequest : approvalRequestList) {
 

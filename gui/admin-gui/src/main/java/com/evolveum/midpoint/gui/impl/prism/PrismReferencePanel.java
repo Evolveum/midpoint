@@ -60,7 +60,8 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
     }
 
     @Override
-    protected Component createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler) {
+    protected Component createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item, GuiComponentFactory componentFactory,
+            ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
         FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
         feedback.setOutputMarkupId(true);
         item.add(feedback);

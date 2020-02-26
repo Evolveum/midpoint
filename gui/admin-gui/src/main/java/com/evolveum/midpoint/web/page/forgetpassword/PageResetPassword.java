@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.forgetpassword;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -60,20 +62,20 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
             result.setMessage(getString("PageResetPassword.reset.successful"));
             setResponsePage(PageLogin.class);
 
-            PrismObject<UserType> user = getUser();
-            if (user == null) {
+            PrismObject<? extends FocusType> focus = getFocus();
+            if (focus == null) {
                 SecurityContextHolder.getContext().setAuthentication(null);
                 return;
             }
 
-            UserType userType = user.asObjectable();
+            FocusType focusType = focus.asObjectable();
 
-            if (userType.getCredentials() != null && userType.getCredentials().getNonce() != null) {
+            if (focusType.getCredentials() != null && focusType.getCredentials().getNonce() != null) {
 
                 try {
                     ObjectDelta<UserType> deleteNonceDelta = getPrismContext().deltaFactory().object()
-                            .createModificationDeleteContainer(UserType.class, userType.getOid(), SchemaConstants.PATH_NONCE,
-                                    userType.getCredentials().getNonce().clone());
+                            .createModificationDeleteContainer(UserType.class, focusType.getOid(), SchemaConstants.PATH_NONCE,
+                                    focusType.getCredentials().getNonce().clone());
                     WebModelServiceUtils.save(deleteNonceDelta, result, this);
                 } catch (SchemaException e) {
                     //nothing to do, just let the nonce here.. it will be invalid

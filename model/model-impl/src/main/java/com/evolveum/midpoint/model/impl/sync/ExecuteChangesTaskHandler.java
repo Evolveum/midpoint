@@ -49,14 +49,9 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeModelTaskH
 
     public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/execute/handler-3";
 
-    @Autowired
-    private TaskManager taskManager;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private ModelService model;
+    @Autowired private TaskManager taskManager;
+    @Autowired private PrismContext prismContext;
+    @Autowired private ModelService model;
 
     private static final Trace LOGGER = TraceManager.getTrace(ExecuteChangesTaskHandler.class);
 

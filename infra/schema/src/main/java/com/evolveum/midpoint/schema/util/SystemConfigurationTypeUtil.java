@@ -8,9 +8,10 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author mederly
@@ -45,25 +46,27 @@ public class SystemConfigurationTypeUtil {
         return sysconfigObject.asObjectable().getInternals().getMaxModelClicks();
     }
 
-    public static String getDefaultHostname(SystemConfigurationType sysconfig) {
-        if (sysconfig == null) {
-            return null;
-        } else if (sysconfig.getInfrastructure() != null && sysconfig.getInfrastructure().getDefaultHostname() != null) {
+    private static String getDefaultHostname(SystemConfigurationType sysconfig) {
+        if (sysconfig != null && sysconfig.getInfrastructure() != null) {
             return sysconfig.getInfrastructure().getDefaultHostname();
         } else {
             return null;
         }
     }
 
-    public static String getPublicHttpUrlPattern(SystemConfigurationType sysconfig) {
+    // TODO check the method name
+    public static String getPublicHttpUrlPattern(SystemConfigurationType sysconfig, String host) {
         if (sysconfig == null) {
             return null;
         } else if (sysconfig.getInfrastructure() != null && sysconfig.getInfrastructure().getPublicHttpUrlPattern() != null) {
-
             String publicHttpUrlPattern = sysconfig.getInfrastructure().getPublicHttpUrlPattern();
-            String defaultHostname = getDefaultHostname(sysconfig);
-            if (defaultHostname != null) {
-                String url = publicHttpUrlPattern.replace("$host", defaultHostname);
+            if (publicHttpUrlPattern.contains("$host")) {
+                String defaultHostname = getDefaultHostname(sysconfig);
+                if (defaultHostname != null) {
+                    publicHttpUrlPattern = publicHttpUrlPattern.replace("$host", defaultHostname);
+                } else if (StringUtils.isNotBlank(host)) {
+                    publicHttpUrlPattern = publicHttpUrlPattern.replace("$host", host);
+                }
             }
             return publicHttpUrlPattern;
         } else {

@@ -128,7 +128,7 @@ public class StartInstruction implements DebugDumpable {
         aCase.setTargetRef(ref);
     }
 
-    public void setRequesterRef(PrismObject<UserType> requester) {
+    public void setRequesterRef(PrismObject<? extends FocusType> requester) {
         aCase.setRequestorRef(createObjectRef(requester, getPrismContext()));
     }
 
