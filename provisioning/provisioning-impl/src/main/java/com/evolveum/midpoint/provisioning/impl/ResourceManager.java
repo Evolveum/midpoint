@@ -9,8 +9,12 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.*;
 
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
@@ -18,6 +22,8 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
@@ -85,11 +91,14 @@ public class ResourceManager {
     @Autowired private ConnectorManager connectorManager;
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private TaskManager taskManager;
+    @Autowired private Clock clock;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceManager.class);
 
     private static final String OP_COMPLETE_RESOURCE = ResourceManager.class.getName() + ".completeResource";
 
+    private static final int MAX_OPERATIONAL_HISOTRY_SIZE = 5;
     /**
      * Completes a resource that has been - we expect - just retrieved from the repository, usually by a search operation.
      */
@@ -1018,15 +1027,16 @@ public class ResourceManager {
 
         AvailabilityStatusType currentStatus;
         String description;
+        PrismObject<ResourceType> resource = null;
         if (skipGetResource) {
             currentStatus = null;
             description = "resource " + resourceOid;
         } else {
-            PrismObject<ResourceType> resource;
             try {
                 resource = getResource(resourceOid, GetOperationOptions.createNoFetch(), task, result);
             } catch (SchemaException | ExpressionEvaluationException | ConfigurationException | CommunicationException e) {
                 // We actually do not expect any of these exceptions here. The resource is most probably in use
+                result.recordFatalError("Unexpected exception: " + e.getMessage(), e);
                 throw new SystemException("Unexpected exception: " + e.getMessage(), e);
             }
             ResourceType resourceBean = resource.asObjectable();
@@ -1038,8 +1048,10 @@ public class ResourceManager {
             //info becasue it's for diagnosing the issues with resource availability
             LOGGER.info("Availability status changed from {} to {} for {} because {}", currentStatus, newStatus, description, operationCtx);
             try {
-                List<ItemDelta<?, ?>> modifications = singletonList(createResourceAvailabilityStatusDelta(newStatus));
+                String message = "Availability status changed from " + currentStatus + " to " + newStatus + " for " + description + " because " +operationCtx;
+                List<ItemDelta<?, ?>> modifications = createOperationalStateDelta(newStatus, message, resource);//singletonList(createResourceAvailabilityStatusDelta(newStatus));
                 repositoryService.modifyObject(ResourceType.class, resourceOid, modifications, result);
+                result.computeStatusIfUnknown();
                 InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
             } catch (SchemaException | ObjectAlreadyExistsException e) {
                 throw new SystemException("Unexpected exception: " + e.getMessage(), e);
@@ -1047,13 +1059,78 @@ public class ResourceManager {
         }
     }
 
-    private ContainerDelta createOperationalStateDelta(AvailabilityStatusType status, String message) {
+    private List<ItemDelta<?, ?>> createOperationalStateDelta(AvailabilityStatusType status, String message, PrismObject<ResourceType> resource) throws SchemaException {
         OperationalStateType state = new OperationalStateType(prismContext);
         state.setMessage(message);
         state.setLastAvailabilityStatus(status);
-//        state.setNodeId();
-//        state.setTimestamp();
-        return null;
+        state.setNodeId(taskManager.getNodeId());
+        state.setTimestamp(clock.currentTimeXMLGregorianCalendar());
+
+        ItemDelta<?, ?> lastAvailabilityStatus = prismContext.deltaFor(ResourceType.class).item(ResourceType.F_OPERATIONAL_STATE).replace(state).asItemDelta();
+
+        List<ItemDelta<?, ?>> deltas = new ArrayList<>();
+        deltas.add(lastAvailabilityStatus);
+        addHistoryDeltas(resource, state, deltas);
+        return deltas;
+    }
+
+    private void addHistoryDeltas(PrismObject<ResourceType> resource, OperationalStateType newState, List<ItemDelta<?, ?>> deltas) throws SchemaException {
+        cleanupHistoryDeltas(resource, deltas);
+
+        ItemDelta<?, ?> addNewDelta = prismContext.deltaFor(ResourceType.class).item(ResourceType.F_OPERATIONAL_STATE_HISTORY).add(newState.clone()).asItemDelta();
+        deltas.add(addNewDelta);
+    }
+
+    private void cleanupHistoryDeltas(PrismObject<ResourceType> resource, List<ItemDelta<?, ?>> deltas) throws SchemaException {
+        if (resource == null) {
+            return;
+        }
+
+        List<OperationalStateType> history = new ArrayList<>(resource.asObjectable().getOperationalStateHistory());
+        int historySize = history.size();
+        if (historySize >= MAX_OPERATIONAL_HISOTRY_SIZE) {
+            Comparator timestampCompare = (r1, r2) -> {
+                OperationalStateType state1 = (OperationalStateType) r1;
+                OperationalStateType state2 = (OperationalStateType) r2;
+                if (state1 == null) {
+                    return (state2 == null ? DatatypeConstants.EQUAL : DatatypeConstants.GREATER);
+                }
+
+                if (state2 == null) {
+                    return (state1 == null ? DatatypeConstants.EQUAL : DatatypeConstants.LESSER);
+                }
+
+                XMLGregorianCalendar gc1 = state1.getTimestamp();
+                XMLGregorianCalendar gc2 = state2.getTimestamp();
+
+                Long t1 = MiscUtil.asLong(gc1);
+                Long t2 = MiscUtil.asLong(gc2);
+                return t2.compareTo(t1);
+            };
+
+            Collections.sort(history, timestampCompare);
+            if (MAX_OPERATIONAL_HISOTRY_SIZE == historySize) {
+                ItemDelta<?, ?> deleteOldDelta = prismContext.deltaFor(ResourceType.class)
+                        .item(ResourceType.F_OPERATIONAL_STATE_HISTORY)
+                        .delete(history.get(historySize - 1).clone())
+                        .asItemDelta();
+                deltas.add(deleteOldDelta);
+            }
+
+            // in case the resource was not available last time we updated history
+            // there might me more then MAX_OPERATIONAL_HISOTY_SIZE records, so
+            // just remove them now.
+            if (MAX_OPERATIONAL_HISOTRY_SIZE < historySize) {
+                int recordsToDelete = historySize - MAX_OPERATIONAL_HISOTRY_SIZE + 1;
+                for (int i = 1; i <= recordsToDelete; i++) {
+                    ItemDelta<?, ?> deleteOldDelta = prismContext.deltaFor(ResourceType.class)
+                            .item(ResourceType.F_OPERATIONAL_STATE_HISTORY)
+                            .delete(history.get(historySize - i).clone())
+                            .asItemDelta();
+                    deltas.add(deleteOldDelta);
+                }
+            }
+        }
     }
 
     private ItemDelta<?, ?> createResourceAvailabilityStatusDelta(AvailabilityStatusType status) throws SchemaException {
