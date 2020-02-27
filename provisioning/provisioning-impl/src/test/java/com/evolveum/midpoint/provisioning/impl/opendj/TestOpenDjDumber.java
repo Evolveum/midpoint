@@ -20,8 +20,6 @@ import org.springframework.test.context.ContextConfiguration;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.testng.annotations.Test;
 
 /**
@@ -36,8 +34,6 @@ import org.testng.annotations.Test;
 public class TestOpenDjDumber extends TestOpenDj {
 
     protected static final File RESOURCE_OPENDJ_DUMBER_FILE = new File(TEST_DIR, "resource-opendj-dumber.xml");
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestOpenDjDumber.class);
 
     @Override
     protected File getResourceOpenDjFile() {

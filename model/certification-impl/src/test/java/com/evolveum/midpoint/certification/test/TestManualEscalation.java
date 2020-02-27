@@ -7,6 +7,21 @@
 
 package com.evolveum.midpoint.certification.test;
 
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -15,19 +30,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
-import static org.testng.AssertJUnit.*;
 
 /**
  * Very simple certification test.
@@ -35,12 +37,12 @@ import static org.testng.AssertJUnit.*;
  *
  * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-certification-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-certification-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestManualEscalation extends AbstractCertificationTest {
 
-    protected static final File CERT_DEF_USER_ASSIGNMENT_BASIC_FILE = new File(COMMON_DIR, "certification-of-eroot-user-assignments.xml");
-    protected static final String CERT_DEF_USER_ASSIGNMENT_BASIC_OID = "33333333-0000-0000-0000-000000000001";
+    protected static final File CERT_DEF_USER_ASSIGNMENT_BASIC_FILE =
+            new File(COMMON_DIR, "certification-of-eroot-user-assignments.xml");
 
     protected AccessCertificationDefinitionType certificationDefinition;
 
@@ -95,10 +97,6 @@ public class TestManualEscalation extends AbstractCertificationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_OID));
 
-        searchWithNoCasesExpected(TEST_NAME);
-    }
-
-    protected void searchWithNoCasesExpected(String TEST_NAME) throws Exception {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestManualEscalation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -238,7 +236,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         assertSingleDecision(superuserCase, ACCEPT, "no comment", 1, 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
+        assertPercentCompleteAll(campaign, Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f));      // 1 reviewer per case (always administrator)
     }
 
     @Test
@@ -287,7 +285,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         assertEquals("Wrong new escalation level", NEW_ESCALATION_LEVEL, event.getNewEscalationLevel());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));
+        assertPercentCompleteAll(campaign, Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f));
     }
 
     @Test
@@ -337,7 +335,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         assertEquals("Wrong new escalation level", NEW_ESCALATION_LEVEL, event.getNewEscalationLevel());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));
+        assertPercentCompleteAll(campaign, Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f));
     }
 
     @Test
@@ -393,7 +391,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         assertEquals("Wrong old escalation level", OLD_ESCALATION_LEVEL, event.getEscalationLevel());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));
+        assertPercentCompleteAll(campaign, Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f));
     }
 
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {
@@ -415,6 +413,5 @@ public class TestManualEscalation extends AbstractCertificationTest {
         checkWorkItemSanity(workItems, USER_JACK_OID, ROLE_CEO_OID, userJack, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
         checkWorkItemSanity(workItems, USER_JACK_OID, ORG_EROOT_OID, userJack);
     }
-
 
 }

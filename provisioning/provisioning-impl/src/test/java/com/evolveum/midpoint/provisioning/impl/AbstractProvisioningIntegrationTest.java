@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
@@ -20,10 +18,8 @@ import org.testng.AssertJUnit;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.dummy.TestDummyResourceAndSchemaCaching;
 import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -40,19 +36,10 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 /**
@@ -84,16 +71,15 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
     private ResourceSchema lastResourceSchema = null;
     private RefinedResourceSchema lastRefinedResourceSchema;
 
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         InternalsConfig.encryptionChecks = false;
-        repositoryService.postInit(initResult);         // initialize caches here
+        repositoryService.postInit(initResult); // initialize caches here
         provisioningService.postInit(initResult);
     }
 
     protected <T extends ObjectType> void assertVersion(PrismObject<T> object, String expectedVersion) {
-        assertEquals("Wrong version of "+object, expectedVersion, object.asObjectable().getVersion());
+        assertEquals("Wrong version of " + object, expectedVersion, object.asObjectable().getVersion());
     }
 
     protected void rememberResourceVersion(String version) {
@@ -107,7 +93,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
     protected void assertResourceVersionIncrement(String currentVersion, int expectedIncrement) {
         long currentVersionLong = parseVersion(currentVersion);
         long actualIncrement = currentVersionLong - lastResourceVersion;
-        assertEquals("Unexpected increment in resource version", (long)expectedIncrement, actualIncrement);
+        assertEquals("Unexpected increment in resource version", expectedIncrement, actualIncrement);
         lastResourceVersion = currentVersionLong;
     }
 
@@ -146,7 +132,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
     protected void assertResourceSchemaUnchanged(ResourceSchema currentResourceSchema) {
         // We really want == there. We want to make sure that this is actually the same instance and that
         // it was properly cached
-        assertTrue("Resource schema has changed", lastResourceSchema == currentResourceSchema);
+        assertSame("Resource schema has changed", lastResourceSchema, currentResourceSchema);
     }
 
     protected void rememberRefinedResourceSchema(RefinedResourceSchema rResourceSchema) {
@@ -154,64 +140,49 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
     }
 
     protected void assertRefinedResourceSchemaUnchanged(RefinedResourceSchema currentRefinedResourceSchema) {
-        // We really want == there. We want to make sure that this is actually the same instance and that
-        // it was properly cached
-        assertTrue("Refined resource schema has changed", lastRefinedResourceSchema == currentRefinedResourceSchema);
+        // We really want == (identity test) here.
+        // We want to make sure that this is actually the same instance and that it was properly cached.
+        assertSame("Refined resource schema has changed", lastRefinedResourceSchema, currentRefinedResourceSchema);
     }
 
     protected void assertHasSchema(PrismObject<ResourceType> resource, String desc) throws SchemaException {
         ResourceType resourceType = resource.asObjectable();
-        display("Resource "+desc, resourceType);
+        display("Resource " + desc, resourceType);
 
         XmlSchemaType xmlSchemaTypeAfter = resourceType.getSchema();
-        assertNotNull("No schema in "+desc, xmlSchemaTypeAfter);
+        assertNotNull("No schema in " + desc, xmlSchemaTypeAfter);
         Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceType);
-        assertNotNull("No schema XSD element in "+desc, resourceXsdSchemaElementAfter);
-
-        String resourceXml = prismContext.serializeObjectToString(resource, PrismContext.LANG_XML);
-//        display("Resource XML", resourceXml);
+        assertNotNull("No schema XSD element in " + desc, resourceXsdSchemaElementAfter);
 
         CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
-        assertNotNull("No caching metadata in "+desc, cachingMetadata);
-        assertNotNull("No retrievalTimestamp in "+desc, cachingMetadata.getRetrievalTimestamp());
-        assertNotNull("No serialNumber in "+desc, cachingMetadata.getSerialNumber());
+        assertNotNull("No caching metadata in " + desc, cachingMetadata);
+        assertNotNull("No retrievalTimestamp in " + desc, cachingMetadata.getRetrievalTimestamp());
+        assertNotNull("No serialNumber in " + desc, cachingMetadata.getSerialNumber());
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
         ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resource.toString(), prismContext);
-        assertNotNull("No schema after parsing in "+desc, parsedSchema);
+        assertNotNull("No schema after parsing in " + desc, parsedSchema);
     }
 
-    protected void rememberConnectorInstance(PrismObject<ResourceType> resource) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-        OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName() + ".rememberConnectorInstance");
+    protected void rememberConnectorInstance(PrismObject<ResourceType> resource) throws SchemaException {
         rememberConnectorInstance(resourceManager.getConfiguredConnectorInstanceFromCache(resource, ReadCapabilityType.class));
     }
 
-    protected void rememberConnectorInstance(ConnectorInstance currentConnectorInstance) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+    protected void rememberConnectorInstance(ConnectorInstance currentConnectorInstance) {
         LOGGER.debug("Remembering connector instance {}", currentConnectorInstance);
         lastConfiguredConnectorInstance = currentConnectorInstance;
     }
 
-    protected void assertConnectorInstanceUnchanged(PrismObject<ResourceType> resource) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+    protected void assertConnectorInstanceUnchanged(PrismObject<ResourceType> resource) throws SchemaException {
         if (lastConfiguredConnectorInstance == null) {
             return;
         }
-        OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-                + ".assertConnectorInstanceUnchanged");
         ConnectorInstance currentConfiguredConnectorInstance = resourceManager.getConfiguredConnectorInstanceFromCache(
                 resource, ReadCapabilityType.class);
-        assertTrue("Connector instance has changed", lastConfiguredConnectorInstance == currentConfiguredConnectorInstance);
+        assertSame("Connector instance has changed", lastConfiguredConnectorInstance, currentConfiguredConnectorInstance);
     }
 
-    protected void assertConnectorInstanceChanged(PrismObject<ResourceType> resource) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-        OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-                + ".rememberConnectorInstance");
-        ConnectorInstance currentConfiguredConnectorInstance = resourceManager.getConfiguredConnectorInstanceFromCache(
-                resource, ReadCapabilityType.class);
-        assertTrue("Connector instance has NOT changed", lastConfiguredConnectorInstance != currentConfiguredConnectorInstance);
-        lastConfiguredConnectorInstance = currentConfiguredConnectorInstance;
-    }
-
-    protected void assertSteadyResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+    protected void assertSteadyResource() throws SchemaException {
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
@@ -234,63 +205,36 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         return null;
     }
 
-    protected void assertProvisioningNotFound(String oid) throws CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        try {
-            provisioningService.getObject(ShadowType.class, oid, null, task, result);
-            assertNotReached();
-        } catch (ObjectNotFoundException e) {
-            // expected
-        }
-        assertFailure(result);
-    }
-
-    protected void assertProvisioningFutureNotFound(String oid) throws CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
-        try {
-            provisioningService.getObject(ShadowType.class, oid, options, task, result);
-            assertNotReached();
-        } catch (ObjectNotFoundException e) {
-            // expected
-        }
-        assertFailure(result);
-    }
-
     protected ShadowAsserter<Void> assertShadowProvisioning(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, null, task, result);
+        OperationResult result = createSubresult("assertShadowProvisioning");
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, null, getTestTask(), result);
         assertSuccess(result);
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, "provisioning");
-        asserter
-            .display();
+        asserter.display();
         return asserter;
     }
 
-    protected ShadowAsserter<Void> assertShadowNoFetch(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
+    protected ShadowAsserter<Void> assertShadowNoFetch(String oid)
+            throws ObjectNotFoundException, CommunicationException, SchemaException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        OperationResult result = createSubresult("assertShadowNoFetch-" + oid);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, options, getTestTask(), result);
         assertSuccess(result);
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, "noFetch");
-        asserter
-            .display();
+        asserter.display();
         return asserter;
     }
 
-    protected ShadowAsserter<Void> assertShadowFuture(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
+    protected ShadowAsserter<Void> assertShadowFuture(String oid)
+            throws ObjectNotFoundException, CommunicationException, SchemaException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        OperationResult result = createSubresult("assertShadowFuture-" + oid);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, options, getTestTask(), result);
         assertSuccess(result);
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, "future");
-        asserter
-            .display();
+        asserter.display();
         return asserter;
     }
 
@@ -299,12 +243,11 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         OperationResult result = task.getResult();
         GetOperationOptions rootOptions = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
         rootOptions.setNoFetch(true);
-        Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(rootOptions);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
         assertSuccess(result);
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, "future,noFetch");
-        asserter
-            .display();
+        asserter.display();
         return asserter;
     }
 }

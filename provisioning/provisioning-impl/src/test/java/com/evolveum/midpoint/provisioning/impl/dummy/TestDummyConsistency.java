@@ -6,16 +6,12 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -25,6 +21,7 @@ import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -37,28 +34,15 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 /**
  * Test for various aspects of provisioning failure handling
  * (aka "consistency mechanism").
- *
- *  MID-3603
+ * <p>
+ * MID-3603
  *
  * @author Radovan Semancik
  */
@@ -72,8 +56,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
     protected static final String ACCOUNT_MORGAN_FULLNAME_HM = "Henry Morgan";
     protected static final String ACCOUNT_MORGAN_FULLNAME_CHM = "Captain Henry Morgan";
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestDummyConsistency.class);
 
     private static final String ACCOUNT_JP_MORGAN_FULLNAME = "J.P. Morgan";
     private static final String ACCOUNT_BETTY_USERNAME = "betty";
@@ -94,8 +76,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-//        DebugUtil.setDetailedDebugDump(true);
-//        InternalMonitor.setTraceConnectorOperation(true);
     }
 
     @Override
@@ -105,8 +85,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
     @Test
     public void test000Integrity() throws Exception {
-        final String TEST_NAME = "test000Integrity";
-
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -151,10 +129,12 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 ACCOUNT_WILL_OID, null, task, result);
 
         display("Account provisioning", accountProvisioning);
+        // @formatter:off
         ShadowAsserter.forShadow(accountProvisioning)
             .assertNoLegacyConsistency()
             .pendingOperations()
                 .assertNone();
+        // @formatter:on
 
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(transformNameFromResource(ACCOUNT_WILL_USERNAME));
         assertNotNull("No dummy account", dummyAccount);
@@ -169,10 +149,12 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("Repository shadow", shadowFromRepo);
 
         checkRepoAccountShadow(shadowFromRepo);
+        // @formatter:off
         ShadowAsserter.forShadow(shadowFromRepo)
             .assertNoLegacyConsistency()
             .pendingOperations()
                 .assertNone();
+        // @formatter:on
 
         checkUniqueness(accountProvisioning);
         assertSteadyResources();
@@ -223,20 +205,17 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test102GetAccountMorganRecovery() throws Exception {
-        final String TEST_NAME = "test102GetAccountMorganRecovery";
         // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         dummyResource.resetBreakMode();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        displayWhen();
         assertGetUncreatedShadow(ACCOUNT_MORGAN_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        displayThen();
         syncServiceMock.assertNoNotifcations();
 
         assertUncreatedMorgan(1);
@@ -393,6 +372,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> repoShadow = getShadowRepo(ACCOUNT_MORGAN_OID);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
+        // @formatter:off
         assertRepoShadow(ACCOUNT_MORGAN_OID)
             .pendingOperations()
                 .singleOperation()
@@ -462,6 +442,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertNoPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
                 .end();
+        // @formatter:on
 
         dummyResource.resetBreakMode();
 
@@ -865,7 +846,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
      * Get operation should throw an error, as there is explicit staleness=0 option.
      * MID-4796
      */
-    @Test(enabled=false) // MID-4796
+    @Test(enabled = false) // MID-4796
     public void test133GetAccountMorganStalenessZeroCommunicationFailure() throws Exception {
         final String TEST_NAME = "test133GetAccountMorganStalenessZeroCommunicationFailure";
         // GIVEN
@@ -899,7 +880,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         assertSteadyResources();
     }
-
 
     /**
      * Use forceRefresh option with get operation to force refresh.
@@ -1248,6 +1228,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertSuccess(result);
         syncServiceMock.assertNoNotifcations();
 
+        // @formatter:off
         assertRepoShadow(ACCOUNT_MORGAN_OID)
             .assertKind(ShadowKindType.ACCOUNT)
             .assertDead()
@@ -1281,7 +1262,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertHasSecondaryIdentifier()
                 .end();
 
-
         assertShadowFutureNoFetch(ACCOUNT_MORGAN_OID)
             .assertTombstone()
             .assertNoLegacyConsistency()
@@ -1290,6 +1270,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertNoPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
                 .end();
+        // @formatter:on
 
         dummyResource.resetBreakMode();
 
@@ -1332,6 +1313,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertSuccess(result);
         syncServiceMock.assertNoNotifcations();
 
+        // @formatter:off
         assertRepoShadow(shadowMorganOid)
             .assertKind(ShadowKindType.ACCOUNT)
             .assertTombstone()
@@ -1362,6 +1344,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         assertShadowFutureNoFetch(shadowMorganOid)
             .assertTombstone();
+        // @formatter:on
 
         dummyResource.resetBreakMode();
 
@@ -1480,6 +1463,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         PrismObject<ShadowType> conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_MORGAN_NAME, getResource(), result);
         assertNotNull("Shadow for conflicting object was not created in the repository", conflictingShadowRepo);
+        // @formatter:off
         ShadowAsserter.forShadow(conflictingShadowRepo,"confligting repo shadow")
             .display()
             .assertBasicRepoProperties()
@@ -1515,6 +1499,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                         .end()
                     .pendingOperations()
                         .assertNone();
+        // @formatter:on
 
         shadowMorganOid = conflictingShadowRepo.getOid();
 
@@ -1555,8 +1540,9 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertFailure(result);
         account.checkConsistence();
 
+        // @formatter:off
         PrismObject<ShadowType> conflictingShadowRepo = getShadowRepo(shadowMorganOid);
-        ShadowAsserter.forShadow(conflictingShadowRepo,"confligting repo shadow")
+        ShadowAsserter.forShadow(conflictingShadowRepo,"conflicting repo shadow")
             .display()
             .assertBasicRepoProperties()
             .assertOid(shadowMorganOid)
@@ -1605,6 +1591,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                         .end()
                     .pendingOperations()
                         .assertNone();
+        // @formatter:on
 
         assertNoRepoShadow(ACCOUNT_MORGAN_OID);
         assertSteadyResources();
@@ -1634,7 +1621,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         account.checkConsistence();
 
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_ELIZABETH_USERNAME)
-            .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_ELIZABETH_FULLNAME);
+                .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_ELIZABETH_FULLNAME);
 
         assertSteadyResources();
     }
@@ -1675,7 +1662,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         PrismObject<ShadowType> conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_BETTY_USERNAME, getResource(), result);
         assertNotNull("Shadow for conflicting object was not created in the repository", conflictingShadowRepo);
-        ShadowAsserter.forShadow(conflictingShadowRepo,"confligting repo shadow")
+        // @formatter:off
+        ShadowAsserter.forShadow(conflictingShadowRepo,"conflicting repo shadow")
             .display()
             .assertBasicRepoProperties()
             .assertOidDifferentThan(ACCOUNT_ELIZABETH_OID)
@@ -1715,6 +1703,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_BETTY_USERNAME)
             .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_BETTY_FULLNAME);
+        // @formatter:on
 
         assertSteadyResources();
     }
@@ -1752,7 +1741,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         PrismObject<ShadowType> conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_BETTY_USERNAME, getResource(), result);
         assertNotNull("Shadow for conflicting object was not created in the repository", conflictingShadowRepo);
-        ShadowAsserter.forShadow(conflictingShadowRepo,"confligting repo shadow")
+        // @formatter:off
+        ShadowAsserter.forShadow(conflictingShadowRepo, "conflicting repo shadow")
             .display()
             .assertBasicRepoProperties()
             .assertOidDifferentThan(ACCOUNT_ELIZABETH_OID)
@@ -1804,6 +1794,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_BETTY_USERNAME)
             .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_BETTY_FULLNAME);
+        // @formatter:on
 
         assertSteadyResources();
     }
@@ -1833,6 +1824,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
 
+        // @formatter:off
         syncServiceMock
             .assertNotifyChange()
             .assertNotifyChangeCalls(1)
@@ -1869,6 +1861,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         ShadowAsserter.forShadow(provisioningShadow, "provisioning")
             .assertTombstone();
+        // @formatter:on
 
         assertNoRepoShadow(ACCOUNT_MORGAN_OID);
         assertSteadyResources();
@@ -1908,6 +1901,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("Result", result);
         assertFailure(result);
 
+        // @formatter:off
         syncServiceMock
             .assertNotifyChange()
             .assertNotifyChangeCalls(1)
@@ -1942,6 +1936,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertIsNotExists()
             .pendingOperations()
                 .assertNone();
+        // @formatter:on
 
         assertSteadyResources();
     }
@@ -1972,6 +1967,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("Result", result);
         assertHadnledError(result);
 
+        // @formatter:off
         syncServiceMock
             .assertNotifyChange()
             .assertNotifyChangeCalls(1)
@@ -2006,6 +2002,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertIsNotExists()
             .pendingOperations()
                 .assertNone();
+        // @formatter:on
 
         assertSteadyResources();
     }
@@ -2045,6 +2042,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         displayThen(TEST_NAME);
         assertFailure(result);
 
+        // @formatter:off
         syncServiceMock
             .assertNotifyFailureOnly()
             .assertNotifyChange()
@@ -2069,9 +2067,10 @@ public class TestDummyConsistency extends AbstractDummyTest {
                         .end()
                     .pendingOperations()
                         .assertNone();
+        // @formatter:on
 
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_ELIZABETH_USERNAME)
-            .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_ELIZABETH2_FULLNAME);
+                .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_ELIZABETH2_FULLNAME);
 
         assertSteadyResources();
     }
@@ -2111,6 +2110,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
     private void assertUncreatedMorgan(int expectedAttemptNumber) throws Exception {
 
+        // @formatter:off
         assertRepoShadow(shadowMorganOid)
             .assertKind(ShadowKindType.ACCOUNT)
             .assertIsNotExists()
@@ -2159,7 +2159,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                     .delta()
                         .assertAdd();
 
-        ShadowAsserter asserterFuture = assertShadowFuture(shadowMorganOid)
+        ShadowAsserter<Void> asserterFuture = assertShadowFuture(shadowMorganOid)
             .assertIsExists()
             .assertNotDead()
             .assertNoPrimaryIdentifierValue()
@@ -2171,6 +2171,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertSize(5)
                 .assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME)
                 .end();
+        // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
         checkUniqueness(asserterFuture.getObject());
@@ -2178,6 +2179,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
     private void assertCreatedMorgan(int expectedAttemptNumber) throws Exception {
 
+        // @formatter:off
         assertRepoShadow(shadowMorganOid)
             .assertKind(ShadowKindType.ACCOUNT)
             .assertIsExists()
@@ -2238,7 +2240,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertSize(6)
                 .assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME);
 
-        ShadowAsserter asserterFuture = assertShadowFuture(shadowMorganOid)
+        ShadowAsserter<Void> asserterFuture = assertShadowFuture(shadowMorganOid)
             .assertIsExists()
             .assertNotDead()
             .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
@@ -2250,6 +2252,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertSize(6)
                 .assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME)
                 .end();
+        // @formatter:on
 
         dummyResource.resetBreakMode();
 
@@ -2257,18 +2260,21 @@ public class TestDummyConsistency extends AbstractDummyTest {
         checkUniqueness(asserterFuture.getObject());
 
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
-            .assertName(ACCOUNT_MORGAN_NAME)
-            .assertFullName(ACCOUNT_MORGAN_FULLNAME)
-            .assertEnabled()
-            .assertPassword(ACCOUNT_MORGAN_PASSWORD);
+                .assertName(ACCOUNT_MORGAN_NAME)
+                .assertFullName(ACCOUNT_MORGAN_FULLNAME)
+                .assertEnabled()
+                .assertPassword(ACCOUNT_MORGAN_PASSWORD);
     }
 
-    private void assertUnmodifiedMorgan(int expectedAttemptNumber, int expectenNumberOfPendingOperations, String expectedFullName) throws Exception {
+    private void assertUnmodifiedMorgan(
+            int expectedAttemptNumber, int expectenNumberOfPendingOperations, String expectedFullName)
+            throws Exception {
 
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
-        ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
+        // @formatter:off
+        ShadowAsserter<Void> shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
         shadowAsserter
             .display()
             .pendingOperations()
@@ -2325,10 +2331,10 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertSize(2);
 
         Task task = getTestTask();
-        OperationResult result = task.getResult();
+        OperationResult result = createSubresult("assertUnmodifiedMorgan");
         PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
         assertPartialError(result);
-        shadowAsserter = ShadowAsserter.forShadow(accountProvisioning,"current");
+        shadowAsserter = ShadowAsserter.forShadow(accountProvisioning, "current");
         shadowAsserter
             .display()
             .assertIsExists()
@@ -2343,7 +2349,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // TODO: assert caching metadata?
 
         PrismObject<ShadowType> accountProvisioningFuture = getShadowFuturePartialError(shadowMorganOid);
-        shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture,"future");
+        shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture, "future");
         shadowAsserter
             .display()
             .assertIsExists()
@@ -2356,24 +2362,28 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertHasSecondaryIdentifier()
                 .assertSize(3)
                 .assertValue(dummyResourceCtl.getAttributeFullnameQName(), expectedFullName);
+        // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
         checkUniqueness(accountProvisioningFuture);
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
-        .assertName(ACCOUNT_MORGAN_NAME)
-        .assertFullName(ACCOUNT_MORGAN_FULLNAME)
-        .assertEnabled()
-        .assertPassword(ACCOUNT_MORGAN_PASSWORD);
+                .assertName(ACCOUNT_MORGAN_NAME)
+                .assertFullName(ACCOUNT_MORGAN_FULLNAME)
+                .assertEnabled()
+                .assertPassword(ACCOUNT_MORGAN_PASSWORD);
     }
 
-    private void assertModifiedMorgan(int expectedAttemptNumber, int expectenNumberOfPendingOperations, String expectedFullName) throws Exception {
+    private void assertModifiedMorgan(
+            int expectedAttemptNumber, int expectenNumberOfPendingOperations, String expectedFullName)
+            throws Exception {
 
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
-        ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
+        // @formatter:off
+        ShadowAsserter<Void> shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
         shadowAsserter
             .display()
             .pendingOperations()
@@ -2432,11 +2442,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertHasSecondaryIdentifier()
                 .assertSize(2);
 
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
+        OperationResult result = createSubresult("assertModifiedMorgan");
+        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(
+                ShadowType.class, shadowMorganOid, null, getTestTask(), result);
         assertSuccess(result);
-        shadowAsserter = ShadowAsserter.forShadow(accountProvisioning,"current");
+        shadowAsserter = ShadowAsserter.forShadow(accountProvisioning, "current");
         shadowAsserter
             .display()
             .assertIsExists()
@@ -2450,7 +2460,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertValue(dummyResourceCtl.getAttributeFullnameQName(), expectedFullName);
 
         PrismObject<ShadowType> accountProvisioningFuture = getShadowFuture(shadowMorganOid);
-        shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture,"future");
+        shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture, "future");
         shadowAsserter
             .display()
             .assertIsExists()
@@ -2462,23 +2472,25 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertHasSecondaryIdentifier()
                 .assertSize(6)
                 .assertValue(dummyResourceCtl.getAttributeFullnameQName(), expectedFullName);
+        // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
         checkUniqueness(accountProvisioningFuture);
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
-        .assertName(ACCOUNT_MORGAN_NAME)
-        .assertFullName(expectedFullName)
-        .assertEnabled()
-        .assertPassword(ACCOUNT_MORGAN_PASSWORD);
+                .assertName(ACCOUNT_MORGAN_NAME)
+                .assertFullName(expectedFullName)
+                .assertEnabled()
+                .assertPassword(ACCOUNT_MORGAN_PASSWORD);
     }
 
     private void assertMorganModifyFailed() throws Exception {
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
-        ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
+        // @formatter:off
+        ShadowAsserter<Void> shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
         shadowAsserter
             .display()
             .pendingOperations()
@@ -2531,11 +2543,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertHasSecondaryIdentifier()
                 .assertSize(2);
 
-        Task task1 = getTestTask();
-        OperationResult result1 = task1.getResult();
-        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task1, result1);
-        assertPartialError(result1);
-        shadowAsserter = ShadowAsserter.forShadow(accountProvisioning,"current");
+        OperationResult result = createSubresult("assertMorganModifyFailed");
+        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(
+                ShadowType.class, shadowMorganOid, null, getTestTask(), result);
+        assertPartialError(result);
+        shadowAsserter = ShadowAsserter.forShadow(accountProvisioning, "current");
         shadowAsserter
             .display()
             .assertIsExists()
@@ -2560,16 +2572,17 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
                 .assertSize(2);
+        // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
         checkUniqueness(accountProvisioningFuture);
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
-        .assertName(ACCOUNT_MORGAN_NAME)
-        .assertFullName(ACCOUNT_MORGAN_FULLNAME)
-        .assertEnabled()
-        .assertPassword(ACCOUNT_MORGAN_PASSWORD);
+                .assertName(ACCOUNT_MORGAN_NAME)
+                .assertFullName(ACCOUNT_MORGAN_FULLNAME)
+                .assertEnabled()
+                .assertPassword(ACCOUNT_MORGAN_PASSWORD);
     }
 
     private void assertUndeletedMorgan(int expectedAttemptNumber, int expectenNumberOfPendingOperations) throws Exception {
@@ -2577,7 +2590,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
-        ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
+        // @formatter:off
+        ShadowAsserter<Void> shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
         shadowAsserter
             .display()
             .pendingOperations()
@@ -2632,11 +2646,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertHasSecondaryIdentifier()
                 .assertSize(2);
 
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
+        OperationResult result = createSubresult("assertUndeletedMorgan");
+        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(
+                ShadowType.class, shadowMorganOid, null, getTestTask(), result);
         assertPartialError(result);
-        shadowAsserter = ShadowAsserter.forShadow(accountProvisioning,"current");
+        shadowAsserter = ShadowAsserter.forShadow(accountProvisioning, "current");
         shadowAsserter
             .display()
             .assertIsExists()
@@ -2651,7 +2665,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // TODO: assert caching metadata?
 
         PrismObject<ShadowType> accountProvisioningFuture = getShadowFuturePartialError(shadowMorganOid);
-        shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture,"future");
+        shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture, "future");
         shadowAsserter
             .display()
             .assertIsNotExists()
@@ -2662,23 +2676,24 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
                 .assertSize(2);
+        // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
         checkUniqueness(accountProvisioningFuture);
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
-        .assertName(ACCOUNT_MORGAN_NAME)
-        .assertFullName(ACCOUNT_MORGAN_FULLNAME_CHM)
-        .assertEnabled()
-        .assertPassword(ACCOUNT_MORGAN_PASSWORD);
+                .assertName(ACCOUNT_MORGAN_NAME)
+                .assertFullName(ACCOUNT_MORGAN_FULLNAME_CHM)
+                .assertEnabled()
+                .assertPassword(ACCOUNT_MORGAN_PASSWORD);
     }
 
     private void assertMorganDeleteFailed() throws Exception {
-
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
+        // @formatter:off
         ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
         shadowAsserter
             .display()
@@ -2734,11 +2749,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertHasSecondaryIdentifier()
                 .assertSize(2);
 
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
+        OperationResult result = createSubresult("assertMorganDeleteFailed");
+        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(
+                ShadowType.class, shadowMorganOid, null, getTestTask(), result);
         assertPartialError(result);
-        shadowAsserter = ShadowAsserter.forShadow(accountProvisioning,"current");
+        shadowAsserter = ShadowAsserter.forShadow(accountProvisioning, "current");
         shadowAsserter
             .display()
             .assertIsExists()
@@ -2753,7 +2768,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // TODO: assert caching metadata?
 
         PrismObject<ShadowType> accountProvisioningFuture = getShadowFuturePartialError(shadowMorganOid);
-        shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture,"future");
+        shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture, "future");
         shadowAsserter
             .display()
             .assertIsExists()
@@ -2765,16 +2780,17 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
                 .assertSize(2);
+        // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
         checkUniqueness(accountProvisioningFuture);
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
-        .assertName(ACCOUNT_MORGAN_NAME)
-        .assertFullName(ACCOUNT_MORGAN_FULLNAME_CHM)
-        .assertEnabled()
-        .assertPassword(ACCOUNT_MORGAN_PASSWORD);
+                .assertName(ACCOUNT_MORGAN_NAME)
+                .assertFullName(ACCOUNT_MORGAN_FULLNAME_CHM)
+                .assertEnabled()
+                .assertPassword(ACCOUNT_MORGAN_PASSWORD);
     }
 
     private void assertDeletedMorgan(int expectedAttemptNumber, int expectenNumberOfPendingOperations) throws Exception {
@@ -2782,7 +2798,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
-        ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
+        // @formatter:off
+        ShadowAsserter<Void> shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
         shadowAsserter
             .display()
             .pendingOperations()
@@ -2834,20 +2851,20 @@ public class TestDummyConsistency extends AbstractDummyTest {
                     .assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
                     .delta()
                         .assertDelete();
+        // @formatter:on
 
         assertShadowProvisioning(shadowMorganOid)
-            .assertTombstone();
+                .assertTombstone();
 
         assertShadowFuture(shadowMorganOid)
-            .assertTombstone();
+                .assertTombstone();
 
         assertShadowFutureNoFetch(shadowMorganOid)
-            .assertTombstone();
+                .assertTombstone();
 
         dummyResource.resetBreakMode();
         dummyResourceCtl.assertNoAccountByUsername(ACCOUNT_MORGAN_NAME);
     }
-
 
     private void assertResourceStatusChangeCounterIncrements() {
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT, 1);
@@ -2855,49 +2872,56 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
     }
 
-    private void assertGetUncreatedShadow(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
+    private void assertGetUncreatedShadow(String oid)
+            throws ObjectNotFoundException, CommunicationException, SchemaException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        OperationResult result = createSubresult("assertGetUncreatedShadow");
         try {
-            PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
-                oid, null, task, result);
-            fail("Expected that get of uncreated shadow fails, but it was successful: "+shadow);
+            PrismObject<ShadowType> shadow = provisioningService.getObject(
+                    ShadowType.class, oid, null, getTestTask(), result);
+            fail("Expected that get of uncreated shadow fails, but it was successful: " + shadow);
         } catch (GenericConnectorException e) {
             // Expected
         }
     }
 
-    private PrismObject<ShadowType> getShadowNoFetch(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+    private PrismObject<ShadowType> getShadowNoFetch(String oid)
+            throws ObjectNotFoundException, CommunicationException, SchemaException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        OperationResult result = createSubresult("getShadowNoFetch");
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
-                oid, options, task, result);
+                oid, options, getTestTask(), result);
         assertSuccess(result);
         return shadow;
     }
 
-    private PrismObject<ShadowType> getShadowFuture(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
-                oid, options, task, result);
+    private PrismObject<ShadowType> getShadowFuture(String oid)
+            throws ObjectNotFoundException, CommunicationException, SchemaException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        OperationResult result = createSubresult("getShadowFuture");
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+        PrismObject<ShadowType> shadow = provisioningService.getObject(
+                ShadowType.class, oid, options, getTestTask(), result);
         assertSuccess(result);
         return shadow;
     }
 
-    private PrismObject<ShadowType> getShadowFuturePartialError(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
-        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
-                oid, options, task, result);
+    private PrismObject<ShadowType> getShadowFuturePartialError(String oid)
+            throws ObjectNotFoundException, CommunicationException, SchemaException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        OperationResult result = createSubresult("getShadowFuturePartialError");
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+        PrismObject<ShadowType> shadow = provisioningService.getObject(
+                ShadowType.class, oid, options, getTestTask(), result);
         assertPartialError(result);
         return shadow;
     }
 
-    // TODO: shadow with legacy postponed operation: shoudl be cleaned up
+    // TODO: shadow with legacy postponed operation: should be cleaned up
 
     // TODO: retries of propagated operations
 }

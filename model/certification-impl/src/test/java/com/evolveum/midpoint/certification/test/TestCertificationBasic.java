@@ -86,7 +86,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
                 AccessCertificationDefinitionType.class, result).asObjectable();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         AccessCertificationCampaignType campaign =
                 certificationService.createCampaign(roleInducementCertDefinition.getOid(), task, result);
 
@@ -116,7 +116,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         certificationService.openNextStage(roleInducementCampaignOid, task, result);
 
         // THEN

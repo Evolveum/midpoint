@@ -119,8 +119,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     private static final String GROUP_CORSAIRS_NAME = "corsairs";
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestDummy.class);
-
     private String drakeAccountOid;
 
     protected String morganIcfUid;
@@ -448,7 +446,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     @Test
-    public void test110SeachIterative() throws Exception {
+    public void test110SearchIterative() throws Exception {
         final String TEST_NAME = "test110SeachIterative";
         // GIVEN
         OperationResult result = new OperationResult(TestDummy.class.getName()
@@ -4042,17 +4040,17 @@ public class TestDummy extends AbstractBasicDummyTest {
         testAddProtectedAccount(TEST_NAME, "Xavier");
         testAddProtectedAccount(TEST_NAME, "Xenophobia");
         testAddProtectedAccount(TEST_NAME, "nobody-adm");
-        testAddAccount(TEST_NAME, "abcadm");
-        testAddAccount(TEST_NAME, "piXel");
-        testAddAccount(TEST_NAME, "supernaturalius");
+        testAddAccount("abcadm");
+        testAddAccount("piXel");
+        testAddAccount("supernaturalius");
     }
 
     @Test
     public void test511AddProtectedAccountCaseIgnore() throws Exception {
         final String TEST_NAME = "test511AddProtectedAccountCaseIgnore";
         // GIVEN
-        testAddAccount(TEST_NAME, "xaxa");
-        testAddAccount(TEST_NAME, "somebody-ADM");
+        testAddAccount("xaxa");
+        testAddAccount("somebody-ADM");
     }
 
     private PrismObject<ShadowType> createAccountShadow(String username) throws SchemaException {
@@ -4084,8 +4082,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             provisioningService.addObject(shadow, null, null, task, result);
             AssertJUnit.fail("Expected security exception while adding '"+username+"' account");
         } catch (SecurityViolationException e) {
-            // This is expected
-            display("Expected exception", e);
+            displayExpectedException(e);
         }
 
         result.computeStatus();
@@ -4094,28 +4091,23 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         syncServiceMock.assertNotifyFailureOnly();
 
-//        checkConsistency();
-
         assertSteadyResource();
     }
 
-    private void testAddAccount(final String TEST_NAME, String username) throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
+    private void testAddAccount(String username) throws Exception {
+        OperationResult result = createSubresult("addAccount");
         syncServiceMock.reset();
 
         PrismObject<ShadowType> shadow = createAccountShadow(username);
 
         // WHEN
-        provisioningService.addObject(shadow, null, null, task, result);
+        provisioningService.addObject(shadow, null, null, getTestTask(), result);
 
         result.computeStatus();
         display("addObject result (expected failure)", result);
         TestUtil.assertSuccess(result);
 
         syncServiceMock.assertNotifySuccessOnly();
-
-//        checkConsistency();
 
         assertSteadyResource();
     }
