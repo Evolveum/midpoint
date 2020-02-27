@@ -200,7 +200,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assertNotNull("Task manager is not wired properly", taskManager);
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.setPrismContext(prismContext);
-        Task initTask = taskManager.createTaskInstance(getClass().getName() + ".initSystem");
+        Task initTask = createTask(getClass().getName() + ".initSystem");
         initTask.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
         OperationResult result = initTask.getResult();
 
@@ -244,7 +244,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
         TestUtil.displayTestTitle(testClass.getSimpleName() + "." + testMethodName);
 
-        Task task = taskManager.createTaskInstance(testClass.getName() + "." + testMethodName);
+        Task task = createTask(testClass.getName() + "." + testMethodName);
+        customizeTask(task);
         // TODO do we need that subresult? :-) (Virgo's brave new world)
         // maybe it doesn't break tests, but changes traceability/maintenance?
 //        OperationResult rootResult = task.getResult();
@@ -334,6 +335,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     protected String getTestNameShort() {
         return MidpointTestMethodContext.get().getTestNameShort();
+    }
+
+    /**
+     * Creates the new {@link Task}.
+     * For most tests this should be unnecessary and the default test-method-scoped task
+     * that can be obtained with {@link #getTestTask()} should be enough.
+     * Even for multi-threaded tests we may not need a new task and new subresult
+     * (using {@link #createSubresult(String)} should suffice.
+     */
+    protected Task createTask(String operationName) {
+        return taskManager.createTaskInstance(operationName);
     }
 
     /**
