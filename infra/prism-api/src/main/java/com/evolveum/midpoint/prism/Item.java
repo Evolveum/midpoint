@@ -282,9 +282,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * @return true if this item changed as a result of the call (i.e. if the value was really added)
      */
-    default boolean add(@NotNull V newValue) throws SchemaException {
-        return add(newValue, true);
-    }
+    boolean add(@NotNull V newValue) throws SchemaException;
 
     /**
      * Adds a given value, unless an equivalent one is already there. It is the same as calling add with checkUniqueness=true.
