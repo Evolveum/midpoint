@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.function.Predicate;
 
 import static com.evolveum.midpoint.schema.util.FocusTypeUtil.determineSubTypes;
 
@@ -214,11 +215,11 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         List<PrismObject<OrgType>> result = searchObjects(OrgType.class, q, midpointFunctions.getCurrentResult(), preAuthorized);
         if (result.isEmpty()) {
             return null;
-        }
-        if (result.size() > 1) {
+        } else if (result.size() > 1) {
             throw new IllegalStateException("More than one organizational unit with the name '" + name + "' (there are " + result.size() + " of them)");
+        } else {
+            return result.get(0).asObjectable();
         }
-        return result.get(0).asObjectable();
     }
 
     @Override
@@ -226,16 +227,29 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         Collection<OrgType> parentOrgs = getParentOrgs(object, PrismConstants.Q_ANY, orgType, preAuthorized);
         if (parentOrgs.isEmpty()) {
             return null;
-        }
-        if (parentOrgs.size() > 1) {
+        } else if (parentOrgs.size() > 1) {
             throw new IllegalArgumentException("Expected that there will be just one parent org of type "+orgType+" for "+object+", but there were "+parentOrgs.size());
+        } else {
+            return parentOrgs.iterator().next();
         }
-        return parentOrgs.iterator().next();
+    }
+
+    @Override
+    public OrgType getParentOrgByArchetype(ObjectType object, String archetypeOid, boolean preAuthorized) throws SchemaException, SecurityViolationException {
+        Collection<OrgType> parentOrgs = getParentOrgs(object, PrismConstants.Q_ANY, org -> archetypeOid == null
+                || ObjectTypeUtil.hasArchetype(org, archetypeOid), preAuthorized);
+        if (parentOrgs.isEmpty()) {
+            return null;
+        } else if (parentOrgs.size() > 1) {
+            throw new IllegalArgumentException("Expected that there will be just one parent org of archetype "+archetypeOid+" for "+object+", but there were "+parentOrgs.size());
+        } else {
+            return parentOrgs.iterator().next();
+        }
     }
 
     @Override
     public Collection<OrgType> getParentOrgsByRelation(ObjectType object, QName relation, boolean preAuthorized) throws SchemaException, SecurityViolationException {
-        return getParentOrgs(object, relation, null, preAuthorized);
+        return getParentOrgs(object, relation, org -> true, preAuthorized);
     }
 
     @Override
@@ -245,7 +259,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
 
     @Override
     public Collection<OrgType> getParentOrgs(ObjectType object, boolean preAuthorized) throws SchemaException, SecurityViolationException {
-        return getParentOrgs(object, PrismConstants.Q_ANY, null, preAuthorized);
+        return getParentOrgs(object, PrismConstants.Q_ANY, org -> true, preAuthorized);
     }
 
     @Override
@@ -254,7 +268,14 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
     }
 
     @Override
-    public Collection<OrgType> getParentOrgs(ObjectType object, QName relation, String orgType, boolean preAuthorized) throws SchemaException, SecurityViolationException {
+    public Collection<OrgType> getParentOrgs(ObjectType object, QName relation, String orgType, boolean preAuthorized)
+            throws SchemaException, SecurityViolationException {
+        return getParentOrgs(object, relation, org -> orgType == null || determineSubTypes(org).contains(orgType), preAuthorized);
+    }
+
+    @Override
+    public Collection<OrgType> getParentOrgs(ObjectType object, QName relation, @NotNull Predicate<OrgType>predicate, boolean preAuthorized)
+            throws SchemaException, SecurityViolationException {
         List<ObjectReferenceType> parentOrgRefs = object.getParentOrgRef();
         List<OrgType> parentOrgs = new ArrayList<>(parentOrgRefs.size());
         for (ObjectReferenceType parentOrgRef: parentOrgRefs) {
@@ -272,7 +293,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
                 // This should not happen.
                 throw new SystemException(e.getMessage(), e);
             }
-            if (orgType == null || determineSubTypes(parentOrg).contains(orgType)) {
+            if (predicate.test(parentOrg)) {
                 parentOrgs.add(parentOrg);
             }
         }
