@@ -24193,32 +24193,33 @@
                 <a:since>3.7</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-               <xsd:sequence>
-                   <xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <a:displayName>AbstractObjectTypeConfigurationType.type</a:displayName>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
-                   <xsd:element name="roleRelation" type="tns:RoleRelationObjectSpecificationType" minOccurs="0" maxOccurs="1">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            <p>
-                                Definition of object with respect to subject relation to a role.
-                                Used to specify role approvers, owners and so on.
-                            </p>
-                            <p>
-                                EXPERIMENTAL. Use at your own risk.
-                            </p>
-                        </xsd:documentation>
-                        <xsd:appinfo>
-                            <a:since>3.9</a:since>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
-                   <!-- TODO: object filter -->
-               </xsd:sequence>
+        <xsd:sequence>
+            <xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractObjectTypeConfigurationType.type</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="roleRelation" type="tns:RoleRelationObjectSpecificationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Definition of object with respect to subject relation to a role.
+                            Used to specify role approvers, owners and so on.
+                        </p>
+                        <p>
+                            EXPERIMENTAL. Use at your own risk.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: object filter -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="GuiObjectDetailsPageType">

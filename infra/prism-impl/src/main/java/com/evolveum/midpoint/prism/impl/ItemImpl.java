@@ -457,10 +457,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         return changed;
     }
 
-    public boolean add(@NotNull V newValue) throws SchemaException {
-        return add(newValue, true, getEqualsHashCodeStrategy());
-    }
-
     @Override
     public boolean add(@NotNull V newValue, @NotNull EquivalenceStrategy equivalenceStrategy) throws SchemaException {
         return add(newValue, true, equivalenceStrategy);
