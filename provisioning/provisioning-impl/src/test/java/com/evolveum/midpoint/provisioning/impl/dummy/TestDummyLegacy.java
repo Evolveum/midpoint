@@ -110,7 +110,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
         assertNotNull("Resource is null", resourceNative);
         assertNotNull("ResourceType is null", resourceTypeNative);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NATIVE_OID, null, result)
@@ -123,7 +123,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         // Check that there is no schema before test (pre-condition)
         ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NATIVE_OID, null, result)
@@ -209,7 +209,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         // Check that there is no schema before test (pre-condition)
         ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_LEGACY_OID, null, result)

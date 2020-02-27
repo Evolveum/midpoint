@@ -13,7 +13,6 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -21,7 +20,6 @@ import javax.xml.namespace.QName;
 
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -41,8 +39,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -291,7 +287,7 @@ public class TestOrgSync extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
         TestUtil.assertSuccess(testResultHr);
@@ -1004,7 +1000,7 @@ public class TestOrgSync extends AbstractStoryTest {
         final String TEST_NAME = "test500ReconcileOpenDJDefault";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1048,7 +1044,7 @@ public class TestOrgSync extends AbstractStoryTest {
         final String TEST_NAME = "test502ReconcileOpenDJDefaultAgain";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1084,7 +1080,7 @@ public class TestOrgSync extends AbstractStoryTest {
         final String TEST_NAME = "test510ReconcileOpenDJLdapGroup";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1130,7 +1126,7 @@ public class TestOrgSync extends AbstractStoryTest {
         // And check whether reconciliation re-adds him again
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 

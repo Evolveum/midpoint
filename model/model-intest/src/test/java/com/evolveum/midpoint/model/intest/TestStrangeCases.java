@@ -198,7 +198,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test050AddRoleRecursionAssignment() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -231,7 +231,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test060AddRoleStupidAssignment() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -254,7 +254,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100ModifyUserGuybrushAddAccountDummyRedNoAttributesConflict() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
@@ -357,7 +357,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test180DeleteHalfAssignmentFromUser() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -408,7 +408,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test190DeleteHalfAssignedUser() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -462,7 +462,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200ModifyUserJackBrokenAccountRefAndPolyString() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -506,7 +506,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test210ModifyUserAddAccount() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -536,7 +536,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test212ModifyUserAddAccountRed() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -569,7 +569,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test212ModifyUserJackBrokenSchemaViolationPolyString() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         dummyAuditService.clear();
@@ -611,7 +611,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test214ModifyUserJackBrokenPassword() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         dummyAuditService.clear();
@@ -653,7 +653,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test220ModifyUserJackBrokenConflict() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         dummyAuditService.clear();
@@ -699,7 +699,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test230ModifyUserJackUserTemplatePolicyViolation() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         getDummyResource().setModifyBreakMode(BreakMode.NONE);
@@ -752,7 +752,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test301AddUserDeGhoulash() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -828,7 +828,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
     private <T> void searchDeGhoulash(QName propName, T propValue) throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -880,7 +880,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test330AssignDeGhoulashIdiot() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -906,7 +906,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test332AssignDeGhoulashRecursion() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -942,7 +942,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test334AssignDeGhoulashStupidAssignment() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -971,7 +971,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test336UnassignDeGhoulashStupidAssignment() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -992,7 +992,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test340AssignDeGhoulashConstructionNonExistentResource() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -1017,7 +1017,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test349UnAssignDeGhoulashConstructionNonExistentResource() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -1041,7 +1041,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test350AssignDeGhoulashRoleBadConstructionResourceRef() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -1068,7 +1068,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test351UnAssignDeGhoulashRoleBadConstructionResourceRef() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -1095,7 +1095,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test355AssignDeGhoulashRoleBadConstructionResourceRefLax() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -1118,7 +1118,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test356UnAssignDeGhoulashRoleBadConstructionResourceRefLax() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -1141,7 +1141,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test360AddRoleTargetBadConstructionResourceRef() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -1183,7 +1183,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test401ListTasks() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -1229,7 +1229,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test410DeleteJack() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -1282,7 +1282,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test450AddApprovalCase() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         dummyAuditService.clear();
@@ -1318,7 +1318,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test502EnumerationStoreGood() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
@@ -1358,7 +1358,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         }
 
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         dummyAuditService.clear();
@@ -1384,7 +1384,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test520ShipReadBadTolerateRawData() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         dummyAuditService.clear();
@@ -1424,7 +1424,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test522ShipReadBadRaw() {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         dummyAuditService.clear();
@@ -1447,7 +1447,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test524ShipReadBadPlain() {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         dummyAuditService.clear();
@@ -1474,7 +1474,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test550AssignCircus() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         try {
@@ -1494,7 +1494,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test600AddUserGuybrushAssignAccount() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -1535,7 +1535,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test(enabled=false) // MID-2880
     public void test610GetAccountGuybrushRogueAttribute() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         getDummyResource().setEnforceSchema(false);

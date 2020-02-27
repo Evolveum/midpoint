@@ -110,7 +110,7 @@ public class TestOperationPerf extends AbstractStoryTest {
 
     public void testAddUser(final String TEST_NAME, File userFile, String userOid, int roles) throws Exception {
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = parseObject(userFile);

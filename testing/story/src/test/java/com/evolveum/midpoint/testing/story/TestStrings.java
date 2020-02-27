@@ -197,7 +197,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // TODO
     }
@@ -206,7 +206,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test100SimpleAssignmentStart() throws Exception {
         final String TEST_NAME = "test100SimpleAssignmentStart";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -271,7 +271,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test102SimpleAssignmentApproveByLechuck() throws Exception {
         final String TEST_NAME = "test102SimpleAssignmentApproveByLechuck";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -359,7 +359,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test104SimpleAssignmentApproveByAdministrator() throws Exception {
         final String TEST_NAME = "test104SimpleAssignmentApproveByAdministrator";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -439,7 +439,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test106SimpleAssignmentApproveByCheese() throws Exception {
         final String TEST_NAME = "test106SimpleAssignmentApproveByCheese";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -497,7 +497,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test108SimpleAssignmentApproveByChef() throws Exception {
         final String TEST_NAME = "test108SimpleAssignmentApproveByChef";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -574,7 +574,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test200EscalatedApprovalStart() throws Exception {
         final String TEST_NAME = "test200EscalatedApprovalStart";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -621,7 +621,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test202FourDaysLater() throws Exception {
         final String TEST_NAME = "test202FourDaysLater";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -653,7 +653,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test204SixDaysLater() throws Exception {
         final String TEST_NAME = "test204SixDaysLater";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -720,7 +720,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test205EightDaysLater() throws Exception {
         final String TEST_NAME = "test205EightDaysLater";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -771,7 +771,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test206ApproveByCheese() throws Exception {
         final String TEST_NAME = "test206ApproveByCheese";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -864,7 +864,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test208SixDaysLater() throws Exception {
         final String TEST_NAME = "test208SixDaysLater";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -905,7 +905,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test209EightDaysLater() throws Exception {
         final String TEST_NAME = "test209EightDaysLater";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -964,7 +964,7 @@ public class TestStrings extends AbstractStoryTest {
         PrismObject<UserType> bob = getUserFromRepo(userBobOid);
         login(bob);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(bob);
         OperationResult result = task.getResult();
 
@@ -1005,7 +1005,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test221FormApproveByLechuck() throws Exception {
         final String TEST_NAME = "test221FormApproveByLechuck";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -1050,7 +1050,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test222FormApproveByCheese() throws Exception {
         final String TEST_NAME = "test222FormApproveByCheese";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -1120,7 +1120,7 @@ public class TestStrings extends AbstractStoryTest {
     @Test
     public void test250ApproverAssignment() throws Exception {
         final String TEST_NAME = "test250ApproverAssignment";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();

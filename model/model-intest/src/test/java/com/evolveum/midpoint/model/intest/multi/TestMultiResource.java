@@ -33,7 +33,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -241,7 +240,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         getDummyResource().resetBreakMode();
         // Clean up user
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
 
@@ -260,7 +259,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         getDummyResource().resetBreakMode();
         // Clean up user
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountJackDummyOid = getLinkRefOid(userJack, RESOURCE_DUMMY_OID);
@@ -302,7 +301,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test200JackAssignDummyIvory";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -336,7 +335,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test209JackUnAssignDummyIvory";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -368,7 +367,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test210JackAssignDummyBeige";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -405,7 +404,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test219JackUnAssignDummyBeige";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -439,7 +438,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test220JackAssignDummyBeigeAndDefault";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -477,7 +476,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test221JackRecompute";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -510,7 +509,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test223JackKillDefaultDummyAccounAndRecompute";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -548,7 +547,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test224JackKillBeigeAccounAndRecompute";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         getDummyResource(RESOURCE_DUMMY_BEIGE_NAME).deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -606,7 +605,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test225ForceDeleteDeadShadow";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         String deadBeigeShadowOid = assertUserBefore(USER_JACK_OID)
@@ -660,7 +659,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test226JackKillBothAccountsAndRecompute";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertUserBefore(USER_JACK_OID)
@@ -866,7 +865,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test229JackUnassignDummyBeigeAndDefault";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         getDummyResource().resetBreakMode();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -916,7 +915,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test250JackAssignDummyLavender";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -951,7 +950,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
      */
     public void jackAssignRoleDummies(final String TEST_NAME) throws Exception {
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         clearJackOrganizationalUnit(task, result);
 
@@ -1005,7 +1004,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
     public void jackRename(final String TEST_NAME) throws Exception {
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         jackRename(TEST_NAME, "jackie", "Jackie Sparrow", task, result);
@@ -1062,7 +1061,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
     public void jackUnAssignRoleDummies(final String TEST_NAME) throws Exception {
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<String> linkOidsBefore = assertUserBefore(USER_JACK_OID)
@@ -1100,7 +1099,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     public void jackAssignRoleDummiesError(final String TEST_NAME, String roleOid, String dummyResourceName,
             boolean expectAccount) throws Exception {
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         clearJackOrganizationalUnit(task, result);
 
@@ -1143,7 +1142,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
     public void jackUnassignRoleDummiesError(final String TEST_NAME, String roleOid, String otherResourceOid) throws Exception {
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         UserAsserter<Void> userBeforeAsserter = assertUserBefore(USER_JACK_OID);
@@ -1219,7 +1218,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test300AddAndAssignRelative";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Add default dummy account to jack without assigning it.
@@ -1278,7 +1277,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test310AddedAccountAndUnassignRelative";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1318,7 +1317,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test319UnassignDummyRelative";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1353,7 +1352,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test350AddAccountLavender";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_LAVENDER_NAME);
@@ -1383,7 +1382,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test352AddAccountIvory";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_IVORY_NAME);
@@ -1406,7 +1405,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test354AddAccountBeige";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_NAME);
@@ -1429,7 +1428,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test360AddAccountDummy";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, getDummyResourceObject());
@@ -1455,7 +1454,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test362AddAccountLavender";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_LAVENDER_NAME);
@@ -1481,7 +1480,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test370DeleteAccountDummy";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, getDummyResourceObject());
@@ -1517,7 +1516,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test372UnlinkAccountDummy";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserUnlinkAccount(USER_JACK_OID, getDummyResourceObject());
@@ -1549,7 +1548,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test374DeleteAccountLavender";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_LAVENDER_NAME);
@@ -1577,7 +1576,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test376DeleteAccountDummy";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, getDummyResourceObject());
@@ -1602,7 +1601,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test378DeleteAccountBeige";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_NAME);
@@ -1628,7 +1627,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test379DeleteAccountIvory";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_IVORY_NAME);
@@ -1659,7 +1658,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // precondition
         assertEncryptedUserPassword(USER_JACK_OID, USER_JACK_PASSWORD);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_PERU_NAME);
@@ -1681,7 +1680,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test382AddAccountYellow";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_NAME);
@@ -1748,7 +1747,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test389DeleteAccountPeru";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_PERU_NAME);
@@ -1776,7 +1775,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
@@ -1861,7 +1860,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
@@ -1907,7 +1906,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
@@ -1945,7 +1944,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
@@ -1982,7 +1981,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
@@ -2021,7 +2020,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
@@ -2050,7 +2049,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
@@ -2086,7 +2085,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
@@ -2132,7 +2131,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
@@ -2175,7 +2174,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
@@ -2255,7 +2254,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).resetBreakMode();
         dummyAuditService.clear();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
@@ -2311,7 +2310,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         clockForward("PT1H");
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
@@ -2362,7 +2361,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).resetBreakMode();
         dummyAuditService.clear();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
@@ -2391,7 +2390,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).resetBreakMode();
         dummyAuditService.clear();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
@@ -2447,7 +2446,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         clockForward("P10D");
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2476,7 +2475,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
@@ -2539,7 +2538,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).resetBreakMode();
         getDummyResource(RESOURCE_DUMMY_DAVID_NAME).resetBreakMode();
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         // delete user and his roles which were added before
 
@@ -2622,7 +2621,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test500PrepareJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -2657,7 +2656,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test501JackAssignDummyDarkYellow";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -2687,7 +2686,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test502JackAssignDummyDarkPeru";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2718,7 +2717,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test504JackUnassignDummyDarkPeru";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2746,7 +2745,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test507JackUnassignDummyDarkYellow";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2774,7 +2773,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test508JackDeleteDummyDarkYellowAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2802,7 +2801,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test509JackDeleteDummyDarkPeruAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2830,7 +2829,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test510JackAssignRoleDarkYellowPeru";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -2866,7 +2865,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test519JackUnassignDarkRoleYellowPeru";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2894,7 +2893,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test520JackAssignRoleDarkYellowPeru";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -2930,7 +2929,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test529JackUnassignRoleDarkYellowPeru";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);

@@ -125,7 +125,7 @@ public class TestDBTable extends AbstractIntegrationTest {
     public void test001Connection() throws Exception {
         final String TEST_NAME = "test001Connection";
         TestUtil.displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

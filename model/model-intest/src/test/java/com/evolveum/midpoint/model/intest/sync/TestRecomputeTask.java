@@ -92,7 +92,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100RecomputeAll() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // Preconditions
@@ -253,7 +253,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110RecomputeSome() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // Preconditions
@@ -309,7 +309,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test120RecomputeByExpression() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
         prepareNotifications();
 
@@ -368,7 +368,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test130RecomputeLight() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // Preconditions

@@ -36,7 +36,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -189,7 +188,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test110SimpleExclusion1() throws Exception {
         final String TEST_NAME = "test110SimpleExclusion1";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // This should go well
@@ -221,7 +220,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test120SimpleExclusion2() throws Exception {
         final String TEST_NAME = "test120SimpleExclusion2";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // This should go well
@@ -245,7 +244,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test130SimpleExclusionBoth1() throws Exception {
         final String TEST_NAME = "test130SimpleExclusionBoth1";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -269,7 +268,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test140SimpleExclusionBoth2() throws Exception {
         final String TEST_NAME = "test140SimpleExclusionBoth2";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -293,7 +292,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test150SimpleExclusionBothBidirectional1() throws Exception {
         final String TEST_NAME = "test150SimpleExclusionBothBidirectional1";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -317,7 +316,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test160SimpleExclusionBothBidirectional2() throws Exception {
         final String TEST_NAME = "test160SimpleExclusionBothBidirectional2";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -341,7 +340,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test171SimpleExclusion1WithPolicyException() throws Exception {
         final String TEST_NAME = "test171SimpleExclusion1WithPolicyException";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
@@ -362,7 +361,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test172SimpleExclusion2WithPolicyException() throws Exception {
         final String TEST_NAME = "test172SimpleExclusion2WithPolicyException";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
@@ -383,7 +382,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test173SimpleExclusion3WithPolicyException() throws Exception {
         final String TEST_NAME = "test173SimpleExclusion3WithPolicyException";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
@@ -404,7 +403,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test174SimpleExclusion4WithPolicyException() throws Exception {
         final String TEST_NAME = "test174SimpleExclusion4WithPolicyException";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
@@ -430,7 +429,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test180JudgeExceptionalPirateAndThief() throws Exception {
         final String TEST_NAME = "test180JudgeExceptionalPirateAndThief";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
@@ -469,7 +468,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test190DifferentRelations() throws Exception {
         final String TEST_NAME = "test190DifferentRelations";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -492,7 +491,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test193BothRelationsApprover() throws Exception {
         final String TEST_NAME = "test193BothRelationsApprover";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -515,7 +514,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test194MemberAndManager() throws Exception {
         final String TEST_NAME = "test194MemberAndManager";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -546,7 +545,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test200GuybrushAssignRoleGold";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -579,7 +578,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test202GuybrushAssignRoleSilver";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -613,7 +612,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test204GuybrushAssignRoleSailor";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -648,7 +647,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test206GuybrushAssignRoleBronze";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -682,7 +681,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test208GuybrushUnassignRoleSilver";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -714,7 +713,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test209GuybrushUnassignRoleSailor";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -744,7 +743,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test209aGuybrushAssignRoleGoldAndSilverEnforced";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -776,7 +775,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test209bGuybrushAssignRoleGoldAndSilver";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -808,7 +807,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test210GuybrushAssignRoleRed";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -839,7 +838,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test212GuybrushAssignRoleGreen";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -871,7 +870,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test214GuybrushAssignRoleColorNone";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -901,7 +900,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test216GuybrushAssignRoleBlue";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -930,7 +929,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test219GuybrushUnassignRoleBlue";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -957,7 +956,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test220GuybrushAssignRoleBlue";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -989,7 +988,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test221GuybrushDestroyAndRecompute";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -1029,7 +1028,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test222GuybrushDestroyAndAssignRoleRed";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -1066,7 +1065,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test229GuybrushUnassignRoleRed";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1096,7 +1095,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test230GuybrushAssignRoleRedAndBlueAndGreen";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1129,7 +1128,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test240GuybrushAssignRoleExecutiveOne";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1153,7 +1152,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test242GuybrushAssignRoleControllingOne";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1171,7 +1170,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test244GuybrushAssignRoleExecutiveTwo";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1196,7 +1195,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test245GuybrushAssignRoleControllingTwo";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1216,7 +1215,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test246GuybrushUnassignRoleExecutiveOne";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1240,7 +1239,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test247GuybrushAssignRoleControllingOne";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1260,7 +1259,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test249GuybrushUnassignRoleExecutiveTwo";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1287,7 +1286,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test250GuybrushAssignRoleControllingOne";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1311,7 +1310,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test252GuybrushAssignRoleExecutiveOne";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1329,7 +1328,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test259GuybrushUnassignRoleControllingOne";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1353,7 +1352,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test800ApplyGlobalPolicyRulesExclusion";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1374,7 +1373,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test810GuybrushAssignRoleCitizenSk";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1395,7 +1394,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test812GuybrushAssignRoleCitizenUs";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1413,7 +1412,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test814GuybrushAssignRoleEmpty";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1435,7 +1434,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test818GuybrushUnassignRoleCitizenSk";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1459,7 +1458,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test818GuybrushUnassignRoleCitizenSk";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1484,7 +1483,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test820GuybrushAssignRoleCriminal";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1509,7 +1508,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test822GuybrushAssignRoleMinister";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1533,7 +1532,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test826GuybrushUnassignRoleCriminal";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1555,7 +1554,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test829GuybrushUnassignRoleMinister";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1577,7 +1576,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test900ApplyGlobalPolicyRulesSoDApproval";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1603,7 +1602,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test920GuybrushAssignRoleCriminal";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1632,7 +1631,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test922GuybrushPreviewAssignRoleMinister";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> delta = createAssignmentAssignmentHolderDelta(UserType.class, USER_GUYBRUSH_OID,
@@ -1709,7 +1708,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         final String TEST_NAME = "test929GuybrushUnassignRoleCriminal";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1737,7 +1736,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test950JackSelfExclusion() throws Exception {
         final String TEST_NAME = "test950JackSelfExclusion";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // This should go well
@@ -1768,7 +1767,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test952JackSelfExclusionManagerMember() throws Exception {
         final String TEST_NAME = "test952JackSelfExclusionManagerMember";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // This should go well
@@ -1798,7 +1797,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     public void test960JimGoldByMapping() throws Exception {
         final String TEST_NAME = "test960JimGoldByMapping";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN

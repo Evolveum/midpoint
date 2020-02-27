@@ -15,7 +15,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -23,7 +22,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -1382,7 +1380,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_EXPRESSION_READ_ROLES_OID);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         modifyUserReplace(USER_JACK_OID, UserType.F_COST_CENTER, task, result, "business");
 
@@ -1440,7 +1438,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertModifyDeny();
         assertDeleteDeny();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
@@ -1512,7 +1510,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertModifyDeny();
         assertDeleteDeny();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
@@ -1558,7 +1556,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertModifyDeny();
         assertDeleteDeny();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
@@ -1626,7 +1624,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertModifyDeny();
         assertDeleteDeny();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
@@ -1696,7 +1694,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertModifyDeny();
         assertDeleteDeny();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
@@ -3278,7 +3276,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     }
 
     private void modifyJackValidTo() throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-        Task task = createTask("modifyJackValidTo");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, task, result, JACK_VALID_TO_LONG_AHEAD);
         assertSuccess(result);

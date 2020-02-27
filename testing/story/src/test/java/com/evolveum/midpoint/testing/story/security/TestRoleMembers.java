@@ -175,7 +175,7 @@ public class TestRoleMembers extends AbstractStoryTest {
     }
 
     private ModelContext<UserType> previewUser(String userOid) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Task task = createTask("previewUser");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         ObjectDelta<UserType> emptyMancombDelta = deltaFor(UserType.class).asObjectDelta(userOid);
         ModelContext<UserType> previewContext = modelInteractionService.previewChanges(Collections.singleton(emptyMancombDelta), null, task, result);

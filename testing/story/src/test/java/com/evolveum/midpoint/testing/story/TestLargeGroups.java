@@ -84,7 +84,7 @@ public class TestLargeGroups extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
 
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
         TestUtil.assertSuccess(testResult);
@@ -95,7 +95,7 @@ public class TestLargeGroups extends AbstractStoryTest {
      */
     @Test
     public void test100GetLargeGroup(ITestContext ctx) throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         final int MEMBERS = 20000;
@@ -122,7 +122,7 @@ public class TestLargeGroups extends AbstractStoryTest {
             ITestContext ctx, Collection<SelectorOptions<GetOperationOptions>> options, final int MEMBERS)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
         ResourceAttributeDefinition<Object> nameDefinition = libraryMidpointFunctions
                 .getAttributeDefinition(resourceDummy, dummyResourceCtl.getGroupObjectClass(), SchemaConstants.ICFS_NAME);

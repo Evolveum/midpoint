@@ -49,7 +49,6 @@ import java.net.ServerSocket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.Executor;
 
 import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.*;

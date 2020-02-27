@@ -123,7 +123,8 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test200ReconcileDummyUuid";
 
         // GIVEN
-        Task task = createTask(TestUuid.class.getName() + "." + TEST_NAME);
+        TestUuid.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -172,7 +173,8 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test210ReconcileDummyUuidAddAugustus";
 
         // GIVEN
-        Task task = createTask(TestUuid.class.getName() + "." + TEST_NAME);
+        TestUuid.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -239,7 +241,8 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test220ReconcileDummyUuidDeleteAddAugustus";
 
         // GIVEN
-        Task task = createTask(TestUuid.class.getName() + "." + TEST_NAME);
+        TestUuid.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -328,7 +331,8 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test230ReconcileDummyUuidDeleteAugustusAddAugustina";
 
         // GIVEN
-        Task task = createTask(TestUuid.class.getName() + "." + TEST_NAME);
+        TestUuid.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 

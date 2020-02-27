@@ -105,7 +105,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         Object[] newRealValue = { sourceFilePath };
 

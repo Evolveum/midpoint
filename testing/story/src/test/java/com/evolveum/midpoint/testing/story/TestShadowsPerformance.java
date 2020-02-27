@@ -24,7 +24,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -100,7 +99,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     public void test010Sanity() throws Exception {
         final String TEST_NAME = "test010Sanity";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -116,7 +115,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     public void test100ImportAccounts() throws Exception {
         final String TEST_NAME = "test100ImportAccounts";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         for (int i = 0; i < NUMBER_OF_GENERATED_USERS; i++) {
@@ -147,7 +146,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     public void test200DeleteAccountsAndReconcile() throws Exception {
         final String TEST_NAME = "test200DeleteAccountsAndReconcile";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         for (DummyAccount account : new ArrayList<>(dummyResourceCtl.getDummyResource().listAccounts())) {
@@ -177,7 +176,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     public void test210DeleteShadows() throws Exception {
         final String TEST_NAME = "test210DeleteShadows";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         for (DummyAccount account : new ArrayList<>(dummyResourceCtl.getDummyResource().listAccounts())) {
@@ -207,7 +206,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
     public void test900Summarize() {
         final String TEST_NAME = "test900Summarize";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         StringBuilder sb = new StringBuilder();

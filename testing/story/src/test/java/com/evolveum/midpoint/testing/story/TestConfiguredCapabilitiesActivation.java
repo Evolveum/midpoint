@@ -82,7 +82,7 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
     public void test100ImportAccount() throws Exception {
         final String TEST_NAME = "test100ImportAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -106,7 +106,7 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
     public void test110AssignJackPirate() throws Exception {
         String TEST_NAME = "test110AssignJackPirate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         //GIVEN
@@ -166,7 +166,7 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
     public void test112ModifyActivationJack() throws Exception {
         String TEST_NAME = "test112ModifyActivationJack";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);

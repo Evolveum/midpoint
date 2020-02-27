@@ -354,12 +354,6 @@ public class TestAddAssociation extends AbstractWfTest {
         AssertJUnit.fail("No association of type " + associationName + " of " + entitlementOid + " in " + ObjectTypeUtil.toShortString(shadow));
     }
 
-    @Test
-    public void zzzMarkAsNotInitialized() {
-        display("Setting class as not initialized");
-        unsetSystemInitialized();
-    }
-
     abstract static class TestDetails {
         abstract int subcasesCount();
         abstract boolean immediate();

@@ -81,7 +81,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test000SanityRolePirate() throws Exception {
         final String TEST_NAME = "test000SanityRolePirate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -99,7 +99,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test001SanityRoleProjectOmnimanager() throws Exception {
         final String TEST_NAME = "test001SanityRoleProjectOmnimanager";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -119,7 +119,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test010SearchRequestableRoles() throws Exception {
         final String TEST_NAME = "test010SearchRequestableRoles";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = prismContext.queryFor(RoleType.class)
@@ -139,7 +139,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test101JackAssignRolePirate() throws Exception {
         final String TEST_NAME = "test101JackAssignRolePirate";
 
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -189,7 +189,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test102JackModifyUserLocality() throws Exception {
         final String TEST_NAME = "test102JackModifyUserLocality";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // gossip is a tolerant attribute. Make sure there there is something to tolerate
@@ -230,7 +230,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test110UnAssignRolePirate() throws Exception {
         final String TEST_NAME = "test110UnAssignRolePirate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -253,7 +253,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test120JackAssignRolePirateWhileAlreadyHasAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
@@ -320,7 +320,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test121JackAssignAccountImplicitIntent";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Precondition (simplified)
@@ -353,7 +353,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test122JackAssignAccountExplicitIntent";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Precondition (simplified)
@@ -385,7 +385,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test127UnAssignAccountImplicitIntent() throws Exception {
         final String TEST_NAME = "test127UnAssignAccountImplicitIntent";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -413,7 +413,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test128UnAssignAccountExplicitIntent() throws Exception {
         final String TEST_NAME = "test128UnAssignAccountExplicitIntent";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -441,7 +441,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test129UnAssignRolePirate() throws Exception {
         final String TEST_NAME = "test129UnAssignRolePirate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -463,7 +463,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test130JackAssignRolePirateWithSeaInAssignment() throws Exception {
         final String TEST_NAME = "test130JackAssignRolePirateWithSeaInAssignment";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismContainer<?> extension = getAssignmentExtensionInstance();
@@ -500,7 +500,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test132JackUnAssignRolePirateWithSeaInAssignment() throws Exception {
         final String TEST_NAME = "test132JackUnAssignRolePirateWithSeaInAssignment";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismContainer<?> extension = getAssignmentExtensionInstance();
@@ -532,7 +532,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test134JackAssignRoleAdriaticPirate() throws Exception {
         final String TEST_NAME = "test134JackAssignRoleAdriaticPirate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -565,7 +565,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test135PreviewChangesEmptyDelta() throws Exception {
         final String TEST_NAME = "test135PreviewChangesEmptyDelta";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         ObjectDelta<UserType> delta = user.createModifyDelta();
@@ -597,7 +597,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test136JackUnAssignRoleAdriaticPirate() throws Exception {
         final String TEST_NAME = "test136JackUnAssignRoleAdriaticPirate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -623,7 +623,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test137JackAssignRoleAdriaticPirateWithSeaInAssignment() throws Exception {
         final String TEST_NAME = "test137JackAssignRoleAdriaticPirateWithSeaInAssignment";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismContainer<?> extension = getAssignmentExtensionInstance();
@@ -660,7 +660,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test139JackUnAssignRoleAdriaticPirateWithSeaInAssignment() throws Exception {
         final String TEST_NAME = "test139JackUnAssignRoleAdriaticPirateWithSeaInAssignment";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismContainer<?> extension = getAssignmentExtensionInstance();
@@ -689,7 +689,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test144JackAssignRoleBlackSeaPirate() throws Exception {
         final String TEST_NAME = "test144JackAssignRoleBlackSeaPirate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -719,7 +719,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test146JackUnAssignRoleBlackSeaPirate() throws Exception {
         final String TEST_NAME = "test146JackUnAssignRoleBlackSeaPirate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -741,7 +741,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test147JackAssignRoleBlackSeaPirateWithSeaInAssignment() throws Exception {
         final String TEST_NAME = "test147JackAssignRoleBlackSeaPirateWithSeaInAssignment";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismContainer<?> extension = getAssignmentExtensionInstance();
@@ -779,7 +779,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test149JackUnAssignRoleBlackSeaPirateWithSeaInAssignment() throws Exception {
         final String TEST_NAME = "test149JackUnAssignRoleBlackSeaPirateWithSeaInAssignment";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismContainer<?> extension = getAssignmentExtensionInstance();
@@ -808,7 +808,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test154JackAssignRoleIndianOceanPirate() throws Exception {
         final String TEST_NAME = "test154JackAssignRoleIndianOceanPirate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -842,7 +842,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test156JackUnAssignRoleIndianOceanPirate() throws Exception {
         final String TEST_NAME = "test156JackUnAssignRoleIndianOceanPirate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -915,7 +915,7 @@ public class TestRbac extends AbstractRbacTest {
 
     public void testJackAssignRolePirateRelationNoPrivs(final String TEST_NAME, QName relation) throws Exception {
 
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -957,7 +957,7 @@ public class TestRbac extends AbstractRbacTest {
 
     public void testJackUnassignRolePirateRelationNoPrivs(final String TEST_NAME, QName relation) throws Exception {
 
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -991,7 +991,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test200ImportRoleAllTreasure() throws Exception {
         final String TEST_NAME = "test200ImportRoleAllTreasure";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1013,7 +1013,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test202JackAssignRoleAllTreasure() throws Exception {
         final String TEST_NAME = "test202JackAssignRoleAllTreasure";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -1046,7 +1046,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test204AddGoldTreasureAndRecomputeJack() throws Exception {
         final String TEST_NAME = "test204AddGoldTreasureAndRecomputeJack";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addObject(ROLE_TREASURE_GOLD_FILE);
@@ -1076,7 +1076,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test206JackAssignRoleAllLoot() throws Exception {
         final String TEST_NAME = "test206JackAssignRoleAllLoot";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1102,7 +1102,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test208JackUnassignRoleAllLoot() throws Exception {
         final String TEST_NAME = "test208JackUnassignRoleAllLoot";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1127,7 +1127,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test209JackUnassignRoleAllTreasure() throws Exception {
         final String TEST_NAME = "test209JackUnassignRoleAllTreasure";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1150,7 +1150,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test210JackAssignRoleAllYouCanGet() throws Exception {
         final String TEST_NAME = "test210JackAssignRoleAllYouCanGet";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1176,7 +1176,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test219JackUnassignRoleAllYouCanGet() throws Exception {
         final String TEST_NAME = "test219JackUnassignRoleAllYouCanGet";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1203,7 +1203,7 @@ public class TestRbac extends AbstractRbacTest {
         // IMPORTANT: Changing the assignment policy
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1236,7 +1236,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test502JackModifyUserLocality() throws Exception {
         final String TEST_NAME = "test502JackModifyUserLocality";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // gossip is a tolerant attribute. Make sure there there is something to tolerate
@@ -1275,7 +1275,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test510UnAssignRolePirate() throws Exception {
         final String TEST_NAME = "test510UnAssignRolePirate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1303,7 +1303,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test511DeleteAccount() throws Exception {
         final String TEST_NAME = "test511DeleteAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1337,7 +1337,7 @@ public class TestRbac extends AbstractRbacTest {
         // IMPORTANT: Changing the assignment policy
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1369,7 +1369,7 @@ public class TestRbac extends AbstractRbacTest {
         // IMPORTANT: Changing the assignment policy
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -1402,7 +1402,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test530JackAssignRoleCleric";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1419,7 +1419,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test532JackModifyAssignmentRoleCleric";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = getObject(UserType.class, USER_JACK_OID);
@@ -1453,7 +1453,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test539JackUnAssignRoleCleric";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = getObject(UserType.class, USER_JACK_OID);
@@ -1489,7 +1489,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test540JackAssignRoleWannabe";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1518,7 +1518,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test541JackRemoveHonorificSuffixWannabe";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1546,7 +1546,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test542JackModifySubtypeWannabe";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1575,7 +1575,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test543JackRemoveHonorificPrefixWannabe";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1603,7 +1603,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test544JackSetHonorificSuffixWannabe";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1634,7 +1634,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test545JackRestoreHonorificPrefixWannabe";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1664,7 +1664,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test549JackUnassignRoleWannabe";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1689,7 +1689,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test600JackAssignRoleJudge";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -1725,7 +1725,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test602JackAssignRolePirate";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         try {
@@ -1760,7 +1760,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test605JackUnAssignRoleJudgeAssignRolePirate";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, null, null, false);
@@ -1797,7 +1797,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test609JackUnAssignRolePirate";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1817,7 +1817,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test610ElaineAssignRoleGovernor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_ELAINE_OID);
@@ -1854,7 +1854,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test612JackAssignRoleGovernor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         try {
@@ -1890,7 +1890,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test613JackAssignRoleGovernorAsApprover";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         try {
@@ -1923,7 +1923,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test620LemonheadAssignRoleCanibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createUser(USER_LEMONHEAD_NAME, USER_LEMONHEAD_FULLNAME, true);
@@ -1953,7 +1953,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test622SharptoothAssignRoleCanibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createUser(USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_FULLNAME, true);
@@ -1983,7 +1983,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test624RedskullAssignRoleCanibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createUser(USER_REDSKULL_NAME, USER_REDSKULL_FULLNAME, true);
@@ -2013,7 +2013,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test625BignoseAssignRoleCanibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createUser(USER_BIGNOSE_NAME, USER_BIGNOSE_FULLNAME, true);
@@ -2049,7 +2049,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test627SharptoothUnassignRoleCanibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertAssignees(ROLE_CANNIBAL_OID, 3);
@@ -2074,7 +2074,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test628RedskullUnassignRoleCanibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertAssignees(ROLE_CANNIBAL_OID, 2);
@@ -2113,7 +2113,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test630RappAssignRoleCannibalAsOwner";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertAssignees(ROLE_CANNIBAL_OID, 2);
@@ -2142,7 +2142,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test632RappUnassignRoleCannibalAsOwner";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertAssignees(ROLE_CANNIBAL_OID, 2);
@@ -2182,7 +2182,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test634BignoseAssignRoleCannibalAsOwner";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertAssignees(ROLE_CANNIBAL_OID, 2);
@@ -2217,7 +2217,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test636BignoseUnassignRoleCannibalAsOwner";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertAssignees(ROLE_CANNIBAL_OID, 2);
@@ -2243,7 +2243,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test649ElaineUnassignRoleGovernor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_ELAINE_OID);
@@ -2275,7 +2275,7 @@ public class TestRbac extends AbstractRbacTest {
         .assignments()
             .assertNone();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2297,7 +2297,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test651BignoseAssignRoleCannibalAsApprover";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2323,7 +2323,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test655BignoseAssignRoleCannibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2347,7 +2347,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test656BignoseUnassignRoleCannibal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2370,7 +2370,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test658BignoseUnassignRoleCannibalAsOwner";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -2396,7 +2396,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test700JackModifyJudgeRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2421,7 +2421,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test701JackModifyJudgeDeleteConstructionRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -2451,7 +2451,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test702JackModifyJudgeAddInducementHonorabilityRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -2486,7 +2486,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test703JackModifyJudgeDeleteInducementHonorabilityRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2521,7 +2521,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test709JackUnAssignRoleJudge";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2545,7 +2545,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test710JackAssignRoleEmpty";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -2570,7 +2570,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test712JackModifyEmptyRoleAddInducementPirateRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -2602,7 +2602,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test714JackModifyEmptyRoleDeleteInducementPirateRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2629,7 +2629,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test719JackUnAssignRoleEmpty";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2653,7 +2653,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test720JackAssignRoleGovernorTenantRef";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -2684,7 +2684,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test729JackUnassignRoleGovernorTenantRef";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -2716,7 +2716,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test750JackAssignRoleOmnimanager";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2747,7 +2747,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test755AddProjectAndRecomputeJack";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -2782,7 +2782,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test759JackUnassignRoleOmnimanager";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2813,7 +2813,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test760JackAssignRoleWeakGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2849,7 +2849,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test761JackRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2882,7 +2882,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test762JackReconcile";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2914,7 +2914,7 @@ public class TestRbac extends AbstractRbacTest {
     public void test763PreviewChanges() throws Exception {
         final String TEST_NAME = "test763PreviewChanges";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2974,7 +2974,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test764JackAssignRoleSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3013,7 +3013,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test765JackRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3051,7 +3051,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test766JackReconcile";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3091,7 +3091,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test767JackUnAssignRoleWeakGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3128,7 +3128,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test768JackRecompute";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3165,7 +3165,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test762JackAssignRoleSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3199,7 +3199,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test770JackAssignRoleSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3238,7 +3238,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test772JackAssignRoleGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3278,7 +3278,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test774JackUnAssignRoleSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3312,7 +3312,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test775JackUnAssignRoleGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3347,7 +3347,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test778JackAssignRoleGossiperAndSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3393,7 +3393,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test779JackUnassignRoleGossiperAndSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3433,7 +3433,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test780JackAssignRoleWeakSinger";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3470,7 +3470,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test781JackAssignRoleWeakGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3507,7 +3507,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test782JackAssignRoleSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3549,7 +3549,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test783JackUnassignRoleSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3583,7 +3583,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test784JackUnAssignRoleWeakSinger";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3619,7 +3619,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test785JackUnAssignRoleGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3653,7 +3653,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test786JackAssignRoleGossiperAndSinger";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3694,7 +3694,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test788JackUnassignRoleGossiperAndSinger";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3735,7 +3735,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test780JackAssignRoleWeakSinger";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3774,7 +3774,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test791JackSwitchRolesGossiperAndSinger";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3816,7 +3816,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test792JackAssignRoleSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3860,7 +3860,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test793JackSwitchRolesSingerAndGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3906,7 +3906,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test793JackSwitchRolesSingerAndGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3946,7 +3946,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test795JackSwitchRolesSingerAndSailor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -3992,7 +3992,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test796JackSwitchRolesSailorAndGovernor";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -4039,7 +4039,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test799JackUnassignGovernorAndWeakGossiper";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -4074,7 +4074,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test800ModifyRoleImmutable";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         try {
@@ -4104,7 +4104,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test802AddGlobalImmutableRole";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_IMMUTABLE_GLOBAL_FILE);
@@ -4129,7 +4129,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test804ModifyRoleImmutableGlobalIdentifier";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         try {
@@ -4156,7 +4156,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test805ModifyRoleImmutableGlobalDescription";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         try {
@@ -4187,7 +4187,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test812AddGlobalImmutableDescriptionRole";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_FILE);
@@ -4215,7 +4215,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test814ModifyRoleImmutableDescriptionGlobalIdentifier";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -4239,7 +4239,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test815ModifyRoleImmutableGlobalDescription";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         try {
@@ -4265,7 +4265,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test826AddNonCreateableRole";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_NON_CREATEABLE_FILE);
@@ -4292,7 +4292,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test826bAddCreateableRole";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CREATEABLE_FILE);
@@ -4316,7 +4316,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test827AddImmutableAssignRole";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_IMMUTABLE_ASSIGN_FILE);
@@ -4348,7 +4348,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test828ModifyUntouchableMetarole";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -4370,7 +4370,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test830ModifyRoleJudge";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -4392,7 +4392,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test840AssignRoleNonAssignable";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
@@ -4422,7 +4422,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test850JackAssignRoleBloodyFool";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -4459,7 +4459,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test855JackModifyFoolMetaroleDeleteInducement";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -4486,7 +4486,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test857JackReconcile";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -4528,7 +4528,7 @@ public class TestRbac extends AbstractRbacTest {
 
         notificationManager.setDisabled(false);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
@@ -4563,7 +4563,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test880GlobalRuleOnChange";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
@@ -4584,7 +4584,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test890DeleteRoleUndeletable";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         try {
@@ -4605,7 +4605,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test892DeleteRoleUndeletableGlobal";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         try {
@@ -4627,7 +4627,7 @@ public class TestRbac extends AbstractRbacTest {
         final String TEST_NAME = "test900ModifyDetectingRole";
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 

@@ -28,7 +28,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -122,7 +121,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test012TestConnection() throws Exception {
         final String TEST_NAME = "test012TestConnection";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -150,7 +149,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test100AssignAccountToJack() throws Exception {
         final String TEST_NAME = "test100AssignAccountToJack";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -179,7 +178,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test102CloseTicketAndRecomputeJack() throws Exception {
         final String TEST_NAME = "test102CloseTicketAndRecomputeJack";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeDummyTicket(jackLastTicketIdentifier);
@@ -205,7 +204,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test104UnassignAccountFromJack() throws Exception {
         final String TEST_NAME = "test104UnassignAccountFromJack";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -235,7 +234,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test108CloseTicketAndRecomputeJack() throws Exception {
         final String TEST_NAME = "test108CloseTicketAndRecomputeJack";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeDummyTicket(jackLastTicketIdentifier);
@@ -271,7 +270,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test109LetItExpire() throws Exception {
         final String TEST_NAME = "test109LetItExpire";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT3H");
@@ -295,7 +294,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test110AssignItsmAccountToJackCommunicationError() throws Exception {
         final String TEST_NAME = "test110AssignItsmAccountToJackCommunicationError";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyItsm.getInstance().setFailureClass(CommunicationException.class);
@@ -330,7 +329,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test111ReconcileJackFixed() throws Exception {
         final String TEST_NAME = "test111ReconcileJackFixed";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Give consistency a time re-try operation again.
@@ -374,7 +373,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test112CloseTicketAndRecomputeJackCommunicationError() throws Exception {
         final String TEST_NAME = "test112CloseTicketAndRecomputeJackCommunicationError";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeDummyTicket(jackLastTicketIdentifier);
@@ -411,7 +410,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test113RecomputeJackFixed() throws Exception {
         final String TEST_NAME = "test113RecomputeJackFixed";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyItsm.getInstance().clearFailureClass();
@@ -445,7 +444,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test114UnassignAccountFromJackCommunicationError() throws Exception {
         final String TEST_NAME = "test114UnassignAccountFromJackCommunicationError";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyItsm.getInstance().setFailureClass(CommunicationException.class);
@@ -497,7 +496,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test115ReconcileJackFixed() throws Exception {
         final String TEST_NAME = "test115ReconcileJackFixed";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Give consistency a time re-try operation again.
@@ -541,7 +540,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test117CloseTicketAndRecomputeJackCommunicationError() throws Exception {
         final String TEST_NAME = "test117CloseTicketAndRecomputeJackCommunicationError";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeDummyTicket(jackLastTicketIdentifier);
@@ -578,7 +577,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test118RecomputeJackFixed() throws Exception {
         final String TEST_NAME = "test118RecomputeJackFixed";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyItsm.getInstance().clearFailureClass();
@@ -619,7 +618,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     public void test119LetItExpire() throws Exception {
         final String TEST_NAME = "test119LetItExpire";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT3H");

@@ -97,7 +97,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractInboundSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
@@ -116,7 +117,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractInboundSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -174,7 +176,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractInboundSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -229,7 +232,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractInboundSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -284,7 +288,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractInboundSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -339,7 +344,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractInboundSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -395,7 +401,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractInboundSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -451,7 +458,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractInboundSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -516,7 +524,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractInboundSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -574,7 +583,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractInboundSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();

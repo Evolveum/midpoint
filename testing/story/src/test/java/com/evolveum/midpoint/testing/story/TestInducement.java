@@ -87,7 +87,7 @@ public class TestInducement extends AbstractStoryTest {
         final String TEST_NAME = "test010InducementConditionsTrue";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -117,7 +117,7 @@ public class TestInducement extends AbstractStoryTest {
         final String TEST_NAME = "test020InducementRole2ConditionFalse";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -148,7 +148,7 @@ public class TestInducement extends AbstractStoryTest {
         final String TEST_NAME = "test030InducementRole3ConditionFalse";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -178,7 +178,7 @@ public class TestInducement extends AbstractStoryTest {
         final String TEST_NAME = "test040Recomputed";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -207,7 +207,7 @@ public class TestInducement extends AbstractStoryTest {
         final String TEST_NAME = "test050InducementRole3ConditionTrue";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -236,7 +236,7 @@ public class TestInducement extends AbstractStoryTest {
         final String TEST_NAME = "test060Recomputed";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -262,7 +262,7 @@ public class TestInducement extends AbstractStoryTest {
         final String TEST_NAME = "test070DeleteUser";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 

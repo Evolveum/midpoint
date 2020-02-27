@@ -85,7 +85,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test100ImportValidityScannerTask";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Pretend that the user was added a long time ago
@@ -121,7 +121,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test110JackAssignJudgeDisabled";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ActivationType activationType = new ActivationType();
@@ -135,7 +135,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test111JackAssignJudgeNotYetValid";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ActivationType activationType = new ActivationType();
@@ -151,7 +151,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test112JackAssignJudgeAfterValidity";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ActivationType activationType = new ActivationType();
@@ -167,7 +167,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test115JackAssignJudgeEnabled";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ActivationType activationType = new ActivationType();
@@ -181,7 +181,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test115JackAssignJudgeValid";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ActivationType activationType = new ActivationType();
@@ -270,7 +270,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test120JackDisableAssignmentJudge";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ActivationType activationType = new ActivationType();
@@ -301,7 +301,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test122JackReplaceNullAdministrativeStatusAssignmentJudge";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertNoDummyAccount(null, USER_JACK_USERNAME);
@@ -325,7 +325,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test123JackDisableAssignmentJudge";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertDummyAccount(null, USER_JACK_USERNAME);
@@ -349,7 +349,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test124JackEnableAssignmentJudge";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertNoDummyAccount(null, USER_JACK_USERNAME);
@@ -373,7 +373,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test125JackDeleteAdministrativeStatusAssignmentJudge";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertDummyAccount(null, USER_JACK_USERNAME);
@@ -399,7 +399,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test126JackAddAdministrativeStatusAssignmentJudge";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertDummyAccount(null, USER_JACK_USERNAME);
@@ -425,7 +425,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test127JackDeleteActivationAssignmentJudge";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertDummyAccount(null, USER_JACK_USERNAME);
@@ -452,7 +452,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test128JackAssignmentJudgeValidToSetInvalid";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertDummyAccount(null, USER_JACK_USERNAME);
@@ -481,7 +481,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test129JackAssignmentJudgeValidToSetValid";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertNoDummyAccount(null, USER_JACK_USERNAME);
@@ -523,7 +523,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test130BarbossaAssignJudgeEnabled";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // preconditions
@@ -568,7 +568,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test131BarbossaAssignSailorEnabled";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ActivationType activationType = new ActivationType();
@@ -609,7 +609,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test132BarbossaDisableAssignmentJudge";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_JUDGE_OID);
@@ -649,7 +649,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test133BarbossaDisableAssignmentSailor";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_SAILOR_OID);
@@ -684,7 +684,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test134BarbossaEnableAssignmentJudge";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_JUDGE_OID);
@@ -721,7 +721,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test135BarbossaEnableAssignmentSailor";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_SAILOR_OID);
@@ -758,7 +758,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test136BarbossaDisableBothAssignments";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         AssignmentType judgeAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_JUDGE_OID);
@@ -803,7 +803,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test137BarbossaEnableBothAssignments";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         AssignmentType judgeAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_JUDGE_OID);
@@ -863,7 +863,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test139BarbossaDisableBothAssignmentsUnassign";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         AssignmentType judgeAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_JUDGE_OID);
@@ -942,7 +942,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test140BarbossaAssignRedJudgeEnabled";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // preconditions
@@ -991,7 +991,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test141BarbossaAssignRedSailorEnabled";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ActivationType activationType = new ActivationType();
@@ -1032,7 +1032,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test142BarbossaDisableAssignmentRedJudge";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_JUDGE_OID);
@@ -1072,7 +1072,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test143BarbossaDisableAssignmentRedSailor";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_SAILOR_OID);
@@ -1111,7 +1111,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test144BarbossaEnableAssignmentRedJudge";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_JUDGE_OID);
@@ -1148,7 +1148,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test145BarbossaEnableAssignmentRedSailor";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_SAILOR_OID);
@@ -1185,7 +1185,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test146BarbossaDisableBothRedAssignments";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         AssignmentType judgeAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_JUDGE_OID);
@@ -1240,7 +1240,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test147BarbossaEnableBothRedAssignments";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         AssignmentType judgeAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_JUDGE_OID);
@@ -1300,7 +1300,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test149BarbossaDisableBothRedAssignmentsUnassign";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         AssignmentType judgeAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_JUDGE_OID);
@@ -1379,7 +1379,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test190HermanGoesInvalid";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -1415,7 +1415,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test200ImportTriggerScannerTask";
 
         // GIVEN
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -1794,7 +1795,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test300HermanAssignJudgeNotYetValid";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ActivationType activationType = new ActivationType();
@@ -1821,7 +1822,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test310HermanAssignJudgeBecomesValid";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
@@ -1843,7 +1844,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test315HermanAssignJudgeBecomesInValid";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         XMLGregorianCalendar start = (XMLGregorianCalendar) judgeAssignmentValidTo.clone();

@@ -133,7 +133,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     public void test110AssignJackDirAccount() throws Exception {
         final String TEST_NAME = "test110AssignJackDirAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -224,7 +224,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     public void test130JackUnassignRolePirates() throws Exception {
         final String TEST_NAME = "test120AddJackToGroupPirates";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -253,7 +253,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     public void test140JackAssignRolePirates() throws Exception {
         final String TEST_NAME = "test140JackAssignRolePirates";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -290,7 +290,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     public void test142JackUnAssignDirAccount() throws Exception {
         final String TEST_NAME = "test140JackAssignRolePirates";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -325,7 +325,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     public void test149JackUnassignRolePirates() throws Exception {
         final String TEST_NAME = "test149JackUnassignRolePirates";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -352,7 +352,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     public void test150AssignJackDirAccount() throws Exception {
         final String TEST_NAME = "test150AssignJackDirAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -380,7 +380,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     public void test152JackAssignRolePirates() throws Exception {
         final String TEST_NAME = "test152JackAssignRolePirates";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -415,7 +415,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     public void test153JackUnassignRolePiratesPreview() throws Exception {
         final String TEST_NAME = "test153JackUnassignRolePiratesPreview";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> focusDelta = createAssignmentFocusDelta(
@@ -463,7 +463,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     public void test154JackUnassignRolePirates() throws Exception {
         final String TEST_NAME = "test154JackUnassignRolePirates";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -495,7 +495,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     public void test159JackUnassignDirAccount() throws Exception {
         final String TEST_NAME = "test159JackUnassignDirAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -525,7 +525,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     public void test200MancombAssignAccount() throws Exception {
         final String TEST_NAME = "test200MancombAssignAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

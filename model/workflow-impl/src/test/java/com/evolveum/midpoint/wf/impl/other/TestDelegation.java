@@ -15,7 +15,6 @@ import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
@@ -76,7 +75,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
     public void test100CreateTask() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assignRole(userJackOid, ROLE_PRINCE_OID, task, result);                // should start approval process
@@ -96,7 +95,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
     public void test110DelegateToGirthUnauthorized() throws Exception {
         login(getUserFromRepo(USER_KEEN_OID));
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         try {
@@ -117,7 +116,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
     public void test120DelegateToGirth() throws Exception {
         login(getUserFromRepo(USER_LONGSHANKS_OID));
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
@@ -149,7 +148,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
     public void test130DelegateToKeenByReplace() throws Exception {
         login(getUserFromRepo(USER_LONGSHANKS_OID));
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
@@ -178,7 +177,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
     public void test140DelegateToNoneByReplace() throws Exception {
         login(getUserFromRepo(USER_KEEN_OID));
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)

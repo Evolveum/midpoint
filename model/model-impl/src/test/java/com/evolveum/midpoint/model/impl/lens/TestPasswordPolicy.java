@@ -101,7 +101,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "testPasswordGeneratorComplexNegative";
         TestUtil.displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         File file = new File(TEST_DIR, "password-policy-complex.xml");
@@ -161,7 +161,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "testValueGenerateRandomPin";
         TestUtil.displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ValuePolicyType pp = parsePasswordPolicy("value-policy-random-pin.xml");
@@ -185,7 +185,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "testValueGenerate";
         TestUtil.displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ValuePolicyType pp = parsePasswordPolicy("value-policy-generate.xml");
@@ -209,7 +209,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "testValueGenerateEmpty";
         TestUtil.displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         File file = new File(TEST_DIR, "value-policy-generate-empty.xml");
@@ -232,7 +232,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
     public void passwordGeneratorTest(final String TEST_NAME, String policyFilename) throws JAXBException, SchemaException, IOException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         TestUtil.displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         File file = new File(TEST_DIR, policyFilename);
@@ -273,7 +273,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
     }
 
     private <O extends ObjectType> void assertPassword(String passwd, ValuePolicyType pp, PrismObject<UserType> object) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Task task = createTask("assertPassword");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         boolean isValid = valuePolicyProcessor.validateValue(passwd, pp, createUserOriginResolver(object), "assertPassword", task, result);
         result.computeStatus();
@@ -328,7 +328,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         TestUtil.displayWhen(TEST_NAME);
 
         for (int i = 0; i < USERNAME_ATTEMPTS; i++) {
-            Task task = createTask(TEST_NAME+":"+i);
+            Task task = getTestTask();
             OperationResult result = task.getResult();
 
             String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, true, createUserOriginResolver(user), TEST_NAME, task, result);
@@ -362,7 +362,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         TestUtil.displayWhen(TEST_NAME);
 
         for (int i = 0; i < USER_PROPS_ATTEMPTS; i++) {
-            Task task = createTask(TEST_NAME+":"+i);
+            Task task = getTestTask();
             OperationResult result = task.getResult();
 
             String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, true, createUserOriginResolver(user), TEST_NAME, task, result);
@@ -398,7 +398,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
     }
 
     private boolean pwdValidHelper(String password, ValuePolicyType pp) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Task task = createTask("pwdValidHelper");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         valuePolicyProcessor.validateValue(password, pp, null, "pwdValidHelper", task, result);
         result.computeStatus();

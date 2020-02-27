@@ -11,12 +11,10 @@ package com.evolveum.midpoint.testing.longtest;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
 
 import javax.xml.namespace.QName;
 
 import org.opends.server.types.Entry;
-import org.opends.server.util.LDIFException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -29,7 +27,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -139,7 +136,7 @@ public class TestLdapComplex extends AbstractLongTest {
 
         loadLdapEntries("u", NUM_LDAP_ENTRIES);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -178,7 +175,7 @@ public class TestLdapComplex extends AbstractLongTest {
 
         // GIVEN
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -215,7 +212,7 @@ public class TestLdapComplex extends AbstractLongTest {
         final String TEST_NAME = "test500GuybrushAssignSecurity";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addObject(USER_GUYBRUSH_FILE);
@@ -245,7 +242,7 @@ public class TestLdapComplex extends AbstractLongTest {
         final String TEST_NAME = "test502RuinGuybrushAccountAndReconcile";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Entry entryOrig = openDJController.searchByUid(USER_GUYBRUSH_USERNAME);

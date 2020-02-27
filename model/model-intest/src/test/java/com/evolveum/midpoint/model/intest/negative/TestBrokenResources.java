@@ -168,7 +168,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test010TestResourceBroken";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -184,7 +184,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test020GetResourceBroken";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -214,7 +214,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test100GetAccountMurray";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         try {
@@ -240,7 +240,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test101GetAccountMurrayNoFetch";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
@@ -399,7 +399,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test320GetResourceNoJars";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -424,7 +424,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test350AddResourceWrongConnectorOid";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE);
@@ -455,7 +455,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test352AddResourceWrongConnectorOidRaw";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE);
@@ -487,7 +487,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test355AddResourceWrongConnectorOidRepo";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE);
@@ -505,7 +505,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test358GetResourceWrongConnectorOid";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -530,7 +530,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test359DeleteResourceWrongConnectorOid";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ResourceType> delta = prismContext.deltaFactory().object()
@@ -554,7 +554,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test360AddResourceNoConfiguration";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_NO_CONFIGURATION_FILE);
@@ -577,7 +577,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test362GetResourceNoConfiguration";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -608,7 +608,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test369DeleteResourceNoConfiguration";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ResourceType> delta = prismContext.deltaFactory().object()
@@ -637,7 +637,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test371ImportUnaccessibleResource";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -657,7 +657,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test372GetUnaccessibleResourceNoFetch";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
@@ -715,7 +715,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     public void testListResources(final String TEST_NAME, int expectedNumber, Collection<SelectorOptions<GetOperationOptions>> options) throws Exception {
 
         // GIVEN (1)
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN (1)
@@ -736,7 +736,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
         // GIVEN (2)
         resources.clear();
-        task = createTask(TEST_NAME);
+        task = getTestTask();
         result = task.getResult();
 
         ResultHandler<ResourceType> handler = new ResultHandler<ResourceType>() {
@@ -770,7 +770,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test377GetResourceNoConfiguration";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -802,7 +802,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test400AssignTwoResoures";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -833,7 +833,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test401AssignTwoResouresBroken";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -876,7 +876,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test500AssignResourceBlack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -913,7 +913,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test502ModifyUserEmployeeNumberNone";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -945,7 +945,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test509UnassignResourceBlack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -977,7 +977,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test510AssignResourceBlackError";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -1023,7 +1023,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test512ReconcileUser";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -1054,7 +1054,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test514ModifyUserEmployeeNumberRuntime";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -1094,7 +1094,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test518UnassignResourceBlack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -1135,7 +1135,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test519ReconcileUser";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -1165,7 +1165,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test520AssignResourceEbonyError";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -1205,7 +1205,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test524ModifyUserEmployeeNumberRuntime";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -1237,7 +1237,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test528UnassignResourceEbony";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest5xx();
 
@@ -1289,7 +1289,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         final String TEST_NAME = "test600GuybrushAssignAccountDummyViolet";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 

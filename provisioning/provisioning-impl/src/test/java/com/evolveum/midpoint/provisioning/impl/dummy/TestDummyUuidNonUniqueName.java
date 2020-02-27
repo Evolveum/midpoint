@@ -119,7 +119,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 
     private String addFettucini(final String TEST_NAME, File file, String oid, String expectedFullName) throws Exception {
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -179,7 +179,8 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
     }
 
     private void searchFettucini(int expectedNumberOfFettucinis) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = createTask(TestDummy.class.getName() + ".searchFettucini");
+        TestDummy.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())

@@ -94,7 +94,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test100GetRepositoryDiag";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -116,7 +116,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test110RepositorySelfTest";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -135,7 +135,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test200ExportUsers";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -177,7 +177,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test210SearchUsersMatchingRulesPolystringNorm";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = queryFor(UserType.class)
@@ -210,7 +210,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test212SearchUsersMatchingRulesPolystringIgnoreCase";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = queryFor(UserType.class)
@@ -239,7 +239,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test214SearchUsersMatchingRulesStringIgnoreCase";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = queryFor(UserType.class)
@@ -272,7 +272,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test216SearchUsersMatchingRulesStringNorm";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = queryFor(UserType.class)
@@ -301,7 +301,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test300RecomputeJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -325,7 +325,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test302UpdateKeyJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -346,7 +346,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test310AddUserClean";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_CLEAN_NAME, USER_CLEAN_GIVEN_NAME, USER_CLEAN_FAMILY_NAME, true);
@@ -374,7 +374,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test312UpdateBinaryIdClean";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -397,7 +397,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
     public void test320DefaultRelations() throws Exception {
         final String TEST_NAME="test320DefaultRelations";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -420,7 +420,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test400ImportRoleWithFilters";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -444,7 +444,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test500AddHocProvisioningScriptAssignJackResourceScripty";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -477,7 +477,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test502GetAccountJackResourceScripty";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -509,7 +509,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test504GetAccountJackResourceScriptyAgain";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -546,7 +546,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test506ModifyResourceGetAccountJackResourceScripty";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -590,7 +590,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test600jackAssignRoleShip";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
 
@@ -619,7 +619,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test601jackUnassignResourceAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
@@ -649,7 +649,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test602jackUnssigndRoleShip";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
 

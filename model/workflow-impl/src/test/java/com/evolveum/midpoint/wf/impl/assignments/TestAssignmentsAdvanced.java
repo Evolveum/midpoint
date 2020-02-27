@@ -278,7 +278,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test300ApprovalAndEnforce() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         try {
@@ -326,7 +326,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test500NoApprovers() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assignRole(userJackOid, roleRole26Oid, task, result);
@@ -352,7 +352,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test600AssignRole29() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // WHEN
@@ -592,7 +592,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test630UnassignRole29() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // WHEN
@@ -934,7 +934,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test800AssignRole27() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // WHEN
@@ -956,7 +956,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test810ModifyAssignmentOfRole27() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // WHEN
@@ -981,7 +981,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test820UnassignRole27() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // WHEN
@@ -998,7 +998,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test      // MID-5827
     public void test900AssignIdempotentRole() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // WHEN
@@ -1038,7 +1038,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test910AssignRoleWithIdempotentMetarole() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // WHEN
@@ -1077,7 +1077,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
     private void executeAssignRoles123ToJack(boolean immediate,
             boolean approve1, boolean approve2, boolean approve3a, boolean approve3b, boolean securityDeputy) throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         String testName = getTestNameShort();
         PrismObject<UserType> jack = getUser(userJackOid);
         ObjectDelta<UserType> addRole1Delta = prismContext
@@ -1218,7 +1218,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
     private void previewAssignRolesToJack(boolean immediate, boolean also24) throws Exception {
         String testName = getTestNameShort();
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
         boolean TRACE = false;
         //noinspection ConstantConditions
@@ -1489,12 +1489,6 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
             rv.setId(assignment.getId());
             return rv;
         }
-    }
-
-    @Test
-    public void zzzMarkAsNotInitialized() {
-        display("Setting class as not initialized");
-        unsetSystemInitialized();
     }
 
     private static class ExpectedStagePreview {

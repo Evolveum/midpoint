@@ -191,7 +191,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         final String TEST_NAME = "test003Connection";
         TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Check that there is a schema, but no capabilities before test (pre-condition)
@@ -355,7 +355,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test100AddAccountWill() throws Exception {
         final String TEST_NAME = "test100AddAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -427,7 +427,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test102GetAccountWillFuture() throws Exception {
         final String TEST_NAME = "test102GetAccountWillFuture";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -461,7 +461,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test104RefreshAccountWill() throws Exception {
         final String TEST_NAME = "test104RefreshAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -515,7 +515,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test106AddToBackingStoreAndGetAccountWill() throws Exception {
         final String TEST_NAME = "test106AddToBackingStoreAndGetAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         backingStoreAddWill();
@@ -556,7 +556,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test108GetAccountWillFuture() throws Exception {
         final String TEST_NAME = "test108GetAccountWillFuture";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -599,7 +599,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test109GetAccountWillFutureNoFetch() throws Exception {
         final String TEST_NAME = "test109GetAccountWillFutureNoFetch";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         GetOperationOptions options = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
@@ -640,7 +640,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test110CloseCaseAndRefreshAccountWill() throws Exception {
         final String TEST_NAME = "test110CloseCaseAndRefreshAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -702,7 +702,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test120RefreshAccountWillAfter5min() throws Exception {
         final String TEST_NAME = "test120RefreshAccountWillAfter5min";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -754,7 +754,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test130RefreshAccountWillAfter16min() throws Exception {
         final String TEST_NAME = "test130RefreshAccountWillAfter16min";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -806,7 +806,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test132RefreshAccountWillAfter27min() throws Exception {
         final String TEST_NAME = "test132RefreshAccountWillAfter27min";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -845,7 +845,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test200ModifyAccountWillFullname() throws Exception {
         final String TEST_NAME = "test200ModifyAccountWillFullname";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -927,7 +927,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test202RefreshAccountWill() throws Exception {
         final String TEST_NAME = "test202RefreshAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1007,7 +1007,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test204CloseCaseAndRefreshAccountWill() throws Exception {
         final String TEST_NAME = "test204CloseCaseAndRefreshAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1100,7 +1100,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test210RefreshAccountWillAfter5min() throws Exception {
         final String TEST_NAME = "test210RefreshAccountWillAfter5min";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1168,7 +1168,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test212UpdateBackingStoreAndGetAccountWill() throws Exception {
         final String TEST_NAME = "test212UpdateBackingStoreAndGetAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1232,7 +1232,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test220ModifyAccountWillDisable() throws Exception {
         final String TEST_NAME = "test220ModifyAccountWillDisable";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1315,7 +1315,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test230ModifyAccountWillChangePasswordAndEnable() throws Exception {
         final String TEST_NAME = "test230ModifyAccountWillChangePasswordAndEnable";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1405,7 +1405,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test240CloseDisableCaseAndReadAccountWill() throws Exception {
         final String TEST_NAME = "test240CloseDisableCaseAndReadAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1516,7 +1516,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test250RefreshAccountWillAfter5min() throws Exception {
         final String TEST_NAME = "test250RefreshAccountWillAfter5min";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1603,7 +1603,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test252UpdateBackingStoreAndGetAccountWill() throws Exception {
         final String TEST_NAME = "test252UpdateBackingStoreAndGetAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1668,7 +1668,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test260ClosePasswordChangeCaseAndRefreshAccountWill() throws Exception {
         final String TEST_NAME = "test260ClosePasswordChangeCaseAndRefreshAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1767,7 +1767,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test270RefreshAccountWillAfter7min() throws Exception {
         final String TEST_NAME = "test270RefreshAccountWillAfter7min";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1865,7 +1865,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test271RefreshAccountWillAfter12min() throws Exception {
         final String TEST_NAME = "test271RefreshAccountWillAfter12min";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1960,7 +1960,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test272UpdateBackingStoreAndGetAccountWill() throws Exception {
         final String TEST_NAME = "test272UpdateBackingStoreAndGetAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -2024,7 +2024,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test280RefreshAccountWillAfter5min() throws Exception {
         final String TEST_NAME = "test132RefreshAccountWillAfter10min";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -2112,7 +2112,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test290RefreshAccountWillAfter5min() throws Exception {
         final String TEST_NAME = "test134RefreshAccountWillAfter5min";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -2177,7 +2177,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test300DeleteAccountWill() throws Exception {
         final String TEST_NAME = "test300DeleteAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -2246,7 +2246,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test302GetAccountWillFuture() throws Exception {
         final String TEST_NAME = "test302GetAccountWillFuture";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2271,7 +2271,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test303GetAccountWillFutureNoFetch() throws Exception {
         final String TEST_NAME = "test303GetAccountWillFutureNoFetch";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         GetOperationOptions options = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
@@ -2303,7 +2303,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test310CloseCaseAndRefreshAccountWill() throws Exception {
         final String TEST_NAME = "test310CloseCaseAndRefreshAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -2369,7 +2369,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     public void test320RefreshAccountWillAfter5min() throws Exception {
         final String TEST_NAME = "test320RefreshAccountWillAfter5min";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 

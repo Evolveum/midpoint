@@ -138,11 +138,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
         return 0;
     }
 
-    @Override
-    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        super.initSystem(initTask, initResult);
-    }
-
     @BeforeClass
     public static void startLdap() throws Exception {
         LOGGER.info("------------------------------------------------------------------------------");
@@ -160,7 +155,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     }
 
     @AfterClass
-    public static void stopLdap() throws Exception {
+    public static void stopLdap() {
         openDJController.stop();
         LOGGER.info("------------------------------------------------------------------------------");
         LOGGER.info("STOP:  ProvisioningServiceImplOpenDJTest");
@@ -176,9 +171,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
      */
     @Test
     public void test003Connection() throws Exception {
-        final String TEST_NAME = "test003Connection";
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result).asObjectable();
         assertNotNull("No connector ref",resourceTypeBefore.getConnectorRef());
@@ -234,7 +227,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test004ResourceAndConnectorCaching() throws Exception {
         final String TEST_NAME = "test004ResourceAndConnectorCaching";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, null, result);
@@ -256,19 +249,19 @@ public class TestOpenDj extends AbstractOpenDjTest {
         PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         PrismContainer<Containerable> configurationContainerAgain = resourceAgain.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
-        assertTrue("Configurations not equals", configurationContainer.equals(configurationContainerAgain));
+        assertEquals("Configurations not equals", configurationContainerAgain, configurationContainer);
 
         ResourceSchema resourceSchemaAgain = RefinedResourceSchemaImpl.getResourceSchema(resourceAgain, prismContext);
         assertNotNull("No resource schema (again)", resourceSchemaAgain);
         assertEquals("Schema serial number mismatch", resourceType.getSchema().getCachingMetadata().getSerialNumber(),
                 resourceTypeAgain.getSchema().getCachingMetadata().getSerialNumber());
-        assertTrue("Resource schema was not cached", resourceSchema == resourceSchemaAgain);
+        assertSame("Resource schema was not cached", resourceSchema, resourceSchemaAgain);
 
         // Now we stick our nose deep inside the provisioning impl. But we need to make sure that the
         // configured connector is properly cached
         ConnectorInstance configuredConnectorInstanceAgain = resourceManager.getConfiguredConnectorInstance(
                 resourceAgain, ReadCapabilityType.class, false, result);
-        assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
+        assertSame("Connector instance was not cached", configuredConnectorInstance, configuredConnectorInstanceAgain);
 
         assertShadows(1);
     }
@@ -278,7 +271,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         final String TEST_NAME = "test005Capabilities";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -344,8 +337,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     }
 
     protected void assertPasswordCapability(PasswordCapabilityType capPassword) {
-        assertTrue("Wrong password capability readable flag: "+capPassword.isReadable(),
-                capPassword.isReadable() != Boolean.TRUE);
+        assertNotSame("Wrong password capability readable flag: " + capPassword.isReadable(), capPassword.isReadable(), Boolean.TRUE);
     }
 
     @Test
@@ -403,7 +395,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No jpegPhoto create", jpegPhoto.canAdd());
         assertTrue("No jpegPhoto update", jpegPhoto.canModify());
         assertTrue("No jpegPhoto read", jpegPhoto.canRead());
-        assertEquals("Wrong jpegPhoto matching rule", null, jpegPhoto.getMatchingRuleQName());
+        assertNull("Wrong jpegPhoto matching rule", jpegPhoto.getMatchingRuleQName());
 
         ResourceAttributeDefinition<String> dsDef = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
         assertNotNull("No definition for ds-pwp-account-disabled", dsDef);
@@ -431,7 +423,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No labeledUri create", labeledUriDef.canAdd());
         assertTrue("No labeledUri update", labeledUriDef.canModify());
         assertTrue("No labeledUri read", labeledUriDef.canRead());
-        assertEquals("Wrong labeledUri matching rule", null, labeledUriDef.getMatchingRuleQName());
+        assertNull("Wrong labeledUri matching rule", labeledUriDef.getMatchingRuleQName());
 
         ResourceAttributeDefinition<String> secretaryDef = accountDef.findAttributeDefinition("secretary");
         assertNotNull("No definition for secretary", secretaryDef);
@@ -450,7 +442,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No createTimestamp read", createTimestampDef.canRead());
         assertFalse("Bad createTimestamp create", createTimestampDef.canAdd());
         assertFalse("Bad createTimestamp update", createTimestampDef.canModify());
-        assertEquals("Wrong createTimestamp matching rule", null, createTimestampDef.getMatchingRuleQName());
+        assertNull("Wrong createTimestamp matching rule", createTimestampDef.getMatchingRuleQName());
 
         // MID-5210
         ResourceAttributeDefinition<String> descriptionDef = accountDef.findAttributeDefinition(ATTRIBUTE_DESCRIPTION_NAME);
@@ -461,7 +453,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No description read", descriptionDef.canRead());
         assertTrue("Bad description create", descriptionDef.canAdd());
         assertTrue("Bad description update", descriptionDef.canModify());
-        assertEquals("Wrong description matching rule", null, descriptionDef.getMatchingRuleQName());
+        assertNull("Wrong description matching rule", descriptionDef.getMatchingRuleQName());
 
         assertNull("The _PASSSWORD_ attribute sneaked into schema",
                 accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
@@ -536,7 +528,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
     @Test
     public void test007RefinedSchema() throws Exception {
-        final String TEST_NAME = "test007RefinedSchema";
         // GIVEN
 
         // WHEN
@@ -547,8 +538,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // all over again
         // Not equals() but == ... we want to really know if exactly the same
         // object instance is returned
-        assertTrue("Broken caching",
-                refinedSchema == RefinedResourceSchemaImpl.getRefinedSchema(resourceType, prismContext));
+        assertSame("Broken caching", refinedSchema, RefinedResourceSchemaImpl.getRefinedSchema(resourceType, prismContext));
 
         RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         assertNotNull("Account definition is missing", accountDef);
@@ -654,7 +644,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test020ListResourceObjects() throws Exception {
         final String TEST_NAME = "test020ListResourceObjects";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -674,7 +664,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test110GetObject() throws Exception {
         final String TEST_NAME = "test110GetObject";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType objectToAdd = parseObjectType(ACCOUNT_JBOND_FILE, ShadowType.class);
@@ -765,7 +755,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test111GetObjectNotFoundRepo() throws Exception {
         final String TEST_NAME = "test111GetObjectNotFoundRepo";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         try {
@@ -799,7 +789,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test112GetObjectNotFoundResource() throws Exception {
         final String TEST_NAME = "test112GetObjectNotFoundResource";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -817,7 +807,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test119Cleanup() throws Exception {
         final String TEST_NAME = "test119Cleanup";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
@@ -830,7 +820,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test120AddAccountWill() throws Exception {
         final String TEST_NAME = "test120AddAccountWill";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> accountBefore = parseObject(ACCOUNT_WILL_FILE);
@@ -862,7 +852,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test121RenameAccountWillOnResource() throws Exception{
         String TEST_NAME = "test121RenameAccountWillOnResource";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         openDJController.executeRenameChange(new File(TEST_DIR, "rename.ldif").getPath());
@@ -890,7 +880,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test125AddObjectNull() throws Exception {
         final String TEST_NAME = "test125AddObjectNull";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         String addedObjectOid = null;
@@ -912,7 +902,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test130AddDeleteAccountSparrow() throws Exception {
         final String TEST_NAME = "test130AddDeleteAccountSparrow";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(ACCOUNT_SPARROW_FILE, ShadowType.class);
@@ -956,7 +946,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test140AddAndModifyAccountJack() throws Exception {
         final String TEST_NAME = "test140AddAndModifyAccountJack";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = unmarshallValueFromFile(ACCOUNT_JACK_FILE, ShadowType.class);
@@ -1027,7 +1017,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test145ModifyAccountJackJpegPhoto() throws Exception {
         final String TEST_NAME = "test145ModifyAccountJackJpegPhoto";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         byte[] bytesIn = Files.readAllBytes(Paths.get(ProvisioningTestUtil.DOT_JPG_FILENAME));
@@ -1083,7 +1073,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test147ModifyAccountJackGivenNameDuplicit() throws Exception {
         final String TEST_NAME = "test147ModifyAccountJackGivenNameDuplicit";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PropertyDelta<String> givenNameDelta = prismContext.deltaFactory().property().create(
@@ -1134,7 +1124,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test150ChangePassword() throws Exception {
         final String TEST_NAME = "test150ChangePassword";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(ACCOUNT_MODIFY_PASSWORD_FILE, ShadowType.class);
@@ -1188,7 +1178,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test151AddObjectWithPassword() throws Exception {
         final String TEST_NAME = "test151AddObjectWithPassword";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(ACCOUNT_NEW_WITH_PASSWORD_FILE, ShadowType.class);
@@ -1236,7 +1226,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         final String TEST_NAME = "test160SearchAccountsIterative";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
@@ -1300,7 +1290,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         final String TEST_NAME = "test161SearchAccountsIterativeOffset2Page3";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
@@ -1347,7 +1337,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         final String TEST_NAME = "test162SearchAccountsIterativeOffsetNullPage5";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
@@ -1406,7 +1396,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test170DisableAccount() throws Exception{
         final String TEST_NAME = "test170DisableAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(ACCOUNT_DISABLE_SIMULATED_FILE, ShadowType.class);
@@ -1464,7 +1454,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test175AddDisabledAccount() throws Exception {
         final String TEST_NAME = "test175AddDisabledAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(ACCOUNT_NEW_DISABLED_FILE, ShadowType.class);
@@ -1514,7 +1504,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test176AddEnabledAccount() throws Exception {
         final String TEST_NAME = "test176AddEnabledAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(ACCOUNT_NEW_ENABLED_FILE, ShadowType.class);
@@ -1550,7 +1540,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test180GetUnlockedAccount() throws Exception {
         final String TEST_NAME = "test180GetUnlockedAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1569,7 +1559,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test182GetLockedAccount() throws Exception {
         final String TEST_NAME = "test182GetLockedAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         openDJController.executeLdifChange(
@@ -1595,7 +1585,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test184UnlockAccount() throws Exception{
         final String TEST_NAME = "test184UnlockAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
@@ -1634,7 +1624,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test200SearchObjectsIterative() throws Exception {
         final String TEST_NAME = "test200SearchObjectsIterative";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(ACCOUNT_SEARCH_ITERATIVE_FILE, ShadowType.class);
@@ -1676,7 +1666,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test201SearchObjects() throws Exception {
         final String TEST_NAME = "test201SearchObjects";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(ACCOUNT_SEARCH_FILE, ShadowType.class);
@@ -1712,7 +1702,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test202SearchObjectsCompexFilter() throws Exception {
         final String TEST_NAME = "test202SearchObjectsCompexFilter";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_COMPLEX_FILTER_FILE, QueryType.COMPLEX_TYPE);
@@ -1747,7 +1737,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test203SearchObjectsByDnExists() throws Exception {
         final String TEST_NAME = "test203SearchObjectsByDnExists";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = createAccountShadowQuerySecondaryIdentifier(ACCOUNT_BARBOSSA_DN, resource);
@@ -1787,7 +1777,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test205SearchObjectsByDnNotExists() throws Exception {
         final String TEST_NAME = "test205SearchObjectsByDnNotExists";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = createAccountShadowQuerySecondaryIdentifier(
@@ -1823,7 +1813,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test206SearchObjectsCompexFilterStartsWith() throws Exception {
         final String TEST_NAME = "test206SearchObjectsCompexFilterStartsWith";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_COMPLEX_FILTER_STARTS_WITH_FILE, QueryType.COMPLEX_TYPE);
@@ -1858,7 +1848,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test230SearchObjectsPagedNoOffset() throws Exception {
         final String TEST_NAME = "test230SearchObjectsPagedNoOffset";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
@@ -1893,7 +1883,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test231SearchObjectsPagedOffsetZero() throws Exception {
         final String TEST_NAME = "test231SearchObjectsPagedOffsetZero";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
@@ -1928,7 +1918,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test232SearchObjectsPagedOffset() throws Exception {
         final String TEST_NAME = "test232SearchObjectsPagedOffset";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
@@ -1964,7 +1954,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test233SearchObjectsPagedNoOffsetSortSn() throws Exception {
         final String TEST_NAME = "test233SearchObjectsPagedNoOffsetSortSn";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
@@ -2002,7 +1992,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test234SearchObjectsPagedOffsetSortSn() throws Exception {
         final String TEST_NAME = "test234SearchObjectsPagedOffsetSortSn";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
@@ -2054,7 +2044,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test250CountAccounts() throws Exception {
         final String TEST_NAME = "test250CountAccounts";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
@@ -2080,7 +2070,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test252CountLdapGroups() throws Exception {
         final String TEST_NAME = "test252CountLdapGroups";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_LDAP_GROUPS_FILE, QueryType.COMPLEX_TYPE);
@@ -2110,7 +2100,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test300AddObjectObjectAlreadyExistResource() throws Exception {
         final String TEST_NAME = "test300AddObjectObjectAlreadyExistResource";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_SEARCH_FILE);
@@ -2138,7 +2128,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test310AddObjectNoSn() throws Exception {
         final String TEST_NAME = "test310AddObjectNoSn";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_NO_SN_FILE);
@@ -2169,7 +2159,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test320AddAccountPosix() throws Exception {
         final String TEST_NAME = "test320AddAccountPosix";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(ACCOUNT_POSIX_MCMUTTON_FILE, ShadowType.class);
@@ -2219,7 +2209,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test322ModifyAccountPosix() throws Exception {
         final String TEST_NAME = "test322ModifyAccountPosix";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_POSIX_MCMUTTON_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
@@ -2264,7 +2254,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test329DeleteAccountPosix() throws Exception {
         final String TEST_NAME = "test329DeleteAccountPosix";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2301,7 +2291,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test330SearchForPosixAccount() throws Exception {
         final String TEST_NAME = "test330SearchForPosixAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_VANHELGEN_FILE,
@@ -2348,7 +2338,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test400AddGroupSwashbucklers() throws Exception {
         final String TEST_NAME = "test400AddGroupSwashbucklers";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(GROUP_SWASHBUCKLERS_FILE, ShadowType.class);
@@ -2389,7 +2379,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test402AddAccountMorganWithAssociation() throws Exception {
         final String TEST_NAME = "test402AddAccountMorganWithAssociation";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
@@ -2443,7 +2433,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test403modifyMorganReplaceAssociation() throws Exception {
         final String TEST_NAME = "test403modifyMorganReplaceAssociation";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2496,7 +2486,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test405GetGroupSwashbucklers() throws Exception {
         final String TEST_NAME = "test405GetGroupSwashbucklers";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2528,7 +2518,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test410CreateLdapGroupAndSearchGroups() throws Exception {
         final String TEST_NAME = "test410CreateLdapGroupAndSearchGroups";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         openDJController.addEntry("dn: cn=seadogs,ou=groups,dc=EXAMPLE,dc=com\n" +
@@ -2561,7 +2551,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test412CreateLdapGroupWithMemberAndGet() throws Exception {
         final String TEST_NAME = "test412CreateLdapGroupWithMemberAndGet";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         openDJController.addEntry("dn: cn=sailor,ou=Groups,dc=example,dc=com\n" +
@@ -2598,7 +2588,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test414AddGroupCorsairsAssociateUser() throws Exception {
         final String TEST_NAME = "test414AddGroupCorsairsAssociateUser";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(GROUP_CORSAIRS_FILE, ShadowType.class);
@@ -2624,7 +2614,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test416AssociateUserToCorsairs() throws Exception {
         final String TEST_NAME = "test416AssociateUserToCorsairs";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_MORGAN_OID,
@@ -2652,7 +2642,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test418GetMorgan() throws Exception {
         final String TEST_NAME = "test418GetMorgan";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2679,7 +2669,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test429DeleteAccountMorgan() throws Exception {
         final String TEST_NAME = "test429DeleteAccountMorgan";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2718,7 +2708,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test450ListGroupsObjectclass() throws Exception {
         final String TEST_NAME = "test450ListGroupsObjectclass";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID,
@@ -2744,7 +2734,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test452ListLdapGroupsKindIntent() throws Exception {
         final String TEST_NAME = "test452ListLdapGroupsKindIntent";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
@@ -2770,7 +2760,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test454ListSpecialGroupsKindIntent() throws Exception {
         final String TEST_NAME = "test454ListSpecialGroupsKindIntent";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
@@ -2798,7 +2788,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test456AddGroupSpecialists() throws Exception {
         final String TEST_NAME = "test456AddGroupSpecialists";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(GROUP_SPECIALISTS_FILE, ShadowType.class);
@@ -2839,7 +2829,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test457ListLdapGroupsKindIntent() throws Exception {
         final String TEST_NAME = "test457ListLdapGroupsKindIntent";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
@@ -2865,7 +2855,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test458ListSpecialGroupsKindIntent() throws Exception {
         final String TEST_NAME = "test458ListSpecialGroupsKindIntent";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
@@ -2899,7 +2889,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test460ListOrganizationalUnitPeopleKindIntent() throws Exception {
         final String TEST_NAME = "test460ListOrganizationalUnitPeopleKindIntent";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
@@ -2930,7 +2920,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test470AddAccountPolyDescription() throws Exception {
         final String TEST_NAME = "test470AddAccountPolyDescription";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> accountBefore = parseObject(ACCOUNT_POLY_FILE);
@@ -2976,7 +2966,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test472ModifyAccountJackDescriptionOrig() throws Exception {
         final String TEST_NAME = "test472ModifyAccountJackDescriptionOrig";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString descriptionBefore = new PolyString("Bar");
@@ -3026,7 +3016,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test474ModifyAccountJackDescriptionLangEnSk() throws Exception {
         final String TEST_NAME = "test474ModifyAccountJackDescriptionLangEnSk";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString descriptionBefore = new PolyString(USER_JACK_FULL_NAME);
@@ -3078,7 +3068,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test476ModifyAccountJackDescriptionLangEnSkRuHr() throws Exception {
         final String TEST_NAME = "test476ModifyAccountJackDescriptionLangEnSkRuHr";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString descriptionBefore = new PolyString(USER_JACK_FULL_NAME);
@@ -3130,7 +3120,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test478ModifyAccountJackDescriptionLangEnSkRuHr() throws Exception {
         final String TEST_NAME = "test478ModifyAccountJackDescriptionLangEnSkRuHr";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString descriptionBefore = new PolyString(USER_JACK_FULL_NAME);
@@ -3181,7 +3171,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test478bModifyAccountJackDeleteDescription() throws Exception {
         final String TEST_NAME = "test478bModifyAccountJackDeleteDescription";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString descriptionBefore = new PolyString(USER_JACK_FULL_NAME);
@@ -3234,7 +3224,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test479ModifyAccountJackDescriptionJack() throws Exception {
         final String TEST_NAME = "test479ModifyAccountJackDescriptionJack";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString descriptionBefore = new PolyString(USER_JACK_FULL_NAME);
@@ -3280,7 +3270,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test480AddOuSuper() throws Exception {
         final String TEST_NAME = "test480AddOuSuper";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ShadowType object = parseObjectType(OU_SUPER_FILE, ShadowType.class);
@@ -3327,7 +3317,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test489DeleteOuSuperWithSub() throws Exception {
         final String TEST_NAME = "test489DeleteOuSuperWithSub";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         createSubOrg();
@@ -3356,7 +3346,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test701ConfiguredCapabilityNoRead() throws Exception{
         final String TEST_NAME = "test701ConfiguredCapabilityNoRead";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addResourceFromFile(new File(TEST_DIR, "resource-opendj-no-read.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
@@ -3375,7 +3365,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test702ConfiguredCapabilityNoCreate() throws Exception{
         final String TEST_NAME = "test702ConfiguredCapabilityNoCreate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addResourceFromFile(new File(TEST_DIR, "/resource-opendj-no-create.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
@@ -3395,7 +3385,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test703ConfiguredCapabilityNoDelete() throws Exception{
         final String TEST_NAME = "test703ConfiguredCapabilityNoDelete";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addResourceFromFile(new File(TEST_DIR, "/resource-opendj-no-delete.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
@@ -3413,7 +3403,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test704ConfiguredCapabilityNoUpdate() throws Exception{
         final String TEST_NAME = "test704ConfiguredCapabilityNoUpdate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addResourceFromFile(new File(TEST_DIR, "/resource-opendj-no-update.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
@@ -3433,7 +3423,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test710AddResourceOpenDjBadCredentials() throws Exception {
         final String TEST_NAME = "test710AddResourceOpenDjBadCredentials";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_BAD_CREDENTIALS_FILE);
@@ -3454,7 +3444,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test713ConnectionBadCredentials() throws Exception {
         final String TEST_NAME = "test713ConnectionBadCredentials";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -3475,7 +3465,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test720AddResourceOpenDjBadBindDn() throws Exception {
         final String TEST_NAME = "test720AddResourceOpenDjBadBindDn";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_BAD_BIND_DN_FILE);
@@ -3496,7 +3486,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     public void test723ConnectionBadBindDn() throws Exception {
         final String TEST_NAME = "test723ConnectionBadBindDn";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

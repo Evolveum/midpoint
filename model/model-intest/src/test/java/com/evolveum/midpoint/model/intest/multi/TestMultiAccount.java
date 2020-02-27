@@ -26,7 +26,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -94,7 +93,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test010ImportAccountsFromDummyMultiGreen";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Preconditions
@@ -119,7 +119,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test020ImportPaulAtreides";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount account = new DummyAccount(ACCOUNT_PAUL_ATREIDES_USERNAME);
@@ -163,7 +164,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test100ImportMuadDib";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount account = new DummyAccount(ACCOUNT_MUAD_DIB_USERNAME);
@@ -217,7 +219,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test102ReconcileUserPaul";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         userPaulOid = findUserByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME).getOid();
@@ -269,7 +272,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test200ImportDuke";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount account = new DummyAccount(ACCOUNT_DUKE_USERNAME);
@@ -336,7 +340,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test210ImportMahdi";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount account = new DummyAccount(ACCOUNT_MAHDI_USERNAME);

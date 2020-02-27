@@ -681,7 +681,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        TestAbstractAuthenticationEvaluator.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -726,7 +727,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        TestAbstractAuthenticationEvaluator.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -757,7 +759,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        TestAbstractAuthenticationEvaluator.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
@@ -770,7 +773,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        TestAbstractAuthenticationEvaluator.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
@@ -783,7 +787,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        TestAbstractAuthenticationEvaluator.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         XMLGregorianCalendar validFrom = XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), "PT1H");
@@ -804,7 +809,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         // GIVEN
         clock.overrideDuration("PT2H");
 
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        TestAbstractAuthenticationEvaluator.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         loginJackGoodPasswordExpectSuccess(TEST_NAME, task, result);
@@ -818,7 +824,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         // GIVEN
         clock.overrideDuration("P2D");
 
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        TestAbstractAuthenticationEvaluator.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         loginJackGoodPasswordExpectDenied(TEST_NAME, task, result);
@@ -830,7 +837,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        TestAbstractAuthenticationEvaluator.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
@@ -843,7 +851,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        TestAbstractAuthenticationEvaluator.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result,
@@ -858,7 +867,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        TestAbstractAuthenticationEvaluator.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result,
@@ -873,7 +883,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        TestAbstractAuthenticationEvaluator.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result,
@@ -888,7 +899,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        TestAbstractAuthenticationEvaluator.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result,
@@ -903,7 +915,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        TestAbstractAuthenticationEvaluator.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result,
@@ -918,7 +931,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        TestAbstractAuthenticationEvaluator.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();

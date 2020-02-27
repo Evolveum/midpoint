@@ -50,7 +50,6 @@ import org.testng.AssertJUnit;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Listeners;
 import org.w3c.dom.Element;
 
@@ -93,7 +92,6 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
@@ -150,13 +148,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     @Autowired
     @Qualifier("cacheRepositoryService")
     protected RepositoryService repositoryService;
-    // TODO removed after consultation
-//    protected static Set<Class<?>> initializedClasses = new HashSet<>();
+
     private long lastDummyResourceGroupMembersReadCount;
     private long lastDummyResourceWriteOperationCount;
 
     @Autowired protected Tracer tracer;
+
+    /**
+     * Task manager should not be used directly in subclasses, better use provided methods,
+     * even better just utilize prepared method-test-scoped task via {@link #getTestTask()}.
+     * TODO: can the goal be to make this private and only access it through behaviour (method)?
+     */
     @Autowired protected TaskManager taskManager;
+
     @Autowired protected Protector protector;
     @Autowired protected Clock clock;
     @Autowired protected PrismContext prismContext;
@@ -191,65 +195,59 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         // Check whether we are already initialized
         assertNotNull("Repository is not wired properly", repositoryService);
         assertNotNull("Task manager is not wired properly", taskManager);
-//        LOGGER.trace("initSystemConditional: {} systemInitialized={}", this.getClass(), isSystemInitialized());
-//        if (!isSystemInitialized()) {
-            PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-            PrismTestUtil.setPrismContext(prismContext);
-            Task initTask = taskManager.createTaskInstance(this.getClass().getName() + ".initSystem");
-            initTask.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
-            OperationResult result = initTask.getResult();
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.setPrismContext(prismContext);
+        Task initTask = taskManager.createTaskInstance(getClass().getName() + ".initSystem");
+        initTask.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
+        OperationResult result = initTask.getResult();
 
-            InternalMonitor.reset();
-            InternalsConfig.setPrismMonitoring(true);
-            prismContext.setMonitor(new InternalMonitor());
+        InternalMonitor.reset();
+        InternalsConfig.setPrismMonitoring(true);
+        prismContext.setMonitor(new InternalMonitor());
 
-            ((LocalizationServiceImpl) localizationService).setOverrideLocale(Locale.US);
+        ((LocalizationServiceImpl) localizationService).setOverrideLocale(Locale.US);
 
-            initSystem(initTask, result);
+        initSystem(initTask, result);
+        postInitSystem(initTask, result);
 
-            postInitSystem(initTask, result);
-
-            result.computeStatus();
-            IntegrationTestTools.display("initSystem result", result);
-            TestUtil.assertSuccessOrWarning("initSystem failed (result)", result, 1);
-
-//            setSystemInitialized();
-//        }
+        result.computeStatus();
+        IntegrationTestTools.display("initSystem result", result);
+        TestUtil.assertSuccessOrWarning("initSystem failed (result)", result, 1);
     }
 
-    @Deprecated
-    protected boolean isSystemInitialized() {
-        return true;
-//        return initializedClasses.contains(this.getClass());
+    /**
+     * Test class initialization.
+     */
+    protected void initSystem(Task task, OperationResult initResult) throws Exception {
+        // nothing by default
     }
 
-    @Deprecated
-    private void setSystemInitialized() {
-//        initializedClasses.add(this.getClass());
-    }
-
-    @Deprecated
-    protected void unsetSystemInitialized() {
-//        initializedClasses.remove(this.getClass());
+    /**
+     * May be used to clean up initialized objects as all of the initialized objects should be
+     * available at this time.
+     */
+    @Deprecated // let's try to use initSystem only
+    protected void postInitSystem(Task initTask, OperationResult initResult) throws Exception {
+        // Nothing to do by default
     }
 
     /**
      * Creates appropriate task and result and set it into MidpointTestMethodContext.
      */
     @BeforeMethod
-    public void startTestContext(ITestResult testResult) throws SchemaException {
+    public void startTestContext(ITestResult testResult) {
         Class<?> testClass = testResult.getMethod().getTestClass().getRealClass();
         String testMethodName = testResult.getMethod().getMethodName();
 
         TestUtil.displayTestTitle(testClass.getSimpleName() + "." + testMethodName);
 
-        Task task = createTask(testClass.getName() + "." + testMethodName);
-        OperationResult rootResult = task.getResult();
-
-        TracingProfileType tracingProfile = getTestMethodTracingProfile();
-        CompiledTracingProfile compiledTracingProfile = tracingProfile != null ?
-                tracer.compileProfile(tracingProfile, rootResult) : null;
+        Task task = taskManager.createTaskInstance(testClass.getName() + "." + testMethodName);
         // TODO do we need that subresult? :-) (Virgo's brave new world)
+        // maybe it doesn't break tests, but changes traceability/maintenance?
+//        OperationResult rootResult = task.getResult();
+//        TracingProfileType tracingProfile = getTestMethodTracingProfile();
+//        CompiledTracingProfile compiledTracingProfile = tracingProfile != null ?
+//                tracer.compileProfile(tracingProfile, rootResult) : null;
 //        OperationResult result = rootResult.subresult(task.getName() + "Run")
 //                .tracingProfile(compiledTracingProfile)
 //                .build();
@@ -259,6 +257,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 //        task.setResult(result);
 
         MidpointTestMethodContext.create(testClass, testMethodName, task, task.getResult());
+    }
+
+    /**
+     * Subclasses may override this if test task needs additional customization.
+     */
+    protected void customizeTask(Task task) {
+        // nothing by default
     }
 
     /**
@@ -317,90 +322,30 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         this.predefinedTestMethodTracing = predefinedTestMethodTracing;
     }
 
-    protected Task getTask() {
+    /**
+     * Returns default pre-created test-method-scoped {@link Task}.
+     */
+    protected Task getTestTask() {
         return MidpointTestMethodContext.get().getTask();
     }
 
     protected String getTestNameShort() {
-        MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
-        if (ctx != null) {
-            return ctx.getTestNameShort();
-        } else {
-            // TODO simplify if passes
-            throw new IllegalStateException("getTestNameShort called while MidpointTestMethodContext is null");
-//            return createAdHocTestContext(UNKNOWN_METHOD).getMethodName();
-        }
+        return MidpointTestMethodContext.get().getTestNameShort();
     }
 
     /**
-     * Retrieves the task from thread-local test method context; creating the appropriately named ad-hoc context
-     * if it does not exist.
-     * <p>
-     * We expect this method to be called from places where we really don't know if the context exists or not. Hence its name.
+     * Creates new subresult for default pre-created test-method-scoped {@link Task}.
      */
-    protected Task getOrCreateTestTask(String methodName) {
-        // TODO if OK, replace with getTask()
-        MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
-        if (ctx != null) {
-            return ctx.getTask();
-        } else {
-            throw new IllegalStateException("getOrCreateTestTask called while MidpointTestMethodContext is null");
-//            return createAdHocTestContext(methodName).getTask();
-        }
+    protected OperationResult createSubresult(String subresultSuffix) {
+        return getResult().createSubresult(getTestNameShort() + "." + subresultSuffix);
     }
 
     /**
-     * Retrieves the task from thread-local test method context; creating the task (but NOT the context) if it does not exist.
-     * <p>
-     * The difference to getTask/getOrCreateTestTask is that we use taskManager.createTaskInstance instead of test-specific
-     * createTask method. So the task created is a simple, plain one -- without all the be bells and whistles provided
-     * by createTask method.
+     * Returns default {@link OperationResult} for pre-created test-method-scoped {@link Task}.
      */
-    protected Task getOrCreateSimpleTask(String operationName) {
-        // TODO if OK, replace with getTask()
-        MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
-        if (ctx != null) {
-            return ctx.getTask();
-        } else {
-            throw new IllegalStateException("getOrCreateSimpleTask called while MidpointTestMethodContext is null");
-//            return taskManager.createTaskInstance(this.getClass().getName() + "." + operationName);
-        }
-    }
-
-    protected OperationResult createSubresult(String methodName) {
-        String className = this.getClass().getName();
-        MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
-        OperationResult parent;
-        if (ctx != null) {
-            parent = ctx.getResult();
-        } else {
-            parent = new OperationResult(className + ".parent");
-        }
-        return parent.createSubresult(className + "." + methodName);
-    }
-
     protected OperationResult getResult() {
-        MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
-        if (ctx != null) {
-            return ctx.getResult();
-        } else {
-            // TODO simplify if OK
-            throw new IllegalStateException("getResult called while MidpointTestMethodContext is null");
-//            return createAdHocTestContext(UNKNOWN_METHOD).getResult();
-        }
+        return MidpointTestMethodContext.get().getResult();
     }
-
-    abstract public void initSystem(Task initTask, OperationResult initResult) throws Exception;
-
-    /**
-     * May be used to clean up initialized objects as all of the initialized objects should be
-     * available at this time.
-     */
-    protected void postInitSystem(Task initTask, OperationResult initResult) throws Exception {
-        // Nothing to do by default
-    }
-
-    ;
 
     public <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
         return prismContext.deltaFor(objectClass);
@@ -1952,13 +1897,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         }
     }
 
-    protected Task createTask(String operationName) {
-        if (!operationName.contains(".")) {
-            operationName = this.getClass().getName() + "." + operationName;
-        }
-        return taskManager.createTaskInstance(operationName);
-    }
-
     protected void setDefaultTracing(Task task) {
         setTracing(task, createDefaultTracingProfile());
     }
@@ -2065,21 +2003,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 
     protected Task createTracedTask(String operationName) {
-        Task task = createTask(operationName);
+        Task task = getTestTask();
         task.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
         task.setTracingProfile(new TracingProfileType()
                 .collectLogEntries(true)
                 .createRepoObject(false)        // to avoid influencing repo statistics
-//                .beginLoggingOverride()
-//                    .beginLevelOverride()
-//                        .logger("org.hibernate.SQL")
-//                        .level(LoggingLevelType.TRACE)
-//                    .<LoggingOverrideType>end()
-//                    .beginLevelOverride()
-//                        .logger("org.hibernate.type")
-//                        .level(LoggingLevelType.TRACE)
-//                    .<LoggingOverrideType>end()
-//                .<TracingProfileType>end()
                 .beginTracingTypeProfile()
                 .level(TracingLevelType.NORMAL)
                 .<TracingProfileType>end()
@@ -2264,7 +2192,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         user.asObjectable().getLinkRef().add(linkRef);
     }
 
-    protected <F extends FocusType> void assertLinks(PrismObject<F> focus, int expectedNumLinks) throws ObjectNotFoundException, SchemaException {
+    protected <F extends FocusType> void assertLinks(PrismObject<F> focus, int expectedNumLinks) {
         PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
         if (linkRef == null) {
             assert expectedNumLinks == 0 : "Expected " + expectedNumLinks + " but " + focus + " has no linkRef";
@@ -2287,7 +2215,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assertLinked(focus, projection.getOid());
     }
 
-    protected <F extends FocusType> void assertLinked(PrismObject<F> focus, String projectionOid) throws ObjectNotFoundException, SchemaException {
+    protected <F extends FocusType> void assertLinked(PrismObject<F> focus, String projectionOid) {
         PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
         assertNotNull("No linkRefs in " + focus, linkRef);
         boolean found = false;
@@ -2309,7 +2237,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assertNotLinked(user, account.getOid());
     }
 
-    protected <F extends FocusType> void assertNotLinked(PrismObject<F> user, String accountOid) throws ObjectNotFoundException, SchemaException {
+    protected <F extends FocusType> void assertNotLinked(PrismObject<F> user, String accountOid) {
         PrismReference linkRef = user.findReference(FocusType.F_LINK_REF);
         if (linkRef == null) {
             return;
@@ -2332,7 +2260,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
                 + accountRef.getValues();
     }
 
-    protected <F extends FocusType> void assertPersonaLinks(PrismObject<F> focus, int expectedNumLinks) throws ObjectNotFoundException, SchemaException {
+    protected <F extends FocusType> void assertPersonaLinks(PrismObject<F> focus, int expectedNumLinks) {
         PrismReference linkRef = focus.findReference(FocusType.F_PERSONA_REF);
         if (linkRef == null) {
             assert expectedNumLinks == 0 : "Expected " + expectedNumLinks + " but " + focus + " has no personaRef";
@@ -2371,19 +2299,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assertEquals("Wrong expression evaluator name", evaluatorName, evaluatorElement.getName().getLocalPart());
     }
 
-    protected <O extends ObjectType> void assertNoRepoObject(Class<O> type, String oid) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask(AbstractIntegrationTest.class.getName() + ".assertNoRepoObject");
-        assertNoRepoObject(type, oid, task, task.getResult());
-    }
-
-    protected <O extends ObjectType> void assertNoRepoObject(Class<O> type, String oid, Task task, OperationResult result) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected <O extends ObjectType> void assertNoRepoObject(Class<O> type, String oid) throws SchemaException {
         try {
+            OperationResult result = createSubresult("assertNoRepoObject");
             PrismObject<O> object = repositoryService.getObject(type, oid, null, result);
 
             AssertJUnit.fail("Expected that " + object + " does not exist, in repo but it does");
         } catch (ObjectNotFoundException e) {
             // This is expected
-            return;
         }
     }
 
@@ -2600,7 +2523,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         return createModifyAccountShadowReplaceDelta(accountOid, resource, ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName), newRealValue);
     }
 
-    protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceDelta(String accountOid, PrismObject<ResourceType> resource, ItemPath itemPath, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+    protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceDelta(String accountOid, PrismObject<ResourceType> resource, ItemPath itemPath, Object... newRealValue) throws SchemaException {
         if (itemPath.startsWithName(ShadowType.F_ATTRIBUTES)) {
             PropertyDelta<?> attributeDelta = createAttributeReplaceDelta(resource, ItemPath.toName(itemPath.last()), newRealValue);
             ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
@@ -2786,7 +2709,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         return asserter;
     }
 
-    protected ShadowAsserter<Void> assertShadow(PrismObject<ShadowType> shadow, String details) throws ObjectNotFoundException, SchemaException {
+    protected ShadowAsserter<Void> assertShadow(PrismObject<ShadowType> shadow, String details) throws ObjectNotFoundException {
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, details);
         initializeAsserter(asserter);
         asserter.display();
@@ -2812,13 +2735,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         }
     }
 
-    protected <T> RawType rawize(QName attrName, T value) {
-        return new RawType(prismContext.itemFactory().createPropertyValue(value), attrName, prismContext);
-    }
-
     protected void markShadowTombstone(String oid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        Task task = createTask("markShadowTombstone");
-        OperationResult result = task.getResult();
+        OperationResult result = createSubresult("markShadowTombstone");
         List<ItemDelta<?, ?>> deadModifications = deltaFor(ShadowType.class)
                 .item(ShadowType.F_DEAD).replace(true)
                 .item(ShadowType.F_EXISTS).replace(false)

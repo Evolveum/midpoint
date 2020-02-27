@@ -93,7 +93,7 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
     public void test010CreateRolePirate() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         RoleType pirate = new RoleType(prismContext);
@@ -166,12 +166,6 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
         ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(USER_PIRATE_OWNER_OID, null, expectedTask);
         deleteObject(RoleType.class, rolePirateOid, false, true, USER_PIRATE_OWNER_OID,
                 Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem));
-    }
-
-    @Test
-    public void zzzMarkAsNotInitialized() {
-        display("Setting class as not initialized");
-        unsetSystemInitialized();
     }
 
     private void createObject(ObjectType object, boolean immediate, boolean approve, String assigneeOid) throws Exception {

@@ -101,7 +101,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
         assertTrue(modelAuditService.supportsRetrieval());
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -131,7 +131,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test100ModifyUserJackKid() throws Exception {
         final String TEST_NAME = "test100ModifyUserJackKid";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         initialTs = getTimeSafely();
@@ -159,7 +159,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test105CreateUserHerman() throws Exception {
         final String TEST_NAME = "test105CreateUserHerman";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userHermanBefore = PrismTestUtil.parseObject(USER_HERMAN_FILE);
@@ -190,7 +190,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test110ModifyUserJackSailor() throws Exception {
         final String TEST_NAME = "test110ModifyUserJackSailor";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
 
@@ -222,7 +222,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test115ModifyUserHermanMarooned() throws Exception {
         final String TEST_NAME = "test115ModifyUserHermanMarooned";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_HERMAN_OID, UserType.F_TITLE,
@@ -252,7 +252,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test120ModifyUserJackCaptain() throws Exception {
         final String TEST_NAME = "test120ModifyUserJackCaptain";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_TITLE,
@@ -282,7 +282,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test125ModifyUserHermanHermit() throws Exception {
         final String TEST_NAME = "test125ModifyUserHermanHermit";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_HERMAN_OID, UserType.F_TITLE,
@@ -318,7 +318,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test135ModifyUserHermanCivilisedHermit() throws Exception {
         final String TEST_NAME = "test135ModifyUserHermanCivilisedHermit";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_HERMAN_OID, UserType.F_TITLE,
@@ -349,7 +349,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test200ReconstructJackSailor() throws Exception {
         final String TEST_NAME = "test200ReconstructJackSailor";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -379,7 +379,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test210ReconstructJackKid() throws Exception {
         final String TEST_NAME = "test210ReconstructJackKid";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -411,7 +411,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test250ReconstructHermanCreated() throws Exception {
         final String TEST_NAME = "test250ReconstructHermanCreated";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_HERMAN_OID);
@@ -450,7 +450,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test252ReconstructHermanMarooned() throws Exception {
         final String TEST_NAME = "test252ReconstructHermanMarooned";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -482,7 +482,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test254ReconstructHermanHermit() throws Exception {
         final String TEST_NAME = "test254ReconstructHermanHermit";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -512,7 +512,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     public void test300QueryUnknown() throws Exception {
         final String TEST_NAME = "test300QueryUnknown";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -536,7 +536,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     }
 
     private String assertObjectAuditRecords(String oid, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Task task = createTask("assertObjectAuditRecords");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         List<AuditEventRecord> auditRecords = getObjectAuditRecords(oid, task, result);
         display("Object records", auditRecords);
@@ -546,7 +546,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
     private void assertRecordsFromPrevious(XMLGregorianCalendar from, XMLGregorianCalendar to,
             int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Task task = createTask("assertRecordsFromPrevious");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         List<AuditEventRecord> auditRecordsSincePrevious = getAuditRecordsFromTo(from, to, task, result);
         display("From/to records (previous)", auditRecordsSincePrevious);
@@ -554,7 +554,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     }
 
     private void assertRecordsFromInitial(XMLGregorianCalendar to, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Task task = createTask("assertRecordsFromInitial");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         List<AuditEventRecord> auditRecordsSincePrevious = getAuditRecordsFromTo(initialTs, to, task, result);
         display("From/to records (initial)", auditRecordsSincePrevious);
@@ -594,7 +594,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
             Thread thread = new Thread(() -> {
                 try {
                     login(userAdministrator);
-                    Task threadTask = createTask(TEST_NAME);
+                    Task threadTask = getTestTask();
                     OperationResult threadResult = threadTask.getResult();
                     for (int iteration = 0; iteration < ITERATIONS; iteration++) {
                         display("Executing iteration " + iteration + " on user " + index);
@@ -665,7 +665,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
             Thread thread = new Thread(() -> {
                 try {
                     login(userAdministrator);
-                    Task threadTask = createTask(TEST_NAME);
+                    Task threadTask = getTestTask();
                     OperationResult threadResult = threadTask.getResult();
                     for (int iteration = 0; iteration < ITERATIONS; iteration++) {
                         display("Executing iteration " + iteration + " in worker " + index);

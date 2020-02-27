@@ -95,7 +95,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        TestVolatility.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
@@ -114,7 +115,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        TestVolatility.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Preconditions
@@ -178,7 +180,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        TestVolatility.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
@@ -244,7 +247,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        TestVolatility.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Preconditions
@@ -297,7 +301,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        TestVolatility.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Preconditions
@@ -352,7 +357,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        TestVolatility.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_HERMAN_FILE);
@@ -394,7 +400,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        TestVolatility.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

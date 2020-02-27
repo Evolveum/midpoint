@@ -26,7 +26,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -121,7 +120,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);
@@ -281,7 +280,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     public void test200SyncAddKraken() throws Exception {
         final String TEST_NAME = "test200SyncAddKraken";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ImportOptionsType options = new ImportOptionsType()
@@ -385,7 +384,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     public void test230UserRecomputeSequential() throws Exception {
         final String TEST_NAME = "test230UserRecomputeSequential";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -408,7 +407,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     public void test232UserRecomputeParallel() throws Exception {
         final String TEST_NAME = "test232UserRecomputeParallel";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -436,7 +435,8 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
     }
 
     private void reconcile(final String TEST_NAME, PrismObject<UserType> user) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-        Task task = createTask(TEST_NAME+".user."+user.getName());
+        user.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         reconcileUser(user.getOid(), task, result);

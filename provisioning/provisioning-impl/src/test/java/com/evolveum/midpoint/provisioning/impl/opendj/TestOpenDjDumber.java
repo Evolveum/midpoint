@@ -85,7 +85,7 @@ public class TestOpenDjDumber extends TestOpenDj {
     public void test489DeleteOuSuperWithSub() throws Exception {
         final String TEST_NAME = "test489DeleteOuSuperWithSub";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         createSubOrg();

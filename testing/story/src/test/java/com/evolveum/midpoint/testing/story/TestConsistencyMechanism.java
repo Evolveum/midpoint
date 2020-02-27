@@ -315,7 +315,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertNotNull(modelWeb);
         assertNotNull(modelService);
         assertNotNull(repositoryService);
-        assertTrue(isSystemInitialized());
         assertNotNull(taskManager);
 
         assertNotNull(prismContext);
@@ -439,7 +438,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     public void test110PrepareOpenDjWithJackieAccounts() throws Exception {
         final String TEST_NAME = "test110PrepareOpenDjWithJackieAccounts";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult parentResult = task.getResult();
 
         // adding jackie shadow directly and then, linking this shadow to the user jack. we need to do linking on repository level, to skip clockwork execution
@@ -494,7 +493,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     public void test111prepareOpenDjWithDenielsAccounts() throws Exception {
         final String TEST_NAME = "test111prepareOpenDjWithDenielsAccounts";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult parentResult = task.getResult();
 
         addObject(ACCOUNT_DENIELS_FILE, task, parentResult);
@@ -643,7 +642,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test(enabled = false)
     public void test124AddAccountDirectAlreadyExists() throws Exception {
         final String TEST_NAME = "test124AddAccountDirectAlreadyExists";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult parentResult = task.getResult();
 
 
@@ -785,7 +784,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     @Test
     public void test140ModifyObjectNotFoundLinkedAccount() throws Exception {
         final String TEST_NAME = "test140ModifyObjectNotFoundLinkedAccount";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         repoAddShadowFromFile(ACCOUNT_GUYBRUSH_FILE, result);
@@ -2778,7 +2777,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         final String TEST_NAME = "test801TestReconciliationRename";
 
         openDJController.assumeRunning();
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         final OperationResult result = task.getResult();
 
         LOGGER.info("starting rename");

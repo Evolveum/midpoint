@@ -145,7 +145,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = bundleName + "Implicit";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -166,7 +166,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = bundleName + "Explicit";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -184,7 +184,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = bundleName + "ImplicitExplicitSame";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -206,7 +206,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = bundleName + "ImplicitExplicitSameReverse";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -228,7 +228,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = bundleName + "ImplicitExplicitEqual";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -250,7 +250,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = bundleName + "ImplicitExplicitEqualReverse";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -272,7 +272,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = bundleName + "ImplicitExplicitNotEqual";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -296,7 +296,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = bundleName + "ImplicitExplicitNotEqualReverse";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = accountSource.get();
@@ -396,7 +396,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test130GetCompiledGuiProfile";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -424,7 +424,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test150GetGuybrushRefinedObjectClassDef";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> shadow = getShadowModel(ACCOUNT_SHADOW_GUYBRUSH_OID);
@@ -448,7 +448,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test200ModifyUserGuybrushDeleteAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -497,7 +497,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test210GuybrushAddAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -547,7 +547,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test212ModifyUserAddAccountRef";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -604,7 +604,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test220PreviewJackAssignRolePirate";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -631,7 +631,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test221PreviewJackAssignRolePirateReconcile";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -734,7 +734,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test230GuybrushAssignAccountDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -771,7 +771,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test231PreviewGuybrushModifyAccountFullName";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
@@ -823,7 +823,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test232PreviewGuybrushModifyAccountShip";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
@@ -874,7 +874,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test233PreviewGuybrushAddRolePirate";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -940,7 +940,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test234PreviewGuybrushAddRolePirateRecon";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1008,7 +1008,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test236PreviewGuybrushAddRoleSailor";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1061,7 +1061,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test238PreviewGuybrushAddRoleSailorOwner";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1098,7 +1098,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test239GuybrushUnAssignAccountDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1123,7 +1123,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test240GuybrushAssignAccountDummyRelative";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1151,7 +1151,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test242PreviewGuybrushAddRolePirateRelative";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1218,7 +1218,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test244PreviewGuybrushAddRolePirateRelativeRecon";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1282,7 +1282,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test249GuybrushUnAssignAccountDummyRelative";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1335,7 +1335,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test300ModifyElaineAccountDummyReplace";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1390,7 +1390,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test301ModifyElaineAccountDummyDeleteAdd";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1450,7 +1450,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test400ModifyElaineAccountDummyRedReplace";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1480,7 +1480,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test401ModifyElaineAccountDummyRedDeleteAdd";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1512,7 +1512,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test500ModifyElaineAccountDummyBlueReplace";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1567,7 +1567,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test501ModifyElaineAccountDummyBlueDeleteAdd";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1630,7 +1630,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test600ModifyElaineUserDummyReplace";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1722,7 +1722,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test610ModifyElaineUserAccountDummyReplace";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1825,7 +1825,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test620AddUserCapsize";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1915,7 +1915,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test630AddUserRogers";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -2012,7 +2012,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test700DisableElaineAccountTwoResources";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -2088,7 +2088,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         final String TEST_NAME = "test710PreviewGuybrushHavingRoleSailorOwner";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 

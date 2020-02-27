@@ -13,7 +13,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -113,7 +112,8 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractObjTemplateSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractObjTemplateSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
@@ -132,7 +132,8 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         final String TEST_NAME = "test110AddDummyByzantineAccountMancomb";
 
         // GIVEN
-        Task task = createTask(AbstractObjTemplateSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractObjTemplateSyncTest.class.getName();
+        Task task = getTestTask();
         rememberTimeBeforeSync();
         prepareNotifications();
 

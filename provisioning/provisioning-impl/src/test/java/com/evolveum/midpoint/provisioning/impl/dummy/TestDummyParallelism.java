@@ -143,7 +143,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     public void test120ModifyWillReplaceFullname() throws Exception {
         final String TEST_NAME = "test120ModifyWillReplaceFullname";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -182,7 +182,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     public void test190DeleteWill() throws Exception {
         final String TEST_NAME = "test190DeleteWill";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -221,7 +221,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     public void test200ParallelCreate() throws Exception {
         final String TEST_NAME = "test200ParallelCreate";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         final Counter successCounter = new Counter();
@@ -234,7 +234,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         ParallelTestThread[] threads = multithread(TEST_NAME,
                 (i) -> {
-                    Task localTask = createTask(TEST_NAME + ".local");
+                    Task localTask = getTestTask();
                     OperationResult localResult = localTask.getResult();
 
                     ShadowType account = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
@@ -315,7 +315,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     private PrismObject<ShadowType> parallelModifyTest(final String TEST_NAME, FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         final Counter successCounter = new Counter();
@@ -326,7 +326,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         ParallelTestThread[] threads = multithread(TEST_NAME,
                 (i) -> {
-                    Task localTask = createTask(TEST_NAME + ".local");
+                    Task localTask = getTestTask();
                     OperationResult localResult = localTask.getResult();
 
                     RepositoryCache.enter(cacheConfigurationManager);
@@ -384,7 +384,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         ParallelTestThread[] threads = multithread(TEST_NAME,
                 (i) -> {
-                    Task localTask = createTask(TEST_NAME + ".local");
+                    Task localTask = getTestTask();
                     OperationResult localResult = localTask.getResult();
 
                     RepositoryCache.enter(cacheConfigurationManager);
@@ -433,7 +433,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     public void test210ParallelCreateSlow() throws Exception {
         final String TEST_NAME = "test210ParallelCreateSlow";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         final Counter successCounter = new Counter();
@@ -444,7 +444,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         ParallelTestThread[] threads = multithread(TEST_NAME,
                 (i) -> {
-                    Task localTask = createTask(TEST_NAME + ".local");
+                    Task localTask = getTestTask();
                     OperationResult localResult = localTask.getResult();
 
                     RepositoryCache.enter(cacheConfigurationManager);
@@ -522,7 +522,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     private PrismObject<ShadowType> parallelModifyTestSlow(final String TEST_NAME, FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         final Counter successCounter = new Counter();
@@ -533,7 +533,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         ParallelTestThread[] threads = multithread(TEST_NAME,
                 (i) -> {
-                    Task localTask = createTask(TEST_NAME + ".local");
+                    Task localTask = getTestTask();
                     OperationResult localResult = localTask.getResult();
 
                     RepositoryCache.enter(cacheConfigurationManager);
@@ -592,7 +592,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         ParallelTestThread[] threads = multithread(TEST_NAME,
                 (i) -> {
-                    Task localTask = createTask(TEST_NAME + ".local");
+                    Task localTask = getTestTask();
                     OperationResult localResult = localTask.getResult();
 
                     RepositoryCache.enter(cacheConfigurationManager);
@@ -652,7 +652,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     public void test230ParallelGroupSearch() throws Exception {
         final String TEST_NAME = "test230ParallelGroupSearch";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyGroup groupScum = new DummyGroup(GROUP_SCUM_NAME);
@@ -668,7 +668,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
         ParallelTestThread[] threads = multithread(TEST_NAME,
                 (i) -> {
-                    Task localTask = createTask(TEST_NAME + ".local");
+                    Task localTask = getTestTask();
                     OperationResult localResult = localTask.getResult();
 
                     ObjectQuery query = createGroupNameQuery(GROUP_SCUM_NAME);
@@ -743,7 +743,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     public void test800ParallelReadAndModifyResource() throws Exception {
         final String TEST_NAME = "test800ParallelReadAndModifyResource";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Previous test will max out the connector pool
@@ -790,7 +790,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
                         for (int i = 0; /* neverending */ ; i++) {
 
-                            Task localTask = createTask(TEST_NAME + ".test."+i);
+                            Task localTask = getTestTask();
 
                             LOGGER.debug("PAR: TESTing "+threadIndex+"."+i);
 
@@ -814,7 +814,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
                         try {
                             for (int i = 0; i < MESS_RESOURCE_ITERATIONS; i++) {
-                                Task localTask = createTask(TEST_NAME + ".op."+i);
+                                Task localTask = getTestTask();
                                 OperationResult localResult = localTask.getResult();
 
                                 LOGGER.debug("PAR: OPing "+threadIndex+"."+i);
@@ -879,7 +879,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     }
 
     private void messResource(final String TEST_NAME, int threadIndex, int i) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
-        Task task = createTask(TEST_NAME+".mess."+threadIndex+"."+i);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         List<ItemDelta<?,?>> deltas = deltaFor(ResourceType.class)
             .item(ResourceType.F_DESCRIPTION).replace("Iter "+threadIndex+"."+i)

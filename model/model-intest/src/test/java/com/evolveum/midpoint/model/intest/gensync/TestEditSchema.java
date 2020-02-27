@@ -99,7 +99,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test100LookupLanguagesGet";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -125,7 +125,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test102LookupLanguagesGetExclude";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
@@ -155,7 +155,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test110LookupLanguagesGetAll";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -177,7 +177,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test120LookupLanguagesGetByKeyExact";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -203,7 +203,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test121LookupLanguagesGetByKeyStartingWith";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -230,7 +230,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test122LookupLanguagesGetByKeyContaining";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -256,7 +256,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test123LookupLanguagesGetByKeyContainingWithPaging";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -285,7 +285,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test124LookupLanguagesGetByKeyContainingReturningNothing";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -318,7 +318,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test130LookupLanguagesGetByValueExact";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -348,7 +348,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test131LookupLanguagesGetByLabelStartingWith";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -376,7 +376,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test123LookupLanguagesGetByKeyContainingWithPaging";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -408,7 +408,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test140LookupLanguagesGetByIdExisting";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -448,7 +448,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test150LookupLanguagesAddRow";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LookupTableRowType row = new LookupTableRowType();
@@ -495,7 +495,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test152LookupLanguagesAddRowKeyLabel";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LookupTableRowType row = new LookupTableRowType();
@@ -542,7 +542,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test154LookupLanguagesAddRowKeyValue";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LookupTableRowType row = new LookupTableRowType();
@@ -590,7 +590,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test156LookupLanguagesAddRowExistingKey";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LookupTableRowType row = new LookupTableRowType();
@@ -615,7 +615,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        task = createTask(TEST_NAME);
+        task = getTestTask();
         result = task.getResult();
         PrismObject<LookupTableType> lookup = getLookupTableAll(LOOKUP_LANGUAGES_OID, task, result);
 
@@ -650,7 +650,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test162LookupLanguagesDeleteRowFullNoId";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LookupTableRowType row = new LookupTableRowType();
@@ -697,7 +697,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test164LookupLanguagesDeleteRowFullId";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LookupTableRowType row = new LookupTableRowType();
@@ -742,7 +742,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test166LookupLanguagesDeleteRowIdOnly";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LookupTableRowType row = new LookupTableRowType();
@@ -783,7 +783,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test168LookupLanguagesDeleteRowByKey";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LookupTableRowType row = new LookupTableRowType();
@@ -823,7 +823,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test170LookupLanguagesReplaceRows";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LookupTableRowType row1 = new LookupTableRowType();
@@ -878,7 +878,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test180LookupLanguagesReplaceObject";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<LookupTableType> replacement = PrismTestUtil.parseObject(LOOKUP_LANGUAGES_REPLACEMENT_FILE);
@@ -917,7 +917,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test182LookupLanguagesReimport";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ImportOptionsType options = new ImportOptionsType();
@@ -979,7 +979,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test200EditSchemaUser";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
@@ -1056,7 +1056,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test210UserDefinition";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1124,7 +1124,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test213ModifiedUserJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, UserType.F_PREFERRED_LANGUAGE, task, result, "en_PR");
@@ -1182,7 +1182,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test250EditSchemaRole";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObjectDefinition<RoleType> roleDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
@@ -1208,7 +1208,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test260EditShadowSchemaKindIntent";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false);
@@ -1249,7 +1249,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test261EditShadowSchemaObjectclass";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, dummyResourceCtl.getAccountObjectClassQName());
@@ -1281,7 +1281,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test263EditShadowSchemaEmpty";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(null, null);
@@ -1311,7 +1311,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         final String TEST_NAME="test265EditShadowSchemaNull";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1340,7 +1340,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     public void test310CustomRelations() throws Exception {
         final String TEST_NAME="test310CustomRelations";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1367,7 +1367,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // GIVEN
         login(USER_OTIS_USERNAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
@@ -1436,7 +1436,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // GIVEN
         login(USER_OTIS_USERNAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1519,7 +1519,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // GIVEN
         login(USER_OTIS_USERNAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

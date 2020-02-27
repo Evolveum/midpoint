@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -230,7 +229,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test100JackAssignAccountDummyConflicting";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -284,7 +283,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test200JackAssignAccountDummyPinkConflicting";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -367,7 +366,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test210GuybrushAssignAccountDummyPink";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -419,7 +418,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test220DeWattAssignAccountDummyPinkCaseIgnore";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userDeWatt = createUser(USER_DEWATT_NAME, "Augustus DeWatt", true);
@@ -485,7 +484,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test230ScroogeAddAccountDummyConflictingNoShadow";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -536,7 +535,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test235HackerAddAccountDummyEternalConflict";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -581,7 +580,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test240LargoAssignAccountDummyConflictingNoShadow";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -648,7 +647,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test260JupiterConflictNoShadowSyncBack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -708,7 +707,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
     protected void cleanUpJupiter(String TEST_NAME) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaViolationException, ConflictException, InterruptedException {
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -748,7 +747,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test264JupiterConflictNoShadowSyncBackSeparate";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -813,7 +812,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test270JupiterConflictOtherNoShadowSyncBack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -894,7 +893,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test280RenameBobNoShadow";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBob = createUser(USER_BOB_NAME, "Bob Andrews", true);
@@ -954,7 +953,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test282RenamePeterNoShadowSync";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userPeter = createUser("peter", "Peter Crenshaw", true);
@@ -1030,7 +1029,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test290AlfredConflictNoShadowSyncBackAdd";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1081,7 +1080,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test300JackAssignAccountDummyVioletConflicting";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1147,7 +1146,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test350GuybrushAssignAccountDummyViolet";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1203,7 +1202,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test360HermanAssignAccountDummyViolet";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addObject(USER_HERMAN_FILE);
@@ -1262,7 +1261,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test400RenameAngelicaConflicting";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userLechuck = createUser(USER_ANGELICA_NAME, "Angelica", true);
@@ -1295,7 +1294,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test500JackAssignAccountDummyMagenta";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1363,7 +1362,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test510DrakeAssignAccountDummyMagenta";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userDrake = PrismTestUtil.parseObject(USER_DRAKE_FILE);
@@ -1442,7 +1441,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test520DrakeModifyLocality";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1506,7 +1505,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test530GuybrushAssignAccountDummyMagenta";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1572,7 +1571,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test532GuybrushModifyDescription";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1635,7 +1634,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test600JackRename";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1902,7 +1901,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test730DarkVioletAddBarbossa";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1934,7 +1933,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test732DarkVioletAddBarbossa";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1961,7 +1960,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test750DarkVioletAddMatusalem";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1994,7 +1993,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test752DarkVioletAddDiplomatico";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -2028,7 +2027,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test754DarkVioletAddMilionario";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -2059,7 +2058,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test756DarkVioletDeleteDiplomatico";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -2082,7 +2081,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test760DarkVioletModifyMillonarioLocation";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -2111,7 +2110,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test762DarkVioletModifyMillonarioFullName";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -2141,7 +2140,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test764DarkVioletModifyMatusalemFullName";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -2174,7 +2173,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test800UniqeEmailAddUserAlfredoFettucini";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -2211,7 +2210,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test802UniqeEmailAddUserBillFettucini";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -2247,7 +2246,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test820SubtypeSetByInbound";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 

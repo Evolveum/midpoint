@@ -70,7 +70,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
         final String TEST_NAME = "test000Sanity";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OPALINE_OID, task);
@@ -89,7 +89,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
         final String TEST_NAME = "test100JackAssignDummyOpaline";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

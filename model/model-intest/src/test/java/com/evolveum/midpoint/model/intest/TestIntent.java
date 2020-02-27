@@ -57,7 +57,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME="test131ModifyUserJackAssignAccountDefault";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -116,7 +116,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME="test132ModifyUserJackAssignAccountTest";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -188,7 +188,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME="test135ModifyUserJackFullName";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -249,7 +249,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME="test147ModifyUserJackUnAssignAccountDefault";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -308,7 +308,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test149ModifyUserJackUnassignAccountTest";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 

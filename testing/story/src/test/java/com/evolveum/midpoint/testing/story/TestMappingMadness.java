@@ -84,7 +84,7 @@ public class TestMappingMadness extends AbstractStoryTest {
     public void test100AssignJackDummyAccounts() throws Exception {
         final String TEST_NAME = "test100AssignJackDummyAccounts";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -113,7 +113,7 @@ public class TestMappingMadness extends AbstractStoryTest {
     public void test105ModifyJackTitleCaptain() throws Exception {
         final String TEST_NAME = "test105ModifyJackTitleCaptain";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         setAccountQuotes();
@@ -185,7 +185,7 @@ public class TestMappingMadness extends AbstractStoryTest {
     public void test110ModifyJackTitleWhatever() throws Exception {
         final String TEST_NAME = "test110ModifyJackTitleWhatever";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -258,7 +258,7 @@ public class TestMappingMadness extends AbstractStoryTest {
     public void test112ReconcileJackWhatever() throws Exception {
         final String TEST_NAME = "test112ReconcileJackWhatever";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -313,7 +313,7 @@ public class TestMappingMadness extends AbstractStoryTest {
     public void test120MadJack() throws Exception {
         final String TEST_NAME = "test120MadJack";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Make sure that quotes are re-set. Especially in the nontolerant resource.
@@ -351,7 +351,7 @@ public class TestMappingMadness extends AbstractStoryTest {
     public void test130ModifyJackTitleWhateverLower() throws Exception {
         final String TEST_NAME = "test130ModifyJackTitleWhateverLower";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -381,7 +381,7 @@ public class TestMappingMadness extends AbstractStoryTest {
     public void test140ModifyJackTitleEmpty() throws Exception {
         final String TEST_NAME = "test140ModifyJackTitleEmpty";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -416,7 +416,7 @@ public class TestMappingMadness extends AbstractStoryTest {
     public void test199UnassignJackDummyAccount() throws Exception {
         final String TEST_NAME = "test199UnassignJackDummyAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

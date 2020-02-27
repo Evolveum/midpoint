@@ -76,7 +76,7 @@ public class TestPolicyRules extends AbstractLensTest {
 
     @Test
     public void test005JackAttemptAssignRoleJudge() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -109,7 +109,7 @@ public class TestPolicyRules extends AbstractLensTest {
 
     @Test(enabled = false)
     public void test007JackAttemptAssignRoleJudgeAsOwner() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -146,7 +146,7 @@ public class TestPolicyRules extends AbstractLensTest {
      */
     @Test
     public void test010JackAssignRoleJudge() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -170,7 +170,7 @@ public class TestPolicyRules extends AbstractLensTest {
      */
     @Test
     public void test020JackUnassignRoleJudge() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -207,7 +207,7 @@ public class TestPolicyRules extends AbstractLensTest {
      */
     @Test
     public void test100AssignRoleMutinierToJack() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -240,7 +240,7 @@ public class TestPolicyRules extends AbstractLensTest {
 
     @Test(enabled = false)          // after MID-4797 the projector.project now raises PolicyViolationException on conflicting roles
     public void test110AssignRolePirateToJack() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -278,7 +278,7 @@ public class TestPolicyRules extends AbstractLensTest {
      */
     @Test
     public void test112AssignRolePirateWithExceptionToJack() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -322,7 +322,7 @@ public class TestPolicyRules extends AbstractLensTest {
 
     @Test
     public void test120AssignRoleConstableToJack() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -373,7 +373,7 @@ public class TestPolicyRules extends AbstractLensTest {
      */
     @Test
     public void test150AssignRoleThiefToJack() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -423,7 +423,7 @@ public class TestPolicyRules extends AbstractLensTest {
      */
     @Test
     public void test200JackAssignRoleContractor() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -447,7 +447,7 @@ public class TestPolicyRules extends AbstractLensTest {
      */
     @Test
     public void test210AssignRoleEmployeeToJack() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -488,7 +488,7 @@ public class TestPolicyRules extends AbstractLensTest {
      */
     @Test
     public void test220AssignRoleEngineerToJack() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -554,7 +554,7 @@ public class TestPolicyRules extends AbstractLensTest {
      */
     @Test
     public void test300DrakeChangeEmployeeType() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -590,7 +590,7 @@ public class TestPolicyRules extends AbstractLensTest {
      */
     @Test
     public void test400AssignRoleLocalized() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN

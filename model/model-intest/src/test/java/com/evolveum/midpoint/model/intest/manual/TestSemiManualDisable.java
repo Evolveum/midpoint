@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -153,7 +152,7 @@ public class TestSemiManualDisable extends TestSemiManual {
     @Override
     protected void cleanupUser(final String TEST_NAME, String userOid, String username, String accountOid) throws Exception {
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         backingStore.deleteAccount(username);
@@ -178,7 +177,7 @@ public class TestSemiManualDisable extends TestSemiManual {
     public void test416PhoenixAccountUnassignCloseCase() throws Exception {
         final String TEST_NAME = "test416PhoenixAccountUnassignCloseCase";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeCase(phoenixLastCaseOid);
@@ -223,7 +222,7 @@ public class TestSemiManualDisable extends TestSemiManual {
     public void test418AssignPhoenixAccountAgain() throws Exception {
         final String TEST_NAME = "test418AssignPhoenixAccountAgain";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

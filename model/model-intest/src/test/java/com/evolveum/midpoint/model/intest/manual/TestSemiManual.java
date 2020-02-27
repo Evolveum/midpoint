@@ -118,7 +118,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
     public void test700AssignAccountJackExisting() throws Exception {
         final String TEST_NAME = "test700AssignAccountJack";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         if (accountJackOid != null) {
@@ -177,7 +177,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
     public void test710UnassignAccountJack() throws Exception {
         final String TEST_NAME = "test710UnassignAccountJack";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clock.overrideDuration("PT5M");
@@ -232,7 +232,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
     public void test712CloseCaseAndRecomputeJack() throws Exception {
         final String TEST_NAME = "test712CloseCaseAndRecomputeJack";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         backingStoreDeleteJack();
@@ -289,7 +289,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
     public void test717RecomputeJackAfter130min() throws Exception {
         final String TEST_NAME = "test717RecomputeJackAfter130min";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clock.overrideDuration("PT130M");

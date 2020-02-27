@@ -107,7 +107,7 @@ public class TestDummyNegative extends AbstractDummyTest {
     public void test190GetResource() throws Exception {
         final String TEST_NAME = "test190GetResource";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyResource.setSchemaBreakMode(BreakMode.NONE);
         syncServiceMock.reset();
@@ -128,7 +128,7 @@ public class TestDummyNegative extends AbstractDummyTest {
     public void test200AddAccountNullAttributes() throws Exception {
         final String TEST_NAME = "test200AddAccountNullAttributes";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 

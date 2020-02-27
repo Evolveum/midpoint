@@ -148,7 +148,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         final String TEST_NAME = "test061GuybrushConditionalRoleTrue";
         login(USER_ADMINISTRATOR_USERNAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, "special");
 
@@ -204,7 +204,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         final String TEST_NAME = "test100JackRolePirate";
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
@@ -237,7 +237,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         final String TEST_NAME = "test109JackUnassignRolePirate";
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
@@ -267,7 +267,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         final String TEST_NAME = "test110GuybrushRoleNicePirate";
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assignRole(USER_GUYBRUSH_OID, ROLE_NICE_PIRATE_OID, task, result);
 
@@ -291,7 +291,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         final String TEST_NAME = "test111GuybrushRoleCaptain";
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
 
@@ -315,7 +315,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         final String TEST_NAME = "test119GuybrushUnassignRoles";
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         unassignRole(USER_JACK_OID, ROLE_CAPTAIN_OID, task, result);

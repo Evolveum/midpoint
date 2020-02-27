@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -1037,7 +1036,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
             .item(UserType.F_GIVEN_NAME).replace(createPolyString("Jackie"))
             .asObjectDelta(USER_JACK_OID);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN: preview changes
@@ -1835,7 +1834,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
         display("Jack's shadow", shadow);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, getDummyResourceObject(), null, task, task.getResult());
         display("Refined objectclass def", rOcDef);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_UID, true, false, false);
@@ -1901,7 +1900,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
         display("Jack's shadow", shadow);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, getDummyResourceObject(), null, task, result);
         display("Refined objectclass def", rOcDef);
@@ -1983,7 +1982,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
         display("Jack's shadow", shadow);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, getDummyResourceObject(), null, task, result);
         display("Refined objectclass def", rOcDef);
@@ -2046,7 +2045,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
         display("Jack's shadow", shadow);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObjectDefinition<ShadowType> rOcDef = modelInteractionService.getEditObjectDefinition(shadow, null, task, result);
         shadow.applyDefinition(rOcDef, true);
@@ -2135,7 +2134,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         displayCleanup(TEST_NAME);
         login(USER_ADMINISTRATOR_USERNAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_RED_FILE);
         account.setOid(accountRedOid);
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()

@@ -12,8 +12,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
@@ -82,7 +80,7 @@ public class TestSoD extends AbstractWfTestPolicy {
     public void test010AssignRoleJudge() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // WHEN
@@ -100,7 +98,7 @@ public class TestSoD extends AbstractWfTestPolicy {
     public void test020AssignRolePirate() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         PrismObject<UserType> jack = getUser(userJackOid);
@@ -119,12 +117,12 @@ public class TestSoD extends AbstractWfTestPolicy {
         // WHEN+THEN
         executeTest2(null, new TestDetails2<UserType>() {
             @Override
-            protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
+            protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jack.clone();
             }
 
             @Override
-            protected ObjectDelta<UserType> getFocusDelta() throws SchemaException {
+            protected ObjectDelta<UserType> getFocusDelta() {
                 return primaryDelta.clone();
             }
 
@@ -214,7 +212,7 @@ public class TestSoD extends AbstractWfTestPolicy {
     public void test030AssignRoleRespectable() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -223,7 +221,6 @@ public class TestSoD extends AbstractWfTestPolicy {
 
         // WHEN+THEN
         PrismObject<UserType> jack = getUser(userJackOid);
-        @SuppressWarnings("unchecked")
         ObjectDelta<UserType> addRespectableDelta = prismContext
                 .deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(createAssignmentTo(roleRespectableOid, ObjectTypes.ROLE, prismContext))
@@ -232,12 +229,12 @@ public class TestSoD extends AbstractWfTestPolicy {
         // WHEN+THEN
         executeTest2(null, new TestDetails2<UserType>() {
             @Override
-            protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
+            protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jack.clone();
             }
 
             @Override
-            protected ObjectDelta<UserType> getFocusDelta() throws SchemaException {
+            protected ObjectDelta<UserType> getFocusDelta() {
                 return addRespectableDelta.clone();
             }
 
@@ -308,11 +305,4 @@ public class TestSoD extends AbstractWfTestPolicy {
         assertAssignedRole(userJackOid, roleJudgeOid, task, result);
         assertAssignedRole(userJackOid, roleRespectableOid, task, result);
     }
-
-    @Test
-    public void zzzMarkAsNotInitialized() {
-        display("Setting class as not initialized");
-        unsetSystemInitialized();
-    }
-
 }

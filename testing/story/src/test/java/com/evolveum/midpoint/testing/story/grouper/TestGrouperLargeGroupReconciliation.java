@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.testing.story.grouper;
 
-import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -46,7 +45,7 @@ public class TestGrouperLargeGroupReconciliation extends AbstractGrouperTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
 
         assertSuccess(modelService.testResource(RESOURCE_LDAP.oid, task));
         assertSuccess(modelService.testResource(RESOURCE_GROUPER.oid, task));
@@ -54,7 +53,7 @@ public class TestGrouperLargeGroupReconciliation extends AbstractGrouperTest {
 
     @Test
     public void test100ReconcileGroups() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
         task.setOwner(userAdministrator);
 
@@ -68,7 +67,7 @@ public class TestGrouperLargeGroupReconciliation extends AbstractGrouperTest {
 
     @Test
     public void test110ReconcileGroupsAgain() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
         task.setOwner(userAdministrator);
 

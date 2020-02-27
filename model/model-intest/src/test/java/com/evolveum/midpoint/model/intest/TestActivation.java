@@ -28,7 +28,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.TestResource;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -806,7 +805,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test120ModifyUserJackAssignAccountDummyRed";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1004,7 +1003,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test140ModifyUserJackAssignAccountDummyRed";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1053,7 +1052,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test147ModifyUserJackUnassignAccountDummyRedRaw";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1100,7 +1099,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test149RecomputeJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1148,7 +1147,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test150ModifyUserJackAssignYellowAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1198,7 +1197,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test151ReconcileJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1238,7 +1237,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test152ModifyAccountsJackDisable";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1354,7 +1353,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test160ModifyUserJackAssignAccountKhaki";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1938,7 +1937,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     public void test240AddUserRappDraft() throws Exception {
         final String TEST_NAME = "test240AddUserRappDraft";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_RAPP_FILE);
@@ -1995,7 +1994,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     public void test241RecomputeRappDraft() throws Exception {
         final String TEST_NAME = "test240AddUserRappDraft";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2037,7 +2036,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     public void test242RappAssignCaptain() throws Exception {
         final String TEST_NAME = "test242RappAssignCaptain";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2074,7 +2073,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     public void test245ActivateRapp() throws Exception {
         final String TEST_NAME = "test245ActivateRapp";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2116,7 +2115,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     public void test248DeactivateRapp() throws Exception {
         final String TEST_NAME = "test248DeactivateRapp";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2152,7 +2151,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     public void test249DeleteUserRapp() throws Exception {
         final String TEST_NAME = "test249DeleteUserRapp";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -2177,7 +2176,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test300AddDummyGreenAccountMancomb";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount account = new DummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
@@ -2217,7 +2216,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test310ImportAccountsFromDummyGreen";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Preconditions
@@ -2601,7 +2601,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test600AddUser1";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user1 = prismContext.createObject(UserType.class);

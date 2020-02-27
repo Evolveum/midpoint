@@ -1102,7 +1102,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected <T extends ObjectType, O extends ObjectType> void assertCanSearch(String message, Class<T> resultType, Class<O> objectType, String objectOid, boolean includeSpecial, ObjectQuery query, boolean expectedResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Task task = createTask("assertCanSearch");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         String opName = "canSearch("+message+")";
         logAttempt(opName);

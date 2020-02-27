@@ -45,7 +45,6 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -164,7 +163,7 @@ public class TestLdap extends AbstractLongTest {
         final String TEST_NAME = "test200AssignRolePiratesToBarbossa";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -191,7 +190,7 @@ public class TestLdap extends AbstractLongTest {
         final String TEST_NAME = "test202AssignLdapAccountToGuybrush";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         byte[] photoIn = Files.readAllBytes(Paths.get(DOT_JPG_FILENAME));
@@ -249,7 +248,7 @@ public class TestLdap extends AbstractLongTest {
         final String TEST_NAME = "test204AssignRolePiratesToGuybrush";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         openDJController.executeLdifChange(
                 "dn: cn=Pirates,ou=groups,dc=example,dc=com\n" +
@@ -279,7 +278,7 @@ public class TestLdap extends AbstractLongTest {
         final String TEST_NAME = "test400RenameLeChuckConflicting";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userLechuck = createUser(USER_LECHUCK_NAME, "LeChuck", true);
@@ -321,7 +320,7 @@ public class TestLdap extends AbstractLongTest {
 
         loadLdapEntries("a", NUM_LDAP_ENTRIES);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -365,7 +364,7 @@ public class TestLdap extends AbstractLongTest {
 
         loadLdapEntries("u", NUM_LDAP_ENTRIES);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -396,7 +395,7 @@ public class TestLdap extends AbstractLongTest {
 
         // GIVEN
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
 //        System.out.println("openDJController.isRunning = " + openDJController.isRunning());
@@ -433,7 +432,7 @@ public class TestLdap extends AbstractLongTest {
 
         // GIVEN
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -481,7 +480,7 @@ public class TestLdap extends AbstractLongTest {
         final String TEST_NAME = "test910DeleteAccounts";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);

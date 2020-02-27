@@ -62,7 +62,8 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
         final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
 
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractInboundSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();

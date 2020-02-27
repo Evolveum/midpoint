@@ -53,7 +53,8 @@ public class TestOptimizingTriggerCreator extends AbstractInitializedModelIntegr
         final String TEST_NAME = "test110CreateTriggersWithUserDeletion";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         OptimizingTriggerCreator creator = libraryMidpointFunctions.getOptimizingTriggerCreator(60000, 2000);

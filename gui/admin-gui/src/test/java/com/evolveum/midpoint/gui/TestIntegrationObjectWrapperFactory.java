@@ -576,7 +576,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
     public void test220AssignRoleLandluberToWally() throws Exception {
         final String TEST_NAME = "test220AssignRoleLandluberToWally";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyGroup mapmakers = new DummyGroup(GROUP_DUMMY_MAPMAKERS_NAME);
@@ -892,14 +892,13 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assignRole(USER_JACK_OID, ROLE_PROP_READ_ALL_MODIFY_SOME_USER_OID);
         login(USER_JACK_USERNAME);
 
-        Task task = createTask(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("user before", user);
 
         // WHEN
         displayWhen(TEST_NAME);
 
-        PrismObjectWrapper<UserType> objectWrapper = createObjectWrapper(task, user, ItemStatus.NOT_CHANGED);
+        PrismObjectWrapper<UserType> objectWrapper = createObjectWrapper(getTestTask(), user, ItemStatus.NOT_CHANGED);
 
         // THEN
         displayThen(TEST_NAME);
@@ -964,7 +963,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID);
         login(USER_JACK_USERNAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("user before", user);
 

@@ -60,7 +60,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         final String TEST_NAME = "test100AssignRolePersonaAdminToJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -96,7 +96,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         final String TEST_NAME = "test102RecomputeUserJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -115,7 +115,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         final String TEST_NAME = "test103ReconcileUserJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -134,7 +134,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         final String TEST_NAME = "test104RecomputeJackAdminPersona";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -153,7 +153,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         final String TEST_NAME = "test105ReconcileJackAdminPersona";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -189,7 +189,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         final String TEST_NAME = "test120ModifyJackGivenName";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -226,7 +226,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         final String TEST_NAME = "test140ModifyUserJackPassword";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -260,7 +260,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         final String TEST_NAME = "test142ModifyPersonaPassword";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -300,7 +300,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         final String TEST_NAME = "test145ModifyPersonaPasswordBack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -340,7 +340,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         final String TEST_NAME = "test199UnassignRolePersonaAdminFromJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

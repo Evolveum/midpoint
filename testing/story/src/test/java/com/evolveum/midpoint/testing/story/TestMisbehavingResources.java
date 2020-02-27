@@ -23,7 +23,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -55,7 +54,7 @@ public class TestMisbehavingResources extends AbstractStoryTest {
     public void test010SanityAssignJackDummyAccount() throws Exception {
         final String TEST_NAME = "test010SanityAssignJackDummyAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -75,7 +74,7 @@ public class TestMisbehavingResources extends AbstractStoryTest {
     public void test019SanityUnassignJackDummyAccount() throws Exception {
         final String TEST_NAME = "test010SanityAssignJackDummyAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -99,7 +98,7 @@ public class TestMisbehavingResources extends AbstractStoryTest {
 
         getDummyResource().setOperationDelayOffset(3000);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -121,7 +120,7 @@ public class TestMisbehavingResources extends AbstractStoryTest {
         getDummyResource().setOperationDelayOffset(0);
         clockForward("P1D");
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -146,7 +145,7 @@ public class TestMisbehavingResources extends AbstractStoryTest {
 
         getDummyResource().setOperationDelayOffset(3000);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -170,7 +169,7 @@ public class TestMisbehavingResources extends AbstractStoryTest {
         getDummyResource().setOperationDelayOffset(0);
         clockForward("P1D");
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

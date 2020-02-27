@@ -10,14 +10,12 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -75,7 +73,7 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
         final String TEST_NAME = "test000PreparationAndSanity";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertNotNull("No model service", modelService);

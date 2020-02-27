@@ -170,7 +170,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test100AddOrgRoyulaCarpathia() throws Exception {
         final String TEST_NAME = "test100AddOrgRoyulaCarpathia";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_ROYULA_CARPATHIA_NAME, ORG_TOP_OID);
@@ -198,7 +198,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test110AddUserTeleke() throws Exception {
         final String TEST_NAME = "test110AddUserTeleke";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_TELEKE_USERNAME,
@@ -228,7 +228,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test200AddOrgCortuvHrad() throws Exception {
         final String TEST_NAME = "test200AddOrgCortuvHrad";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_CORTUV_HRAD_NAME, orgRolyulaCarpathiaOid);
@@ -257,7 +257,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test210AddUserGorc() throws Exception {
         final String TEST_NAME = "test210AddUserGorc";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_GORC_USERNAME,
@@ -283,7 +283,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test220AddOrgVysneVlkodlaky() throws Exception {
         final String TEST_NAME = "test220AddOrgVysneVlkodlaky";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_VYSNE_VLKODLAKY_NAME, orgCortuvHradOid);
@@ -312,7 +312,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test230AddUserViljaDezi() throws Exception {
         final String TEST_NAME = "test230AddUserViljaDezi";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_DEZI_USERNAME,
@@ -337,7 +337,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test300RenameOrgCortuvHrad() throws Exception {
         final String TEST_NAME = "test300RenameOrgCortuvHrad";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_CORTUV_HRAD_NAME, orgRolyulaCarpathiaOid);
@@ -369,7 +369,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test310RenameUserGorc() throws Exception {
         final String TEST_NAME = "test310RenameUserGorc";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_GORC_USERNAME,
@@ -392,7 +392,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test320AddOrgRoyulaDiabolica() throws Exception {
         final String TEST_NAME = "test320AddOrgRoyulaDiabolica";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_ROYULA_DIABOLICA_NAME, ORG_TOP_OID);
@@ -421,7 +421,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     @Test
     public void test322MoveOrgZblo() throws Exception {
         final String TEST_NAME = "test322MoveOrgZblo";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_CORTUV_HRAD_NAME2);
@@ -586,7 +586,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     }
 
     protected void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        final Task task = createTask("reconcileAllUsers");
+        final Task task = getTestTask();
         OperationResult result = task.getResult();
         ResultHandler<UserType> handler = new ResultHandler<UserType>() {
             @Override
@@ -607,7 +607,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     }
 
     protected void reconcileAllOrgs() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        final Task task = createTask("reconcileAllOrgs");
+        final Task task = getTestTask();
         OperationResult result = task.getResult();
         ResultHandler<OrgType> handler = new ResultHandler<OrgType>() {
             @Override

@@ -300,7 +300,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     public void test020Connection() throws Exception {
         final String TEST_NAME = "test020Connection";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyResource.assertNoConnections();
@@ -781,7 +781,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     public void test030ResourceAndConnectorCachingTestConnection() throws Exception {
         final String TEST_NAME = "test030ResourceAndConnectorCachingTestConnection";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
         OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, task);
@@ -952,7 +952,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         final String TEST_NAME = "test040ApplyDefinitionShadow";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(getAccountWillFile());
@@ -977,7 +977,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         final String TEST_NAME = "test041ApplyDefinitionAddShadowDelta";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(getAccountWillFile());
@@ -1003,7 +1003,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         final String TEST_NAME = "test042ApplyDefinitionResource";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(getResourceDummyFile());
@@ -1032,7 +1032,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         final String TEST_NAME = "test043ApplyDefinitionAddResourceDelta";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(getResourceDummyFile());
@@ -1063,7 +1063,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult testResult = new OperationResult(AbstractBasicDummyTest.class + "." + TEST_NAME);
 
         // WHEN
@@ -1114,7 +1114,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     public void test090ConnectorStatsAfterSomeUse() throws Exception {
         final String TEST_NAME = "test090ConnectorStatsAfterSomeUse";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1146,7 +1146,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     public void test100AddAccountWill() throws Exception {
         final String TEST_NAME = "test100AddAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1375,7 +1375,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         final String TEST_NAME = "test105ApplyDefinitionModifyDelta";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectModificationType changeAddRoleCaptain = PrismTestUtil.parseAtomicValue(MODIFY_ACCOUNT_FILE,

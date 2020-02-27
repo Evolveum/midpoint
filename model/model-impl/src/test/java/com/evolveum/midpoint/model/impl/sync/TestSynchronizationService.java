@@ -88,10 +88,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
     @Test
     public void test010AddedAccountJack() throws Exception {
-        final String TEST_NAME = "test010AddedAccountJack";
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
 
@@ -148,7 +146,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         final String TEST_NAME = "test020ModifyLootAbsolute";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
 
@@ -202,10 +200,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
     @Test
     public void test021ModifyLootAbsoluteEmpty() throws Exception {
-        final String TEST_NAME = "test021ModifyLootAbsoluteEmpty";
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
 
@@ -263,10 +259,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
      */
     @Test
     public void test030Reconcile() throws Exception {
-        final String TEST_NAME = "test030Reconcile";
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
 
@@ -312,7 +306,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         final String TEST_NAME = "test039DeletedAccountJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
@@ -336,9 +330,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
             .assertIterationToken("")
             .assertSynchronizationSituation(SynchronizationSituationType.LINKED);
 
-        // In fact, it is responsibility of provisioning to mark shadow dead before invoking
-        // sync service. This is unit test, therefore we have to simulate behavior of provisioning
-        // here.
+        // In fact, it is responsibility of provisioning to mark shadow dead before invoking sync
+        // service. This is unit test, therefore we have to simulate behavior of provisioning here.
         markShadowTombstone(accountShadowJackDummyOid);
 
         shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
@@ -414,7 +407,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         final String TEST_NAME = "test050AddedAccountCalypso";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
 
@@ -464,7 +457,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         final String TEST_NAME = "test051CalypsoRecon";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
 
@@ -509,7 +502,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         final String TEST_NAME = "test100AddedAccountJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertUserBefore(USER_JACK_OID)
@@ -580,7 +573,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         final String TEST_NAME = "test199DeletedAccountJackTotal";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
 
@@ -637,7 +630,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         final String TEST_NAME = "test200AddedAccountJackSchemaViolation";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -710,7 +703,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         final String TEST_NAME = "test202UpdatedAccountJackSchemaViolation";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -772,7 +765,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         final String TEST_NAME = "test210AssignJackDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         setDebugListener();
@@ -820,7 +813,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         final String TEST_NAME = "test212AssignJackDummyLimited";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         setDebugListener();
@@ -878,7 +871,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         final String TEST_NAME = "test214UpdatedAccountJackLimited";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -963,7 +956,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         final String TEST_NAME = "test300AddedGroupPirates";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         setDebugListener();
         getDummyResource().resetBreakMode();

@@ -127,7 +127,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test020SanityJack() throws Exception {
         final String TEST_NAME = "test020SanityJack";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = assertUserBefore(USER_JACK_OID)
@@ -141,7 +141,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test050AddArchetypeTest() throws Exception {
         final String TEST_NAME = "test050AddArchetypeTest";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -160,7 +160,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test060AddArchetypesAndRoles() throws Exception {
         final String TEST_NAME = "test060AddArchetypesAndRoles";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -199,7 +199,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test070AssignGuybrushUserAdministrator() throws Exception {
         final String TEST_NAME = "test070AssignGuybrushUserAdministrator";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -218,7 +218,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test100AssignJackArchetypeEmployee() throws Exception {
         final String TEST_NAME = "test100AssignJackArchetypeEmployee";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -261,7 +261,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test102SearchEmployeeArchetypeRef() throws Exception {
         final String TEST_NAME = "test102SearchEmployeeArchetypeRef";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = queryFor(UserType.class)
@@ -301,7 +301,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         // GIVEN
         login(USER_GUYBRUSH_USERNAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -365,7 +365,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
         loginAdministrator();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -397,7 +397,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test110AssignJackRoleEmployeeBase() throws Exception {
         final String TEST_NAME = "test110AssignJackRoleEmployeeBase";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -452,7 +452,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test115UnassignJackRoleEmployeeBase() throws Exception {
         final String TEST_NAME = "test115UnassignJackRoleEmployeeBase";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -495,7 +495,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test120AssignJackArchetypeTest() throws Exception {
         final String TEST_NAME = "test120AssignJackArchetypeTest";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -530,7 +530,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test129UnassignJackArchetypeTest() throws Exception {
         final String TEST_NAME = "test129UnassignJackArchetypeTest";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -561,7 +561,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test130AssignJackArchetypeContractor() throws Exception {
         final String TEST_NAME = "test130AssignJackArchetypeContractor";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -593,7 +593,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test132JackContractorRecompute() throws Exception {
         final String TEST_NAME = "test132JackContractorRecompute";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -626,7 +626,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test135UnassignJackArchetypeContractor() throws Exception {
         final String TEST_NAME = "test135UnassignJackArchetypeContractor";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -660,7 +660,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test137JackEmpnoAndRecompute() throws Exception {
         final String TEST_NAME = "test137JackEmpnoAndRecompute";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_NUMBER, task, result, "Number ONE");
@@ -696,7 +696,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test140AddMeathookContractor() throws Exception {
         final String TEST_NAME = "test140AddMeathookContractor";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -730,7 +730,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test150AddWannabe() throws Exception {
         final String TEST_NAME = "test150AddWannabe";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -765,7 +765,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test160AddSelfMadeMan() throws Exception {
         final String TEST_NAME = "test160AddSelfMadeMan";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -798,7 +798,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test162AddFraudster() throws Exception {
         final String TEST_NAME = "test162AddFraudster";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // precondition
@@ -827,7 +827,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test200AssignJackBarbossaArchetypeEmployee() throws Exception {
         final String TEST_NAME = "test200AssignJackBarbossaArchetypeEmployee";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -855,7 +855,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         // GIVEN
         login(USER_GUYBRUSH_USERNAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -888,7 +888,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test203DisableBarbossa() throws Exception {
         final String TEST_NAME = "test203DisableBarbossa";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -915,7 +915,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         // GIVEN
         login(USER_GUYBRUSH_USERNAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -948,7 +948,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
     public void test300jackAssignArchetypeRaw() throws Exception {
         final String TEST_NAME = "test300jackAssignArchetypeRaw";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

@@ -84,7 +84,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         final String TEST_NAME = "test000Sanity";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_YELLOW_OID, task);
@@ -101,7 +101,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         final String TEST_NAME = "test100JackAssignDummyYellow";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -321,7 +321,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         final String TEST_NAME = "test200GuybrushAssignDummyBlack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

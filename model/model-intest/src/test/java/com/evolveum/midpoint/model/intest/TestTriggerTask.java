@@ -83,7 +83,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Make sure there is an object with a trigger set to a long time ago.
@@ -117,7 +118,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
@@ -145,7 +147,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
@@ -176,7 +179,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
@@ -210,7 +214,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
@@ -240,7 +245,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
@@ -272,7 +278,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
@@ -303,7 +310,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         testMultipleTriggersHandler.reset();
 
@@ -337,7 +345,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();
         testTriggerHandler.setIdempotent(true);
@@ -374,7 +383,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
@@ -403,7 +413,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
@@ -460,7 +471,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();
 
@@ -493,7 +505,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        TestTriggerTask.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         testTriggerHandler.reset();
 

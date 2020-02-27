@@ -151,7 +151,7 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test100AddOrgIT() throws Exception {
         final String TEST_NAME = "test100AddOrgIT";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_IT_NAME, ORG_TOP_OID);
@@ -178,7 +178,7 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test150AssignFunctionalRoleToITOrg() throws Exception {
         final String TEST_NAME = "test150AssignFunctionalRoleToITOrg";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_IT_NAME);
@@ -207,7 +207,7 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test170UnassignFunctionalRoleFromITOrg() throws Exception {
         final String TEST_NAME = "test170UnassignFunctionalRoleFromITOrg";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_IT_NAME);
@@ -237,7 +237,7 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test200AddOrgHR() throws Exception {
         final String TEST_NAME = "test200AddOrgHR";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_HR_NAME, ORG_TOP_OID);
@@ -264,7 +264,7 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test250AssignFunctionalAndVipRoleToHROrg() throws Exception {
         final String TEST_NAME = "test250AssignFunctionalAndVipRoleToHROrg";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
@@ -296,7 +296,7 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test270UnassignVipRoleFromHROrg() throws Exception {
         final String TEST_NAME = "test270UnassignVipRoleFromHROrg";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
@@ -328,7 +328,7 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test280AssignVipAndSuperVipRoleToHROrg() throws Exception {
         final String TEST_NAME = "test280AssignVipAndSuperVipRoleToHROrg";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
@@ -361,7 +361,7 @@ public  class TestLdapDependency extends AbstractLdapTest {
     @Test
     public void test290UnassignVipRoleFromHROrg() throws Exception {
         final String TEST_NAME = "test290UnassignVipRoleFromHROrg";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);

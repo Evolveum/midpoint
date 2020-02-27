@@ -74,7 +74,7 @@ public class TestUuidExtension extends AbstractUuidTest {
     @Test
     public void test100AddUserRapp() throws Exception {
         final String TEST_NAME = "test100AddUserRapp";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createUser(USER_RAPP_NAME, USER_RAPP_GIVEN_NAME, USER_RAPP_FAMILY_NAME, true);
@@ -94,7 +94,7 @@ public class TestUuidExtension extends AbstractUuidTest {
     @Test
     public void test101RappAssignRoleEmployee() throws Exception {
         final String TEST_NAME = "test101RappAssignRoleEmployee";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -113,7 +113,7 @@ public class TestUuidExtension extends AbstractUuidTest {
     @Test
     public void test107RappUnAssignRoleEmployee() throws Exception {
         final String TEST_NAME = "test107RappUnAssignRoleEmployee";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
         unassignRole(userRappOid, ROLE_EMPLOYEE_OID);
@@ -130,7 +130,7 @@ public class TestUuidExtension extends AbstractUuidTest {
     @Test
     public void test110AddKateWithRoleEmployee() throws Exception {
         final String TEST_NAME = "test110AddKateWithRoleEmployee";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createEmployeeUser(USER_KATE_NAME, USER_KATE_GIVEN_NAME, USER_KATE_FAMILY_NAME, true);

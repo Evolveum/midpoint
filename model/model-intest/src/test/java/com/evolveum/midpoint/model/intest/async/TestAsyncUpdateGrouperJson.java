@@ -83,7 +83,8 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
     }
 
     private Task createTestTask(String TEST_NAME) {
-        return createTask(TestAsyncUpdateGrouperJson.class.getName() + "." + TEST_NAME);
+        TestAsyncUpdateGrouperJson.class.getName();
+        return getTestTask();
     }
 
     /**

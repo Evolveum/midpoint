@@ -28,7 +28,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -70,7 +69,7 @@ public class TestReport extends AbstractReportIntegrationTest {
   public void test100ReportUserList() throws Exception {
       final String TEST_NAME = "test100ReportUserList";
 
-      Task task = createTask(TEST_NAME);
+      Task task = getTestTask();
       OperationResult result = task.getResult();
 
       PrismObject<ReportType> report = getObject(ReportType.class, REPORT_USER_LIST_OID);
@@ -134,7 +133,7 @@ public class TestReport extends AbstractReportIntegrationTest {
             return;
         }
 
-      Task task = createTask(TEST_NAME);
+      Task task = getTestTask();
       OperationResult result = task.getResult();
 
       PrismObject<ReportType> report = getObject(ReportType.class, REPORT_USER_LIST_SCRIPT_OID);
@@ -197,7 +196,7 @@ public class TestReport extends AbstractReportIntegrationTest {
   }
 
   protected PrismObject<TaskType> runReport(final String TEST_NAME, PrismObject<ReportType> report, boolean errorOk) throws Exception {
-      Task task = createTask(TEST_NAME);
+      Task task = getTestTask();
       OperationResult result = task.getResult();
 
       // WHEN
@@ -227,7 +226,7 @@ public class TestReport extends AbstractReportIntegrationTest {
       display("Report content ("+lines.size()+" lines)", String.join("\n", lines));
       outputFile.renameTo(new File(outputFile.getParentFile(), "processed-"+outputFile.getName()));
 
-      Task task = createTask("checkCsvUserReport");
+      Task task = getTestTask();
       OperationResult result = task.getResult();
       SearchResultList<PrismObject<UserType>> currentUsers = modelService.searchObjects(UserType.class, null, null, task, result);
       display("Current users in midPoint ("+currentUsers.size()+" users)", currentUsers.toString());

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.wf.impl.assignments;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
@@ -63,7 +62,7 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
      */
     public void test300ApprovalAndEnforce() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
+        Task task = getTestTask();
         task.setOwner(userAdministrator);
         OperationResult result = getResult();
 

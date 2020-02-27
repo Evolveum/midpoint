@@ -103,7 +103,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test050AddMetaMeta";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -138,7 +138,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test100AddGreeks";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -156,7 +156,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test110AddRomans";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -174,7 +174,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test200CreateAlpha";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -193,7 +193,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test202CreateBeta";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -211,7 +211,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test210CreateA";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -232,7 +232,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test300AssignAlphaToJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -251,7 +251,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test309UnassignAlphaFromJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -279,7 +279,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test310AssignAToJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -301,7 +301,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test312AssignBetaToJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -320,7 +320,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test319UnassignBetaAFromJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> focusDelta = createAssignmentFocusDelta(UserType.class, USER_JACK_OID, getGroupRoleOid(GROUP_BETA_NAME), RoleType.COMPLEX_TYPE, null, (Consumer<AssignmentType>)null, false);
@@ -350,7 +350,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test900LegacyAddMetaMeta";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -385,7 +385,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test910LegacyAddMetaLegacyOne";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -421,7 +421,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test920LegacyCreateGroupOne";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<RoleType> roleBefore = createObject(RoleType.class, GROUP_ONE_NAME);
         RoleType roleType = roleBefore.asObjectable();
@@ -461,7 +461,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         final String TEST_NAME = "test930LegacyAssignGroupOneToJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

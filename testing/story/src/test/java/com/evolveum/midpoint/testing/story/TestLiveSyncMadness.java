@@ -97,7 +97,7 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
         TestUtil.assertSuccess(testResultHr);

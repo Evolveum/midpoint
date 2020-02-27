@@ -148,7 +148,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         final String TEST_NAME = "test050GetResourceRaw";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -197,7 +197,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         final String TEST_NAME = "test052GetResourceNoFetch";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -248,7 +248,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         final String TEST_NAME = "test053GetResourceNoFetchAgain";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -301,7 +301,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         final String TEST_NAME = "test055GetResourceNoFetchReadOnly";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -355,7 +355,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         final String TEST_NAME = "test100SearchResourcesNoFetch";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -403,7 +403,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         final String TEST_NAME = "test102SearchResourcesNoFetchReadOnly";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -453,7 +453,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         final String TEST_NAME = "test105SearchResourcesIterativeNoFetch";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -504,7 +504,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         final String TEST_NAME = "test107SearchResourcesIterativeNoFetchReadOnly";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -554,7 +554,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         final String TEST_NAME = "test110GetResourceDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -596,7 +596,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         final String TEST_NAME = "test112GetResourceDummyReadOnly";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -825,7 +825,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         final String TEST_NAME = "test210GetResourceDummyRed";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -860,7 +860,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         final String TEST_NAME = "test750GetResourceRaw";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -902,7 +902,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         final String TEST_NAME = "test752GetResourceDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -934,7 +934,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     public void test760ModifyConfigurationString() throws Exception {
         final String TEST_NAME = "test760ModifyConfigurationString";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ResourceType> resourceDelta =  createConfigurationPropertyDelta(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
@@ -960,7 +960,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     public void test761ModifyConfigurationStringRaw() throws Exception {
         final String TEST_NAME = "test761ModifyConfigurationStringRaw";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ResourceType> resourceDelta =  createConfigurationPropertyDelta(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
@@ -1028,7 +1028,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     private void modifyConfigurationDiffExpressionRaw(final String TEST_NAME,
             FailableFunction<String, PrismObject<ResourceType>> parser) throws Exception {
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resourceBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -1101,7 +1101,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         final String TEST_NAME = "test800GetResourceDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -1133,7 +1133,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     public void test820SingleDescriptionModify() throws Exception {
         final String TEST_NAME = "test820SingleDescriptionModify";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         singleModify(descriptionAnt, -1, task, result);
@@ -1154,7 +1154,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     public void test840RandomModifySequence() throws Exception {
         final String TEST_NAME = "test840RandomModifySequence";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         for(int i=0; i <= MAX_RANDOM_SEQUENCE_ITERATIONS; i++) {

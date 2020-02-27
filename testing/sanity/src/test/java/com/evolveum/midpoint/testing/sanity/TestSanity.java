@@ -394,7 +394,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNotNull(modelWeb);
         assertNotNull(modelService);
         assertNotNull(repositoryService);
-        assertTrue(isSystemInitialized());
         assertNotNull(taskManager);
 
         assertNotNull(prismContext);

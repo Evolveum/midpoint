@@ -46,7 +46,7 @@ public class TestSchemalessResource extends AbstractInitializedModelIntegrationT
         final String TEST_NAME = "test001GetObject";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -61,7 +61,7 @@ public class TestSchemalessResource extends AbstractInitializedModelIntegrationT
         final String TEST_NAME = "test002TestConnection";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_SCHEMALESS_OID, task);

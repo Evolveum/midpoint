@@ -66,7 +66,7 @@ public class TestCollections extends AbstractArchetypesTest {
         final String TEST_NAME = "test000Sanity";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -85,7 +85,7 @@ public class TestCollections extends AbstractArchetypesTest {
         final String TEST_NAME = "test100CompileCollectionView";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -112,7 +112,7 @@ public class TestCollections extends AbstractArchetypesTest {
         final String TEST_NAME = "test102SearchCollectionUsers";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -131,7 +131,7 @@ public class TestCollections extends AbstractArchetypesTest {
         final String TEST_NAME = "test110CollectionStatsAllEnabled";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -154,7 +154,7 @@ public class TestCollections extends AbstractArchetypesTest {
         final String TEST_NAME = "test112EvaluateRulesAllEnabled";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -175,7 +175,7 @@ public class TestCollections extends AbstractArchetypesTest {
         final String TEST_NAME = "test120CollectionStatsOneDisabled";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_GUYBRUSH_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.DISABLED);
@@ -201,7 +201,7 @@ public class TestCollections extends AbstractArchetypesTest {
         final String TEST_NAME = "test122EvaluateRulesOneDisabled";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

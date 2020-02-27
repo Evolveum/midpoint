@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
@@ -111,7 +110,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test101jiraAssignResourceNoneEnforcement() throws Exception {
         final String TEST_NAME = "test101jiraAssignResourceNoneEnforcement";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         //GIVEN
@@ -244,7 +243,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test215githubAssignResourceNoneEnforcement() throws Exception {
         final String TEST_NAME = "test101jiraAssignResourceNoneEnforcement";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         //GIVEN
@@ -266,7 +265,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
     @Test
     public void test220linkAccountGithubAndFixIntent() throws Exception {
         final String TEST_NAME = "test220linkAccountGithubAndFixIntent";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN

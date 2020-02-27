@@ -24,7 +24,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -151,7 +150,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test100SuspendWhileIcfSync";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Resource gives out changes slowly now.
@@ -181,7 +181,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test105SuspendWhileIcfSyncImprecise";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Resource gives out changes slowly now.
@@ -215,7 +216,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test110SuspendWhileProcessing";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_P);
@@ -270,7 +272,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test115SuspendWhileProcessingImprecise";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_I);
@@ -313,7 +316,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test120Batched";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_P);
@@ -380,7 +384,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test125BatchedImprecise";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_I);
@@ -426,7 +431,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test130Error";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_P);
@@ -486,7 +492,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test135ErrorImprecise";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_I);
@@ -552,7 +559,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test140DryRun";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_P);
@@ -590,7 +598,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         final String TEST_NAME = "test150DryRunWithUpdate";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = getStartsWithQuery(USER_P);

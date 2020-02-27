@@ -164,7 +164,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     public void test220ModifyUserWillDisable() throws Exception {
         final String TEST_NAME = "test220ModifyUserWillDisable";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
@@ -244,7 +244,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     public void test230ModifyAccountWillChangePasswordAndEnable() throws Exception {
         final String TEST_NAME = "test230ModifyAccountWillChangePasswordAndEnable";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -272,7 +272,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     }
 
     protected void assertAccountWillAfterChangePasswordAndEnable(final String TEST_NAME) throws Exception {
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
@@ -337,7 +337,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     public void test232RunPropagationBeforeInterval() throws Exception {
         final String TEST_NAME = "test235RunPropagationAfterInterval";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -358,7 +358,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     public void test235RunPropagationAfterInterval() throws Exception {
         final String TEST_NAME = "test235RunPropagationAfterInterval";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT2M");
@@ -465,7 +465,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     public void test240CloseCaseAndReadAccountWill() throws Exception {
         final String TEST_NAME = "test240CloseCaseAndReadAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeCase(willLastCaseOid);
@@ -494,7 +494,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     public void test250RecomputeWillAfter5min() throws Exception {
         final String TEST_NAME = "test250RecomputeWillAfter5min";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT5M");
@@ -521,7 +521,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     public void test272UpdateBackingStoreAndGetAccountWill() throws Exception {
         final String TEST_NAME = "test272UpdateBackingStoreAndGetAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         //  ff 7min. Refresh. Oldest delta over grace. But not expired yet.
@@ -578,7 +578,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     public void test273GetAccountWill() throws Exception {
         final String TEST_NAME = "test273GetAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         //  ff 15min. Oldest delta should expire.
@@ -633,7 +633,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     public void test290RecomputeWillAfter15min() throws Exception {
         final String TEST_NAME = "test290RecomputeWillAfter15min";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT15M");
@@ -692,7 +692,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     public void test300UnassignAccountWill() throws Exception {
         final String TEST_NAME = "test300UnassignAccountWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
@@ -767,7 +767,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     public void test302RunPropagationAfterInterval() throws Exception {
         final String TEST_NAME = "test302RunPropagationAfterInterval";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT2M");
@@ -842,7 +842,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     public void test310CloseCaseAndRecomputeWill() throws Exception {
         final String TEST_NAME = "test310CloseCaseAndRecomputeWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeCase(willLastCaseOid);
@@ -893,7 +893,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     public void test330UpdateBackingStoreAndRecomputeWill() throws Exception {
         final String TEST_NAME = "test330UpdateBackingStoreAndRecomputeWill";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         backingStoreDeprovisionWill();
@@ -951,7 +951,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
     }
 
     protected void assertAccountWillAfterChangePasswordAndEnableCaseClosed(final String TEST_NAME, PrismObject<ShadowType> shadowModel) throws Exception {
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);

@@ -33,7 +33,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -185,7 +184,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         final String TEST_NAME = "test140AddHonorificPrefix";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -241,7 +240,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         final String TEST_NAME = "test140dDeleteHonorificPrefixGivenName";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -300,7 +299,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         final String TEST_NAME = "test150RemoveTitleRA";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -359,7 +358,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         final String TEST_NAME = "test160SetGivenNameAttributeAndReconcile";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -414,7 +413,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         final String TEST_NAME = "test170ReplaceGivenNameEmpty";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 

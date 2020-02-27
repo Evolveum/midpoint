@@ -112,7 +112,7 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test140AssignUserLargoBasic() throws Exception {
         final String TEST_NAME = "test140AssignUserLargoBasic";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
@@ -145,7 +145,7 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test142MeddleWithAccountAndReconcileUserLargo() throws Exception {
         final String TEST_NAME = "test142MeddleWithAccountAndReconcileUserLargo";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
@@ -192,7 +192,7 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test144AssignUserLargoUnix() throws Exception {
         final String TEST_NAME = "test144AssignUserLargoUnix";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
@@ -222,7 +222,7 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test146UnassignUserLargoUnix() throws Exception {
         final String TEST_NAME = "test146UnassignUserLargoUnix";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
@@ -252,7 +252,7 @@ public class TestUnixTolerantAux extends TestUnix {
     @Test
     public void test149UnAssignUserLargoBasic() throws Exception {
         final String TEST_NAME = "test149UnAssignUserLargoBasic";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);

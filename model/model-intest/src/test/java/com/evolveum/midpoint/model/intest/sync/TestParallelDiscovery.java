@@ -231,7 +231,7 @@ public class TestParallelDiscovery extends AbstractInitializedModelIntegrationTe
         final String TEST_NAME = "test100Synchronize";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 

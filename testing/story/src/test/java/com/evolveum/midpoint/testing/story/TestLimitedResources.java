@@ -69,7 +69,7 @@ public class TestLimitedResources extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -92,7 +92,7 @@ public class TestLimitedResources extends AbstractStoryTest {
     public void test100AssignJackAccountNoAttributeAddDelete() throws Exception {
         final String TEST_NAME = "test100AssignJackAccountNoAttributeAddDelete";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -114,7 +114,7 @@ public class TestLimitedResources extends AbstractStoryTest {
     public void test102AddJackOrganizationalUnitTreasureHunt() throws Exception {
         final String TEST_NAME = "test102AddJackOrganizationalUnitTreasureHunt";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -137,7 +137,7 @@ public class TestLimitedResources extends AbstractStoryTest {
     public void test104AddJackOrganizationalUnitLootingSailing() throws Exception {
         final String TEST_NAME = "test104AddJackOrganizationalUnitLootingSailing";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -160,7 +160,7 @@ public class TestLimitedResources extends AbstractStoryTest {
     public void test106DeleteJackOrganizationalUnitLooting() throws Exception {
         final String TEST_NAME = "test106DeleteJackOrganizationalUnitLooting";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -186,7 +186,7 @@ public class TestLimitedResources extends AbstractStoryTest {
     public void test108DeleteJackOrganizationalUnitTreasureHuntSailing() throws Exception {
         final String TEST_NAME = "test108DeleteJackOrganizationalUnitTreasureHuntSailing";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -209,7 +209,7 @@ public class TestLimitedResources extends AbstractStoryTest {
     public void test109UnassignJackAccountNoAttributeAddDelete() throws Exception {
         final String TEST_NAME = "test109UnassignJackAccountNoAttributeAddDelete";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -235,7 +235,7 @@ public class TestLimitedResources extends AbstractStoryTest {
     public void test110AssignJackAccountNoCreate() throws Exception {
         final String TEST_NAME = "test110AssignJackAccountNoCreate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -258,7 +258,7 @@ public class TestLimitedResources extends AbstractStoryTest {
     public void test119UnassignJackAccountNoCreate() throws Exception {
         final String TEST_NAME = "test119UnassignJackAccountNoCreate";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

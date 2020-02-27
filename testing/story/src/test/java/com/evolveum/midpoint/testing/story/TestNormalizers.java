@@ -87,7 +87,7 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
     @Test
     public void test100AddUserJack() throws Exception {
         final String TEST_NAME = "test100AddUserJack";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -107,7 +107,7 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
     @Test
     public void test110AddUserTeleke() throws Exception {
         final String TEST_NAME = "test110AddUserTeleke";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

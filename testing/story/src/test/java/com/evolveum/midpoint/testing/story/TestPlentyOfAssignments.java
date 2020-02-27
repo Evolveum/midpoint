@@ -34,7 +34,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -43,7 +42,6 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -175,7 +173,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
     public void test100AddCheese() throws Exception {
         final String TEST_NAME = "test100AddCheese";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> cheeseBefore = prepareCheese();
@@ -218,7 +216,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
     public void test110RecomputeCheese() throws Exception {
         final String TEST_NAME = "test110RecomputeCheese";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> cheeseBefore = prepareCheese();
@@ -259,7 +257,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
     public void test120CheesePreviewChanges() throws Exception {
         final String TEST_NAME = "test120CheesePreviewChanges";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> cheeseBefore = prepareCheese();
@@ -327,7 +325,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
     public void test200DummyGroups() throws Exception {
         final String TEST_NAME = "test200DummyGroups";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -401,7 +399,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
     public void test210AddBob() throws Exception {
         final String TEST_NAME = "test210AddBob";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_BOB_FILE);
@@ -449,7 +447,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
     public void test212RecomputeBob() throws Exception {
         final String TEST_NAME = "test212RecomputeBob";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         inspector.reset();
@@ -493,7 +491,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
     public void test2124ReconcileBob() throws Exception {
         final String TEST_NAME = "test212RecomputeBob";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         inspector.reset();
@@ -555,7 +553,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
     public void test220AddAlice() throws Exception {
         final String TEST_NAME = "test220AddAlice";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_ALICE_FILE);
@@ -605,7 +603,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
     public void test222RecomputeAlice() throws Exception {
         final String TEST_NAME = "test222RecomputeAlice";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         inspector.reset();
@@ -649,7 +647,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
     public void test224ReconcileAlice() throws Exception {
         final String TEST_NAME = "test224ReconcileAlice";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         inspector.reset();

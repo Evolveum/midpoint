@@ -21,7 +21,6 @@ import com.evolveum.midpoint.report.impl.ReportWebService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -229,7 +228,7 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
     }
 
     private void assertUserList(ObjectListType userList) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Task task = createTask("assertUserList");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         SearchResultList<PrismObject<UserType>> currentUsers = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Current users in midPoint ("+currentUsers.size()+" users)", currentUsers.toString());

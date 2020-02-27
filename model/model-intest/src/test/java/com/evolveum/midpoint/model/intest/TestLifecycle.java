@@ -89,7 +89,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     public void test050SetupJack() throws Exception {
         final String TEST_NAME = "test050SetupJack";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -142,7 +142,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     public void test060TransitionJackToProposed() throws Exception {
         final String TEST_NAME = "test060TransitionJackToProposed";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -196,7 +196,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     public void test090TransitionJackToDefaultActive() throws Exception {
         final String TEST_NAME = "test090TransitionJackToDefaultActive";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -248,7 +248,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     public void test100AssignJackCaretaker() throws Exception {
         final String TEST_NAME = "test100AssignJackCaretaker";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -272,7 +272,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     public void test102UnassignJackHeadmaster() throws Exception {
         final String TEST_NAME = "test102UnassignJackHeadmaster";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -300,7 +300,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     public void test110UnassignJackCaretaker() throws Exception {
         final String TEST_NAME = "test110UnassignJackCaretaker";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -327,7 +327,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     public void test112UnassignJackCaretaker() throws Exception {
         final String TEST_NAME = "test110UnassignJackCaretaker";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

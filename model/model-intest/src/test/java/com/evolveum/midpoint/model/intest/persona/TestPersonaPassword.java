@@ -20,7 +20,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -73,7 +72,7 @@ public class TestPersonaPassword extends AbstractPersonaTest {
         final String TEST_NAME = "test145ModifyPersonaPasswordBack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);

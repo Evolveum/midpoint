@@ -10,7 +10,6 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVA
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -41,7 +40,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -61,10 +59,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * @author semancik
@@ -102,7 +98,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test010BasicContextOperations";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -187,7 +183,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test100AddAccountToJackDirect";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -254,7 +250,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test110AssignAccountToJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -282,7 +278,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test111AssignAccountToJackBroken";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -345,7 +341,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test250ModifyUserBarbossaLocality";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -395,7 +391,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test251ModifyUserBarbossaFullname";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -446,7 +442,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test254ModifyUserBarbossaDisable";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -508,7 +504,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test255ModifyUserBarbossaAssignment";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -561,7 +557,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test260ModifyAccountBarbossaDrinkReplace";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -597,7 +593,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test261ModifyAccountBarbossaQuoteReplace";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -658,7 +654,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test269DeleteBarbossaDummyAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -694,7 +690,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test270AddUserBarbossaAssignmentBrethren";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -740,7 +736,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test275DeleteUserBarbossaAssignmentBrethren";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -788,7 +784,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test280AddUserBarbossaAssignmentMutinier";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -835,7 +831,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test301AssignConflictingAccountToJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -883,7 +879,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test400ImportHermanDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -940,7 +936,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test401ImportHermanDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -986,7 +982,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test450GuybrushInboundFromDelta";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -1020,7 +1016,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test451GuybrushInboundFromAbsolute";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -1061,7 +1057,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test500ReconcileGuybrushDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
@@ -1125,7 +1121,7 @@ public class TestProjector extends AbstractLensTest {
         final String TEST_NAME = "test600AddLargo";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);

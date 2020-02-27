@@ -59,7 +59,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test000Sanity";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -78,7 +78,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test101ModifyUserSubtypePirate";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -121,7 +121,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test102ModifyUserSubtypeBuccaneer";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -155,7 +155,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test103ModifyUserEmployeeTypeBartender";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -195,7 +195,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test200AssignAccountOrange";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -237,7 +237,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test202ModifyAccountOrangeGossip";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -281,7 +281,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test204AssignAccountOrangeAgain";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -324,7 +324,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test209ModifyAccountOrangeGossipRemove";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -369,7 +369,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test210ModifyAccountOrangeQuoteMonkey";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -419,7 +419,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test211ModifyAccountOrangeQuotePirate";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -469,7 +469,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test214ModifyAccountOrangeQuoteWoodchuck";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -515,7 +515,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test250UnlinkAccountDefaultDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -559,7 +559,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test252ModifyAccountOrangeGossipRecon";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -604,7 +604,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test259ModifyAccountOrangeGossipRemoveRecon";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -650,7 +650,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test260ModifyAccountOrangeQuoteMonkeyRecon";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -704,7 +704,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test261ModifyAccountOrangeQuotePirateRecon";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -753,7 +753,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test264ModifyAccountOrangeQuoteWoodchuckRecon";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -800,7 +800,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test297ModifyAccountOrangeGossipRecon";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -841,7 +841,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test299UnassignAccountOrange";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);

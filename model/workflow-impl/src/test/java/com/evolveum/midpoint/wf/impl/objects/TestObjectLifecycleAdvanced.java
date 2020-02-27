@@ -19,7 +19,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -87,7 +86,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
     public void test010CreateRoleEmployee() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         PrismObject<RoleType> employee = prismContext.parseObject(ROLE_EMPLOYEE_FILE);
@@ -169,7 +168,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
     public void test020ActivateIncompleteRole() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         @SuppressWarnings({ "raw"})
@@ -203,7 +202,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
     public void test030ActivateIncompleteRoleAgain() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         @SuppressWarnings({ "raw"})
@@ -235,7 +234,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
     public void test040AddApprover() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assignRole(userEmployeeOwnerOid, roleEmployeeOid, SchemaConstants.ORG_APPROVER, task, result);
@@ -248,7 +247,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
     public void test045ActivateCompleteRole() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         @SuppressWarnings({ "raw"})

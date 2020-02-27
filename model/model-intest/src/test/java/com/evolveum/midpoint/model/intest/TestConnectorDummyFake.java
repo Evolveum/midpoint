@@ -88,7 +88,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test010ListConnectors";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -125,7 +125,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test020ImportFakeResource";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -149,7 +149,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test021TestFakeResource";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -165,7 +165,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test022ListAccountsFakeResource";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -184,7 +184,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test030ImportDummyResource";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -208,7 +208,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test031TestDummyResource";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -224,7 +224,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test032ListAccountsDummyResource";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -245,7 +245,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test100UpgradeModelAddDelete";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -279,7 +279,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test150DowngradeModelAddDelete";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -308,7 +308,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test200UpgradeModelReplace";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -335,7 +335,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test250DowngradeModelReplace";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -361,7 +361,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test300UpgradeRawAddDelete";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -393,7 +393,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test350DowngradeRawAddDelete";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -427,7 +427,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test400UpgradeRawReplace";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -459,7 +459,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         final String TEST_NAME = "test450DowngradeRawReplace";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);

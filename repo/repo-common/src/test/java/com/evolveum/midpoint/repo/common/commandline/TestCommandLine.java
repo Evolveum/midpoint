@@ -62,7 +62,7 @@ public class TestCommandLine extends AbstractIntegrationTest {
             return;
         }
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         CommandLineScriptType scriptType = getScript(REPORT_PLAIN_ECHO_FILE);
@@ -86,7 +86,7 @@ public class TestCommandLine extends AbstractIntegrationTest {
             return;
         }
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         CommandLineScriptType scriptType = getScript(REPORT_REDIR_ECHO_FILE);

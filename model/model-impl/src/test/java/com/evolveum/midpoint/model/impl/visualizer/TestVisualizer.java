@@ -67,7 +67,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     @Test
     public void test100UserBasic() throws Exception {
         final String TEST_NAME = "test100UserBasic";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         PrismObject<UserType> u = prismContext.createObject(UserType.class);
         u.setOid("123");
@@ -88,7 +88,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     @Test
     public void test110UserWithContainers() throws Exception {
         final String TEST_NAME = "test101UserWithContainers";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         PrismObject<UserType> u = prismContext.createObject(UserType.class);
         UserType ut = u.asObjectable();
@@ -126,7 +126,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     @Test
     public void test200UserDeltaBasic() throws Exception {
         final String TEST_NAME = "test200UserDeltaBasic";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         ObjectDelta<?> delta = deltaFor(UserType.class)
                 .item(UserType.F_NAME).replace("admin")
@@ -146,7 +146,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     @Test
     public void test210UserDeltaContainers() throws Exception {
         final String TEST_NAME = "test210UserDeltaContainers";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         AssignmentType ass1 = new AssignmentType(prismContext);
         ass1.setActivation(new ActivationType(prismContext));
@@ -176,7 +176,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     @Test
     public void test212UserDeltaContainerSimple() throws Exception {
         final String TEST_NAME = "test212UserDeltaContainerSimple";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         ObjectDelta<?> delta = deltaFor(UserType.class)
                 .item(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS).replace(ActivationStatusType.ENABLED)
@@ -197,7 +197,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     @Test
     public void test220UserContainerReplace() throws Exception {
         final String TEST_NAME = "test220UserContainerReplace";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         AssignmentType ass1 = new AssignmentType(prismContext);
         ass1.setActivation(new ActivationType(prismContext));
@@ -228,7 +228,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     @Test
     public void test230UserContainerDelete() throws Exception {
         final String TEST_NAME = "test230UserContainerDelete";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         AssignmentType ass1 = new AssignmentType(prismContext);
         ass1.setId(1L);
@@ -255,7 +255,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     @Test
     public void test300UserAssignmentPreview() throws Exception {
         final String TEST_NAME = "test300UserAssignmentPreview";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         display("jack", jack);
@@ -291,7 +291,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     @Test
     public void test305UserAssignmentAdd() throws Exception {
         final String TEST_NAME = "test305UserAssignmentAdd";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         display("jack", getUser(USER_JACK_OID));
 
@@ -320,7 +320,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     @Test
     public void test307UserDisablePreview() throws Exception {
         final String TEST_NAME = "test307UserDisablePreview";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.DISABLED)
@@ -365,7 +365,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     @Test
     public void test310UserLinkRefDelete() throws Exception {
         final String TEST_NAME = "test310UserLinkRefDelete";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         UserType jack = getUser(USER_JACK_OID).asObjectable();
         assertEquals("wrong # of linkrefs", 1, jack.getLinkRef().size());
@@ -389,7 +389,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     @Test
     public void test320UserLinkRefAdd() throws Exception {
         final String TEST_NAME = "test320UserLinkRefAdd";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_LINK_REF).add(createObjectRef(dummyAccountOid, SHADOW).asReferenceValue())
@@ -409,7 +409,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     @Test
     public void test330UserLinkRefReplaceNoOp() throws Exception {
         final String TEST_NAME = "test330UserLinkRefReplaceNoOp";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_LINK_REF).replace(createObjectRef(dummyAccountOid, SHADOW).asReferenceValue())
@@ -429,7 +429,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
     @Test
     public void test340UserLinkRefReplaceOp() throws Exception {
         final String TEST_NAME = "test340UserLinkRefReplaceOp";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_LINK_REF).replace(createObjectRef("777", SHADOW).asReferenceValue())

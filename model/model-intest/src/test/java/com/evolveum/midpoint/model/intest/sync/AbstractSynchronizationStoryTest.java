@@ -19,7 +19,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -108,7 +107,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test100ImportLiveSyncTaskDummyGreen";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
@@ -126,7 +126,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test110AddDummyGreenAccountMancomb";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -192,7 +193,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test200ImportLiveSyncTaskDummyBlue";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
@@ -213,7 +215,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test210AddDummyGreenAccountWally";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -264,7 +267,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test220AddDummyBlueAccountWally";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -327,7 +331,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test315AddDummyBlueAccountMancomb";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -383,7 +388,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test350ImportLiveSyncTaskDummyDefault";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
@@ -410,7 +416,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test360ModifyUserAddDummyDefaultAccount";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
 
@@ -525,7 +532,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test370ModifyDummyGreenAccountWally";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         repoAddObjectFromFile(USER_TEMPLATE_SYNC_FILENAME, result);
@@ -610,7 +618,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test380ModifyUserWallyFullName";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -679,7 +688,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test382ModifyUserWallyLocality";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -759,7 +769,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test400DeleteDummyDefaultAccount";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -827,7 +838,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test410DeleteDummyGreenAccount";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareNotifications();
 
@@ -921,7 +933,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test510AddDummyGreenAccountWallyUserTemplate";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
 
@@ -964,7 +977,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test600AddDummyGreenAccountCalypso";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -1009,7 +1023,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         final String TEST_NAME = "test700AddDummyGreenAccountXjojo";
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();

@@ -20,8 +20,6 @@ import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -69,7 +67,8 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
         final String TEST_NAME = "test180NoChange";
 
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractInboundSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
         rememberTimeBeforeSync();
@@ -111,7 +110,8 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
         final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
 
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        AbstractInboundSyncTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();

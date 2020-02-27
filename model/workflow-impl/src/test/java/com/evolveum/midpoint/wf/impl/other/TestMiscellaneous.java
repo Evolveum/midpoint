@@ -102,7 +102,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test100RequesterComment() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -167,7 +167,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test105RequesterCommentImmediate() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -234,7 +234,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test110RequestPrunedRole() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -272,7 +272,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test200GetRoleByTemplate() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -295,7 +295,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test210GetRoleByTemplateAfterAssignments() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -319,7 +319,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test220GetRoleByFocusMappings() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -341,7 +341,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test250SkippingApprovals() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN

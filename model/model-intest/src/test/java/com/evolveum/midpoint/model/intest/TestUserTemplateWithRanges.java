@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -205,7 +204,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         final String TEST_NAME = "test200SimpleOrgUnitAddition";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -247,7 +246,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         final String TEST_NAME = "test210RemoveUnit1";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -287,7 +286,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -326,7 +325,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         final String TEST_NAME = "test230RestoreNumber";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -361,7 +360,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         final String TEST_NAME = "test300GuybrushBloodyNose";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -392,7 +391,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         final String TEST_NAME = "test309GuybrushNotBloody";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -419,7 +418,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         final String TEST_NAME = "test310GuybrushBloodyNoseFuneral";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result,
@@ -453,7 +452,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         final String TEST_NAME = "test319GuybrushNoBloodyNoseFuneral";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -480,7 +479,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         final String TEST_NAME = "test320GuybrushBloodyNose";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result
@@ -514,7 +513,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         final String TEST_NAME = "test322GuybrushSetFuneral";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -542,7 +541,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         final String TEST_NAME = "test324GuybrushSetFuneral22222";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -572,7 +571,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         final String TEST_NAME = "test326GuybrushNoFuneral";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -599,7 +598,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         final String TEST_NAME = "test329GuybrushNoBloodyNose";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

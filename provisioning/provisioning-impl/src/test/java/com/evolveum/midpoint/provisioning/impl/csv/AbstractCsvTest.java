@@ -153,7 +153,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         final String TEST_NAME = "test003Connection";
         TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         // Check that there is no schema before test (pre-condition)
         ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, getResourceOid(),
@@ -203,7 +203,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         final String TEST_NAME = "test004Configuration";
         TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -312,7 +312,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         final String TEST_NAME = "test100AddAccountJack";
         TestUtil.displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> shadowBefore = parseObject(getAccountJackFile());
@@ -331,7 +331,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         final String TEST_NAME = "test110GetAccountJack";
         TestUtil.displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -369,7 +369,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         final String TEST_NAME = "test120ModifyShadowPrimaryIdentifier";
         TestUtil.displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> shadowBefore = parseObject(getAccountJackFile());

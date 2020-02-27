@@ -568,7 +568,7 @@ public class TestRetirement extends AbstractStoryTest {
     }
 
     private void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        final Task task = createTask("reconcileAllUsers");
+        final Task task = getTestTask();
         OperationResult result = task.getResult();
         ResultHandler<UserType> handler = new ResultHandler<UserType>() {
             @Override
@@ -589,7 +589,7 @@ public class TestRetirement extends AbstractStoryTest {
     }
 
     private void reconcileAllOrgs() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        final Task task = createTask("reconcileAllOrgs");
+        final Task task = getTestTask();
         OperationResult result = task.getResult();
         ResultHandler<OrgType> handler = new ResultHandler<OrgType>() {
             @Override

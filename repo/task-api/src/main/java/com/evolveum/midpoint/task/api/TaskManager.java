@@ -218,7 +218,7 @@ public interface TaskManager {
     /**
      * Creates new transient, running task instance.
      *
-     * This is fact creates usual "synchronous" task.
+     * This in fact creates usual "synchronous" task.
      *
      * This is useful for normal day-to-day tasks that are either
      * synchronous or start as a synchronous and are switched to

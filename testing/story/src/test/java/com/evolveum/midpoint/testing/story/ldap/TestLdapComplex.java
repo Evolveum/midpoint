@@ -182,7 +182,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);
@@ -198,7 +198,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test010Shadows() throws Exception {
         final String TEST_NAME = "test010Shadows";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
@@ -221,7 +221,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test050AssignAccountOpenDjSimple() throws Exception {
         final String TEST_NAME = "test050AssignAccountOpenDjSimple";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -254,7 +254,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test055Shadows() throws Exception {
         final String TEST_NAME = "test055Shadows";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
@@ -275,7 +275,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test059UnassignAccountOpenDjSimple() throws Exception {
         final String TEST_NAME = "test059UnassignAccountOpenDjSimple";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -305,7 +305,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test100ModifyJackFullNameLang() throws Exception {
         final String TEST_NAME = "test100ModifyJackFullNameLang";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString newFullName = new PolyString(USER_JACK_FULL_NAME);
@@ -338,7 +338,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test110AssignAccountOpenDjLang() throws Exception {
         final String TEST_NAME = "test110AssignAccountOpenDjLang";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -373,7 +373,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test112ModifyJackFullNameLangEnSkRuHr() throws Exception {
         final String TEST_NAME = "test112ModifyJackFullNameLangEnSkRuHr";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString newFullName = new PolyString(USER_JACK_FULL_NAME);
@@ -410,7 +410,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test114ModifyJackFullNameLangCzHr() throws Exception {
         final String TEST_NAME = "test114ModifyJackFullNameLangCzHr";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString newFullName = new PolyString(USER_JACK_FULL_NAME);
@@ -447,7 +447,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test116ModifyJackFullNameLangCaptain() throws Exception {
         final String TEST_NAME = "test116ModifyJackFullNameLangCaptain";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString newFullName = new PolyString(USER_JACK_FULL_NAME_CAPTAIN);
@@ -483,7 +483,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test118ModifyJackFullNameCaptain() throws Exception {
         final String TEST_NAME = "test118ModifyJackFullNameCaptain";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString newFullName = new PolyString(USER_JACK_FULL_NAME_CAPTAIN);
@@ -515,7 +515,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test119UnassignAccountOpenDjLang() throws Exception {
         final String TEST_NAME = "test119UnassignAccountOpenDjLang";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -545,7 +545,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test120ModifyJackTitleMap() throws Exception {
         final String TEST_NAME = "test120ModifyJackTitleMap";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<PrismContainerValue<?>> cvals = createTitleMapValues(TITLE_EN_SK_RU);
@@ -582,7 +582,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test130AssignAccountOpenDjTitleMap() throws Exception {
         final String TEST_NAME = "test130AssignAccountOpenDjTitleMap";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -622,7 +622,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test132AssignAccountOpenDjTitleMapAdd() throws Exception {
         final String TEST_NAME = "test132AssignAccountOpenDjTitleMapAdd";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<PrismContainerValue<?>> cvals = createTitleMapValues(TITLE_HR);
@@ -669,7 +669,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test134AssignAccountOpenDjTitleMapDelete() throws Exception {
         final String TEST_NAME = "test134AssignAccountOpenDjTitleMapDelete";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<PrismContainerValue<?>> cvals = createTitleMapValues(TITLE_RU);
@@ -716,7 +716,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test138AssignAccountOpenDjTitleMapReplace() throws Exception {
         final String TEST_NAME = "test138AssignAccountOpenDjTitleMapReplace";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<PrismContainerValue<?>> cvals = createTitleMapValues(TITLE_EN_SK_RU);
@@ -759,7 +759,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test139UnassignAccountOpenDjTitleMap() throws Exception {
         final String TEST_NAME = "test139UnassignAccountOpenDjTitleMap";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -788,7 +788,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test150AssignAccountOpenDj() throws Exception {
         final String TEST_NAME = "test150AssignAccountOpenDj";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -832,7 +832,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test152JackMultivalueDescriptionGet() throws Exception {
         final String TEST_NAME = "test152JackMultivalueDescriptionGet";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Let's ruing Jack's description in LDAP.
@@ -886,7 +886,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test300Shadows() throws Exception {
         final String TEST_NAME = "test300Shadows";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
@@ -926,7 +926,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     @Test
     public void test312Shadows() throws Exception {
         final String TEST_NAME = "test312Shadows";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
@@ -1122,7 +1122,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     public void test420AssignJackToKeelhaul() throws Exception {
         final String TEST_NAME = "test412AssignJackToKeelhaul";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         String accountJackOid = assertUserBefore(USER_JACK_OID)
@@ -1162,7 +1162,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     public void test422AssignJackToWalkThePlank() throws Exception {
         final String TEST_NAME = "test414AssignJackToWalkThePlank";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         String accountJackOid = assertUserBefore(USER_JACK_OID)
@@ -1202,7 +1202,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     public void test424AssignJackToRumDepartment() throws Exception {
         final String TEST_NAME = "test424AssignJackToRumDepartment";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         String accountJackOid = assertUserBefore(USER_JACK_OID)

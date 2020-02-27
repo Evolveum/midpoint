@@ -145,7 +145,8 @@ public class TestAssignedMappings extends AbstractLensTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -192,7 +193,8 @@ public class TestAssignedMappings extends AbstractLensTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -242,7 +244,8 @@ public class TestAssignedMappings extends AbstractLensTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -291,7 +294,8 @@ public class TestAssignedMappings extends AbstractLensTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -347,7 +351,8 @@ public class TestAssignedMappings extends AbstractLensTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -405,7 +410,8 @@ public class TestAssignedMappings extends AbstractLensTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -490,7 +496,8 @@ public class TestAssignedMappings extends AbstractLensTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -569,7 +576,8 @@ public class TestAssignedMappings extends AbstractLensTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -603,7 +611,8 @@ public class TestAssignedMappings extends AbstractLensTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -633,7 +642,8 @@ public class TestAssignedMappings extends AbstractLensTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        TestAssignedMappings.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

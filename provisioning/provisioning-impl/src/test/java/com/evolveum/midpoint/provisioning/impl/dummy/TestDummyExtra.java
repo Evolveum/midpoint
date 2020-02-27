@@ -106,7 +106,7 @@ public class TestDummyExtra extends TestDummy {
     public void test400AddAccountElizabeth() throws Exception {
         final String TEST_NAME = "test400AddAccountElizabeth";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -156,7 +156,7 @@ public class TestDummyExtra extends TestDummy {
         final String TEST_NAME = "test410AssociateCrewWillElizabeth";
         TestUtil.displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -202,7 +202,7 @@ public class TestDummyExtra extends TestDummy {
         final String TEST_NAME = "test419DisassociateCrewWillElizabeth";
         TestUtil.displayTestTitle(TEST_NAME);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -246,7 +246,7 @@ public class TestDummyExtra extends TestDummy {
     public void test499DeleteAccountElizabeth() throws Exception {
         final String TEST_NAME = "test499DeleteAccountElizabeth";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 

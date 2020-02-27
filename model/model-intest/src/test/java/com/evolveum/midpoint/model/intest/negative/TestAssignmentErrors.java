@@ -167,7 +167,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         final String TEST_NAME = "test100UserJackAssignBlankAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -209,7 +209,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         final String TEST_NAME = "test101AddUserCharlesAssignBlankAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
@@ -251,7 +251,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         final String TEST_NAME = "test200UserLemonheadAssignAccountBrokenNetwork";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -329,7 +329,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         final String TEST_NAME = "test210UserSharptoothAssignAccountBrokenGeneric";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -398,7 +398,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         final String TEST_NAME = "test212UserSharptoothAssignAccountRecovery";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -471,7 +471,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     public void testUserSharptoothChangePasswordError(final String TEST_NAME, BreakMode breakMode, String oldPassword, String newPassword, OperationResultStatus expectedResultStatus) throws Exception {
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -511,7 +511,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_OID, null,
                 USER_AFET_NAME, USER_AFET_FULLNAME);
         String shadowOidBefore = getSingleLinkOid(user);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -533,7 +533,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
         // ... and again ...
 
-        task = createTask(TEST_NAME);
+        task = getTestTask();
         result = task.getResult();
 
         // WHEN
@@ -623,7 +623,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
                 RESOURCE_DUMMY_YELLOW_OID, RESOURCE_DUMMY_YELLOW_NAME,
                 USER_CFET_NAME, USER_CFET_FULLNAME);
         String shadowOidBefore = getSingleLinkOid(user);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -645,7 +645,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
         // ... and again ...
 
-        task = createTask(TEST_NAME);
+        task = getTestTask();
         result = task.getResult();
 
         // WHEN
@@ -669,7 +669,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
             String dummyResourceName, String userName, String userFullName) throws Exception {
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         getDummyResource().resetBreakMode();

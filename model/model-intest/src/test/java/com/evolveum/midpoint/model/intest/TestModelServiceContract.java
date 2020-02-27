@@ -117,7 +117,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     public void test050GetUserJack() throws Exception {
         final String TEST_NAME = "test050GetUserJack";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -138,7 +138,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     public void test051GetUserBarbossa() throws Exception {
         final String TEST_NAME = "test051GetUserBarbossa";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -162,7 +162,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test099ModifyUserAddAccountFailing";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -238,7 +238,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test100ModifyUserAddAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         getDummyResource().resetBreakMode();
@@ -327,7 +327,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test101GetAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -550,7 +550,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test109ModifyUserAddAccountAgain";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -600,7 +600,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test110GetUserResolveAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -639,7 +639,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test111GetUserResolveAccountResource";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -681,7 +681,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test112GetUserResolveAccountNoFetch";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -723,7 +723,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test119ModifyUserDeleteAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -871,7 +871,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test121ModifyUserAddAccountRef";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -1111,7 +1111,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME="test131ModifyUserJackAssignAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -1192,7 +1192,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test132ModifyAccountJackDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -1283,7 +1283,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME="test135ModifyUserJackAssignAccountAgain";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -1346,7 +1346,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME="test136JackRecomputeNoChange";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -1408,7 +1408,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test139ModifyUserJackUnassignAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -1470,7 +1470,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test141ModifyUserJackAssignAccountPositiveEnforcement";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -1554,7 +1554,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test148ModifyUserJackUnassignAccountPositiveEnforcement";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -1649,7 +1649,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test149ModifyUserJackDeleteAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -1721,7 +1721,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test151ModifyUserJackAssignAccountRelativeEnforcement";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1862,7 +1862,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test161ModifyUserJackAssignAccountNoneEnforcement";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.NONE);
 
@@ -1924,7 +1924,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test163ModifyUserJackAddAccountNoneEnforcement";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.NONE);
 
@@ -2071,7 +2071,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test169ModifyUserJackDeleteAccountNoneEnforcement";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.NONE);
 
@@ -2138,7 +2138,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test180ModifyUserAddAccountFullEnforcement";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -2199,7 +2199,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test182ModifyUserAddAndAssignAccountPositiveEnforcement";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -2333,7 +2333,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test190ModifyUserJackAssignAccountAndModify";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -2418,7 +2418,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test191ModifyUserJackModifyAssignment";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -2532,7 +2532,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test192ModifyUserJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -2604,7 +2604,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test193ModifyUserJackLocationEmpty";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -2670,7 +2670,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test194ModifyUserJackLocationNull";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -2703,7 +2703,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test195ModifyUserJackLocationSea";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -2887,7 +2887,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test200AddUserBlackbeardWithAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         // Use custom channel to trigger a special outbound mapping
         task.setChannel("http://pirates.net/avast");
         OperationResult result = task.getResult();
@@ -2972,7 +2972,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test210AddUserMorganWithAssignment";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -3053,7 +3053,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test212RenameUserMorgan";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -3138,7 +3138,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test240AddUserCharlesRaw";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -3182,7 +3182,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test241DeleteUserCharlesRaw";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -3221,7 +3221,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME="test300AddUserJackWithAssignmentBlue";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -3290,7 +3290,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         final String TEST_NAME = "test302ModifyAccountJackDummyBlue";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -3358,7 +3358,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 

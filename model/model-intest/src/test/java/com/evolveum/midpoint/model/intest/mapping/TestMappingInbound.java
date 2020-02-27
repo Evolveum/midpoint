@@ -94,7 +94,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test010SanitySchema";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         /// WHEN
         displayWhen(TEST_NAME);
@@ -121,7 +121,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test100ImportLiveSyncTaskDummyTeaGreen";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
@@ -139,7 +139,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test110AddDummyTeaGreenAccountMancomb";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Preconditions
@@ -200,7 +200,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test120ModifyMancombPhotoSource";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
@@ -235,7 +235,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test130ModifyMancombPhotoSourceAndReconcile";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
@@ -274,7 +274,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test140ModifyMancombPhotoInRepo";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
@@ -310,7 +310,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test150UserReconcile";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -368,7 +368,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test300DeleteDummyTeaGreenAccountMancomb";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
@@ -406,7 +406,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test399DeleteDummyTeaGreenAccountMancomb";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         /// WHEN
@@ -424,7 +424,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test400AddUserLeeloo";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -477,7 +477,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test402UserLeelooRecompute";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -510,7 +510,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test404UserLeelooReconcile";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -547,7 +547,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test410UserLeeloominaiReconcile";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).getAccountByUsername(ACCOUNT_LEELOO_USERNAME);
@@ -589,7 +589,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test412UserLeeloominaiRecompute";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -622,7 +622,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test414UserLeeloominaiReconcile";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -659,7 +659,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test420UserLeelooStrangeReconcile";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).getAccountByUsername(ACCOUNT_LEELOO_USERNAME);
@@ -702,7 +702,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         final String TEST_NAME = "test424UserLeelooStrangeReconcile";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 

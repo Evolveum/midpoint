@@ -1231,7 +1231,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test518validateValueImplicitPassword() throws Exception {
         final String TEST_NAME = "test518validateValueImplicitPassword";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<SecurityPolicyType> secPolicyNoHistory = parseObject(SECURITY_POLICY_NO_HISTORY);
         addObject(secPolicyNoHistory, ModelExecuteOptions.createOverwrite(), task, result);

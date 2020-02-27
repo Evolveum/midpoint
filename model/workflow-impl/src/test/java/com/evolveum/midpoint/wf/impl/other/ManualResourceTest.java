@@ -151,7 +151,7 @@ public class ManualResourceTest extends AbstractWfTest {
     @Test
     public void test012TestConnection() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
 
         // WHEN
         displayWhen();
@@ -166,7 +166,7 @@ public class ManualResourceTest extends AbstractWfTest {
     @Test
     public void test100AssignWillRoleOne() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         dummyAuditService.clear();
@@ -197,7 +197,7 @@ public class ManualResourceTest extends AbstractWfTest {
     @Test
     public void test110CloseCaseAndRecomputeWill() throws Exception {
         // GIVEN
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         dummyAuditService.clear();

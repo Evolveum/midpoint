@@ -83,7 +83,8 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
 
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        AbstractSynchronizationStoryTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();

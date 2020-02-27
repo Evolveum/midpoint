@@ -96,7 +96,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
     @Test
     public void test000Sanity() throws Exception {
         final String TEST_NAME = "test000Sanity";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);
@@ -112,7 +112,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
     @Test
     public void test010Shadows() throws Exception {
         final String TEST_NAME = "test010Shadows";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
@@ -135,7 +135,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
     @Test
     public void test100AssignAccountOpenDjSimple() throws Exception {
         final String TEST_NAME = "test100AssignAccountOpenDjSimple";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -166,7 +166,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
     @Test
     public void test105Shadows() throws Exception {
         final String TEST_NAME = "test105Shadows";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
@@ -187,7 +187,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
     @Test
     public void test109UnassignAccountOpenDjSimple() throws Exception {
         final String TEST_NAME = "test109UnassignAccountOpenDjSimple";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -218,7 +218,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
     @Test
     public void test300Shadows() throws Exception {
         final String TEST_NAME = "test300Shadows";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
@@ -257,7 +257,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
     @Test
     public void test312Shadows() throws Exception {
         final String TEST_NAME = "test312Shadows";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
@@ -292,7 +292,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
     @Test
     public void test320AssignAccountOpenDj() throws Exception {
         final String TEST_NAME = "test320AssignAccountOpenDj";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

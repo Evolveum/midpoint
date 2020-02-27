@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web;
 
 import java.util.Collection;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -16,9 +15,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
-import com.evolveum.midpoint.init.InfraInitialSetup;
-import com.evolveum.midpoint.init.InitialDataImport;
-import com.evolveum.midpoint.init.ModelInitialSetup;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;

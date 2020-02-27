@@ -149,7 +149,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
     public void test102ModifyServiceAccount() throws Exception {
         final String TEST_NAME = "test102ModifyServiceAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
@@ -197,7 +197,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
     public void test104DeleteServiceAccount() throws Exception {
         final String TEST_NAME = "test104DeleteServiceAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class,
@@ -376,7 +376,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
     public void test140CreateServiceAccount() throws Exception {
         final String TEST_NAME = "test140CreateServiceAccount";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addObject(SERVICE_BARELLIUM_FILE);

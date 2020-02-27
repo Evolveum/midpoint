@@ -362,7 +362,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test100ImportStanFromResourceDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -410,7 +410,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test150ImportFromResourceDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -479,7 +479,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test155ImportFromResourceDummyAgain";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -538,7 +538,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test160ImportFromResourceDummyLime";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -610,7 +610,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test162ImportFromResourceDummyLimeRappOrganizationScummBar";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -693,7 +693,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test164ImportFromResourceDummyLimeRappOrganizationNull";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -775,7 +775,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         loginAdministrator();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -894,7 +894,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test210ReconcileDummyBroken";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -965,7 +965,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test219ReconcileDummyFixed";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1044,7 +1044,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test220ReconcileDummyBrokenGuybrush";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1118,7 +1118,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test229ReconcileDummyFixed";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1200,7 +1200,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test230ReconcileDummyRename";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1323,7 +1323,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test300ReconcileDummyAzureAddAccountOtis";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         getDummyResource().setBreakMode(BreakMode.NONE);
@@ -1387,7 +1387,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test310ReconcileDummyAzureAgain";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         getDummyResource().setBreakMode(BreakMode.NONE);
@@ -1453,7 +1453,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test320ReconcileDummyAzureDeleteOtis";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         getDummyResource().setBreakMode(BreakMode.NONE);
@@ -1525,7 +1525,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test330ReconcileDummyAzureAddAccountRapp";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         getDummyResource().setBreakMode(BreakMode.NONE);
@@ -1621,7 +1621,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test332ModifyUserRappAndReconcileDummyAzure";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         getDummyResource().setBreakMode(BreakMode.NONE);
@@ -1704,7 +1704,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test334AssignRoleCorpseToRappAndReconcileDummyAzure";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         getDummyResource().setBreakMode(BreakMode.NONE);
@@ -1772,7 +1772,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test339ReconcileDummyAzureDeleteRapp";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         getDummyResource().setBreakMode(BreakMode.NONE);
@@ -1848,7 +1848,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test400ReconcileDummyLimeAddAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1901,7 +1901,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test401ReconcileDummyLimeKateOnlyEmpty";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1950,7 +1950,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test402ReconcileDummyLimeKateOnlyGrog";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1997,7 +1997,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test403ReconcileDummyLimeKateOnlyNoValue";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -2043,7 +2043,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test404ReconcileDummyLimeKateOnlyRum";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -2090,7 +2090,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test405ReconcileDummyLimeKateOnlyEmpty";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -2137,7 +2137,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test406ReconcileDummyLimeKateOnlyEmptyAgain";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -2179,7 +2179,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test410ReconcileDummyLimeKatePassword";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -2225,7 +2225,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test420ReconcileDummyLimeDeleteLinkedAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -2278,7 +2278,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test500ImportTAugustusFromResourceDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -2343,7 +2343,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test502ImportAugustusFromResourceDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -2412,7 +2412,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test510ImportFromResourceDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -2509,7 +2509,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test520ReconResourceDummyFilter";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // Preconditions
@@ -2545,7 +2545,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         loginAdministrator();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID,
@@ -2570,7 +2570,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test610SearchDummyAccountsNameSubstring";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query =
@@ -2599,7 +2599,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test900DeleteDummyShadows";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Preconditions
@@ -2644,7 +2644,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test910DeleteDummyAccounts";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Preconditions

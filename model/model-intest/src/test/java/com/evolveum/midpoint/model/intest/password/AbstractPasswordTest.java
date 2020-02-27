@@ -15,7 +15,6 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -184,7 +183,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test010AddPasswordPolicy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -206,7 +205,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test012AddSecurityPolicy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -231,7 +230,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // this happens during test initialization when user-jack.xml is added
 
         // THEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -248,7 +247,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test051ModifyUserJackPassword";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -286,7 +285,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         }
 
         // GIVEN
-        Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        AbstractPasswordTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN, THEN
@@ -314,7 +314,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test070AddUserHerman";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -348,7 +348,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test100JackAssignAccountDummy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -401,7 +401,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test110ModifyUserJackPassword";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -450,7 +450,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test111ModifyAccountJackPassword";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -485,7 +485,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test112ModifyJackPasswordUserAndAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -535,7 +535,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test120JackAssignAccountDummyRedAndUgly";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -585,7 +585,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test121ModifyJackPasswordUserAndAccountRed";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -645,7 +645,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
         // GIVEN
-        Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        AbstractPasswordTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -673,7 +674,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test125ModifyJackEmployeeNumberBad";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -712,7 +713,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test128ModifyJackEmployeeNumberGood";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -749,7 +750,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test130JackAssignAccountDummyBlack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -791,7 +792,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test132ModifyAccountBlackJackPasswordBad";
 
         // GIVEN
-        Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        AbstractPasswordTest.class.getName();
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -814,7 +816,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test139JackUnassignAccountDummyBlack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -856,7 +858,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test140JackAssignAccountDummyYellow";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -903,7 +905,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test142ModifyUserJackPasswordAA";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -958,7 +960,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test150AssignMonkeyDummyAccount";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -989,7 +991,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test152ModifyUserMonkeyPassword";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1020,7 +1022,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test154ModifyUserMonkeyPasswordA";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1043,7 +1045,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test200ApplyPasswordPolicyHistoryLength";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1070,7 +1072,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test204UnassignAccountRed";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1125,7 +1127,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test206ReconcileUserJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1179,7 +1181,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test212ReconcileUserJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1202,7 +1204,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test214RecomputeUserJack";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1235,7 +1237,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test222ModifyUserJackPasswordBadContainer";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1361,7 +1363,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
             String newPassword, String... expectedPasswordHistory) throws Exception {
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1388,7 +1390,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
             String newPassword, String oldPassword, String... expectedPasswordHistory) throws Exception {
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1443,7 +1445,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test300TwoParentOrgRefs";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1505,7 +1507,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test310PreparePasswordStrengthTests";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1559,7 +1561,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test312ChangeUserPassword";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1620,7 +1622,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test314RemovePasswordFail";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1657,7 +1659,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test315RemovePassword";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1704,7 +1706,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test316UserRecompute";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1754,7 +1756,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test318ChangeUserPassword";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1805,7 +1807,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test320ChangeEmployeeNumber";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1838,7 +1840,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test330RemoveEmployeeNumber";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1876,7 +1878,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test340ModifyUserMonkeyPasswordAA";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1912,7 +1914,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test341RecomputeMonkey";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1940,7 +1942,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test342ReconcileMonkey";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -1968,7 +1970,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test343ModifyUserMonkeyDescription";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2004,7 +2006,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test343ModifyUserMonkeyDescription";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2038,7 +2040,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test345AssignMonkeyAccountBlue";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2068,7 +2070,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test346UnassignMonkeyAccountBlue";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2101,7 +2103,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test347AssignMonkeyAccountYellow";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2129,7 +2131,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test348UnassignMonkeyAccountYellow";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2163,7 +2165,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test349AssignMonkeyPirate";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2198,7 +2200,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test350DisableMonkey";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2233,7 +2235,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test351EnableMonkey";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2268,7 +2270,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test352UnassignMonkeyPirate";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2302,7 +2304,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test354ModifyUserMonkeyPasswordValid1";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2330,7 +2332,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test355ModifyUserMonkeyDescriptionAgain";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2357,7 +2359,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test400AddUserRappWithAssignment";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_RAPP_FILE);
@@ -2407,7 +2409,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test401UserRappRecompute";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2448,7 +2450,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test402AssignRappDummyRed";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2512,7 +2514,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test403UserRappRecompute";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2574,7 +2576,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test404InitializeRappDummyRed";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2639,7 +2641,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test405UserRappRecompute";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2702,7 +2704,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test410AssignRappDummyLifecycle";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2749,7 +2751,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test412InitializeRappDummyLifecycle";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2826,7 +2828,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test414UserRappRecompute";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2896,7 +2898,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test416UserRappSubtypeWreck";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -2972,7 +2974,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test420AddUserDrakeWithAssignment";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_DRAKE_FILE);
@@ -3013,7 +3015,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test500JackAssignResourceSouvenir";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3075,7 +3077,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test502JackInitializeAccountSouvenir";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3120,7 +3122,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test510JackAssignResourceMaverick";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3165,7 +3167,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test512JackInitializeAccountMaverick";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3201,7 +3203,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test514JackInitializeAccountMaverickCrododile";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3241,7 +3243,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test516JackChangePasswordResourceMaverickAlligator";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3271,7 +3273,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test518JackChangePasswordResourceMaverickGiantLizard";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3300,7 +3302,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test530JackUnassignResourceSouvenir";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3337,7 +3339,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test532JackChangePasswordResourceBlueAlligator";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3376,7 +3378,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test535ModifyUserJackPasswordAlligator";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3406,7 +3408,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test539JackUnassignResourceMaverick";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3470,7 +3472,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     }
 
     private void testJackManyPasswordChangesAttempt(String TEST_NAME, String passwordPrefix, CredentialsStorageTypeType storageType, int i) throws Exception {
-        Task task = createTask(TEST_NAME + "-" + i);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         String newPassword = passwordPrefix + i;
@@ -3794,7 +3796,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test900ModifyUserElainePassword";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3829,7 +3831,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test900SetPasswordMinAge";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3860,7 +3862,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test904ModifyUserElainePasswordAgain";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3893,7 +3895,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test906ModifyUserElainePasswordLater";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3931,7 +3933,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test910AddUserWithNoPasswordFail";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -3961,7 +3963,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test920AddCredentials";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4001,7 +4003,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test922ReplaceCredentials";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4041,7 +4043,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test924AddPassword";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4078,7 +4080,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test926ReplacePassword";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4115,7 +4117,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test928AddPasswordValue";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4151,7 +4153,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test929ReplacePasswordValue";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4190,7 +4192,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test950RemoveGlobalPasswordPolicy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4228,7 +4230,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test952SetupOrgPolicy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4276,7 +4278,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test954ModifyUserMonkeyPasswordAA";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4311,7 +4313,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test956ModifyUserJackPasswordAA";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4340,7 +4342,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test961RecomputeMonkey";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4368,7 +4370,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test962ReconcileMonkey";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4396,7 +4398,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test964ModifyUserMonkeyLocality";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4430,7 +4432,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test965AssignMonkeyAccountBlue";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4464,7 +4466,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test966AssignMonkeyAccountYellow";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4497,7 +4499,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test970ReapplyGlobalPasswordPolicy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4540,7 +4542,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test970ReapplyGlobalPasswordPolicy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4582,7 +4584,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         final String TEST_NAME = "test970ReapplyGlobalPasswordPolicy";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest();
 
@@ -4615,7 +4617,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 
     private void modifyUserChangePasswordPolicyViolation(String userOid, String newPassword) throws CommonException {
-        Task task = createTask("modifyUserChangePasswordPolicyViolation");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         try {
             modifyUserChangePassword(userOid, newPassword, task, result);

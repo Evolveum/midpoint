@@ -14,7 +14,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -67,7 +66,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         final String TEST_NAME = "test100ImportFromResource";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount accountHerman = new DummyAccount(USER_HERMAN_USERNAME);
@@ -115,7 +114,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         final String TEST_NAME = "test110ModifyAccountTitleCraticAndReconcile";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount accountHerman = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getAccountByUsername(USER_HERMAN_USERNAME);
@@ -143,7 +142,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         final String TEST_NAME = "test112ModifyAccountTitleDidacticGraphicAndReconcile";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyAccount accountHerman = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getAccountByUsername(USER_HERMAN_USERNAME);
@@ -175,7 +174,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.RELATIVE, false);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyGroup dummyGroup = new DummyGroup(GROUP_DUMMY_TESTERS_NAME);
@@ -223,7 +222,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         final String TEST_NAME = "test300ModifyAccountDirectAssign";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -252,7 +251,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyGroup craticGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_CRATIC_NAME);
@@ -304,7 +303,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_TESTERS_NAME, USER_HERMAN_USERNAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -337,7 +336,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         DummyAccount hermanAccount = getDummyAccount(RESOURCE_DUMMY_AUTOGREEN_NAME, USER_HERMAN_USERNAME);
         hermanAccount.removeAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, Arrays.asList("graphic", "cratic"));
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -368,7 +367,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         testersGroup.addMember(USER_HERMAN_USERNAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -398,7 +397,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -426,7 +425,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.FULL, true);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -457,7 +456,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         craticGroup.addMember(USER_HERMAN_USERNAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

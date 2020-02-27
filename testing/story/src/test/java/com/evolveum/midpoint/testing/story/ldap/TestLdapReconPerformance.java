@@ -106,7 +106,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     public void test010GenerateUsers() throws Exception {
         final String TEST_NAME = "test010GenerateUsers";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         long startMillis = System.currentTimeMillis();
@@ -150,7 +150,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
 
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -193,7 +193,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
 
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -271,7 +271,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     }
 
     private long testReconcileLdapRestartWhen(final String TEST_NAME, String taskOid) throws Exception {
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ruinLdapAccounts();
@@ -302,7 +302,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     public void test900Summarize() throws Exception {
         final String TEST_NAME = "test900Summarize";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         StringBuilder sb = new StringBuilder();

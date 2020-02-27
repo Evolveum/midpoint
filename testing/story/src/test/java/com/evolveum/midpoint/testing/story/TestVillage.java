@@ -26,7 +26,6 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
@@ -750,7 +749,7 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test200CreateUserAssignOrgPwdPolicy() throws Exception {
         final String TEST_NAME = "test200CreateUserAssignOrgPwdPolicy";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = new OperationResult(TEST_NAME);
 
         //prepare password policies
@@ -801,7 +800,7 @@ public class TestVillage extends AbstractStoryTest {
         final String TEST_NAME = "test202assignRoleOrgPwdPolicy";
 
         //this will throw exception, if incorrect pwd policy is selected...but some assertion will be nice :)
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assignRole(USER_MIKE_OID, ROLE_BASIC_OID, task, result);
         assertPartialError(result);
@@ -812,7 +811,7 @@ public class TestVillage extends AbstractStoryTest {
     @Test
     public void test300AddProjectJollyRoger() throws Exception {
         final String TEST_NAME = "test300AddProjectJollyRoger";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

@@ -15,7 +15,6 @@ import static org.testng.AssertJUnit.assertNull;
 import java.io.File;
 
 import com.evolveum.midpoint.prism.query.FilterUtil;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -78,7 +77,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
     public void test020ResourcesSanity() throws Exception {
         final String TEST_NAME = "test020ResourcesSanity";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         SearchResultList<PrismObject<ResourceType>> resources = repositoryService.searchObjects(ResourceType.class, null, null, result);
@@ -121,7 +120,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
     public void test500AssignBigmouthRoleOne() throws Exception {
         final String TEST_NAME = "test500AssignBigmouthRoleOne";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_BIGMOUTH_NAME, USER_BIGMOUTH_FULLNAME, true);
@@ -177,7 +176,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
     public void test502RunPropagation() throws Exception {
         final String TEST_NAME = "test502RunPropagation";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT20M");

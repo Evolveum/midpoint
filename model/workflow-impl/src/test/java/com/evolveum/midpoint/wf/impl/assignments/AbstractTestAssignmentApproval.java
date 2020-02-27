@@ -154,7 +154,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     public void test020DeleteRole1Assignment() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -180,7 +180,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     public void test030AddRole1AssignmentAgain() throws Exception {
         login(userAdministrator);
 
-        importLead10(getTask(), getResult());
+        importLead10(getTestTask(), getResult());
 
         executeAssignRole1ToJack(false, false, null, null, false);
     }
@@ -269,7 +269,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     public void test100AddCreateDelegation() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         task.setOwner(userAdministrator);
         OperationResult result = getResult();
 
@@ -294,7 +294,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     public void test130AddRole1aAssignmentWithDeputy() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         importLead1Deputies(task, getResult());
 
         unassignAllRoles(userJackOid);
@@ -431,7 +431,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         if (approverOid == null && expectedCount == 0) {
             return;
         }
-        Task task = createTask("query");
+        Task task = getTestTask();
         ObjectQuery query = prismContext.queryFor(CaseWorkItemType.class)
                 .item(CaseWorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssignees(getUser(approverOid)))
                 .and().item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull()
@@ -572,12 +572,6 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     @Test
     public void test300ApprovalAndEnforce() throws Exception {
         // ignored by default (put here so that zzzMarkAsNotInitialized() will be executed after this one!)
-    }
-
-    @Test
-    public void zzzMarkAsNotInitialized() {
-        display("Setting class as not initialized");
-        unsetSystemInitialized();
     }
 
     private void importLead10(Task task, OperationResult result) throws Exception {

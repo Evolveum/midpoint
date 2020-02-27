@@ -136,7 +136,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test003Connection() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // Check that there is a schema, but no capabilities before test (pre-condition)
@@ -223,7 +223,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test100ListeningForShadowAdd() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // GIVEN
@@ -255,7 +255,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test110ListeningForValueAdd() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         prepareMessage(CHANGE_110);
@@ -293,7 +293,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test112ListeningForValueAddMore() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         prepareMessage(CHANGE_112);
@@ -331,7 +331,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test // MID-5832
     public void test115ListeningForValueDelete() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         prepareMessage(CHANGE_115);
@@ -369,7 +369,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test // MID-5832
     public void test117ListeningForValueReplace() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         prepareMessage(CHANGE_117);
@@ -407,7 +407,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test120ListeningForShadowReplace() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         prepareMessage(CHANGE_120);
@@ -434,7 +434,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test125ListeningForNotificationOnly() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         if (!hasReadCapability()) {
@@ -468,7 +468,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test130ListeningForShadowDelete() throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         prepareMessage(CHANGE_130);

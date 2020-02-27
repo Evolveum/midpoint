@@ -190,7 +190,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         final String TEST_NAME = "test003ConnectionSchemaless";
         TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         // Check that there is no schema before test (pre-condition)
         ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, result)
@@ -267,7 +267,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
     public void resourceStaticSchemaTest(final String TEST_NAME, int expectedConnectorInitCount) throws Exception {
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Some connector initialization and other things might happen in previous tests.
@@ -454,7 +454,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
     public void test040ReAddResourceStaticSchema() throws Exception {
         final String TEST_NAME = "test040ReAddResourceStaticSchema";
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resourceNew = prismContext.parseObject(RESOURCE_DUMMY_STATIC_SCHEMA_FILE);
@@ -509,7 +509,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         final String TEST_NAME = "test103ConnectionStaticSchema";
         TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Check that there a schema before test (pre-condition)

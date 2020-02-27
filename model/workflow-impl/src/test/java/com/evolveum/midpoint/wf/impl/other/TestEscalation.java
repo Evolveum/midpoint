@@ -89,7 +89,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test100CreateE1ApprovalCase() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         assignRole(userJackOid, ROLE_E1_OID, task, result);                // should start approval process
@@ -117,7 +117,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test110NotifyAfter5Days() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         clock.overrideDuration("P5DT1H");            // at P5D there's a notify action
@@ -139,7 +139,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test120EscalateAfter12Days() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         clock.resetOverride();
@@ -161,7 +161,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test130CompleteAfter14Days() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         clock.resetOverride();
@@ -183,7 +183,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test200CreateE2ApprovalCase() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         clock.resetOverride();
@@ -212,7 +212,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test210EscalateAfter3Days() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         dummyAuditService.clear();
@@ -245,7 +245,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test220Reject() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         dummyAuditService.clear();

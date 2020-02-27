@@ -117,7 +117,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
     public void test100ParallelApprovals() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         // WHEN
@@ -165,7 +165,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
     public void test110ParallelApprovalsAdd() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
+        Task task = getTestTask();
         OperationResult result = getResult();
 
         if (listener != null) {
@@ -222,9 +222,9 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 
         String testName = getTestNameShort();
 
-        Task task0 = createTask(testName);
-        Task task1 = createTask(testName);
-        Task task2 = createTask(testName);
+        Task task0 = getTestTask();
+        Task task1 = getTestTask();
+        Task task2 = getTestTask();
         OperationResult result0 = task0.getResult();
         OperationResult result1 = task1.getResult();
         OperationResult result2 = task2.getResult();
@@ -288,10 +288,10 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 
         String testName = getTestNameShort();
 
-        Task task0 = createTask(testName);
-        Task task1 = createTask(testName);
-        Task task2 = createTask(testName);
-        Task task3 = createTask(testName);
+        Task task0 = getTestTask();
+        Task task1 = getTestTask();
+        Task task2 = getTestTask();
+        Task task3 = getTestTask();
         OperationResult result0 = task0.getResult();
         OperationResult result1 = task1.getResult();
         OperationResult result2 = task2.getResult();

@@ -148,7 +148,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     public void test000ClonePerformance() throws SchemaException {
         final String TEST_NAME = "test000ClonePerformance";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
@@ -166,7 +166,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     public void test010Sanity() throws Exception {
         final String TEST_NAME = "test010Sanity";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -190,7 +190,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     public void test020GenerateRoles() throws Exception {
         final String TEST_NAME = "test020GenerateRoles";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -238,7 +238,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     public void test100AddUsers() throws Exception {
         final String TEST_NAME = "test100AddUsers";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -309,7 +309,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -353,7 +353,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -397,7 +397,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -445,7 +445,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -494,7 +494,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -539,7 +539,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     public void test900Summarize() throws Exception {
         final String TEST_NAME = "test900Summarize";
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         StringBuilder sb = new StringBuilder();

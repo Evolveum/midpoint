@@ -60,7 +60,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
     @Test
     public void test100DisableUserDescartes() throws Exception {
         final String TEST_NAME = "test100DisableUserDescartes";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -88,7 +88,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
     @Test
     public void test110DescartesAssignLazyAccount() throws Exception {
         final String TEST_NAME = "test110DescartesAssignLazyAccount";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -116,7 +116,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
     @Test
     public void test112EnableDescartes() throws Exception {
         final String TEST_NAME = "test112EnableDescartes";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -144,7 +144,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
     @Test
     public void test114DisableDescartes() throws Exception {
         final String TEST_NAME = "test112EnableDescartes";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -172,7 +172,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
     @Test
     public void test116ReenableDescartes() throws Exception {
         final String TEST_NAME = "test116ReenableDescartes";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -200,7 +200,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
     @Test
     public void test120DescartesUnassignLazyAccount() throws Exception {
         final String TEST_NAME = "test120DescartesUnassignLazyAccount";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -228,7 +228,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
     @Test
     public void test129DeleteDescartes() throws Exception {
         final String TEST_NAME = "test129DeleteDescartes";
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

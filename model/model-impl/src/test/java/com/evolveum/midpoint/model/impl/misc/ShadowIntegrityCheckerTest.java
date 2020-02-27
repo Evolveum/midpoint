@@ -69,7 +69,7 @@ public class ShadowIntegrityCheckerTest extends AbstractInternalModelIntegration
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         login(userAdministrator);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN

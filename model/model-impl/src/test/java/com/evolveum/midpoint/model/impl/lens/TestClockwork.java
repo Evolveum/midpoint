@@ -92,7 +92,7 @@ public class TestClockwork extends AbstractLensTest {
         final String TEST_NAME = "test010SerializeAddUserBarbossa";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -133,7 +133,7 @@ public class TestClockwork extends AbstractLensTest {
         try {
 
             // GIVEN
-            Task task = createTask(TEST_NAME);
+            Task task = getTestTask();
             OperationResult result = task.getResult();
 
             LensContext<UserType> context = createJackAssignAccountContext(result);
@@ -209,7 +209,7 @@ public class TestClockwork extends AbstractLensTest {
         final String TEST_NAME = "test053ModifyUserBarbossaDisable";
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -265,7 +265,7 @@ public class TestClockwork extends AbstractLensTest {
     private void assignAccountToJackAsync(String testName, boolean serialize) throws Exception {
 
         // GIVEN
-        Task task = createTask(testName);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
