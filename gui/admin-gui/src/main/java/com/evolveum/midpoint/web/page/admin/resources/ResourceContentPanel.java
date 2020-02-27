@@ -14,6 +14,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.QueryFactory;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -322,72 +324,21 @@ public abstract class ResourceContentPanel extends Panel {
             }
         });
 
-        OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
-
-        List<PrismObject<TaskType>> importTasks = WebModelServiceUtils
-                .searchObjects(TaskType.class,
-                        getPageBase().getPrismContext().queryFor(TaskType.class)
-                                .block()
-                                .item(TaskType.F_OBJECT_REF).ref(getResourceModel().getObject().getOid())
-                                .and()
-                                .item(TaskType.F_CATEGORY).eq(TaskCategory.IMPORTING_ACCOUNTS)
-                                .endBlock()
-//                                .or() //todo uncomment when archetype oid is fixed
-//                                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value()) //TODO fix archetype ref
-                                .build(),
-                        result, getPageBase());
-
-        List<PrismObject<TaskType>> reconTasks = WebModelServiceUtils
-                .searchObjects(TaskType.class,
-                        getPageBase().getPrismContext().queryFor(TaskType.class)
-                                .block()
-                                .item(TaskType.F_OBJECT_REF).ref(getResourceModel().getObject().getOid())
-                                .and()
-                                .item(TaskType.F_CATEGORY).eq(TaskCategory.RECONCILIATION)
-                                .endBlock()
-                                .or()
-                                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value())
-                                .build(),
-                        result, getPageBase());
-
-        List<PrismObject<TaskType>> syncTasks = WebModelServiceUtils
-                .searchObjects(TaskType.class,
-                        getPageBase().getPrismContext().queryFor(TaskType.class)
-                                .block()
-                                .item(TaskType.F_OBJECT_REF).ref(getResourceModel().getObject().getOid())
-                                .and()
-                                .item(TaskType.F_CATEGORY).eq(TaskCategory.LIVE_SYNCHRONIZATION)
-                                .endBlock()
-//                                .or() //todo uncomment when archetype oid is fixed
-//                                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value()) //TODO fix archetype ref
-                                .build(),
-                        result, getPageBase());
-
-//        List<TaskType> tasksForKind = getTasksForKind(importTasks);
-
-//        List<TaskType> importTasks = new ArrayList<>();
-//        List<TaskType> syncTasks = new ArrayList<>();
-//        List<TaskType> reconTasks = new ArrayList<>();
-//        for (TaskType task : tasksForKind) {
-//            if (TaskCategory.RECONCILIATION.equals(task.getCategory())) {
-//                reconTasks.add(task);
-//            } else if (TaskCategory.LIVE_SYNCHRONIZATION.equals(task.getCategory())) {
-//                syncTasks.add(task);
-//            } else if (TaskCategory.IMPORTING_ACCOUNTS.equals(task.getCategory())) {
-//                importTasks.add(task);
-//            }
-//        }
-        initButton(ID_IMPORT, "Import", " fa-download", TaskCategory.IMPORTING_ACCOUNTS, "", getTasksForKind(importTasks));
-        initButton(ID_RECONCILIATION, "Reconciliation", " fa-link", TaskCategory.RECONCILIATION, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(), getTasksForKind(reconTasks));
-        initButton(ID_LIVE_SYNC, "Live Sync", " fa-refresh", TaskCategory.LIVE_SYNCHRONIZATION, "", getTasksForKind(syncTasks));
+        initButton(ID_IMPORT, "Import", " fa-download", TaskCategory.IMPORTING_ACCOUNTS, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
+        initButton(ID_RECONCILIATION, "Reconciliation", " fa-link", TaskCategory.RECONCILIATION, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value());
+        initButton(ID_LIVE_SYNC, "Live Sync", " fa-refresh", TaskCategory.LIVE_SYNCHRONIZATION, SystemObjectsType.ARCHETYPE_LIVE_SYNCH_TASK.value());
 
         initCustomLayout();
     }
 
     protected abstract void initShadowStatistics(WebMarkupContainer totals);
 
-    private void initButton(String id, String label, String icon, final String category, final String archetypeOid,
-            final List<TaskType> tasks) {
+    private void initButton(String id, String label, String icon, String category, String archetypeOid) {
+
+        ObjectQuery existingTasksQuery = getExistingTasksQuery(archetypeOid);
+        OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
+        List<PrismObject<TaskType>> tasksList = WebModelServiceUtils.searchObjects(TaskType.class, existingTasksQuery,
+                result, getPageBase());
 
         List<InlineMenuItem> items = new ArrayList<>();
 
@@ -402,7 +353,8 @@ public abstract class ResourceContentPanel extends Panel {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        runTask(tasks, target);
+                        List<TaskType> filteredByKindIntentTasks = getTasksForKind(tasksList);
+                        redirectToTasksListPage(createInTaskOidQuery(filteredByKindIntentTasks), archetypeOid, target);
                     }
                 };
             }
@@ -427,7 +379,7 @@ public abstract class ResourceContentPanel extends Panel {
         items.add(item);
 
         DropdownButtonPanel button = new DropdownButtonPanel(id,
-                new DropdownButtonDto(String.valueOf(tasks.size()), icon, label, items)) {
+                new DropdownButtonDto(String.valueOf(tasksList != null ? tasksList.size() : 0), icon, label, items)) {
             @Override
             protected String getSpecialDropdownMenuClass() {
                 return "pull-left";
@@ -472,12 +424,41 @@ public abstract class ResourceContentPanel extends Panel {
         setResponsePage(new PageTask(taskType.asPrismObject(), true));
     }
 
-    private void runTask(List<TaskType> tasks, AjaxRequestTarget target) {
+    private ObjectQuery createInTaskOidQuery(List<TaskType> tasksList){
+        if (tasksList == null){
+            return null;
+        }
+        List<String> taskOids = new ArrayList<>();
+        tasksList.forEach(task -> taskOids.add(task.getOid()));
+        return getPageBase().getPrismContext().queryFor(TaskType.class)
+                .id(taskOids.toArray(new String[0]))
+                .build();
+    }
+    private void redirectToTasksListPage(ObjectQuery tasksQuery, String archetypeOid, AjaxRequestTarget target) {
+        String taskCollectionViewName = getTaskCollectionViewNameByArchetypeOid(archetypeOid);
+        PageParameters pageParameters = new PageParameters();
+        if (StringUtils.isNotEmpty(taskCollectionViewName)){
+            pageParameters.add(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, taskCollectionViewName);
+            PageTasks pageTasks = new PageTasks(tasksQuery, pageParameters);
+            getPageBase().setResponsePage(pageTasks);
+        } else {
+            getPageBase().setResponsePage(PageTasks.class);
+        }
 
-        ResourceTasksPanel tasksPanel = new ResourceTasksPanel(getPageBase().getMainPopupBodyId(),
-                new ListModel<TaskType>(tasks), getPageBase());
-        getPageBase().showMainPopup(tasksPanel, target);
+    }
 
+    private String getTaskCollectionViewNameByArchetypeOid(String archetypeOid) {
+        if (StringUtils.isEmpty(archetypeOid)) {
+            return "";
+        }
+        List<CompiledObjectCollectionView> taskCollectionViews =
+                getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(TaskType.COMPLEX_TYPE);
+        for (CompiledObjectCollectionView view : taskCollectionViews) {
+            if (archetypeOid.equals(view.getCollection().getCollectionRef().getOid())) {
+                return view.getViewIdentifier();
+            }
+        }
+        return "";
     }
 
     private List<TaskType> getTasksForKind(List<PrismObject<TaskType>> tasks) {
@@ -1165,6 +1146,32 @@ public abstract class ResourceContentPanel extends Panel {
             selectedShadow = getTable().getSelectedObjects();
         }
         return selectedShadow;
+    }
+
+    private ObjectQuery getExistingTasksQuery(String archetypeRefOid){
+        return getPageBase().getPrismContext().queryFor(TaskType.class)
+                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(archetypeRefOid)
+                .build();
+    }
+
+    private QName getTaskObjectClass(){
+        QName objectClass = getObjectClass();
+        if (objectClass == null) {
+            LOGGER.trace("Trying to determine objectClass for kind: {}, intent: {}", getKind(), getIntent());
+            RefinedObjectClassDefinition objectClassDef = null;
+            try {
+                objectClassDef = getDefinitionByKind();
+            } catch (SchemaException e) {
+                LOGGER.error("Failed to search for objectClass definition. Reason: {}", e.getMessage(), e);
+            }
+            if (objectClassDef == null) {
+                LOGGER.warn("Cannot find any definition for kind: {}, intent: {}", getKind(), getIntent());
+                return null;
+            }
+
+            objectClass = objectClassDef.getTypeName();
+        }
+        return objectClass;
     }
 
     protected abstract GetOperationOptionsBuilder addAdditionalOptions(GetOperationOptionsBuilder builder);
