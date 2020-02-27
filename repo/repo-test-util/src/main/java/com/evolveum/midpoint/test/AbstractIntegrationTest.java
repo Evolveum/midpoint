@@ -1759,12 +1759,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         return prismContext.parseObject(file);
     }
 
+    /**
+     * Displays "when" subsection header with test name.
+     * Even better, use {@link #displayWhen(String)} and provide human readable description.
+     */
     protected void displayWhen() {
         displayWhen(getTestNameShort());
     }
 
-    protected void displayWhen(String testName) {
-        TestUtil.displayWhen(testName);
+    /**
+     * Displays "when" subsection header with test name and provided description (nullable).
+     */
+    protected void displayWhen(String description) {
+        TestUtil.displayWhen(getTestNameShort(), description);
     }
 
     protected void displayWhen(String testName, String stage) {

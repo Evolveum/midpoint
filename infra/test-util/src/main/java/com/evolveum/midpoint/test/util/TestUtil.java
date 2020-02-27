@@ -179,16 +179,21 @@ public class TestUtil {
         LOGGER.info(TEST_LOG_PREFIX + footerText + TEST_LOG_SUFFIX);
     }
 
-    public static void displayWhen(String testName) {
-        System.out.println(TEST_OUT_SECTION_PREFIX + " WHEN " + testName + TEST_OUT_SECTION_SUFFIX);
-        LOGGER.info(TEST_LOG_SECTION_PREFIX + " WHEN " + testName + TEST_LOG_SECTION_SUFFIX);
+    @Deprecated // use version with separate testName and description
+    public static void displayWhen(String what) {
+        System.out.println(TEST_OUT_SECTION_PREFIX + " WHEN " + what + TEST_OUT_SECTION_SUFFIX);
+        LOGGER.info(TEST_LOG_SECTION_PREFIX + " WHEN " + what + TEST_LOG_SECTION_SUFFIX);
     }
 
     public static void displayWhen(String testName, String part) {
-        System.out.println(TEST_OUT_SECTION_PREFIX + " WHEN " + testName + " (" + part + ")" + TEST_OUT_SECTION_SUFFIX);
-        LOGGER.info(TEST_LOG_SECTION_PREFIX + " WHEN " + testName + " (" + part + ")" + TEST_LOG_SECTION_SUFFIX);
+        if (part == null) {
+            part = "";
+        }
+        System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": WHEN " + part + TEST_OUT_SECTION_SUFFIX);
+        LOGGER.info(TEST_LOG_SECTION_PREFIX + testName + ": WHEN " + part + TEST_LOG_SECTION_SUFFIX);
     }
 
+    // TODO change like when
     public static void displayThen(String testName) {
         System.out.println(TEST_OUT_SECTION_PREFIX + " THEN " + testName + TEST_OUT_SECTION_SUFFIX);
         LOGGER.info(TEST_LOG_SECTION_PREFIX + " THEN " + testName + TEST_LOG_SECTION_SUFFIX);
@@ -659,6 +664,7 @@ public class TestUtil {
 
     public static ParallelTestThread[] multithread(final String TEST_NAME, MultithreadRunner lambda, int numberOfThreads, Integer randomStartDelayRange) {
         ParallelTestThread[] threads = new ParallelTestThread[numberOfThreads];
+        System.out.println("Going to create " + numberOfThreads + " threads...");
         for (int i = 0; i < numberOfThreads; i++) {
             threads[i] = new ParallelTestThread(i,
                     (ii) -> {
