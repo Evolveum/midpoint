@@ -131,7 +131,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     protected static final String OPENDJ_PEOPLE_SUFFIX = "ou=people,dc=example,dc=com";
     protected static final String OPENDJ_GROUPS_SUFFIX = "ou=groups,dc=example,dc=com";
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractIntegrationTest.class);
+    /**
+     * Hides parent's logger, but that one is from commons-logging and we don't want that.
+     */
+    protected final Trace logger = TraceManager.getTrace(getClass());
 
     protected static final Random RND = new Random();
 
@@ -190,7 +193,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
      */
     @PostConstruct
     public void initSystemConditional() throws Exception {
-        LOGGER.trace("initSystemConditional: initializing class {}", getClass().getName());
+        logger.trace("initSystemConditional: initializing class {}", getClass().getName());
 
         // Check whether we are already initialized
         assertNotNull("Repository is not wired properly", repositoryService);
@@ -387,7 +390,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
                 + ".repoAddObjectFromFile");
         result.addParam("file", file.getPath());
-        LOGGER.debug("addObjectFromFile: {}", file);
+        logger.debug("addObjectFromFile: {}", file);
         PrismObject<T> object;
         try {
             object = prismContext.parseObject(file);
@@ -399,7 +402,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
             addBasicMetadata(object);
         }
 
-        LOGGER.trace("Adding object:\n{}", object.debugDump());
+        logger.trace("Adding object:\n{}", object.debugDump());
         repoAddObject(object, "from file " + file, result);
         result.recordSuccess();
         return object;
@@ -411,7 +414,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
                 + ".repoAddShadowFromFile");
         result.addParam("file", file.getPath());
-        LOGGER.debug("addShadowFromFile: {}", file);
+        logger.debug("addShadowFromFile: {}", file);
         PrismObject<ShadowType> object = prismContext.parseObject(file);
 
         PrismContainer<Containerable> attrCont = object.findContainer(ShadowType.F_ATTRIBUTES);
@@ -425,7 +428,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
         addBasicMetadata(object);
 
-        LOGGER.trace("Adding object:\n{}", object.debugDump());
+        logger.trace("Adding object:\n{}", object.debugDump());
         repoAddObject(object, "from file " + file, result);
         result.recordSuccess();
         return object;
@@ -482,7 +485,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
                 + ".addObjectsFromFile");
         result.addParam("file", file.getPath());
-        LOGGER.trace("addObjectsFromFile: {}", file);
+        logger.trace("addObjectsFromFile: {}", file);
         List<PrismObject<T>> objects = (List) prismContext.parserFor(file).parseObjects();
         for (PrismObject<T> object : objects) {
             try {
@@ -506,7 +509,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         OperationResult result = parentResult.createSubresult(
                 AbstractIntegrationTest.class.getName() + ".addObjectsFromFile");
         result.addParam("file", file.getPath());
-        LOGGER.trace("addObjectsFromFile: {}", file);
+        logger.trace("addObjectsFromFile: {}", file);
         List<PrismObject> objects = (List) prismContext.parserFor(file).parseObjects();
         for (PrismObject object : objects) {
             try {
@@ -564,7 +567,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     protected PrismObject<ResourceType> addResourceFromFile(File file, List<String> connectorTypes, boolean overwrite, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
-        LOGGER.trace("addObjectFromFile: {}, connector types {}", file, connectorTypes);
+        logger.trace("addObjectFromFile: {}, connector types {}", file, connectorTypes);
         PrismObject<ResourceType> resource = prismContext.parseObject(file);
         return addResourceFromObject(resource, connectorTypes, overwrite, result);
     }
@@ -1647,15 +1650,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         for (TrustManager trustManager : trustManagerFactory.getTrustManagers()) {
             if (trustManager instanceof X509TrustManager) {
                 X509TrustManager x509TrustManager = (X509TrustManager) trustManager;
-                LOGGER.debug("TrustManager(X509): {}", x509TrustManager);
+                logger.debug("TrustManager(X509): {}", x509TrustManager);
                 X509Certificate[] acceptedIssuers = x509TrustManager.getAcceptedIssuers();
                 if (acceptedIssuers != null) {
                     for (X509Certificate acceptedIssuer : acceptedIssuers) {
-                        LOGGER.debug("    acceptedIssuer: {}", acceptedIssuer);
+                        logger.debug("    acceptedIssuer: {}", acceptedIssuer);
                     }
                 }
             } else {
-                LOGGER.debug("TrustManager: {}", trustManager);
+                logger.debug("TrustManager: {}", trustManager);
             }
         }
     }
@@ -2391,7 +2394,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
             if (mutator != null) {
                 mutator.accept(objectType, i);
             }
-            LOGGER.info("Adding {}:\n{}", object, object.debugDump(1));
+            logger.info("Adding {}:\n{}", object, object.debugDump(1));
             adder.process(object);
         }
 
@@ -2617,9 +2620,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         OperationResult result = new OperationResult("getShadowRepo");
         // We need to read the shadow as raw, so repo will look for some kind of rudimentary attribute
         // definitions here. Otherwise we will end up with raw values for non-indexed (cached) attributes
-        LOGGER.info("Getting repo shadow {}", shadowOid);
+        logger.info("Getting repo shadow {}", shadowOid);
         PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowOid, GetOperationOptions.createRawCollection(), result);
-        LOGGER.info("Got repo shadow\n{}", shadow.debugDumpLazily(1));
+        logger.info("Got repo shadow\n{}", shadow.debugDumpLazily(1));
         assertSuccess(result);
         return shadow;
     }
