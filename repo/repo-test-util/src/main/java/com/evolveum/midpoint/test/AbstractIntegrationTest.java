@@ -1868,6 +1868,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         IntegrationTestTools.display(title, e);
     }
 
+    public static void displayExpectedException(Throwable e) {
+        IntegrationTestTools.displayExpectedException(e);
+    }
+
     public static void displayPrismValuesCollection(String message, Collection<? extends PrismValue> collection) {
         IntegrationTestTools.displayPrismValuesCollection(message, collection);
     }

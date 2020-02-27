@@ -531,11 +531,23 @@ public class IntegrationTestTools {
         }
     }
 
+    /**
+     * Displays throwable with title including full stacktrace.
+     * Use for "bad" exceptions, for expected exceptions use {@link #displayExpectedException}.
+     */
     public static void display(String title, Throwable e) {
         String stackTrace = ExceptionUtils.getStackTrace(e);
         println(OBJECT_TITLE_OUT_PREFIX + title + ": "+e.getClass() + " " + e.getMessage());
         println(stackTrace);
         LOGGER.debug("{}{}: {} {}\n{}", OBJECT_TITLE_LOG_PREFIX, title, e.getClass(), e.getMessage(), stackTrace);
+    }
+
+    /**
+     * Displays expected exception without stacktrace (seeing it is rather confusing/disturbing).
+     */
+    public static void displayExpectedException(Throwable e) {
+        println(OBJECT_TITLE_OUT_PREFIX + "Expected exception: " + e.getClass() + " " + e.getMessage());
+        LOGGER.debug("{}Expected exception: {} {}", OBJECT_TITLE_LOG_PREFIX, e.getClass(), e.getMessage());
     }
 
     public static void displayPrismValuesCollection(String message, Collection<? extends PrismValue> collection) {
