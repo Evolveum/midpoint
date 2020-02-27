@@ -321,7 +321,7 @@ public class IntegrationTestTools {
     public static void assertProvisioningShadow(PrismObject<ShadowType> account, ResourceType resourceType,
                                                        Class<?> expetcedAttributeDefinitionClass, QName objectClass) {
         // Check attribute definition
-        PrismContainer attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
+        PrismContainer<?> attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
         PrismAsserts.assertClass("Wrong attributes container class", ResourceAttributeContainer.class, attributesContainer);
         ResourceAttributeContainer rAttributesContainer = (ResourceAttributeContainer)attributesContainer;
         PrismContainerDefinition attrsDef = attributesContainer.getDefinition();

@@ -242,7 +242,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         }
     }
 
-    private void checkContainersSize(PrismContainer newContainer, PrismContainer oldContainer) {
+    private void checkContainersSize(PrismContainer<?> newContainer, PrismContainer<?> oldContainer) {
         LOGGER.info("checkContainersSize {} new {}  old {}",
                 newContainer.getElementName(), newContainer.size(), oldContainer.size());
         AssertJUnit.assertEquals(newContainer.size(), oldContainer.size());
@@ -253,16 +253,14 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             return;
         }
         List<Long> checked = new ArrayList<>();
-        List<PrismContainerValue> newValues = newContainer.getValues();
-        for (PrismContainerValue value : newValues) {
+        for (PrismContainerValue value : newContainer.getValues()) {
             PrismContainerValue oldValue = oldContainer.getValue(value.getId());
 
             checkContainerValuesSize(newContainer.getElementName(), value, oldValue);
             checked.add(value.getId());
         }
 
-        List<PrismContainerValue> oldValues = oldContainer.getValues();
-        for (PrismContainerValue value : oldValues) {
+        for (PrismContainerValue value : oldContainer.getValues()) {
             if (checked.contains(value.getId())) {
                 continue;
             }
