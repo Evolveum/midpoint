@@ -30,7 +30,7 @@
     "Quick" build with unit tests only and checkstyle (~30m):
     mvn clean install -P -dist -DskipITs -Dmaven.javadoc.skip
 
-    "Quick" build with smaller integration test set and output to stdout (~1h20m):
+    "Quick" build with smaller integration test (~1h20m):
     mvn clean install -P -dist -DintegrationTestSuite=fast -Dmaven.javadoc.skip
 
     Running tests of a selected module (-pl) with output to stdout (don't use stdout for complete build, it's too much):
