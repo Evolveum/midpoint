@@ -139,7 +139,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         showResult(result);
         getObjectModel().reset();
         refresh(target);
-        target.add(PageTask.this);
     }
 
 
@@ -521,6 +520,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 //        getObjectModel().reset();
         target.add(getSummaryPanel());
         target.add(getOperationalButtonsPanel());
+        target.add(getFeedbackPanel());
+        target.add(getMainPanel());
 
         for (Component component : getMainPanel().getTabbedPanel()) {
             if (component instanceof TaskTabPanel) {

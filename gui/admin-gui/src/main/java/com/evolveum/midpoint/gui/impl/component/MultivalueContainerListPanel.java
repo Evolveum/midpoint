@@ -455,7 +455,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
         return performedItems;
     }
 
-    //TODO generalize for properites
+    //TODO generalize for properties
     public PrismContainerValueWrapper<C> createNewItemContainerValueWrapper(
             PrismContainerValue<C> newItem,
             PrismContainerWrapper<C> model, AjaxRequestTarget target) {
