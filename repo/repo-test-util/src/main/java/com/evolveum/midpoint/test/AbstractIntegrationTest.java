@@ -2003,7 +2003,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest {
     }
 
     protected Task createTracedTask(String operationName) {
-        Task task = getTestTask();
+        Task task = createTask(operationName);
         task.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
         task.setTracingProfile(new TracingProfileType()
                 .collectLogEntries(true)
