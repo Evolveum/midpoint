@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.schrodinger;
 
-import java.io.IOException;
-
 import com.codeborne.selenide.Configuration;
 import org.apache.commons.lang3.Validate;
 
@@ -20,16 +18,17 @@ import com.evolveum.midpoint.schrodinger.page.login.SamlSelectPage;
  */
 public class MidPoint {
 
-    private static EnvironmentConfiguration configuration;
-
     public static final long TIMEOUT_DEFAULT_2_S = 2000;
+
     public static final long TIMEOUT_MEDIUM_6_S = 6000;
+
     public static final long TIMEOUT_LONG_1_M = 60000;
+
     public static final long TIMEOUT_EXTRA_LONG_1_M = 180000;
 
-    private String baseUrl;
+    private static EnvironmentConfiguration configuration;
 
-    public MidPoint(EnvironmentConfiguration configuration) throws IOException {
+    public MidPoint(EnvironmentConfiguration configuration) {
         Validate.notNull(configuration, "Environment configuration must not be null");
 
         this.configuration = configuration;
@@ -37,8 +36,7 @@ public class MidPoint {
         init();
     }
 
-    private void init() throws IOException {
-        configuration.baseUrl(baseUrl);
+    private void init() {
         configuration.validate();
 
         System.setProperty(configuration.getDriver().getDriver(), configuration.getDriverLocation());
