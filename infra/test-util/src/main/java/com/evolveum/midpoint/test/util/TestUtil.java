@@ -185,12 +185,12 @@ public class TestUtil {
         LOGGER.info(TEST_LOG_SECTION_PREFIX + " WHEN " + what + TEST_LOG_SECTION_SUFFIX);
     }
 
-    public static void displayWhen(String testName, String part) {
-        if (part == null) {
-            part = "";
+    public static void displayWhen(String testName, String description) {
+        if (description == null) {
+            description = "";
         }
-        System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": WHEN " + part + TEST_OUT_SECTION_SUFFIX);
-        LOGGER.info(TEST_LOG_SECTION_PREFIX + testName + ": WHEN " + part + TEST_LOG_SECTION_SUFFIX);
+        System.out.println(TEST_OUT_SECTION_PREFIX + testName + ": WHEN " + description + TEST_OUT_SECTION_SUFFIX);
+        LOGGER.info(TEST_LOG_SECTION_PREFIX + testName + ": WHEN " + description + TEST_LOG_SECTION_SUFFIX);
     }
 
     // TODO change like when
