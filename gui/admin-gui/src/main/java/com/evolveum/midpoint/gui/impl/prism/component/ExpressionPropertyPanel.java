@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.prism.component;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
+import com.evolveum.midpoint.gui.impl.factory.ExpressionModel;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.*;
@@ -20,6 +21,9 @@ import com.evolveum.midpoint.web.component.input.SimpleValueExpressionPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import org.apache.commons.collections.CollectionUtils;
@@ -99,7 +103,15 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
             expressionPanel.add(new VisibleBehaviour(() -> isExpanded));
             item.add(expressionPanel);
         } else {
-            expressionPanel = new TextPanel<ExpressionType>(ID_EXPRESSION_PANEL, Model.of(getModelObject().getItem().getRealValue()));
+            ItemRealValueModel<ExpressionType> realValueModel = new ItemRealValueModel<ExpressionType>(item.getModel());
+            expressionPanel  =  new AceEditorPanel(ID_EXPRESSION_PANEL, null, new ExpressionModel(realValueModel, getPageBase()), 200){
+                @Override
+                protected boolean isResizeToMaxHeight() {
+                    return false;
+                }
+            };
+            ((AceEditorPanel)expressionPanel).getEditor().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+            ((AceEditorPanel)expressionPanel).getEditor().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
             expressionPanel.add(new VisibleBehaviour(() -> isExpanded));
             item.add(expressionPanel);
         }

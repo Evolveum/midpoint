@@ -2450,8 +2450,6 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test800NullTimeFrom() throws Exception {
         // GIVEN
-        Task task = getTestTask();
-        OperationResult result = getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
@@ -2506,7 +2504,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test804PreKaboom";
 
         // GIVEN
-        clockForward("P2D");
+        clockForward("P2D");        // total override is realTime + 2D
 
         // WHEN
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
@@ -2528,7 +2526,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test808Kaboom";
 
         // GIVEN
-        clockForward("P1M");
+        clockForward("P1M");        // total override is realTime + 2D + 1M
 
         // WHEN
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
@@ -2541,7 +2539,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .end()
             .triggers()
                 .single()
-                    // Trigger for "tales bomb" mapping (see below)
+                    // Trigger for "tales bomb" mapping (see below) - it was computed as funeralTimestamp + 3M
+                    // (i.e. should be approximately equal to clock + 2M - 2D, because clock = realTime + 2D + 1M)
                     .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
                     .assertTimestampFuture("P2M", 5*24*60*60*1000L);
     }
@@ -2557,7 +2556,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         final String TEST_NAME = "test810PreTalesBomb";
 
         // GIVEN
-        clockForward("P1D");
+        clockForward("P1D");        // total override is realTime + 2D + 1M + 1D
 
         // WHEN
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
@@ -2571,8 +2570,18 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .end()
             .triggers()
                 .single()
+                    // Trigger for "tales bomb" mapping - it was computed as funeralTimestamp + 3M
+                    // (i.e. should be approximately equal to clock + 2M - 3D, because clock = realTime + 2D + 1M + 1D)
+                    //
+                    // We need to set a tolerance bigger than 5 days here, because e.g. on Feb 28th 2020 the situation is as follows:
+                    // - trigger time = 2020-05-28T00:00:00.000+01:00 (3M after funeral i.e. realTime rounded down to midnight)
+                    // - clock = 2020-04-02T12:55:20.299+02:00 (realTime + 2D + 1M + 1D)
+                    // - clock+2M (expected time) = 2020-06-02T12:55:20.299+02:00
+                    // - clock+2M - 5 days (lower tolerance interval border) = 2020-05-28T12:55:21.979+02:00 that is after funeralTimestamp!
+                    //
+                    // So setting the tolerance to 7 days should be good enough.
                     .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                    .assertTimestampFuture("P2M", 5*24*60*60*1000L);
+                    .assertTimestampFuture("P2M", 7*24*60*60*1000L);
     }
 
     /**
