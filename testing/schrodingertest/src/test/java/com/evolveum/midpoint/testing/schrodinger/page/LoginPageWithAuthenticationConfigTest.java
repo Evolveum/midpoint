@@ -61,7 +61,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         SystemPage systemPage = new SystemPage();
         PrismForm<InfrastructureTab> infrastructureForm = systemPage.infrastructureTab().form();
         infrastructureForm.showEmptyAttributes("Infrastructure");
-        infrastructureForm.addAttributeValue("defaultHostname", midPoint.getBaseUrl());
+        infrastructureForm.addAttributeValue("defaultHostname", getConfiguration().getBaseUrl());
         File notificationFile = NOTIFICATION_FILE;
         notificationFile.createNewFile();
         NotificationsTab notificationTab = systemPage.notificationsTab();

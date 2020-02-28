@@ -6,18 +6,18 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
-import com.codeborne.selenide.Selenide;
-import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
-import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
-import com.evolveum.midpoint.schrodinger.page.user.UserPage;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.sleep;
 
 import java.io.File;
 
-import static com.codeborne.selenide.Selenide.open;
-import static com.codeborne.selenide.Selenide.sleep;
+import com.codeborne.selenide.Selenide;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+import com.evolveum.midpoint.testing.schrodinger.TestBase;
 
 public class PostAuthenticationTests extends TestBase {
 
@@ -115,7 +115,7 @@ public class PostAuthenticationTests extends TestBase {
         Selenide.refresh();
 
         midPoint.formLogin()
-                .loginWithReloadLoginPage(midPoint.getUsername(),midPoint.getPassword());
+                .loginWithReloadLoginPage(getUsername(), getPassword());
 
         //todo midpoint opens the previous page before logout
         open("/self/dashboard");

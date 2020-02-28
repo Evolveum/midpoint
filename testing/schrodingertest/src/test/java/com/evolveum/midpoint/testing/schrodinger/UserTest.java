@@ -73,7 +73,7 @@ public class UserTest extends TestBase {
 
         basicPage.loggedUser().logout();
         FormLoginPage loginPage = midPoint.formLogin();
-        loginPage.loginWithReloadLoginPage(midPoint.getUsername(),midPoint.getPassword(), LOCALIZATION_VALUE);
+        loginPage.loginWithReloadLoginPage(getUsername(), getPassword(), LOCALIZATION_VALUE);
 
         ListUsersPage usersPage = basicPage.listUsers();
         Assert.assertTrue(
