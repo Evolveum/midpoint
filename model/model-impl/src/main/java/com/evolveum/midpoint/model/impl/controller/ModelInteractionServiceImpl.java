@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
@@ -84,20 +85,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.security.GuiProfileCompiler;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
@@ -271,6 +258,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
         OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
         PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone(true, schemaTransformer::setFullAccessFlags );
+        MutablePrismContainerDefinition<O> mutableObjectDefinition = objectDefinition.toMutable();
 
         try {
 
@@ -298,7 +286,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(object, result);
                 if (archetypePolicy != null) {
 
-                    schemaTransformer.applyItemsConstraints(objectDefinition, archetypePolicy, result);
+                    schemaTransformer.applyItemsConstraints(mutableObjectDefinition, archetypePolicy, result);
 
                     ObjectReferenceType objectTemplateRef = archetypePolicy.getObjectTemplateRef();
                     if (objectTemplateRef != null) {

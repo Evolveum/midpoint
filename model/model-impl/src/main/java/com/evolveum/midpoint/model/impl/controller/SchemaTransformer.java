@@ -796,7 +796,7 @@ public class SchemaTransformer {
         }
     }
 
-    public <O extends ObjectType> void applyItemsConstraints(PrismObjectDefinition<O> objectDefinition, ArchetypePolicyType archetypePolicy, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    public <O extends ObjectType> void applyItemsConstraints(MutablePrismContainerDefinition<O> objectDefinition, ArchetypePolicyType archetypePolicy, OperationResult result) throws ObjectNotFoundException, SchemaException {
         if (archetypePolicy == null) {
             return;
         }
@@ -833,6 +833,7 @@ public class SchemaTransformer {
                 PrismContainerDefinition subContainerDef = (PrismContainerDefinition)subDefinition;
                 UserInterfaceElementVisibilityType itemVisibility = reduceItems(subContainerDef, itemPath, visibilityMap);
                 if (subContainerDef.isEmpty() && itemVisibility != UserInterfaceElementVisibilityType.VISIBLE) {
+                    subDefinition.toMutable().set
                     iterator.remove();
                 }
             } else {
