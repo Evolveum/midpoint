@@ -16,9 +16,10 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
+import java.util.function.Predicate;
 
 /**
- * @author mederly
+ *
  */
 public interface OrgStructFunctions {
 
@@ -48,6 +49,8 @@ public interface OrgStructFunctions {
 
     OrgType getParentOrgByOrgType(ObjectType object, String orgType, boolean preAuthorized) throws SchemaException, SecurityViolationException;
 
+    OrgType getParentOrgByArchetype(ObjectType object, String archetypeOid, boolean preAuthorized) throws SchemaException, SecurityViolationException;
+
     Collection<OrgType> getParentOrgsByRelation(ObjectType object, QName relation, boolean preAuthorized) throws SchemaException, SecurityViolationException;
 
     Collection<OrgType> getParentOrgsByRelation(ObjectType object, String relation, boolean preAuthorized) throws SchemaException, SecurityViolationException;
@@ -57,6 +60,9 @@ public interface OrgStructFunctions {
     Collection<OrgType> getParentOrgs(ObjectType object, String relation, String orgType, boolean preAuthorized) throws SchemaException, SecurityViolationException;
 
     Collection<OrgType> getParentOrgs(ObjectType object, QName relation, String orgType, boolean preAuthorized) throws SchemaException, SecurityViolationException;
+
+    Collection<OrgType> getParentOrgs(ObjectType object, QName relation, @NotNull Predicate<OrgType> predicate, boolean preAuthorized)
+            throws SchemaException, SecurityViolationException;
 
     Collection<UserType> getManagersOfOrg(String orgOid, boolean preAuthorized) throws SchemaException, SecurityViolationException;
 

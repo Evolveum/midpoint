@@ -449,7 +449,7 @@ public class GuiProfileCompiler {
 
     private void joinForms(ObjectFormsType objectForms, ObjectFormType newForm) {
         objectForms.getObjectForm().removeIf(currentForm -> isTheSameObjectForm(currentForm, newForm));
-        objectForms.getObjectForm().add(newForm.clone());
+        objectForms.getObjectForm().add(newForm.clone().id(null));
     }
 
     private void joinObjectDetails(GuiObjectDetailsSetType objectDetailsSet, GuiObjectDetailsPageType newObjectDetails) {

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -100,10 +102,8 @@ public class ExtensionSchemaRestService {
         }
 
         String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
-        File home = new File(midpointHome, "/schema");
-        java.nio.file.Path homePath = home.toPath();
-        java.nio.file.Path filePath = file.toPath();
-        java.nio.file.Path relative = homePath.relativize(filePath);
+        java.nio.file.Path homePath = Paths.get(midpointHome, "schema");
+        java.nio.file.Path relative = homePath.relativize(file.toPath());
 
         return relative.toString();
     }

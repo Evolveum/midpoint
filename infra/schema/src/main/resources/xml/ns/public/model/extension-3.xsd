@@ -82,6 +82,7 @@
             <xsd:element ref="tns:tracingProfile" minOccurs="0"/>
             <xsd:element ref="tns:tracingRoot" minOccurs="0"/>
             <xsd:element ref="tns:tracing" minOccurs="0"/>
+            <xsd:element ref="tns:notUpdatedShadowsDuration" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 

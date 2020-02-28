@@ -20,15 +20,11 @@ import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component("securityQuestionsAuthenticationEvaluator")
-public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationEvaluatorImpl<SecurityQuestionsCredentialsType, SecurityQuestionsAuthenticationContext>{
+public class SecurityQuestionAuthenticationEvaluatorImpl
+        extends AuthenticationEvaluatorImpl<SecurityQuestionsCredentialsType, SecurityQuestionsAuthenticationContext> {
 
     @Override
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv,
@@ -41,7 +37,7 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
         Map<String, String> enteredQuestionAnswer = authCtx.getQuestionAnswerMap();
         boolean allBlank = false;
         for (String enteredAnswers : enteredQuestionAnswer.values()) {
-            if (StringUtils.isBlank(enteredAnswers)){
+            if (StringUtils.isBlank(enteredAnswers)) {
                 allBlank = true;
             }
         }
@@ -80,19 +76,16 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
 
         SecurityQuestionsCredentialsPolicyType policy = authCtx.getPolicy();
         Integer iNumberOfQuestions = policy.getQuestionNumber();
-        int numberOfQuestions = 0;
-        if (iNumberOfQuestions != null){
-            numberOfQuestions = iNumberOfQuestions.intValue();
-        }
+        int numberOfQuestions = iNumberOfQuestions != null ? iNumberOfQuestions : 0;
 
         Map<String, String> enteredQuestionsAnswers = authCtx.getQuestionAnswerMap();
-        if (numberOfQuestions > enteredQuestionsAnswers.size()){
+        if (numberOfQuestions > enteredQuestionsAnswers.size()) {
             return false;
         }
 
         List<SecurityQuestionAnswerType> quetionsAnswers = passwordType.getQuestionAnswer();
         int matched = 0;
-        for (SecurityQuestionAnswerType questionAnswer : quetionsAnswers){
+        for (SecurityQuestionAnswerType questionAnswer : quetionsAnswers) {
             String enteredAnswer = enteredQuestionsAnswers.get(questionAnswer.getQuestionIdentifier());
             if (StringUtils.isNotBlank(enteredAnswer)) {
                 if (decryptAndMatch(connEnv, principal, questionAnswer.getQuestionAnswer(), enteredAnswer)) {
@@ -109,7 +102,7 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
     protected CredentialPolicyType getEffectiveCredentialPolicy(SecurityPolicyType securityPolicy,
             SecurityQuestionsAuthenticationContext authnCtx) throws SchemaException {
         SecurityQuestionsCredentialsPolicyType policy = authnCtx.getPolicy();
-        if (policy == null){
+        if (policy == null) {
             policy = SecurityUtil.getEffectiveSecurityQuestionsCredentialsPolicy(securityPolicy);
         }
         authnCtx.setPolicy(policy);
