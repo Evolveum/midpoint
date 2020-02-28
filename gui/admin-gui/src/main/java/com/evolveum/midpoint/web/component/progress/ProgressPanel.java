@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
@@ -465,6 +466,15 @@ public class ProgressPanel extends BasePanel {
             task.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
             task.setName("Execute changes");
             task.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
+
+            PrismObject<TaskType> taskType = task.getUpdatedTaskObject();
+            AssignmentType archetypeAssignment = new AssignmentType();
+            archetypeAssignment.setTargetRef(WebComponentUtil.createObjectRef(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(),
+                    null, ArchetypeType.COMPLEX_TYPE));
+            taskType.asObjectable().getAssignment().add(archetypeAssignment);
+            taskType.asObjectable().getArchetypeRef().add(WebComponentUtil.createObjectRef(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(),
+                    null, ArchetypeType.COMPLEX_TYPE));
+
             taskManager.switchToBackground(task, result);
             result.setBackgroundTaskOid(task.getOid());
         } catch (Exception e) {

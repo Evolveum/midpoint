@@ -41,10 +41,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
- * @author mederly
+ *
  */
 public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeResultHandler<ShadowType> {
 
@@ -52,8 +53,8 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
     private static final String CLASS_DOT = ShadowIntegrityCheckResultHandler.class.getName() + ".";
     private static final String DEFAULT_DUPLICATE_SHADOWS_RESOLVER_CLASS_NAME = DefaultDuplicateShadowsResolver.class.getName();
-    public static final String KEY_EXISTS_ON_RESOURCE = CLASS_DOT + "existsOnResource";
-    public static final String KEY_OWNERS = CLASS_DOT + "owners";
+    static final String KEY_EXISTS_ON_RESOURCE = CLASS_DOT + "existsOnResource";
+    static final String KEY_OWNERS = CLASS_DOT + "owners";
 
     private PrismContext prismContext;
     private ProvisioningService provisioningService;
@@ -79,21 +80,19 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
     private boolean dryRun;
 
-    public static final String INTENTS = "intents";
-    public static final String UNIQUENESS = "uniqueness";
-    public static final String NORMALIZATION = "normalization";
-    public static final String OWNERS = "owners";
-    public static final String FETCH = "fetch";
-    public static final String EXTRA_DATA = "extraData";
-    public static final String RESOURCE_REF = "resourceRef";
-    public static final List<String> KNOWN_KEYS =
+    private static final String INTENTS = "intents";
+    private static final String UNIQUENESS = "uniqueness";
+    private static final String NORMALIZATION = "normalization";
+    private static final String OWNERS = "owners";
+    private static final String FETCH = "fetch";
+    private static final String EXTRA_DATA = "extraData";
+    private static final String RESOURCE_REF = "resourceRef";
+    private static final List<String> KNOWN_KEYS =
             Arrays.asList(INTENTS, UNIQUENESS, NORMALIZATION, OWNERS, FETCH, EXTRA_DATA, RESOURCE_REF);
 
     private Map<ContextMapKey, ObjectTypeContext> contextMap = new HashMap<>();
 
     private Map<String,PrismObject<ResourceType>> resources = new HashMap<>();
-
-    private PrismObject<SystemConfigurationType> configuration;
 
     private ShadowStatistics statistics = new ShadowStatistics();
 
@@ -101,12 +100,11 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     private Set<String> duplicateShadowsDetected = new HashSet<>();
     private Set<String> duplicateShadowsDeleted = new HashSet<>();
 
-    public ShadowIntegrityCheckResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
+    ShadowIntegrityCheckResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
             String contextDesc, TaskManager taskManager, PrismContext prismContext,
             ProvisioningService provisioningService, MatchingRuleRegistry matchingRuleRegistry,
             RepositoryService repositoryService, SynchronizationService synchronizationService,
-            SystemObjectCache systemObjectCache,
-            OperationResult result) {
+            SystemObjectCache systemObjectCache) {
         super(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, taskManager);
         this.prismContext = prismContext;
         this.provisioningService = provisioningService;
@@ -177,8 +175,10 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                 duplicateShadowsResolverClassName = DEFAULT_DUPLICATE_SHADOWS_RESOLVER_CLASS_NAME;
             }
             try {
-                duplicateShadowsResolver = (DuplicateShadowsResolver) Class.forName(duplicateShadowsResolverClassName).newInstance();
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | ClassCastException e) {
+                duplicateShadowsResolver = (DuplicateShadowsResolver) Class.forName(duplicateShadowsResolverClassName)
+                        .getDeclaredConstructor().newInstance();
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | ClassCastException
+                    | NoSuchMethodException | InvocationTargetException e) {
                 throw new SystemException("Couldn't instantiate duplicate shadows resolver " + duplicateShadowsResolverClassName);
             }
         }
@@ -186,12 +186,6 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         PrismProperty<Boolean> checkDuplicatesOnPrimaryIdentifiersOnlyProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY);
         if (checkDuplicatesOnPrimaryIdentifiersOnlyProperty != null && checkDuplicatesOnPrimaryIdentifiersOnlyProperty.getRealValue() != null) {
             checkDuplicatesOnPrimaryIdentifiersOnly = checkDuplicatesOnPrimaryIdentifiersOnlyProperty.getRealValue();
-        }
-
-        try {
-            configuration = systemObjectCache.getSystemConfiguration(result);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't get system configuration", e);
         }
 
         try {
@@ -329,7 +323,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
 
         if (checkExtraData) {
-            checkOrFixShadowActivationConsistency(checkResult, shadow, fixExtraData);
+            checkOrFixShadowActivationConsistency(checkResult, shadow);
         }
 
         PrismObject<ShadowType> fetchedShadow = null;
@@ -438,11 +432,11 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             }
             if (checkUniqueness) {
                 if (!checkDuplicatesOnPrimaryIdentifiersOnly || primaryIdentifiers.contains(identifier)) {
-                    addIdentifierValue(checkResult, context, identifier.getItemName(), value, shadow);
+                    addIdentifierValue(context, identifier.getItemName(), value, shadow);
                 }
             }
             if (checkNormalization) {
-                doCheckNormalization(checkResult, identifier, value, context);
+                doCheckNormalization(checkResult, identifier, value);
             }
         }
 
@@ -559,7 +553,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
     }
 
-    private void doCheckNormalization(ShadowCheckResult checkResult, RefinedAttributeDefinition<?> identifier, String value, ObjectTypeContext context) throws SchemaException {
+    private void doCheckNormalization(ShadowCheckResult checkResult, RefinedAttributeDefinition<?> identifier, String value) throws SchemaException {
         QName matchingRuleQName = identifier.getMatchingRuleQName();
         if (matchingRuleQName == null) {
             return;
@@ -593,12 +587,13 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
         if (fixNormalization) {
             PropertyDelta delta = identifier.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, identifier.getItemName()));
+            //noinspection unchecked
             delta.setRealValuesToReplace(normalizedStringValue);
             checkResult.addFixDelta(delta, ShadowStatistics.NON_NORMALIZED_IDENTIFIER_VALUE);
         }
     }
 
-    private void addIdentifierValue(ShadowCheckResult checkResult, ObjectTypeContext context, QName identifierName, String identifierValue, PrismObject<ShadowType> shadow) {
+    private void addIdentifierValue(ObjectTypeContext context, QName identifierName, String identifierValue, PrismObject<ShadowType> shadow) {
 
         Map<String, Set<String>> valueMap = context.getIdentifierValueMap()
                 .computeIfAbsent(identifierName, k -> new HashMap<>());
@@ -616,21 +611,6 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             existingShadowOids.add(shadow.getOid());
         }
     }
-
-//    private String shortDumpList(List<PrismObject<ShadowType>> list) {
-//        StringBuilder sb = new StringBuilder();
-//        sb.append('[');
-//        boolean first = true;
-//        for (PrismObject<ShadowType> object : list) {
-//            if (first) {
-//                first = false;
-//            } else {
-//                sb.append(", ");
-//            }
-//            sb.append(ObjectTypeUtil.toShortString(object.asObjectable()));
-//        }
-//        return sb.toString();
-//    }
 
     public ShadowStatistics getStatistics() {
         return statistics;
@@ -681,7 +661,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                             details.append("; sync situation = ").append(shadow.asObjectable().getSynchronizationSituation()).append("\n");
                             PrismContainer<ShadowAttributesType> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
                             if (attributesContainer != null && !attributesContainer.isEmpty()) {
-                                for (Item item : attributesContainer.getValue().getItems()) {
+                                for (Item<?, ?> item : attributesContainer.getValue().getItems()) {
                                     details.append("     - ").append(item.getElementName().getLocalPart()).append(" = ");
                                     details.append(item.getRealValues());
                                     details.append("\n");
@@ -732,7 +712,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
             List<PrismObject<FocusType>> owners;
             if (checkOwners) {
-                owners = (List) shadowToDelete.getUserData(KEY_OWNERS);
+                owners = shadowToDelete.getUserData(KEY_OWNERS);
             } else {
                 owners = searchOwners(shadowToDelete, result);
             }
@@ -758,8 +738,8 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                 continue;
             }
 
-            for (PrismObject owner : owners) {
-                List<ItemDelta> modifications = new ArrayList<>(2);
+            for (PrismObject<FocusType> owner : owners) {
+                List<ItemDelta<?, ?>> modifications = new ArrayList<>(2);
                 ReferenceDelta deleteDelta = prismContext.deltaFactory().reference().createModificationDelete(FocusType.F_LINK_REF, owner.getDefinition(),
                         prismContext.itemFactory().createReferenceValue(oid, ShadowType.COMPLEX_TYPE));
                 modifications.add(deleteDelta);
@@ -771,7 +751,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                 LOGGER.info("Executing modify delta{} for owner {}:\n{}", skippedForDryRun(), ObjectTypeUtil.toShortString(owner), DebugUtil.debugDump(modifications));
                 if (!dryRun) {
                     try {
-                        repositoryService.modifyObject((Class) owner.getClass(), owner.getOid(), modifications, result);
+                        repositoryService.modifyObject(owner.getCompileTimeClass(), owner.getOid(), modifications, result);
                         task.recordObjectActionExecuted(owner, ChangeType.MODIFY, null);
                     } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
                         task.recordObjectActionExecuted(owner, ChangeType.MODIFY, e);
@@ -788,9 +768,11 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     public void completeProcessing(Task task, OperationResult result) {
         super.completeProcessing(task, result);
 
-        String uniquenessReport = null;
+        String uniquenessReport;
         if (checkUniqueness) {
             uniquenessReport = reportOrFixUniqueness(task, result);
+        } else {
+            uniquenessReport = null;
         }
 
         logConfiguration("Shadow integrity check finished. It was run with the configuration:");
@@ -811,7 +793,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     }
 
     // adapted from ProvisioningUtil
-    public void checkOrFixShadowActivationConsistency(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, boolean fix) {
+    private void checkOrFixShadowActivationConsistency(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow) {
         if (shadow == null) {        // just for sure
             return;
         }
@@ -830,14 +812,14 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         checkOrFixActivationItem(checkResult, shadow, activation.asPrismContainerValue(), ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP);
     }
 
-    private void checkOrFixActivationItem(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, PrismContainerValue<ActivationType> activation, ItemName itemName) {
-        PrismProperty property = activation.findProperty(itemName);
+    private void checkOrFixActivationItem(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, PrismContainerValue<?> activation, ItemName itemName) {
+        PrismProperty<?> property = activation.findProperty(itemName);
         if (property == null || property.isEmpty()) {
             return;
         }
         checkResult.recordWarning(ShadowStatistics.EXTRA_ACTIVATION_DATA, "Unexpected activation item: " + property);
         if (fixExtraData) {
-            PropertyDelta delta = prismContext.deltaFactory().property().createReplaceEmptyDelta(shadow.getDefinition(), ItemPath.create(ShadowType.F_ACTIVATION, itemName));
+            PropertyDelta<?> delta = prismContext.deltaFactory().property().createReplaceEmptyDelta(shadow.getDefinition(), ItemPath.create(ShadowType.F_ACTIVATION, itemName));
             checkResult.addFixDelta(delta, ShadowStatistics.EXTRA_ACTIVATION_DATA);
         }
     }

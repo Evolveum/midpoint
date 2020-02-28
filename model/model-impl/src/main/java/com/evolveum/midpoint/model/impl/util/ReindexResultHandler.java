@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import java.util.ArrayList;
 
 /**
- * @author mederly
+ *
  */
 public class ReindexResultHandler extends AbstractSearchIterativeResultHandler<ObjectType> {
 
@@ -30,12 +30,13 @@ public class ReindexResultHandler extends AbstractSearchIterativeResultHandler<O
     static final Trace LOGGER = TraceManager.getTrace(ReindexResultHandler.class);
 
     private static final String CLASS_DOT = ReindexResultHandler.class.getName() + ".";
+    private static final String OP_HANDLE_OBJECT = CLASS_DOT + "handleObject";
 
     private RepositoryService repositoryService;
 
-    public ReindexResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
-                                String contextDesc, TaskManager taskManager,
-                                RepositoryService repositoryService) {
+    ReindexResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
+            String contextDesc, TaskManager taskManager,
+            RepositoryService repositoryService) {
         super(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, taskManager);
         this.repositoryService = repositoryService;
         setStopOnError(false);
@@ -43,7 +44,7 @@ public class ReindexResultHandler extends AbstractSearchIterativeResultHandler<O
 
     @Override
     protected boolean handleObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult parentResult) throws CommonException {
-        OperationResult result = parentResult.createMinorSubresult(CLASS_DOT + "handleObject");
+        OperationResult result = parentResult.createMinorSubresult(OP_HANDLE_OBJECT);
         repositoryService.modifyObject(object.asObjectable().getClass(), object.getOid(), new ArrayList<>(),
                 RepoModifyOptions.createExecuteIfNoChanges(), result);
         result.computeStatusIfUnknown();

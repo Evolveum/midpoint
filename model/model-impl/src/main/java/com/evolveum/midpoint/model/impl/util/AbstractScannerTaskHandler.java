@@ -23,8 +23,6 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -39,8 +37,6 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 
     @Autowired protected Clock clock;
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractScannerTaskHandler.class);
-
     public AbstractScannerTaskHandler(Class<O> type, String taskName, String taskOperationPrefix) {
         super(taskName, taskOperationPrefix);
     }
@@ -53,10 +49,12 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
             return false;
         }
 
-        XMLGregorianCalendar lastScanTimestamp = null;
+        XMLGregorianCalendar lastScanTimestamp;
         PrismProperty<XMLGregorianCalendar> lastScanTimestampProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
         if (lastScanTimestampProperty != null) {
             lastScanTimestamp = lastScanTimestampProperty.getValue().getValue();
+        } else {
+            lastScanTimestamp = null;
         }
         handler.setLastScanTimestamp(lastScanTimestamp);
 

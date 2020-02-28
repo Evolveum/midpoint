@@ -107,7 +107,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             return false;
         }
 
-        if (!((PrismContainerWrapper) parent).isExpanded() && parent.isMultiValue()) {
+
+        if (!isShowOnTopLevel() && !((PrismContainerWrapper) parent).isExpanded() && parent.isMultiValue()) {
             return false;
         }
         return true;

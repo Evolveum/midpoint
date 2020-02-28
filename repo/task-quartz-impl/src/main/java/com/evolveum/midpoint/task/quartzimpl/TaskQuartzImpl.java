@@ -26,8 +26,6 @@ import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksByPollingTaskHandler;
-import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -2249,36 +2247,6 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         return sub;
     }
 
-    @Deprecated
-    public TaskRunResult waitForSubtasks(Integer interval, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        return waitForSubtasks(interval, null, parentResult);
-    }
-
-    @Deprecated
-    public TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?, ?>> extensionDeltas,
-            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-
-        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "waitForSubtasks");
-        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
-        result.addContext(OperationResult.CONTEXT_OID, getOid());
-
-        TaskRunResult trr = new TaskRunResult();
-        trr.setRunResultStatus(TaskRunResult.TaskRunResultStatus.RESTART_REQUESTED);
-        trr.setOperationResult(null);
-
-        ScheduleType schedule = new ScheduleType();
-        if (interval != null) {
-            schedule.setInterval(interval);
-        } else {
-            schedule.setInterval(30);
-        }
-        pushHandlerUri(WaitForSubtasksByPollingTaskHandler.HANDLER_URI, schedule, null, extensionDeltas);
-        setBinding(TaskBinding.LOOSE);
-        flushPendingModifications(result);
-        return trr;
-    }
-
     @Override
     public List<PrismObject<TaskType>> listPersistentSubtasksRaw(OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "listPersistentSubtasksRaw");
@@ -2358,12 +2326,6 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
         return taskManager.resolveTasksFromTaskTypes(listPrerequisiteTasksRaw(result), result);
     }
-
-    @Override
-    public void pushWaitForTasksHandlerUri() {
-        pushHandlerUri(WaitForTasksTaskHandler.HANDLER_URI, new ScheduleType(), null);
-    }
-
 
     @Override
     public void close(OperationResult taskResult, boolean saveState, OperationResult parentResult)

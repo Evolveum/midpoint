@@ -15,7 +15,7 @@
             <label>Live synchronization task</label>
             <pluralLabel>Live synchronization tasks</pluralLabel>
             <icon>
-                <cssClass>fa fa-cogs</cssClass>
+                <cssClass>fa fa-refresh</cssClass>
                 <color>green</color>
             </icon>
         </display>

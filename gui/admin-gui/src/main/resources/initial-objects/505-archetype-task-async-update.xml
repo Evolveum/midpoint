@@ -14,7 +14,7 @@
             <label>Asynchronous update task</label>
             <pluralLabel>Asynchronous update tasks</pluralLabel>
             <icon>
-                <cssClass>fa fa-cogs</cssClass>
+                <cssClass>fa fa-bolt</cssClass>
                 <color>green</color>
             </icon>
         </display>
