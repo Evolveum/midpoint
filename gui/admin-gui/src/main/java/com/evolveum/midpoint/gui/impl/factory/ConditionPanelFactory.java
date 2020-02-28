@@ -11,14 +11,11 @@ import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +32,7 @@ public class ConditionPanelFactory extends AbstractGuiComponentFactory<Expressio
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ExpressionType> panelCtx) {
-        AceEditorPanel conditionPanel  =  new AceEditorPanel(panelCtx.getComponentId(), null, new ConditionExpressionModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 200){
+        AceEditorPanel conditionPanel  =  new AceEditorPanel(panelCtx.getComponentId(), null, new ExpressionModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 200){
             @Override
             protected boolean isResizeToMaxHeight() {
                 return false;
